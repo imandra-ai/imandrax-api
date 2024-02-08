@@ -29,7 +29,8 @@ jobs:
           dune-cache: true
           allow-prerelease-opam: true
 
-      - run: opam install -t imandrax-api-proto --deps-only
+      - run: make opam-pin-submodules opam-install-deps
+      - run: opam install -t imandrax-api-proto imandrax-api --deps-only
       - run: opam exec -- dune build @install --ignore-promoted-rules
       - run: opam exec -- dune runtest --ignore-promoted-rules
 

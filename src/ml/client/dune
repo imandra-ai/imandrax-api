@@ -1,0 +1,5 @@
+
+(library
+  (name imandrax_api_client)
+  (public_name imandrax-api-client)
+  (libraries imandrax-api-proto batrpc moonpool))

@@ -12,3 +12,13 @@
     (pbrt (>= 3.0))
     (pbrt_yojson (>= 3.0))
     (pbrt_services (>= 3.0))))
+
+(package
+  (name imandrax-api-client)
+  (synopsis "RPC client for ImandraX's API")
+  (depends
+    batrpc
+    moonpool
+    (pbrt (>= 3.0))
+    (pbrt_yojson (>= 3.0))
+    (pbrt_services (>= 3.0))))

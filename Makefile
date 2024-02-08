@@ -21,3 +21,18 @@ build-dev:
 WATCH?= @check @runtest
 watch:
 	dune build $(DUNE_OPTS) -w $(WATCH)
+
+## handle vendored deps
+
+update-submodules:
+	git submodule update --init
+
+opam-pin-submodules:
+	opam pin -k path -y -n vendor/batrpc
+
+opam-install-deps: update-submodules
+	opam install . --deps-only
+
+opam-install-test-deps: update-submodules
+	opam install . --deps-only -t
+

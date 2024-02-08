@@ -1,0 +1,3 @@
+[submodule "vendor/batrpc"]
+	path = vendor/batrpc
+	url = https://github.com/imandra-ai/batrpc
