@@ -1,0 +1,40 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  run:
+    name: build
+    timeout-minutes: 5
+    strategy:
+      fail-fast: true
+      matrix:
+        os:
+            - ubuntu-latest
+        ocaml-compiler:
+            - '4.12'
+            - '5.1'
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@main
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          dune-cache: true
+          allow-prerelease-opam: true
+
+      - run: opam install -t imandrax-api-proto --deps-only
+      - run: opam exec -- dune build @install --ignore-promoted-rules
+      - run: opam exec -- dune runtest --ignore-promoted-rules
+
+      # check that the generated code is up to date
+      - run: opam install ocaml-protoc
+      - run: opam exec -- dune build @lint --auto-promote
+      - run: git diff -q
+
