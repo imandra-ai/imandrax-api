@@ -1,8 +1,100 @@
 
 syntax = "proto3";
 
+// Void type, used for messages without arguments or return value.
 message Empty {}
 
+message Position {
+  int32 line = 1;
+  int32 col = 2;
+}
+
+// A location
+message Location {
+  string file = 1;
+  Position start = 2;
+  Position stop = 3;
+}
+
+message Error {
+  // The full error message.
+  string msg = 1;
+
+  /// A string description of the kind of error
+  string kind = 2;
+
+  optional Location loc = 3;
+}
+
+message TaskID {
+  // The task identifier.
+  bytes id = 1;
+}
+
+// ## Session management
+
+// A session identifier.
+message Session {
+  // The session's unique ID.
+  int32 id = 1;
+}
+
+service SessionManager {
+  // Create a new session.
+  rpc create_session(Empty) returns (Session);
+
+  // Delete an existing session.
+  rpc delete_session(Session) returns (Empty);
+}
+
+// ## Evaluation of snippets
+//
+// Here we evalute snippets of imandra code that do not live
+// explicitly in a file. As would be the case in a REPL,
+// or a notebook, they are just free-floating code snippets.
+
+message CodeSnippet {
+  Session session = 1;
+
+  /// Code snippet.
+  string code = 2;
+}
+
+enum EvalResult {
+  EVAL_OK = 0;
+  EVAL_ERRORS = 1;
+}
+
+message CodeSnippetEvalResult {
+  // Result of the evaluation
+  EvalResult res = 1;
+
+  // TODO: defined CIR symbols
+
+  /// Duration in seconds.
+  float duration_s = 3;
+
+  // Tasks produced in the evaluation.
+  repeated TaskID tasks = 9;
+
+  // Errors occurring during evaluation.
+  repeated Error errors = 10;
+}
+
+
+service Eval {
+  /// Evaluate a snippet
+  rpc eval_code_snippet(CodeSnippet) returns (CodeSnippetEvalResult);
+
+
+}
+
+// TODO: task API
+
+// ## GC statistics.
+//
+// This part of the API is mostly redundant given we have telemetry,
+// but it's still good to have in a pinch.
 
 message Gc_stats {
   int32 heap_size_B = 1;

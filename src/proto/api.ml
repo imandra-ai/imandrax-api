@@ -2,6 +2,47 @@
 
 type empty = unit
 
+type position = {
+  line : int32;
+  col : int32;
+}
+
+type location = {
+  file : string;
+  start : position option;
+  stop : position option;
+}
+
+type error = {
+  msg : string;
+  kind : string;
+  loc : location option;
+}
+
+type task_id = {
+  id : bytes;
+}
+
+type session = {
+  id : int32;
+}
+
+type code_snippet = {
+  session : session option;
+  code : string;
+}
+
+type eval_result =
+  | Eval_ok 
+  | Eval_errors 
+
+type code_snippet_eval_result = {
+  res : eval_result;
+  duration_s : float;
+  tasks : task_id list;
+  errors : error list;
+}
+
 type gc_stats = {
   heap_size_b : int32;
   major_collections : int32;
@@ -9,6 +50,68 @@ type gc_stats = {
 }
 
 let rec default_empty = ()
+
+let rec default_position 
+  ?line:((line:int32) = 0l)
+  ?col:((col:int32) = 0l)
+  () : position  = {
+  line;
+  col;
+}
+
+let rec default_location 
+  ?file:((file:string) = "")
+  ?start:((start:position option) = None)
+  ?stop:((stop:position option) = None)
+  () : location  = {
+  file;
+  start;
+  stop;
+}
+
+let rec default_error 
+  ?msg:((msg:string) = "")
+  ?kind:((kind:string) = "")
+  ?loc:((loc:location option) = None)
+  () : error  = {
+  msg;
+  kind;
+  loc;
+}
+
+let rec default_task_id 
+  ?id:((id:bytes) = Bytes.create 0)
+  () : task_id  = {
+  id;
+}
+
+let rec default_session 
+  ?id:((id:int32) = 0l)
+  () : session  = {
+  id;
+}
+
+let rec default_code_snippet 
+  ?session:((session:session option) = None)
+  ?code:((code:string) = "")
+  () : code_snippet  = {
+  session;
+  code;
+}
+
+let rec default_eval_result () = (Eval_ok:eval_result)
+
+let rec default_code_snippet_eval_result 
+  ?res:((res:eval_result) = default_eval_result ())
+  ?duration_s:((duration_s:float) = 0.)
+  ?tasks:((tasks:task_id list) = [])
+  ?errors:((errors:error list) = [])
+  () : code_snippet_eval_result  = {
+  res;
+  duration_s;
+  tasks;
+  errors;
+}
 
 let rec default_gc_stats 
   ?heap_size_b:((heap_size_b:int32) = 0l)
@@ -18,6 +121,80 @@ let rec default_gc_stats
   heap_size_b;
   major_collections;
   minor_collections;
+}
+
+type position_mutable = {
+  mutable line : int32;
+  mutable col : int32;
+}
+
+let default_position_mutable () : position_mutable = {
+  line = 0l;
+  col = 0l;
+}
+
+type location_mutable = {
+  mutable file : string;
+  mutable start : position option;
+  mutable stop : position option;
+}
+
+let default_location_mutable () : location_mutable = {
+  file = "";
+  start = None;
+  stop = None;
+}
+
+type error_mutable = {
+  mutable msg : string;
+  mutable kind : string;
+  mutable loc : location option;
+}
+
+let default_error_mutable () : error_mutable = {
+  msg = "";
+  kind = "";
+  loc = None;
+}
+
+type task_id_mutable = {
+  mutable id : bytes;
+}
+
+let default_task_id_mutable () : task_id_mutable = {
+  id = Bytes.create 0;
+}
+
+type session_mutable = {
+  mutable id : int32;
+}
+
+let default_session_mutable () : session_mutable = {
+  id = 0l;
+}
+
+type code_snippet_mutable = {
+  mutable session : session option;
+  mutable code : string;
+}
+
+let default_code_snippet_mutable () : code_snippet_mutable = {
+  session = None;
+  code = "";
+}
+
+type code_snippet_eval_result_mutable = {
+  mutable res : eval_result;
+  mutable duration_s : float;
+  mutable tasks : task_id list;
+  mutable errors : error list;
+}
+
+let default_code_snippet_eval_result_mutable () : code_snippet_eval_result_mutable = {
+  res = default_eval_result ();
+  duration_s = 0.;
+  tasks = [];
+  errors = [];
 }
 
 type gc_stats_mutable = {
@@ -35,6 +212,67 @@ let default_gc_stats_mutable () : gc_stats_mutable = {
 
 (** {2 Make functions} *)
 
+
+let rec make_position 
+  ~(line:int32)
+  ~(col:int32)
+  () : position  = {
+  line;
+  col;
+}
+
+let rec make_location 
+  ~(file:string)
+  ?start:((start:position option) = None)
+  ?stop:((stop:position option) = None)
+  () : location  = {
+  file;
+  start;
+  stop;
+}
+
+let rec make_error 
+  ~(msg:string)
+  ~(kind:string)
+  ?loc:((loc:location option) = None)
+  () : error  = {
+  msg;
+  kind;
+  loc;
+}
+
+let rec make_task_id 
+  ~(id:bytes)
+  () : task_id  = {
+  id;
+}
+
+let rec make_session 
+  ~(id:int32)
+  () : session  = {
+  id;
+}
+
+let rec make_code_snippet 
+  ?session:((session:session option) = None)
+  ~(code:string)
+  () : code_snippet  = {
+  session;
+  code;
+}
+
+
+let rec make_code_snippet_eval_result 
+  ~(res:eval_result)
+  ~(duration_s:float)
+  ~(tasks:task_id list)
+  ~(errors:error list)
+  () : code_snippet_eval_result  = {
+  res;
+  duration_s;
+  tasks;
+  errors;
+}
 
 let rec make_gc_stats 
   ~(heap_size_b:int32)
@@ -56,6 +294,62 @@ let rec pp_empty fmt (v:empty) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
+let rec pp_position fmt (v:position) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "line" Pbrt.Pp.pp_int32 fmt v.line;
+    Pbrt.Pp.pp_record_field ~first:false "col" Pbrt.Pp.pp_int32 fmt v.col;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_location fmt (v:location) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "file" Pbrt.Pp.pp_string fmt v.file;
+    Pbrt.Pp.pp_record_field ~first:false "start" (Pbrt.Pp.pp_option pp_position) fmt v.start;
+    Pbrt.Pp.pp_record_field ~first:false "stop" (Pbrt.Pp.pp_option pp_position) fmt v.stop;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_error fmt (v:error) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "msg" Pbrt.Pp.pp_string fmt v.msg;
+    Pbrt.Pp.pp_record_field ~first:false "kind" Pbrt.Pp.pp_string fmt v.kind;
+    Pbrt.Pp.pp_record_field ~first:false "loc" (Pbrt.Pp.pp_option pp_location) fmt v.loc;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_task_id fmt (v:task_id) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_bytes fmt v.id;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_session fmt (v:session) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_int32 fmt v.id;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_code_snippet fmt (v:code_snippet) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option pp_session) fmt v.session;
+    Pbrt.Pp.pp_record_field ~first:false "code" Pbrt.Pp.pp_string fmt v.code;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_eval_result fmt (v:eval_result) =
+  match v with
+  | Eval_ok -> Format.fprintf fmt "Eval_ok"
+  | Eval_errors -> Format.fprintf fmt "Eval_errors"
+
+let rec pp_code_snippet_eval_result fmt (v:code_snippet_eval_result) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "res" pp_eval_result fmt v.res;
+    Pbrt.Pp.pp_record_field ~first:false "duration_s" Pbrt.Pp.pp_float fmt v.duration_s;
+    Pbrt.Pp.pp_record_field ~first:false "tasks" (Pbrt.Pp.pp_list pp_task_id) fmt v.tasks;
+    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list pp_error) fmt v.errors;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
 let rec pp_gc_stats fmt (v:gc_stats) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "heap_size_b" Pbrt.Pp.pp_int32 fmt v.heap_size_b;
@@ -70,6 +364,84 @@ let rec pp_gc_stats fmt (v:gc_stats) =
 
 let rec encode_pb_empty (v:empty) encoder = 
 ()
+
+let rec encode_pb_position (v:position) encoder = 
+  Pbrt.Encoder.int32_as_varint v.line encoder;
+  Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
+  Pbrt.Encoder.int32_as_varint v.col encoder;
+  Pbrt.Encoder.key 2 Pbrt.Varint encoder; 
+  ()
+
+let rec encode_pb_location (v:location) encoder = 
+  Pbrt.Encoder.string v.file encoder;
+  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  begin match v.start with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_position x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  begin match v.stop with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_position x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_error (v:error) encoder = 
+  Pbrt.Encoder.string v.msg encoder;
+  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  Pbrt.Encoder.string v.kind encoder;
+  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  begin match v.loc with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_location x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_task_id (v:task_id) encoder = 
+  Pbrt.Encoder.bytes v.id encoder;
+  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  ()
+
+let rec encode_pb_session (v:session) encoder = 
+  Pbrt.Encoder.int32_as_varint v.id encoder;
+  Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
+  ()
+
+let rec encode_pb_code_snippet (v:code_snippet) encoder = 
+  begin match v.session with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_session x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  Pbrt.Encoder.string v.code encoder;
+  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  ()
+
+let rec encode_pb_eval_result (v:eval_result) encoder =
+  match v with
+  | Eval_ok -> Pbrt.Encoder.int_as_varint (0) encoder
+  | Eval_errors -> Pbrt.Encoder.int_as_varint 1 encoder
+
+let rec encode_pb_code_snippet_eval_result (v:code_snippet_eval_result) encoder = 
+  encode_pb_eval_result v.res encoder;
+  Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
+  Pbrt.Encoder.float_as_bits32 v.duration_s encoder;
+  Pbrt.Encoder.key 3 Pbrt.Bits32 encoder; 
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested encode_pb_task_id x encoder;
+    Pbrt.Encoder.key 9 Pbrt.Bytes encoder; 
+  ) v.tasks encoder;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested encode_pb_error x encoder;
+    Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
+  ) v.errors encoder;
+  ()
 
 let rec encode_pb_gc_stats (v:gc_stats) encoder = 
   Pbrt.Encoder.int32_as_varint v.heap_size_b encoder;
@@ -89,6 +461,194 @@ let rec decode_pb_empty d =
   | None -> ();
   | Some (_, pk) -> 
     Pbrt.Decoder.unexpected_payload "Unexpected fields in empty message(empty)" pk
+
+let rec decode_pb_position d =
+  let v = default_position_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Varint) -> begin
+      v.line <- Pbrt.Decoder.int32_as_varint d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(position), field(1)" pk
+    | Some (2, Pbrt.Varint) -> begin
+      v.col <- Pbrt.Decoder.int32_as_varint d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(position), field(2)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    line = v.line;
+    col = v.col;
+  } : position)
+
+let rec decode_pb_location d =
+  let v = default_location_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.file <- Pbrt.Decoder.string d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(location), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.start <- Some (decode_pb_position (Pbrt.Decoder.nested d));
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(location), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.stop <- Some (decode_pb_position (Pbrt.Decoder.nested d));
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(location), field(3)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    file = v.file;
+    start = v.start;
+    stop = v.stop;
+  } : location)
+
+let rec decode_pb_error d =
+  let v = default_error_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.msg <- Pbrt.Decoder.string d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(error), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.kind <- Pbrt.Decoder.string d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(error), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.loc <- Some (decode_pb_location (Pbrt.Decoder.nested d));
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(error), field(3)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    msg = v.msg;
+    kind = v.kind;
+    loc = v.loc;
+  } : error)
+
+let rec decode_pb_task_id d =
+  let v = default_task_id_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.id <- Pbrt.Decoder.bytes d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(task_id), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    id = v.id;
+  } : task_id)
+
+let rec decode_pb_session d =
+  let v = default_session_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Varint) -> begin
+      v.id <- Pbrt.Decoder.int32_as_varint d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(session), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    id = v.id;
+  } : session)
+
+let rec decode_pb_code_snippet d =
+  let v = default_code_snippet_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.session <- Some (decode_pb_session (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(code_snippet), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.code <- Pbrt.Decoder.string d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(code_snippet), field(2)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    session = v.session;
+    code = v.code;
+  } : code_snippet)
+
+let rec decode_pb_eval_result d = 
+  match Pbrt.Decoder.int_as_varint d with
+  | 0 -> (Eval_ok:eval_result)
+  | 1 -> (Eval_errors:eval_result)
+  | _ -> Pbrt.Decoder.malformed_variant "eval_result"
+
+let rec decode_pb_code_snippet_eval_result d =
+  let v = default_code_snippet_eval_result_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      v.errors <- List.rev v.errors;
+      v.tasks <- List.rev v.tasks;
+    ); continue__ := false
+    | Some (1, Pbrt.Varint) -> begin
+      v.res <- decode_pb_eval_result d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(code_snippet_eval_result), field(1)" pk
+    | Some (3, Pbrt.Bits32) -> begin
+      v.duration_s <- Pbrt.Decoder.float_as_bits32 d;
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(code_snippet_eval_result), field(3)" pk
+    | Some (9, Pbrt.Bytes) -> begin
+      v.tasks <- (decode_pb_task_id (Pbrt.Decoder.nested d)) :: v.tasks;
+    end
+    | Some (9, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(code_snippet_eval_result), field(9)" pk
+    | Some (10, Pbrt.Bytes) -> begin
+      v.errors <- (decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
+    end
+    | Some (10, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(code_snippet_eval_result), field(10)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    res = v.res;
+    duration_s = v.duration_s;
+    tasks = v.tasks;
+    errors = v.errors;
+  } : code_snippet_eval_result)
 
 let rec decode_pb_gc_stats d =
   let v = default_gc_stats_mutable () in
@@ -127,6 +687,73 @@ let rec decode_pb_gc_stats d =
 let rec encode_json_empty (v:empty) = 
 Pbrt_yojson.make_unit v
 
+let rec encode_json_position (v:position) = 
+  let assoc = [] in 
+  let assoc = ("line", Pbrt_yojson.make_int (Int32.to_int v.line)) :: assoc in
+  let assoc = ("col", Pbrt_yojson.make_int (Int32.to_int v.col)) :: assoc in
+  `Assoc assoc
+
+let rec encode_json_location (v:location) = 
+  let assoc = [] in 
+  let assoc = ("file", Pbrt_yojson.make_string v.file) :: assoc in
+  let assoc = match v.start with
+    | None -> assoc
+    | Some v -> ("start", encode_json_position v) :: assoc
+  in
+  let assoc = match v.stop with
+    | None -> assoc
+    | Some v -> ("stop", encode_json_position v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_error (v:error) = 
+  let assoc = [] in 
+  let assoc = ("msg", Pbrt_yojson.make_string v.msg) :: assoc in
+  let assoc = ("kind", Pbrt_yojson.make_string v.kind) :: assoc in
+  let assoc = match v.loc with
+    | None -> assoc
+    | Some v -> ("loc", encode_json_location v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_task_id (v:task_id) = 
+  let assoc = [] in 
+  let assoc = ("id", Pbrt_yojson.make_bytes v.id) :: assoc in
+  `Assoc assoc
+
+let rec encode_json_session (v:session) = 
+  let assoc = [] in 
+  let assoc = ("id", Pbrt_yojson.make_int (Int32.to_int v.id)) :: assoc in
+  `Assoc assoc
+
+let rec encode_json_code_snippet (v:code_snippet) = 
+  let assoc = [] in 
+  let assoc = match v.session with
+    | None -> assoc
+    | Some v -> ("session", encode_json_session v) :: assoc
+  in
+  let assoc = ("code", Pbrt_yojson.make_string v.code) :: assoc in
+  `Assoc assoc
+
+let rec encode_json_eval_result (v:eval_result) = 
+  match v with
+  | Eval_ok -> `String "EVAL_OK"
+  | Eval_errors -> `String "EVAL_ERRORS"
+
+let rec encode_json_code_snippet_eval_result (v:code_snippet_eval_result) = 
+  let assoc = [] in 
+  let assoc = ("res", encode_json_eval_result v.res) :: assoc in
+  let assoc = ("durationS", Pbrt_yojson.make_float v.duration_s) :: assoc in
+  let assoc =
+    let l = v.tasks |> List.map encode_json_task_id in
+    ("tasks", `List l) :: assoc 
+  in
+  let assoc =
+    let l = v.errors |> List.map encode_json_error in
+    ("errors", `List l) :: assoc 
+  in
+  `Assoc assoc
+
 let rec encode_json_gc_stats (v:gc_stats) = 
   let assoc = [] in 
   let assoc = ("heapSizeB", Pbrt_yojson.make_int (Int32.to_int v.heap_size_b)) :: assoc in
@@ -140,6 +767,157 @@ let rec encode_json_gc_stats (v:gc_stats) =
 
 let rec decode_json_empty d =
 Pbrt_yojson.unit d "empty" "empty record"
+
+let rec decode_json_position d =
+  let v = default_position_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("line", json_value) -> 
+      v.line <- Pbrt_yojson.int32 json_value "position" "line"
+    | ("col", json_value) -> 
+      v.col <- Pbrt_yojson.int32 json_value "position" "col"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    line = v.line;
+    col = v.col;
+  } : position)
+
+let rec decode_json_location d =
+  let v = default_location_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("file", json_value) -> 
+      v.file <- Pbrt_yojson.string json_value "location" "file"
+    | ("start", json_value) -> 
+      v.start <- Some ((decode_json_position json_value))
+    | ("stop", json_value) -> 
+      v.stop <- Some ((decode_json_position json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    file = v.file;
+    start = v.start;
+    stop = v.stop;
+  } : location)
+
+let rec decode_json_error d =
+  let v = default_error_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("msg", json_value) -> 
+      v.msg <- Pbrt_yojson.string json_value "error" "msg"
+    | ("kind", json_value) -> 
+      v.kind <- Pbrt_yojson.string json_value "error" "kind"
+    | ("loc", json_value) -> 
+      v.loc <- Some ((decode_json_location json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    msg = v.msg;
+    kind = v.kind;
+    loc = v.loc;
+  } : error)
+
+let rec decode_json_task_id d =
+  let v = default_task_id_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("id", json_value) -> 
+      v.id <- Pbrt_yojson.bytes json_value "task_id" "id"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    id = v.id;
+  } : task_id)
+
+let rec decode_json_session d =
+  let v = default_session_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("id", json_value) -> 
+      v.id <- Pbrt_yojson.int32 json_value "session" "id"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    id = v.id;
+  } : session)
+
+let rec decode_json_code_snippet d =
+  let v = default_code_snippet_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("session", json_value) -> 
+      v.session <- Some ((decode_json_session json_value))
+    | ("code", json_value) -> 
+      v.code <- Pbrt_yojson.string json_value "code_snippet" "code"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    session = v.session;
+    code = v.code;
+  } : code_snippet)
+
+let rec decode_json_eval_result json =
+  match json with
+  | `String "EVAL_OK" -> (Eval_ok : eval_result)
+  | `String "EVAL_ERRORS" -> (Eval_errors : eval_result)
+  | _ -> Pbrt_yojson.E.malformed_variant "eval_result"
+
+let rec decode_json_code_snippet_eval_result d =
+  let v = default_code_snippet_eval_result_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("res", json_value) -> 
+      v.res <- (decode_json_eval_result json_value)
+    | ("durationS", json_value) -> 
+      v.duration_s <- Pbrt_yojson.float json_value "code_snippet_eval_result" "duration_s"
+    | ("tasks", `List l) -> begin
+      v.tasks <- List.map (function
+        | json_value -> (decode_json_task_id json_value)
+      ) l;
+    end
+    | ("errors", `List l) -> begin
+      v.errors <- List.map (function
+        | json_value -> (decode_json_error json_value)
+      ) l;
+    end
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    res = v.res;
+    duration_s = v.duration_s;
+    tasks = v.tasks;
+    errors = v.errors;
+  } : code_snippet_eval_result)
 
 let rec decode_json_gc_stats d =
   let v = default_gc_stats_mutable () in
@@ -162,6 +940,121 @@ let rec decode_json_gc_stats d =
     major_collections = v.major_collections;
     minor_collections = v.minor_collections;
   } : gc_stats)
+
+module SessionManager = struct
+  open Pbrt_services.Value_mode
+  module Client = struct
+    open Pbrt_services
+    
+    let create_session : (unit, unary, session, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:[]
+        ~service_name:"SessionManager" ~rpc_name:"create_session"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:(fun () -> `Assoc [])
+        ~encode_pb_req:(fun () enc -> Pbrt.Encoder.empty_nested enc)
+        ~decode_json_res:decode_json_session
+        ~decode_pb_res:decode_pb_session
+        () : (unit, unary, session, unary) Client.rpc)
+    open Pbrt_services
+    
+    let delete_session : (session, unary, unit, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:[]
+        ~service_name:"SessionManager" ~rpc_name:"delete_session"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_session
+        ~encode_pb_req:encode_pb_session
+        ~decode_json_res:(fun _ -> ())
+        ~decode_pb_res:(fun d -> Pbrt.Decoder.empty_nested d)
+        () : (session, unary, unit, unary) Client.rpc)
+  end
+  
+  module Server = struct
+    open Pbrt_services
+    
+    let _rpc_create_session : (unit,unary,session,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"create_session"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_session
+        ~encode_pb_res:encode_pb_session
+        ~decode_json_req:(fun _ -> ())
+        ~decode_pb_req:(fun d -> Pbrt.Decoder.empty_nested d)
+        () : _ Server.rpc)
+    
+    let _rpc_delete_session : (session,unary,unit,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"delete_session"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:(fun () -> `Assoc [])
+        ~encode_pb_res:(fun () enc -> Pbrt.Encoder.empty_nested enc)
+        ~decode_json_req:decode_json_session
+        ~decode_pb_req:decode_pb_session
+        () : _ Server.rpc)
+    
+    let make
+      ~create_session
+      ~delete_session
+      () : _ Server.t =
+      { Server.
+        service_name="SessionManager";
+        package=[];
+        handlers=[
+           (create_session _rpc_create_session);
+           (delete_session _rpc_delete_session);
+        ];
+      }
+  end
+  
+end
+
+module Eval = struct
+  open Pbrt_services.Value_mode
+  module Client = struct
+    open Pbrt_services
+    
+    let eval_code_snippet : (code_snippet, unary, code_snippet_eval_result, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:[]
+        ~service_name:"Eval" ~rpc_name:"eval_code_snippet"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_code_snippet
+        ~encode_pb_req:encode_pb_code_snippet
+        ~decode_json_res:decode_json_code_snippet_eval_result
+        ~decode_pb_res:decode_pb_code_snippet_eval_result
+        () : (code_snippet, unary, code_snippet_eval_result, unary) Client.rpc)
+  end
+  
+  module Server = struct
+    open Pbrt_services
+    
+    let _rpc_eval_code_snippet : (code_snippet,unary,code_snippet_eval_result,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"eval_code_snippet"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_code_snippet_eval_result
+        ~encode_pb_res:encode_pb_code_snippet_eval_result
+        ~decode_json_req:decode_json_code_snippet
+        ~decode_pb_req:decode_pb_code_snippet
+        () : _ Server.rpc)
+    
+    let make
+      ~eval_code_snippet
+      () : _ Server.t =
+      { Server.
+        service_name="Eval";
+        package=[];
+        handlers=[
+           (eval_code_snippet _rpc_eval_code_snippet);
+        ];
+      }
+  end
+  
+end
 
 module Gc_service = struct
   open Pbrt_services.Value_mode
