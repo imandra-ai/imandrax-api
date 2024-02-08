@@ -1,0 +1,17 @@
+
+syntax = "proto3";
+
+message Empty {}
+
+
+message Gc_stats {
+  int32 heap_size_B = 1;
+  int32 major_collections = 2;
+  int32 minor_collections = 3;
+}
+
+
+service Gc_service {
+  rpc get_stats(Empty) returns (Gc_stats);
+
+}

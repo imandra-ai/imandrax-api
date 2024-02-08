@@ -1,0 +1,12 @@
+
+(library
+  (public_name imandrax-api-proto)
+  (name imandrax_api_proto)
+  (libraries pbrt pbrt_yojson pbrt_services))
+
+(rule
+  (alias lint)
+  (targets api.ml api.mli)
+  (deps (:file api.proto))
+  (mode promote)
+  (action (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
