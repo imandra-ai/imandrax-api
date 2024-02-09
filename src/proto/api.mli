@@ -31,7 +31,7 @@ type task_id = {
 }
 
 type session = {
-  id : int64;
+  id : bytes;
 }
 
 type session_create = {
@@ -96,7 +96,7 @@ val default_task_id :
 (** [default_task_id ()] is the default value for type [task_id] *)
 
 val default_session : 
-  ?id:int64 ->
+  ?id:bytes ->
   unit ->
   session
 (** [default_session ()] is the default value for type [session] *)
@@ -168,7 +168,7 @@ val make_task_id :
 (** [make_task_id … ()] is a builder for type [task_id] *)
 
 val make_session : 
-  id:int64 ->
+  id:bytes ->
   unit ->
   session
 (** [make_session … ()] is a builder for type [session] *)
