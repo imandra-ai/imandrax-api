@@ -21,6 +21,10 @@ type t = {
 }
 (** A RPC client. *)
 
+open struct
+  type client = t
+end
+
 (** Connect to the server over TCP *)
 let connect_tcp (addr : Unix.sockaddr) : t result =
   let timer = RPC.Simple_timer.create () in
@@ -30,8 +34,21 @@ let connect_tcp (addr : Unix.sockaddr) : t result =
 let connect_tcp_exn (addr : Unix.sockaddr) : t =
   connect_tcp addr |> unwrap_rpc_err
 
-(** GC statistics *)
-let gc_stats (self : t) : API.gc_stats Fut.t =
-  RPC.Rpc_conn.call self.rpc API.Gc_service.Client.get_stats ()
+module GC = struct
+  (** GC statistics *)
+  let stats (self : t) : API.gc_stats Fut.t =
+    RPC.Rpc_conn.call self.rpc API.Gc_service.Client.get_stats ()
+end
+
+module Session = struct
+  type t = API.session
+
+  let create (self : client) : t Fut.t =
+    RPC.Rpc_conn.call self.rpc API.SessionManager.Client.create_session
+    @@ API.make_session_create ~po_check:(Some true) ()
+
+  let delete (self : client) (sesh : t) : unit Fut.t =
+    RPC.Rpc_conn.call self.rpc API.SessionManager.Client.delete_session sesh
+end
 
 (* TODO: connect with ezcurl + websocket ugprade, handling auth  *)
