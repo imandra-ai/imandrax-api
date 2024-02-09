@@ -39,9 +39,14 @@ message Session {
   int32 id = 1;
 }
 
+message SessionCreate {
+  /// Do we check Proof Obligations? Default true.
+  optional bool po_check = 1;
+}
+
 service SessionManager {
   // Create a new session.
-  rpc create_session(Empty) returns (Session);
+  rpc create_session(SessionCreate) returns (Session);
 
   // Delete an existing session.
   rpc delete_session(Session) returns (Empty);

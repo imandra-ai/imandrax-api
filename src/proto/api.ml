@@ -27,6 +27,10 @@ type session = {
   id : int32;
 }
 
+type session_create = {
+  po_check : bool option;
+}
+
 type code_snippet = {
   session : session option;
   code : string;
@@ -89,6 +93,12 @@ let rec default_session
   ?id:((id:int32) = 0l)
   () : session  = {
   id;
+}
+
+let rec default_session_create 
+  ?po_check:((po_check:bool option) = None)
+  () : session_create  = {
+  po_check;
 }
 
 let rec default_code_snippet 
@@ -173,6 +183,14 @@ let default_session_mutable () : session_mutable = {
   id = 0l;
 }
 
+type session_create_mutable = {
+  mutable po_check : bool option;
+}
+
+let default_session_create_mutable () : session_create_mutable = {
+  po_check = None;
+}
+
 type code_snippet_mutable = {
   mutable session : session option;
   mutable code : string;
@@ -253,6 +271,12 @@ let rec make_session
   id;
 }
 
+let rec make_session_create 
+  ?po_check:((po_check:bool option) = None)
+  () : session_create  = {
+  po_check;
+}
+
 let rec make_code_snippet 
   ?session:((session:session option) = None)
   ~(code:string)
@@ -326,6 +350,12 @@ let rec pp_task_id fmt (v:task_id) =
 let rec pp_session fmt (v:session) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_int32 fmt v.id;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_session_create fmt (v:session_create) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "po_check" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.po_check;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -410,6 +440,15 @@ let rec encode_pb_task_id (v:task_id) encoder =
 let rec encode_pb_session (v:session) encoder = 
   Pbrt.Encoder.int32_as_varint v.id encoder;
   Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
+  ()
+
+let rec encode_pb_session_create (v:session_create) encoder = 
+  begin match v.po_check with
+  | Some x -> 
+    Pbrt.Encoder.bool x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
+  | None -> ();
+  end;
   ()
 
 let rec encode_pb_code_snippet (v:code_snippet) encoder = 
@@ -582,6 +621,24 @@ let rec decode_pb_session d =
     id = v.id;
   } : session)
 
+let rec decode_pb_session_create d =
+  let v = default_session_create_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Varint) -> begin
+      v.po_check <- Some (Pbrt.Decoder.bool d);
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(session_create), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    po_check = v.po_check;
+  } : session_create)
+
 let rec decode_pb_code_snippet d =
   let v = default_code_snippet_mutable () in
   let continue__= ref true in
@@ -726,6 +783,14 @@ let rec encode_json_session (v:session) =
   let assoc = ("id", Pbrt_yojson.make_int (Int32.to_int v.id)) :: assoc in
   `Assoc assoc
 
+let rec encode_json_session_create (v:session_create) = 
+  let assoc = [] in 
+  let assoc = match v.po_check with
+    | None -> assoc
+    | Some v -> ("poCheck", Pbrt_yojson.make_bool v) :: assoc
+  in
+  `Assoc assoc
+
 let rec encode_json_code_snippet (v:code_snippet) = 
   let assoc = [] in 
   let assoc = match v.session with
@@ -863,6 +928,22 @@ let rec decode_json_session d =
     id = v.id;
   } : session)
 
+let rec decode_json_session_create d =
+  let v = default_session_create_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("poCheck", json_value) -> 
+      v.po_check <- Some (Pbrt_yojson.bool json_value "session_create" "po_check")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    po_check = v.po_check;
+  } : session_create)
+
 let rec decode_json_code_snippet d =
   let v = default_code_snippet_mutable () in
   let assoc = match d with
@@ -946,17 +1027,17 @@ module SessionManager = struct
   module Client = struct
     open Pbrt_services
     
-    let create_session : (unit, unary, session, unary) Client.rpc =
+    let create_session : (session_create, unary, session, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:[]
         ~service_name:"SessionManager" ~rpc_name:"create_session"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
-        ~encode_json_req:(fun () -> `Assoc [])
-        ~encode_pb_req:(fun () enc -> Pbrt.Encoder.empty_nested enc)
+        ~encode_json_req:encode_json_session_create
+        ~encode_pb_req:encode_pb_session_create
         ~decode_json_res:decode_json_session
         ~decode_pb_res:decode_pb_session
-        () : (unit, unary, session, unary) Client.rpc)
+        () : (session_create, unary, session, unary) Client.rpc)
     open Pbrt_services
     
     let delete_session : (session, unary, unit, unary) Client.rpc =
@@ -975,14 +1056,14 @@ module SessionManager = struct
   module Server = struct
     open Pbrt_services
     
-    let _rpc_create_session : (unit,unary,session,unary) Server.rpc = 
+    let _rpc_create_session : (session_create,unary,session,unary) Server.rpc = 
       (Server.mk_rpc ~name:"create_session"
         ~req_mode:Server.Unary
         ~res_mode:Server.Unary
         ~encode_json_res:encode_json_session
         ~encode_pb_res:encode_pb_session
-        ~decode_json_req:(fun _ -> ())
-        ~decode_pb_req:(fun d -> Pbrt.Decoder.empty_nested d)
+        ~decode_json_req:decode_json_session_create
+        ~decode_pb_req:decode_pb_session_create
         () : _ Server.rpc)
     
     let _rpc_delete_session : (session,unary,unit,unary) Server.rpc = 

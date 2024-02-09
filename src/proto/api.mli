@@ -34,6 +34,10 @@ type session = {
   id : int32;
 }
 
+type session_create = {
+  po_check : bool option;
+}
+
 type code_snippet = {
   session : session option;
   code : string;
@@ -96,6 +100,12 @@ val default_session :
   unit ->
   session
 (** [default_session ()] is the default value for type [session] *)
+
+val default_session_create : 
+  ?po_check:bool option ->
+  unit ->
+  session_create
+(** [default_session_create ()] is the default value for type [session_create] *)
 
 val default_code_snippet : 
   ?session:session option ->
@@ -163,6 +173,12 @@ val make_session :
   session
 (** [make_session … ()] is a builder for type [session] *)
 
+val make_session_create : 
+  ?po_check:bool option ->
+  unit ->
+  session_create
+(** [make_session_create … ()] is a builder for type [session_create] *)
+
 val make_code_snippet : 
   ?session:session option ->
   code:string ->
@@ -209,6 +225,9 @@ val pp_task_id : Format.formatter -> task_id -> unit
 val pp_session : Format.formatter -> session -> unit 
 (** [pp_session v] formats v *)
 
+val pp_session_create : Format.formatter -> session_create -> unit 
+(** [pp_session_create v] formats v *)
+
 val pp_code_snippet : Format.formatter -> code_snippet -> unit 
 (** [pp_code_snippet v] formats v *)
 
@@ -241,6 +260,9 @@ val encode_pb_task_id : task_id -> Pbrt.Encoder.t -> unit
 
 val encode_pb_session : session -> Pbrt.Encoder.t -> unit
 (** [encode_pb_session v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_session_create : session_create -> Pbrt.Encoder.t -> unit
+(** [encode_pb_session_create v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_code_snippet : code_snippet -> Pbrt.Encoder.t -> unit
 (** [encode_pb_code_snippet v encoder] encodes [v] with the given [encoder] *)
@@ -275,6 +297,9 @@ val decode_pb_task_id : Pbrt.Decoder.t -> task_id
 val decode_pb_session : Pbrt.Decoder.t -> session
 (** [decode_pb_session decoder] decodes a [session] binary value from [decoder] *)
 
+val decode_pb_session_create : Pbrt.Decoder.t -> session_create
+(** [decode_pb_session_create decoder] decodes a [session_create] binary value from [decoder] *)
+
 val decode_pb_code_snippet : Pbrt.Decoder.t -> code_snippet
 (** [decode_pb_code_snippet decoder] decodes a [code_snippet] binary value from [decoder] *)
 
@@ -307,6 +332,9 @@ val encode_json_task_id : task_id -> Yojson.Basic.t
 
 val encode_json_session : session -> Yojson.Basic.t
 (** [encode_json_session v encoder] encodes [v] to to json *)
+
+val encode_json_session_create : session_create -> Yojson.Basic.t
+(** [encode_json_session_create v encoder] encodes [v] to to json *)
 
 val encode_json_code_snippet : code_snippet -> Yojson.Basic.t
 (** [encode_json_code_snippet v encoder] encodes [v] to to json *)
@@ -341,6 +369,9 @@ val decode_json_task_id : Yojson.Basic.t -> task_id
 val decode_json_session : Yojson.Basic.t -> session
 (** [decode_json_session decoder] decodes a [session] value from [decoder] *)
 
+val decode_json_session_create : Yojson.Basic.t -> session_create
+(** [decode_json_session_create decoder] decodes a [session_create] value from [decoder] *)
+
 val decode_json_code_snippet : Yojson.Basic.t -> code_snippet
 (** [decode_json_code_snippet decoder] decodes a [code_snippet] value from [decoder] *)
 
@@ -363,7 +394,7 @@ module SessionManager : sig
   
   module Client : sig
     
-    val create_session : (unit, unary, session, unary) Client.rpc
+    val create_session : (session_create, unary, session, unary) Client.rpc
     
     val delete_session : (session, unary, unit, unary) Client.rpc
   end
@@ -371,7 +402,7 @@ module SessionManager : sig
   module Server : sig
     (** Produce a server implementation from handlers *)
     val make : 
-      create_session:((unit, unary, session, unary) Server.rpc -> 'handler) ->
+      create_session:((session_create, unary, session, unary) Server.rpc -> 'handler) ->
       delete_session:((session, unary, unit, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
   end
