@@ -1,0 +1,4 @@
+
+(tests
+  (names t_gc t_session)
+  (libraries imandrax-api-client unix containers))

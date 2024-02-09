@@ -1,4 +1,5 @@
-(lang dune 2.9)
+(lang dune 3.0)
+(using mdx 0.2)
 (generate_opam_files true)
 (source
  (github imandra-ai/imandrax-api))

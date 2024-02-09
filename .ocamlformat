@@ -10,6 +10,6 @@ break-cases=toplevel
 cases-exp-indent=2
 field-space=tight-decl
 leading-nested-match-parens=true
-module-item-spacing=compact
+module-item-spacing=sparse
 quiet=true
 ocaml-version=4.08.0
