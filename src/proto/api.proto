@@ -36,7 +36,7 @@ message TaskID {
 // A session identifier.
 message Session {
   // The session's unique ID.
-  int32 id = 1;
+  int64 id = 1;
 }
 
 message SessionCreate {
@@ -102,9 +102,9 @@ service Eval {
 // but it's still good to have in a pinch.
 
 message Gc_stats {
-  int32 heap_size_B = 1;
-  int32 major_collections = 2;
-  int32 minor_collections = 3;
+  int64 heap_size_B = 1;
+  int64 major_collections = 2;
+  int64 minor_collections = 3;
 }
 
 

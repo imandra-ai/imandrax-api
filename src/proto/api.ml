@@ -24,7 +24,7 @@ type task_id = {
 }
 
 type session = {
-  id : int32;
+  id : int64;
 }
 
 type session_create = {
@@ -48,9 +48,9 @@ type code_snippet_eval_result = {
 }
 
 type gc_stats = {
-  heap_size_b : int32;
-  major_collections : int32;
-  minor_collections : int32;
+  heap_size_b : int64;
+  major_collections : int64;
+  minor_collections : int64;
 }
 
 let rec default_empty = ()
@@ -90,7 +90,7 @@ let rec default_task_id
 }
 
 let rec default_session 
-  ?id:((id:int32) = 0l)
+  ?id:((id:int64) = 0L)
   () : session  = {
   id;
 }
@@ -124,9 +124,9 @@ let rec default_code_snippet_eval_result
 }
 
 let rec default_gc_stats 
-  ?heap_size_b:((heap_size_b:int32) = 0l)
-  ?major_collections:((major_collections:int32) = 0l)
-  ?minor_collections:((minor_collections:int32) = 0l)
+  ?heap_size_b:((heap_size_b:int64) = 0L)
+  ?major_collections:((major_collections:int64) = 0L)
+  ?minor_collections:((minor_collections:int64) = 0L)
   () : gc_stats  = {
   heap_size_b;
   major_collections;
@@ -176,11 +176,11 @@ let default_task_id_mutable () : task_id_mutable = {
 }
 
 type session_mutable = {
-  mutable id : int32;
+  mutable id : int64;
 }
 
 let default_session_mutable () : session_mutable = {
-  id = 0l;
+  id = 0L;
 }
 
 type session_create_mutable = {
@@ -216,15 +216,15 @@ let default_code_snippet_eval_result_mutable () : code_snippet_eval_result_mutab
 }
 
 type gc_stats_mutable = {
-  mutable heap_size_b : int32;
-  mutable major_collections : int32;
-  mutable minor_collections : int32;
+  mutable heap_size_b : int64;
+  mutable major_collections : int64;
+  mutable minor_collections : int64;
 }
 
 let default_gc_stats_mutable () : gc_stats_mutable = {
-  heap_size_b = 0l;
-  major_collections = 0l;
-  minor_collections = 0l;
+  heap_size_b = 0L;
+  major_collections = 0L;
+  minor_collections = 0L;
 }
 
 
@@ -266,7 +266,7 @@ let rec make_task_id
 }
 
 let rec make_session 
-  ~(id:int32)
+  ~(id:int64)
   () : session  = {
   id;
 }
@@ -299,9 +299,9 @@ let rec make_code_snippet_eval_result
 }
 
 let rec make_gc_stats 
-  ~(heap_size_b:int32)
-  ~(major_collections:int32)
-  ~(minor_collections:int32)
+  ~(heap_size_b:int64)
+  ~(major_collections:int64)
+  ~(minor_collections:int64)
   () : gc_stats  = {
   heap_size_b;
   major_collections;
@@ -349,7 +349,7 @@ let rec pp_task_id fmt (v:task_id) =
 
 let rec pp_session fmt (v:session) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_int32 fmt v.id;
+    Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_int64 fmt v.id;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -382,9 +382,9 @@ let rec pp_code_snippet_eval_result fmt (v:code_snippet_eval_result) =
 
 let rec pp_gc_stats fmt (v:gc_stats) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "heap_size_b" Pbrt.Pp.pp_int32 fmt v.heap_size_b;
-    Pbrt.Pp.pp_record_field ~first:false "major_collections" Pbrt.Pp.pp_int32 fmt v.major_collections;
-    Pbrt.Pp.pp_record_field ~first:false "minor_collections" Pbrt.Pp.pp_int32 fmt v.minor_collections;
+    Pbrt.Pp.pp_record_field ~first:true "heap_size_b" Pbrt.Pp.pp_int64 fmt v.heap_size_b;
+    Pbrt.Pp.pp_record_field ~first:false "major_collections" Pbrt.Pp.pp_int64 fmt v.major_collections;
+    Pbrt.Pp.pp_record_field ~first:false "minor_collections" Pbrt.Pp.pp_int64 fmt v.minor_collections;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -438,7 +438,7 @@ let rec encode_pb_task_id (v:task_id) encoder =
   ()
 
 let rec encode_pb_session (v:session) encoder = 
-  Pbrt.Encoder.int32_as_varint v.id encoder;
+  Pbrt.Encoder.int64_as_varint v.id encoder;
   Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
   ()
 
@@ -483,11 +483,11 @@ let rec encode_pb_code_snippet_eval_result (v:code_snippet_eval_result) encoder 
   ()
 
 let rec encode_pb_gc_stats (v:gc_stats) encoder = 
-  Pbrt.Encoder.int32_as_varint v.heap_size_b encoder;
+  Pbrt.Encoder.int64_as_varint v.heap_size_b encoder;
   Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
-  Pbrt.Encoder.int32_as_varint v.major_collections encoder;
+  Pbrt.Encoder.int64_as_varint v.major_collections encoder;
   Pbrt.Encoder.key 2 Pbrt.Varint encoder; 
-  Pbrt.Encoder.int32_as_varint v.minor_collections encoder;
+  Pbrt.Encoder.int64_as_varint v.minor_collections encoder;
   Pbrt.Encoder.key 3 Pbrt.Varint encoder; 
   ()
 
@@ -611,7 +611,7 @@ let rec decode_pb_session d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Varint) -> begin
-      v.id <- Pbrt.Decoder.int32_as_varint d;
+      v.id <- Pbrt.Decoder.int64_as_varint d;
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(session), field(1)" pk
@@ -715,17 +715,17 @@ let rec decode_pb_gc_stats d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Varint) -> begin
-      v.heap_size_b <- Pbrt.Decoder.int32_as_varint d;
+      v.heap_size_b <- Pbrt.Decoder.int64_as_varint d;
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(gc_stats), field(1)" pk
     | Some (2, Pbrt.Varint) -> begin
-      v.major_collections <- Pbrt.Decoder.int32_as_varint d;
+      v.major_collections <- Pbrt.Decoder.int64_as_varint d;
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(gc_stats), field(2)" pk
     | Some (3, Pbrt.Varint) -> begin
-      v.minor_collections <- Pbrt.Decoder.int32_as_varint d;
+      v.minor_collections <- Pbrt.Decoder.int64_as_varint d;
     end
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(gc_stats), field(3)" pk
@@ -780,7 +780,7 @@ let rec encode_json_task_id (v:task_id) =
 
 let rec encode_json_session (v:session) = 
   let assoc = [] in 
-  let assoc = ("id", Pbrt_yojson.make_int (Int32.to_int v.id)) :: assoc in
+  let assoc = ("id", Pbrt_yojson.make_string (Int64.to_string v.id)) :: assoc in
   `Assoc assoc
 
 let rec encode_json_session_create (v:session_create) = 
@@ -821,9 +821,9 @@ let rec encode_json_code_snippet_eval_result (v:code_snippet_eval_result) =
 
 let rec encode_json_gc_stats (v:gc_stats) = 
   let assoc = [] in 
-  let assoc = ("heapSizeB", Pbrt_yojson.make_int (Int32.to_int v.heap_size_b)) :: assoc in
-  let assoc = ("majorCollections", Pbrt_yojson.make_int (Int32.to_int v.major_collections)) :: assoc in
-  let assoc = ("minorCollections", Pbrt_yojson.make_int (Int32.to_int v.minor_collections)) :: assoc in
+  let assoc = ("heapSizeB", Pbrt_yojson.make_string (Int64.to_string v.heap_size_b)) :: assoc in
+  let assoc = ("majorCollections", Pbrt_yojson.make_string (Int64.to_string v.major_collections)) :: assoc in
+  let assoc = ("minorCollections", Pbrt_yojson.make_string (Int64.to_string v.minor_collections)) :: assoc in
   `Assoc assoc
 
 [@@@ocaml.warning "-27-30-39"]
@@ -920,7 +920,7 @@ let rec decode_json_session d =
   in
   List.iter (function 
     | ("id", json_value) -> 
-      v.id <- Pbrt_yojson.int32 json_value "session" "id"
+      v.id <- Pbrt_yojson.int64 json_value "session" "id"
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -1008,11 +1008,11 @@ let rec decode_json_gc_stats d =
   in
   List.iter (function 
     | ("heapSizeB", json_value) -> 
-      v.heap_size_b <- Pbrt_yojson.int32 json_value "gc_stats" "heap_size_b"
+      v.heap_size_b <- Pbrt_yojson.int64 json_value "gc_stats" "heap_size_b"
     | ("majorCollections", json_value) -> 
-      v.major_collections <- Pbrt_yojson.int32 json_value "gc_stats" "major_collections"
+      v.major_collections <- Pbrt_yojson.int64 json_value "gc_stats" "major_collections"
     | ("minorCollections", json_value) -> 
-      v.minor_collections <- Pbrt_yojson.int32 json_value "gc_stats" "minor_collections"
+      v.minor_collections <- Pbrt_yojson.int64 json_value "gc_stats" "minor_collections"
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;

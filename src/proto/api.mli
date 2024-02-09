@@ -31,7 +31,7 @@ type task_id = {
 }
 
 type session = {
-  id : int32;
+  id : int64;
 }
 
 type session_create = {
@@ -55,9 +55,9 @@ type code_snippet_eval_result = {
 }
 
 type gc_stats = {
-  heap_size_b : int32;
-  major_collections : int32;
-  minor_collections : int32;
+  heap_size_b : int64;
+  major_collections : int64;
+  minor_collections : int64;
 }
 
 
@@ -96,7 +96,7 @@ val default_task_id :
 (** [default_task_id ()] is the default value for type [task_id] *)
 
 val default_session : 
-  ?id:int32 ->
+  ?id:int64 ->
   unit ->
   session
 (** [default_session ()] is the default value for type [session] *)
@@ -127,9 +127,9 @@ val default_code_snippet_eval_result :
 (** [default_code_snippet_eval_result ()] is the default value for type [code_snippet_eval_result] *)
 
 val default_gc_stats : 
-  ?heap_size_b:int32 ->
-  ?major_collections:int32 ->
-  ?minor_collections:int32 ->
+  ?heap_size_b:int64 ->
+  ?major_collections:int64 ->
+  ?minor_collections:int64 ->
   unit ->
   gc_stats
 (** [default_gc_stats ()] is the default value for type [gc_stats] *)
@@ -168,7 +168,7 @@ val make_task_id :
 (** [make_task_id … ()] is a builder for type [task_id] *)
 
 val make_session : 
-  id:int32 ->
+  id:int64 ->
   unit ->
   session
 (** [make_session … ()] is a builder for type [session] *)
@@ -197,9 +197,9 @@ val make_code_snippet_eval_result :
 (** [make_code_snippet_eval_result … ()] is a builder for type [code_snippet_eval_result] *)
 
 val make_gc_stats : 
-  heap_size_b:int32 ->
-  major_collections:int32 ->
-  minor_collections:int32 ->
+  heap_size_b:int64 ->
+  major_collections:int64 ->
+  minor_collections:int64 ->
   unit ->
   gc_stats
 (** [make_gc_stats … ()] is a builder for type [gc_stats] *)
