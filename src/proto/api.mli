@@ -395,15 +395,12 @@ module SessionManager : sig
   module Client : sig
     
     val create_session : (session_create, unary, session, unary) Client.rpc
-    
-    val delete_session : (session, unary, unit, unary) Client.rpc
   end
   
   module Server : sig
     (** Produce a server implementation from handlers *)
     val make : 
       create_session:((session_create, unary, session, unary) Server.rpc -> 'handler) ->
-      delete_session:((session, unary, unit, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
   end
 end

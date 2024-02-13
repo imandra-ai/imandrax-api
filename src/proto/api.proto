@@ -47,9 +47,6 @@ message SessionCreate {
 service SessionManager {
   // Create a new session.
   rpc create_session(SessionCreate) returns (Session);
-
-  // Delete an existing session.
-  rpc delete_session(Session) returns (Empty);
 }
 
 // ## Evaluation of snippets

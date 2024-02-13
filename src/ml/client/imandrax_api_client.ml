@@ -65,9 +65,6 @@ module Session = struct
   let create (self : client) : t Fut.t =
     RPC.Rpc_conn.call self.rpc API.SessionManager.Client.create_session
     @@ API.make_session_create ~po_check:(Some true) ()
-
-  let delete (self : client) (sesh : t) : unit Fut.t =
-    RPC.Rpc_conn.call self.rpc API.SessionManager.Client.delete_session sesh
 end
 
 (* TODO: connect with ezcurl + websocket ugprade, handling auth  *)
