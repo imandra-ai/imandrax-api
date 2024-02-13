@@ -3,3 +3,4 @@ _opam
 *.tmp
 *.exe
 node_modules
+*.json
