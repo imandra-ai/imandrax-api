@@ -1,0 +1,10 @@
+{
+  "name": "imandrax-api",
+  "dependencies": {
+    "long": "^5.2.3",
+    "protobufjs": "^7.2.6"
+  },
+  "devDependencies": {
+    "ts-proto": "^1.167.3"
+  }
+}
