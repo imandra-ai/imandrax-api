@@ -23,3 +23,16 @@
     (pbrt (>= 3.0))
     (pbrt_yojson (>= 3.0))
     (pbrt_services (>= 3.0))))
+
+(package
+  (name imandrax-api-cli)
+  (synopsis "CLI for ImandraX's API")
+  (depends
+    batrpc
+    moonpool
+    (containers (>= 3.0))
+    (imandrax-api-client (= :version))
+    ppx_deriving
+    ppx_deriving_cmdliner
+    ppx_subliner
+    (linenoise (and (>= 1.4) (< 2.0)))))

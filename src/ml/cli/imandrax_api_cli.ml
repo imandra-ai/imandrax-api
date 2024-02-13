@@ -1,0 +1,44 @@
+open Common_
+module Opts = Cli_opts_
+
+type cli =
+  | Version of Opts.conn  (** Display the version. *)
+  | GC_stats of Opts.conn
+    (*
+  | Check of check  (** Check files in batch mode. *)
+  | Repl of repl
+      (** Open an interactive REPL session (read-eval-print loop). *)
+  | Serve of serve  (** Start a server to explore existing sessions. *)
+  | Run_po of run_po  (** Run a single PO from a file *)
+  | Analyze_dune of analyze_dune  (** Analyze dune project *)
+  | Show_imports of show_imports  (** Show imports for a file *)
+  *)
+[@@deriving subliner]
+
+let version (conn : Opts.conn) : int =
+  Utils.setup_logs ~debug:conn.debug ();
+  let@ c = Utils.with_client ?port:conn.port () in
+  let v = C.System.version c |> Fut.wait_block_exn in
+  Fmt.printf "version %s (git=%s)@." v.version
+    (Option.value ~default:"<unknown>" v.git_version);
+  0
+
+let gc_stats (conn : Opts.conn) : int =
+  Utils.setup_logs ~debug:conn.debug ();
+  Log.debug (fun k -> k "CONNECT");
+  let@ c = Utils.with_client ?port:conn.port () in
+  Log.debug (fun k -> k "CONNECTED %a" C.pp c);
+  let v = C.System.gc_stats c |> Fut.wait_block_exn in
+  Log.debug (fun k -> k "GOT RES");
+  Fmt.printf "heap=%LdB major=%Ld minor=%Ld@." v.heap_size_b v.major_collections
+    v.minor_collections;
+  0
+
+let run (cli : cli) : unit =
+  let@ () = Utils.with_exit in
+  let@ () = Trace_tef.with_setup () in
+  match cli with
+  | Version c -> version c
+  | GC_stats c -> gc_stats c
+
+[%%subliner.cmds eval.cli <- run] [@@name "imandrax-cli"]
