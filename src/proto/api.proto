@@ -104,8 +104,17 @@ message Gc_stats {
   int64 minor_collections = 3;
 }
 
-
-service Gc_service {
-  rpc get_stats(Empty) returns (Gc_stats);
-
+message VersionResponse {
+  string version = 1;
+  optional string git_version = 2;
 }
+
+/// Service returning data about the ImandraX system itself.
+service System {
+  /// Return the system's version
+  rpc version(Empty) returns (VersionResponse);
+
+  /// Capture GC statistics
+  rpc gc_stats(Empty) returns (Gc_stats);
+}
+

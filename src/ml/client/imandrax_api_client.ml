@@ -1,19 +1,17 @@
 (** Simple client for ImandraX *)
 
 module API = Imandrax_api_proto
+module RPC = Batrpc
 
 open struct
-  module RPC = Batrpc
-
   let spf = Printf.sprintf
 
-  let ( let@ ) = ( @@ )
+  module Log = (val Logs.src_log (Logs.Src.create "imandrax.api.client"))
 end
 
 module Fut = Moonpool.Fut
 
 type err = RPC.Error.t
-
 type nonrec 'a result = ('a, err) result
 
 let[@inline] unwrap_rpc_err = function
@@ -44,19 +42,34 @@ let addr_inet_local ?(port = 9991) () : Unix.sockaddr =
 
 (** Connect to the server over TCP *)
 let connect_tcp (addr : Unix.sockaddr) : t result =
+  Log.debug (fun k -> k "connecting to %s…" (string_of_sockaddr addr));
   let timer = RPC.Simple_timer.create () in
   let rpc = RPC.Tcp_client.connect ~timer addr in
-  Result.map (fun rpc -> { addr; rpc; timer }) rpc
+  match rpc with
+  | Ok rpc ->
+    let self = { addr; rpc; timer } in
+    Log.debug (fun k -> k "connected: %a" pp self);
+    Ok self
+  | Error err as res ->
+    Log.err (fun k ->
+        k "coud not connect to %s:@ %a" (string_of_sockaddr addr) RPC.Error.pp
+          err);
+    res
 
 let connect_tcp_exn (addr : Unix.sockaddr) : t =
   connect_tcp addr |> unwrap_rpc_err
 
-let disconnect (self : t) : unit = RPC.Tcp_client.close_and_join self.rpc
+let disconnect (self : t) : unit =
+  Log.debug (fun k -> k "disconnecting %a" pp self);
+  RPC.Tcp_client.close_without_joining self.rpc
 
-module GC = struct
+module System = struct
   (** GC statistics *)
-  let stats (self : t) : API.gc_stats Fut.t =
-    RPC.Rpc_conn.call self.rpc API.Gc_service.Client.get_stats ()
+  let gc_stats (self : t) : API.gc_stats Fut.t =
+    RPC.Rpc_conn.call self.rpc API.System.Client.gc_stats ()
+
+  let version (self : t) : API.version_response Fut.t =
+    RPC.Rpc_conn.call self.rpc API.System.Client.version ()
 end
 
 module Session = struct
