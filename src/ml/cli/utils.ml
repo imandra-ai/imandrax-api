@@ -10,7 +10,7 @@ let with_client ?port () f =
   let client = C.connect_tcp_exn @@ C.addr_inet_local ?port () in
   let finally () =
     C.disconnect client;
-    Log.info (fun k -> k "disconnected")
+    Log.debug (fun k -> k "disconnected")
   in
   Fun.protect ~finally (fun () -> f client)
 
