@@ -1,2 +1,2 @@
-
-(mdx (libraries imandrax-api-proto imandrax-api-client))
+(mdx
+ (libraries imandrax-api-proto imandrax-api-client))

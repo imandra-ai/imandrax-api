@@ -1,2 +1,1 @@
-(data_only_dirs
-  batrpc)
+(data_only_dirs batrpc)

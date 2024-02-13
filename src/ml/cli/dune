@@ -1,8 +1,16 @@
-
 (executable
-  (name imandrax_api_cli)
-  (public_name imandrax-api-cli)
-  (package imandrax-api-cli)
-  (preprocess (pps ppx_subliner ppx_deriving_cmdliner ppx_deriving.std))
-  (libraries imandrax-api-proto imandrax-api-client containers
-             trace trace-tef batrpc unix moonpool linenoise))
+ (name imandrax_api_cli)
+ (public_name imandrax-api-cli)
+ (package imandrax-api-cli)
+ (preprocess
+  (pps ppx_subliner ppx_deriving_cmdliner ppx_deriving.std))
+ (libraries
+  imandrax-api-proto
+  imandrax-api-client
+  containers
+  trace
+  trace-tef
+  batrpc
+  unix
+  moonpool
+  linenoise))
