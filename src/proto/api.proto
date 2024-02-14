@@ -17,14 +17,27 @@ message Location {
 }
 
 message Error {
-  // The full error message.
-  string msg = 1;
+  /// An error message
+  message Message {
+    string msg = 1;
+
+    /// Locations for this message
+    repeated Location locs = 2;
+
+    /// Captured backtrace
+    optional string backtrace = 3;
+  }
+
+  // The toplevel error message.
+  Message msg = 1;
 
   /// A string description of the kind of error
   string kind = 2;
 
-  /// Locations for the error
-  repeated Location locs = 3;
+  /// Context for the error.
+  repeated Message stack = 3;
+
+  optional string process = 4;
 }
 
 message TaskID {
