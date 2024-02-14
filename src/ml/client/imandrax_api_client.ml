@@ -2,6 +2,7 @@
 
 module API = Imandrax_api_proto
 module RPC = Batrpc
+module Timer = RPC.Timer
 
 open struct
   let spf = Printf.sprintf
@@ -73,6 +74,10 @@ module System = struct
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
     RPC.Rpc_conn.call ~timeout_s self.rpc API.System.Client.gc_stats ()
 
+  let release_memory ?timeout_s (self : t) : API.gc_stats Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    RPC.Rpc_conn.call ~timeout_s self.rpc API.System.Client.release_memory ()
+
   let version ?timeout_s (self : t) : API.version_response Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
     RPC.Rpc_conn.call ~timeout_s self.rpc API.System.Client.version ()
@@ -86,6 +91,11 @@ module Session = struct
     RPC.Rpc_conn.call ~timeout_s self.rpc
       API.SessionManager.Client.create_session
     @@ API.make_session_create ~po_check:(Some true) ()
+
+  let keep_alive (self : client) sesh : unit Fut.t =
+    let timeout_s = 5. in
+    RPC.Rpc_conn.call ~timeout_s self.rpc
+      API.SessionManager.Client.keep_session_alive sesh
 end
 
 (** Evaluating code *)

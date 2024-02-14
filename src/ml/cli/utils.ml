@@ -14,8 +14,13 @@ let with_client ?port () f =
   in
   Fun.protect ~finally (fun () -> f client)
 
-let setup_logs ?lvl ?(debug = false) () : unit =
-  Logs.set_reporter (Logs.format_reporter ());
+let setup_logs ?log_file ?lvl ?(debug = false) () : unit =
+  let out =
+    match log_file with
+    | None -> Format.err_formatter
+    | Some f -> open_out f |> Format.formatter_of_out_channel
+  in
+  Logs.set_reporter (Logs.format_reporter ~app:Format.std_formatter ~dst:out ());
   Logs.set_level ~all:true
     (Some
        (if debug then

@@ -138,11 +138,13 @@ let process_input ~client ~session ~(code : string) () : unit =
       (Printexc.raw_backtrace_to_string bt)
   | Ok _res ->
     (* TODO: also wait for each Task! *)
+    let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.show-res" in
     Fmt.printf "EVALed: %a@." C.API.pp_code_snippet_eval_result _res
 
 let main_loop ~reader ~session ~client () : unit =
   let continue = ref true in
   while !continue do
+    let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.loop.iter" in
     match Reader.read reader with
     | None -> continue := false
     | Some code -> process_input ~client ~session ~code ()
@@ -152,17 +154,24 @@ let main_loop ~reader ~session ~client () : unit =
 let run (self : t) : int =
   if self.bt then Printexc.record_backtrace true;
 
-  Utils.setup_logs ?lvl:self.log_level ~debug:self.debug ();
+  let log_file = Option.value ~default:"/tmp/repl.log" self.log_file in
+  Utils.setup_logs ~log_file ?lvl:self.log_level ~debug:self.debug ();
 
   let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.run" in
 
   let port = Option.value ~default:9991 self.port in
   Log.app (fun k -> k "connecting on port %d" port);
   let client =
+    let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.connect" in
     C.connect_tcp_exn (Unix.ADDR_INET (Unix.inet_addr_loopback, port))
   in
 
   let session = C.Session.create client |> Fut.wait_block_exn in
+
+  (* regularly ask for the session to survive *)
+  C.Timer.run_every_s client.timer 20. (fun () ->
+      ignore (C.Session.keep_alive client session : _ Fut.t));
+
   let reader =
     Reader.create ~linenoise:(not self.raw) ~init_prompt:(fun () -> "> ") ()
   in
