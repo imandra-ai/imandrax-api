@@ -20,6 +20,7 @@ type repl = {
   debug: bool; [@default false] [@aka [ "d" ]]  (** Enable debug *)
   log_level: Logs.level option; [@conv parse_log_level]  (** Log level *)
   log_file: string option;
+  session: string option;  (** Session ID *)
   raw: bool;  (** Disable linenoise *)
   bt: bool;  (** backtraces *)
 }

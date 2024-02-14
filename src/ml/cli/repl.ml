@@ -141,9 +141,9 @@ let process_input ~client ~session ~(code : string) () : unit =
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.show-res" in
     Fmt.printf "EVALed: %a@." C.API.pp_code_snippet_eval_result _res
 
-let main_loop ~reader ~session ~client () : unit =
+let main_loop ~reader ~session ~(client : C.t) () : unit =
   let continue = ref true in
-  while !continue do
+  while !continue && C.RPC.Switch.is_on client.active do
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.loop.iter" in
     match Reader.read reader with
     | None -> continue := false
@@ -156,6 +156,7 @@ let do_keepalive ~(client : C.t) ~session () =
         try C.Session.keep_alive client session |> Fut.await
         with exn ->
           Log.err (fun k -> k "error in keepalive: %s" (Printexc.to_string exn));
+          C.RPC.Switch.turn_off client.active;
           C.disconnect client)
   in
   ignore fut
@@ -176,7 +177,24 @@ let run (self : t) : int =
     Utils.with_client ~port ()
   in
 
-  let session = C.Session.create client |> Fut.wait_block_exn in
+  let session =
+    match self.session with
+    | None -> C.Session.create client |> Fut.wait_block_exn
+    | Some id ->
+      (* reuse an existing session *)
+      let id =
+        try CCString.of_hex_exn id |> Bytes.unsafe_of_string
+        with _ -> failwith "invalid session"
+      in
+      let sesh = C.API.make_session ~id () in
+      (try C.Session.open_ client sesh |> Fut.wait_block_exn
+       with e ->
+         Fmt.eprintf "could not open session: %s@." (Printexc.to_string e);
+         raise e);
+      sesh
+  in
+  Fmt.printf "open session %s@."
+    (CCString.to_hex @@ Bytes.unsafe_to_string session.id);
 
   (* regularly ask for the session to survive *)
   C.Timer.run_every_s client.timer 20. (do_keepalive ~client ~session);

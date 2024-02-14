@@ -58,9 +58,17 @@ message SessionCreate {
   optional bool po_check = 1;
 }
 
+/// Reconnect to the given session
+message SessionOpen {
+  Session id = 1;
+}
+
 service SessionManager {
   // Create a new session.
   rpc create_session(SessionCreate) returns (Session);
+
+  // Open an existing session, ie fail if it's not existing
+  rpc open_session (SessionOpen) returns (Empty);
 
   /// Make sure the session remains active
   rpc keep_session_alive(Session) returns (Empty);
