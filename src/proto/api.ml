@@ -8,7 +8,7 @@ type position = {
 }
 
 type location = {
-  file : string;
+  file : string option;
   start : position option;
   stop : position option;
 }
@@ -76,7 +76,7 @@ let rec default_position
 }
 
 let rec default_location 
-  ?file:((file:string) = "")
+  ?file:((file:string option) = None)
   ?start:((start:position option) = None)
   ?stop:((stop:position option) = None)
   () : location  = {
@@ -176,13 +176,13 @@ let default_position_mutable () : position_mutable = {
 }
 
 type location_mutable = {
-  mutable file : string;
+  mutable file : string option;
   mutable start : position option;
   mutable stop : position option;
 }
 
 let default_location_mutable () : location_mutable = {
-  file = "";
+  file = None;
   start = None;
   stop = None;
 }
@@ -296,7 +296,7 @@ let rec make_position
 }
 
 let rec make_location 
-  ~(file:string)
+  ?file:((file:string option) = None)
   ?start:((start:position option) = None)
   ?stop:((stop:position option) = None)
   () : location  = {
@@ -403,7 +403,7 @@ let rec pp_position fmt (v:position) =
 
 let rec pp_location fmt (v:location) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "file" Pbrt.Pp.pp_string fmt v.file;
+    Pbrt.Pp.pp_record_field ~first:true "file" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.file;
     Pbrt.Pp.pp_record_field ~first:false "start" (Pbrt.Pp.pp_option pp_position) fmt v.start;
     Pbrt.Pp.pp_record_field ~first:false "stop" (Pbrt.Pp.pp_option pp_position) fmt v.stop;
   in
@@ -495,8 +495,12 @@ let rec encode_pb_position (v:position) encoder =
   ()
 
 let rec encode_pb_location (v:location) encoder = 
-  Pbrt.Encoder.string v.file encoder;
-  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  begin match v.file with
+  | Some x -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
   begin match v.start with
   | Some x -> 
     Pbrt.Encoder.nested encode_pb_position x encoder;
@@ -659,7 +663,7 @@ let rec decode_pb_location d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.file <- Pbrt.Decoder.string d;
+      v.file <- Some (Pbrt.Decoder.string d);
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(location), field(1)" pk
@@ -940,7 +944,10 @@ let rec encode_json_position (v:position) =
 
 let rec encode_json_location (v:location) = 
   let assoc = [] in 
-  let assoc = ("file", Pbrt_yojson.make_string v.file) :: assoc in
+  let assoc = match v.file with
+    | None -> assoc
+    | Some v -> ("file", Pbrt_yojson.make_string v) :: assoc
+  in
   let assoc = match v.start with
     | None -> assoc
     | Some v -> ("start", encode_json_position v) :: assoc
@@ -1077,7 +1084,7 @@ let rec decode_json_location d =
   in
   List.iter (function 
     | ("file", json_value) -> 
-      v.file <- Pbrt_yojson.string json_value "location" "file"
+      v.file <- Some (Pbrt_yojson.string json_value "location" "file")
     | ("start", json_value) -> 
       v.start <- Some ((decode_json_position json_value))
     | ("stop", json_value) -> 

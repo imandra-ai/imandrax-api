@@ -11,7 +11,7 @@ message Position {
 
 // A location
 message Location {
-  string file = 1;
+  optional string file = 1;
   Position start = 2;
   Position stop = 3;
 }

@@ -15,7 +15,7 @@ type position = {
 }
 
 type location = {
-  file : string;
+  file : string option;
   start : position option;
   stop : position option;
 }
@@ -86,7 +86,7 @@ val default_position :
 (** [default_position ()] is the default value for type [position] *)
 
 val default_location : 
-  ?file:string ->
+  ?file:string option ->
   ?start:position option ->
   ?stop:position option ->
   unit ->
@@ -174,7 +174,7 @@ val make_position :
 (** [make_position … ()] is a builder for type [position] *)
 
 val make_location : 
-  file:string ->
+  ?file:string option ->
   ?start:position option ->
   ?stop:position option ->
   unit ->
