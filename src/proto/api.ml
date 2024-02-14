@@ -1312,6 +1312,19 @@ module SessionManager = struct
         ~decode_json_res:decode_json_session
         ~decode_pb_res:decode_pb_session
         () : (session_create, unary, session, unary) Client.rpc)
+    open Pbrt_services
+    
+    let keep_session_alive : (session, unary, unit, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:[]
+        ~service_name:"SessionManager" ~rpc_name:"keep_session_alive"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_session
+        ~encode_pb_req:encode_pb_session
+        ~decode_json_res:(fun _ -> ())
+        ~decode_pb_res:(fun d -> Pbrt.Decoder.empty_nested d)
+        () : (session, unary, unit, unary) Client.rpc)
   end
   
   module Server = struct
@@ -1327,14 +1340,26 @@ module SessionManager = struct
         ~decode_pb_req:decode_pb_session_create
         () : _ Server.rpc)
     
+    let _rpc_keep_session_alive : (session,unary,unit,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"keep_session_alive"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:(fun () -> `Assoc [])
+        ~encode_pb_res:(fun () enc -> Pbrt.Encoder.empty_nested enc)
+        ~decode_json_req:decode_json_session
+        ~decode_pb_req:decode_pb_session
+        () : _ Server.rpc)
+    
     let make
       ~create_session
+      ~keep_session_alive
       () : _ Server.t =
       { Server.
         service_name="SessionManager";
         package=[];
         handlers=[
            (create_session _rpc_create_session);
+           (keep_session_alive _rpc_keep_session_alive);
         ];
       }
   end

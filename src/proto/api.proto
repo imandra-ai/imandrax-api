@@ -61,6 +61,9 @@ message SessionCreate {
 service SessionManager {
   // Create a new session.
   rpc create_session(SessionCreate) returns (Session);
+
+  /// Make sure the session remains active
+  rpc keep_session_alive(Session) returns (Empty);
 }
 
 // ## Evaluation of snippets
