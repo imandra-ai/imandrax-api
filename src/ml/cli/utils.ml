@@ -14,14 +14,14 @@ let with_client ?port () f =
   in
   Fun.protect ~finally (fun () -> f client)
 
-let setup_logs ?(debug = false) () : unit =
+let setup_logs ?lvl ?(debug = false) () : unit =
   Logs.set_reporter (Logs.format_reporter ());
   Logs.set_level ~all:true
     (Some
        (if debug then
          Logs.Debug
        else
-         Logs.Info));
+         Option.value ~default:Logs.Info lvl));
   Log.debug (fun k -> k "logs are setup");
   ()
 
