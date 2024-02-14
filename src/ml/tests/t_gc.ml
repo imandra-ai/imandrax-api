@@ -7,7 +7,8 @@ let () =
     | C.RPC.Error.E err -> Some (C.RPC.Error.show err)
     | _ -> None)
 
-let client = C.connect_tcp_exn @@ C.addr_inet_local ()
+let runner = Moonpool.Fifo_pool.create ()
+let client = C.connect_tcp_exn ~runner @@ C.addr_inet_local ()
 let () = pf "getting GC info…\n%!"
 let _gc_stats = C.Fut.wait_block_exn @@ C.System.gc_stats client
 

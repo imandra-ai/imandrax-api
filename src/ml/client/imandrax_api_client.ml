@@ -22,6 +22,7 @@ let[@inline] unwrap_rpc_err = function
 type t = {
   addr: Unix.sockaddr;
   rpc: RPC.Rpc_conn.t;
+  runner: Moonpool.Runner.t;
   timer: RPC.Timer.t;
   default_timeout_s: float;  (** Default timeout for requests *)
 }
@@ -45,14 +46,15 @@ let addr_inet_local ?(port = 9991) () : Unix.sockaddr =
   Unix.ADDR_INET (Unix.inet_addr_loopback, port)
 
 (** Connect to the server over TCP *)
-let connect_tcp ?(default_timeout_s = default_default_timeout_)
+let connect_tcp ?(default_timeout_s = default_default_timeout_) ~runner
     (addr : Unix.sockaddr) : t result =
   Log.debug (fun k -> k "connecting to %s…" (string_of_sockaddr addr));
   let timer = RPC.Simple_timer.create () in
-  let rpc = RPC.Tcp_client.connect ~timer addr in
+  let rpc = RPC.Tcp_client.connect ~runner ~timer addr in
   match rpc with
   | Ok rpc ->
-    let self = { addr; rpc; timer; default_timeout_s } in
+    let runner = RPC.Rpc_conn.runner rpc in
+    let self = { addr; rpc; runner; timer; default_timeout_s } in
     Log.debug (fun k -> k "connected: %a" pp self);
     Ok self
   | Error err as res ->
@@ -61,8 +63,8 @@ let connect_tcp ?(default_timeout_s = default_default_timeout_)
           err);
     res
 
-let connect_tcp_exn (addr : Unix.sockaddr) : t =
-  connect_tcp addr |> unwrap_rpc_err
+let connect_tcp_exn ~runner (addr : Unix.sockaddr) : t =
+  connect_tcp ~runner addr |> unwrap_rpc_err
 
 let disconnect (self : t) : unit =
   Log.debug (fun k -> k "disconnecting %a" pp self);
@@ -92,8 +94,8 @@ module Session = struct
       API.SessionManager.Client.create_session
     @@ API.make_session_create ~po_check:(Some true) ()
 
-  let keep_alive (self : client) sesh : unit Fut.t =
-    let timeout_s = 5. in
+  let keep_alive ?timeout_s (self : client) sesh : unit Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
     RPC.Rpc_conn.call ~timeout_s self.rpc
       API.SessionManager.Client.keep_session_alive sesh
 end

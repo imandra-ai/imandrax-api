@@ -7,7 +7,8 @@ let () =
 
 let with_client ?port () f =
   let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "cli.with-client" in
-  let client = C.connect_tcp_exn @@ C.addr_inet_local ?port () in
+  let@ runner = Moonpool.Fifo_pool.with_ () in
+  let client = C.connect_tcp_exn ~runner @@ C.addr_inet_local ?port () in
   let finally () =
     C.disconnect client;
     Log.debug (fun k -> k "disconnected")

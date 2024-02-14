@@ -150,6 +150,16 @@ let main_loop ~reader ~session ~client () : unit =
     | Some code -> process_input ~client ~session ~code ()
   done
 
+let do_keepalive ~(client : C.t) ~session () =
+  let fut : _ Fut.t =
+    Fut.spawn ~on:client.runner (fun () ->
+        try C.Session.keep_alive client session |> Fut.await
+        with exn ->
+          Log.err (fun k -> k "error in keepalive: %s" (Printexc.to_string exn));
+          C.disconnect client)
+  in
+  ignore fut
+
 (** Entrypoint. *)
 let run (self : t) : int =
   if self.bt then Printexc.record_backtrace true;
@@ -161,16 +171,15 @@ let run (self : t) : int =
 
   let port = Option.value ~default:9991 self.port in
   Log.app (fun k -> k "connecting on port %d" port);
-  let client =
+  let@ client =
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.connect" in
-    C.connect_tcp_exn (Unix.ADDR_INET (Unix.inet_addr_loopback, port))
+    Utils.with_client ~port ()
   in
 
   let session = C.Session.create client |> Fut.wait_block_exn in
 
   (* regularly ask for the session to survive *)
-  C.Timer.run_every_s client.timer 20. (fun () ->
-      ignore (C.Session.keep_alive client session : _ Fut.t));
+  C.Timer.run_every_s client.timer 20. (do_keepalive ~client ~session);
 
   let reader =
     Reader.create ~linenoise:(not self.raw) ~init_prompt:(fun () -> "> ") ()
