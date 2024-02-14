@@ -507,6 +507,8 @@ module System : sig
     val version : (unit, unary, version_response, unary) Client.rpc
     
     val gc_stats : (unit, unary, gc_stats, unary) Client.rpc
+    
+    val release_memory : (unit, unary, gc_stats, unary) Client.rpc
   end
   
   module Server : sig
@@ -514,6 +516,7 @@ module System : sig
     val make : 
       version:((unit, unary, version_response, unary) Server.rpc -> 'handler) ->
       gc_stats:((unit, unary, gc_stats, unary) Server.rpc -> 'handler) ->
+      release_memory:((unit, unary, gc_stats, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
   end
 end

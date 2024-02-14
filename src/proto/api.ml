@@ -1415,6 +1415,19 @@ module System = struct
         ~decode_json_res:decode_json_gc_stats
         ~decode_pb_res:decode_pb_gc_stats
         () : (unit, unary, gc_stats, unary) Client.rpc)
+    open Pbrt_services
+    
+    let release_memory : (unit, unary, gc_stats, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:[]
+        ~service_name:"System" ~rpc_name:"release_memory"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:(fun () -> `Assoc [])
+        ~encode_pb_req:(fun () enc -> Pbrt.Encoder.empty_nested enc)
+        ~decode_json_res:decode_json_gc_stats
+        ~decode_pb_res:decode_pb_gc_stats
+        () : (unit, unary, gc_stats, unary) Client.rpc)
   end
   
   module Server = struct
@@ -1440,9 +1453,20 @@ module System = struct
         ~decode_pb_req:(fun d -> Pbrt.Decoder.empty_nested d)
         () : _ Server.rpc)
     
+    let _rpc_release_memory : (unit,unary,gc_stats,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"release_memory"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_gc_stats
+        ~encode_pb_res:encode_pb_gc_stats
+        ~decode_json_req:(fun _ -> ())
+        ~decode_pb_req:(fun d -> Pbrt.Decoder.empty_nested d)
+        () : _ Server.rpc)
+    
     let make
       ~version
       ~gc_stats
+      ~release_memory
       () : _ Server.t =
       { Server.
         service_name="System";
@@ -1450,6 +1474,7 @@ module System = struct
         handlers=[
            (version _rpc_version);
            (gc_stats _rpc_gc_stats);
+           (release_memory _rpc_release_memory);
         ];
       }
   end

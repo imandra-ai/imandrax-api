@@ -130,5 +130,8 @@ service System {
 
   /// Capture GC statistics
   rpc gc_stats(Empty) returns (Gc_stats);
+
+  /// Try to free memory, return stats
+  rpc release_memory(Empty) returns (Gc_stats);
 }
 
