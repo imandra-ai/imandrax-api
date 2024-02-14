@@ -16,7 +16,7 @@ type location = {
 type error = {
   msg : string;
   kind : string;
-  loc : location option;
+  locs : location list;
 }
 
 type task_id = {
@@ -81,11 +81,11 @@ let rec default_location
 let rec default_error 
   ?msg:((msg:string) = "")
   ?kind:((kind:string) = "")
-  ?loc:((loc:location option) = None)
+  ?locs:((locs:location list) = [])
   () : error  = {
   msg;
   kind;
-  loc;
+  locs;
 }
 
 let rec default_task_id 
@@ -171,13 +171,13 @@ let default_location_mutable () : location_mutable = {
 type error_mutable = {
   mutable msg : string;
   mutable kind : string;
-  mutable loc : location option;
+  mutable locs : location list;
 }
 
 let default_error_mutable () : error_mutable = {
   msg = "";
   kind = "";
-  loc = None;
+  locs = [];
 }
 
 type task_id_mutable = {
@@ -275,11 +275,11 @@ let rec make_location
 let rec make_error 
   ~(msg:string)
   ~(kind:string)
-  ?loc:((loc:location option) = None)
+  ~(locs:location list)
   () : error  = {
   msg;
   kind;
-  loc;
+  locs;
 }
 
 let rec make_task_id 
@@ -368,7 +368,7 @@ let rec pp_error fmt (v:error) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "msg" Pbrt.Pp.pp_string fmt v.msg;
     Pbrt.Pp.pp_record_field ~first:false "kind" Pbrt.Pp.pp_string fmt v.kind;
-    Pbrt.Pp.pp_record_field ~first:false "loc" (Pbrt.Pp.pp_option pp_location) fmt v.loc;
+    Pbrt.Pp.pp_record_field ~first:false "locs" (Pbrt.Pp.pp_list pp_location) fmt v.locs;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -462,12 +462,10 @@ let rec encode_pb_error (v:error) encoder =
   Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   Pbrt.Encoder.string v.kind encoder;
   Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  begin match v.loc with
-  | Some x -> 
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
     Pbrt.Encoder.nested encode_pb_location x encoder;
     Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
+  ) v.locs encoder;
   ()
 
 let rec encode_pb_task_id (v:task_id) encoder = 
@@ -610,6 +608,7 @@ let rec decode_pb_error d =
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
+      v.locs <- List.rev v.locs;
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
       v.msg <- Pbrt.Decoder.string d;
@@ -622,7 +621,7 @@ let rec decode_pb_error d =
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(error), field(2)" pk
     | Some (3, Pbrt.Bytes) -> begin
-      v.loc <- Some (decode_pb_location (Pbrt.Decoder.nested d));
+      v.locs <- (decode_pb_location (Pbrt.Decoder.nested d)) :: v.locs;
     end
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(error), field(3)" pk
@@ -631,7 +630,7 @@ let rec decode_pb_error d =
   ({
     msg = v.msg;
     kind = v.kind;
-    loc = v.loc;
+    locs = v.locs;
   } : error)
 
 let rec decode_pb_task_id d =
@@ -840,9 +839,9 @@ let rec encode_json_error (v:error) =
   let assoc = [] in 
   let assoc = ("msg", Pbrt_yojson.make_string v.msg) :: assoc in
   let assoc = ("kind", Pbrt_yojson.make_string v.kind) :: assoc in
-  let assoc = match v.loc with
-    | None -> assoc
-    | Some v -> ("loc", encode_json_location v) :: assoc
+  let assoc =
+    let l = v.locs |> List.map encode_json_location in
+    ("locs", `List l) :: assoc 
   in
   `Assoc assoc
 
@@ -967,15 +966,18 @@ let rec decode_json_error d =
       v.msg <- Pbrt_yojson.string json_value "error" "msg"
     | ("kind", json_value) -> 
       v.kind <- Pbrt_yojson.string json_value "error" "kind"
-    | ("loc", json_value) -> 
-      v.loc <- Some ((decode_json_location json_value))
+    | ("locs", `List l) -> begin
+      v.locs <- List.map (function
+        | json_value -> (decode_json_location json_value)
+      ) l;
+    end
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     msg = v.msg;
     kind = v.kind;
-    loc = v.loc;
+    locs = v.locs;
   } : error)
 
 let rec decode_json_task_id d =

@@ -23,7 +23,8 @@ message Error {
   /// A string description of the kind of error
   string kind = 2;
 
-  optional Location loc = 3;
+  /// Locations for the error
+  repeated Location locs = 3;
 }
 
 message TaskID {

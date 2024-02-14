@@ -23,7 +23,7 @@ type location = {
 type error = {
   msg : string;
   kind : string;
-  loc : location option;
+  locs : location list;
 }
 
 type task_id = {
@@ -89,7 +89,7 @@ val default_location :
 val default_error : 
   ?msg:string ->
   ?kind:string ->
-  ?loc:location option ->
+  ?locs:location list ->
   unit ->
   error
 (** [default_error ()] is the default value for type [error] *)
@@ -168,7 +168,7 @@ val make_location :
 val make_error : 
   msg:string ->
   kind:string ->
-  ?loc:location option ->
+  locs:location list ->
   unit ->
   error
 (** [make_error … ()] is a builder for type [error] *)
