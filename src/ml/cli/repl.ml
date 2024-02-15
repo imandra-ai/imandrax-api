@@ -153,6 +153,7 @@ let main_loop ~reader ~session ~(client : C.t) () : unit =
 let do_keepalive ~(client : C.t) ~session () =
   ignore
     (Fut.spawn ~on:client.runner (fun () ->
+         Log.info (fun k -> k "send keep alive");
          try C.Session.keep_alive client session |> Fut.await
          with exn ->
            Log.err (fun k ->
@@ -160,6 +161,8 @@ let do_keepalive ~(client : C.t) ~session () =
            C.RPC.Switch.turn_off client.active;
            C.disconnect client)
       : unit Fut.t)
+
+let period_keep_session_alive_s = 5.
 
 (** Entrypoint. *)
 let run (self : t) : int =
@@ -192,7 +195,8 @@ let run (self : t) : int =
   Fmt.printf "open session %s@." session.id;
 
   (* regularly ask for the session to survive *)
-  C.Timer.run_every_s client.timer 10. (do_keepalive ~client ~session);
+  C.Timer.run_every_s client.timer period_keep_session_alive_s
+    (do_keepalive ~client ~session);
 
   let reader =
     Reader.create ~linenoise:(not self.raw) ~init_prompt:(fun () -> "> ") ()

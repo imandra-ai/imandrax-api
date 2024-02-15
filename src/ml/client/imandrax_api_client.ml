@@ -59,7 +59,6 @@ let connect_tcp ?active ?(default_timeout_s = default_default_timeout_) ~runner
   let rpc = RPC.Tcp_client.connect ~active ~runner ~timer addr in
   match rpc with
   | Ok rpc ->
-    let runner = RPC.Rpc_conn.runner rpc in
     let self = { active; addr; rpc; runner; timer; default_timeout_s } in
     Log.debug (fun k -> k "connected: %a" pp self);
     Ok self
