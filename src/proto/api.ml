@@ -31,7 +31,7 @@ type task_id = {
 }
 
 type session = {
-  id : bytes;
+  id : string;
 }
 
 type session_create = {
@@ -118,7 +118,7 @@ let rec default_task_id
 }
 
 let rec default_session 
-  ?id:((id:bytes) = Bytes.create 0)
+  ?id:((id:string) = "")
   () : session  = {
   id;
 }
@@ -232,11 +232,11 @@ let default_task_id_mutable () : task_id_mutable = {
 }
 
 type session_mutable = {
-  mutable id : bytes;
+  mutable id : string;
 }
 
 let default_session_mutable () : session_mutable = {
-  id = Bytes.create 0;
+  id = "";
 }
 
 type session_create_mutable = {
@@ -352,7 +352,7 @@ let rec make_task_id
 }
 
 let rec make_session 
-  ~(id:bytes)
+  ~(id:string)
   () : session  = {
   id;
 }
@@ -458,7 +458,7 @@ let rec pp_task_id fmt (v:task_id) =
 
 let rec pp_session fmt (v:session) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_bytes fmt v.id;
+    Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_string fmt v.id;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -587,7 +587,7 @@ let rec encode_pb_task_id (v:task_id) encoder =
   ()
 
 let rec encode_pb_session (v:session) encoder = 
-  Pbrt.Encoder.bytes v.id encoder;
+  Pbrt.Encoder.string v.id encoder;
   Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   ()
 
@@ -818,7 +818,7 @@ let rec decode_pb_session d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.id <- Pbrt.Decoder.bytes d;
+      v.id <- Pbrt.Decoder.string d;
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(session), field(1)" pk
@@ -1052,7 +1052,7 @@ let rec encode_json_task_id (v:task_id) =
 
 let rec encode_json_session (v:session) = 
   let assoc = [] in 
-  let assoc = ("id", Pbrt_yojson.make_bytes v.id) :: assoc in
+  let assoc = ("id", Pbrt_yojson.make_string v.id) :: assoc in
   `Assoc assoc
 
 let rec encode_json_session_create (v:session_create) = 
@@ -1240,7 +1240,7 @@ let rec decode_json_session d =
   in
   List.iter (function 
     | ("id", json_value) -> 
-      v.id <- Pbrt_yojson.bytes json_value "session" "id"
+      v.id <- Pbrt_yojson.string json_value "session" "id"
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;

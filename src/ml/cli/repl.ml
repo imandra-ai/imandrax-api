@@ -182,7 +182,6 @@ let run (self : t) : int =
     | None -> C.Session.create client |> Fut.wait_block_exn
     | Some id ->
       (* reuse an existing session *)
-      let id = Bytes.unsafe_of_string id in
       let sesh = C.API.make_session ~id () in
       (try C.Session.open_ client sesh |> Fut.wait_block_exn
        with e ->
@@ -190,7 +189,7 @@ let run (self : t) : int =
          raise e);
       sesh
   in
-  Fmt.printf "open session %s@." (Bytes.unsafe_to_string session.id);
+  Fmt.printf "open session %s@." session.id;
 
   (* regularly ask for the session to survive *)
   C.Timer.run_every_s client.timer 10. (do_keepalive ~client ~session);
