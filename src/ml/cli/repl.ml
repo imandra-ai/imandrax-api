@@ -151,15 +151,15 @@ let main_loop ~reader ~session ~(client : C.t) () : unit =
   done
 
 let do_keepalive ~(client : C.t) ~session () =
-  let fut : _ Fut.t =
-    Fut.spawn ~on:client.runner (fun () ->
-        try C.Session.keep_alive client session |> Fut.await
-        with exn ->
-          Log.err (fun k -> k "error in keepalive: %s" (Printexc.to_string exn));
-          C.RPC.Switch.turn_off client.active;
-          C.disconnect client)
-  in
-  ignore fut
+  ignore
+    (Fut.spawn ~on:client.runner (fun () ->
+         try C.Session.keep_alive client session |> Fut.await
+         with exn ->
+           Log.err (fun k ->
+               k "error in keepalive: %s" (Printexc.to_string exn));
+           C.RPC.Switch.turn_off client.active;
+           C.disconnect client)
+      : unit Fut.t)
 
 (** Entrypoint. *)
 let run (self : t) : int =
@@ -182,10 +182,7 @@ let run (self : t) : int =
     | None -> C.Session.create client |> Fut.wait_block_exn
     | Some id ->
       (* reuse an existing session *)
-      let id =
-        try CCString.of_hex_exn id |> Bytes.unsafe_of_string
-        with _ -> failwith "invalid session"
-      in
+      let id = Bytes.unsafe_of_string id in
       let sesh = C.API.make_session ~id () in
       (try C.Session.open_ client sesh |> Fut.wait_block_exn
        with e ->
@@ -193,11 +190,10 @@ let run (self : t) : int =
          raise e);
       sesh
   in
-  Fmt.printf "open session %s@."
-    (CCString.to_hex @@ Bytes.unsafe_to_string session.id);
+  Fmt.printf "open session %s@." (Bytes.unsafe_to_string session.id);
 
   (* regularly ask for the session to survive *)
-  C.Timer.run_every_s client.timer 20. (do_keepalive ~client ~session);
+  C.Timer.run_every_s client.timer 10. (do_keepalive ~client ~session);
 
   let reader =
     Reader.create ~linenoise:(not self.raw) ~init_prompt:(fun () -> "> ") ()

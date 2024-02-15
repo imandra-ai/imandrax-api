@@ -5,6 +5,10 @@ let () =
     | C.RPC.Error.E err -> Some (C.RPC.Error.show err)
     | _ -> None)
 
+(* TODO:
+  *)
+let reporter ?log_file:_ () : Logs.reporter = assert false
+
 let with_client ?port () f =
   let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "cli.with-client" in
   let@ runner = Moonpool.Fifo_pool.with_ () in

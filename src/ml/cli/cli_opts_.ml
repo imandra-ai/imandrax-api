@@ -15,6 +15,14 @@ type conn = {
 [@@deriving cmdliner, show { with_path = false }]
 (** Show imports by calling `dot`. *)
 
+type conn_with_repeat = {
+  port: int option;
+  debug: bool;  (** Enable debug *)
+  repeat: float option;  (** Repeat every [repeat] seconds *)
+}
+[@@deriving cmdliner, show { with_path = false }]
+(** Show imports by calling `dot`. *)
+
 type repl = {
   port: int option;
   debug: bool; [@default false] [@aka [ "d" ]]  (** Enable debug *)
