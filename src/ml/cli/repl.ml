@@ -177,7 +177,7 @@ let run (self : t) : int =
   Log.app (fun k -> k "connecting on port %d" port);
   let@ client =
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.connect" in
-    Utils.with_client ~port ()
+    Utils.with_client ~json:self.json ~port ()
   in
 
   let session =

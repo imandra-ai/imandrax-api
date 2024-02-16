@@ -47,8 +47,8 @@ let addr_inet_local ?(port = 9991) () : Unix.sockaddr =
   Unix.ADDR_INET (Unix.inet_addr_loopback, port)
 
 (** Connect to the server over TCP *)
-let connect_tcp ?active ?(default_timeout_s = default_default_timeout_) ~runner
-    (addr : Unix.sockaddr) : t result =
+let connect_tcp ?active ?(default_timeout_s = default_default_timeout_)
+    ?(json = false) ~runner (addr : Unix.sockaddr) : t result =
   Log.debug (fun k -> k "connecting to %s…" (string_of_sockaddr addr));
   let active =
     match active with
@@ -56,7 +56,13 @@ let connect_tcp ?active ?(default_timeout_s = default_default_timeout_) ~runner
     | None -> Batrpc_unix.Simple_switch.create ()
   in
   let timer = RPC.Simple_timer.create () in
-  let rpc = RPC.Tcp_client.connect ~active ~runner ~timer addr in
+  let encoding =
+    if json then
+      RPC.Encoding.Json
+    else
+      RPC.Encoding.Binary
+  in
+  let rpc = RPC.Tcp_client.connect ~active ~runner ~timer ~encoding addr in
   match rpc with
   | Ok rpc ->
     let self = { active; addr; rpc; runner; timer; default_timeout_s } in
@@ -68,8 +74,8 @@ let connect_tcp ?active ?(default_timeout_s = default_default_timeout_) ~runner
           err);
     res
 
-let connect_tcp_exn ?active ~runner (addr : Unix.sockaddr) : t =
-  connect_tcp ?active ~runner addr |> unwrap_rpc_err
+let connect_tcp_exn ?active ?json ~runner (addr : Unix.sockaddr) : t =
+  connect_tcp ?active ?json ~runner addr |> unwrap_rpc_err
 
 let disconnect (self : t) : unit =
   Log.debug (fun k -> k "disconnecting %a" pp self);

@@ -18,7 +18,7 @@ type cli =
 
 let version (conn : Opts.conn) : int =
   Utils.setup_logs ~debug:conn.debug ();
-  let@ c = Utils.with_client ?port:conn.port () in
+  let@ c = Utils.with_client ?port:conn.port ~json:conn.json () in
   let v = C.System.version c |> Fut.wait_block_exn in
   Fmt.printf "version %s (git=%s)" v.version
     (Option.value ~default:"<unknown>" v.git_version);
@@ -37,7 +37,7 @@ let repeat_ ~every f =
 let gc_stats (conn : Opts.conn_with_repeat) : int =
   Utils.setup_logs ~debug:conn.debug ();
   Log.debug (fun k -> k "CONNECT");
-  let@ c = Utils.with_client ?port:conn.port () in
+  let@ c = Utils.with_client ~json:conn.json ?port:conn.port () in
   Log.debug (fun k -> k "CONNECTED %a" C.pp c);
 
   let run () =
@@ -54,7 +54,7 @@ let gc_stats (conn : Opts.conn_with_repeat) : int =
 
 let reduce_memory (conn : Opts.conn) : int =
   Utils.setup_logs ~debug:conn.debug ();
-  let@ c = Utils.with_client ?port:conn.port () in
+  let@ c = Utils.with_client ?port:conn.port ~json:conn.json () in
   let v = C.System.release_memory c |> Fut.wait_block_exn in
   Fmt.printf "%a@." pp_gc_stats v;
   0

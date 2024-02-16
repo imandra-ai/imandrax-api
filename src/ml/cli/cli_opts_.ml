@@ -11,6 +11,7 @@ let parse_log_level =
 type conn = {
   port: int option;
   debug: bool;  (** Enable debug *)
+  json: bool;
 }
 [@@deriving subliner, show { with_path = false }]
 (** Show imports by calling `dot`. *)
@@ -19,6 +20,7 @@ type conn_with_repeat = {
   port: int option;
   debug: bool;  (** Enable debug *)
   repeat: float option;  (** Repeat every [repeat] seconds *)
+  json: bool;  (** use json wire protocol *)
 }
 [@@deriving subliner, show { with_path = false }]
 (** Show imports by calling `dot`. *)
@@ -32,6 +34,7 @@ type repl = {
   session: string option;  (** Session ID *)
   raw: bool;  (** Disable linenoise *)
   bt: bool;  (** backtraces *)
+  json: bool;  (** use json wire protocol *)
 }
 [@@deriving subliner, show { with_path = false }]
 (** Run the ImandraX REPL. *)
