@@ -3,7 +3,7 @@
  (public_name imandrax-api-cli)
  (package imandrax-api-cli)
  (preprocess
-  (pps ppx_subliner ppx_deriving_cmdliner ppx_deriving.std))
+  (pps ppx_subliner ppx_deriving.std))
  (libraries
   imandrax-api-proto
   imandrax-api-client

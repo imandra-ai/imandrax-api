@@ -33,6 +33,5 @@
     (containers (>= 3.0))
     (imandrax-api-client (= :version))
     ppx_deriving
-    ppx_deriving_cmdliner
-    ppx_subliner
+    (ppx_subliner (>= 0.2))
     (linenoise (and (>= 1.4) (< 2.0)))))
