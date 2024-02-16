@@ -42,7 +42,7 @@ message Error {
 
 message TaskID {
   // The task identifier.
-  bytes id = 1;
+  string id = 1;
 }
 
 // ## Session management

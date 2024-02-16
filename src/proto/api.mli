@@ -34,7 +34,7 @@ type error = {
 }
 
 type task_id = {
-  id : bytes;
+  id : string;
 }
 
 type session = {
@@ -115,7 +115,7 @@ val default_error :
 (** [default_error ()] is the default value for type [error] *)
 
 val default_task_id : 
-  ?id:bytes ->
+  ?id:string ->
   unit ->
   task_id
 (** [default_task_id ()] is the default value for type [task_id] *)
@@ -209,7 +209,7 @@ val make_error :
 (** [make_error … ()] is a builder for type [error] *)
 
 val make_task_id : 
-  id:bytes ->
+  id:string ->
   unit ->
   task_id
 (** [make_task_id … ()] is a builder for type [task_id] *)

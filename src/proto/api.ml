@@ -27,7 +27,7 @@ type error = {
 }
 
 type task_id = {
-  id : bytes;
+  id : string;
 }
 
 type session = {
@@ -112,7 +112,7 @@ let rec default_error
 }
 
 let rec default_task_id 
-  ?id:((id:bytes) = Bytes.create 0)
+  ?id:((id:string) = "")
   () : task_id  = {
   id;
 }
@@ -224,11 +224,11 @@ let default_error_mutable () : error_mutable = {
 }
 
 type task_id_mutable = {
-  mutable id : bytes;
+  mutable id : string;
 }
 
 let default_task_id_mutable () : task_id_mutable = {
-  id = Bytes.create 0;
+  id = "";
 }
 
 type session_mutable = {
@@ -346,7 +346,7 @@ let rec make_error
 }
 
 let rec make_task_id 
-  ~(id:bytes)
+  ~(id:string)
   () : task_id  = {
   id;
 }
@@ -452,7 +452,7 @@ let rec pp_error fmt (v:error) =
 
 let rec pp_task_id fmt (v:task_id) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_bytes fmt v.id;
+    Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_string fmt v.id;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -582,7 +582,7 @@ let rec encode_pb_error (v:error) encoder =
   ()
 
 let rec encode_pb_task_id (v:task_id) encoder = 
-  Pbrt.Encoder.bytes v.id encoder;
+  Pbrt.Encoder.string v.id encoder;
   Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   ()
 
@@ -800,7 +800,7 @@ let rec decode_pb_task_id d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.id <- Pbrt.Decoder.bytes d;
+      v.id <- Pbrt.Decoder.string d;
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(task_id), field(1)" pk
@@ -1047,7 +1047,7 @@ let rec encode_json_error (v:error) =
 
 let rec encode_json_task_id (v:task_id) = 
   let assoc = [] in 
-  let assoc = ("id", Pbrt_yojson.make_bytes v.id) :: assoc in
+  let assoc = ("id", Pbrt_yojson.make_string v.id) :: assoc in
   `Assoc assoc
 
 let rec encode_json_session (v:session) = 
@@ -1224,7 +1224,7 @@ let rec decode_json_task_id d =
   in
   List.iter (function 
     | ("id", json_value) -> 
-      v.id <- Pbrt_yojson.bytes json_value "task_id" "id"
+      v.id <- Pbrt_yojson.string json_value "task_id" "id"
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
