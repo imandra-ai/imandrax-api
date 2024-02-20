@@ -32,6 +32,7 @@
     (ocaml (>= 5.0))
     batrpc
     moonpool
+    (linenoise (>= 1.4))
     (containers (>= 3.0))
     (imandrax-api-client (= :version))
     (trace (>= 0.6))
