@@ -29,6 +29,7 @@
   (name imandrax-api-cli)
   (synopsis "CLI for ImandraX's API")
   (depends
+    (ocaml (>= 5.0))
     batrpc
     moonpool
     (containers (>= 3.0))
