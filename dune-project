@@ -20,6 +20,7 @@
   (depends
     batrpc
     moonpool
+    (trace (>= 0.6))
     (pbrt (>= 3.0))
     (pbrt_yojson (>= 3.0))
     (pbrt_services (>= 3.0))))
@@ -32,6 +33,8 @@
     moonpool
     (containers (>= 3.0))
     (imandrax-api-client (= :version))
+    (trace (>= 0.6))
     ppx_deriving
+    trace-tef
     (ppx_subliner (>= 0.2))
     (linenoise (and (>= 1.4) (< 2.0)))))
