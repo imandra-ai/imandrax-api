@@ -3,7 +3,7 @@
   (flags
    :standard
    -w
-   +a-4-30-40-42-44-49-70
+   +a-4-30-40-42-44-48-49-70
    -warn-error
    -a+33+39+27+8
    -strict-sequence)))
