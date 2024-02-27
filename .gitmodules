@@ -1,3 +1,6 @@
 [submodule "vendor/batrpc"]
 	path = vendor/batrpc
 	url = https://github.com/imandra-ai/batrpc
+[submodule "vendor/twirp"]
+	path = vendor/twirp
+	url = https://github.com/c-cube/ocaml-twirp
