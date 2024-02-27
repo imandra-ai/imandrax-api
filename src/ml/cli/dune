@@ -7,7 +7,8 @@
  (enabled_if (>= %{ocaml_version} 5.0))
  (libraries
   imandrax-api-proto
-  imandrax-api-client
+  imandrax-api-client.core
+  imandrax-api-client-batrpc
   containers
   trace
   trace-tef

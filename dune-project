@@ -16,11 +16,21 @@
 
 (package
   (name imandrax-api-client)
-  (synopsis "RPC client for ImandraX's API")
+  (synopsis "RPC client for ImandraX's API (transport agnostic)")
   (depends
+    (containers (and (>= 3.0) :with-test))
+    (trace (>= 0.6))
+    (pbrt (>= 3.0))
+    (pbrt_yojson (>= 3.0))
+    (pbrt_services (>= 3.0))))
+
+(package
+  (name imandrax-api-client-batrpc)
+  (synopsis "RPC client for ImandraX's API using BatRPC")
+  (depends
+    (imandrax-api-client (= :version))
     batrpc
     moonpool
-    (containers (and (>= 3.0) :with-test))
     (trace (>= 0.6))
     (pbrt (>= 3.0))
     (pbrt_yojson (>= 3.0))
@@ -36,6 +46,7 @@
     (linenoise (>= 1.4))
     (containers (>= 3.0))
     (imandrax-api-client (= :version))
+    (imandrax-api-client-batrpc (= :version))
     (trace (>= 0.6))
     ppx_deriving
     trace-tef

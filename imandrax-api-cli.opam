@@ -13,6 +13,7 @@ depends: [
   "linenoise" {>= "1.4"}
   "containers" {>= "3.0"}
   "imandrax-api-client" {= version}
+  "imandrax-api-client-batrpc" {= version}
   "trace" {>= "0.6"}
   "ppx_deriving"
   "trace-tef"
