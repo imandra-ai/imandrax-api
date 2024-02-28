@@ -176,7 +176,7 @@ let run (self : t) : int =
   let@ (client : C.t) =
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.connect" in
     Utils.with_client ~rpc_json:self.rpc_json ?rpc_port:self.rpc_port ~runner
-      ~local_rpc:self.local_rpc ~dev:self.dev ()
+      ~debug:self.debug ~local_rpc:self.local_rpc ~dev:self.dev ()
   in
 
   let session =

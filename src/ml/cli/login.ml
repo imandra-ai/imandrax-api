@@ -2,13 +2,34 @@ open Common_
 module M = Moonpool
 module Opts = Cli_opts_
 module H = Tiny_httpd
+module Html = Tiny_httpd.Html
 
 type error =
   | Bad_tok_type of string
   | Missing_auth_token
   | Bad_nonce of string
   | Missing_nonce
+  | Invalid_percent_encoding
+  | Missing_token_type
 [@@deriving show { with_path = false }]
+
+let mk_js_code ~port () : string =
+  spf
+    {yikes|
+(async () => {
+  console.log(`location is: ${document.location}`);
+
+  const res = await fetch("http://localhost:%d/cb", {
+    method: "POST",
+    body: document.location.hash.slice(1), // remove '#'
+  });
+
+  console.log(`response: ${res}`);
+  document.body.innerHTML =
+    `authentication ${ res.trim() == 'ok' ? 'succeeded' : 'failed' } <br/> <b>you can close this window now<b>`;
+})();
+|yikes}
+    port
 
 let run (self : Opts.login) : int =
   let@ () = Trace_tef.with_setup () in
@@ -24,30 +45,65 @@ let run (self : Opts.login) : int =
 
   (* local server for the callback *)
   let h = Tiny_httpd.create ~port:self.local_port () in
+
+  (* serve JS because the data is only client side 🙄 *)
   H.add_route_handler h ~meth:`GET
     H.Route.(exact "cb" @/ return)
+    (fun _req ->
+      let js_code = mk_js_code ~port:self.local_port () in
+      let doc =
+        Html.(
+          html []
+            [ head [] []; body [] [ script [] [ Html.raw_html js_code ] ] ])
+      in
+      H.Response.make_string @@ Ok (Html.to_string_top doc));
+
+  (* receive the actual data, sent by JS *)
+  H.add_route_handler h ~meth:`POST
+    H.Route.(exact "cb" @/ return)
     (fun req ->
+      let body = H.Request.body req in
+      Log.debug (fun k -> k "body: %s" body);
+
+      (* decode the body, which is the path of the original query *)
+      let items =
+        body |> String.split_on_char '&'
+        |> List.map (fun item ->
+               let k, v = CCString.Split.left_exn ~by:"=" item in
+               k, H.Util.percent_decode v |> Option.get)
+      in
+
+      Log.debug (fun k ->
+          k "items: [%s]"
+            (String.concat ","
+            @@ List.map (fun (k, v) -> spf "%S: %S" k v) items));
+
       let ok =
         (* check for the nonce *)
         match
-          ( List.assoc_opt "state" req.H.Request.query,
-            List.assoc_opt "access_token" req.H.Request.query,
-            List.assoc_opt "token_type" req.H.Request.query )
+          ( List.assoc_opt "state" items,
+            List.assoc_opt "access_token" items,
+            List.assoc_opt "token_type" items )
         with
-        | Some n, Some tok, Some "Bearer" when n = nonce ->
-          M.Blocking_queue.push response @@ Ok tok;
-          true
-        | _, _, Some tk ->
-          M.Blocking_queue.push response @@ Error (Bad_tok_type tk);
+        | _, _, None ->
+          M.Blocking_queue.push response @@ Error Missing_token_type;
           false
+        | Some n, Some tok, Some "Bearer" ->
+          if n = nonce then (
+            M.Blocking_queue.push response @@ Ok tok;
+            true
+          ) else (
+            M.Blocking_queue.push response @@ Error (Bad_nonce n);
+            false
+          )
         | _, None, _ ->
           M.Blocking_queue.push response @@ Error Missing_auth_token;
           false
-        | Some n2, _, _ ->
-          M.Blocking_queue.push response @@ Error (Bad_nonce n2);
-          false
         | None, _, _ ->
           M.Blocking_queue.push response @@ Error Missing_nonce;
+          false
+        | _, _, Some tk ->
+          M.Blocking_queue.push response @@ Error (Bad_tok_type tk);
           false
       in
       let msg =
@@ -93,7 +149,8 @@ let run (self : Opts.login) : int =
     Log.debug (fun k -> k "success! got token %S" tok);
     let tok_file = Utils.auth_token_filename ~dev:self.dev () in
     (* TODO: make it less ugly *)
-    (try ignore (Unix.system (spf "mkdir -p %s" tok_file)) with _ -> ());
+    (try ignore (Unix.system (spf "mkdir -p %s" (Filename.dirname tok_file)))
+     with _ -> ());
     (try CCIO.File.write_exn tok_file tok
      with exn ->
        Log.err (fun k ->

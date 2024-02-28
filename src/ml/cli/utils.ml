@@ -51,8 +51,8 @@ let get_auth_token ~dev () : string option =
         k "could not read token from %S:\n%s" file (Printexc.to_string exn));
     None
 
-let with_client ?rpc_port ~rpc_json ~local_rpc ~dev ~runner () (f : C.t -> 'a) :
-    'a =
+let with_client ?rpc_port ~rpc_json ~local_rpc ~dev ~runner ~debug ()
+    (f : C.t -> 'a) : 'a =
   let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "cli.with-client" in
   let client =
     if local_rpc then (
@@ -68,7 +68,8 @@ let with_client ?rpc_port ~rpc_json ~local_rpc ~dev ~runner () (f : C.t -> 'a) :
           failwith "prod not implemented yet (use --dev)"
       in
       let auth_token = get_auth_token ~dev () in
-      C_curl.create ~runner ~tls:true ~host ~port:443 ~auth_token ()
+      C_curl.create ~verbose:debug ~runner ~tls:true ~host ~port:443 ~auth_token
+        ()
     )
   in
   let finally () =

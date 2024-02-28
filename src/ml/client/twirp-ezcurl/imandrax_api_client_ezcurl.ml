@@ -39,6 +39,7 @@ module Conn = struct
   type t = {
     active: bool Atomic.t;
     addr: Addr.t;
+    verbose: bool;
     clients: Curl.t Rpool.t;  (** pool of clients *)
     auth_token: string option;  (** JWT *)
     runner: Moonpool.Runner.t;
@@ -62,10 +63,16 @@ module Conn = struct
       let auth_header =
         match self.auth_token with
         | None -> []
-        | Some tok -> [ "authorization", spf "Bearer %s" tok ]
+        | Some tok -> [ "Authorization", spf "Bearer %s" tok ]
       in
+      Log.debug (fun k ->
+          k "auth headers: [%s]"
+            (String.concat ","
+            @@ List.map (fun (k, v) -> spf "%s: %s" k v)
+            @@ auth_header));
 
       let headers = auth_header in
+      Curl.set_verbose client self.verbose;
 
       C.call_exn ~prefix:(Some "api/v1") ~client ~host:self.addr.host
         ~port:self.addr.port ~use_tls:true ~headers rpc req
@@ -92,8 +99,8 @@ module Conn = struct
     end
 end
 
-let create ?(tls = true) ~host ~port ~runner ~(auth_token : string option) () :
-    t =
+let create ?(tls = true) ?(verbose = false) ~host ~port ~runner
+    ~(auth_token : string option) () : t =
   let addr = { Addr.tls; host; port } in
   let clients =
     Rpool.create ~clear:Curl.reset ~dispose:Curl.cleanup
@@ -101,7 +108,14 @@ let create ?(tls = true) ~host ~port ~runner ~(auth_token : string option) () :
       ~max_size:16 ()
   in
   let conn =
-    { Conn.active = Atomic.make true; addr; clients; auth_token; runner }
+    {
+      Conn.active = Atomic.make true;
+      verbose;
+      addr;
+      clients;
+      auth_token;
+      runner;
+    }
   in
   create ~addr:(Addr.show addr) ~rpc:(Conn.to_rpc conn) ()
 
