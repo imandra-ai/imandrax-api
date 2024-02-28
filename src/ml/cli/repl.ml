@@ -143,22 +143,21 @@ let process_input ~client ~session ~(code : string) () : unit =
 
 let main_loop ~reader ~session ~(client : C.t) () : unit =
   let continue = ref true in
-  while !continue && C.RPC.Switch.is_on client.active do
+  while !continue && C.is_active client do
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.loop.iter" in
     match Reader.read reader with
     | None -> continue := false
     | Some code -> process_input ~client ~session ~code ()
   done
 
-let do_keepalive ~(client : C.t) ~session () =
+let do_keepalive ~runner ~(client : C.t) ~session () =
   ignore
-    (Fut.spawn ~on:client.runner (fun () ->
+    (Fut.spawn ~on:runner (fun () ->
          Log.info (fun k -> k "send keep alive");
          try C.Session.keep_alive client session |> Fut.await
          with exn ->
            Log.err (fun k ->
                k "error in keepalive: %s" (Printexc.to_string exn));
-           C.RPC.Switch.turn_off client.active;
            C.disconnect client)
       : unit Fut.t)
 
@@ -173,11 +172,11 @@ let run (self : t) : int =
 
   let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.run" in
 
-  let port = Option.value ~default:9991 self.port in
-  Log.app (fun k -> k "connecting on port %d" port);
-  let@ client =
+  let@ runner = Moonpool.Fifo_pool.with_ () in
+  let@ (client : C.t) =
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.connect" in
-    Utils.with_client ~json:self.json ~port ()
+    Utils.with_client ~rpc_json:self.rpc_json ?rpc_port:self.rpc_port ~runner
+      ~local_rpc:self.local_rpc ~dev:self.dev ()
   in
 
   let session =
@@ -195,8 +194,15 @@ let run (self : t) : int =
   Fmt.printf "open session %s@." session.id;
 
   (* regularly ask for the session to survive *)
-  C.Timer.run_every_s client.timer period_keep_session_alive_s
-    (do_keepalive ~client ~session);
+  ignore
+    (Thread.create
+       (fun () ->
+         while C.is_active client do
+           Thread.delay period_keep_session_alive_s;
+           do_keepalive ~runner ~client ~session ()
+         done)
+       ()
+      : Thread.t);
 
   let reader =
     Reader.create ~linenoise:(not self.raw) ~init_prompt:(fun () -> "> ") ()

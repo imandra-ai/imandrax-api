@@ -8,7 +8,10 @@
  (libraries
   imandrax-api-proto
   imandrax-api-client.core
+  imandrax-api-client.moonpool
   imandrax-api-client-batrpc
+  imandrax-api-client-ezcurl
+  xdg
   containers
   trace
   trace-tef

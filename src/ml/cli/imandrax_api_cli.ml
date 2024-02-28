@@ -16,9 +16,13 @@ type cli =
   *)
 [@@deriving subliner]
 
-let version (conn : Opts.conn) : int =
-  Utils.setup_logs ~debug:conn.debug ();
-  let@ c = Utils.with_client ?port:conn.port ~json:conn.json () in
+let version (self : Opts.conn) : int =
+  Utils.setup_logs ~debug:self.debug ();
+  let@ runner = Moonpool.Fifo_pool.with_ () in
+  let@ (c : C.t) =
+    Utils.with_client ~rpc_json:self.rpc_json ?rpc_port:self.rpc_port ~runner
+      ~local_rpc:self.local_rpc ~dev:self.dev ()
+  in
   let v = C.System.version c |> Fut.wait_block_exn in
   Fmt.printf "version %s (git=%s)" v.version
     (Option.value ~default:"<unknown>" v.git_version);
@@ -34,17 +38,22 @@ let repeat_ ~every f =
     Thread.delay every
   done
 
-let gc_stats (conn : Opts.conn_with_repeat) : int =
-  Utils.setup_logs ~debug:conn.debug ();
+let gc_stats (self : Opts.conn_with_repeat) : int =
+  Utils.setup_logs ~debug:self.debug ();
   Log.debug (fun k -> k "CONNECT");
-  let@ c = Utils.with_client ~json:conn.json ?port:conn.port () in
+  let@ runner = Moonpool.Fifo_pool.with_ () in
+  let@ (c : C.t) =
+    Utils.with_client ~rpc_json:self.rpc_json ?rpc_port:self.rpc_port ~runner
+      ~local_rpc:self.local_rpc ~dev:self.dev ()
+  in
+
   Log.debug (fun k -> k "CONNECTED %a" C.pp c);
 
   let run () =
     let v = C.System.gc_stats c |> Fut.wait_block_exn in
     Fmt.printf "%a@." pp_gc_stats v
   in
-  match conn.repeat with
+  match self.repeat with
   | None ->
     run ();
     0
@@ -52,9 +61,13 @@ let gc_stats (conn : Opts.conn_with_repeat) : int =
     repeat_ ~every:r run;
     0
 
-let reduce_memory (conn : Opts.conn) : int =
-  Utils.setup_logs ~debug:conn.debug ();
-  let@ c = Utils.with_client ?port:conn.port ~json:conn.json () in
+let reduce_memory (self : Opts.conn) : int =
+  Utils.setup_logs ~debug:self.debug ();
+  let@ runner = Moonpool.Fifo_pool.with_ () in
+  let@ (c : C.t) =
+    Utils.with_client ~rpc_json:self.rpc_json ?rpc_port:self.rpc_port ~runner
+      ~local_rpc:self.local_rpc ~dev:self.dev ()
+  in
   let v = C.System.release_memory c |> Fut.wait_block_exn in
   Fmt.printf "%a@." pp_gc_stats v;
   0

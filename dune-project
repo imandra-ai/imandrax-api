@@ -37,6 +37,18 @@
     (pbrt_services (>= 3.0))))
 
 (package
+  (name imandrax-api-client-ezcurl)
+  (synopsis "RPC client for ImandraX's API using Ezcurl")
+  (depends
+    (imandrax-api-client (= :version))
+    ezcurl
+    moonpool
+    (trace (>= 0.6))
+    (pbrt (>= 3.0))
+    (pbrt_yojson (>= 3.0))
+    (pbrt_services (>= 3.0))))
+
+(package
   (name imandrax-api-cli)
   (synopsis "CLI for ImandraX's API")
   (depends

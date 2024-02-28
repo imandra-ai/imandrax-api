@@ -1,10 +1,5 @@
 open Common_
 
-let () =
-  Printexc.register_printer (function
-    | C.RPC.Error.E err -> Some (C.RPC.Error.show err)
-    | _ -> None)
-
 let format_datetime time : string =
   let tm = Unix.localtime time in
   let msec = (time -. floor time) *. 1_000. |> int_of_float in
@@ -34,10 +29,44 @@ let reporter ?log_file () : Logs.reporter =
   in
   { Logs.report }
 
-let with_client ?port ~json () f =
+(** Read token from disk *)
+let get_auth_token ~dev () : string option =
+  let xdg = Xdg.create ~env:Sys.getenv_opt () in
+  let dir = Filename.concat (Xdg.cache_dir xdg) "imandrax" in
+  let base =
+    if dev then
+      "auth_token_dev"
+    else
+      "auth_token"
+  in
+  let file = Filename.concat dir base in
+  Log.info (fun k -> k "looking for auth token in %S" file);
+  try Some (CCIO.File.read_exn file)
+  with exn ->
+    Log.warn (fun k ->
+        k "could not read token from %S:\n%s" file (Printexc.to_string exn));
+    None
+
+let with_client ?rpc_port ~rpc_json ~local_rpc ~dev ~runner () (f : C.t -> 'a) :
+    'a =
   let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "cli.with-client" in
-  let@ runner = Moonpool.Fifo_pool.with_ () in
-  let client = C.connect_tcp_exn ~runner ~json @@ C.addr_inet_local ?port () in
+  let client =
+    if local_rpc then (
+      let port = Option.value ~default:9991 rpc_port in
+      Log.app (fun k -> k "connecting via RPC on port %d" port);
+      C_RPC.connect_tcp_exn ~runner ~json:rpc_json
+      @@ C_RPC.addr_inet_local ~port ()
+    ) else (
+      let host =
+        if dev then
+          "imandrax.dev.imandracapital.com"
+        else
+          failwith "prod not implemented yet (use --dev)"
+      in
+      let auth_token = get_auth_token ~dev () in
+      C_curl.create ~runner ~tls:true ~host ~port:443 ~auth_token ()
+    )
+  in
   let finally () =
     C.disconnect client;
     Log.debug (fun k -> k "disconnected")
