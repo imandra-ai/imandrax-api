@@ -4,3 +4,6 @@
 [submodule "vendor/twirp"]
 	path = vendor/twirp
 	url = https://github.com/c-cube/ocaml-twirp
+[submodule "vendor/tiny_httpd"]
+	path = vendor/tiny_httpd
+	url = https://github.com/c-cube/tiny_httpd
