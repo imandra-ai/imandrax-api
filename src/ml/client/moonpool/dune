@@ -1,0 +1,6 @@
+
+
+(library
+ (name imandrax_api_client_moonpool)
+ (public_name imandrax-api-client.moonpool)
+ (libraries imandrax-api-proto (re_export imandrax-api-client.core) moonpool))

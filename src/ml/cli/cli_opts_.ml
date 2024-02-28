@@ -36,7 +36,7 @@ type repl = {
   rpc_port: int option;
   rpc_json: bool;  (** use json wire protocol *)
   dev: bool;  (** Use dev environment *)
-  debug: bool; [@default false] [@aka [ "d" ]]  (** Enable debug *)
+  debug: bool;  (** Enable debug *)
   log_level: (Logs.level[@conv parse_log_level]) option; [@conv parse_log_level]
       (** Log level *)
   log_file: string option;
@@ -47,3 +47,12 @@ type repl = {
 }
 [@@deriving subliner, show { with_path = false }]
 (** Run the ImandraX REPL. *)
+
+type login = {
+  dev: bool;  (** Use dev environment *)
+  debug: bool;  (** Enable debug *)
+  log_level: (Logs.level[@conv parse_log_level]) option; [@conv parse_log_level]
+      (** Log level *)
+  local_port: int; [@default 3009]  (** Port for the local http server *)
+}
+[@@deriving subliner, show { with_path = false }]

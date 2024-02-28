@@ -60,7 +60,10 @@
     (imandrax-api-client (= :version))
     (imandrax-api-client-batrpc (= :version))
     (trace (>= 0.6))
+    uuidm
+    webbrowser
     ppx_deriving
     trace-tef
+    (tiny_httpd (>= 0.16))
     (ppx_subliner (>= 0.2))
     (linenoise (and (>= 1.4) (< 2.0)))))

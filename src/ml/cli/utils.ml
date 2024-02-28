@@ -29,8 +29,7 @@ let reporter ?log_file () : Logs.reporter =
   in
   { Logs.report }
 
-(** Read token from disk *)
-let get_auth_token ~dev () : string option =
+let auth_token_filename ~dev () : string =
   let xdg = Xdg.create ~env:Sys.getenv_opt () in
   let dir = Filename.concat (Xdg.cache_dir xdg) "imandrax" in
   let base =
@@ -40,6 +39,11 @@ let get_auth_token ~dev () : string option =
       "auth_token"
   in
   let file = Filename.concat dir base in
+  file
+
+(** Read token from disk *)
+let get_auth_token ~dev () : string option =
+  let file = auth_token_filename ~dev () in
   Log.info (fun k -> k "looking for auth token in %S" file);
   try Some (CCIO.File.read_exn file)
   with exn ->
@@ -84,13 +88,23 @@ let setup_logs ?log_file ?lvl ?(debug = false) () : unit =
   Log.debug (fun k -> k "logs are setup");
   ()
 
+open struct
+  exception E_exit of int
+end
+
+(** Exit main application with given code *)
+let exit_with n = raise (E_exit n)
+
 let with_exit f =
   match f () with
   | n -> exit n
+  | exception E_exit n ->
+    Thread.delay 2.;
+    exit n
   | exception e ->
     let bt = Printexc.get_raw_backtrace () in
     Log.err (fun k ->
         k "uncaught exception: %s@ %s" (Printexc.to_string e)
           (Printexc.raw_backtrace_to_string bt));
-    Thread.delay 5.;
+    Thread.delay 2.;
     exit 1

@@ -1,2 +1,2 @@
-(vendored_dirs batrpc twirp)
+(vendored_dirs batrpc twirp tiny_httpd)
 ;(data_only_dirs batrpc)

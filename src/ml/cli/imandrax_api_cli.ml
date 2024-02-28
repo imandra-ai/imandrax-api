@@ -2,6 +2,7 @@ open Common_
 module Opts = Cli_opts_
 
 type cli =
+  | Login of Opts.login
   | Version of Opts.conn  (** Display the version. *)
   | GC_stats of Opts.conn_with_repeat
   | Reduce_memory of Opts.conn  (** Reduce memory usage *)
@@ -76,6 +77,7 @@ let run (cli : cli) : unit =
   let@ () = Utils.with_exit in
   let@ () = Trace_tef.with_setup () in
   match cli with
+  | Login opts -> Login.run opts
   | Version c -> version c
   | GC_stats c -> gc_stats c
   | Reduce_memory c -> reduce_memory c

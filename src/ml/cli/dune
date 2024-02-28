@@ -17,5 +17,8 @@
   trace-tef
   batrpc
   unix
+  uuidm
+  webbrowser
+  tiny_httpd
   moonpool
   linenoise))
