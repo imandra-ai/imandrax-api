@@ -161,7 +161,7 @@ let do_keepalive ~runner ~(client : C.t) ~session () =
            C.disconnect client)
       : unit Fut.t)
 
-let period_keep_session_alive_s = 5.
+let period_keep_session_alive_s = 30.
 
 (** Entrypoint. *)
 let run (self : t) : int =
