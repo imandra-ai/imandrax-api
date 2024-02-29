@@ -24,9 +24,10 @@ let mk_js_code ~port () : string =
     body: document.location.hash.slice(1), // remove '#'
   });
 
-  console.log(`response: ${res}`);
+  const res_body = await res.text();
+  console.log(`response: ${res}, body: ${res_body}`);
   document.body.innerHTML =
-    `authentication ${ res.trim() == 'ok' ? 'succeeded' : 'failed' } <br/> <b>you can close this window now<b>`;
+    `authentication ${ res_body.trim() == 'success' ? 'succeeded' : 'failed' } <br/> <b>you can close this window now<b>`;
 })();
 |yikes}
     port
