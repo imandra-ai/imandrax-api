@@ -118,13 +118,15 @@ let run (self : Opts.login) : int =
   let _t_server = Thread.create (fun () -> H.run_exn h) () in
 
   let redirect_uri = spf "http://localhost:%d/cb/" self.local_port in
+  let audience = "https://imandrax.dev.imandracapital.com/" in
   (* URL to open in the user's browser *)
   let url =
     let client_id = "EZBvjhs2aiatKUNeUuIWcph7ZoBpYckB" in
     if self.dev then
       spf
-        "https://test-ai.eu.auth0.com/authorize?response_type=token&client_id=%s&redirect_uri=%s&state=%s"
+        "https://test-ai.eu.auth0.com/authorize?response_type=token&client_id=%s&audience=%s&redirect_uri=%s&state=%s"
         client_id
+        (H.Util.percent_encode audience)
         (H.Util.percent_encode redirect_uri)
         (H.Util.percent_encode nonce)
     else
