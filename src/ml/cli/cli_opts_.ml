@@ -12,6 +12,7 @@ type conn = {
   local_rpc: bool;  (** Use RPC on localhost *)
   rpc_port: int option;
   rpc_json: bool;  (** use json wire protocol *)
+  local_http: bool;
   dev: bool;  (** Use dev environment *)
   debug: bool;  (** Enable debug *)
   json: bool;
@@ -23,6 +24,7 @@ type conn_with_repeat = {
   local_rpc: bool;  (** Use RPC on localhost *)
   rpc_port: int option;
   rpc_json: bool;  (** use json wire protocol *)
+  local_http: bool;  (** Use HTTP on localhost *)
   dev: bool;  (** Use dev environment *)
   debug: bool;  (** Enable debug *)
   repeat: float option;  (** Repeat every [repeat] seconds *)
@@ -35,6 +37,7 @@ type repl = {
   local_rpc: bool;  (** Use RPC on localhost *)
   rpc_port: int option;
   rpc_json: bool;  (** use json wire protocol *)
+  local_http: bool;  (** Use HTTP on localhost *)
   dev: bool;  (** Use dev environment *)
   debug: bool;  (** Enable debug *)
   log_level: (Logs.level[@conv parse_log_level]) option; [@conv parse_log_level]
