@@ -75,7 +75,7 @@ module Conn = struct
       Curl.set_verbose client self.verbose;
 
       C.call_exn ~prefix:(Some "api/v1") ~client ~host:self.addr.host
-        ~port:self.addr.port ~use_tls:true ~headers rpc req
+        ~port:self.addr.port ~use_tls:self.addr.tls ~headers rpc req
     in
 
     Moonpool.Fut.spawn ~on:self.runner run
