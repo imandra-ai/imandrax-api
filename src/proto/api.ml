@@ -1,33 +1,18 @@
 [@@@ocaml.warning "-27-30-39"]
 
-type empty = unit
-
-type position = {
-  line : int32;
-  col : int32;
-}
-
-type location = {
-  file : string option;
-  start : position option;
-  stop : position option;
-}
-
-type error_message = {
-  msg : string;
-  locs : location list;
-  backtrace : string option;
-}
-
-type error = {
-  msg : error_message option;
-  kind : string;
-  stack : error_message list;
-  process : string option;
-}
+type task_kind =
+  | Task_unspecified 
+  | Task_eval 
+  | Task_check_po 
+  | Task_proof_check 
 
 type task_id = {
   id : string;
+}
+
+type task = {
+  id : task_id option;
+  kind : task_kind;
 }
 
 type session = {
@@ -54,8 +39,8 @@ type eval_result =
 type code_snippet_eval_result = {
   res : eval_result;
   duration_s : float;
-  tasks : task_id list;
-  errors : error list;
+  tasks : task list;
+  errors : Error.error list;
 }
 
 type gc_stats = {
@@ -69,52 +54,20 @@ type version_response = {
   git_version : string option;
 }
 
-let rec default_empty = ()
-
-let rec default_position 
-  ?line:((line:int32) = 0l)
-  ?col:((col:int32) = 0l)
-  () : position  = {
-  line;
-  col;
-}
-
-let rec default_location 
-  ?file:((file:string option) = None)
-  ?start:((start:position option) = None)
-  ?stop:((stop:position option) = None)
-  () : location  = {
-  file;
-  start;
-  stop;
-}
-
-let rec default_error_message 
-  ?msg:((msg:string) = "")
-  ?locs:((locs:location list) = [])
-  ?backtrace:((backtrace:string option) = None)
-  () : error_message  = {
-  msg;
-  locs;
-  backtrace;
-}
-
-let rec default_error 
-  ?msg:((msg:error_message option) = None)
-  ?kind:((kind:string) = "")
-  ?stack:((stack:error_message list) = [])
-  ?process:((process:string option) = None)
-  () : error  = {
-  msg;
-  kind;
-  stack;
-  process;
-}
+let rec default_task_kind () = (Task_unspecified:task_kind)
 
 let rec default_task_id 
   ?id:((id:string) = "")
   () : task_id  = {
   id;
+}
+
+let rec default_task 
+  ?id:((id:task_id option) = None)
+  ?kind:((kind:task_kind) = default_task_kind ())
+  () : task  = {
+  id;
+  kind;
 }
 
 let rec default_session 
@@ -148,8 +101,8 @@ let rec default_eval_result () = (Eval_ok:eval_result)
 let rec default_code_snippet_eval_result 
   ?res:((res:eval_result) = default_eval_result ())
   ?duration_s:((duration_s:float) = 0.)
-  ?tasks:((tasks:task_id list) = [])
-  ?errors:((errors:error list) = [])
+  ?tasks:((tasks:task list) = [])
+  ?errors:((errors:Error.error list) = [])
   () : code_snippet_eval_result  = {
   res;
   duration_s;
@@ -175,60 +128,22 @@ let rec default_version_response
   git_version;
 }
 
-type position_mutable = {
-  mutable line : int32;
-  mutable col : int32;
-}
-
-let default_position_mutable () : position_mutable = {
-  line = 0l;
-  col = 0l;
-}
-
-type location_mutable = {
-  mutable file : string option;
-  mutable start : position option;
-  mutable stop : position option;
-}
-
-let default_location_mutable () : location_mutable = {
-  file = None;
-  start = None;
-  stop = None;
-}
-
-type error_message_mutable = {
-  mutable msg : string;
-  mutable locs : location list;
-  mutable backtrace : string option;
-}
-
-let default_error_message_mutable () : error_message_mutable = {
-  msg = "";
-  locs = [];
-  backtrace = None;
-}
-
-type error_mutable = {
-  mutable msg : error_message option;
-  mutable kind : string;
-  mutable stack : error_message list;
-  mutable process : string option;
-}
-
-let default_error_mutable () : error_mutable = {
-  msg = None;
-  kind = "";
-  stack = [];
-  process = None;
-}
-
 type task_id_mutable = {
   mutable id : string;
 }
 
 let default_task_id_mutable () : task_id_mutable = {
   id = "";
+}
+
+type task_mutable = {
+  mutable id : task_id option;
+  mutable kind : task_kind;
+}
+
+let default_task_mutable () : task_mutable = {
+  id = None;
+  kind = default_task_kind ();
 }
 
 type session_mutable = {
@@ -268,8 +183,8 @@ let default_code_snippet_mutable () : code_snippet_mutable = {
 type code_snippet_eval_result_mutable = {
   mutable res : eval_result;
   mutable duration_s : float;
-  mutable tasks : task_id list;
-  mutable errors : error list;
+  mutable tasks : task list;
+  mutable errors : Error.error list;
 }
 
 let default_code_snippet_eval_result_mutable () : code_snippet_eval_result_mutable = {
@@ -305,50 +220,18 @@ let default_version_response_mutable () : version_response_mutable = {
 (** {2 Make functions} *)
 
 
-let rec make_position 
-  ~(line:int32)
-  ~(col:int32)
-  () : position  = {
-  line;
-  col;
-}
-
-let rec make_location 
-  ?file:((file:string option) = None)
-  ?start:((start:position option) = None)
-  ?stop:((stop:position option) = None)
-  () : location  = {
-  file;
-  start;
-  stop;
-}
-
-let rec make_error_message 
-  ~(msg:string)
-  ~(locs:location list)
-  ?backtrace:((backtrace:string option) = None)
-  () : error_message  = {
-  msg;
-  locs;
-  backtrace;
-}
-
-let rec make_error 
-  ?msg:((msg:error_message option) = None)
-  ~(kind:string)
-  ~(stack:error_message list)
-  ?process:((process:string option) = None)
-  () : error  = {
-  msg;
-  kind;
-  stack;
-  process;
-}
-
 let rec make_task_id 
   ~(id:string)
   () : task_id  = {
   id;
+}
+
+let rec make_task 
+  ?id:((id:task_id option) = None)
+  ~(kind:task_kind)
+  () : task  = {
+  id;
+  kind;
 }
 
 let rec make_session 
@@ -381,8 +264,8 @@ let rec make_code_snippet
 let rec make_code_snippet_eval_result 
   ~(res:eval_result)
   ~(duration_s:float)
-  ~(tasks:task_id list)
-  ~(errors:error list)
+  ~(tasks:task list)
+  ~(errors:Error.error list)
   () : code_snippet_eval_result  = {
   res;
   duration_s;
@@ -412,47 +295,23 @@ let rec make_version_response
 
 (** {2 Formatters} *)
 
-let rec pp_empty fmt (v:empty) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_unit fmt ()
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_position fmt (v:position) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "line" Pbrt.Pp.pp_int32 fmt v.line;
-    Pbrt.Pp.pp_record_field ~first:false "col" Pbrt.Pp.pp_int32 fmt v.col;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_location fmt (v:location) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "file" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.file;
-    Pbrt.Pp.pp_record_field ~first:false "start" (Pbrt.Pp.pp_option pp_position) fmt v.start;
-    Pbrt.Pp.pp_record_field ~first:false "stop" (Pbrt.Pp.pp_option pp_position) fmt v.stop;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_error_message fmt (v:error_message) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "msg" Pbrt.Pp.pp_string fmt v.msg;
-    Pbrt.Pp.pp_record_field ~first:false "locs" (Pbrt.Pp.pp_list pp_location) fmt v.locs;
-    Pbrt.Pp.pp_record_field ~first:false "backtrace" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.backtrace;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_error fmt (v:error) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "msg" (Pbrt.Pp.pp_option pp_error_message) fmt v.msg;
-    Pbrt.Pp.pp_record_field ~first:false "kind" Pbrt.Pp.pp_string fmt v.kind;
-    Pbrt.Pp.pp_record_field ~first:false "stack" (Pbrt.Pp.pp_list pp_error_message) fmt v.stack;
-    Pbrt.Pp.pp_record_field ~first:false "process" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.process;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
+let rec pp_task_kind fmt (v:task_kind) =
+  match v with
+  | Task_unspecified -> Format.fprintf fmt "Task_unspecified"
+  | Task_eval -> Format.fprintf fmt "Task_eval"
+  | Task_check_po -> Format.fprintf fmt "Task_check_po"
+  | Task_proof_check -> Format.fprintf fmt "Task_proof_check"
 
 let rec pp_task_id fmt (v:task_id) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_string fmt v.id;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_task fmt (v:task) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "id" (Pbrt.Pp.pp_option pp_task_id) fmt v.id;
+    Pbrt.Pp.pp_record_field ~first:false "kind" pp_task_kind fmt v.kind;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -490,8 +349,8 @@ let rec pp_code_snippet_eval_result fmt (v:code_snippet_eval_result) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "res" pp_eval_result fmt v.res;
     Pbrt.Pp.pp_record_field ~first:false "duration_s" Pbrt.Pp.pp_float fmt v.duration_s;
-    Pbrt.Pp.pp_record_field ~first:false "tasks" (Pbrt.Pp.pp_list pp_task_id) fmt v.tasks;
-    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list pp_error) fmt v.errors;
+    Pbrt.Pp.pp_record_field ~first:false "tasks" (Pbrt.Pp.pp_list pp_task) fmt v.tasks;
+    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -514,76 +373,27 @@ let rec pp_version_response fmt (v:version_response) =
 
 (** {2 Protobuf Encoding} *)
 
-let rec encode_pb_empty (v:empty) encoder = 
-()
-
-let rec encode_pb_position (v:position) encoder = 
-  Pbrt.Encoder.int32_as_varint v.line encoder;
-  Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
-  Pbrt.Encoder.int32_as_varint v.col encoder;
-  Pbrt.Encoder.key 2 Pbrt.Varint encoder; 
-  ()
-
-let rec encode_pb_location (v:location) encoder = 
-  begin match v.file with
-  | Some x -> 
-    Pbrt.Encoder.string x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  begin match v.start with
-  | Some x -> 
-    Pbrt.Encoder.nested encode_pb_position x encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  begin match v.stop with
-  | Some x -> 
-    Pbrt.Encoder.nested encode_pb_position x encoder;
-    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  ()
-
-let rec encode_pb_error_message (v:error_message) encoder = 
-  Pbrt.Encoder.string v.msg encoder;
-  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested encode_pb_location x encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  ) v.locs encoder;
-  begin match v.backtrace with
-  | Some x -> 
-    Pbrt.Encoder.string x encoder;
-    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  ()
-
-let rec encode_pb_error (v:error) encoder = 
-  begin match v.msg with
-  | Some x -> 
-    Pbrt.Encoder.nested encode_pb_error_message x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  Pbrt.Encoder.string v.kind encoder;
-  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested encode_pb_error_message x encoder;
-    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  ) v.stack encoder;
-  begin match v.process with
-  | Some x -> 
-    Pbrt.Encoder.string x encoder;
-    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  ()
+let rec encode_pb_task_kind (v:task_kind) encoder =
+  match v with
+  | Task_unspecified -> Pbrt.Encoder.int_as_varint (0) encoder
+  | Task_eval -> Pbrt.Encoder.int_as_varint 1 encoder
+  | Task_check_po -> Pbrt.Encoder.int_as_varint 2 encoder
+  | Task_proof_check -> Pbrt.Encoder.int_as_varint 3 encoder
 
 let rec encode_pb_task_id (v:task_id) encoder = 
   Pbrt.Encoder.string v.id encoder;
   Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  ()
+
+let rec encode_pb_task (v:task) encoder = 
+  begin match v.id with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_task_id x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  encode_pb_task_kind v.kind encoder;
+  Pbrt.Encoder.key 2 Pbrt.Varint encoder; 
   ()
 
 let rec encode_pb_session (v:session) encoder = 
@@ -631,11 +441,11 @@ let rec encode_pb_code_snippet_eval_result (v:code_snippet_eval_result) encoder 
   Pbrt.Encoder.float_as_bits32 v.duration_s encoder;
   Pbrt.Encoder.key 3 Pbrt.Bits32 encoder; 
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested encode_pb_task_id x encoder;
+    Pbrt.Encoder.nested encode_pb_task x encoder;
     Pbrt.Encoder.key 9 Pbrt.Bytes encoder; 
   ) v.tasks encoder;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested encode_pb_error x encoder;
+    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   ) v.errors encoder;
   ()
@@ -664,133 +474,13 @@ let rec encode_pb_version_response (v:version_response) encoder =
 
 (** {2 Protobuf Decoding} *)
 
-let rec decode_pb_empty d =
-  match Pbrt.Decoder.key d with
-  | None -> ();
-  | Some (_, pk) -> 
-    Pbrt.Decoder.unexpected_payload "Unexpected fields in empty message(empty)" pk
-
-let rec decode_pb_position d =
-  let v = default_position_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (1, Pbrt.Varint) -> begin
-      v.line <- Pbrt.Decoder.int32_as_varint d;
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(position), field(1)" pk
-    | Some (2, Pbrt.Varint) -> begin
-      v.col <- Pbrt.Decoder.int32_as_varint d;
-    end
-    | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(position), field(2)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    line = v.line;
-    col = v.col;
-  } : position)
-
-let rec decode_pb_location d =
-  let v = default_location_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.file <- Some (Pbrt.Decoder.string d);
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(location), field(1)" pk
-    | Some (2, Pbrt.Bytes) -> begin
-      v.start <- Some (decode_pb_position (Pbrt.Decoder.nested d));
-    end
-    | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(location), field(2)" pk
-    | Some (3, Pbrt.Bytes) -> begin
-      v.stop <- Some (decode_pb_position (Pbrt.Decoder.nested d));
-    end
-    | Some (3, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(location), field(3)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    file = v.file;
-    start = v.start;
-    stop = v.stop;
-  } : location)
-
-let rec decode_pb_error_message d =
-  let v = default_error_message_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-      v.locs <- List.rev v.locs;
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.msg <- Pbrt.Decoder.string d;
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(error_message), field(1)" pk
-    | Some (2, Pbrt.Bytes) -> begin
-      v.locs <- (decode_pb_location (Pbrt.Decoder.nested d)) :: v.locs;
-    end
-    | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(error_message), field(2)" pk
-    | Some (3, Pbrt.Bytes) -> begin
-      v.backtrace <- Some (Pbrt.Decoder.string d);
-    end
-    | Some (3, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(error_message), field(3)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    msg = v.msg;
-    locs = v.locs;
-    backtrace = v.backtrace;
-  } : error_message)
-
-let rec decode_pb_error d =
-  let v = default_error_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-      v.stack <- List.rev v.stack;
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.msg <- Some (decode_pb_error_message (Pbrt.Decoder.nested d));
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(error), field(1)" pk
-    | Some (2, Pbrt.Bytes) -> begin
-      v.kind <- Pbrt.Decoder.string d;
-    end
-    | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(error), field(2)" pk
-    | Some (3, Pbrt.Bytes) -> begin
-      v.stack <- (decode_pb_error_message (Pbrt.Decoder.nested d)) :: v.stack;
-    end
-    | Some (3, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(error), field(3)" pk
-    | Some (4, Pbrt.Bytes) -> begin
-      v.process <- Some (Pbrt.Decoder.string d);
-    end
-    | Some (4, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(error), field(4)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    msg = v.msg;
-    kind = v.kind;
-    stack = v.stack;
-    process = v.process;
-  } : error)
+let rec decode_pb_task_kind d = 
+  match Pbrt.Decoder.int_as_varint d with
+  | 0 -> (Task_unspecified:task_kind)
+  | 1 -> (Task_eval:task_kind)
+  | 2 -> (Task_check_po:task_kind)
+  | 3 -> (Task_proof_check:task_kind)
+  | _ -> Pbrt.Decoder.malformed_variant "task_kind"
 
 let rec decode_pb_task_id d =
   let v = default_task_id_mutable () in
@@ -809,6 +499,30 @@ let rec decode_pb_task_id d =
   ({
     id = v.id;
   } : task_id)
+
+let rec decode_pb_task d =
+  let v = default_task_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.id <- Some (decode_pb_task_id (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(task), field(1)" pk
+    | Some (2, Pbrt.Varint) -> begin
+      v.kind <- decode_pb_task_kind d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(task), field(2)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    id = v.id;
+    kind = v.kind;
+  } : task)
 
 let rec decode_pb_session d =
   let v = default_session_mutable () in
@@ -914,12 +628,12 @@ let rec decode_pb_code_snippet_eval_result d =
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(code_snippet_eval_result), field(3)" pk
     | Some (9, Pbrt.Bytes) -> begin
-      v.tasks <- (decode_pb_task_id (Pbrt.Decoder.nested d)) :: v.tasks;
+      v.tasks <- (decode_pb_task (Pbrt.Decoder.nested d)) :: v.tasks;
     end
     | Some (9, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(code_snippet_eval_result), field(9)" pk
     | Some (10, Pbrt.Bytes) -> begin
-      v.errors <- (decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
+      v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
     end
     | Some (10, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(code_snippet_eval_result), field(10)" pk
@@ -990,64 +704,25 @@ let rec decode_pb_version_response d =
 
 (** {2 Protobuf YoJson Encoding} *)
 
-let rec encode_json_empty (v:empty) = 
-Pbrt_yojson.make_unit v
-
-let rec encode_json_position (v:position) = 
-  let assoc = [] in 
-  let assoc = ("line", Pbrt_yojson.make_int (Int32.to_int v.line)) :: assoc in
-  let assoc = ("col", Pbrt_yojson.make_int (Int32.to_int v.col)) :: assoc in
-  `Assoc assoc
-
-let rec encode_json_location (v:location) = 
-  let assoc = [] in 
-  let assoc = match v.file with
-    | None -> assoc
-    | Some v -> ("file", Pbrt_yojson.make_string v) :: assoc
-  in
-  let assoc = match v.start with
-    | None -> assoc
-    | Some v -> ("start", encode_json_position v) :: assoc
-  in
-  let assoc = match v.stop with
-    | None -> assoc
-    | Some v -> ("stop", encode_json_position v) :: assoc
-  in
-  `Assoc assoc
-
-let rec encode_json_error_message (v:error_message) = 
-  let assoc = [] in 
-  let assoc = ("msg", Pbrt_yojson.make_string v.msg) :: assoc in
-  let assoc =
-    let l = v.locs |> List.map encode_json_location in
-    ("locs", `List l) :: assoc 
-  in
-  let assoc = match v.backtrace with
-    | None -> assoc
-    | Some v -> ("backtrace", Pbrt_yojson.make_string v) :: assoc
-  in
-  `Assoc assoc
-
-let rec encode_json_error (v:error) = 
-  let assoc = [] in 
-  let assoc = match v.msg with
-    | None -> assoc
-    | Some v -> ("msg", encode_json_error_message v) :: assoc
-  in
-  let assoc = ("kind", Pbrt_yojson.make_string v.kind) :: assoc in
-  let assoc =
-    let l = v.stack |> List.map encode_json_error_message in
-    ("stack", `List l) :: assoc 
-  in
-  let assoc = match v.process with
-    | None -> assoc
-    | Some v -> ("process", Pbrt_yojson.make_string v) :: assoc
-  in
-  `Assoc assoc
+let rec encode_json_task_kind (v:task_kind) = 
+  match v with
+  | Task_unspecified -> `String "TASK_UNSPECIFIED"
+  | Task_eval -> `String "TASK_EVAL"
+  | Task_check_po -> `String "TASK_CHECK_PO"
+  | Task_proof_check -> `String "TASK_PROOF_CHECK"
 
 let rec encode_json_task_id (v:task_id) = 
   let assoc = [] in 
   let assoc = ("id", Pbrt_yojson.make_string v.id) :: assoc in
+  `Assoc assoc
+
+let rec encode_json_task (v:task) = 
+  let assoc = [] in 
+  let assoc = match v.id with
+    | None -> assoc
+    | Some v -> ("id", encode_json_task_id v) :: assoc
+  in
+  let assoc = ("kind", encode_json_task_kind v.kind) :: assoc in
   `Assoc assoc
 
 let rec encode_json_session (v:session) = 
@@ -1090,11 +765,11 @@ let rec encode_json_code_snippet_eval_result (v:code_snippet_eval_result) =
   let assoc = ("res", encode_json_eval_result v.res) :: assoc in
   let assoc = ("durationS", Pbrt_yojson.make_float v.duration_s) :: assoc in
   let assoc =
-    let l = v.tasks |> List.map encode_json_task_id in
+    let l = v.tasks |> List.map encode_json_task in
     ("tasks", `List l) :: assoc 
   in
   let assoc =
-    let l = v.errors |> List.map encode_json_error in
+    let l = v.errors |> List.map Error.encode_json_error in
     ("errors", `List l) :: assoc 
   in
   `Assoc assoc
@@ -1119,102 +794,13 @@ let rec encode_json_version_response (v:version_response) =
 
 (** {2 JSON Decoding} *)
 
-let rec decode_json_empty d =
-Pbrt_yojson.unit d "empty" "empty record"
-
-let rec decode_json_position d =
-  let v = default_position_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("line", json_value) -> 
-      v.line <- Pbrt_yojson.int32 json_value "position" "line"
-    | ("col", json_value) -> 
-      v.col <- Pbrt_yojson.int32 json_value "position" "col"
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    line = v.line;
-    col = v.col;
-  } : position)
-
-let rec decode_json_location d =
-  let v = default_location_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("file", json_value) -> 
-      v.file <- Some (Pbrt_yojson.string json_value "location" "file")
-    | ("start", json_value) -> 
-      v.start <- Some ((decode_json_position json_value))
-    | ("stop", json_value) -> 
-      v.stop <- Some ((decode_json_position json_value))
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    file = v.file;
-    start = v.start;
-    stop = v.stop;
-  } : location)
-
-let rec decode_json_error_message d =
-  let v = default_error_message_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("msg", json_value) -> 
-      v.msg <- Pbrt_yojson.string json_value "error_message" "msg"
-    | ("locs", `List l) -> begin
-      v.locs <- List.map (function
-        | json_value -> (decode_json_location json_value)
-      ) l;
-    end
-    | ("backtrace", json_value) -> 
-      v.backtrace <- Some (Pbrt_yojson.string json_value "error_message" "backtrace")
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    msg = v.msg;
-    locs = v.locs;
-    backtrace = v.backtrace;
-  } : error_message)
-
-let rec decode_json_error d =
-  let v = default_error_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("msg", json_value) -> 
-      v.msg <- Some ((decode_json_error_message json_value))
-    | ("kind", json_value) -> 
-      v.kind <- Pbrt_yojson.string json_value "error" "kind"
-    | ("stack", `List l) -> begin
-      v.stack <- List.map (function
-        | json_value -> (decode_json_error_message json_value)
-      ) l;
-    end
-    | ("process", json_value) -> 
-      v.process <- Some (Pbrt_yojson.string json_value "error" "process")
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    msg = v.msg;
-    kind = v.kind;
-    stack = v.stack;
-    process = v.process;
-  } : error)
+let rec decode_json_task_kind json =
+  match json with
+  | `String "TASK_UNSPECIFIED" -> (Task_unspecified : task_kind)
+  | `String "TASK_EVAL" -> (Task_eval : task_kind)
+  | `String "TASK_CHECK_PO" -> (Task_check_po : task_kind)
+  | `String "TASK_PROOF_CHECK" -> (Task_proof_check : task_kind)
+  | _ -> Pbrt_yojson.E.malformed_variant "task_kind"
 
 let rec decode_json_task_id d =
   let v = default_task_id_mutable () in
@@ -1231,6 +817,25 @@ let rec decode_json_task_id d =
   ({
     id = v.id;
   } : task_id)
+
+let rec decode_json_task d =
+  let v = default_task_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("id", json_value) -> 
+      v.id <- Some ((decode_json_task_id json_value))
+    | ("kind", json_value) -> 
+      v.kind <- (decode_json_task_kind json_value)
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    id = v.id;
+    kind = v.kind;
+  } : task)
 
 let rec decode_json_session d =
   let v = default_session_mutable () in
@@ -1318,12 +923,12 @@ let rec decode_json_code_snippet_eval_result d =
       v.duration_s <- Pbrt_yojson.float json_value "code_snippet_eval_result" "duration_s"
     | ("tasks", `List l) -> begin
       v.tasks <- List.map (function
-        | json_value -> (decode_json_task_id json_value)
+        | json_value -> (decode_json_task json_value)
       ) l;
     end
     | ("errors", `List l) -> begin
       v.errors <- List.map (function
-        | json_value -> (decode_json_error json_value)
+        | json_value -> (Error.decode_json_error json_value)
       ) l;
     end
     

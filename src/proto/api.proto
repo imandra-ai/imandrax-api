@@ -1,48 +1,24 @@
 
 syntax = "proto3";
 
-// Void type, used for messages without arguments or return value.
-message Empty {}
+import "utils.proto";
+import "error.proto";
 
-message Position {
-  int32 line = 1;
-  int32 col = 2;
-}
-
-// A location
-message Location {
-  optional string file = 1;
-  Position start = 2;
-  Position stop = 3;
-}
-
-message Error {
-  /// An error message
-  message Message {
-    string msg = 1;
-
-    /// Locations for this message
-    repeated Location locs = 2;
-
-    /// Captured backtrace
-    optional string backtrace = 3;
-  }
-
-  // The toplevel error message.
-  Message msg = 1;
-
-  /// A string description of the kind of error
-  string kind = 2;
-
-  /// Context for the error.
-  repeated Message stack = 3;
-
-  optional string process = 4;
+enum TaskKind {
+  TASK_UNSPECIFIED = 0;
+  TASK_EVAL = 1;
+  TASK_CHECK_PO = 2;
+  TASK_PROOF_CHECK = 3;
 }
 
 message TaskID {
   // The task identifier.
   string id = 1;
+}
+
+message Task {
+  TaskID id = 1;
+  TaskKind kind = 2;
 }
 
 // ## Session management
@@ -102,7 +78,7 @@ message CodeSnippetEvalResult {
   float duration_s = 3;
 
   // Tasks produced in the evaluation.
-  repeated TaskID tasks = 9;
+  repeated Task tasks = 9;
 
   // Errors occurring during evaluation.
   repeated Error errors = 10;

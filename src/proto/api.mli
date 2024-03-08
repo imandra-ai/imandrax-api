@@ -7,34 +7,19 @@
 
 (** {2 Types} *)
 
-type empty = unit
-
-type position = {
-  line : int32;
-  col : int32;
-}
-
-type location = {
-  file : string option;
-  start : position option;
-  stop : position option;
-}
-
-type error_message = {
-  msg : string;
-  locs : location list;
-  backtrace : string option;
-}
-
-type error = {
-  msg : error_message option;
-  kind : string;
-  stack : error_message list;
-  process : string option;
-}
+type task_kind =
+  | Task_unspecified 
+  | Task_eval 
+  | Task_check_po 
+  | Task_proof_check 
 
 type task_id = {
   id : string;
+}
+
+type task = {
+  id : task_id option;
+  kind : task_kind;
 }
 
 type session = {
@@ -61,8 +46,8 @@ type eval_result =
 type code_snippet_eval_result = {
   res : eval_result;
   duration_s : float;
-  tasks : task_id list;
-  errors : error list;
+  tasks : task list;
+  errors : Error.error list;
 }
 
 type gc_stats = {
@@ -79,46 +64,21 @@ type version_response = {
 
 (** {2 Basic values} *)
 
-val default_empty : unit
-(** [default_empty ()] is the default value for type [empty] *)
-
-val default_position : 
-  ?line:int32 ->
-  ?col:int32 ->
-  unit ->
-  position
-(** [default_position ()] is the default value for type [position] *)
-
-val default_location : 
-  ?file:string option ->
-  ?start:position option ->
-  ?stop:position option ->
-  unit ->
-  location
-(** [default_location ()] is the default value for type [location] *)
-
-val default_error_message : 
-  ?msg:string ->
-  ?locs:location list ->
-  ?backtrace:string option ->
-  unit ->
-  error_message
-(** [default_error_message ()] is the default value for type [error_message] *)
-
-val default_error : 
-  ?msg:error_message option ->
-  ?kind:string ->
-  ?stack:error_message list ->
-  ?process:string option ->
-  unit ->
-  error
-(** [default_error ()] is the default value for type [error] *)
+val default_task_kind : unit -> task_kind
+(** [default_task_kind ()] is the default value for type [task_kind] *)
 
 val default_task_id : 
   ?id:string ->
   unit ->
   task_id
 (** [default_task_id ()] is the default value for type [task_id] *)
+
+val default_task : 
+  ?id:task_id option ->
+  ?kind:task_kind ->
+  unit ->
+  task
+(** [default_task ()] is the default value for type [task] *)
 
 val default_session : 
   ?id:string ->
@@ -151,8 +111,8 @@ val default_eval_result : unit -> eval_result
 val default_code_snippet_eval_result : 
   ?res:eval_result ->
   ?duration_s:float ->
-  ?tasks:task_id list ->
-  ?errors:error list ->
+  ?tasks:task list ->
+  ?errors:Error.error list ->
   unit ->
   code_snippet_eval_result
 (** [default_code_snippet_eval_result ()] is the default value for type [code_snippet_eval_result] *)
@@ -176,43 +136,18 @@ val default_version_response :
 (** {2 Make functions} *)
 
 
-val make_position : 
-  line:int32 ->
-  col:int32 ->
-  unit ->
-  position
-(** [make_position … ()] is a builder for type [position] *)
-
-val make_location : 
-  ?file:string option ->
-  ?start:position option ->
-  ?stop:position option ->
-  unit ->
-  location
-(** [make_location … ()] is a builder for type [location] *)
-
-val make_error_message : 
-  msg:string ->
-  locs:location list ->
-  ?backtrace:string option ->
-  unit ->
-  error_message
-(** [make_error_message … ()] is a builder for type [error_message] *)
-
-val make_error : 
-  ?msg:error_message option ->
-  kind:string ->
-  stack:error_message list ->
-  ?process:string option ->
-  unit ->
-  error
-(** [make_error … ()] is a builder for type [error] *)
-
 val make_task_id : 
   id:string ->
   unit ->
   task_id
 (** [make_task_id … ()] is a builder for type [task_id] *)
+
+val make_task : 
+  ?id:task_id option ->
+  kind:task_kind ->
+  unit ->
+  task
+(** [make_task … ()] is a builder for type [task] *)
 
 val make_session : 
   id:string ->
@@ -243,8 +178,8 @@ val make_code_snippet :
 val make_code_snippet_eval_result : 
   res:eval_result ->
   duration_s:float ->
-  tasks:task_id list ->
-  errors:error list ->
+  tasks:task list ->
+  errors:Error.error list ->
   unit ->
   code_snippet_eval_result
 (** [make_code_snippet_eval_result … ()] is a builder for type [code_snippet_eval_result] *)
@@ -267,23 +202,14 @@ val make_version_response :
 
 (** {2 Formatters} *)
 
-val pp_empty : Format.formatter -> empty -> unit 
-(** [pp_empty v] formats v *)
-
-val pp_position : Format.formatter -> position -> unit 
-(** [pp_position v] formats v *)
-
-val pp_location : Format.formatter -> location -> unit 
-(** [pp_location v] formats v *)
-
-val pp_error_message : Format.formatter -> error_message -> unit 
-(** [pp_error_message v] formats v *)
-
-val pp_error : Format.formatter -> error -> unit 
-(** [pp_error v] formats v *)
+val pp_task_kind : Format.formatter -> task_kind -> unit 
+(** [pp_task_kind v] formats v *)
 
 val pp_task_id : Format.formatter -> task_id -> unit 
 (** [pp_task_id v] formats v *)
+
+val pp_task : Format.formatter -> task -> unit 
+(** [pp_task v] formats v *)
 
 val pp_session : Format.formatter -> session -> unit 
 (** [pp_session v] formats v *)
@@ -312,23 +238,14 @@ val pp_version_response : Format.formatter -> version_response -> unit
 
 (** {2 Protobuf Encoding} *)
 
-val encode_pb_empty : empty -> Pbrt.Encoder.t -> unit
-(** [encode_pb_empty v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_position : position -> Pbrt.Encoder.t -> unit
-(** [encode_pb_position v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_location : location -> Pbrt.Encoder.t -> unit
-(** [encode_pb_location v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_error_message : error_message -> Pbrt.Encoder.t -> unit
-(** [encode_pb_error_message v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_error : error -> Pbrt.Encoder.t -> unit
-(** [encode_pb_error v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_task_kind : task_kind -> Pbrt.Encoder.t -> unit
+(** [encode_pb_task_kind v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_task_id : task_id -> Pbrt.Encoder.t -> unit
 (** [encode_pb_task_id v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_task : task -> Pbrt.Encoder.t -> unit
+(** [encode_pb_task v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_session : session -> Pbrt.Encoder.t -> unit
 (** [encode_pb_session v encoder] encodes [v] with the given [encoder] *)
@@ -357,23 +274,14 @@ val encode_pb_version_response : version_response -> Pbrt.Encoder.t -> unit
 
 (** {2 Protobuf Decoding} *)
 
-val decode_pb_empty : Pbrt.Decoder.t -> empty
-(** [decode_pb_empty decoder] decodes a [empty] binary value from [decoder] *)
-
-val decode_pb_position : Pbrt.Decoder.t -> position
-(** [decode_pb_position decoder] decodes a [position] binary value from [decoder] *)
-
-val decode_pb_location : Pbrt.Decoder.t -> location
-(** [decode_pb_location decoder] decodes a [location] binary value from [decoder] *)
-
-val decode_pb_error_message : Pbrt.Decoder.t -> error_message
-(** [decode_pb_error_message decoder] decodes a [error_message] binary value from [decoder] *)
-
-val decode_pb_error : Pbrt.Decoder.t -> error
-(** [decode_pb_error decoder] decodes a [error] binary value from [decoder] *)
+val decode_pb_task_kind : Pbrt.Decoder.t -> task_kind
+(** [decode_pb_task_kind decoder] decodes a [task_kind] binary value from [decoder] *)
 
 val decode_pb_task_id : Pbrt.Decoder.t -> task_id
 (** [decode_pb_task_id decoder] decodes a [task_id] binary value from [decoder] *)
+
+val decode_pb_task : Pbrt.Decoder.t -> task
+(** [decode_pb_task decoder] decodes a [task] binary value from [decoder] *)
 
 val decode_pb_session : Pbrt.Decoder.t -> session
 (** [decode_pb_session decoder] decodes a [session] binary value from [decoder] *)
@@ -402,23 +310,14 @@ val decode_pb_version_response : Pbrt.Decoder.t -> version_response
 
 (** {2 Protobuf YoJson Encoding} *)
 
-val encode_json_empty : empty -> Yojson.Basic.t
-(** [encode_json_empty v encoder] encodes [v] to to json *)
-
-val encode_json_position : position -> Yojson.Basic.t
-(** [encode_json_position v encoder] encodes [v] to to json *)
-
-val encode_json_location : location -> Yojson.Basic.t
-(** [encode_json_location v encoder] encodes [v] to to json *)
-
-val encode_json_error_message : error_message -> Yojson.Basic.t
-(** [encode_json_error_message v encoder] encodes [v] to to json *)
-
-val encode_json_error : error -> Yojson.Basic.t
-(** [encode_json_error v encoder] encodes [v] to to json *)
+val encode_json_task_kind : task_kind -> Yojson.Basic.t
+(** [encode_json_task_kind v encoder] encodes [v] to to json *)
 
 val encode_json_task_id : task_id -> Yojson.Basic.t
 (** [encode_json_task_id v encoder] encodes [v] to to json *)
+
+val encode_json_task : task -> Yojson.Basic.t
+(** [encode_json_task v encoder] encodes [v] to to json *)
 
 val encode_json_session : session -> Yojson.Basic.t
 (** [encode_json_session v encoder] encodes [v] to to json *)
@@ -447,23 +346,14 @@ val encode_json_version_response : version_response -> Yojson.Basic.t
 
 (** {2 JSON Decoding} *)
 
-val decode_json_empty : Yojson.Basic.t -> empty
-(** [decode_json_empty decoder] decodes a [empty] value from [decoder] *)
-
-val decode_json_position : Yojson.Basic.t -> position
-(** [decode_json_position decoder] decodes a [position] value from [decoder] *)
-
-val decode_json_location : Yojson.Basic.t -> location
-(** [decode_json_location decoder] decodes a [location] value from [decoder] *)
-
-val decode_json_error_message : Yojson.Basic.t -> error_message
-(** [decode_json_error_message decoder] decodes a [error_message] value from [decoder] *)
-
-val decode_json_error : Yojson.Basic.t -> error
-(** [decode_json_error decoder] decodes a [error] value from [decoder] *)
+val decode_json_task_kind : Yojson.Basic.t -> task_kind
+(** [decode_json_task_kind decoder] decodes a [task_kind] value from [decoder] *)
 
 val decode_json_task_id : Yojson.Basic.t -> task_id
 (** [decode_json_task_id decoder] decodes a [task_id] value from [decoder] *)
+
+val decode_json_task : Yojson.Basic.t -> task
+(** [decode_json_task decoder] decodes a [task] value from [decoder] *)
 
 val decode_json_session : Yojson.Basic.t -> session
 (** [decode_json_session decoder] decodes a [session] value from [decoder] *)
