@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+message Position {
+  int32 line = 1;
+  int32 col = 2;
+}
+
+// A location
+message Location {
+  optional string file = 1;
+  Position start = 2;
+  Position stop = 3;
+}

@@ -1,0 +1,4 @@
+syntax = "proto3";
+
+// Void type, used for messages without arguments or return value.
+message Empty {}

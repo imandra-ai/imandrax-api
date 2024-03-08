@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "locs.proto";
+
+message Error {
+  /// An error message
+  message Message {
+    string msg = 1;
+
+    /// Locations for this message
+    repeated Location locs = 2;
+
+    /// Captured backtrace
+    optional string backtrace = 3;
+  }
+
+  // The toplevel error message.
+  Message msg = 1;
+
+  /// A string description of the kind of error
+  string kind = 2;
+
+  /// Context for the error.
+  repeated Message stack = 3;
+
+  optional string process = 4;
+}
+

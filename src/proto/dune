@@ -11,3 +11,30 @@
  (mode promote)
  (action
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
+
+(rule
+ (alias lint)
+ (targets error.ml error.mli)
+ (deps
+  (:file error.proto))
+ (mode promote)
+ (action
+  (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
+
+(rule
+ (alias lint)
+ (targets locs.ml locs.mli)
+ (deps
+  (:file locs.proto))
+ (mode promote)
+ (action
+  (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
+
+(rule
+ (alias lint)
+ (targets utils.ml utils.mli)
+ (deps
+  (:file utils.proto))
+ (mode promote)
+ (action
+  (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
