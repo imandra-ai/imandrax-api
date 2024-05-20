@@ -3,6 +3,7 @@
 (generate_opam_files true)
 (source
  (github imandra-ai/imandrax-api))
+(name imandrax-api)
 (authors "the imandrax team")
 (maintainers "imandra.ai")
 
