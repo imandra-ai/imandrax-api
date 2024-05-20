@@ -64,6 +64,7 @@
     (imandrax-api-client-batrpc (= :version))
     (trace (>= 0.6))
     uuidm
+    xdg
     webbrowser
     ppx_deriving
     trace-tef
