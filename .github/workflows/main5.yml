@@ -29,7 +29,8 @@ jobs:
           allow-prerelease-opam: true
 
       - run: opam exec -- make opam-pin-submodules
-      - run: opam install -t imandrax-api-proto imandrax-api-client imandrax-api-batrpc imandrax-api-ezcurl imandrax-api-cli --deps-only
+      - run: opam install -t imandrax-api-proto imandrax-api-client imandrax-api-client-batrpc \
+          imandrax-api-client-ezcurl imandrax-api-cli --deps-only
       - run: opam exec -- dune build @install --ignore-promoted-rules
       - run: opam exec -- dune runtest --ignore-promoted-rules
 
