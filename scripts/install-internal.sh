@@ -45,7 +45,7 @@ function install_macos() {
   echo "downloading from ${ARCHIVE}"
   gcloud storage cp "${ARCHIVE}" "$TMP_FILE"
   echo "downloaded installer at $TMP_FILE"
-  installer "$TMP_FILE"
+  sudo installer -pkg "$TMP_FILE" -target /
 }
 
 # detect OS
