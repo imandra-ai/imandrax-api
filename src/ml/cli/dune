@@ -4,7 +4,8 @@
  (package imandrax-api-cli)
  (preprocess
   (pps ppx_subliner ppx_deriving.std))
- (enabled_if (>= %{ocaml_version} 5.0))
+ (enabled_if
+  (>= %{ocaml_version} 5.0))
  (libraries
   imandrax-api-proto
   imandrax-api-client.core

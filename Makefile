@@ -15,10 +15,10 @@ doc:
 	$(DUNE) build $(DUNE_OPTS) @doc --ignore-promoted-rules
 
 format:
-	$(DUNE) build @fmt --auto-promote
+	$(DUNE) build @fmt --auto-promote --ignore-promoted-rules
 
 check-format:
-	$(DUNE) build $(DUNE_OPTS) @fmt
+	$(DUNE) build $(DUNE_OPTS) @fmt --ignore-promoted-rules
 
 genproto:
 	$(DUNE) build @genproto
