@@ -1,0 +1,21 @@
+name: format
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  format:
+    runs-on: [self-hosted, Linux]
+    steps:
+    - uses: actions/checkout@v4
+
+      # Commit sha of nixpkgs release-23.11 as of 2024-04-24. Need 23.11 as it still has ocamlformat_0_22_4 available.
+    - uses: imandra-ai/imandra-build-config/actions/self-hosted-linux-runner-setup-ssh@46c4c21f5e783fc4b9bc172cf900a5f62ea285bf
+    - uses: cachix/install-nix-action@v20
+    - id: 'dune-fmt'
+      name: 'dune build @fmt'
+      run: |-
+        nix-shell -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/ff926785c5b4cae2e9f388d0b1a41183f7be496f.tar.gz  dep/format.nix --command "make check-format DUNE=dune"
