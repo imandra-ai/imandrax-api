@@ -28,7 +28,7 @@ type ('term, 'fn, 'var, 'ty) poly =
   | E_simplify_t of 'term * 'term
   | E_simplify_clause of 'term * 'term list
   | E_proved_by_smt of 'term * 'term Smt_proof.t
-  | E_refuted_by_smt of 'term * ('term, 'fn, 'var, 'ty) Model.t
+  | E_refuted_by_smt of 'term * ('term, 'fn, 'var, 'ty) Model.t option
   | E_fun_expansion of 'term * 'term (* TODO: generalize, elim, etc. *)
 [@@deriving show { with_path = false }, twine, typereg, map]
 
