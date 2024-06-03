@@ -1,10 +1,10 @@
-
 (library
  (name imandrax_api_client_ezcurl)
  (public_name imandrax-api-client-ezcurl)
  (synopsis "Client for ImandraX using ezcurl+twirp")
- (libraries imandrax-api-proto
-            (re_export imandrax-api-client.core)
-            (re_export imandrax-api-client.moonpool)
-            (re_export moonpool)
-            (re_export twirp_ezcurl)))
+ (libraries
+  imandrax-api-proto
+  (re_export imandrax-api-client.core)
+  (re_export imandrax-api-client.moonpool)
+  (re_export moonpool)
+  (re_export twirp_ezcurl)))

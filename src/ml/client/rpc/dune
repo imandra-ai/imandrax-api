@@ -1,5 +1,8 @@
 (library
  (name imandrax_api_client_rpc)
  (public_name imandrax-api-client-batrpc)
- (libraries imandrax-api-proto (re_export imandrax-api-client.core)
-            (re_export imandrax-api-client.moonpool) batrpc))
+ (libraries
+  imandrax-api-proto
+  (re_export imandrax-api-client.core)
+  (re_export imandrax-api-client.moonpool)
+  batrpc))
