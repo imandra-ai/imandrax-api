@@ -1,0 +1,3 @@
+(library
+ (name imandrax_errors)
+ (synopsis "List of errors for ImandraX"))

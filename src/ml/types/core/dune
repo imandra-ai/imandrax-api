@@ -12,4 +12,4 @@
  (action
   (with-stdout-to
    %{targets}
-   (run ../gen/gen_errors.exe))))
+   (run ../internal/gen/gen_errors.exe))))
