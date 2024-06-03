@@ -4,11 +4,12 @@ type kind = {
   name: string;
   ty: string;
   tag: string;
+  docstring: string ;
   to_twine: string;
   of_twine: string;
 }
 
-let mk ~tag ?to_twine ?of_twine name ty : kind =
+let mk ~tag ~docstring ?to_twine ?of_twine name ty : kind =
   let to_twine =
     match to_twine with
     | Some t -> t
@@ -23,15 +24,17 @@ let mk ~tag ?to_twine ?of_twine name ty : kind =
       let pre = CCString.chop_suffix ~suf:".t" ty |> Option.get in
       pre ^ ".of_twine"
   in
-  { name; ty; tag; to_twine; of_twine }
+  { name; ty; tag; to_twine; of_twine; docstring }
 
 let all : kind list =
   [
-    mk "Term" "Cir.Term.t" ~tag:"term";
-    mk "PO_task" "Task.PO_task.t" ~tag:"po_task";
-    mk "PO_res" "Task.PO_res.t" ~tag:"po_res";
-    mk "Eval_task" "Task.Eval_task.t" ~tag:"eval_task";
-    mk "Eval_res" "Task.Eval_res.t" ~tag:"eval_res";
+    mk "Term" "Cir.Term.t" ~tag:"term" ~docstring:"A CIR term";
+    mk "PO_task" "Task.PO_task.t" ~tag:"po_task" ~docstring:"Task to verify a Proof Obligation";
+    mk "PO_res" "Task.PO_res.t" ~tag:"po_res" ~docstring:"Result of verifying a PO";
+    mk "Eval_task" "Task.Eval_task.t" ~tag:"eval_task" ~docstring:"Task to evaluate a term";
+    mk "Eval_res" "Task.Eval_res.t" ~tag:"eval_res" ~docstring:"Result of evaluating a term";
+    mk "Show" "string" ~tag:"show" ~to_twine:"(fun _enc s -> Imandrakit_twine.Immediate.string s)"
+      ~of_twine:"Imandrakit_twine.Decode.string"  ~docstring:"A human readable description";
   ]
 
 let prelude =
@@ -60,7 +63,7 @@ let () =
 
   pf "(** The kind of artifact. *)\n";
   pf "type _ kind =\n";
-  List.iter (fun { name; ty; _ } -> pf "| %s : %s kind\n" name ty) all;
+  List.iter (fun { name; ty; docstring; _ } -> pf "| %s : %s kind\n(** %s *)\n" name ty docstring) all;
   pf "\n\n";
 
   pf "let kind_to_string : type a. a kind -> string = function\n";
