@@ -52,3 +52,15 @@ val encode_pb_art : art -> Pbrt.Encoder.t -> unit
 
 val decode_pb_art : Pbrt.Decoder.t -> art
 (** [decode_pb_art decoder] decodes a [art] binary value from [decoder] *)
+
+
+(** {2 Protobuf YoJson Encoding} *)
+
+val encode_json_art : art -> Yojson.Basic.t
+(** [encode_json_art v encoder] encodes [v] to to json *)
+
+
+(** {2 JSON Decoding} *)
+
+val decode_json_art : Yojson.Basic.t -> art
+(** [decode_json_art decoder] decodes a [art] value from [decoder] *)

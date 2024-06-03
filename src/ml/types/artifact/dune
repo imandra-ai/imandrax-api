@@ -8,6 +8,7 @@
  (libraries
   imandrakit
   pbrt
+  pbrt_yojson
   imandrax-api
   imandrax-api.cir
   imandrax-api.report
@@ -29,4 +30,4 @@
  (mode promote)
  (alias genproto)
  (action
-  (run ocaml-protoc --ml_out=. --pp --binary --make %{file})))
+  (run ocaml-protoc --ml_out=. --yojson --pp --binary --make %{file})))
