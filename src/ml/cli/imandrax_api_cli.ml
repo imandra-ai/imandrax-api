@@ -38,7 +38,8 @@ let repeat_ ~every f =
   while true do
     f ();
     Thread.delay every
-  done
+  done;
+  0
 
 let gc_stats (self : Opts.conn_with_repeat) : int =
   Utils.setup_logs ~debug:self.debug ();
@@ -60,9 +61,7 @@ let gc_stats (self : Opts.conn_with_repeat) : int =
   | None ->
     run ();
     0
-  | Some r ->
-    repeat_ ~every:r run;
-    0
+  | Some r -> repeat_ ~every:r run
 
 let reduce_memory (self : Opts.conn) : int =
   Utils.setup_logs ~debug:self.debug ();

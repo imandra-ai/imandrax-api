@@ -4,7 +4,7 @@
  (libraries pbrt pbrt_yojson pbrt_services))
 
 (rule
- (alias lint)
+ (alias genproto)
  (targets api.ml api.mli)
  (deps
   (:file api.proto))
@@ -13,7 +13,7 @@
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
 
 (rule
- (alias lint)
+ (alias genproto)
  (targets error.ml error.mli)
  (deps
   (:file error.proto))
@@ -22,7 +22,7 @@
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
 
 (rule
- (alias lint)
+ (alias genproto)
  (targets locs.ml locs.mli)
  (deps
   (:file locs.proto))
@@ -31,7 +31,7 @@
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
 
 (rule
- (alias lint)
+ (alias genproto)
  (targets utils.ml utils.mli)
  (deps
   (:file utils.proto))
