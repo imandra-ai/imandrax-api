@@ -1,0 +1,15 @@
+(library
+ (name imandrax_api)
+ (public_name imandrax-api)
+ (libraries imandrakit imandrakit.typereg zarith)
+ (flags :standard -open Imandrakit)
+ (preprocess
+  (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
+ (synopsis "Public API types for Imandrax"))
+
+(rule
+ (targets error_kinds.ml)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ../internal/gen/gen_errors.exe))))

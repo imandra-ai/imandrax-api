@@ -1,4 +1,3 @@
-
 (library
  (name imandrax_api_client_core)
  (public_name imandrax-api-client.core)

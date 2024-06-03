@@ -11,23 +11,22 @@ end
 module Make (Fut : FUT) = struct
   module Fut = Fut
 
-  class type rpc_client =
-    object
-      method disconnect : unit -> unit
-      method active : unit -> bool
+  class type rpc_client = object
+    method disconnect : unit -> unit
+    method active : unit -> bool
 
-      method rpc_call :
-        'req 'res.
-        timeout_s:float ->
-        ( 'req,
-          Pbrt_services.Value_mode.unary,
-          'res,
-          Pbrt_services.Value_mode.unary )
-        Pbrt_services.Client.rpc ->
-        'req ->
-        'res Fut.t
-      (** Generic RPC call *)
-    end
+    method rpc_call :
+      'req 'res.
+      timeout_s:float ->
+      ( 'req,
+        Pbrt_services.Value_mode.unary,
+        'res,
+        Pbrt_services.Value_mode.unary )
+      Pbrt_services.Client.rpc ->
+      'req ->
+      'res Fut.t
+    (** Generic RPC call *)
+  end
 
   type t = {
     addr: string;

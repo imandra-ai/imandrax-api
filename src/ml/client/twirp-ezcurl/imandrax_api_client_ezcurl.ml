@@ -29,9 +29,9 @@ module Addr = struct
   let show self =
     spf "http%s://%s:%d"
       (if self.tls then
-        "s"
-      else
-        "")
+         "s"
+       else
+         "")
       self.host self.port
 end
 

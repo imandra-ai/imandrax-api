@@ -16,7 +16,7 @@ jobs:
         os:
             - ubuntu-latest
         ocaml-compiler:
-            - '4.12'
+            - '4.13.x'
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -29,12 +29,12 @@ jobs:
           allow-prerelease-opam: true
 
       - run: opam exec -- make opam-pin-submodules
-      - run: opam install -t imandrax-api-proto imandrax-api-client --deps-only
-      - run: opam exec -- dune build @install -p imandrax-api-proto,imandrax-api-client
-      - run: opam exec -- dune runtest -p imandrax-api-proto,imandrax-api-client
+      - run: opam install -t imandrax-api imandrax-api-proto imandrax-api-client --deps-only
+      - run: opam exec -- dune build @install -p imandrax-api,imandrax-api-proto,imandrax-api-client
+      - run: opam exec -- dune runtest -p imandrax-api,imandrax-api-proto,imandrax-api-client
 
       # check that the generated code is up to date
       - run: opam install ocaml-protoc
-      - run: opam exec -- dune build @lint --auto-promote -p imandrax-api-proto
+      - run: opam exec -- dune build @genproto --auto-promote
       - run: git diff -q
 

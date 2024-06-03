@@ -1,0 +1,3 @@
+pin-depends: [
+  ["imandrakit.dev" "git+https://github.com/imandra-ai/imandrakit#main"]
+]

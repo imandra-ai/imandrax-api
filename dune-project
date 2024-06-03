@@ -7,6 +7,37 @@
 (authors "the imandrax team")
 (maintainers "imandra.ai")
 
+; from imandrax
+(package
+ (name imandrax-api)
+ (synopsis "Public API and types for ImandraX")
+ (depends
+  (ocaml
+   (>= 4.13.0))
+  (containers
+   (>= 3.4))
+  (iter
+   (>= 1.0))
+  (zarith
+   (>= 1.12))
+  ppx_deriving
+  ppx_deriving_yojson
+  imandrakit
+  ppxlib
+  (pbrt
+   (and
+    (>= 3.0)
+    (< 4.0)))
+  (ocaml-protoc
+   (and
+    (>= 3.0)
+    :with-dev-setup))
+  (odoc :with-doc))
+ (depopts camlzip)
+ (conflicts
+  (containers
+   (= 3.13))))
+
 (package
   (name imandrax-api-proto)
   (synopsis "protobuf definitions for ImandraX's API")
@@ -22,6 +53,7 @@
     (containers (and (>= 3.0) :with-test))
     (trace (>= 0.6))
     logs
+    (ocaml (>= 4.13))
     (moonpool (and (>= 0.6) (< 0.7)))
     (pbrt (>= 3.0))
     (pbrt_yojson (>= 3.0))

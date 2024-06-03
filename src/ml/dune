@@ -2,4 +2,5 @@
  (libraries imandrax-api-proto imandrax-api-client))
 
 (env
-  (_ (flags :standard -warn-error -33)))
+ (_
+  (flags :standard -warn-error -33)))

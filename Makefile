@@ -1,26 +1,34 @@
 
 DUNE_OPTS?=
+DUNE?=opam exec -- dune
+
 build:
-	dune build @install $(DUNE_OPTS) --ignore-promoted-rules
+	$(DUNE) build @install $(DUNE_OPTS) --ignore-promoted-rules
 
 clean:
-	@dune clean
+	$(DUNE) clean
 
 test:
-	@dune runtest $(DUNE_OPTS) --ignore-promoted-rules
+	$(DUNE) runtest $(DUNE_OPTS) --ignore-promoted-rules
 
 doc:
-	@dune build $(DUNE_OPTS) @doc --ignore-promoted-rules
+	$(DUNE) build $(DUNE_OPTS) @doc --ignore-promoted-rules
 
-lint:
-	@dune build @lint
+format:
+	$(DUNE) build @fmt --auto-promote --ignore-promoted-rules
+
+check-format:
+	$(DUNE) build $(DUNE_OPTS) @fmt --ignore-promoted-rules
+
+genproto:
+	$(DUNE) build @genproto
 
 build-dev:
-	dune build @install @runtest $(DUNE_OPTS) --workspace=dune-workspace.dev
+	$(DUNE) build @install @runtest $(DUNE_OPTS) --workspace=dune-workspace.dev
 
 WATCH?= @check @runtest
 watch:
-	dune build $(DUNE_OPTS) -w $(WATCH)
+	$(DUNE) build $(DUNE_OPTS) --ignore-promoted-rules -w $(WATCH)
 
 ## handle vendored deps
 

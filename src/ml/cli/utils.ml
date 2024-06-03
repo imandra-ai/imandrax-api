@@ -86,9 +86,9 @@ let setup_logs ?log_file ?lvl ?(debug = false) () : unit =
   Logs.set_level ~all:true
     (Some
        (if debug then
-         Logs.Debug
-       else
-         Option.value ~default:Logs.Info lvl));
+          Logs.Debug
+        else
+          Option.value ~default:Logs.Info lvl));
   Log.debug (fun k -> k "logs are setup");
   ()
 
