@@ -35,6 +35,6 @@ jobs:
 
       # check that the generated code is up to date
       - run: opam install ocaml-protoc
-      - run: opam exec -- dune build @genproto --auto-promote -p imandrax-api,imandrax-api-proto
+      - run: opam exec -- dune build @genproto --auto-promote
       - run: git diff -q
 
