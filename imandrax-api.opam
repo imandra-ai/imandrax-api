@@ -38,3 +38,6 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/imandra-ai/imandrax-api.git"
+pin-depends: [
+  ["imandrakit.dev" "git+https://github.com/imandra-ai/imandrakit#main"]
+]
