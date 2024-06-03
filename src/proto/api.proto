@@ -4,6 +4,9 @@ syntax = "proto3";
 import "utils.proto";
 import "error.proto";
 
+// artifacts as messages
+import "../ml/types/artifact/artmsg.proto";
+
 enum TaskKind {
   TASK_UNSPECIFIED = 0;
   TASK_EVAL = 1;
@@ -84,15 +87,38 @@ message CodeSnippetEvalResult {
   repeated Error errors = 10;
 }
 
+message ArtifactListQuery {
+  // the task from which to list the artifacts
+  Task task_id = 1;
+}
+
+message ArtifactListResult {
+  // the kinds of artifacts available for this task
+  repeated string kinds = 1;
+}
+
+message ArtifactGetQuery {
+  // the task from which the artifact comes from
+  Task task_id = 1;
+
+  // the kind of artifact we want
+  string kind = 2;
+}
+
+message ArtifactGetResult {
+  // requested artifact
+  Art art = 1;
+}
 
 service Eval {
   /// Evaluate a snippet
   rpc eval_code_snippet(CodeSnippet) returns (CodeSnippetEvalResult);
 
+  rpc list_artifacts(ArtifactListQuery) returns (ArtifactListResult);
 
+  // Obtain an artifact from a task
+  rpc get_artifact(ArtifactGetQuery) returns (ArtifactGetResult);
 }
-
-// TODO: task API
 
 // ## GC statistics.
 //

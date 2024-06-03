@@ -43,6 +43,23 @@ type code_snippet_eval_result = {
   errors : Error.error list;
 }
 
+type artifact_list_query = {
+  task_id : task option;
+}
+
+type artifact_list_result = {
+  kinds : string list;
+}
+
+type artifact_get_query = {
+  task_id : task option;
+  kind : string;
+}
+
+type artifact_get_result = {
+  art : Artmsg.art option;
+}
+
 type gc_stats = {
   heap_size_b : int64;
   major_collections : int64;
@@ -108,6 +125,32 @@ let rec default_code_snippet_eval_result
   duration_s;
   tasks;
   errors;
+}
+
+let rec default_artifact_list_query 
+  ?task_id:((task_id:task option) = None)
+  () : artifact_list_query  = {
+  task_id;
+}
+
+let rec default_artifact_list_result 
+  ?kinds:((kinds:string list) = [])
+  () : artifact_list_result  = {
+  kinds;
+}
+
+let rec default_artifact_get_query 
+  ?task_id:((task_id:task option) = None)
+  ?kind:((kind:string) = "")
+  () : artifact_get_query  = {
+  task_id;
+  kind;
+}
+
+let rec default_artifact_get_result 
+  ?art:((art:Artmsg.art option) = None)
+  () : artifact_get_result  = {
+  art;
 }
 
 let rec default_gc_stats 
@@ -194,6 +237,40 @@ let default_code_snippet_eval_result_mutable () : code_snippet_eval_result_mutab
   errors = [];
 }
 
+type artifact_list_query_mutable = {
+  mutable task_id : task option;
+}
+
+let default_artifact_list_query_mutable () : artifact_list_query_mutable = {
+  task_id = None;
+}
+
+type artifact_list_result_mutable = {
+  mutable kinds : string list;
+}
+
+let default_artifact_list_result_mutable () : artifact_list_result_mutable = {
+  kinds = [];
+}
+
+type artifact_get_query_mutable = {
+  mutable task_id : task option;
+  mutable kind : string;
+}
+
+let default_artifact_get_query_mutable () : artifact_get_query_mutable = {
+  task_id = None;
+  kind = "";
+}
+
+type artifact_get_result_mutable = {
+  mutable art : Artmsg.art option;
+}
+
+let default_artifact_get_result_mutable () : artifact_get_result_mutable = {
+  art = None;
+}
+
 type gc_stats_mutable = {
   mutable heap_size_b : int64;
   mutable major_collections : int64;
@@ -271,6 +348,32 @@ let rec make_code_snippet_eval_result
   duration_s;
   tasks;
   errors;
+}
+
+let rec make_artifact_list_query 
+  ?task_id:((task_id:task option) = None)
+  () : artifact_list_query  = {
+  task_id;
+}
+
+let rec make_artifact_list_result 
+  ~(kinds:string list)
+  () : artifact_list_result  = {
+  kinds;
+}
+
+let rec make_artifact_get_query 
+  ?task_id:((task_id:task option) = None)
+  ~(kind:string)
+  () : artifact_get_query  = {
+  task_id;
+  kind;
+}
+
+let rec make_artifact_get_result 
+  ?art:((art:Artmsg.art option) = None)
+  () : artifact_get_result  = {
+  art;
 }
 
 let rec make_gc_stats 
@@ -351,6 +454,31 @@ let rec pp_code_snippet_eval_result fmt (v:code_snippet_eval_result) =
     Pbrt.Pp.pp_record_field ~first:false "duration_s" Pbrt.Pp.pp_float fmt v.duration_s;
     Pbrt.Pp.pp_record_field ~first:false "tasks" (Pbrt.Pp.pp_list pp_task) fmt v.tasks;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_artifact_list_query fmt (v:artifact_list_query) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option pp_task) fmt v.task_id;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_artifact_list_result fmt (v:artifact_list_result) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "kinds" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.kinds;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_artifact_get_query fmt (v:artifact_get_query) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option pp_task) fmt v.task_id;
+    Pbrt.Pp.pp_record_field ~first:false "kind" Pbrt.Pp.pp_string fmt v.kind;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_artifact_get_result fmt (v:artifact_get_result) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "art" (Pbrt.Pp.pp_option Artmsg.pp_art) fmt v.art;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -448,6 +576,42 @@ let rec encode_pb_code_snippet_eval_result (v:code_snippet_eval_result) encoder 
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   ) v.errors encoder;
+  ()
+
+let rec encode_pb_artifact_list_query (v:artifact_list_query) encoder = 
+  begin match v.task_id with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_task x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_artifact_list_result (v:artifact_list_result) encoder = 
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  ) v.kinds encoder;
+  ()
+
+let rec encode_pb_artifact_get_query (v:artifact_get_query) encoder = 
+  begin match v.task_id with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_task x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  Pbrt.Encoder.string v.kind encoder;
+  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  ()
+
+let rec encode_pb_artifact_get_result (v:artifact_get_result) encoder = 
+  begin match v.art with
+  | Some x -> 
+    Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
   ()
 
 let rec encode_pb_gc_stats (v:gc_stats) encoder = 
@@ -646,6 +810,85 @@ let rec decode_pb_code_snippet_eval_result d =
     errors = v.errors;
   } : code_snippet_eval_result)
 
+let rec decode_pb_artifact_list_query d =
+  let v = default_artifact_list_query_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.task_id <- Some (decode_pb_task (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(artifact_list_query), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    task_id = v.task_id;
+  } : artifact_list_query)
+
+let rec decode_pb_artifact_list_result d =
+  let v = default_artifact_list_result_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      v.kinds <- List.rev v.kinds;
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.kinds <- (Pbrt.Decoder.string d) :: v.kinds;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(artifact_list_result), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    kinds = v.kinds;
+  } : artifact_list_result)
+
+let rec decode_pb_artifact_get_query d =
+  let v = default_artifact_get_query_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.task_id <- Some (decode_pb_task (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(artifact_get_query), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.kind <- Pbrt.Decoder.string d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(artifact_get_query), field(2)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    task_id = v.task_id;
+    kind = v.kind;
+  } : artifact_get_query)
+
+let rec decode_pb_artifact_get_result d =
+  let v = default_artifact_get_result_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.art <- Some (Artmsg.decode_pb_art (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(artifact_get_result), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    art = v.art;
+  } : artifact_get_result)
+
 let rec decode_pb_gc_stats d =
   let v = default_gc_stats_mutable () in
   let continue__= ref true in
@@ -771,6 +1014,39 @@ let rec encode_json_code_snippet_eval_result (v:code_snippet_eval_result) =
   let assoc =
     let l = v.errors |> List.map Error.encode_json_error in
     ("errors", `List l) :: assoc 
+  in
+  `Assoc assoc
+
+let rec encode_json_artifact_list_query (v:artifact_list_query) = 
+  let assoc = [] in 
+  let assoc = match v.task_id with
+    | None -> assoc
+    | Some v -> ("taskId", encode_json_task v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_artifact_list_result (v:artifact_list_result) = 
+  let assoc = [] in 
+  let assoc =
+    let l = v.kinds |> List.map Pbrt_yojson.make_string in
+    ("kinds", `List l) :: assoc 
+  in
+  `Assoc assoc
+
+let rec encode_json_artifact_get_query (v:artifact_get_query) = 
+  let assoc = [] in 
+  let assoc = match v.task_id with
+    | None -> assoc
+    | Some v -> ("taskId", encode_json_task v) :: assoc
+  in
+  let assoc = ("kind", Pbrt_yojson.make_string v.kind) :: assoc in
+  `Assoc assoc
+
+let rec encode_json_artifact_get_result (v:artifact_get_result) = 
+  let assoc = [] in 
+  let assoc = match v.art with
+    | None -> assoc
+    | Some v -> ("art", Artmsg.encode_json_art v) :: assoc
   in
   `Assoc assoc
 
@@ -941,6 +1217,76 @@ let rec decode_json_code_snippet_eval_result d =
     errors = v.errors;
   } : code_snippet_eval_result)
 
+let rec decode_json_artifact_list_query d =
+  let v = default_artifact_list_query_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("taskId", json_value) -> 
+      v.task_id <- Some ((decode_json_task json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    task_id = v.task_id;
+  } : artifact_list_query)
+
+let rec decode_json_artifact_list_result d =
+  let v = default_artifact_list_result_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("kinds", `List l) -> begin
+      v.kinds <- List.map (function
+        | json_value -> Pbrt_yojson.string json_value "artifact_list_result" "kinds"
+      ) l;
+    end
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    kinds = v.kinds;
+  } : artifact_list_result)
+
+let rec decode_json_artifact_get_query d =
+  let v = default_artifact_get_query_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("taskId", json_value) -> 
+      v.task_id <- Some ((decode_json_task json_value))
+    | ("kind", json_value) -> 
+      v.kind <- Pbrt_yojson.string json_value "artifact_get_query" "kind"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    task_id = v.task_id;
+    kind = v.kind;
+  } : artifact_get_query)
+
+let rec decode_json_artifact_get_result d =
+  let v = default_artifact_get_result_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("art", json_value) -> 
+      v.art <- Some ((Artmsg.decode_json_art json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    art = v.art;
+  } : artifact_get_result)
+
 let rec decode_json_gc_stats d =
   let v = default_gc_stats_mutable () in
   let assoc = match d with
@@ -1093,6 +1439,32 @@ module Eval = struct
         ~decode_json_res:decode_json_code_snippet_eval_result
         ~decode_pb_res:decode_pb_code_snippet_eval_result
         () : (code_snippet, unary, code_snippet_eval_result, unary) Client.rpc)
+    open Pbrt_services
+    
+    let list_artifacts : (artifact_list_query, unary, artifact_list_result, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:[]
+        ~service_name:"Eval" ~rpc_name:"list_artifacts"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_artifact_list_query
+        ~encode_pb_req:encode_pb_artifact_list_query
+        ~decode_json_res:decode_json_artifact_list_result
+        ~decode_pb_res:decode_pb_artifact_list_result
+        () : (artifact_list_query, unary, artifact_list_result, unary) Client.rpc)
+    open Pbrt_services
+    
+    let get_artifact : (artifact_get_query, unary, artifact_get_result, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:[]
+        ~service_name:"Eval" ~rpc_name:"get_artifact"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_artifact_get_query
+        ~encode_pb_req:encode_pb_artifact_get_query
+        ~decode_json_res:decode_json_artifact_get_result
+        ~decode_pb_res:decode_pb_artifact_get_result
+        () : (artifact_get_query, unary, artifact_get_result, unary) Client.rpc)
   end
   
   module Server = struct
@@ -1108,14 +1480,38 @@ module Eval = struct
         ~decode_pb_req:decode_pb_code_snippet
         () : _ Server.rpc)
     
+    let _rpc_list_artifacts : (artifact_list_query,unary,artifact_list_result,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"list_artifacts"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_artifact_list_result
+        ~encode_pb_res:encode_pb_artifact_list_result
+        ~decode_json_req:decode_json_artifact_list_query
+        ~decode_pb_req:decode_pb_artifact_list_query
+        () : _ Server.rpc)
+    
+    let _rpc_get_artifact : (artifact_get_query,unary,artifact_get_result,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"get_artifact"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_artifact_get_result
+        ~encode_pb_res:encode_pb_artifact_get_result
+        ~decode_json_req:decode_json_artifact_get_query
+        ~decode_pb_req:decode_pb_artifact_get_query
+        () : _ Server.rpc)
+    
     let make
       ~eval_code_snippet
+      ~list_artifacts
+      ~get_artifact
       () : _ Server.t =
       { Server.
         service_name="Eval";
         package=[];
         handlers=[
            (eval_code_snippet _rpc_eval_code_snippet);
+           (list_artifacts _rpc_list_artifacts);
+           (get_artifact _rpc_get_artifact);
         ];
       }
   end

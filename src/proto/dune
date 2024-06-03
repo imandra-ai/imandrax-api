@@ -1,7 +1,8 @@
 (library
  (public_name imandrax-api-proto)
  (name imandrax_api_proto)
- (libraries pbrt pbrt_yojson pbrt_services))
+ (flags :standard -open Imandrax_api_artifact)
+ (libraries pbrt pbrt_yojson pbrt_services imandrax-api.artifact))
 
 (rule
  (alias genproto)
