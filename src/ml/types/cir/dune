@@ -1,0 +1,13 @@
+(library
+ (name imandrax_api_cir)
+ (public_name imandrax-api.cir)
+ (libraries
+  imandrakit
+  imandrakit.typereg
+  imandrax-api
+  imandrax-api.model
+  zarith)
+ (flags :standard -open Imandrakit -open Imandrax_api)
+ (preprocess
+  (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
+ (synopsis "Public API types for Imandrax"))

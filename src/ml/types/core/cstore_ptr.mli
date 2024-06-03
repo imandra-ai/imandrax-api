@@ -1,0 +1,46 @@
+(** Crypto pointer.
+
+    A [cptr] is a unique (cryptographic) name for data stored in the {!Storage.t}.
+    Data [d] is stored under key [chash(serialize(d))].
+*)
+
+(** Raw untyped cpointer.  *)
+module Raw : sig
+  type t [@@deriving show, eq, ord, twine]
+  (** Raw cptr, without typing. *)
+
+  val to_string : t -> string
+
+  val slugify : t -> string
+
+  val unslugify_exn : string -> t
+end
+
+type 'a t [@@deriving twine]
+(** Crypto pointer for type ['a] *)
+
+val pp : _ t Fmt.printer
+
+val show : _ t -> string
+
+val raw : _ t -> Raw.t
+
+val to_twine' : _ t Imandrakit_twine.encoder
+(** Type erasing twine *)
+
+val of_twine' : _ t Imandrakit_twine.decoder
+(** Type erasing twine *)
+
+(**/**)
+
+module Private_ : sig
+  val unsafe_of_raw : Raw.t -> 'a t
+  [@@alert expert "cast from raw pointer"]
+  (** Cast from a raw pointer. Make sure you know the actual type. *)
+
+  val raw_of_key : Cstore_key.t -> Raw.t
+
+  val raw_to_key : Raw.t -> Cstore_key.t
+end
+
+(**/**)

@@ -1,0 +1,32 @@
+(library
+ (name imandrax_api_artifact)
+ (public_name imandrax-api.artifact)
+ (synopsis "Artifacts for ImandraX")
+ (flags :standard -open Imandrakit -open Imandrax_api)
+ (preprocess
+  (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
+ (libraries
+  imandrakit
+  pbrt
+  imandrax-api
+  imandrax-api.cir
+  imandrax-api.report
+  imandrax-api.tasks))
+
+; most code is auto-generated
+
+(rule
+ (targets artifact.ml)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./gen/gen.exe))))
+
+(rule
+ (targets artmsg.ml artmsg.mli)
+ (deps
+  (:file artmsg.proto))
+ (mode promote)
+ (alias genproto)
+ (action
+  (run ocaml-protoc --ml_out=. --pp --binary --make %{file})))
