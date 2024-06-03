@@ -23,6 +23,7 @@
   ppx_deriving
   ppx_deriving_yojson
   imandrakit
+  ppxlib
   (pbrt
    (and
     (>= 3.0)
