@@ -99,3 +99,40 @@ let rec decode_pb_art d =
     data = v.data;
     api_version = v.api_version;
   } : art)
+
+[@@@ocaml.warning "-27-30-39"]
+
+(** {2 Protobuf YoJson Encoding} *)
+
+let rec encode_json_art (v:art) = 
+  let assoc = [] in 
+  let assoc = ("kind", Pbrt_yojson.make_string v.kind) :: assoc in
+  let assoc = ("data", Pbrt_yojson.make_bytes v.data) :: assoc in
+  let assoc = ("apiVersion", Pbrt_yojson.make_string v.api_version) :: assoc in
+  `Assoc assoc
+
+[@@@ocaml.warning "-27-30-39"]
+
+(** {2 JSON Decoding} *)
+
+let rec decode_json_art d =
+  let v = default_art_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("kind", json_value) -> 
+      v.kind <- Pbrt_yojson.string json_value "art" "kind"
+    | ("data", json_value) -> 
+      v.data <- Pbrt_yojson.bytes json_value "art" "data"
+    | ("apiVersion", json_value) -> 
+      v.api_version <- Pbrt_yojson.string json_value "art" "api_version"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    kind = v.kind;
+    data = v.data;
+    api_version = v.api_version;
+  } : art)
