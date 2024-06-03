@@ -1,0 +1,15 @@
+(library
+ (name imandrax_api_artifact_zip)
+ (public_name imandrax-api.artifact.zip)
+ (synopsis "ZIP storage for ImandraX's artifacts")
+ (optional) ; camlzip/imandrakit-zip
+ (flags :standard -open Imandrakit -open Imandrax_api)
+ (preprocess
+  (pps ppx_deriving.std ppx_deriving_yojson imandrakit.twine.ppx))
+ (libraries
+  imandrakit
+  yojson
+  camlzip
+  imandrakit.zip
+  imandrax-api
+  imandrax-api.artifact))

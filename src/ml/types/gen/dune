@@ -1,0 +1,5 @@
+(executable
+ (name gen_errors)
+ (libraries imandrax_errors)
+ (preprocess
+  (pps ppx_deriving.std)))

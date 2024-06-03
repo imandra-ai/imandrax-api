@@ -1,0 +1,14 @@
+
+syntax = "proto3";
+
+message Art {
+  // The kind of artifact.
+  string kind = 1;
+
+  // Serialized data, in twine.
+  bytes data = 2;
+
+  // Version of the API. This is mandatory and must match
+  // with the imandrax-api library version.
+  string api_version = 3;
+}
