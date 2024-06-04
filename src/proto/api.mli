@@ -51,7 +51,7 @@ type code_snippet_eval_result = {
 }
 
 type artifact_list_query = {
-  task_id : task option;
+  task_id : task_id option;
 }
 
 type artifact_list_result = {
@@ -59,7 +59,7 @@ type artifact_list_result = {
 }
 
 type artifact_get_query = {
-  task_id : task option;
+  task_id : task_id option;
   kind : string;
 }
 
@@ -135,7 +135,7 @@ val default_code_snippet_eval_result :
 (** [default_code_snippet_eval_result ()] is the default value for type [code_snippet_eval_result] *)
 
 val default_artifact_list_query : 
-  ?task_id:task option ->
+  ?task_id:task_id option ->
   unit ->
   artifact_list_query
 (** [default_artifact_list_query ()] is the default value for type [artifact_list_query] *)
@@ -147,7 +147,7 @@ val default_artifact_list_result :
 (** [default_artifact_list_result ()] is the default value for type [artifact_list_result] *)
 
 val default_artifact_get_query : 
-  ?task_id:task option ->
+  ?task_id:task_id option ->
   ?kind:string ->
   unit ->
   artifact_get_query
@@ -227,7 +227,7 @@ val make_code_snippet_eval_result :
 (** [make_code_snippet_eval_result … ()] is a builder for type [code_snippet_eval_result] *)
 
 val make_artifact_list_query : 
-  ?task_id:task option ->
+  ?task_id:task_id option ->
   unit ->
   artifact_list_query
 (** [make_artifact_list_query … ()] is a builder for type [artifact_list_query] *)
@@ -239,7 +239,7 @@ val make_artifact_list_result :
 (** [make_artifact_list_result … ()] is a builder for type [artifact_list_result] *)
 
 val make_artifact_get_query : 
-  ?task_id:task option ->
+  ?task_id:task_id option ->
   kind:string ->
   unit ->
   artifact_get_query

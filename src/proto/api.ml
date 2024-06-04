@@ -44,7 +44,7 @@ type code_snippet_eval_result = {
 }
 
 type artifact_list_query = {
-  task_id : task option;
+  task_id : task_id option;
 }
 
 type artifact_list_result = {
@@ -52,7 +52,7 @@ type artifact_list_result = {
 }
 
 type artifact_get_query = {
-  task_id : task option;
+  task_id : task_id option;
   kind : string;
 }
 
@@ -128,7 +128,7 @@ let rec default_code_snippet_eval_result
 }
 
 let rec default_artifact_list_query 
-  ?task_id:((task_id:task option) = None)
+  ?task_id:((task_id:task_id option) = None)
   () : artifact_list_query  = {
   task_id;
 }
@@ -140,7 +140,7 @@ let rec default_artifact_list_result
 }
 
 let rec default_artifact_get_query 
-  ?task_id:((task_id:task option) = None)
+  ?task_id:((task_id:task_id option) = None)
   ?kind:((kind:string) = "")
   () : artifact_get_query  = {
   task_id;
@@ -238,7 +238,7 @@ let default_code_snippet_eval_result_mutable () : code_snippet_eval_result_mutab
 }
 
 type artifact_list_query_mutable = {
-  mutable task_id : task option;
+  mutable task_id : task_id option;
 }
 
 let default_artifact_list_query_mutable () : artifact_list_query_mutable = {
@@ -254,7 +254,7 @@ let default_artifact_list_result_mutable () : artifact_list_result_mutable = {
 }
 
 type artifact_get_query_mutable = {
-  mutable task_id : task option;
+  mutable task_id : task_id option;
   mutable kind : string;
 }
 
@@ -351,7 +351,7 @@ let rec make_code_snippet_eval_result
 }
 
 let rec make_artifact_list_query 
-  ?task_id:((task_id:task option) = None)
+  ?task_id:((task_id:task_id option) = None)
   () : artifact_list_query  = {
   task_id;
 }
@@ -363,7 +363,7 @@ let rec make_artifact_list_result
 }
 
 let rec make_artifact_get_query 
-  ?task_id:((task_id:task option) = None)
+  ?task_id:((task_id:task_id option) = None)
   ~(kind:string)
   () : artifact_get_query  = {
   task_id;
@@ -459,7 +459,7 @@ let rec pp_code_snippet_eval_result fmt (v:code_snippet_eval_result) =
 
 let rec pp_artifact_list_query fmt (v:artifact_list_query) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option pp_task) fmt v.task_id;
+    Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option pp_task_id) fmt v.task_id;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -471,7 +471,7 @@ let rec pp_artifact_list_result fmt (v:artifact_list_result) =
 
 let rec pp_artifact_get_query fmt (v:artifact_get_query) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option pp_task) fmt v.task_id;
+    Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option pp_task_id) fmt v.task_id;
     Pbrt.Pp.pp_record_field ~first:false "kind" Pbrt.Pp.pp_string fmt v.kind;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
@@ -581,7 +581,7 @@ let rec encode_pb_code_snippet_eval_result (v:code_snippet_eval_result) encoder 
 let rec encode_pb_artifact_list_query (v:artifact_list_query) encoder = 
   begin match v.task_id with
   | Some x -> 
-    Pbrt.Encoder.nested encode_pb_task x encoder;
+    Pbrt.Encoder.nested encode_pb_task_id x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | None -> ();
   end;
@@ -597,7 +597,7 @@ let rec encode_pb_artifact_list_result (v:artifact_list_result) encoder =
 let rec encode_pb_artifact_get_query (v:artifact_get_query) encoder = 
   begin match v.task_id with
   | Some x -> 
-    Pbrt.Encoder.nested encode_pb_task x encoder;
+    Pbrt.Encoder.nested encode_pb_task_id x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | None -> ();
   end;
@@ -818,7 +818,7 @@ let rec decode_pb_artifact_list_query d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.task_id <- Some (decode_pb_task (Pbrt.Decoder.nested d));
+      v.task_id <- Some (decode_pb_task_id (Pbrt.Decoder.nested d));
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(artifact_list_query), field(1)" pk
@@ -855,7 +855,7 @@ let rec decode_pb_artifact_get_query d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.task_id <- Some (decode_pb_task (Pbrt.Decoder.nested d));
+      v.task_id <- Some (decode_pb_task_id (Pbrt.Decoder.nested d));
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(artifact_get_query), field(1)" pk
@@ -1021,7 +1021,7 @@ let rec encode_json_artifact_list_query (v:artifact_list_query) =
   let assoc = [] in 
   let assoc = match v.task_id with
     | None -> assoc
-    | Some v -> ("taskId", encode_json_task v) :: assoc
+    | Some v -> ("taskId", encode_json_task_id v) :: assoc
   in
   `Assoc assoc
 
@@ -1037,7 +1037,7 @@ let rec encode_json_artifact_get_query (v:artifact_get_query) =
   let assoc = [] in 
   let assoc = match v.task_id with
     | None -> assoc
-    | Some v -> ("taskId", encode_json_task v) :: assoc
+    | Some v -> ("taskId", encode_json_task_id v) :: assoc
   in
   let assoc = ("kind", Pbrt_yojson.make_string v.kind) :: assoc in
   `Assoc assoc
@@ -1225,7 +1225,7 @@ let rec decode_json_artifact_list_query d =
   in
   List.iter (function 
     | ("taskId", json_value) -> 
-      v.task_id <- Some ((decode_json_task json_value))
+      v.task_id <- Some ((decode_json_task_id json_value))
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -1260,7 +1260,7 @@ let rec decode_json_artifact_get_query d =
   in
   List.iter (function 
     | ("taskId", json_value) -> 
-      v.task_id <- Some ((decode_json_task json_value))
+      v.task_id <- Some ((decode_json_task_id json_value))
     | ("kind", json_value) -> 
       v.kind <- Pbrt_yojson.string json_value "artifact_get_query" "kind"
     
