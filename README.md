@@ -51,6 +51,15 @@ $ imandrax-cli check foo.iml
 
 WIP
 
+### Curl
+
+Example if the server is listening on port 8083:
+
+```sh
+$ curl -X POST http://localhost:8083/api/v1/System/gc_stats -H 'content-type: application/json' -d {}
+{"minorCollections":"4","majorCollections":"2","heapSizeB":"3081624"}
+```
+
 ### OCaml client library
 
 See library `imandrax-api-client`.
