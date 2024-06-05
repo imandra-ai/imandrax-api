@@ -67,7 +67,7 @@ type artifact_get_query = {
   kind : string;
 }
 
-type artifact_get_result = {
+type artifact = {
   art : Artmsg.art option;
 }
 
@@ -163,11 +163,11 @@ val default_artifact_get_query :
   artifact_get_query
 (** [default_artifact_get_query ()] is the default value for type [artifact_get_query] *)
 
-val default_artifact_get_result : 
+val default_artifact : 
   ?art:Artmsg.art option ->
   unit ->
-  artifact_get_result
-(** [default_artifact_get_result ()] is the default value for type [artifact_get_result] *)
+  artifact
+(** [default_artifact ()] is the default value for type [artifact] *)
 
 val default_gc_stats : 
   ?heap_size_b:int64 ->
@@ -261,11 +261,11 @@ val make_artifact_get_query :
   artifact_get_query
 (** [make_artifact_get_query … ()] is a builder for type [artifact_get_query] *)
 
-val make_artifact_get_result : 
+val make_artifact : 
   ?art:Artmsg.art option ->
   unit ->
-  artifact_get_result
-(** [make_artifact_get_result … ()] is a builder for type [artifact_get_result] *)
+  artifact
+(** [make_artifact … ()] is a builder for type [artifact] *)
 
 val make_gc_stats : 
   heap_size_b:int64 ->
@@ -324,8 +324,8 @@ val pp_artifact_list_result : Format.formatter -> artifact_list_result -> unit
 val pp_artifact_get_query : Format.formatter -> artifact_get_query -> unit 
 (** [pp_artifact_get_query v] formats v *)
 
-val pp_artifact_get_result : Format.formatter -> artifact_get_result -> unit 
-(** [pp_artifact_get_result v] formats v *)
+val pp_artifact : Format.formatter -> artifact -> unit 
+(** [pp_artifact v] formats v *)
 
 val pp_gc_stats : Format.formatter -> gc_stats -> unit 
 (** [pp_gc_stats v] formats v *)
@@ -375,8 +375,8 @@ val encode_pb_artifact_list_result : artifact_list_result -> Pbrt.Encoder.t -> u
 val encode_pb_artifact_get_query : artifact_get_query -> Pbrt.Encoder.t -> unit
 (** [encode_pb_artifact_get_query v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_artifact_get_result : artifact_get_result -> Pbrt.Encoder.t -> unit
-(** [encode_pb_artifact_get_result v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_artifact : artifact -> Pbrt.Encoder.t -> unit
+(** [encode_pb_artifact v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_gc_stats : gc_stats -> Pbrt.Encoder.t -> unit
 (** [encode_pb_gc_stats v encoder] encodes [v] with the given [encoder] *)
@@ -426,8 +426,8 @@ val decode_pb_artifact_list_result : Pbrt.Decoder.t -> artifact_list_result
 val decode_pb_artifact_get_query : Pbrt.Decoder.t -> artifact_get_query
 (** [decode_pb_artifact_get_query decoder] decodes a [artifact_get_query] binary value from [decoder] *)
 
-val decode_pb_artifact_get_result : Pbrt.Decoder.t -> artifact_get_result
-(** [decode_pb_artifact_get_result decoder] decodes a [artifact_get_result] binary value from [decoder] *)
+val decode_pb_artifact : Pbrt.Decoder.t -> artifact
+(** [decode_pb_artifact decoder] decodes a [artifact] binary value from [decoder] *)
 
 val decode_pb_gc_stats : Pbrt.Decoder.t -> gc_stats
 (** [decode_pb_gc_stats decoder] decodes a [gc_stats] binary value from [decoder] *)
@@ -477,8 +477,8 @@ val encode_json_artifact_list_result : artifact_list_result -> Yojson.Basic.t
 val encode_json_artifact_get_query : artifact_get_query -> Yojson.Basic.t
 (** [encode_json_artifact_get_query v encoder] encodes [v] to to json *)
 
-val encode_json_artifact_get_result : artifact_get_result -> Yojson.Basic.t
-(** [encode_json_artifact_get_result v encoder] encodes [v] to to json *)
+val encode_json_artifact : artifact -> Yojson.Basic.t
+(** [encode_json_artifact v encoder] encodes [v] to to json *)
 
 val encode_json_gc_stats : gc_stats -> Yojson.Basic.t
 (** [encode_json_gc_stats v encoder] encodes [v] to to json *)
@@ -528,8 +528,8 @@ val decode_json_artifact_list_result : Yojson.Basic.t -> artifact_list_result
 val decode_json_artifact_get_query : Yojson.Basic.t -> artifact_get_query
 (** [decode_json_artifact_get_query decoder] decodes a [artifact_get_query] value from [decoder] *)
 
-val decode_json_artifact_get_result : Yojson.Basic.t -> artifact_get_result
-(** [decode_json_artifact_get_result decoder] decodes a [artifact_get_result] value from [decoder] *)
+val decode_json_artifact : Yojson.Basic.t -> artifact
+(** [decode_json_artifact decoder] decodes a [artifact] value from [decoder] *)
 
 val decode_json_gc_stats : Yojson.Basic.t -> gc_stats
 (** [decode_json_gc_stats decoder] decodes a [gc_stats] value from [decoder] *)
@@ -573,23 +573,23 @@ module Eval : sig
     
     val eval_code_snippet : (code_snippet, unary, code_snippet_eval_result, unary) Client.rpc
     
-    val parse_term : (parse_query, unary, artifact_get_result, unary) Client.rpc
+    val parse_term : (code_snippet, unary, artifact, unary) Client.rpc
     
-    val parse_type : (parse_query, unary, artifact_get_result, unary) Client.rpc
+    val parse_type : (code_snippet, unary, artifact, unary) Client.rpc
     
     val list_artifacts : (artifact_list_query, unary, artifact_list_result, unary) Client.rpc
     
-    val get_artifact : (artifact_get_query, unary, artifact_get_result, unary) Client.rpc
+    val get_artifact : (artifact_get_query, unary, artifact, unary) Client.rpc
   end
   
   module Server : sig
     (** Produce a server implementation from handlers *)
     val make : 
       eval_code_snippet:((code_snippet, unary, code_snippet_eval_result, unary) Server.rpc -> 'handler) ->
-      parse_term:((parse_query, unary, artifact_get_result, unary) Server.rpc -> 'handler) ->
-      parse_type:((parse_query, unary, artifact_get_result, unary) Server.rpc -> 'handler) ->
+      parse_term:((code_snippet, unary, artifact, unary) Server.rpc -> 'handler) ->
+      parse_type:((code_snippet, unary, artifact, unary) Server.rpc -> 'handler) ->
       list_artifacts:((artifact_list_query, unary, artifact_list_result, unary) Server.rpc -> 'handler) ->
-      get_artifact:((artifact_get_query, unary, artifact_get_result, unary) Server.rpc -> 'handler) ->
+      get_artifact:((artifact_get_query, unary, artifact, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
   end
 end

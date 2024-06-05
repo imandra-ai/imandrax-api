@@ -110,7 +110,7 @@ message ArtifactGetQuery {
   string kind = 2;
 }
 
-message ArtifactGetResult {
+message Artifact {
   // requested artifact
   Art art = 1;
 }
@@ -120,15 +120,15 @@ service Eval {
   rpc eval_code_snippet(CodeSnippet) returns (CodeSnippetEvalResult);
 
   // parse+typecheck a term, return it as artifact
-  rpc parse_term(ParseQuery) returns (ArtifactGetResult);
+  rpc parse_term(CodeSnippet) returns (Artifact);
 
   // parse+typecheck a type, return it as artifact
-  rpc parse_type(ParseQuery) returns (ArtifactGetResult);
+  rpc parse_type(CodeSnippet) returns (Artifact);
 
   rpc list_artifacts(ArtifactListQuery) returns (ArtifactListResult);
 
   // Obtain an artifact from a task
-  rpc get_artifact(ArtifactGetQuery) returns (ArtifactGetResult);
+  rpc get_artifact(ArtifactGetQuery) returns (Artifact);
 }
 
 // ## GC statistics.
