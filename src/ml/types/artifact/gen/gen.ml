@@ -29,6 +29,7 @@ let mk ~tag ~docstring ?to_twine ?of_twine name ty : kind =
 let all : kind list =
   [
     mk "Term" "Cir.Term.t" ~tag:"term" ~docstring:"A CIR term";
+    mk "Type" "Cir.Type.t" ~tag:"ty" ~docstring:"A CIR type";
     mk "PO_task" "Task.PO_task.t" ~tag:"po_task" ~docstring:"Task to verify a Proof Obligation";
     mk "PO_res" "Task.PO_res.t" ~tag:"po_res" ~docstring:"Result of verifying a PO";
     mk "Eval_task" "Task.Eval_task.t" ~tag:"eval_task" ~docstring:"Task to evaluate a term";
