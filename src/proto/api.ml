@@ -43,6 +43,10 @@ type code_snippet_eval_result = {
   errors : Error.error list;
 }
 
+type parse_query = {
+  code : string;
+}
+
 type artifact_list_query = {
   task_id : task_id option;
 }
@@ -125,6 +129,12 @@ let rec default_code_snippet_eval_result
   duration_s;
   tasks;
   errors;
+}
+
+let rec default_parse_query 
+  ?code:((code:string) = "")
+  () : parse_query  = {
+  code;
 }
 
 let rec default_artifact_list_query 
@@ -235,6 +245,14 @@ let default_code_snippet_eval_result_mutable () : code_snippet_eval_result_mutab
   duration_s = 0.;
   tasks = [];
   errors = [];
+}
+
+type parse_query_mutable = {
+  mutable code : string;
+}
+
+let default_parse_query_mutable () : parse_query_mutable = {
+  code = "";
 }
 
 type artifact_list_query_mutable = {
@@ -350,6 +368,12 @@ let rec make_code_snippet_eval_result
   errors;
 }
 
+let rec make_parse_query 
+  ~(code:string)
+  () : parse_query  = {
+  code;
+}
+
 let rec make_artifact_list_query 
   ?task_id:((task_id:task_id option) = None)
   () : artifact_list_query  = {
@@ -454,6 +478,12 @@ let rec pp_code_snippet_eval_result fmt (v:code_snippet_eval_result) =
     Pbrt.Pp.pp_record_field ~first:false "duration_s" Pbrt.Pp.pp_float fmt v.duration_s;
     Pbrt.Pp.pp_record_field ~first:false "tasks" (Pbrt.Pp.pp_list pp_task) fmt v.tasks;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_parse_query fmt (v:parse_query) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "code" Pbrt.Pp.pp_string fmt v.code;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -576,6 +606,11 @@ let rec encode_pb_code_snippet_eval_result (v:code_snippet_eval_result) encoder 
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   ) v.errors encoder;
+  ()
+
+let rec encode_pb_parse_query (v:parse_query) encoder = 
+  Pbrt.Encoder.string v.code encoder;
+  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   ()
 
 let rec encode_pb_artifact_list_query (v:artifact_list_query) encoder = 
@@ -810,6 +845,24 @@ let rec decode_pb_code_snippet_eval_result d =
     errors = v.errors;
   } : code_snippet_eval_result)
 
+let rec decode_pb_parse_query d =
+  let v = default_parse_query_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.code <- Pbrt.Decoder.string d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(parse_query), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    code = v.code;
+  } : parse_query)
+
 let rec decode_pb_artifact_list_query d =
   let v = default_artifact_list_query_mutable () in
   let continue__= ref true in
@@ -1017,6 +1070,11 @@ let rec encode_json_code_snippet_eval_result (v:code_snippet_eval_result) =
   in
   `Assoc assoc
 
+let rec encode_json_parse_query (v:parse_query) = 
+  let assoc = [] in 
+  let assoc = ("code", Pbrt_yojson.make_string v.code) :: assoc in
+  `Assoc assoc
+
 let rec encode_json_artifact_list_query (v:artifact_list_query) = 
   let assoc = [] in 
   let assoc = match v.task_id with
@@ -1216,6 +1274,22 @@ let rec decode_json_code_snippet_eval_result d =
     tasks = v.tasks;
     errors = v.errors;
   } : code_snippet_eval_result)
+
+let rec decode_json_parse_query d =
+  let v = default_parse_query_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("code", json_value) -> 
+      v.code <- Pbrt_yojson.string json_value "parse_query" "code"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    code = v.code;
+  } : parse_query)
 
 let rec decode_json_artifact_list_query d =
   let v = default_artifact_list_query_mutable () in
@@ -1441,6 +1515,32 @@ module Eval = struct
         () : (code_snippet, unary, code_snippet_eval_result, unary) Client.rpc)
     open Pbrt_services
     
+    let parse_term : (parse_query, unary, artifact_get_result, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:[]
+        ~service_name:"Eval" ~rpc_name:"parse_term"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_parse_query
+        ~encode_pb_req:encode_pb_parse_query
+        ~decode_json_res:decode_json_artifact_get_result
+        ~decode_pb_res:decode_pb_artifact_get_result
+        () : (parse_query, unary, artifact_get_result, unary) Client.rpc)
+    open Pbrt_services
+    
+    let parse_type : (parse_query, unary, artifact_get_result, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:[]
+        ~service_name:"Eval" ~rpc_name:"parse_type"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_parse_query
+        ~encode_pb_req:encode_pb_parse_query
+        ~decode_json_res:decode_json_artifact_get_result
+        ~decode_pb_res:decode_pb_artifact_get_result
+        () : (parse_query, unary, artifact_get_result, unary) Client.rpc)
+    open Pbrt_services
+    
     let list_artifacts : (artifact_list_query, unary, artifact_list_result, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:[]
@@ -1480,6 +1580,26 @@ module Eval = struct
         ~decode_pb_req:decode_pb_code_snippet
         () : _ Server.rpc)
     
+    let _rpc_parse_term : (parse_query,unary,artifact_get_result,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"parse_term"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_artifact_get_result
+        ~encode_pb_res:encode_pb_artifact_get_result
+        ~decode_json_req:decode_json_parse_query
+        ~decode_pb_req:decode_pb_parse_query
+        () : _ Server.rpc)
+    
+    let _rpc_parse_type : (parse_query,unary,artifact_get_result,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"parse_type"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_artifact_get_result
+        ~encode_pb_res:encode_pb_artifact_get_result
+        ~decode_json_req:decode_json_parse_query
+        ~decode_pb_req:decode_pb_parse_query
+        () : _ Server.rpc)
+    
     let _rpc_list_artifacts : (artifact_list_query,unary,artifact_list_result,unary) Server.rpc = 
       (Server.mk_rpc ~name:"list_artifacts"
         ~req_mode:Server.Unary
@@ -1502,6 +1622,8 @@ module Eval = struct
     
     let make
       ~eval_code_snippet
+      ~parse_term
+      ~parse_type
       ~list_artifacts
       ~get_artifact
       () : _ Server.t =
@@ -1510,6 +1632,8 @@ module Eval = struct
         package=[];
         handlers=[
            (eval_code_snippet _rpc_eval_code_snippet);
+           (parse_term _rpc_parse_term);
+           (parse_type _rpc_parse_type);
            (list_artifacts _rpc_list_artifacts);
            (get_artifact _rpc_get_artifact);
         ];

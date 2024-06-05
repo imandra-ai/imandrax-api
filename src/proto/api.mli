@@ -50,6 +50,10 @@ type code_snippet_eval_result = {
   errors : Error.error list;
 }
 
+type parse_query = {
+  code : string;
+}
+
 type artifact_list_query = {
   task_id : task_id option;
 }
@@ -133,6 +137,12 @@ val default_code_snippet_eval_result :
   unit ->
   code_snippet_eval_result
 (** [default_code_snippet_eval_result ()] is the default value for type [code_snippet_eval_result] *)
+
+val default_parse_query : 
+  ?code:string ->
+  unit ->
+  parse_query
+(** [default_parse_query ()] is the default value for type [parse_query] *)
 
 val default_artifact_list_query : 
   ?task_id:task_id option ->
@@ -226,6 +236,12 @@ val make_code_snippet_eval_result :
   code_snippet_eval_result
 (** [make_code_snippet_eval_result … ()] is a builder for type [code_snippet_eval_result] *)
 
+val make_parse_query : 
+  code:string ->
+  unit ->
+  parse_query
+(** [make_parse_query … ()] is a builder for type [parse_query] *)
+
 val make_artifact_list_query : 
   ?task_id:task_id option ->
   unit ->
@@ -296,6 +312,9 @@ val pp_eval_result : Format.formatter -> eval_result -> unit
 val pp_code_snippet_eval_result : Format.formatter -> code_snippet_eval_result -> unit 
 (** [pp_code_snippet_eval_result v] formats v *)
 
+val pp_parse_query : Format.formatter -> parse_query -> unit 
+(** [pp_parse_query v] formats v *)
+
 val pp_artifact_list_query : Format.formatter -> artifact_list_query -> unit 
 (** [pp_artifact_list_query v] formats v *)
 
@@ -343,6 +362,9 @@ val encode_pb_eval_result : eval_result -> Pbrt.Encoder.t -> unit
 
 val encode_pb_code_snippet_eval_result : code_snippet_eval_result -> Pbrt.Encoder.t -> unit
 (** [encode_pb_code_snippet_eval_result v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_parse_query : parse_query -> Pbrt.Encoder.t -> unit
+(** [encode_pb_parse_query v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_artifact_list_query : artifact_list_query -> Pbrt.Encoder.t -> unit
 (** [encode_pb_artifact_list_query v encoder] encodes [v] with the given [encoder] *)
@@ -392,6 +414,9 @@ val decode_pb_eval_result : Pbrt.Decoder.t -> eval_result
 val decode_pb_code_snippet_eval_result : Pbrt.Decoder.t -> code_snippet_eval_result
 (** [decode_pb_code_snippet_eval_result decoder] decodes a [code_snippet_eval_result] binary value from [decoder] *)
 
+val decode_pb_parse_query : Pbrt.Decoder.t -> parse_query
+(** [decode_pb_parse_query decoder] decodes a [parse_query] binary value from [decoder] *)
+
 val decode_pb_artifact_list_query : Pbrt.Decoder.t -> artifact_list_query
 (** [decode_pb_artifact_list_query decoder] decodes a [artifact_list_query] binary value from [decoder] *)
 
@@ -440,6 +465,9 @@ val encode_json_eval_result : eval_result -> Yojson.Basic.t
 val encode_json_code_snippet_eval_result : code_snippet_eval_result -> Yojson.Basic.t
 (** [encode_json_code_snippet_eval_result v encoder] encodes [v] to to json *)
 
+val encode_json_parse_query : parse_query -> Yojson.Basic.t
+(** [encode_json_parse_query v encoder] encodes [v] to to json *)
+
 val encode_json_artifact_list_query : artifact_list_query -> Yojson.Basic.t
 (** [encode_json_artifact_list_query v encoder] encodes [v] to to json *)
 
@@ -487,6 +515,9 @@ val decode_json_eval_result : Yojson.Basic.t -> eval_result
 
 val decode_json_code_snippet_eval_result : Yojson.Basic.t -> code_snippet_eval_result
 (** [decode_json_code_snippet_eval_result decoder] decodes a [code_snippet_eval_result] value from [decoder] *)
+
+val decode_json_parse_query : Yojson.Basic.t -> parse_query
+(** [decode_json_parse_query decoder] decodes a [parse_query] value from [decoder] *)
 
 val decode_json_artifact_list_query : Yojson.Basic.t -> artifact_list_query
 (** [decode_json_artifact_list_query decoder] decodes a [artifact_list_query] value from [decoder] *)
@@ -542,6 +573,10 @@ module Eval : sig
     
     val eval_code_snippet : (code_snippet, unary, code_snippet_eval_result, unary) Client.rpc
     
+    val parse_term : (parse_query, unary, artifact_get_result, unary) Client.rpc
+    
+    val parse_type : (parse_query, unary, artifact_get_result, unary) Client.rpc
+    
     val list_artifacts : (artifact_list_query, unary, artifact_list_result, unary) Client.rpc
     
     val get_artifact : (artifact_get_query, unary, artifact_get_result, unary) Client.rpc
@@ -551,6 +586,8 @@ module Eval : sig
     (** Produce a server implementation from handlers *)
     val make : 
       eval_code_snippet:((code_snippet, unary, code_snippet_eval_result, unary) Server.rpc -> 'handler) ->
+      parse_term:((parse_query, unary, artifact_get_result, unary) Server.rpc -> 'handler) ->
+      parse_type:((parse_query, unary, artifact_get_result, unary) Server.rpc -> 'handler) ->
       list_artifacts:((artifact_list_query, unary, artifact_list_result, unary) Server.rpc -> 'handler) ->
       get_artifact:((artifact_get_query, unary, artifact_get_result, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t

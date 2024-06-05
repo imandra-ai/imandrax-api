@@ -87,6 +87,11 @@ message CodeSnippetEvalResult {
   repeated Error errors = 10;
 }
 
+message ParseQuery {
+  // string to parse
+  string code = 1;
+}
+
 message ArtifactListQuery {
   // the task from which to list the artifacts
   TaskID task_id = 1;
@@ -113,6 +118,12 @@ message ArtifactGetResult {
 service Eval {
   /// Evaluate a snippet
   rpc eval_code_snippet(CodeSnippet) returns (CodeSnippetEvalResult);
+
+  // parse+typecheck a term, return it as artifact
+  rpc parse_term(ParseQuery) returns (ArtifactGetResult);
+
+  // parse+typecheck a type, return it as artifact
+  rpc parse_type(ParseQuery) returns (ArtifactGetResult);
 
   rpc list_artifacts(ArtifactListQuery) returns (ArtifactListResult);
 
