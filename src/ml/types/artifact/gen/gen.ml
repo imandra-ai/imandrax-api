@@ -74,6 +74,8 @@ let () =
   pf "(** A type erased kind. *)\n";
   pf "type any_kind = Any_kind : _ kind -> any_kind\n\n";
 
+  pf "let any_kind_to_string (Any_kind k) : string = kind_to_string k\n\n";
+
   pf "let kind_of_string : string -> (any_kind, string) result = function\n";
   List.iter
     (fun { name; tag; _ } -> pf "  | %S -> Ok (Any_kind %s)\n" tag name)
