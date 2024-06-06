@@ -2,8 +2,10 @@
 
 type stats = Imandrax_api.Stat_time.t [@@deriving show, twine, typereg]
 
-module Cir = Imandrax_api_cir
-module PT = Imandrax_api_proof.Cir_proof_term
+open struct
+  module Cir = Imandrax_api_cir
+  module PT = Imandrax_api_proof.Cir_proof_term
+end
 
 type proof_found = {
   anchor: Anchor.t;
