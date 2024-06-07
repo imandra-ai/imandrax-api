@@ -21,3 +21,7 @@ module Writer = Writer
 module Typed_key = Typed_key
 
 class type t = Storage.t
+
+module Private_ = struct
+  module Log = Common_cstore_.Log
+end
