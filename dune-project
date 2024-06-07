@@ -23,6 +23,8 @@
   ppx_deriving
   ppx_deriving_yojson
   imandrakit
+  imandrakit-log
+  imandrakit-io
   (cryptokit (>= 0.19)) ; TODO: bump to next release with the static build fix
   ppxlib
   (pbrt

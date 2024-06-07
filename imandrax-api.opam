@@ -14,6 +14,8 @@ depends: [
   "ppx_deriving"
   "ppx_deriving_yojson"
   "imandrakit"
+  "imandrakit-log"
+  "imandrakit-io"
   "cryptokit" {>= "0.19"}
   "ppxlib"
   "pbrt" {>= "3.0" & < "4.0"}
@@ -41,4 +43,6 @@ build: [
 dev-repo: "git+https://github.com/imandra-ai/imandrax-api.git"
 pin-depends: [
   ["imandrakit.dev" "git+https://github.com/imandra-ai/imandrakit#main"]
+  ["imandrakit-io.dev" "git+https://github.com/imandra-ai/imandrakit#main"]
+  ["imandrakit-log.dev" "git+https://github.com/imandra-ai/imandrakit#main"]
 ]
