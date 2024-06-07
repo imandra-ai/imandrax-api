@@ -1,4 +1,4 @@
-# ImandraX API
+# ImandraX API [![build (OCaml 4)](https://github.com/imandra-ai/imandrax-api/actions/workflows/main.yml/badge.svg)](https://github.com/imandra-ai/imandrax-api/actions/workflows/main.yml) [![build (OCaml 5)](https://github.com/imandra-ai/imandrax-api/actions/workflows/main5.yml/badge.svg)](https://github.com/imandra-ai/imandrax-api/actions/workflows/main5.yml)
 
 This is the public facing repository for ImandraX.
 
