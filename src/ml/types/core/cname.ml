@@ -20,3 +20,25 @@ let hash self = CCHash.(combine2 (string self.name) (Chash.hash self.chash))
 let () =
   Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref;
   Imandrakit_twine.Decode.add_cache of_twine_ref
+
+let sep_websafe_ = '/'
+
+let slugify self : string =
+  spf "%s%c%s" self.name sep_websafe_ (Chash.slugify self.chash)
+
+let unslugify (str : string) : t option =
+  (* look from the right, since the name itself could contain [sep_websafe_] *)
+  if String.length str <= 1 + Chash.n_bytes then
+    None
+  else (
+    match String.rindex_opt str sep_websafe_ with
+    | exception Not_found -> None
+    | None -> None
+    | Some i ->
+      let name = String.sub str 0 i in
+      let hash = String.sub str (i + 1) (String.length str - i - 2) in
+      (match Chash.unslugify hash with
+      | chash -> Some { name; chash }
+      | exception Invalid_argument _ -> None)
+  )
+

@@ -1,7 +1,7 @@
 (library
  (name imandrax_api)
  (public_name imandrax-api)
- (libraries imandrakit imandrakit.typereg zarith)
+ (libraries imandrakit imandrakit.typereg zarith cryptokit)
  (flags :standard -open Imandrakit)
  (preprocess
   (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))

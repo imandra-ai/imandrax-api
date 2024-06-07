@@ -53,7 +53,7 @@ type 'a result = ('a, error) Util_twine.Result.t
 [@@deriving twine, typereg, show]
 
 type t = {
-  from: Proof_obligation.t Cstore_ptr.t;
+  from: Proof_obligation.t Ca_ptr.t;
   res: success result;
   stats: stats;
   report:

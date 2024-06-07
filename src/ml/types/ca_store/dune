@@ -1,0 +1,24 @@
+(library
+ (name imandrax_api_ca_store)
+ (public_name imandrax-api.ca-store)
+ (synopsis "Storage via cryptographic content-addressing")
+ (flags
+  :standard
+  -safe-string
+  -open
+  Imandrakit
+  -open
+  Imandrax_api
+  -open
+  Imandrakit_log)
+ (preprocess
+  (pps ppx_deriving.std imandrakit.twine.ppx))
+ (libraries
+  containers
+  iter
+  cryptokit
+  imandrax-api
+  imandrakit
+  imandrakit-io
+  imandrakit-log
+  imandrakit.zip))
