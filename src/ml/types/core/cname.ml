@@ -21,7 +21,9 @@ let () =
   Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref;
   Imandrakit_twine.Decode.add_cache of_twine_ref
 
-let sep_websafe_ = '/'
+open struct
+  let sep_websafe_ = '/'
+end
 
 let slugify self : string =
   spf "%s%c%s" self.name sep_websafe_ (Chash.slugify self.chash)
