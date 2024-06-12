@@ -1,4 +1,4 @@
-type 'a t = Key.t
+type +'a t = Key.t
 
 let to_raw = Fun.id
 let unsafe_of_raw = Fun.id

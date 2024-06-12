@@ -1,6 +1,6 @@
 (** Key with a type witness *)
 
-type 'a t = private Key.t
+type +'a t = private Key.t
 
 val show : _ t -> string
 val pp : _ t Fmt.printer
