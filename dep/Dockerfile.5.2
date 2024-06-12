@@ -14,6 +14,7 @@ COPY --chown=opam \
   Makefile dune-project .ocamlformat \
   ./
 
+RUN apt install curl libcurl4-gnutls-dev # for ezcurl
 RUN opam depext -yt zarith conf-pkg-config camlzip
 RUN opam exec -- make opam-pin-submodules-nodep
 RUN opam pin -n .
