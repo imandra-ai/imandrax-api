@@ -25,4 +25,4 @@ RUN opam exec -- dune runtest -p imandrax-api,imandrax-api-proto,imandrax-api-cl
 # check that the generated code is up to date
 RUN opam install ocaml-protoc
 RUN opam exec -- dune build @genproto --auto-promote
-RUN git diff -q
+RUN git diff --quiet
