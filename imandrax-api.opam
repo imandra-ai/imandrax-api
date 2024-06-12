@@ -7,7 +7,7 @@ homepage: "https://github.com/imandra-ai/imandrax-api"
 bug-reports: "https://github.com/imandra-ai/imandrax-api/issues"
 depends: [
   "dune" {>= "3.0"}
-  "ocaml" {>= "4.13.0"}
+  "ocaml" {>= "4.12.0"}
   "containers" {>= "3.4"}
   "iter" {>= "1.0"}
   "zarith" {>= "1.12"}

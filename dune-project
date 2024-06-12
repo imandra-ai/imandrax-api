@@ -13,7 +13,7 @@
  (synopsis "Public API and types for ImandraX")
  (depends
   (ocaml
-   (>= 4.13.0))
+   (>= 4.12.0))
   (containers
    (>= 3.4))
   (iter
@@ -56,7 +56,7 @@
     (containers (and (>= 3.0) :with-test))
     (trace (>= 0.6))
     logs
-    (ocaml (>= 4.13))
+    (ocaml (>= 4.12))
     (moonpool (and (>= 0.6) (< 0.7)))
     (pbrt (>= 3.0))
     (pbrt_yojson (>= 3.0))
