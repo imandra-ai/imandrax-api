@@ -1,0 +1,28 @@
+FROM ocaml/opam:debian-ocaml-4.14 AS base
+WORKDIR /build/
+RUN sudo chown -R opam: /build/
+COPY --chown=opam ./src/ ./src/
+COPY --chown=opam ./vendor ./vendor
+COPY --chown=opam \
+  imandrax-api.opam \
+  imandrax-api-proto.opam \
+  imandrax-api-cli.opam  \
+  imandrax-api-client.opam  \
+  imandrax-api-client-batrpc.opam  \
+  imandrax-api-client-ezcurl.opam  \
+  Makefile dune-project .ocamlformat \
+  ./
+
+RUN opam depext -yt zarith conf-pkg-config camlzip
+RUN opam exec -- make opam-pin-submodules-nodep
+RUN opam pin -n .
+
+RUN opam install -t imandrax-api imandrax-api-proto imandrax-api-client \
+  --deps-only
+RUN opam exec -- dune build @install -p imandrax-api,imandrax-api-proto,imandrax-api-client
+RUN opam exec -- dune runtest -p imandrax-api,imandrax-api-proto,imandrax-api-client
+
+# check that the generated code is up to date
+RUN opam install ocaml-protoc
+RUN opam exec -- dune build @genproto --auto-promote
+RUN git diff -q

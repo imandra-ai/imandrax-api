@@ -1,42 +1,14 @@
-name: build and test (OCaml 4)
-
+name: build and test
 on:
   push:
     branches:
       - main
   pull_request:
-
 jobs:
-  run:
-    name: build
+  run-4-14:
+    name: build 4.14
     timeout-minutes: 10
-    strategy:
-      fail-fast: true
-      matrix:
-        os:
-            - ubuntu-latest
-        ocaml-compiler:
-            - '4.12.x'
-            - '4.13.x'
-            - '4.14.x'
-
-    runs-on: ${{ matrix.os }}
+    runs-on: [self-hosted, Linux]
     steps:
       - uses: actions/checkout@main
-      - name: Use OCaml ${{ matrix.ocaml-compiler }}
-        uses: ocaml/setup-ocaml@v2
-        with:
-          ocaml-compiler: ${{ matrix.ocaml-compiler }}
-          dune-cache: true
-          allow-prerelease-opam: true
-
-      - run: opam exec -- make opam-pin-submodules
-      - run: opam install -t imandrax-api imandrax-api-proto imandrax-api-client --deps-only
-      - run: opam exec -- dune build @install -p imandrax-api,imandrax-api-proto,imandrax-api-client
-      - run: opam exec -- dune runtest -p imandrax-api,imandrax-api-proto,imandrax-api-client
-
-      # check that the generated code is up to date
-      - run: opam install ocaml-protoc
-      - run: opam exec -- dune build @genproto --auto-promote
-      - run: git diff -q
-
+      - run: docker build . -f dep/Dockerfile.4.14
