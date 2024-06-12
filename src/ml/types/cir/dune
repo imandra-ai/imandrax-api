@@ -16,6 +16,7 @@
   Imandrax_api
   -open
   Imandrax_api_ca_store)
+ (modes native byte)
  (preprocess
   (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
  (synopsis "Public API types for Imandrax"))

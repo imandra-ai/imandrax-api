@@ -3,8 +3,6 @@
 type t = private string [@@deriving twine, eq, ord, show]
 (** A cryptographic hash *)
 
-val hash : t -> int
-
 val n_bytes : int
 (** Number of bytes in a hash *)
 

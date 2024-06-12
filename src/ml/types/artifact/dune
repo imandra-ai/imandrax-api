@@ -5,6 +5,7 @@
  (flags :standard -open Imandrakit -open Imandrax_api)
  (preprocess
   (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
+ (modes native byte)
  (libraries
   imandrakit
   pbrt
