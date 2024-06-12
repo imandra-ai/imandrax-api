@@ -2,4 +2,5 @@ pin-depends: [
   ["imandrakit.dev" "git+https://github.com/imandra-ai/imandrakit#main"]
   ["imandrakit-io.dev" "git+https://github.com/imandra-ai/imandrakit#main"]
   ["imandrakit-log.dev" "git+https://github.com/imandra-ai/imandrakit#main"]
+  ["imandrakit-thread.dev" "git+https://github.com/imandra-ai/imandrakit#main"]
 ]
