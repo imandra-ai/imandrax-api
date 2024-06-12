@@ -5,7 +5,7 @@ import "utils.proto";
 import "error.proto";
 
 // artifacts as messages
-import "../ml/types/artifact/artmsg.proto";
+import "../artifact/artmsg.proto";
 
 enum TaskKind {
   TASK_UNSPECIFIED = 0;
