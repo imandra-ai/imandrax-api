@@ -11,6 +11,7 @@ jobs:
     runs-on: [self-hosted, Linux]
     steps:
       - uses: actions/checkout@main
+      - run: make update-submodules
       - run: docker build . -f dep/Dockerfile.4.14
   run-4-12:
     name: build 4.12
@@ -18,6 +19,7 @@ jobs:
     runs-on: [self-hosted, Linux]
     steps:
       - uses: actions/checkout@main
+      - run: make update-submodules
       - run: docker build . -f dep/Dockerfile.4.12
   run-5-2:
     name: build 5.2
@@ -25,4 +27,5 @@ jobs:
     runs-on: [self-hosted, Linux]
     steps:
       - uses: actions/checkout@main
+      - run: make update-submodules
       - run: docker build . -f dep/Dockerfile.5.2
