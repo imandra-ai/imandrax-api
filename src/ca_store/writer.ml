@@ -3,7 +3,6 @@
 (** Writing end of the storage *)
 class type t = object
   inherit Core_classes.named
-
   inherit Core_classes.with_stats
 
   method store : (Key.t * (unit -> string)) Iter.t -> unit
@@ -24,24 +23,16 @@ let[@inline] store_l (self : #t) (entries : _ list) : unit =
   if entries <> [] then store self (Iter.of_list entries)
 
 let[@inline] store1 (self : #t) k v : unit = self#store1 k v
-
 let[@inline] flush (self : #t) : unit = self#flush ()
-
 let pp out (self : #t) = Fmt.fprintf out "<cstore.writer %s>" self#name
-
 let show self = Fmt.to_string pp self
 
 (** Dummy storage, stores nothing. *)
 class dummy : t =
   object
     method add_stats _ = ()
-
     method name = "dummy"
-
     method store1 _ _ = ()
-
     method store _ = ()
-
     method flush () = ()
   end
-

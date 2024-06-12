@@ -12,9 +12,7 @@ let () =
   Imandrakit_twine.Decode.add_cache of_twine_ref
 
 let dummy : t = "\xDE\xAD\xBE\xEF"
-
 let n_bits_ = 256
-
 let n_bytes = n_bits_ / 8
 
 let _of_bin x : t =
@@ -31,11 +29,8 @@ type builder = {
 type 'a hasher = builder -> 'a -> unit
 
 let[@inline] new_hash_ () : Cryptokit.hash = H.blake2b n_bits_
-
 let new_builder_ () : builder = { h = new_hash_ (); buf8 = Bytes.create 8 }
-
 let[@inline] to_bin (x : t) : string = (x :> string)
-
 let[@inline] finalize (self : builder) = self.h#result |> _of_bin
 
 let to_string (s : t) =
@@ -57,9 +52,7 @@ let show_abbrev (self : t) =
   Base64.encode_exn ~alphabet:Base64.uri_safe_alphabet ~pad:false str
 
 let[@inline] pp_abbrev out (self : t) = Fmt.string out @@ show_abbrev self
-
 let show = to_string
-
 let init () : builder = new_builder_ ()
 
 let make (c : 'a hasher) (x : 'a) : t =
@@ -83,13 +76,9 @@ let[@inline] nativeint self x = int64 self (Int64.of_nativeint x)
 external int_of_bool_ : bool -> int = "%identity"
 
 let[@inline] bool self x = self.h#add_byte (int_of_bool_ x)
-
 let[@inline] char self x = self.h#add_char x
-
 let[@inline] string self x = self.h#add_string x
-
 let[@inline] float self x = int64 self (Int64.bits_of_float x)
-
 let sub_hash self (x : t) = self.h#add_string (to_bin x)
 
 (* store sign, then bits *)
@@ -162,7 +151,6 @@ let list_sorted h ctx l =
   string ctx ")"
 
 let map f h ctx x = h ctx (f x)
-
 let hash_as_int x = CCHash.string (to_bin x)
 
 let hash_file (file : string) : t =
@@ -174,6 +162,5 @@ module Tbl = CCHashtbl.Make (struct
   type nonrec t = t
 
   let equal = equal
-
   let hash = hash_as_int
 end)

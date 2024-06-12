@@ -6,14 +6,12 @@
 (** Storage with both reader and writer end *)
 class type t = object
   inherit Writer.t
-
   inherit Reader.t
 end
 
 class dummy : t =
   object
     inherit Reader.dummy
-
     inherit! Writer.dummy
   end
 

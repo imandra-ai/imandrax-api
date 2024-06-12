@@ -4,9 +4,7 @@
 module PH = Pattern_head
 
 type 'a uid_map = (Uid.t * 'a) list [@@deriving show, twine, typereg]
-
 type 'a ph_map = (PH.t * 'a) list [@@deriving show, twine, typereg]
-
 type 'a cptr = 'a Ca_ptr.t [@@deriving twine, typereg]
 
 let pp_cptr _ out c = Ca_ptr.pp out c

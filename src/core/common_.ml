@@ -4,7 +4,6 @@ module Fmt = CCFormat
 module Vec = CCVector
 
 let ( let@ ) = ( @@ )
-
 let spf = Printf.sprintf
 
 (** list with spaces **)

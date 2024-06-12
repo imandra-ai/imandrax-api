@@ -42,9 +42,7 @@ module As_key = struct
   type nonrec t = t
 
   let equal = equal
-
   let hash = hash
-
   let compare = compare
 end
 
@@ -55,6 +53,5 @@ module Set = CCSet.Make (As_key)
 
 module Private_ = struct
   let[@inline] make name view : t = { name; view }
-
   let[@inline] set_view self v = self.view <- v
 end

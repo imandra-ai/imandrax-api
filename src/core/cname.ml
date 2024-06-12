@@ -43,4 +43,3 @@ let unslugify (str : string) : t option =
       | chash -> Some { name; chash }
       | exception Invalid_argument _ -> None)
   )
-

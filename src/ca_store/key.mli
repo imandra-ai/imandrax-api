@@ -7,9 +7,7 @@ type t [@@deriving twine, eq, ord, show]
 (** Key by which entries are accessed *)
 
 val hash : t -> int
-
 val chasher : t Chash.hasher
-
 val slugify : t -> string
 
 val unslugify_exn : string -> t
@@ -18,7 +16,6 @@ val unslugify_exn : string -> t
 (** {2 Containers} *)
 
 module Tbl : CCHashtbl.S with type key = t
-
 module Map : CCMap.S with type key = t
 
 (** {2 Builders} *)
@@ -37,11 +34,8 @@ val task : kind:string -> Chash.t -> t
     @param kind the kind of task. This should be a slugified task kind. *)
 
 val as_chash : t -> (string * Chash.t) option
-
 val as_cname : t -> (string * Cname.t) option
-
 val as_task : t -> (string * Chash.t) option
-
 val is_task : t -> bool
 
 (**/**)

@@ -4,9 +4,7 @@ module Raw = struct
   type t = { key: Key.t } [@@unboxed] [@@deriving eq, ord]
 
   let show self = Key.show self.key
-
   let pp out self = Key.pp out self.key
-
   let to_twine st self = Key.to_twine st self.key
 
   let of_twine st v =
@@ -14,33 +12,23 @@ module Raw = struct
     { key }
 
   let to_string self = Key.slugify self.key
-
   let[@inline] slugify (self : t) = Key.slugify self.key
-
   let[@inline] unslugify_exn s : t = { key = Key.unslugify_exn s }
 end
 
 type 'a t = Raw.t
 
 let[@inline] raw self = self
-
 let show (self : _ t) = Raw.show self
-
 let pp out self = Raw.pp out self
-
 let to_twine' st (self : _ t) = Raw.to_twine st (raw self)
-
 let of_twine' : _ t Imandrakit_twine.decoder = fun dec x -> Raw.of_twine dec x
-
 let to_twine _ st self = to_twine' st self
-
 let of_twine _ st c = of_twine' st c
 
 module Private_ = struct
   let[@inline] unsafe_of_raw r = r
-
   let[@inline] raw_of_key key = { Raw.key }
-
   let[@inline] raw_to_key r = r.Raw.key
 end
 
@@ -124,8 +112,10 @@ let get_exn store codec self =
 let get_l_exn (rd : #Reader.t) codec (ptr_l : 'a t list) : 'a list =
   if ptr_l = [] then
     []
-  else (
-    let@ _sp = Imandrakit_log.Trace_async.with_span ~__FILE__ ~__LINE__ "cptr.get-l" in
+  else
+    let@ _sp =
+      Imandrakit_log.Trace_async.with_span ~__FILE__ ~__LINE__ "cptr.get-l"
+    in
 
     Log.debug (fun k -> k "(@[cptr.get_l@ :n %d@])" (List.length ptr_l));
     let keys = List.map key_of_cptr ptr_l in
@@ -135,7 +125,4 @@ let get_l_exn (rd : #Reader.t) codec (ptr_l : 'a t list) : 'a list =
     | [ ptr ], [ v ] -> [ decode_value_exn codec ptr v ]
     | _ ->
       assert (List.length ptr_l = List.length values_l);
-      List.map2
-        (fun ptr v -> decode_value_exn codec ptr v)
-        ptr_l values_l
-  )
+      List.map2 (fun ptr v -> decode_value_exn codec ptr v) ptr_l values_l

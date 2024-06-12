@@ -4,9 +4,7 @@ module Z = struct
   type t = Z.t
 
   let pp = Z.pp_print
-
   let equal = Z.equal
-
   let compare = Z.compare
 
   let to_twine =
@@ -48,11 +46,8 @@ end = struct
   type t = Q.t
 
   let equal = Q.equal
-
   let show = Q.to_string
-
   let compare = Q.compare
-
   let pp = Q.pp_print
 
   let[@inline] to_twine ser x =

@@ -55,5 +55,4 @@ let expand (self : t) : Expanded.t =
   }
 
 let pp out (self : t) = Expanded.pp out (expand self)
-
 let show self = Expanded.show (expand self)

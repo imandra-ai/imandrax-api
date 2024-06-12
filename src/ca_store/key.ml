@@ -1,13 +1,9 @@
 type t = string [@@deriving eq, ord]
 
 let show self = spf "(cstore.key %s)" self
-
 let pp = Fmt.of_to_string show
-
 let slugify : t -> string = Fun.id
-
 let unslugify_exn : string -> t = Fun.id
-
 let hash = CCHash.string
 
 module Tbl = Str_tbl
@@ -38,19 +34,15 @@ open struct
 end
 
 let[@inline] to_twine enc x = !to_twine_ref enc x
-
 let[@inline] of_twine dec x = !of_twine_ref dec x
 
 module Private_ = struct
   let to_string = Fun.id
-
   let of_string = Fun.id
 end
 
 let to_str_ = (Private_.to_string [@alert "-expert"])
-
 let of_str_ = (Private_.of_string [@alert "-expert"])
-
 let[@inline] chasher ctx (self : t) = Chash.string ctx (to_str_ self)
 
 let[@inline] chash ~ty hash : t =
@@ -73,9 +65,7 @@ let as_ty_chash_ ~pre (self : t) : _ option =
   | pair -> Some pair
 
 let[@inline] as_chash self = as_ty_chash_ ~pre:"hash:" self
-
 let[@inline] as_task self = as_ty_chash_ ~pre:"task:" self
-
 let[@inline] is_task self = CCString.prefix ~pre:"task:" @@ to_str_ self
 
 let as_cname (self : t) : _ option =
