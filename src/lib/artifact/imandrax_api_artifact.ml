@@ -4,7 +4,6 @@
   through the API to expose various results of ImandraX's work. *)
 
 module Artifact = Artifact
-module Zip = Zip
 module Proto = Proto
 
 (** {2 Re-export} *)
