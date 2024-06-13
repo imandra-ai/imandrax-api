@@ -39,6 +39,7 @@ module Conn = struct
   type t = {
     active: bool Atomic.t;
     addr: Addr.t;
+    encoding: [ `JSON | `BINARY ];
     verbose: bool;
     clients: Curl.t Rpool.t;  (** pool of clients *)
     auth_token: string option;  (** JWT *)
@@ -74,8 +75,9 @@ module Conn = struct
       let headers = auth_header in
       Curl.set_verbose client self.verbose;
 
-      C.call_exn ~prefix:(Some "api/v1") ~client ~host:self.addr.host
-        ~port:self.addr.port ~use_tls:self.addr.tls ~headers rpc req
+      C.call_exn ~encoding:self.encoding ~prefix:(Some "api/v1") ~client
+        ~host:self.addr.host ~port:self.addr.port ~use_tls:self.addr.tls
+        ~headers rpc req
     in
 
     Moonpool.Fut.spawn ~on:self.runner run
@@ -99,8 +101,8 @@ module Conn = struct
     end
 end
 
-let create ?(tls = true) ?(verbose = false) ~host ~port ~runner
-    ~(auth_token : string option) () : t =
+let create ?(tls = true) ?(verbose = false) ?(encoding = `JSON) ~host ~port
+    ~runner ~(auth_token : string option) () : t =
   let addr = { Addr.tls; host; port } in
   let clients =
     Rpool.create ~clear:Curl.reset ~dispose:Curl.cleanup
@@ -110,6 +112,7 @@ let create ?(tls = true) ?(verbose = false) ~host ~port ~runner
   let conn =
     {
       Conn.active = Atomic.make true;
+      encoding;
       verbose;
       addr;
       clients;

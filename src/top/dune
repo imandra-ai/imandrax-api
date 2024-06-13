@@ -1,0 +1,12 @@
+(library
+ (public_name imandrax-api-top)
+ (name imandrax_api_top)
+ (preprocess
+  (pps ppx_deriving.std))
+ (libraries
+  moonpool
+  imandrakit
+  imandrax-api
+  imandrax-api-client.core
+  imandrax-api-client-ezcurl)
+ (modes byte))
