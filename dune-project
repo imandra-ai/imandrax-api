@@ -32,8 +32,13 @@
   imandrakit
   imandrakit-log
   imandrakit-io
+  (pbrt
+   (>= 3.0))
+  (pbrt_yojson
+   (>= 3.0))
   (cryptokit
-   (>= 0.19)) ; TODO: bump to next release with the static build fix
+   (>= 0.19))
+  ; TODO: bump to next release with the static build fix
   ppxlib
   (odoc :with-doc))
  (depopts camlzip)
