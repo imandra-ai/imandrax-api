@@ -18,8 +18,6 @@ depends: [
   "imandrakit-io"
   "cryptokit" {>= "0.19"}
   "ppxlib"
-  "pbrt" {>= "3.0" & < "4.0"}
-  "ocaml-protoc" {>= "3.0" & with-dev-setup}
   "odoc" {with-doc}
 ]
 depopts: ["camlzip"]
