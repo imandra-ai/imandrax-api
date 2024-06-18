@@ -1,0 +1,11 @@
+(library
+ (name imandrax_api_client_cohttp)
+ (public_name imandrax-api-client-cohttp)
+ (synopsis "Client for ImandraX using cohttp+twirp")
+ (libraries
+  imandrax-api-proto
+  lwt
+  lwt.unix
+  (re_export imandrax-api-client.core)
+  (re_export imandrax-api-client.lwt)
+  (re_export twirp_cohttp_lwt_unix)))

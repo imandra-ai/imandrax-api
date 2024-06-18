@@ -120,6 +120,23 @@
    (>= 3.0))))
 
 (package
+ (name imandrax-api-client-cohttp)
+ (synopsis "RPC client for ImandraX's API using cohttp + lwt")
+ (depends
+  (imandrax-api-client
+   (= :version))
+  lwt
+  twirp_cohttp_lwt_unix
+  (trace
+   (>= 0.6))
+  (pbrt
+   (>= 3.0))
+  (pbrt_yojson
+   (>= 3.0))
+  (pbrt_services
+   (>= 3.0))))
+
+(package
   (name imandrax-api-top)
   (synopsis "Interactive toplevel for ImandraX's API")
   (depends
