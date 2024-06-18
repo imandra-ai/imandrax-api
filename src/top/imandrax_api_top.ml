@@ -1,3 +1,7 @@
+open struct
+  let ( let@ ) = ( @@ )
+end
+
 (** {2 Re-exports} *)
 
 module Cir = Imandrax_api_cir
@@ -11,7 +15,9 @@ module Artifact_zip = Imandrax_api_artifact_zip
 module Fut = Moonpool.Fut
 module Client = Imandrax_api_client_ezcurl
 
-let thread_pool = Moonpool.Ws_pool.create ~num_threads:4 ()
+(* TODO: use a state thing, and in toplevel make it global *)
+
+let thread_pool = Moonpool.Ws_pool.create ~num_threads:8 ()
 
 let connect ?(tls = false) ?(host = "127.0.0.1") ?encoding ~port () : Client.t =
   Client.create ~verbose:true ~tls ~host ~port ?encoding ~runner:thread_pool
@@ -31,16 +37,16 @@ end
 
 module System = struct
   let gc_stats client : Client.API.gc_stats =
-    Fut.await @@ Client.System.gc_stats client
+    Fut.wait_block_exn @@ Client.System.gc_stats client
 
   let release_memory client : Client.API.gc_stats =
-    Fut.await @@ Client.System.release_memory client
+    Fut.wait_block_exn @@ Client.System.release_memory client
 
   let version client : string =
-    (Fut.await @@ Client.System.version client).version
+    (Fut.wait_block_exn @@ Client.System.version client).version
 
   let git_version client : string option =
-    (Fut.await @@ Client.System.version client).git_version
+    (Fut.wait_block_exn @@ Client.System.version client).git_version
 end
 
 type task_id = Client.API.task_id [@@deriving show { with_path = false }]
@@ -61,7 +67,9 @@ module Eval = struct
   [@@deriving show { with_path = false }]
 
   let eval client ~session (code : string) =
-    let r = Fut.await @@ Client.Eval.eval_code client ~session ~code () in
+    let r =
+      Fut.wait_block_exn @@ Client.Eval.eval_code client ~session ~code ()
+    in
     let is_ok =
       match r.res with
       | Client.API.Eval_ok -> true
