@@ -11,16 +11,19 @@ COPY --chown=opam \
   imandrax-api-client.opam  \
   imandrax-api-client-batrpc.opam  \
   imandrax-api-client-ezcurl.opam  \
+  imandrax-api-client-cohttp.opam  \
   Makefile dune-project .ocamlformat \
   ./
 
 RUN sudo apt install curl libcurl4-gnutls-dev -y # for ezcurl
+
 RUN opam depext -yt zarith conf-pkg-config camlzip
 RUN opam exec -- make opam-pin-submodules-nodep
 RUN opam pin -n .
 
 RUN opam install -t imandrax-api imandrax-api-proto imandrax-api-client \
-  imandrax-api-client-batrpc imandrax-api-client-ezcurl imandrax-api-cli \
+  imandrax-api-client-batrpc imandrax-api-client-ezcurl \
+  imandrax-api-client-cohttp imandrax-api-cli \
   --deps-only
 RUN opam exec -- dune build @install --ignore-promoted-rules
 RUN opam exec -- dune runtest --ignore-promoted-rules

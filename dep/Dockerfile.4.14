@@ -10,6 +10,7 @@ COPY --chown=opam \
   imandrax-api-client.opam  \
   imandrax-api-client-batrpc.opam  \
   imandrax-api-client-ezcurl.opam  \
+  imandrax-api-client-cohttp.opam  \
   Makefile dune-project .ocamlformat \
   ./
 
@@ -17,10 +18,12 @@ RUN opam depext -yt zarith conf-pkg-config camlzip
 RUN opam exec -- make opam-pin-submodules-nodep
 RUN opam pin -n .
 
-RUN opam install -t imandrax-api imandrax-api-proto imandrax-api-client \
+RUN opam install -t imandrax-api imandrax-api-proto imandrax-api-client imandrax-api-client-cohttp \
   --deps-only
-RUN opam exec -- dune build @install -p imandrax-api,imandrax-api-proto,imandrax-api-client
-RUN opam exec -- dune runtest -p imandrax-api,imandrax-api-proto,imandrax-api-client
+RUN opam exec -- dune build @install -p \
+  imandrax-api,imandrax-api-proto,imandrax-api-client,imandrax-api-client-cohttp
+RUN opam exec -- dune runtest -p \
+  imandrax-api,imandrax-api-proto,imandrax-api-client,imandrax-api-client-cohttp
 
 # check that the generated code is up to date
 RUN opam install ocaml-protoc

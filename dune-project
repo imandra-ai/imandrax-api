@@ -120,33 +120,51 @@
    (>= 3.0))))
 
 (package
- (name imandrax-api-cli)
- (synopsis "CLI for ImandraX's API")
+ (name imandrax-api-client-cohttp)
+ (synopsis "RPC client for ImandraX's API using cohttp + lwt")
  (depends
-  (ocaml
-   (>= 5.0))
-  batrpc
-  moonpool
-  (linenoise
-   (>= 1.4))
-  (containers
-   (>= 3.0))
   (imandrax-api-client
    (= :version))
-  (imandrax-api-client-batrpc
-   (= :version))
+  lwt
+  twirp_cohttp_lwt_unix
   (trace
    (>= 0.6))
-  uuidm
-  xdg
-  webbrowser
-  ppx_deriving
-  trace-tef
-  (tiny_httpd
-   (>= 0.16))
-  (ppx_subliner
-   (>= 0.2))
-  (linenoise
-   (and
-    (>= 1.4)
-    (< 2.0)))))
+  (pbrt
+   (>= 3.0))
+  (pbrt_yojson
+   (>= 3.0))
+  (pbrt_services
+   (>= 3.0))))
+
+(package
+  (name imandrax-api-top)
+  (synopsis "Interactive toplevel for ImandraX's API")
+  (depends
+    (ocaml (>= 5.0))
+    moonpool
+    (containers (>= 3.0))
+    (imandrax-api-client (= :version))
+    (imandrax-api-client-ezcurl (= :version))
+    (trace (>= 0.6))
+    ppx_deriving))
+
+(package
+  (name imandrax-api-cli)
+  (synopsis "CLI for ImandraX's API")
+  (depends
+    (ocaml (>= 5.0))
+    batrpc
+    moonpool
+    (linenoise (>= 1.4))
+    (containers (>= 3.0))
+    (imandrax-api-client (= :version))
+    (imandrax-api-client-batrpc (= :version))
+    (trace (>= 0.6))
+    uuidm
+    xdg
+    webbrowser
+    ppx_deriving
+    trace-tef
+    (tiny_httpd (>= 0.16))
+    (ppx_subliner (>= 0.2))
+    (linenoise (and (>= 1.4) (< 2.0)))))

@@ -1,0 +1,4 @@
+pin-depends: [
+  ["twirp_core.dev" "git+https://github.com/c-cube/ocaml-twirp#main"]
+  ["twirp_cohttp_lwt_unix.dev" "git+https://github.com/c-cube/ocaml-twirp#main"]
+]
