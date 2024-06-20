@@ -97,4 +97,18 @@ module Make (Fut : FUT) = struct
       let code = API.make_code_snippet ~code ~session:(Some session) () in
       self.rpc#rpc_call ~timeout_s API.Eval.Client.eval_code_snippet code
   end
+
+  module Artifact = struct
+    let list_artifacts ?timeout_s (self : client) (t : API.task_id) :
+        API.artifact_list_result Fut.t =
+      let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+      let q = API.make_artifact_list_query ~task_id:(Some t) () in
+      self.rpc#rpc_call ~timeout_s API.Eval.Client.list_artifacts q
+
+    let get_artifact ?timeout_s (self : client) ~(kind : string)
+        (t : API.task_id) : API.artifact Fut.t =
+      let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+      let q = API.make_artifact_get_query ~task_id:(Some t) ~kind () in
+      self.rpc#rpc_call ~timeout_s API.Eval.Client.get_artifact q
+  end
 end
