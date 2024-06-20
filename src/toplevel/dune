@@ -1,3 +1,5 @@
+; this defines a custom toplevel executable with the top api baked in
+
 (toplevel
  (name top)
  (libraries imandrax-api imandrax-api.cir imandrax-api-top down))

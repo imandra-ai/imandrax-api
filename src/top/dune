@@ -4,9 +4,10 @@
  (preprocess
   (pps ppx_deriving.std))
  (libraries
-  moonpool
   imandrakit
   imandrax-api
   imandrax-api-client.core
-  imandrax-api-client-ezcurl)
+  lwt
+  lwt.unix
+  imandrax-api-client-cohttp)
  (modes byte))
