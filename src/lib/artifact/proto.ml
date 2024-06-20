@@ -16,6 +16,7 @@ let to_msg_str ?(enc = Pbrt.Encoder.create ()) (self : Artifact.t) : string =
   Pbrt.Encoder.to_string enc
 
 let of_msg (msg : msg) : Artifact.t Error.result =
+  let@ () = Error.guards "Decoding artifact encoded in protobuf form" in
   let@ () = Error.try_catch ~kind:Error_kinds.deserializationError () in
   let (Any_kind kind) =
     match Artifact.kind_of_string msg.kind with
@@ -39,6 +40,8 @@ let of_msg (msg : msg) : Artifact.t Error.result =
   Artifact.make ~kind res
 
 let of_msg_str (str : string) : Artifact.t Error.result =
+  Format.eprintf "proto.of-msg %S@." str;
+  let@ () = Error.guards "Decoding artifact encoded in protobuf form" in
   let@ () = Error.try_catch ~kind:Error_kinds.deserializationError () in
   let msg =
     let dec = Pbrt.Decoder.of_string str in

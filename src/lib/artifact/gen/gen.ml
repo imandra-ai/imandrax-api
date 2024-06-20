@@ -40,7 +40,8 @@ let all : kind list =
       ~docstring:"Result of evaluating a term";
     mk "Show" "string" ~tag:"show"
       ~to_twine:"(fun _enc s -> Imandrakit_twine.Immediate.string s)"
-      ~of_twine:"Imandrakit_twine.Decode.string"
+      ~of_twine:
+        "(fun d i -> Imandrakit_twine.Decode.(string d @@ deref_rec d i))"
       ~docstring:"A human readable description";
   ]
 
