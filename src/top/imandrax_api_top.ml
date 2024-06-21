@@ -2,6 +2,45 @@ open Lwt.Syntax
 open Imandrakit
 open Imandrax_api
 
+(** {2 Toplevel stuff} *)
+
+open struct
+  let eval_exn str =
+    (* Printf.eprintf "eval %S\n%!" str; *)
+    let lexbuf = Lexing.from_string str in
+    let phrase = !Toploop.parse_toplevel_phrase lexbuf in
+    Toploop.execute_phrase false Format.err_formatter phrase
+
+  let install_printer s =
+    try ignore (eval_exn ("#install_printer " ^ s ^ " ;; "))
+    with _ ->
+      Printexc.print_backtrace stderr;
+      ()
+
+  let install_printers = List.iter install_printer
+
+  let add_printers () =
+    print_endline "installing printers…";
+    install_printers
+      [
+        "Imandrax_api.Chash.pp";
+        "Imandrax_api.Cname.pp";
+        "Imandrax_api_cir.Type.pp";
+        "Imandrax_api_cir.Term.pp";
+        "Imandrax_api.In_mem_archive.pp";
+        "Imandrax_api.In_mem_archive.pp_raw";
+        "Imandrax_api_proof.Cir_proof_term.pp";
+        "Imandrax_api_proof.Proof_term_poly.pp";
+      ]
+
+  let () =
+    let f = !Toploop.toplevel_startup_hook in
+    Toploop.toplevel_startup_hook :=
+      fun () ->
+        f ();
+        add_printers ()
+end
+
 (** {2 Re-exports} *)
 
 module Cir = Imandrax_api_cir

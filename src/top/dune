@@ -1,13 +1,17 @@
 (library
- (public_name imandrax-api-top)
+ (public_name imandrax-api-top.top)
  (name imandrax_api_top)
+ (wrapped false)
  (preprocess
   (pps ppx_deriving.std))
+ (flags :standard -linkall)
  (libraries
   imandrakit
   imandrax-api
+  imandrax-api.cir
   imandrax-api-client.core
   lwt
   lwt.unix
+  compiler-libs.common
   imandrax-api-client-cohttp)
  (modes byte))
