@@ -1,5 +1,5 @@
 (library
- (public_name imandrax-api-top.top)
+ (public_name imandrax-api-top)
  (name imandrax_api_top)
  (wrapped false)
  (preprocess
