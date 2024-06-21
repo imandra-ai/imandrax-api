@@ -72,3 +72,7 @@ let pp_full out (x : t) : unit =
   | Builtin _ -> Fmt.string out x.name
 
 let show_full = Fmt.to_string pp_full
+
+(* ppx-deriving printer becomes "pp_debug", and "pp" defaults to the full printer *)
+let pp_debug = pp
+let pp = pp_full

@@ -13,13 +13,22 @@ type t = {
   name: string;
   chash: Chash.t;
 }
-[@@deriving show, eq, ord, twine, typereg]
+[@@deriving eq, ord, twine, typereg]
 
 let hash self = CCHash.(combine2 (string self.name) (Chash.hash self.chash))
 
 let () =
   Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref;
   Imandrakit_twine.Decode.add_cache of_twine_ref
+
+let pp_name out self = Fmt.string out self.name
+let pp out self = Fmt.fprintf out "%s/%a" self.name Chash.pp self.chash
+let show = Fmt.to_string pp
+
+let pp_abbrev out self =
+  Fmt.fprintf out "%s/%a" self.name Chash.pp_abbrev self.chash
+
+let show_abbrev self = spf "%s/%s" self.name (Chash.show_abbrev self.chash)
 
 open struct
   let sep_websafe_ = '/'

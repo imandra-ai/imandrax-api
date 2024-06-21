@@ -21,6 +21,7 @@ type t = private {
 
 val hash_gen_kind : gen_kind -> int
 val hash : t -> int
+val pp_debug : t Fmt.printer
 val pp_name : t Fmt.printer
 val pp_full : t Fmt.printer
 val show_full : t -> string
