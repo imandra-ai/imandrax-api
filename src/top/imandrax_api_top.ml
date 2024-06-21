@@ -25,6 +25,7 @@ open struct
       [
         "Imandrax_api.Chash.pp";
         "Imandrax_api.Cname.pp";
+        "Imandrax_api.Uid.pp_full";
         "Imandrax_api_cir.Type.pp";
         "Imandrax_api_cir.Term.pp";
         "Imandrax_api.In_mem_archive.pp";
