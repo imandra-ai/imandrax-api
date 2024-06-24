@@ -5,10 +5,10 @@
     Data [d] is stored under key [chash(serialize(d))].
 *)
 
-(** Raw untyped cpointer.  *)
+(** Raw untyped pointer.  *)
 module Raw : sig
   type t [@@deriving show, eq, ord, twine]
-  (** Raw cptr, without typing. *)
+  (** Raw ca_ptr, without typing. *)
 
   val to_string : t -> string
   val slugify : t -> string
@@ -16,7 +16,7 @@ module Raw : sig
 end
 
 type 'a t [@@deriving twine]
-(** Crypto pointer for type ['a] *)
+(** Content-addressed pointer for type ['a] *)
 
 val raw : _ t -> Raw.t
 
