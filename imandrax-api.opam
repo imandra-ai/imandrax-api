@@ -19,7 +19,6 @@ depends: [
   "pbrt" {>= "3.0"}
   "pbrt_yojson" {>= "3.0"}
   "cryptokit" {>= "0.19"}
-  "ppxlib"
   "odoc" {with-doc}
 ]
 depopts: ["camlzip"]

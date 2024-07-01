@@ -1,0 +1,9 @@
+(library
+ (kind ppx_deriver)
+ (name imandrax_api_ppx_cir)
+ (public_name imandrax-api-ppx.cir)
+ (ppx_runtime_libraries imandrax-api imandrax-api.cir)
+ (libraries ppxlib ppxlib.astlib)
+ (preprocess
+  (pps ppxlib.metaquot))
+ (synopsis "ppx to convert to/from CIR terms"))

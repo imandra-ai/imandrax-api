@@ -36,15 +36,24 @@
    (>= 3.0))
   (pbrt_yojson
    (>= 3.0))
+  ; TODO: bump to next release with the static build fix
   (cryptokit
    (>= 0.19))
-  ; TODO: bump to next release with the static build fix
-  ppxlib
   (odoc :with-doc))
  (depopts camlzip)
  (conflicts
   (containers
    (= 3.13))))
+
+(package
+ (name imandrax-api-ppx)
+ (synopsis "Ppx-deriving for ImandraX API")
+ (depends
+  (ocaml
+   (>= 4.12.0))
+  (imandrax-api :version)
+  ppxlib
+  (odoc :with-doc)))
 
 (package
  (name imandrax-api-proto)
