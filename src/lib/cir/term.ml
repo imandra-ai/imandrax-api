@@ -74,6 +74,8 @@ let () =
      values because we have no explicit sharing of [Term.t]. *)
   Imandrakit_twine.Decode.add_cache of_twine_ref
 
+let[@inline] view (self : t) : view = self.view
+
 (** Syntactic equality on terms. This is not modulo alpha. *)
 let rec equal (t1 : t) (t2 : t) =
   if t1 == t2 then
