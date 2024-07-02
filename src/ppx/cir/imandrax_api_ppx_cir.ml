@@ -55,34 +55,34 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
     [%expr
       match Imandrax_api_cir.Term.view [%e e] with
       | Const (Const_z x) -> x
-      | _ -> failwith "expected int"]
+      | _ -> failwith "of-cir: expected int"]
   | [%type: bool] ->
     [%expr
       match Imandrax_api_cir.Term.view [%e e] with
       | Const (Const_bool b) -> b
-      | _ -> failwith "expected bool"]
+      | _ -> failwith "of-cir: expected bool"]
   | [%type: unit] ->
     [%expr
       match Imandrax_api_cir.Term.view [%e e] with
       | Construct { c; args = []; _ } when c.sym.id.name = "()" -> ()
-      | _ -> failwith "expected unit"]
+      | _ -> failwith "of-cir: expected unit"]
   | [%type: string] ->
     [%expr
       match Imandrax_api_cir.Term.view [%e e] with
       | Const (Const_string s) -> s
-      | _ -> failwith "expected string"]
+      | _ -> failwith "of-cir: expected string"]
   | [%type: Imandrax_api.Uid.t] | [%type: Uid.t] ->
     [%expr
       match Imandrax_api_cir.Term.view [%e e] with
       | Const (Const_uid id) -> id
-      | _ -> failwith "expected id"]
+      | _ -> failwith "of-cir: expected id"]
   | [%type: [%t? ty_arg0] option] ->
     [%expr
       match Imandrax_api_cir.Term.view [%e e] with
       | Construct { c; args = []; _ } when c.sym.id.name = "None" -> None
       | Construct { c; args = [ x ]; _ } when c.sym.id.name = "Some" ->
         Some [%e expr_of_cir ty_arg0 [%expr x]]
-      | _ -> failwith "expected option"]
+      | _ -> failwith "of-cir: expected option"]
   | [%type: [%t? ty_arg0] list] ->
     [%expr
       let rec get_list t =
@@ -90,7 +90,7 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
         | Construct { c; args = []; _ } when c.sym.id.name = "[]" -> []
         | Construct { c; args = [ x; tl ]; _ } when c.sym.id.name = "::" ->
           [%e expr_of_cir ty_arg0 [%expr x]] :: get_list tl
-        | _ -> failwith "expected option"
+        | _ -> failwith "of-cir: expected option"
       in
       get_list [%e e]]
   | [%type: int32]
@@ -132,7 +132,7 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
       match Imandrax_api_cir.Term.view [%e e] with
       | Tuple { l = [%p mk_plist ~loc pat_args]; _ } ->
         [%e A.Exp.tuple result_args]
-      | _ -> failwith "expected tuple"]
+      | _ -> failwith "of-cir: expected tuple"]
   | { ptyp_desc = Ptyp_alias (ty, _); _ } -> expr_of_cir ty e
   | { ptyp_desc = Ptyp_variant _; ptyp_loc = loc; _ } ->
     [%expr [%error "Cannot register polymorphic variants yet"]]
@@ -255,7 +255,8 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
           [%pat? _]
           [%expr
             failwith
-              [%e mkstrlit @@ spf "expected sum type %S" d.ptype_name.txt]]
+              [%e
+                mkstrlit @@ spf "of-cir: expected sum type %S" d.ptype_name.txt]]
       in
 
       A.Exp.match_
@@ -281,7 +282,10 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
                    with
                    | None ->
                      failwith
-                       [%e mkstrlit (spf "missing field: %S" f.pld_name.txt)]
+                       [%e
+                         mkstrlit
+                           (spf "of-cir: record: missing field: %S"
+                              f.pld_name.txt)]
                    | Some v -> [%e expr_of_cir f.pld_type [%expr v]]]
                in
                lid, e)
@@ -291,18 +295,8 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
         | Record { rows; rest = None } -> [%e A.Exp.record fields None]
         | Record { rows; rest = Some _rest } ->
           (* TODO: recurse in [rest] *)
-          failwith "TODO: support record extension"
+          failwith "TODO: of-cir: support record extension"
         | _ -> failwith "expected record"]
-    (*
-      let fields =
-        labels
-        |> List.map (fun (f : label_declaration) ->
-               [%expr
-                 [%e A.Exp.constant @@ A.Const.string f.pld_name.txt],
-                   [%e expr_of_cir f.pld_type]])
-      in
-      [%expr Record { fields = [%e mk_list ~loc fields] }]
-  *)
   in
 
   let params = param_names d |> List.map name_poly_var_ in
