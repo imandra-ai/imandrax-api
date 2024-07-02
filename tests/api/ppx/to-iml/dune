@@ -1,5 +1,6 @@
 (tests
  (names t1)
  (libraries zarith)
+ (flags :standard -w -37)
  (preprocess
   (pps imandrax-api-ppx.to-iml ppx_deriving.std)))

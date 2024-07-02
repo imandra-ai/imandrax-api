@@ -26,12 +26,10 @@ let () = ignore (yolo_to_iml_string : _ -> _ -> _ yolo -> string)
 module Foo = struct
   type t =
     | A
-    (*
     | B of {
         x: Z.t option;
         y: bool list;
       }
-    *)
     | C of Z.t
     | D of bool * bool * unit option
   [@@deriving to_iml]
