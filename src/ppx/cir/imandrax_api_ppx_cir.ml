@@ -105,7 +105,7 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
   | { ptyp_desc = Ptyp_var v; ptyp_loc = loc; _ } ->
     (* use function passed as a parameter for each polymorphic argument *)
     let s : string = name_poly_var_ v in
-    [%expr Ty_expr.var [%e A.Exp.constant @@ A.Const.string s]]
+    [%expr [%e A.Exp.ident { loc; txt = Longident.Lident s }] [%e e]]
   | { ptyp_desc = Ptyp_constr (lid, args); ptyp_loc = loc; _ } ->
     [%expr
       [%e
