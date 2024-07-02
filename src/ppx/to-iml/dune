@@ -1,0 +1,9 @@
+(library
+ (kind ppx_deriver)
+ (name imandrax_api_ppx_to_iml)
+ (public_name imandrax-api-ppx.to-iml)
+ (ppx_runtime_libraries containers)
+ (libraries ppxlib ppxlib.astlib)
+ (preprocess
+  (pps ppxlib.metaquot))
+ (synopsis "ppx to turn OCaml values into .iml source code"))
