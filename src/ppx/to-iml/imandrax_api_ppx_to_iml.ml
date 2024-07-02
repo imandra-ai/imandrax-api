@@ -150,7 +150,7 @@ let to_iml_vb_of_tydecl (d : type_declaration) : value_binding =
             ( A.Pat.construct c_lid @@ Some [%pat? x],
               [%expr
                 Printf.sprintf
-                  (mkstrlit @@ spf "{|%s %%s|}" c.pcd_name.txt)
+                  [%e mkstrlit @@ spf "{|(%s %%s)|}" c.pcd_name.txt]
                   [%e expr_to_iml ty0 [%expr x]]] )
           | Pcstr_tuple l ->
             let pat =
@@ -175,61 +175,40 @@ let to_iml_vb_of_tydecl (d : type_declaration) : value_binding =
                 Printf.sprintf
                   [%e
                     mkstrlit
-                    @@ spf "{|%s (%s)|}" c.pcd_name.txt
+                    @@ spf "{|(%s (%s))|}" c.pcd_name.txt
                          (String.concat "," @@ List.map (fun _ -> "%s") l)]]
             in
             let rhs = A.Exp.apply spf_exp args in
             pat, rhs
-          | Pcstr_record _r -> assert false
-          (* TODO:
-             let pat_fields : pattern =
-               List.mapi (fun i _r -> A.Pat.var { loc; txt = spf "x_%d" i }) r
-               |> mk_plist ~loc
-             in
-             let pat =
-               [%pat?
-                 Imandrax_api_cir.Term.Construct { c; args = [%p pat_fields]; _ }]
-             in
-             let rhs_fields =
-               List.mapi
-                 (fun i (r : label_declaration) ->
-                   let e =
-                     (* [foo_of_cir self.foo] *)
-                     expr_to_iml r.pld_type
-                       (A.Exp.ident
-                          { loc; txt = Longident.Lident (spf "x_%d" i) })
-                   in
-                   let field =
-                     {
-                       loc = r.pld_name.loc;
-                       txt = Longident.Lident r.pld_name.txt;
-                     }
-                   in
-                   field, e)
-                 r
-             in
-             let rhs =
-               A.Exp.construct ~loc c_lid
-               @@ Some (A.Exp.record ~loc rhs_fields None)
-             in
-             pat, rhs pat, rhs
-          *)
+          | Pcstr_record r ->
+            let pat = A.Pat.construct c_lid @@ Some [%pat? r] in
+            let res_fields =
+              r
+              |> List.map (fun (f : label_declaration) ->
+                     let field_expr =
+                       A.Exp.field [%expr r]
+                         { loc; txt = Longident.Lident f.pld_name.txt }
+                     in
+                     let rhs = [%expr [%e expr_to_iml f.pld_type field_expr]] in
+                     let kv =
+                       [%expr
+                         Printf.sprintf
+                           [%e mkstrlit (f.pld_name.txt ^ " = %s")]
+                           [%e rhs]]
+                     in
+                     kv)
+            in
+            let rhs =
+              [%expr
+                Printf.sprintf "{%s}" @@ String.concat "; "
+                @@ [%e mk_list ~loc @@ res_fields]]
+            in
+            pat, rhs
         in
         A.Exp.case pat rhs
       in
-
-      let last_case =
-        A.Exp.case
-          [%pat? _]
-          [%expr
-            failwith
-              [%e
-                mkstrlit @@ spf "to-iml: expected sum type %S" d.ptype_name.txt]]
-      in
-
-      A.Exp.match_
-        [%expr Imandrax_api_cir.Term.view self]
-        (List.map case_of_cstor cstors @ [ last_case ])
+      let cases = List.map case_of_cstor cstors in
+      A.Exp.match_ [%expr self] cases
     | Ptype_record labels ->
       let res_fields =
         labels

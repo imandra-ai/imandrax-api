@@ -2,6 +2,7 @@
  (kind ppx_deriver)
  (name imandrax_api_ppx_to_iml)
  (public_name imandrax-api-ppx.to-iml)
+ (flags :standard -w -37)
  (ppx_runtime_libraries containers)
  (libraries ppxlib ppxlib.astlib)
  (preprocess
