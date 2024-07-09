@@ -1,0 +1,16 @@
+(executable
+ (name gen)
+ (libraries
+  iter
+  yojson
+  imandrakit
+  imandrakit.typereg
+  imandrax-api.cir
+  imandrax-api.eval
+  imandrax-api.model
+  imandrax-api.report
+  imandrax-api.proof
+  imandrax-api.tasks
+  imandrax-api.artifact
+  )
+ (flags :standard -linkall))
