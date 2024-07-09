@@ -1,0 +1,10 @@
+
+(rule
+  (targets typereg.json)
+  (deps (:bin ./gentypereg/gen.exe))
+  (action (with-stdout-to %{targets} (run %{bin}))))
+
+(install
+  (files typereg.json)
+  (section share)
+  (package imandrax-api))
