@@ -1,0 +1,210 @@
+
+syntax = "proto3";
+
+import "error.proto";
+import "utils.proto";
+import "session.proto";
+
+service Simple {
+  // Get server status
+  rpc status(Empty) returns (StringMsg);
+
+  // ask the server to exit
+  rpc shutdown(Empty) returns (Empty);
+
+  rpc decompose(DecomposeReq) returns (DecomposeRes);
+
+  rpc eval_src(EvalSrcReq) returns (EvalRes);
+
+  rpc verify_src(VerifySrcReq) returns (VerifyRes);
+
+  rpc verify_name(VerifyNameReq) returns (VerifyRes);
+
+  rpc instance_src(InstanceSrcReq) returns (InstanceRes);
+
+  rpc instance_name(InstanceNameReq) returns (InstanceRes);
+
+}
+
+message DecomposeReq {
+  Session session = 1;
+
+  // name of function to decompose
+  string name = 2;
+
+  // name of side condition function
+  optional string assuming = 3;
+
+  bool prune = 4;
+
+  optional int32 max_rounds = 10;
+
+  optional int32 stop_at = 11;
+}
+
+message DecomposeRegion {
+  // pretty-printed constraints
+  repeated string constraints_pp = 1;
+
+  // pretty-printed invariant
+  string invariant_pp = 2;
+
+  // the AST as JSON
+  optional string ast_json = 3;
+
+  // TODO: AST as twine
+}
+
+// Result of a decomposition
+message DecomposeRes {
+  repeated DecomposeRegion regions = 1 [packed=true];
+}
+
+message EvalSrcReq {
+  Session session = 1;
+
+  // source code to evaluate
+  string src = 2;
+}
+
+message EvalRes {
+  bool success = 1;
+
+  // "normal" messages
+  repeated string messages = 2;
+
+  // akin to stderr
+  repeated Error errors = 3;
+}
+
+message VerifySrcReq {
+  Session session = 1;
+
+  // source code
+  string src = 2;
+
+  optional Hints hints = 10;
+
+  // we don't support that
+  reserved 11; //instance_printer 
+}
+
+message VerifyNameReq {
+  Session session = 1;
+
+  // name of the predicate to verify
+  string name = 2;
+
+  optional Hints hints = 10;
+
+  // we don't support that
+  reserved 11; //instance_printer
+}
+
+message InstanceSrcReq {
+  Session session = 1;
+
+  // source code
+  string src = 2;
+
+  optional Hints hints = 10;
+
+  // we don't support that
+  reserved 11; //instance_printer 
+}
+
+message InstanceNameReq {
+  Session session = 1;
+
+  // name of the predicate to verify
+  string name = 2;
+
+  optional Hints hints = 10;
+
+  // we don't support that
+  reserved 11; //instance_printer
+}
+
+message Proved {
+  optional string proof_pp = 1;
+}
+
+message Unsat {
+  optional string proof_pp = 1;
+}
+
+enum ModelType {
+  Counter_example = 0;
+  Instance = 1;
+}
+
+message Model {
+  ModelType m_type = 1;
+
+  // iml source code for the model
+  string src = 2;
+}
+
+message Refuted {
+  optional Model model = 1;
+}
+
+message Sat {
+  optional Model model = 1;
+}
+
+message VerifyRes {
+  oneof res {
+    StringMsg unknown = 0;
+    Error err = 1;
+    Proved proved = 2;
+    Refuted refuted = 3;
+  }
+}
+
+message InstanceRes {
+  oneof res {
+    StringMsg unknown = 0;
+    Error err = 1;
+    Unsat unsat = 2;
+    Sat sat = 3;
+  }
+}
+
+message Hints {
+  message Induct {
+    message Functional {
+      string f_name = 1;
+    }
+
+    enum StructuralStyle {
+      Additive = 0;
+      Multiplicative = 1;
+    }
+
+    message Structural {
+      StructuralStyle style = 1;
+      repeated string vars = 2 [packed=true];
+    }
+
+    oneof induct {
+      Empty default = 0;
+      Functional functional = 1;
+      Structural structural = 2;
+    }
+  }
+
+  message Unroll {
+    optional string smt_solver = 10;
+
+    optional int32 max_steps = 11;
+  }
+
+  oneof method_ {
+    Empty auto = 0;
+    Unroll unroll = 1;
+    Induct induct = 2;
+  }
+}
+
+// compat notes: no history, not reset
