@@ -10,7 +10,7 @@ depends: [
   "pbrt" {>= "3.0"}
   "pbrt_yojson" {>= "3.0"}
   "pbrt_services" {>= "3.0"}
-  "ocaml-protoc" {>= "3.0" & with-dev-setup}
+  "ocaml-protoc" {>= "3.1" & with-dev-setup}
   "odoc" {with-doc}
 ]
 build: [
