@@ -23,6 +23,9 @@ check-format:
 genproto:
 	$(DUNE) build @genproto
 
+genpython:
+	make genpython -C src/proto/py
+
 build-dev:
 	$(DUNE) build @install @runtest $(DUNE_OPTS) --workspace=dune-workspace.dev
 

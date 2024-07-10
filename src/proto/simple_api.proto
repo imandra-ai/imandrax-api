@@ -57,7 +57,7 @@ message DecomposeRegion {
 
 // Result of a decomposition
 message DecomposeRes {
-  repeated DecomposeRegion regions = 1 [packed=true];
+  repeated DecomposeRegion regions = 1;
 }
 
 message EvalSrcReq {
@@ -155,19 +155,19 @@ message Sat {
 
 message VerifyRes {
   oneof res {
-    StringMsg unknown = 0;
-    Error err = 1;
-    Proved proved = 2;
-    Refuted refuted = 3;
+    StringMsg unknown = 1;
+    Error err = 2;
+    Proved proved = 3;
+    Refuted refuted = 4;
   }
 }
 
 message InstanceRes {
   oneof res {
-    StringMsg unknown = 0;
-    Error err = 1;
-    Unsat unsat = 2;
-    Sat sat = 3;
+    StringMsg unknown = 1;
+    Error err = 2;
+    Unsat unsat = 3;
+    Sat sat = 4;
   }
 }
 
@@ -184,13 +184,13 @@ message Hints {
 
     message Structural {
       StructuralStyle style = 1;
-      repeated string vars = 2 [packed=true];
+      repeated string vars = 2;
     }
 
     oneof induct {
-      Empty default = 0;
-      Functional functional = 1;
-      Structural structural = 2;
+      Empty default = 1;
+      Functional functional = 2;
+      Structural structural = 3;
     }
   }
 
@@ -201,9 +201,9 @@ message Hints {
   }
 
   oneof method_ {
-    Empty auto = 0;
-    Unroll unroll = 1;
-    Induct induct = 2;
+    Empty auto = 1;
+    Unroll unroll = 2;
+    Induct induct = 3;
   }
 }
 
