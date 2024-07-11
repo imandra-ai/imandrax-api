@@ -19,7 +19,7 @@ class SimpleServer(TwirpServer):
 
 	def __init__(self, *args, service, server_path_prefix="/twirp"):
 		super().__init__(service=service)
-		self._prefix = F"{server_path_prefix}/.Simple"
+		self._prefix = F"{server_path_prefix}/imandrax.Simple"
 		self._endpoints = {
 			"status": Endpoint(
 				service_name="Simple",
@@ -39,43 +39,43 @@ class SimpleServer(TwirpServer):
 				service_name="Simple",
 				name="decompose",
 				function=getattr(service, "decompose"),
-				input=_sym_db.GetSymbol("DecomposeReq"),
-				output=_sym_db.GetSymbol("DecomposeRes"),
+				input=_sym_db.GetSymbol("imandrax.DecomposeReq"),
+				output=_sym_db.GetSymbol("imandrax.DecomposeRes"),
 			),
 			"eval_src": Endpoint(
 				service_name="Simple",
 				name="eval_src",
 				function=getattr(service, "eval_src"),
-				input=_sym_db.GetSymbol("EvalSrcReq"),
-				output=_sym_db.GetSymbol("EvalRes"),
+				input=_sym_db.GetSymbol("imandrax.EvalSrcReq"),
+				output=_sym_db.GetSymbol("imandrax.EvalRes"),
 			),
 			"verify_src": Endpoint(
 				service_name="Simple",
 				name="verify_src",
 				function=getattr(service, "verify_src"),
-				input=_sym_db.GetSymbol("VerifySrcReq"),
-				output=_sym_db.GetSymbol("VerifyRes"),
+				input=_sym_db.GetSymbol("imandrax.VerifySrcReq"),
+				output=_sym_db.GetSymbol("imandrax.VerifyRes"),
 			),
 			"verify_name": Endpoint(
 				service_name="Simple",
 				name="verify_name",
 				function=getattr(service, "verify_name"),
-				input=_sym_db.GetSymbol("VerifyNameReq"),
-				output=_sym_db.GetSymbol("VerifyRes"),
+				input=_sym_db.GetSymbol("imandrax.VerifyNameReq"),
+				output=_sym_db.GetSymbol("imandrax.VerifyRes"),
 			),
 			"instance_src": Endpoint(
 				service_name="Simple",
 				name="instance_src",
 				function=getattr(service, "instance_src"),
-				input=_sym_db.GetSymbol("InstanceSrcReq"),
-				output=_sym_db.GetSymbol("InstanceRes"),
+				input=_sym_db.GetSymbol("imandrax.InstanceSrcReq"),
+				output=_sym_db.GetSymbol("imandrax.InstanceRes"),
 			),
 			"instance_name": Endpoint(
 				service_name="Simple",
 				name="instance_name",
 				function=getattr(service, "instance_name"),
-				input=_sym_db.GetSymbol("InstanceNameReq"),
-				output=_sym_db.GetSymbol("InstanceRes"),
+				input=_sym_db.GetSymbol("imandrax.InstanceNameReq"),
+				output=_sym_db.GetSymbol("imandrax.InstanceRes"),
 			),
 		}
 
@@ -83,7 +83,7 @@ class SimpleClient(TwirpClient):
 
 	def status(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.Simple/status",
+			url=F"{server_path_prefix}/imandrax.Simple/status",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("StringMsg"),
@@ -92,7 +92,7 @@ class SimpleClient(TwirpClient):
 
 	def shutdown(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.Simple/shutdown",
+			url=F"{server_path_prefix}/imandrax.Simple/shutdown",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("Empty"),
@@ -101,55 +101,55 @@ class SimpleClient(TwirpClient):
 
 	def decompose(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.Simple/decompose",
+			url=F"{server_path_prefix}/imandrax.Simple/decompose",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("DecomposeRes"),
+			response_obj=_sym_db.GetSymbol("imandrax.DecomposeRes"),
 			**kwargs,
 		)
 
 	def eval_src(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.Simple/eval_src",
+			url=F"{server_path_prefix}/imandrax.Simple/eval_src",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("EvalRes"),
+			response_obj=_sym_db.GetSymbol("imandrax.EvalRes"),
 			**kwargs,
 		)
 
 	def verify_src(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.Simple/verify_src",
+			url=F"{server_path_prefix}/imandrax.Simple/verify_src",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("VerifyRes"),
+			response_obj=_sym_db.GetSymbol("imandrax.VerifyRes"),
 			**kwargs,
 		)
 
 	def verify_name(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.Simple/verify_name",
+			url=F"{server_path_prefix}/imandrax.Simple/verify_name",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("VerifyRes"),
+			response_obj=_sym_db.GetSymbol("imandrax.VerifyRes"),
 			**kwargs,
 		)
 
 	def instance_src(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.Simple/instance_src",
+			url=F"{server_path_prefix}/imandrax.Simple/instance_src",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("InstanceRes"),
+			response_obj=_sym_db.GetSymbol("imandrax.InstanceRes"),
 			**kwargs,
 		)
 
 	def instance_name(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.Simple/instance_name",
+			url=F"{server_path_prefix}/imandrax.Simple/instance_name",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("InstanceRes"),
+			response_obj=_sym_db.GetSymbol("imandrax.InstanceRes"),
 			**kwargs,
 		)
 
@@ -159,7 +159,7 @@ if _async_available:
 
 		async def status(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.Simple/status",
+				url=F"{server_path_prefix}/imandrax.Simple/status",
 				ctx=ctx,
 				request=request,
 				response_obj=_sym_db.GetSymbol("StringMsg"),
@@ -169,7 +169,7 @@ if _async_available:
 
 		async def shutdown(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.Simple/shutdown",
+				url=F"{server_path_prefix}/imandrax.Simple/shutdown",
 				ctx=ctx,
 				request=request,
 				response_obj=_sym_db.GetSymbol("Empty"),
@@ -179,60 +179,60 @@ if _async_available:
 
 		async def decompose(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.Simple/decompose",
+				url=F"{server_path_prefix}/imandrax.Simple/decompose",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("DecomposeRes"),
+				response_obj=_sym_db.GetSymbol("imandrax.DecomposeRes"),
 				session=session,
 				**kwargs,
 			)
 
 		async def eval_src(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.Simple/eval_src",
+				url=F"{server_path_prefix}/imandrax.Simple/eval_src",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("EvalRes"),
+				response_obj=_sym_db.GetSymbol("imandrax.EvalRes"),
 				session=session,
 				**kwargs,
 			)
 
 		async def verify_src(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.Simple/verify_src",
+				url=F"{server_path_prefix}/imandrax.Simple/verify_src",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("VerifyRes"),
+				response_obj=_sym_db.GetSymbol("imandrax.VerifyRes"),
 				session=session,
 				**kwargs,
 			)
 
 		async def verify_name(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.Simple/verify_name",
+				url=F"{server_path_prefix}/imandrax.Simple/verify_name",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("VerifyRes"),
+				response_obj=_sym_db.GetSymbol("imandrax.VerifyRes"),
 				session=session,
 				**kwargs,
 			)
 
 		async def instance_src(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.Simple/instance_src",
+				url=F"{server_path_prefix}/imandrax.Simple/instance_src",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("InstanceRes"),
+				response_obj=_sym_db.GetSymbol("imandrax.InstanceRes"),
 				session=session,
 				**kwargs,
 			)
 
 		async def instance_name(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.Simple/instance_name",
+				url=F"{server_path_prefix}/imandrax.Simple/instance_name",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("InstanceRes"),
+				response_obj=_sym_db.GetSymbol("imandrax.InstanceRes"),
 				session=session,
 				**kwargs,
 			)
