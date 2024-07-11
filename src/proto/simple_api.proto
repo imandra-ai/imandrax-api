@@ -16,6 +16,9 @@ service Simple {
 
   rpc decompose(DecomposeReq) returns (DecomposeRes);
 
+  // create a session easily
+  rpc create_session(Empty) returns (Session);
+
   rpc eval_src(EvalSrcReq) returns (EvalRes);
 
   rpc verify_src(VerifySrcReq) returns (VerifyRes);

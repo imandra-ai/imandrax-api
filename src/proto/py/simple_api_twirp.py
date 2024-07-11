@@ -42,6 +42,13 @@ class SimpleServer(TwirpServer):
 				input=_sym_db.GetSymbol("imandrax.DecomposeReq"),
 				output=_sym_db.GetSymbol("imandrax.DecomposeRes"),
 			),
+			"create_session": Endpoint(
+				service_name="Simple",
+				name="create_session",
+				function=getattr(service, "create_session"),
+				input=_sym_db.GetSymbol("Empty"),
+				output=_sym_db.GetSymbol("Session"),
+			),
 			"eval_src": Endpoint(
 				service_name="Simple",
 				name="eval_src",
@@ -105,6 +112,15 @@ class SimpleClient(TwirpClient):
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("imandrax.DecomposeRes"),
+			**kwargs,
+		)
+
+	def create_session(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
+		return self._make_request(
+			url=F"{server_path_prefix}/imandrax.Simple/create_session",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("Session"),
 			**kwargs,
 		)
 
@@ -183,6 +199,16 @@ if _async_available:
 				ctx=ctx,
 				request=request,
 				response_obj=_sym_db.GetSymbol("imandrax.DecomposeRes"),
+				session=session,
+				**kwargs,
+			)
+
+		async def create_session(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
+			return await self._make_request(
+				url=F"{server_path_prefix}/imandrax.Simple/create_session",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("Session"),
 				session=session,
 				**kwargs,
 			)
