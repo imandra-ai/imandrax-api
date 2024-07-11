@@ -820,12 +820,10 @@ let rec encode_pb_decompose_region (v:decompose_region) encoder =
   ()
 
 let rec encode_pb_decompose_res (v:decompose_res) encoder = 
-  Pbrt.Encoder.nested (fun lst encoder ->
-    Pbrt.List_util.rev_iter_with (fun x encoder -> 
-      Pbrt.Encoder.nested encode_pb_decompose_region x encoder;
-    ) lst encoder;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested encode_pb_decompose_region x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   ) v.regions encoder;
-  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   ()
 
 let rec encode_pb_eval_src_req (v:eval_src_req) encoder = 
@@ -880,38 +878,36 @@ let rec encode_pb_hints_induct_structural_style (v:hints_induct_structural_style
 let rec encode_pb_hints_induct_structural (v:hints_induct_structural) encoder = 
   encode_pb_hints_induct_structural_style v.style encoder;
   Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
-  Pbrt.Encoder.nested (fun lst encoder ->
-    Pbrt.List_util.rev_iter_with (fun x encoder -> 
-      Pbrt.Encoder.string x encoder;
-    ) lst encoder;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   ) v.vars encoder;
-  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   ()
 
 let rec encode_pb_hints_induct (v:hints_induct) encoder = 
   begin match v with
   | Default ->
-    Pbrt.Encoder.key 0 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
     Pbrt.Encoder.empty_nested encoder
   | Functional x ->
     Pbrt.Encoder.nested encode_pb_hints_induct_functional x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   | Structural x ->
     Pbrt.Encoder.nested encode_pb_hints_induct_structural x encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
   end
 
 let rec encode_pb_hints (v:hints) encoder = 
   begin match v with
   | Auto ->
-    Pbrt.Encoder.key 0 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
     Pbrt.Encoder.empty_nested encoder
   | Unroll x ->
     Pbrt.Encoder.nested encode_pb_hints_unroll x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   | Induct x ->
     Pbrt.Encoder.nested encode_pb_hints_induct x encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
   end
 
 let rec encode_pb_verify_src_req (v:verify_src_req) encoder = 
@@ -1034,32 +1030,32 @@ let rec encode_pb_verify_res (v:verify_res) encoder =
   begin match v with
   | Unknown x ->
     Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
-    Pbrt.Encoder.key 0 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | Err x ->
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   | Proved x ->
     Pbrt.Encoder.nested encode_pb_proved x encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
   | Refuted x ->
     Pbrt.Encoder.nested encode_pb_refuted x encoder;
-    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
   end
 
 let rec encode_pb_instance_res (v:instance_res) encoder = 
   begin match v with
   | Unknown x ->
     Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
-    Pbrt.Encoder.key 0 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | Err x ->
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   | Unsat x ->
     Pbrt.Encoder.nested encode_pb_unsat x encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
   | Sat x ->
     Pbrt.Encoder.nested encode_pb_sat x encoder;
-    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
   end
 
 [@@@ocaml.warning "-27-30-39"]
@@ -1154,7 +1150,7 @@ let rec decode_pb_decompose_res d =
       v.regions <- List.rev v.regions;
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.regions <- Pbrt.Decoder.packed_fold (fun l d -> (decode_pb_decompose_region (Pbrt.Decoder.nested d))::l) [] d;
+      v.regions <- (decode_pb_decompose_region (Pbrt.Decoder.nested d)) :: v.regions;
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(decompose_res), field(1)" pk
@@ -1282,7 +1278,7 @@ let rec decode_pb_hints_induct_structural d =
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(hints_induct_structural), field(1)" pk
     | Some (2, Pbrt.Bytes) -> begin
-      v.vars <- Pbrt.Decoder.packed_fold (fun l d -> (Pbrt.Decoder.string d)::l) [] d;
+      v.vars <- (Pbrt.Decoder.string d) :: v.vars;
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(hints_induct_structural), field(2)" pk
@@ -1297,12 +1293,12 @@ let rec decode_pb_hints_induct d =
   let rec loop () = 
     let ret:hints_induct = match Pbrt.Decoder.key d with
       | None -> Pbrt.Decoder.malformed_variant "hints_induct"
-      | Some (0, _) -> begin 
+      | Some (1, _) -> begin 
         Pbrt.Decoder.empty_nested d ;
         (Default : hints_induct)
       end
-      | Some (1, _) -> (Functional (decode_pb_hints_induct_functional (Pbrt.Decoder.nested d)) : hints_induct) 
-      | Some (2, _) -> (Structural (decode_pb_hints_induct_structural (Pbrt.Decoder.nested d)) : hints_induct) 
+      | Some (2, _) -> (Functional (decode_pb_hints_induct_functional (Pbrt.Decoder.nested d)) : hints_induct) 
+      | Some (3, _) -> (Structural (decode_pb_hints_induct_structural (Pbrt.Decoder.nested d)) : hints_induct) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -1316,12 +1312,12 @@ let rec decode_pb_hints d =
   let rec loop () = 
     let ret:hints = match Pbrt.Decoder.key d with
       | None -> Pbrt.Decoder.malformed_variant "hints"
-      | Some (0, _) -> begin 
+      | Some (1, _) -> begin 
         Pbrt.Decoder.empty_nested d ;
         (Auto : hints)
       end
-      | Some (1, _) -> (Unroll (decode_pb_hints_unroll (Pbrt.Decoder.nested d)) : hints) 
-      | Some (2, _) -> (Induct (decode_pb_hints_induct (Pbrt.Decoder.nested d)) : hints) 
+      | Some (2, _) -> (Unroll (decode_pb_hints_unroll (Pbrt.Decoder.nested d)) : hints) 
+      | Some (3, _) -> (Induct (decode_pb_hints_induct (Pbrt.Decoder.nested d)) : hints) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -1557,10 +1553,10 @@ let rec decode_pb_verify_res d =
   let rec loop () = 
     let ret:verify_res = match Pbrt.Decoder.key d with
       | None -> Pbrt.Decoder.malformed_variant "verify_res"
-      | Some (0, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : verify_res) 
-      | Some (1, _) -> (Err (Error.decode_pb_error (Pbrt.Decoder.nested d)) : verify_res) 
-      | Some (2, _) -> (Proved (decode_pb_proved (Pbrt.Decoder.nested d)) : verify_res) 
-      | Some (3, _) -> (Refuted (decode_pb_refuted (Pbrt.Decoder.nested d)) : verify_res) 
+      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : verify_res) 
+      | Some (2, _) -> (Err (Error.decode_pb_error (Pbrt.Decoder.nested d)) : verify_res) 
+      | Some (3, _) -> (Proved (decode_pb_proved (Pbrt.Decoder.nested d)) : verify_res) 
+      | Some (4, _) -> (Refuted (decode_pb_refuted (Pbrt.Decoder.nested d)) : verify_res) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -1574,10 +1570,10 @@ let rec decode_pb_instance_res d =
   let rec loop () = 
     let ret:instance_res = match Pbrt.Decoder.key d with
       | None -> Pbrt.Decoder.malformed_variant "instance_res"
-      | Some (0, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : instance_res) 
-      | Some (1, _) -> (Err (Error.decode_pb_error (Pbrt.Decoder.nested d)) : instance_res) 
-      | Some (2, _) -> (Unsat (decode_pb_unsat (Pbrt.Decoder.nested d)) : instance_res) 
-      | Some (3, _) -> (Sat (decode_pb_sat (Pbrt.Decoder.nested d)) : instance_res) 
+      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : instance_res) 
+      | Some (2, _) -> (Err (Error.decode_pb_error (Pbrt.Decoder.nested d)) : instance_res) 
+      | Some (3, _) -> (Unsat (decode_pb_unsat (Pbrt.Decoder.nested d)) : instance_res) 
+      | Some (4, _) -> (Sat (decode_pb_sat (Pbrt.Decoder.nested d)) : instance_res) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -2259,7 +2255,7 @@ module Simple = struct
     
     let status : (Utils.empty, unary, Utils.string_msg, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax"]
         ~service_name:"Simple" ~rpc_name:"status"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2272,7 +2268,7 @@ module Simple = struct
     
     let shutdown : (Utils.empty, unary, Utils.empty, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax"]
         ~service_name:"Simple" ~rpc_name:"shutdown"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2285,7 +2281,7 @@ module Simple = struct
     
     let decompose : (decompose_req, unary, decompose_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax"]
         ~service_name:"Simple" ~rpc_name:"decompose"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2298,7 +2294,7 @@ module Simple = struct
     
     let eval_src : (eval_src_req, unary, eval_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax"]
         ~service_name:"Simple" ~rpc_name:"eval_src"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2311,7 +2307,7 @@ module Simple = struct
     
     let verify_src : (verify_src_req, unary, verify_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax"]
         ~service_name:"Simple" ~rpc_name:"verify_src"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2324,7 +2320,7 @@ module Simple = struct
     
     let verify_name : (verify_name_req, unary, verify_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax"]
         ~service_name:"Simple" ~rpc_name:"verify_name"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2337,7 +2333,7 @@ module Simple = struct
     
     let instance_src : (instance_src_req, unary, instance_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax"]
         ~service_name:"Simple" ~rpc_name:"instance_src"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2350,7 +2346,7 @@ module Simple = struct
     
     let instance_name : (instance_name_req, unary, instance_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax"]
         ~service_name:"Simple" ~rpc_name:"instance_name"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2456,7 +2452,7 @@ module Simple = struct
       () : _ Server.t =
       { Server.
         service_name="Simple";
-        package=[];
+        package=["imandrax"];
         handlers=[
            (__handler__status status);
            (__handler__shutdown shutdown);

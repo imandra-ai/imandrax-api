@@ -1,6 +1,8 @@
 
 syntax = "proto3";
 
+package imandrax;
+
 import "error.proto";
 import "utils.proto";
 import "session.proto";
