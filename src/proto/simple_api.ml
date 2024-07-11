@@ -2292,6 +2292,19 @@ module Simple = struct
         () : (decompose_req, unary, decompose_res, unary) Client.rpc)
     open Pbrt_services
     
+    let create_session : (Utils.empty, unary, Session.session, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax"]
+        ~service_name:"Simple" ~rpc_name:"create_session"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:Utils.encode_json_empty
+        ~encode_pb_req:Utils.encode_pb_empty
+        ~decode_json_res:Session.decode_json_session
+        ~decode_pb_res:Session.decode_pb_session
+        () : (Utils.empty, unary, Session.session, unary) Client.rpc)
+    open Pbrt_services
+    
     let eval_src : (eval_src_req, unary, eval_res, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax"]
@@ -2390,6 +2403,16 @@ module Simple = struct
         ~decode_pb_req:decode_pb_decompose_req
         () : _ Server.rpc)
     
+    let create_session : (Utils.empty,unary,Session.session,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"create_session"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:Session.encode_json_session
+        ~encode_pb_res:Session.encode_pb_session
+        ~decode_json_req:Utils.decode_json_empty
+        ~decode_pb_req:Utils.decode_pb_empty
+        () : _ Server.rpc)
+    
     let eval_src : (eval_src_req,unary,eval_res,unary) Server.rpc = 
       (Server.mk_rpc ~name:"eval_src"
         ~req_mode:Server.Unary
@@ -2444,6 +2467,7 @@ module Simple = struct
       ~status:__handler__status
       ~shutdown:__handler__shutdown
       ~decompose:__handler__decompose
+      ~create_session:__handler__create_session
       ~eval_src:__handler__eval_src
       ~verify_src:__handler__verify_src
       ~verify_name:__handler__verify_name
@@ -2457,6 +2481,7 @@ module Simple = struct
            (__handler__status status);
            (__handler__shutdown shutdown);
            (__handler__decompose decompose);
+           (__handler__create_session create_session);
            (__handler__eval_src eval_src);
            (__handler__verify_src verify_src);
            (__handler__verify_name verify_name);

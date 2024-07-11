@@ -778,6 +778,8 @@ module Simple : sig
     
     val decompose : (decompose_req, unary, decompose_res, unary) Client.rpc
     
+    val create_session : (Utils.empty, unary, Session.session, unary) Client.rpc
+    
     val eval_src : (eval_src_req, unary, eval_res, unary) Client.rpc
     
     val verify_src : (verify_src_req, unary, verify_res, unary) Client.rpc
@@ -795,6 +797,7 @@ module Simple : sig
       status:((Utils.empty, unary, Utils.string_msg, unary) Server.rpc -> 'handler) ->
       shutdown:((Utils.empty, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
       decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
+      create_session:((Utils.empty, unary, Session.session, unary) Server.rpc -> 'handler) ->
       eval_src:((eval_src_req, unary, eval_res, unary) Server.rpc -> 'handler) ->
       verify_src:((verify_src_req, unary, verify_res, unary) Server.rpc -> 'handler) ->
       verify_name:((verify_name_req, unary, verify_res, unary) Server.rpc -> 'handler) ->
@@ -809,6 +812,8 @@ module Simple : sig
     val shutdown : (Utils.empty,unary,Utils.empty,unary) Server.rpc
     
     val decompose : (decompose_req,unary,decompose_res,unary) Server.rpc
+    
+    val create_session : (Utils.empty,unary,Session.session,unary) Server.rpc
     
     val eval_src : (eval_src_req,unary,eval_res,unary) Server.rpc
     
