@@ -6,3 +6,9 @@ locs.ml
 locs.mli
 utils.ml
 utils.mli
+session.ml
+session.mli
+simple_api.ml
+simple_api.mli
+system.ml
+system.mli
