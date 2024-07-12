@@ -1,5 +1,5 @@
 from twirp.context import Context
-from bindings import error_pb2, locs_pb2, utils_pb2, simple_api_twirp, simple_api_pb2
+from bindings import utils_pb2, simple_api_twirp, simple_api_pb2
 
 
 class Client(object):
