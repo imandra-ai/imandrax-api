@@ -29,7 +29,7 @@ RUN opam exec -- dune build @install --ignore-promoted-rules
 RUN opam exec -- dune runtest --ignore-promoted-rules
 
 # check that the generated code is up to date
-RUN opam install ocaml-protoc
+RUN opam install ocaml-protoc --dev
 RUN opam exec -- dune build @genproto --auto-promote
 COPY --chown=opam ./.git ./.git
 RUN git diff  --quiet src
