@@ -38,8 +38,8 @@ function install_linux() {
 }
 
 function install_macos() {
-  ARCHIVE="gs://${BUCKET_NAME}/imandrax-cli-macos-aarch64-${VERSION}.pkg"
-  TMP_FILE="${TMPDIR:-/tmp}/imandrax-cli-macos-aarch64.pkg"
+  ARCHIVE="gs://${BUCKET_NAME}/imandrax-macos-aarch64-${VERSION}.pkg"
+  TMP_FILE="${TMPDIR:-/tmp}/imandrax-macos-aarch64.pkg"
 
   #curl "$ARCHIVE" -o "$TMP_FILE"
   echo "downloading from ${ARCHIVE}"
