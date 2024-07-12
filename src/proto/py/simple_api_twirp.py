@@ -47,7 +47,7 @@ class SimpleServer(TwirpServer):
 				name="create_session",
 				function=getattr(service, "create_session"),
 				input=_sym_db.GetSymbol("Empty"),
-				output=_sym_db.GetSymbol("Session"),
+				output=_sym_db.GetSymbol("imandrax.session.Session"),
 			),
 			"eval_src": Endpoint(
 				service_name="Simple",
@@ -120,7 +120,7 @@ class SimpleClient(TwirpClient):
 			url=F"{server_path_prefix}/imandrax.simple.Simple/create_session",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("Session"),
+			response_obj=_sym_db.GetSymbol("imandrax.session.Session"),
 			**kwargs,
 		)
 
@@ -208,7 +208,7 @@ if _async_available:
 				url=F"{server_path_prefix}/imandrax.simple.Simple/create_session",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("Session"),
+				response_obj=_sym_db.GetSymbol("imandrax.session.Session"),
 				session=session,
 				**kwargs,
 			)

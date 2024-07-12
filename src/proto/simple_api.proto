@@ -17,7 +17,7 @@ service Simple {
   rpc decompose(DecomposeReq) returns (DecomposeRes);
 
   // create a session easily
-  rpc create_session(Empty) returns (Session);
+  rpc create_session(Empty) returns (imandrax.session.Session);
 
   rpc eval_src(EvalSrcReq) returns (EvalRes);
 
@@ -32,7 +32,7 @@ service Simple {
 }
 
 message DecomposeReq {
-  Session session = 1;
+  imandrax.session.Session session = 1;
 
   // name of function to decompose
   string name = 2;
@@ -66,7 +66,7 @@ message DecomposeRes {
 }
 
 message EvalSrcReq {
-  Session session = 1;
+  imandrax.session.Session session = 1;
 
   // source code to evaluate
   string src = 2;
@@ -83,7 +83,7 @@ message EvalRes {
 }
 
 message VerifySrcReq {
-  Session session = 1;
+  imandrax.session.Session session = 1;
 
   // source code
   string src = 2;
@@ -95,7 +95,7 @@ message VerifySrcReq {
 }
 
 message VerifyNameReq {
-  Session session = 1;
+  imandrax.session.Session session = 1;
 
   // name of the predicate to verify
   string name = 2;
@@ -107,7 +107,7 @@ message VerifyNameReq {
 }
 
 message InstanceSrcReq {
-  Session session = 1;
+  imandrax.session.Session session = 1;
 
   // source code
   string src = 2;
@@ -119,7 +119,7 @@ message InstanceSrcReq {
 }
 
 message InstanceNameReq {
-  Session session = 1;
+  imandrax.session.Session session = 1;
 
   // name of the predicate to verify
   string name = 2;
