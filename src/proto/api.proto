@@ -5,6 +5,8 @@ import "utils.proto";
 import "error.proto";
 import "session.proto";
 
+package imandrax.api;
+
 // artifacts as messages
 import "../lib/artifact/artmsg.proto";
 

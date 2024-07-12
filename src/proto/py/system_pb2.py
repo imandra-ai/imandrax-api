@@ -25,17 +25,17 @@ _sym_db = _symbol_database.Default()
 import utils_pb2 as utils__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0csystem.proto\x1a\x0butils.proto\"U\n\x08Gc_stats\x12\x13\n\x0bheap_size_B\x18\x01 \x01(\x03\x12\x19\n\x11major_collections\x18\x02 \x01(\x03\x12\x19\n\x11minor_collections\x18\x03 \x01(\x03\"L\n\x0fVersionResponse\x12\x0f\n\x07version\x18\x01 \x01(\t\x12\x18\n\x0bgit_version\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x0e\n\x0c_git_version2q\n\x06System\x12#\n\x07version\x12\x06.Empty\x1a\x10.VersionResponse\x12\x1d\n\x08gc_stats\x12\x06.Empty\x1a\t.Gc_stats\x12#\n\x0erelease_memory\x12\x06.Empty\x1a\t.Gc_statsb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0csystem.proto\x12\x0fimandrax.system\x1a\x0butils.proto\"U\n\x08Gc_stats\x12\x13\n\x0bheap_size_B\x18\x01 \x01(\x03\x12\x19\n\x11major_collections\x18\x02 \x01(\x03\x12\x19\n\x11minor_collections\x18\x03 \x01(\x03\"L\n\x0fVersionResponse\x12\x0f\n\x07version\x18\x01 \x01(\t\x12\x18\n\x0bgit_version\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x0e\n\x0c_git_version2\xa1\x01\n\x06System\x12\x33\n\x07version\x12\x06.Empty\x1a .imandrax.system.VersionResponse\x12-\n\x08gc_stats\x12\x06.Empty\x1a\x19.imandrax.system.Gc_stats\x12\x33\n\x0erelease_memory\x12\x06.Empty\x1a\x19.imandrax.system.Gc_statsb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'system_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_GC_STATS']._serialized_start=29
-  _globals['_GC_STATS']._serialized_end=114
-  _globals['_VERSIONRESPONSE']._serialized_start=116
-  _globals['_VERSIONRESPONSE']._serialized_end=192
-  _globals['_SYSTEM']._serialized_start=194
-  _globals['_SYSTEM']._serialized_end=307
+  _globals['_GC_STATS']._serialized_start=46
+  _globals['_GC_STATS']._serialized_end=131
+  _globals['_VERSIONRESPONSE']._serialized_start=133
+  _globals['_VERSIONRESPONSE']._serialized_end=209
+  _globals['_SYSTEM']._serialized_start=212
+  _globals['_SYSTEM']._serialized_end=373
 # @@protoc_insertion_point(module_scope)

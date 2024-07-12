@@ -266,7 +266,7 @@ module SessionManager = struct
     
     let create_session : (session_create, unary, session, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"session"]
         ~service_name:"SessionManager" ~rpc_name:"create_session"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -279,7 +279,7 @@ module SessionManager = struct
     
     let open_session : (session_open, unary, Utils.empty, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"session"]
         ~service_name:"SessionManager" ~rpc_name:"open_session"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -292,7 +292,7 @@ module SessionManager = struct
     
     let keep_session_alive : (session, unary, Utils.empty, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"session"]
         ~service_name:"SessionManager" ~rpc_name:"keep_session_alive"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -343,7 +343,7 @@ module SessionManager = struct
       () : _ Server.t =
       { Server.
         service_name="SessionManager";
-        package=[];
+        package=["imandrax";"session"];
         handlers=[
            (__handler__create_session create_session);
            (__handler__open_session open_session);

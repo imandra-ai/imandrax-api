@@ -19,28 +19,28 @@ class SystemServer(TwirpServer):
 
 	def __init__(self, *args, service, server_path_prefix="/twirp"):
 		super().__init__(service=service)
-		self._prefix = F"{server_path_prefix}/.System"
+		self._prefix = F"{server_path_prefix}/imandrax.system.System"
 		self._endpoints = {
 			"version": Endpoint(
 				service_name="System",
 				name="version",
 				function=getattr(service, "version"),
 				input=_sym_db.GetSymbol("Empty"),
-				output=_sym_db.GetSymbol("VersionResponse"),
+				output=_sym_db.GetSymbol("imandrax.system.VersionResponse"),
 			),
 			"gc_stats": Endpoint(
 				service_name="System",
 				name="gc_stats",
 				function=getattr(service, "gc_stats"),
 				input=_sym_db.GetSymbol("Empty"),
-				output=_sym_db.GetSymbol("Gc_stats"),
+				output=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
 			),
 			"release_memory": Endpoint(
 				service_name="System",
 				name="release_memory",
 				function=getattr(service, "release_memory"),
 				input=_sym_db.GetSymbol("Empty"),
-				output=_sym_db.GetSymbol("Gc_stats"),
+				output=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
 			),
 		}
 
@@ -48,28 +48,28 @@ class SystemClient(TwirpClient):
 
 	def version(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.System/version",
+			url=F"{server_path_prefix}/imandrax.system.System/version",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("VersionResponse"),
+			response_obj=_sym_db.GetSymbol("imandrax.system.VersionResponse"),
 			**kwargs,
 		)
 
 	def gc_stats(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.System/gc_stats",
+			url=F"{server_path_prefix}/imandrax.system.System/gc_stats",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("Gc_stats"),
+			response_obj=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
 			**kwargs,
 		)
 
 	def release_memory(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.System/release_memory",
+			url=F"{server_path_prefix}/imandrax.system.System/release_memory",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("Gc_stats"),
+			response_obj=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
 			**kwargs,
 		)
 
@@ -79,30 +79,30 @@ if _async_available:
 
 		async def version(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.System/version",
+				url=F"{server_path_prefix}/imandrax.system.System/version",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("VersionResponse"),
+				response_obj=_sym_db.GetSymbol("imandrax.system.VersionResponse"),
 				session=session,
 				**kwargs,
 			)
 
 		async def gc_stats(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.System/gc_stats",
+				url=F"{server_path_prefix}/imandrax.system.System/gc_stats",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("Gc_stats"),
+				response_obj=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
 				session=session,
 				**kwargs,
 			)
 
 		async def release_memory(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.System/release_memory",
+				url=F"{server_path_prefix}/imandrax.system.System/release_memory",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("Gc_stats"),
+				response_obj=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
 				session=session,
 				**kwargs,
 			)

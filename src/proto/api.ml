@@ -958,7 +958,7 @@ module Eval = struct
     
     let eval_code_snippet : (code_snippet, unary, code_snippet_eval_result, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"api"]
         ~service_name:"Eval" ~rpc_name:"eval_code_snippet"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -971,7 +971,7 @@ module Eval = struct
     
     let parse_term : (code_snippet, unary, artifact, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"api"]
         ~service_name:"Eval" ~rpc_name:"parse_term"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -984,7 +984,7 @@ module Eval = struct
     
     let parse_type : (code_snippet, unary, artifact, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"api"]
         ~service_name:"Eval" ~rpc_name:"parse_type"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -997,7 +997,7 @@ module Eval = struct
     
     let list_artifacts : (artifact_list_query, unary, artifact_list_result, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"api"]
         ~service_name:"Eval" ~rpc_name:"list_artifacts"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -1010,7 +1010,7 @@ module Eval = struct
     
     let get_artifact : (artifact_get_query, unary, artifact, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"api"]
         ~service_name:"Eval" ~rpc_name:"get_artifact"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -1083,7 +1083,7 @@ module Eval = struct
       () : _ Server.t =
       { Server.
         service_name="Eval";
-        package=[];
+        package=["imandrax";"api"];
         handlers=[
            (__handler__eval_code_snippet eval_code_snippet);
            (__handler__parse_term parse_term);

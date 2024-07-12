@@ -2255,7 +2255,7 @@ module Simple = struct
     
     let status : (Utils.empty, unary, Utils.string_msg, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:["imandrax"]
+        ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"status"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2268,7 +2268,7 @@ module Simple = struct
     
     let shutdown : (Utils.empty, unary, Utils.empty, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:["imandrax"]
+        ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"shutdown"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2281,7 +2281,7 @@ module Simple = struct
     
     let decompose : (decompose_req, unary, decompose_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:["imandrax"]
+        ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"decompose"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2294,7 +2294,7 @@ module Simple = struct
     
     let create_session : (Utils.empty, unary, Session.session, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:["imandrax"]
+        ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"create_session"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2307,7 +2307,7 @@ module Simple = struct
     
     let eval_src : (eval_src_req, unary, eval_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:["imandrax"]
+        ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"eval_src"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2320,7 +2320,7 @@ module Simple = struct
     
     let verify_src : (verify_src_req, unary, verify_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:["imandrax"]
+        ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"verify_src"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2333,7 +2333,7 @@ module Simple = struct
     
     let verify_name : (verify_name_req, unary, verify_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:["imandrax"]
+        ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"verify_name"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2346,7 +2346,7 @@ module Simple = struct
     
     let instance_src : (instance_src_req, unary, instance_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:["imandrax"]
+        ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"instance_src"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2359,7 +2359,7 @@ module Simple = struct
     
     let instance_name : (instance_name_req, unary, instance_res, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:["imandrax"]
+        ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"instance_name"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -2476,7 +2476,7 @@ module Simple = struct
       () : _ Server.t =
       { Server.
         service_name="Simple";
-        package=["imandrax"];
+        package=["imandrax";"simple"];
         handlers=[
            (__handler__status status);
            (__handler__shutdown shutdown);

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package imandrax.system;
+
 // ## GC statistics.
 //
 // This part of the API is mostly redundant given we have telemetry,

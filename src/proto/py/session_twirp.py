@@ -19,27 +19,27 @@ class SessionManagerServer(TwirpServer):
 
 	def __init__(self, *args, service, server_path_prefix="/twirp"):
 		super().__init__(service=service)
-		self._prefix = F"{server_path_prefix}/.SessionManager"
+		self._prefix = F"{server_path_prefix}/imandrax.session.SessionManager"
 		self._endpoints = {
 			"create_session": Endpoint(
 				service_name="SessionManager",
 				name="create_session",
 				function=getattr(service, "create_session"),
-				input=_sym_db.GetSymbol("SessionCreate"),
-				output=_sym_db.GetSymbol("Session"),
+				input=_sym_db.GetSymbol("imandrax.session.SessionCreate"),
+				output=_sym_db.GetSymbol("imandrax.session.Session"),
 			),
 			"open_session": Endpoint(
 				service_name="SessionManager",
 				name="open_session",
 				function=getattr(service, "open_session"),
-				input=_sym_db.GetSymbol("SessionOpen"),
+				input=_sym_db.GetSymbol("imandrax.session.SessionOpen"),
 				output=_sym_db.GetSymbol("Empty"),
 			),
 			"keep_session_alive": Endpoint(
 				service_name="SessionManager",
 				name="keep_session_alive",
 				function=getattr(service, "keep_session_alive"),
-				input=_sym_db.GetSymbol("Session"),
+				input=_sym_db.GetSymbol("imandrax.session.Session"),
 				output=_sym_db.GetSymbol("Empty"),
 			),
 		}
@@ -48,16 +48,16 @@ class SessionManagerClient(TwirpClient):
 
 	def create_session(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.SessionManager/create_session",
+			url=F"{server_path_prefix}/imandrax.session.SessionManager/create_session",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("Session"),
+			response_obj=_sym_db.GetSymbol("imandrax.session.Session"),
 			**kwargs,
 		)
 
 	def open_session(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.SessionManager/open_session",
+			url=F"{server_path_prefix}/imandrax.session.SessionManager/open_session",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("Empty"),
@@ -66,7 +66,7 @@ class SessionManagerClient(TwirpClient):
 
 	def keep_session_alive(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/.SessionManager/keep_session_alive",
+			url=F"{server_path_prefix}/imandrax.session.SessionManager/keep_session_alive",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("Empty"),
@@ -79,17 +79,17 @@ if _async_available:
 
 		async def create_session(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.SessionManager/create_session",
+				url=F"{server_path_prefix}/imandrax.session.SessionManager/create_session",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("Session"),
+				response_obj=_sym_db.GetSymbol("imandrax.session.Session"),
 				session=session,
 				**kwargs,
 			)
 
 		async def open_session(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.SessionManager/open_session",
+				url=F"{server_path_prefix}/imandrax.session.SessionManager/open_session",
 				ctx=ctx,
 				request=request,
 				response_obj=_sym_db.GetSymbol("Empty"),
@@ -99,7 +99,7 @@ if _async_available:
 
 		async def keep_session_alive(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
 			return await self._make_request(
-				url=F"{server_path_prefix}/.SessionManager/keep_session_alive",
+				url=F"{server_path_prefix}/imandrax.session.SessionManager/keep_session_alive",
 				ctx=ctx,
 				request=request,
 				response_obj=_sym_db.GetSymbol("Empty"),

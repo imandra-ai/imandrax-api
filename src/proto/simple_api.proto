@@ -1,7 +1,7 @@
 
 syntax = "proto3";
 
-package imandrax;
+package imandrax.simple;
 
 import "error.proto";
 import "utils.proto";

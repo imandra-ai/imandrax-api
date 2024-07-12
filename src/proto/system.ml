@@ -245,7 +245,7 @@ module System = struct
     
     let version : (Utils.empty, unary, version_response, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"system"]
         ~service_name:"System" ~rpc_name:"version"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -258,7 +258,7 @@ module System = struct
     
     let gc_stats : (Utils.empty, unary, gc_stats, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"system"]
         ~service_name:"System" ~rpc_name:"gc_stats"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -271,7 +271,7 @@ module System = struct
     
     let release_memory : (Utils.empty, unary, gc_stats, unary) Client.rpc =
       (Client.mk_rpc 
-        ~package:[]
+        ~package:["imandrax";"system"]
         ~service_name:"System" ~rpc_name:"release_memory"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
@@ -322,7 +322,7 @@ module System = struct
       () : _ Server.t =
       { Server.
         service_name="System";
-        package=[];
+        package=["imandrax";"system"];
         handlers=[
            (__handler__version version);
            (__handler__gc_stats gc_stats);
