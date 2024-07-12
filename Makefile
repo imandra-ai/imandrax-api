@@ -24,7 +24,7 @@ genproto:
 	$(DUNE) build @genproto
 
 genpython:
-	make genpython -C src/proto/py
+	make genpython -C src/proto/py/bindings/
 
 build-dev:
 	$(DUNE) build @install @runtest $(DUNE_OPTS) --workspace=dune-workspace.dev
