@@ -114,17 +114,27 @@ type sat = {
   model : model option;
 }
 
-type verify_res =
+type verify_res_res =
   | Unknown of Utils.string_msg
-  | Err of Error.error
+  | Err
   | Proved of proved
   | Refuted of refuted
 
-type instance_res =
+and verify_res = {
+  res : verify_res_res;
+  errors : Error.error list;
+}
+
+type instance_res_res =
   | Unknown of Utils.string_msg
-  | Err of Error.error
+  | Err
   | Unsat of unsat
   | Sat of sat
+
+and instance_res = {
+  res : instance_res_res;
+  errors : Error.error list;
+}
 
 
 (** {2 Basic values} *)
@@ -264,10 +274,24 @@ val default_sat :
   sat
 (** [default_sat ()] is the default value for type [sat] *)
 
-val default_verify_res : unit -> verify_res
+val default_verify_res_res : unit -> verify_res_res
+(** [default_verify_res_res ()] is the default value for type [verify_res_res] *)
+
+val default_verify_res : 
+  ?res:verify_res_res ->
+  ?errors:Error.error list ->
+  unit ->
+  verify_res
 (** [default_verify_res ()] is the default value for type [verify_res] *)
 
-val default_instance_res : unit -> instance_res
+val default_instance_res_res : unit -> instance_res_res
+(** [default_instance_res_res ()] is the default value for type [instance_res_res] *)
+
+val default_instance_res : 
+  ?res:instance_res_res ->
+  ?errors:Error.error list ->
+  unit ->
+  instance_res
 (** [default_instance_res ()] is the default value for type [instance_res] *)
 
 
@@ -401,6 +425,20 @@ val make_sat :
 (** [make_sat … ()] is a builder for type [sat] *)
 
 
+val make_verify_res : 
+  res:verify_res_res ->
+  errors:Error.error list ->
+  unit ->
+  verify_res
+(** [make_verify_res … ()] is a builder for type [verify_res] *)
+
+
+val make_instance_res : 
+  res:instance_res_res ->
+  errors:Error.error list ->
+  unit ->
+  instance_res
+(** [make_instance_res … ()] is a builder for type [instance_res] *)
 
 
 (** {2 Formatters} *)
@@ -468,8 +506,14 @@ val pp_refuted : Format.formatter -> refuted -> unit
 val pp_sat : Format.formatter -> sat -> unit 
 (** [pp_sat v] formats v *)
 
+val pp_verify_res_res : Format.formatter -> verify_res_res -> unit 
+(** [pp_verify_res_res v] formats v *)
+
 val pp_verify_res : Format.formatter -> verify_res -> unit 
 (** [pp_verify_res v] formats v *)
+
+val pp_instance_res_res : Format.formatter -> instance_res_res -> unit 
+(** [pp_instance_res_res v] formats v *)
 
 val pp_instance_res : Format.formatter -> instance_res -> unit 
 (** [pp_instance_res v] formats v *)
@@ -540,8 +584,14 @@ val encode_pb_refuted : refuted -> Pbrt.Encoder.t -> unit
 val encode_pb_sat : sat -> Pbrt.Encoder.t -> unit
 (** [encode_pb_sat v encoder] encodes [v] with the given [encoder] *)
 
+val encode_pb_verify_res_res : verify_res_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_verify_res_res v encoder] encodes [v] with the given [encoder] *)
+
 val encode_pb_verify_res : verify_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_verify_res v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_instance_res_res : instance_res_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_instance_res_res v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_instance_res : instance_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_instance_res v encoder] encodes [v] with the given [encoder] *)
@@ -612,8 +662,14 @@ val decode_pb_refuted : Pbrt.Decoder.t -> refuted
 val decode_pb_sat : Pbrt.Decoder.t -> sat
 (** [decode_pb_sat decoder] decodes a [sat] binary value from [decoder] *)
 
+val decode_pb_verify_res_res : Pbrt.Decoder.t -> verify_res_res
+(** [decode_pb_verify_res_res decoder] decodes a [verify_res_res] binary value from [decoder] *)
+
 val decode_pb_verify_res : Pbrt.Decoder.t -> verify_res
 (** [decode_pb_verify_res decoder] decodes a [verify_res] binary value from [decoder] *)
+
+val decode_pb_instance_res_res : Pbrt.Decoder.t -> instance_res_res
+(** [decode_pb_instance_res_res decoder] decodes a [instance_res_res] binary value from [decoder] *)
 
 val decode_pb_instance_res : Pbrt.Decoder.t -> instance_res
 (** [decode_pb_instance_res decoder] decodes a [instance_res] binary value from [decoder] *)
@@ -684,8 +740,14 @@ val encode_json_refuted : refuted -> Yojson.Basic.t
 val encode_json_sat : sat -> Yojson.Basic.t
 (** [encode_json_sat v encoder] encodes [v] to to json *)
 
+val encode_json_verify_res_res : verify_res_res -> Yojson.Basic.t
+(** [encode_json_verify_res_res v encoder] encodes [v] to to json *)
+
 val encode_json_verify_res : verify_res -> Yojson.Basic.t
 (** [encode_json_verify_res v encoder] encodes [v] to to json *)
+
+val encode_json_instance_res_res : instance_res_res -> Yojson.Basic.t
+(** [encode_json_instance_res_res v encoder] encodes [v] to to json *)
 
 val encode_json_instance_res : instance_res -> Yojson.Basic.t
 (** [encode_json_instance_res v encoder] encodes [v] to to json *)
@@ -756,8 +818,14 @@ val decode_json_refuted : Yojson.Basic.t -> refuted
 val decode_json_sat : Yojson.Basic.t -> sat
 (** [decode_json_sat decoder] decodes a [sat] value from [decoder] *)
 
+val decode_json_verify_res_res : Yojson.Basic.t -> verify_res_res
+(** [decode_json_verify_res_res decoder] decodes a [verify_res_res] value from [decoder] *)
+
 val decode_json_verify_res : Yojson.Basic.t -> verify_res
 (** [decode_json_verify_res decoder] decodes a [verify_res] value from [decoder] *)
+
+val decode_json_instance_res_res : Yojson.Basic.t -> instance_res_res
+(** [decode_json_instance_res_res decoder] decodes a [instance_res_res] value from [decoder] *)
 
 val decode_json_instance_res : Yojson.Basic.t -> instance_res
 (** [decode_json_instance_res decoder] decodes a [instance_res] value from [decoder] *)

@@ -161,19 +161,23 @@ message Sat {
 message VerifyRes {
   oneof res {
     StringMsg unknown = 1;
-    Error err = 2;
+    Empty err = 2;
     Proved proved = 3;
     Refuted refuted = 4;
   }
+
+  repeated Error errors = 10;
 }
 
 message InstanceRes {
   oneof res {
     StringMsg unknown = 1;
-    Error err = 2;
+    Empty err = 2;
     Unsat unsat = 3;
     Sat sat = 4;
   }
+
+  repeated Error errors = 10;
 }
 
 message Hints {

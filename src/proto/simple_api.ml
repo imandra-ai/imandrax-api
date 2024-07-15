@@ -107,17 +107,27 @@ type sat = {
   model : model option;
 }
 
-type verify_res =
+type verify_res_res =
   | Unknown of Utils.string_msg
-  | Err of Error.error
+  | Err
   | Proved of proved
   | Refuted of refuted
 
-type instance_res =
+and verify_res = {
+  res : verify_res_res;
+  errors : Error.error list;
+}
+
+type instance_res_res =
   | Unknown of Utils.string_msg
-  | Err of Error.error
+  | Err
   | Unsat of unsat
   | Sat of sat
+
+and instance_res = {
+  res : instance_res_res;
+  errors : Error.error list;
+}
 
 let rec default_decompose_req 
   ?session:((session:Session.session option) = None)
@@ -271,9 +281,25 @@ let rec default_sat
   model;
 }
 
-let rec default_verify_res () : verify_res = Unknown (Utils.default_string_msg ())
+let rec default_verify_res_res () : verify_res_res = Unknown (Utils.default_string_msg ())
 
-let rec default_instance_res () : instance_res = Unknown (Utils.default_string_msg ())
+and default_verify_res 
+  ?res:((res:verify_res_res) = Unknown (Utils.default_string_msg ()))
+  ?errors:((errors:Error.error list) = [])
+  () : verify_res  = {
+  res;
+  errors;
+}
+
+let rec default_instance_res_res () : instance_res_res = Unknown (Utils.default_string_msg ())
+
+and default_instance_res 
+  ?res:((res:instance_res_res) = Unknown (Utils.default_string_msg ()))
+  ?errors:((errors:Error.error list) = [])
+  () : instance_res  = {
+  res;
+  errors;
+}
 
 type decompose_req_mutable = {
   mutable session : Session.session option;
@@ -453,6 +479,26 @@ let default_sat_mutable () : sat_mutable = {
   model = None;
 }
 
+type verify_res_mutable = {
+  mutable res : verify_res_res;
+  mutable errors : Error.error list;
+}
+
+let default_verify_res_mutable () : verify_res_mutable = {
+  res = Unknown (Utils.default_string_msg ());
+  errors = [];
+}
+
+type instance_res_mutable = {
+  mutable res : instance_res_res;
+  mutable errors : Error.error list;
+}
+
+let default_instance_res_mutable () : instance_res_mutable = {
+  res = Unknown (Utils.default_string_msg ());
+  errors = [];
+}
+
 
 (** {2 Make functions} *)
 
@@ -605,6 +651,22 @@ let rec make_sat
 }
 
 
+let rec make_verify_res 
+  ~(res:verify_res_res)
+  ~(errors:Error.error list)
+  () : verify_res  = {
+  res;
+  errors;
+}
+
+
+let rec make_instance_res 
+  ~(res:instance_res_res)
+  ~(errors:Error.error list)
+  () : instance_res  = {
+  res;
+  errors;
+}
 
 [@@@ocaml.warning "-27-30-39"]
 
@@ -755,19 +817,33 @@ let rec pp_sat fmt (v:sat) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_verify_res fmt (v:verify_res) =
+let rec pp_verify_res_res fmt (v:verify_res_res) =
   match v with
   | Unknown x -> Format.fprintf fmt "@[<hv2>Unknown(@,%a)@]" Utils.pp_string_msg x
-  | Err x -> Format.fprintf fmt "@[<hv2>Err(@,%a)@]" Error.pp_error x
+  | Err  -> Format.fprintf fmt "Err"
   | Proved x -> Format.fprintf fmt "@[<hv2>Proved(@,%a)@]" pp_proved x
   | Refuted x -> Format.fprintf fmt "@[<hv2>Refuted(@,%a)@]" pp_refuted x
 
-let rec pp_instance_res fmt (v:instance_res) =
+and pp_verify_res fmt (v:verify_res) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "res" pp_verify_res_res fmt v.res;
+    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_instance_res_res fmt (v:instance_res_res) =
   match v with
   | Unknown x -> Format.fprintf fmt "@[<hv2>Unknown(@,%a)@]" Utils.pp_string_msg x
-  | Err x -> Format.fprintf fmt "@[<hv2>Err(@,%a)@]" Error.pp_error x
+  | Err  -> Format.fprintf fmt "Err"
   | Unsat x -> Format.fprintf fmt "@[<hv2>Unsat(@,%a)@]" pp_unsat x
   | Sat x -> Format.fprintf fmt "@[<hv2>Sat(@,%a)@]" pp_sat x
+
+and pp_instance_res fmt (v:instance_res) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "res" pp_instance_res_res fmt v.res;
+    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
 
 [@@@ocaml.warning "-27-30-39"]
 
@@ -1026,14 +1102,14 @@ let rec encode_pb_sat (v:sat) encoder =
   end;
   ()
 
-let rec encode_pb_verify_res (v:verify_res) encoder = 
+let rec encode_pb_verify_res_res (v:verify_res_res) encoder = 
   begin match v with
   | Unknown x ->
     Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  | Err x ->
-    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+  | Err ->
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.empty_nested encoder
   | Proved x ->
     Pbrt.Encoder.nested encode_pb_proved x encoder;
     Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
@@ -1042,14 +1118,35 @@ let rec encode_pb_verify_res (v:verify_res) encoder =
     Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
   end
 
-let rec encode_pb_instance_res (v:instance_res) encoder = 
+and encode_pb_verify_res (v:verify_res) encoder = 
+  begin match v.res with
+  | Unknown x ->
+    Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | Err ->
+    Pbrt.Encoder.empty_nested encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  | Proved x ->
+    Pbrt.Encoder.nested encode_pb_proved x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | Refuted x ->
+    Pbrt.Encoder.nested encode_pb_refuted x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  end;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+    Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
+  ) v.errors encoder;
+  ()
+
+let rec encode_pb_instance_res_res (v:instance_res_res) encoder = 
   begin match v with
   | Unknown x ->
     Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  | Err x ->
-    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+  | Err ->
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.empty_nested encoder
   | Unsat x ->
     Pbrt.Encoder.nested encode_pb_unsat x encoder;
     Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
@@ -1057,6 +1154,27 @@ let rec encode_pb_instance_res (v:instance_res) encoder =
     Pbrt.Encoder.nested encode_pb_sat x encoder;
     Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
   end
+
+and encode_pb_instance_res (v:instance_res) encoder = 
+  begin match v.res with
+  | Unknown x ->
+    Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | Err ->
+    Pbrt.Encoder.empty_nested encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  | Unsat x ->
+    Pbrt.Encoder.nested encode_pb_unsat x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | Sat x ->
+    Pbrt.Encoder.nested encode_pb_sat x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  end;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+    Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
+  ) v.errors encoder;
+  ()
 
 [@@@ocaml.warning "-27-30-39"]
 
@@ -1549,14 +1667,17 @@ let rec decode_pb_sat d =
     model = v.model;
   } : sat)
 
-let rec decode_pb_verify_res d = 
+let rec decode_pb_verify_res_res d = 
   let rec loop () = 
-    let ret:verify_res = match Pbrt.Decoder.key d with
-      | None -> Pbrt.Decoder.malformed_variant "verify_res"
-      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : verify_res) 
-      | Some (2, _) -> (Err (Error.decode_pb_error (Pbrt.Decoder.nested d)) : verify_res) 
-      | Some (3, _) -> (Proved (decode_pb_proved (Pbrt.Decoder.nested d)) : verify_res) 
-      | Some (4, _) -> (Refuted (decode_pb_refuted (Pbrt.Decoder.nested d)) : verify_res) 
+    let ret:verify_res_res = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "verify_res_res"
+      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : verify_res_res) 
+      | Some (2, _) -> begin 
+        Pbrt.Decoder.empty_nested d ;
+        (Err : verify_res_res)
+      end
+      | Some (3, _) -> (Proved (decode_pb_proved (Pbrt.Decoder.nested d)) : verify_res_res) 
+      | Some (4, _) -> (Refuted (decode_pb_refuted (Pbrt.Decoder.nested d)) : verify_res_res) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -1566,14 +1687,58 @@ let rec decode_pb_verify_res d =
   in
   loop ()
 
-let rec decode_pb_instance_res d = 
+and decode_pb_verify_res d =
+  let v = default_verify_res_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      v.errors <- List.rev v.errors;
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.res <- Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      Pbrt.Decoder.empty_nested d;
+      v.res <- Err;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.res <- Proved (decode_pb_proved (Pbrt.Decoder.nested d));
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(3)" pk
+    | Some (4, Pbrt.Bytes) -> begin
+      v.res <- Refuted (decode_pb_refuted (Pbrt.Decoder.nested d));
+    end
+    | Some (4, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(4)" pk
+    | Some (10, Pbrt.Bytes) -> begin
+      v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
+    end
+    | Some (10, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(10)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    res = v.res;
+    errors = v.errors;
+  } : verify_res)
+
+let rec decode_pb_instance_res_res d = 
   let rec loop () = 
-    let ret:instance_res = match Pbrt.Decoder.key d with
-      | None -> Pbrt.Decoder.malformed_variant "instance_res"
-      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : instance_res) 
-      | Some (2, _) -> (Err (Error.decode_pb_error (Pbrt.Decoder.nested d)) : instance_res) 
-      | Some (3, _) -> (Unsat (decode_pb_unsat (Pbrt.Decoder.nested d)) : instance_res) 
-      | Some (4, _) -> (Sat (decode_pb_sat (Pbrt.Decoder.nested d)) : instance_res) 
+    let ret:instance_res_res = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "instance_res_res"
+      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : instance_res_res) 
+      | Some (2, _) -> begin 
+        Pbrt.Decoder.empty_nested d ;
+        (Err : instance_res_res)
+      end
+      | Some (3, _) -> (Unsat (decode_pb_unsat (Pbrt.Decoder.nested d)) : instance_res_res) 
+      | Some (4, _) -> (Sat (decode_pb_sat (Pbrt.Decoder.nested d)) : instance_res_res) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -1582,6 +1747,47 @@ let rec decode_pb_instance_res d =
     ret
   in
   loop ()
+
+and decode_pb_instance_res d =
+  let v = default_instance_res_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      v.errors <- List.rev v.errors;
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.res <- Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      Pbrt.Decoder.empty_nested d;
+      v.res <- Err;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.res <- Unsat (decode_pb_unsat (Pbrt.Decoder.nested d));
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(3)" pk
+    | Some (4, Pbrt.Bytes) -> begin
+      v.res <- Sat (decode_pb_sat (Pbrt.Decoder.nested d));
+    end
+    | Some (4, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(4)" pk
+    | Some (10, Pbrt.Bytes) -> begin
+      v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
+    end
+    | Some (10, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(10)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    res = v.res;
+    errors = v.errors;
+  } : instance_res)
 
 [@@@ocaml.warning "-27-30-39"]
 
@@ -1792,21 +1998,57 @@ let rec encode_json_sat (v:sat) =
   in
   `Assoc assoc
 
-let rec encode_json_verify_res (v:verify_res) = 
+let rec encode_json_verify_res_res (v:verify_res_res) = 
   begin match v with
   | Unknown v -> `Assoc [("unknown", Utils.encode_json_string_msg v)]
-  | Err v -> `Assoc [("err", Error.encode_json_error v)]
+  | Err -> `Assoc [("err", `Null)]
   | Proved v -> `Assoc [("proved", encode_json_proved v)]
   | Refuted v -> `Assoc [("refuted", encode_json_refuted v)]
   end
 
-let rec encode_json_instance_res (v:instance_res) = 
+and encode_json_verify_res (v:verify_res) = 
+  let assoc = [] in 
+  let assoc = match v.res with
+    | Unknown v ->
+      ("unknown", Utils.encode_json_string_msg v) :: assoc 
+    | Err v ->
+      ("err", `Null) :: assoc
+    | Proved v ->
+      ("proved", encode_json_proved v) :: assoc 
+    | Refuted v ->
+      ("refuted", encode_json_refuted v) :: assoc 
+  in (* match v.res *)
+  let assoc =
+    let l = v.errors |> List.map Error.encode_json_error in
+    ("errors", `List l) :: assoc 
+  in
+  `Assoc assoc
+
+let rec encode_json_instance_res_res (v:instance_res_res) = 
   begin match v with
   | Unknown v -> `Assoc [("unknown", Utils.encode_json_string_msg v)]
-  | Err v -> `Assoc [("err", Error.encode_json_error v)]
+  | Err -> `Assoc [("err", `Null)]
   | Unsat v -> `Assoc [("unsat", encode_json_unsat v)]
   | Sat v -> `Assoc [("sat", encode_json_sat v)]
   end
+
+and encode_json_instance_res (v:instance_res) = 
+  let assoc = [] in 
+  let assoc = match v.res with
+    | Unknown v ->
+      ("unknown", Utils.encode_json_string_msg v) :: assoc 
+    | Err v ->
+      ("err", `Null) :: assoc
+    | Unsat v ->
+      ("unsat", encode_json_unsat v) :: assoc 
+    | Sat v ->
+      ("sat", encode_json_sat v) :: assoc 
+  in (* match v.res *)
+  let assoc =
+    let l = v.errors |> List.map Error.encode_json_error in
+    ("errors", `List l) :: assoc 
+  in
+  `Assoc assoc
 
 [@@@ocaml.warning "-27-30-39"]
 
@@ -2208,45 +2450,97 @@ let rec decode_json_sat d =
     model = v.model;
   } : sat)
 
-let rec decode_json_verify_res json =
+let rec decode_json_verify_res_res json =
   let assoc = match json with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
   in
   let rec loop = function
-    | [] -> Pbrt_yojson.E.malformed_variant "verify_res"
+    | [] -> Pbrt_yojson.E.malformed_variant "verify_res_res"
     | ("unknown", json_value)::_ -> 
-      (Unknown ((Utils.decode_json_string_msg json_value)) : verify_res)
-    | ("err", json_value)::_ -> 
-      (Err ((Error.decode_json_error json_value)) : verify_res)
+      (Unknown ((Utils.decode_json_string_msg json_value)) : verify_res_res)
+    | ("err", _)::_-> (Err : verify_res_res)
     | ("proved", json_value)::_ -> 
-      (Proved ((decode_json_proved json_value)) : verify_res)
+      (Proved ((decode_json_proved json_value)) : verify_res_res)
     | ("refuted", json_value)::_ -> 
-      (Refuted ((decode_json_refuted json_value)) : verify_res)
+      (Refuted ((decode_json_refuted json_value)) : verify_res_res)
     
     | _ :: tl -> loop tl
   in
   loop assoc
 
-let rec decode_json_instance_res json =
+and decode_json_verify_res d =
+  let v = default_verify_res_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("unknown", json_value) -> 
+      v.res <- Unknown ((Utils.decode_json_string_msg json_value))
+    | ("err", _) -> v.res <- Err
+    | ("proved", json_value) -> 
+      v.res <- Proved ((decode_json_proved json_value))
+    | ("refuted", json_value) -> 
+      v.res <- Refuted ((decode_json_refuted json_value))
+    | ("errors", `List l) -> begin
+      v.errors <- List.map (function
+        | json_value -> (Error.decode_json_error json_value)
+      ) l;
+    end
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    res = v.res;
+    errors = v.errors;
+  } : verify_res)
+
+let rec decode_json_instance_res_res json =
   let assoc = match json with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
   in
   let rec loop = function
-    | [] -> Pbrt_yojson.E.malformed_variant "instance_res"
+    | [] -> Pbrt_yojson.E.malformed_variant "instance_res_res"
     | ("unknown", json_value)::_ -> 
-      (Unknown ((Utils.decode_json_string_msg json_value)) : instance_res)
-    | ("err", json_value)::_ -> 
-      (Err ((Error.decode_json_error json_value)) : instance_res)
+      (Unknown ((Utils.decode_json_string_msg json_value)) : instance_res_res)
+    | ("err", _)::_-> (Err : instance_res_res)
     | ("unsat", json_value)::_ -> 
-      (Unsat ((decode_json_unsat json_value)) : instance_res)
+      (Unsat ((decode_json_unsat json_value)) : instance_res_res)
     | ("sat", json_value)::_ -> 
-      (Sat ((decode_json_sat json_value)) : instance_res)
+      (Sat ((decode_json_sat json_value)) : instance_res_res)
     
     | _ :: tl -> loop tl
   in
   loop assoc
+
+and decode_json_instance_res d =
+  let v = default_instance_res_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("unknown", json_value) -> 
+      v.res <- Unknown ((Utils.decode_json_string_msg json_value))
+    | ("err", _) -> v.res <- Err
+    | ("unsat", json_value) -> 
+      v.res <- Unsat ((decode_json_unsat json_value))
+    | ("sat", json_value) -> 
+      v.res <- Sat ((decode_json_sat json_value))
+    | ("errors", `List l) -> begin
+      v.errors <- List.map (function
+        | json_value -> (Error.decode_json_error json_value)
+      ) l;
+    end
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    res = v.res;
+    errors = v.errors;
+  } : instance_res)
 
 module Simple = struct
   open Pbrt_services.Value_mode
