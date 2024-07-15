@@ -39,3 +39,14 @@ class Client(object):
                 src=src, session=self._sesh, hints=hints
             ),
         )
+
+    def instance_src(
+        self, src: str, hints: Optional[simple_api_pb2.Hints] = None
+    ) -> simple_api_pb2.InstanceRes:
+        return self._client.instance_src(
+            ctx=Context(),
+            server_path_prefix=self._server_path_prefix,
+            request=simple_api_pb2.InstanceSrcReq(
+                src=src, session=self._sesh, hints=hints
+            ),
+        )
