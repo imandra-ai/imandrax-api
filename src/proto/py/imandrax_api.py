@@ -1,3 +1,4 @@
+from typing import Optional
 from twirp.context import Context
 from bindings import utils_pb2, simple_api_twirp, simple_api_pb2
 
@@ -19,4 +20,22 @@ class Client(object):
             ctx=Context(),
             server_path_prefix=self._server_path_prefix,
             request=utils_pb2.Empty(),
+        )
+
+    def eval_src(self, src: str) -> simple_api_pb2.EvalRes:
+        return self._client.eval_src(
+            ctx=Context(),
+            server_path_prefix=self._server_path_prefix,
+            request=simple_api_pb2.EvalSrcReq(src=src, session=self._sesh),
+        )
+
+    def verify_src(
+        self, src: str, hints: Optional[simple_api_pb2.Hints] = None
+    ) -> simple_api_pb2.VerifyRes:
+        return self._client.verify_src(
+            ctx=Context(),
+            server_path_prefix=self._server_path_prefix,
+            request=simple_api_pb2.VerifySrcReq(
+                src=src, session=self._sesh, hints=hints
+            ),
         )
