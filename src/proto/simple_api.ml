@@ -2009,14 +2009,10 @@ let rec encode_json_verify_res_res (v:verify_res_res) =
 and encode_json_verify_res (v:verify_res) = 
   let assoc = [] in 
   let assoc = match v.res with
-    | Unknown v ->
-      ("unknown", Utils.encode_json_string_msg v) :: assoc 
-    | Err v ->
-      ("err", `Null) :: assoc
-    | Proved v ->
-      ("proved", encode_json_proved v) :: assoc 
-    | Refuted v ->
-      ("refuted", encode_json_refuted v) :: assoc 
+      | Unknown v -> ("unknown", Utils.encode_json_string_msg v) :: assoc
+      | Err -> ("err", `Null) :: assoc
+      | Proved v -> ("proved", encode_json_proved v) :: assoc
+      | Refuted v -> ("refuted", encode_json_refuted v) :: assoc
   in (* match v.res *)
   let assoc =
     let l = v.errors |> List.map Error.encode_json_error in
@@ -2035,14 +2031,10 @@ let rec encode_json_instance_res_res (v:instance_res_res) =
 and encode_json_instance_res (v:instance_res) = 
   let assoc = [] in 
   let assoc = match v.res with
-    | Unknown v ->
-      ("unknown", Utils.encode_json_string_msg v) :: assoc 
-    | Err v ->
-      ("err", `Null) :: assoc
-    | Unsat v ->
-      ("unsat", encode_json_unsat v) :: assoc 
-    | Sat v ->
-      ("sat", encode_json_sat v) :: assoc 
+      | Unknown v -> ("unknown", Utils.encode_json_string_msg v) :: assoc
+      | Err -> ("err", `Null) :: assoc
+      | Unsat v -> ("unsat", encode_json_unsat v) :: assoc
+      | Sat v -> ("sat", encode_json_sat v) :: assoc
   in (* match v.res *)
   let assoc =
     let l = v.errors |> List.map Error.encode_json_error in

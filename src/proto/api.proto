@@ -34,7 +34,7 @@ message Task {
 // or a notebook, they are just free-floating code snippets.
 
 message CodeSnippet {
-  Session session = 1;
+  imandrax.session.Session session = 1;
 
   /// Code snippet.
   string code = 2;
