@@ -1,12 +1,17 @@
-import error_pb2
-import locs_pb2
-import utils_pb2
-import system_pb2
-import system_twirp
-import session_pb2
-import session_twirp
-import simple_api_pb2
-import simple_api_twirp
+import sys, os
+
+oldpath=list(sys.path)
+sys.path.append(os.path.dirname(__file__))
+
+from . import locs_pb2
+from . import error_pb2
+from . import utils_pb2
+from . import system_pb2
+from . import system_twirp
+from . import session_pb2
+from . import session_twirp
+from . import simple_api_pb2
+from . import simple_api_twirp
 
 __all__ = [
     "error_pb2",
@@ -19,3 +24,5 @@ __all__ = [
     "simple_api_pb2",
     "simple_api_twirp",
 ]
+
+sys.path = oldpath
