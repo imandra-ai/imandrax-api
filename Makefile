@@ -24,6 +24,7 @@ genproto:
 	$(DUNE) build @genproto
 
 genpython:
+	make genpython -C src/py/lib/
 	make genpython -C src/py/bindings/
 
 build-dev:

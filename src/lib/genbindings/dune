@@ -1,0 +1,17 @@
+; generate bindings to the API types from other languages
+
+(executable
+ (name genbindings)
+ (libraries imandrakit imandrakit.typereg))
+
+(rule
+ (targets types_.ml)
+ (deps
+  (:file ../typereg.json))
+ (action
+  (with-stdout-to
+   %{targets}
+   (progn
+    (echo "let json = {yolojson|")
+    (cat %{file})
+    (echo "|yolojson}")))))
