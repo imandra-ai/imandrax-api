@@ -2,6 +2,7 @@
 
 (executable
  (name genbindings)
+ (flags :standard -open Imandrakit)
  (libraries imandrakit imandrakit.typereg))
 
 (rule

@@ -1,8 +1,7 @@
-open Imandrakit
+open Common_
 module J = Yojson.Safe
-module TR = Imandrakit_typereg
 
-let spf = Printf.sprintf
+let dump = ref false
 let debug = ref false
 
 let qualified_name (def : TR.Ty_def.t) : string =
@@ -57,21 +56,32 @@ let parse_typereg () : TR.Ty_def.clique list =
     l;
   List.rev !cliques
 
-let main ~out () : unit =
+let main ~out ~lang () : unit =
   let types = parse_typereg () in
-  List.iter
-    (fun d -> Format.printf "@[<2>got clique@ %a@]@." TR.Ty_def.pp_clique d)
-    types;
 
-  ignore out;
-  ()
+  if !dump then
+    List.iter
+      (fun d -> Format.printf "@[<2>got clique@ %a@]@." TR.Ty_def.pp_clique d)
+      types;
+
+  match lang with
+  | "python" -> Gen_python.gen ~out types
+  | _ -> failwith @@ spf "unsupported target language: %S" lang
 
 let () =
   let out = ref "" in
+  let lang = ref "" in
   let opts =
-    [ "-d", Arg.Set debug, " debug"; "-o", Arg.Set_string out, " output file" ]
+    [
+      "-d", Arg.Set debug, " debug";
+      "-o", Arg.Set_string out, " output file";
+      "--dump", Arg.Set dump, " dump type defs";
+      "--lang", Arg.Set_string lang, " set target language";
+    ]
     |> Arg.align
   in
   Arg.parse opts ignore "generate bindings in other languages";
 
-  main ~out:!out ()
+  if !lang = "" then failwith "target language not specified";
+
+  main ~out:!out ~lang:!lang ()
