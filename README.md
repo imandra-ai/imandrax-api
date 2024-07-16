@@ -21,6 +21,12 @@ This requires `gcloud` to be in the path, and to be
 authenticated (`gcloud auth login`) so as to be able to download
 the installer.
 
+To install the development version, export `VERSION=latest-main`:
+
+```sh
+$ VERSION=latest-main ./scripts/install-internal.sh
+```
+
 Once the CLI is installed (and, in the case of linux, in path),
 you can login using:
 

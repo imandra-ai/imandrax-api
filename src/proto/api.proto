@@ -3,6 +3,9 @@ syntax = "proto3";
 
 import "utils.proto";
 import "error.proto";
+import "session.proto";
+
+package imandrax.api;
 
 // artifacts as messages
 import "../lib/artifact/artmsg.proto";
@@ -24,35 +27,6 @@ message Task {
   TaskKind kind = 2;
 }
 
-// ## Session management
-
-// A session identifier.
-message Session {
-  // The session's unique ID (e.g a uuid). 
-  string id = 1;
-}
-
-message SessionCreate {
-  /// Do we check Proof Obligations? Default true.
-  optional bool po_check = 1;
-}
-
-/// Reconnect to the given session
-message SessionOpen {
-  Session id = 1;
-}
-
-service SessionManager {
-  // Create a new session.
-  rpc create_session(SessionCreate) returns (Session);
-
-  // Open an existing session, ie fail if it's not existing
-  rpc open_session (SessionOpen) returns (Empty);
-
-  /// Make sure the session remains active
-  rpc keep_session_alive(Session) returns (Empty);
-}
-
 // ## Evaluation of snippets
 //
 // Here we evalute snippets of imandra code that do not live
@@ -60,7 +34,7 @@ service SessionManager {
 // or a notebook, they are just free-floating code snippets.
 
 message CodeSnippet {
-  Session session = 1;
+  imandrax.session.Session session = 1;
 
   /// Code snippet.
   string code = 2;
@@ -130,32 +104,3 @@ service Eval {
   // Obtain an artifact from a task
   rpc get_artifact(ArtifactGetQuery) returns (Artifact);
 }
-
-// ## GC statistics.
-//
-// This part of the API is mostly redundant given we have telemetry,
-// but it's still good to have in a pinch.
-
-message Gc_stats {
-  int64 heap_size_B = 1;
-  int64 major_collections = 2;
-  int64 minor_collections = 3;
-}
-
-message VersionResponse {
-  string version = 1;
-  optional string git_version = 2;
-}
-
-/// Service returning data about the ImandraX system itself.
-service System {
-  /// Return the system's version
-  rpc version(Empty) returns (VersionResponse);
-
-  /// Capture GC statistics
-  rpc gc_stats(Empty) returns (Gc_stats);
-
-  /// Try to free memory, return stats
-  rpc release_memory(Empty) returns (Gc_stats);
-}
-

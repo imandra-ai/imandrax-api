@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package imandrax.system;
+
+// ## GC statistics.
+//
+// This part of the API is mostly redundant given we have telemetry,
+// but it's still good to have in a pinch.
+
+import "utils.proto";
+
+message Gc_stats {
+  int64 heap_size_B = 1;
+  int64 major_collections = 2;
+  int64 minor_collections = 3;
+}
+
+message VersionResponse {
+  string version = 1;
+  optional string git_version = 2;
+}
+
+/// Service returning data about the ImandraX system itself.
+service System {
+  /// Return the system's version
+  rpc version(Empty) returns (VersionResponse);
+
+  /// Capture GC statistics
+  rpc gc_stats(Empty) returns (Gc_stats);
+
+  /// Try to free memory, return stats
+  rpc release_memory(Empty) returns (Gc_stats);
+}
+

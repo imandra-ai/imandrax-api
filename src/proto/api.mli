@@ -22,20 +22,8 @@ type task = {
   kind : task_kind;
 }
 
-type session = {
-  id : string;
-}
-
-type session_create = {
-  po_check : bool option;
-}
-
-type session_open = {
-  id : session option;
-}
-
 type code_snippet = {
-  session : session option;
+  session : Session.session option;
   code : string;
 }
 
@@ -71,17 +59,6 @@ type artifact = {
   art : Artmsg.art option;
 }
 
-type gc_stats = {
-  heap_size_b : int64;
-  major_collections : int64;
-  minor_collections : int64;
-}
-
-type version_response = {
-  version : string;
-  git_version : string option;
-}
-
 
 (** {2 Basic values} *)
 
@@ -101,26 +78,8 @@ val default_task :
   task
 (** [default_task ()] is the default value for type [task] *)
 
-val default_session : 
-  ?id:string ->
-  unit ->
-  session
-(** [default_session ()] is the default value for type [session] *)
-
-val default_session_create : 
-  ?po_check:bool option ->
-  unit ->
-  session_create
-(** [default_session_create ()] is the default value for type [session_create] *)
-
-val default_session_open : 
-  ?id:session option ->
-  unit ->
-  session_open
-(** [default_session_open ()] is the default value for type [session_open] *)
-
 val default_code_snippet : 
-  ?session:session option ->
+  ?session:Session.session option ->
   ?code:string ->
   unit ->
   code_snippet
@@ -169,21 +128,6 @@ val default_artifact :
   artifact
 (** [default_artifact ()] is the default value for type [artifact] *)
 
-val default_gc_stats : 
-  ?heap_size_b:int64 ->
-  ?major_collections:int64 ->
-  ?minor_collections:int64 ->
-  unit ->
-  gc_stats
-(** [default_gc_stats ()] is the default value for type [gc_stats] *)
-
-val default_version_response : 
-  ?version:string ->
-  ?git_version:string option ->
-  unit ->
-  version_response
-(** [default_version_response ()] is the default value for type [version_response] *)
-
 
 (** {2 Make functions} *)
 
@@ -201,26 +145,8 @@ val make_task :
   task
 (** [make_task … ()] is a builder for type [task] *)
 
-val make_session : 
-  id:string ->
-  unit ->
-  session
-(** [make_session … ()] is a builder for type [session] *)
-
-val make_session_create : 
-  ?po_check:bool option ->
-  unit ->
-  session_create
-(** [make_session_create … ()] is a builder for type [session_create] *)
-
-val make_session_open : 
-  ?id:session option ->
-  unit ->
-  session_open
-(** [make_session_open … ()] is a builder for type [session_open] *)
-
 val make_code_snippet : 
-  ?session:session option ->
+  ?session:Session.session option ->
   code:string ->
   unit ->
   code_snippet
@@ -267,21 +193,6 @@ val make_artifact :
   artifact
 (** [make_artifact … ()] is a builder for type [artifact] *)
 
-val make_gc_stats : 
-  heap_size_b:int64 ->
-  major_collections:int64 ->
-  minor_collections:int64 ->
-  unit ->
-  gc_stats
-(** [make_gc_stats … ()] is a builder for type [gc_stats] *)
-
-val make_version_response : 
-  version:string ->
-  ?git_version:string option ->
-  unit ->
-  version_response
-(** [make_version_response … ()] is a builder for type [version_response] *)
-
 
 (** {2 Formatters} *)
 
@@ -293,15 +204,6 @@ val pp_task_id : Format.formatter -> task_id -> unit
 
 val pp_task : Format.formatter -> task -> unit 
 (** [pp_task v] formats v *)
-
-val pp_session : Format.formatter -> session -> unit 
-(** [pp_session v] formats v *)
-
-val pp_session_create : Format.formatter -> session_create -> unit 
-(** [pp_session_create v] formats v *)
-
-val pp_session_open : Format.formatter -> session_open -> unit 
-(** [pp_session_open v] formats v *)
 
 val pp_code_snippet : Format.formatter -> code_snippet -> unit 
 (** [pp_code_snippet v] formats v *)
@@ -327,12 +229,6 @@ val pp_artifact_get_query : Format.formatter -> artifact_get_query -> unit
 val pp_artifact : Format.formatter -> artifact -> unit 
 (** [pp_artifact v] formats v *)
 
-val pp_gc_stats : Format.formatter -> gc_stats -> unit 
-(** [pp_gc_stats v] formats v *)
-
-val pp_version_response : Format.formatter -> version_response -> unit 
-(** [pp_version_response v] formats v *)
-
 
 (** {2 Protobuf Encoding} *)
 
@@ -344,15 +240,6 @@ val encode_pb_task_id : task_id -> Pbrt.Encoder.t -> unit
 
 val encode_pb_task : task -> Pbrt.Encoder.t -> unit
 (** [encode_pb_task v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_session : session -> Pbrt.Encoder.t -> unit
-(** [encode_pb_session v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_session_create : session_create -> Pbrt.Encoder.t -> unit
-(** [encode_pb_session_create v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_session_open : session_open -> Pbrt.Encoder.t -> unit
-(** [encode_pb_session_open v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_code_snippet : code_snippet -> Pbrt.Encoder.t -> unit
 (** [encode_pb_code_snippet v encoder] encodes [v] with the given [encoder] *)
@@ -378,12 +265,6 @@ val encode_pb_artifact_get_query : artifact_get_query -> Pbrt.Encoder.t -> unit
 val encode_pb_artifact : artifact -> Pbrt.Encoder.t -> unit
 (** [encode_pb_artifact v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_gc_stats : gc_stats -> Pbrt.Encoder.t -> unit
-(** [encode_pb_gc_stats v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_version_response : version_response -> Pbrt.Encoder.t -> unit
-(** [encode_pb_version_response v encoder] encodes [v] with the given [encoder] *)
-
 
 (** {2 Protobuf Decoding} *)
 
@@ -395,15 +276,6 @@ val decode_pb_task_id : Pbrt.Decoder.t -> task_id
 
 val decode_pb_task : Pbrt.Decoder.t -> task
 (** [decode_pb_task decoder] decodes a [task] binary value from [decoder] *)
-
-val decode_pb_session : Pbrt.Decoder.t -> session
-(** [decode_pb_session decoder] decodes a [session] binary value from [decoder] *)
-
-val decode_pb_session_create : Pbrt.Decoder.t -> session_create
-(** [decode_pb_session_create decoder] decodes a [session_create] binary value from [decoder] *)
-
-val decode_pb_session_open : Pbrt.Decoder.t -> session_open
-(** [decode_pb_session_open decoder] decodes a [session_open] binary value from [decoder] *)
 
 val decode_pb_code_snippet : Pbrt.Decoder.t -> code_snippet
 (** [decode_pb_code_snippet decoder] decodes a [code_snippet] binary value from [decoder] *)
@@ -429,12 +301,6 @@ val decode_pb_artifact_get_query : Pbrt.Decoder.t -> artifact_get_query
 val decode_pb_artifact : Pbrt.Decoder.t -> artifact
 (** [decode_pb_artifact decoder] decodes a [artifact] binary value from [decoder] *)
 
-val decode_pb_gc_stats : Pbrt.Decoder.t -> gc_stats
-(** [decode_pb_gc_stats decoder] decodes a [gc_stats] binary value from [decoder] *)
-
-val decode_pb_version_response : Pbrt.Decoder.t -> version_response
-(** [decode_pb_version_response decoder] decodes a [version_response] binary value from [decoder] *)
-
 
 (** {2 Protobuf YoJson Encoding} *)
 
@@ -446,15 +312,6 @@ val encode_json_task_id : task_id -> Yojson.Basic.t
 
 val encode_json_task : task -> Yojson.Basic.t
 (** [encode_json_task v encoder] encodes [v] to to json *)
-
-val encode_json_session : session -> Yojson.Basic.t
-(** [encode_json_session v encoder] encodes [v] to to json *)
-
-val encode_json_session_create : session_create -> Yojson.Basic.t
-(** [encode_json_session_create v encoder] encodes [v] to to json *)
-
-val encode_json_session_open : session_open -> Yojson.Basic.t
-(** [encode_json_session_open v encoder] encodes [v] to to json *)
 
 val encode_json_code_snippet : code_snippet -> Yojson.Basic.t
 (** [encode_json_code_snippet v encoder] encodes [v] to to json *)
@@ -480,12 +337,6 @@ val encode_json_artifact_get_query : artifact_get_query -> Yojson.Basic.t
 val encode_json_artifact : artifact -> Yojson.Basic.t
 (** [encode_json_artifact v encoder] encodes [v] to to json *)
 
-val encode_json_gc_stats : gc_stats -> Yojson.Basic.t
-(** [encode_json_gc_stats v encoder] encodes [v] to to json *)
-
-val encode_json_version_response : version_response -> Yojson.Basic.t
-(** [encode_json_version_response v encoder] encodes [v] to to json *)
-
 
 (** {2 JSON Decoding} *)
 
@@ -497,15 +348,6 @@ val decode_json_task_id : Yojson.Basic.t -> task_id
 
 val decode_json_task : Yojson.Basic.t -> task
 (** [decode_json_task decoder] decodes a [task] value from [decoder] *)
-
-val decode_json_session : Yojson.Basic.t -> session
-(** [decode_json_session decoder] decodes a [session] value from [decoder] *)
-
-val decode_json_session_create : Yojson.Basic.t -> session_create
-(** [decode_json_session_create decoder] decodes a [session_create] value from [decoder] *)
-
-val decode_json_session_open : Yojson.Basic.t -> session_open
-(** [decode_json_session_open decoder] decodes a [session_open] value from [decoder] *)
 
 val decode_json_code_snippet : Yojson.Basic.t -> code_snippet
 (** [decode_json_code_snippet decoder] decodes a [code_snippet] value from [decoder] *)
@@ -531,38 +373,8 @@ val decode_json_artifact_get_query : Yojson.Basic.t -> artifact_get_query
 val decode_json_artifact : Yojson.Basic.t -> artifact
 (** [decode_json_artifact decoder] decodes a [artifact] value from [decoder] *)
 
-val decode_json_gc_stats : Yojson.Basic.t -> gc_stats
-(** [decode_json_gc_stats decoder] decodes a [gc_stats] value from [decoder] *)
-
-val decode_json_version_response : Yojson.Basic.t -> version_response
-(** [decode_json_version_response decoder] decodes a [version_response] value from [decoder] *)
-
 
 (** {2 Services} *)
-
-(** SessionManager service *)
-module SessionManager : sig
-  open Pbrt_services
-  open Pbrt_services.Value_mode
-  
-  module Client : sig
-    
-    val create_session : (session_create, unary, session, unary) Client.rpc
-    
-    val open_session : (session_open, unary, unit, unary) Client.rpc
-    
-    val keep_session_alive : (session, unary, unit, unary) Client.rpc
-  end
-  
-  module Server : sig
-    (** Produce a server implementation from handlers *)
-    val make : 
-      create_session:((session_create, unary, session, unary) Server.rpc -> 'handler) ->
-      open_session:((session_open, unary, unit, unary) Server.rpc -> 'handler) ->
-      keep_session_alive:((session, unary, unit, unary) Server.rpc -> 'handler) ->
-      unit -> 'handler Pbrt_services.Server.t
-  end
-end
 
 (** Eval service *)
 module Eval : sig
@@ -591,29 +403,17 @@ module Eval : sig
       list_artifacts:((artifact_list_query, unary, artifact_list_result, unary) Server.rpc -> 'handler) ->
       get_artifact:((artifact_get_query, unary, artifact, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
-  end
-end
-
-(** System service *)
-module System : sig
-  open Pbrt_services
-  open Pbrt_services.Value_mode
-  
-  module Client : sig
     
-    val version : (unit, unary, version_response, unary) Client.rpc
+    (** The individual server stubs are only exposed for advanced users. Casual users should prefer accessing them through {!make}. *)
     
-    val gc_stats : (unit, unary, gc_stats, unary) Client.rpc
+    val eval_code_snippet : (code_snippet,unary,code_snippet_eval_result,unary) Server.rpc
     
-    val release_memory : (unit, unary, gc_stats, unary) Client.rpc
-  end
-  
-  module Server : sig
-    (** Produce a server implementation from handlers *)
-    val make : 
-      version:((unit, unary, version_response, unary) Server.rpc -> 'handler) ->
-      gc_stats:((unit, unary, gc_stats, unary) Server.rpc -> 'handler) ->
-      release_memory:((unit, unary, gc_stats, unary) Server.rpc -> 'handler) ->
-      unit -> 'handler Pbrt_services.Server.t
+    val parse_term : (code_snippet,unary,artifact,unary) Server.rpc
+    
+    val parse_type : (code_snippet,unary,artifact,unary) Server.rpc
+    
+    val list_artifacts : (artifact_list_query,unary,artifact_list_result,unary) Server.rpc
+    
+    val get_artifact : (artifact_get_query,unary,artifact,unary) Server.rpc
   end
 end

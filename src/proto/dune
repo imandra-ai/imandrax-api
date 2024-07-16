@@ -24,6 +24,24 @@
 
 (rule
  (alias genproto)
+ (targets session.ml session.mli)
+ (deps
+  (:file session.proto))
+ (mode promote)
+ (action
+  (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
+
+(rule
+ (alias genproto)
+ (targets system.ml system.mli)
+ (deps
+  (:file system.proto))
+ (mode promote)
+ (action
+  (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
+
+(rule
+ (alias genproto)
  (targets locs.ml locs.mli)
  (deps
   (:file locs.proto))
@@ -36,6 +54,15 @@
  (targets utils.ml utils.mli)
  (deps
   (:file utils.proto))
+ (mode promote)
+ (action
+  (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
+
+(rule
+ (alias genproto)
+ (targets simple_api.ml simple_api.mli)
+ (deps
+  (:file simple_api.proto))
  (mode promote)
  (action
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))

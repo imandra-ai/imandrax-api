@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package imandrax.session;
+
+import "utils.proto";
+
+// ## Session management
+
+// A session identifier.
+message Session {
+  // The session's unique ID (e.g a uuid). 
+  string id = 1;
+}
+
+message SessionCreate {
+  /// Do we check Proof Obligations? Default true.
+  optional bool po_check = 1;
+}
+
+/// Reconnect to the given session
+message SessionOpen {
+  Session id = 1;
+}
+
+service SessionManager {
+  // Create a new session.
+  rpc create_session(SessionCreate) returns (Session);
+
+  // Open an existing session, ie fail if it's not existing
+  rpc open_session (SessionOpen) returns (Empty);
+
+  /// Make sure the session remains active
+  rpc keep_session_alive(Session) returns (Empty);
+}
+

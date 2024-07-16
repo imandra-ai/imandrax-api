@@ -4,3 +4,4 @@ _opam
 *.exe
 node_modules
 *.json
+.venv

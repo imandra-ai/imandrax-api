@@ -1,0 +1,219 @@
+
+syntax = "proto3";
+
+package imandrax.simple;
+
+import "error.proto";
+import "utils.proto";
+import "session.proto";
+
+service Simple {
+  // Get server status
+  rpc status(Empty) returns (StringMsg);
+
+  // ask the server to exit
+  rpc shutdown(Empty) returns (Empty);
+
+  rpc decompose(DecomposeReq) returns (DecomposeRes);
+
+  // create a session easily
+  rpc create_session(Empty) returns (imandrax.session.Session);
+
+  rpc eval_src(EvalSrcReq) returns (EvalRes);
+
+  rpc verify_src(VerifySrcReq) returns (VerifyRes);
+
+  rpc verify_name(VerifyNameReq) returns (VerifyRes);
+
+  rpc instance_src(InstanceSrcReq) returns (InstanceRes);
+
+  rpc instance_name(InstanceNameReq) returns (InstanceRes);
+
+}
+
+message DecomposeReq {
+  imandrax.session.Session session = 1;
+
+  // name of function to decompose
+  string name = 2;
+
+  // name of side condition function
+  optional string assuming = 3;
+
+  bool prune = 4;
+
+  optional int32 max_rounds = 10;
+
+  optional int32 stop_at = 11;
+}
+
+message DecomposeRegion {
+  // pretty-printed constraints
+  repeated string constraints_pp = 1;
+
+  // pretty-printed invariant
+  string invariant_pp = 2;
+
+  // the AST as JSON
+  optional string ast_json = 3;
+
+  // TODO: AST as twine
+}
+
+// Result of a decomposition
+message DecomposeRes {
+  repeated DecomposeRegion regions = 1;
+}
+
+message EvalSrcReq {
+  imandrax.session.Session session = 1;
+
+  // source code to evaluate
+  string src = 2;
+}
+
+message EvalRes {
+  bool success = 1;
+
+  // "normal" messages
+  repeated string messages = 2;
+
+  // akin to stderr
+  repeated Error errors = 3;
+}
+
+message VerifySrcReq {
+  imandrax.session.Session session = 1;
+
+  // source code
+  string src = 2;
+
+  optional Hints hints = 10;
+
+  // we don't support that
+  reserved 11; //instance_printer 
+}
+
+message VerifyNameReq {
+  imandrax.session.Session session = 1;
+
+  // name of the predicate to verify
+  string name = 2;
+
+  optional Hints hints = 10;
+
+  // we don't support that
+  reserved 11; //instance_printer
+}
+
+message InstanceSrcReq {
+  imandrax.session.Session session = 1;
+
+  // source code
+  string src = 2;
+
+  optional Hints hints = 10;
+
+  // we don't support that
+  reserved 11; //instance_printer 
+}
+
+message InstanceNameReq {
+  imandrax.session.Session session = 1;
+
+  // name of the predicate to verify
+  string name = 2;
+
+  optional Hints hints = 10;
+
+  // we don't support that
+  reserved 11; //instance_printer
+}
+
+message Proved {
+  optional string proof_pp = 1;
+}
+
+message Unsat {
+  optional string proof_pp = 1;
+}
+
+enum ModelType {
+  Counter_example = 0;
+  Instance = 1;
+}
+
+message Model {
+  ModelType m_type = 1;
+
+  // iml source code for the model
+  string src = 2;
+}
+
+message Refuted {
+  optional Model model = 1;
+}
+
+message Sat {
+  optional Model model = 1;
+}
+
+message VerifyRes {
+  oneof res {
+    StringMsg unknown = 1;
+    Empty err = 2;
+    Proved proved = 3;
+    Refuted refuted = 4;
+  }
+
+  repeated Error errors = 10;
+}
+
+message InstanceRes {
+  oneof res {
+    StringMsg unknown = 1;
+    Empty err = 2;
+    Unsat unsat = 3;
+    Sat sat = 4;
+  }
+
+  repeated Error errors = 10;
+}
+
+message Hints {
+  message Induct {
+    message Functional {
+      string f_name = 1;
+    }
+
+    enum StructuralStyle {
+      Additive = 0;
+      Multiplicative = 1;
+    }
+
+    message Structural {
+      StructuralStyle style = 1;
+      repeated string vars = 2;
+    }
+
+    oneof induct {
+      Empty default = 1;
+      Functional functional = 2;
+      Structural structural = 3;
+    }
+  }
+
+  message Unroll {
+    optional string smt_solver = 10;
+
+    optional int32 max_steps = 11;
+  }
+
+  oneof method_ {
+    Empty auto = 1;
+    Unroll unroll = 2;
+    Induct induct = 3;
+  }
+}
+
+// compat notes: no history, not reset
