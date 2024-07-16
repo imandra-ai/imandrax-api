@@ -26,7 +26,8 @@ RUN opam exec -- dune runtest -p \
   imandrax-api,imandrax-api-proto,imandrax-api-client,imandrax-api-client-cohttp
 
 # check that the generated code is up to date
-RUN opam install ocaml-protoc --dev
+RUN for pkg in pbrt pbrt_yojson ocaml-protoc; do opam pin $pkg --dev -y -n ; done
+RUN opam install ocaml-protoc
 RUN opam exec -- dune build @genproto --auto-promote
 COPY --chown=opam ./.git ./.git
 RUN git diff  --quiet src
