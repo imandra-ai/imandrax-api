@@ -67,7 +67,7 @@
    (>= 3.0))
   (ocaml-protoc
    (and
-    (>= 3.1)
+    (>= 3.1.1)
     :with-dev-setup))))
 
 (package
