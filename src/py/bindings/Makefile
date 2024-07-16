@@ -2,7 +2,7 @@
 PROTO_FILES=locs.proto error.proto simple_api.proto system.proto utils.proto session.proto
 genpython:
 	@for f in $(PROTO_FILES); do \
-		protoc --python_out=./ --twirpy_out=./ -I ../.. "../../$$f"; \
+		protoc --python_out=./ --twirpy_out=./ -I ../../proto "../../proto/$$f"; \
 	done
 
 help:
