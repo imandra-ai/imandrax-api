@@ -6,7 +6,7 @@ type t = {
   is_instance: bool;
       (** If true, we're trying to find an instance of the goal, not a proof.
           This means we won't negate the goal. *)
-  anchor: Anchor.t;
+  anchor: Imandrax_api.Anchor.t;
       (** An identifier linking this PO to some user-defined object *)
   timeout: int option;  (** Timeout *)
 }

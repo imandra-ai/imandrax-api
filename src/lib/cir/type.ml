@@ -1,19 +1,24 @@
-include Ty_view
+include Imandrax_api.Ty_view
 
-type var = Uid.t [@@deriving show, twine, typereg, eq, ord]
+type var = Imandrax_api.Uid.t [@@deriving show, twine, typereg, eq, ord]
 (** Type variables *)
 
-type clique = Uid_set.t [@@deriving twine, typereg, eq, ord, show]
+type clique = Imandrax_api.Uid_set.t [@@deriving twine, typereg, eq, ord, show]
 (** set of mutually recursive types *)
 
-type t = { view: (unit, var, t) view }
+type t = { view: (unit, var, t) Imandrax_api.Ty_view.view }
 [@@unboxed] [@@deriving twine, typereg, show]
 (** A type expression *)
+
+open Imandrax_api
 
 let[@inline] view (self : t) = self.view
 
 let rec equal (a : t) (b : t) : bool =
-  a == b || equal_view (fun () () -> true) Uid.equal equal (view a) (view b)
+  a == b
+  || equal_view
+       (fun () () -> true)
+       Imandrax_api.Uid.equal equal (view a) (view b)
 
 let rec compare (a : t) (b : t) : int =
   if a == b then
@@ -40,7 +45,7 @@ let () =
 type def = {
   name: Uid.t;
   params: var list;
-  decl: (Uid.t, t, Void.t) decl;
+  decl: (Uid.t, t, Void.t) Imandrax_api.Ty_view.decl;
   clique: clique option;
   timeout: int option;
 }

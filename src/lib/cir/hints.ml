@@ -5,7 +5,8 @@ module Induct = struct
   [@@deriving show, twine, typereg, enum, eq]
 
   type t =
-    | Functional of { f_name: Uid.t option }  (** functional induction *)
+    | Functional of { f_name: Imandrax_api.Uid.t option }
+        (** functional induction *)
     | Structural of {
         style: style;
         vars: string list;
@@ -24,7 +25,7 @@ module Induct = struct
     | Structural { style = Multiplicative; vars } ->
       Format.fprintf out "(@[structural*@ %a@])" Fmt.(list Dump.string) vars
     | Functional { f_name = Some f } ->
-      Format.fprintf out "(@[functional %a@])" Uid.pp f
+      Format.fprintf out "(@[functional %a@])" Imandrax_api.Uid.pp f
     | Functional { f_name = None } -> Format.fprintf out "(@[functional ?@])"
     | Term { t; _ } -> Format.fprintf out "(@[term %a@])" Term.pp t
 
@@ -52,7 +53,7 @@ end
 (* define a sub-module for easier inclusion *)
 module Top = struct
   type +'f t = {
-    basis: Uid_set.t;
+    basis: Imandrax_api.Uid_set.t;
     method_: Method.t;
     apply_hint: 'f list;
     logic_config_ops: Logic_config.op list;
@@ -60,6 +61,8 @@ module Top = struct
   }
   [@@deriving twine, typereg, map, eq] [@@typereg.name "t"]
   (** A hint *)
+
+  open Imandrax_api
 
   let pp pp_f out (h : 'f t) : unit =
     let pp_basis out b =
