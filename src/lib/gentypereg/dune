@@ -5,6 +5,7 @@
   yojson
   imandrakit
   imandrakit.typereg
+  imandrax-api
   imandrax-api.cir
   imandrax-api.eval
   imandrax-api.model
