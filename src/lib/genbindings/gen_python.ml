@@ -41,7 +41,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
   match ty with
   | Arrow (_, _, _) -> assert false
   | Var s -> s
-  | Tuple l -> spf "(%s)" (String.concat "," @@ List.map gen_type_expr l)
+  | Tuple l -> spf "tuple[%s]" (String.concat "," @@ List.map gen_type_expr l)
   | Cstor (s, args) ->
     (match s, args with
     | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] -> "int"
