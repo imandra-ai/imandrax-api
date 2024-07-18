@@ -1,0 +1,3139 @@
+[
+  [
+    {
+      "path": "Imandrax_api__Util_twine_",
+      "name": "as_pair",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "num", [ "Cstor", "Z.t", [] ] ],
+            [ "denum", [ "Cstor", "Z.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Builtin_data",
+      "name": "kind",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Logic_core",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": [ "logic_core_name" ]
+          },
+          {
+            "c": "Special",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": [ "tag" ]
+          },
+          {
+            "c": "Tactic",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": [ "tac_name" ]
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Chash",
+      "name": "t",
+      "params": [],
+      "decl": [ "Alias", [ "Cstor", "string", [] ] ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Cname",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "name", [ "Cstor", "string", [] ] ],
+            [ "chash", [ "Cstor", "Chash.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Uid",
+      "name": "gen_kind",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          { "c": "Local", "args": [], "labels": null },
+          { "c": "To_be_rewritten", "args": [], "labels": null }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Uid",
+      "name": "view",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Generative",
+            "args": [ [ "Cstor", "int", [] ], [ "Cstor", "gen_kind", [] ] ],
+            "labels": [ "id", "gen_kind" ]
+          },
+          { "c": "Persistent", "args": [], "labels": null },
+          {
+            "c": "Cname",
+            "args": [ [ "Cstor", "Cname.t", [] ] ],
+            "labels": [ "cname" ]
+          },
+          {
+            "c": "Builtin",
+            "args": [ [ "Cstor", "Builtin_data.kind", [] ] ],
+            "labels": [ "kind" ]
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Uid",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "name", [ "Cstor", "string", [] ] ],
+            [ "view", [ "Cstor", "view", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Uid_set",
+      "name": "t",
+      "params": [],
+      "decl": [ "Alias", [ "Cstor", "Uid.Set.t", [] ] ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Builtin",
+      "name": "Fun.t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "id", [ "Cstor", "Uid.t", [] ] ],
+            [ "kind", [ "Cstor", "Builtin_data.kind", [] ] ],
+            [ "lassoc", [ "Cstor", "bool", [] ] ],
+            [ "commutative", [ "Cstor", "bool", [] ] ],
+            [ "connective", [ "Cstor", "bool", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Builtin",
+      "name": "Ty.t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "id", [ "Cstor", "Uid.t", [] ] ],
+            [ "kind", [ "Cstor", "Builtin_data.kind", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Ty_view",
+      "name": "adt_row",
+      "params": [ "_tyreg_poly_id", "_tyreg_poly_t" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "c", [ "Var", "_tyreg_poly_id" ] ],
+            [
+              "labels",
+              [
+                "Cstor",
+                "option",
+                [ [ "Cstor", "list", [ [ "Var", "_tyreg_poly_id" ] ] ] ]
+              ]
+            ],
+            [ "args", [ "Cstor", "list", [ [ "Var", "_tyreg_poly_t" ] ] ] ],
+            [ "doc", [ "Cstor", "option", [ [ "Cstor", "string", [] ] ] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Ty_view",
+      "name": "rec_row",
+      "params": [ "_tyreg_poly_id", "_tyreg_poly_t" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "f", [ "Var", "_tyreg_poly_id" ] ],
+            [ "ty", [ "Var", "_tyreg_poly_t" ] ],
+            [ "doc", [ "Cstor", "option", [ [ "Cstor", "string", [] ] ] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Ty_view",
+      "name": "decl",
+      "params": [ "_tyreg_poly_id", "_tyreg_poly_t", "_tyreg_poly_alias" ],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Algebraic",
+            "args": [
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Cstor",
+                    "adt_row",
+                    [
+                      [ "Var", "_tyreg_poly_id" ], [ "Var", "_tyreg_poly_t" ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "Record",
+            "args": [
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Cstor",
+                    "rec_row",
+                    [
+                      [ "Var", "_tyreg_poly_id" ], [ "Var", "_tyreg_poly_t" ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "Alias",
+            "args": [
+              [ "Var", "_tyreg_poly_alias" ],
+              [
+                "Cstor",
+                "option",
+                [
+                  [
+                    "Cstor",
+                    "decl",
+                    [
+                      [ "Var", "_tyreg_poly_id" ],
+                      [ "Var", "_tyreg_poly_t" ],
+                      [ "Var", "_tyreg_poly_alias" ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": [ "target", "reexport_def" ]
+          },
+          { "c": "Skolem", "args": [], "labels": null },
+          {
+            "c": "Builtin",
+            "args": [ [ "Cstor", "Builtin.Ty.t", [] ] ],
+            "labels": null
+          },
+          { "c": "Other", "args": [], "labels": null }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Ty_view",
+      "name": "view",
+      "params": [ "_tyreg_poly_lbl", "_tyreg_poly_var", "_tyreg_poly_t" ],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Var",
+            "args": [ [ "Var", "_tyreg_poly_var" ] ],
+            "labels": null
+          },
+          {
+            "c": "Arrow",
+            "args": [
+              [ "Var", "_tyreg_poly_lbl" ],
+              [ "Var", "_tyreg_poly_t" ],
+              [ "Var", "_tyreg_poly_t" ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "Tuple",
+            "args": [ [ "Cstor", "list", [ [ "Var", "_tyreg_poly_t" ] ] ] ],
+            "labels": null
+          },
+          {
+            "c": "Constr",
+            "args": [
+              [ "Cstor", "Uid.t", [] ],
+              [ "Cstor", "list", [ [ "Var", "_tyreg_poly_t" ] ] ]
+            ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Stat_time",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record", { "fields": [ [ "time_s", [ "Cstor", "float", [] ] ] ] }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Sequent_poly",
+      "name": "t",
+      "params": [ "_tyreg_poly_term" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [
+              "hyps", [ "Cstor", "list", [ [ "Var", "_tyreg_poly_term" ] ] ]
+            ],
+            [
+              "concls",
+              [ "Cstor", "list", [ [ "Var", "_tyreg_poly_term" ] ] ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Misc_types",
+      "name": "rec_flag",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          { "c": "Recursive", "args": [], "labels": null },
+          { "c": "Nonrecursive", "args": [], "labels": null }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Misc_types",
+      "name": "apply_label",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          { "c": "Nolabel", "args": [], "labels": null },
+          {
+            "c": "Label",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Optional",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Logic_fragment",
+      "name": "t",
+      "params": [],
+      "decl": [ "Alias", [ "Cstor", "B.t", [] ] ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__In_mem_archive",
+      "name": "raw",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "ty", [ "Cstor", "string", [] ] ],
+            [ "compressed", [ "Cstor", "bool", [] ] ],
+            [ "data", [ "Cstor", "string", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Const",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Const_float",
+            "args": [ [ "Cstor", "float", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Const_string",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Const_z",
+            "args": [ [ "Cstor", "Util_twine_.Z.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Const_q",
+            "args": [ [ "Cstor", "Util_twine_.Q.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Const_real_approx",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Const_uid",
+            "args": [ [ "Cstor", "Uid.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Const_bool",
+            "args": [ [ "Cstor", "bool", [] ] ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__As_trigger",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          { "c": "Trig_none", "args": [], "labels": null },
+          { "c": "Trig_anon", "args": [], "labels": null },
+          {
+            "c": "Trig_named",
+            "args": [ [ "Cstor", "int", [] ] ],
+            "labels": null
+          },
+          { "c": "Trig_rw", "args": [], "labels": null }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Anchor",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Named",
+            "args": [ [ "Cstor", "Cname.t", [] ] ],
+            "labels": null
+          },
+          { "c": "Eval", "args": [ [ "Cstor", "int", [] ] ], "labels": null },
+          {
+            "c": "Proof_check",
+            "args": [ [ "Cstor", "t", [] ] ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api__Admission",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [
+              "measured_subset",
+              [ "Cstor", "list", [ [ "Cstor", "string", [] ] ] ]
+            ],
+            [
+              "measure_fun",
+              [ "Cstor", "option", [ [ "Cstor", "Uid.t", [] ] ] ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_model",
+      "name": "ty_def",
+      "params": [ "_tyreg_poly_term", "_tyreg_poly_ty" ],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Ty_finite",
+            "args": [
+              [ "Cstor", "list", [ [ "Var", "_tyreg_poly_term" ] ] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "Ty_alias_unit",
+            "args": [ [ "Var", "_tyreg_poly_ty" ] ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_model",
+      "name": "fi",
+      "params": [ "_tyreg_poly_term", "_tyreg_poly_var", "_tyreg_poly_ty" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [
+              "fi_args",
+              [ "Cstor", "list", [ [ "Var", "_tyreg_poly_var" ] ] ]
+            ],
+            [ "fi_ty_ret", [ "Var", "_tyreg_poly_ty" ] ],
+            [
+              "fi_cases",
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [
+                      [ "Cstor", "list", [ [ "Var", "_tyreg_poly_term" ] ] ],
+                      [ "Var", "_tyreg_poly_term" ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [ "fi_else", [ "Var", "_tyreg_poly_term" ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_model",
+      "name": "t",
+      "params": [
+        "_tyreg_poly_term", "_tyreg_poly_fn", "_tyreg_poly_var",
+        "_tyreg_poly_ty"
+      ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [
+              "tys",
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [
+                      [ "Var", "_tyreg_poly_ty" ],
+                      [
+                        "Cstor",
+                        "ty_def",
+                        [
+                          [ "Var", "_tyreg_poly_term" ],
+                          [ "Var", "_tyreg_poly_ty" ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "consts",
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [
+                      [ "Var", "_tyreg_poly_fn" ],
+                      [ "Var", "_tyreg_poly_term" ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "funs",
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [
+                      [ "Var", "_tyreg_poly_fn" ],
+                      [
+                        "Cstor",
+                        "fi",
+                        [
+                          [ "Var", "_tyreg_poly_term" ],
+                          [ "Var", "_tyreg_poly_var" ],
+                          [ "Var", "_tyreg_poly_ty" ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [ "representable", [ "Cstor", "bool", [] ] ],
+            [ "completed", [ "Cstor", "bool", [] ] ],
+            [
+              "ty_subst",
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [ [ "Cstor", "Uid.t", [] ], [ "Var", "_tyreg_poly_ty" ] ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Type",
+      "name": "var",
+      "params": [],
+      "decl": [ "Alias", [ "Cstor", "Imandrax_api.Uid.t", [] ] ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Type",
+      "name": "clique",
+      "params": [],
+      "decl": [ "Alias", [ "Cstor", "Imandrax_api.Uid_set.t", [] ] ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Type",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [
+              "view",
+              [
+                "Cstor",
+                "Imandrax_api.Ty_view.view",
+                [
+                  [ "Cstor", "unit", [] ],
+                  [ "Cstor", "var", [] ],
+                  [ "Cstor", "t", [] ]
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Type",
+      "name": "def",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "name", [ "Cstor", "Uid.t", [] ] ],
+            [ "params", [ "Cstor", "list", [ [ "Cstor", "var", [] ] ] ] ],
+            [
+              "decl",
+              [
+                "Cstor",
+                "Imandrax_api.Ty_view.decl",
+                [
+                  [ "Cstor", "Uid.t", [] ],
+                  [ "Cstor", "t", [] ],
+                  [ "Cstor", "Void.t", [] ]
+                ]
+              ]
+            ],
+            [
+              "clique", [ "Cstor", "option", [ [ "Cstor", "clique", [] ] ] ]
+            ],
+            [ "timeout", [ "Cstor", "option", [ [ "Cstor", "int", [] ] ] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__With_ty",
+      "name": "t",
+      "params": [ "_tyreg_poly_a" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "view", [ "Var", "_tyreg_poly_a" ] ],
+            [ "ty", [ "Cstor", "Type.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Var",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alias",
+        [ "Cstor", "With_ty.t", [ [ "Cstor", "Imandrax_api.Uid.t", [] ] ] ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Type_schema",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [
+              "params", [ "Cstor", "list", [ [ "Cstor", "Type.var", [] ] ] ]
+            ],
+            [ "ty", [ "Cstor", "Type.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Typed_symbol",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "id", [ "Cstor", "Imandrax_api.Uid.t", [] ] ],
+            [ "ty", [ "Cstor", "Type_schema.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Applied_symbol",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "sym", [ "Cstor", "Typed_symbol.t", [] ] ],
+            [ "args", [ "Cstor", "list", [ [ "Cstor", "Type.t", [] ] ] ] ],
+            [ "ty", [ "Cstor", "Type.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Fo_pattern",
+      "name": "view",
+      "params": [ "_tyreg_poly_t" ],
+      "decl": [
+        "Alg",
+        [
+          { "c": "FO_any", "args": [], "labels": null },
+          {
+            "c": "FO_bool",
+            "args": [ [ "Cstor", "bool", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "FO_const",
+            "args": [ [ "Cstor", "Imandrax_api.Const.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "FO_var",
+            "args": [ [ "Cstor", "Var.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "FO_app",
+            "args": [
+              [ "Cstor", "Applied_symbol.t", [] ],
+              [ "Cstor", "list", [ [ "Var", "_tyreg_poly_t" ] ] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "FO_cstor",
+            "args": [
+              [ "Cstor", "option", [ [ "Cstor", "Applied_symbol.t", [] ] ] ],
+              [ "Cstor", "list", [ [ "Var", "_tyreg_poly_t" ] ] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "FO_destruct",
+            "args": [
+              [ "Cstor", "option", [ [ "Cstor", "Applied_symbol.t", [] ] ] ],
+              [ "Cstor", "int", [] ],
+              [ "Var", "_tyreg_poly_t" ]
+            ],
+            "labels": [ "c", "i", "u" ]
+          },
+          {
+            "c": "FO_is_a",
+            "args": [
+              [ "Cstor", "Applied_symbol.t", [] ], [ "Var", "_tyreg_poly_t" ]
+            ],
+            "labels": [ "c", "u" ]
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Fo_pattern",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "view", [ "Cstor", "view", [ [ "Cstor", "t", [] ] ] ] ],
+            [ "ty", [ "Cstor", "Type.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Pattern_head",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "PH_id",
+            "args": [ [ "Cstor", "Imandrax_api.Uid.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "PH_ty",
+            "args": [ [ "Cstor", "Type.t", [] ] ],
+            "labels": null
+          },
+          { "c": "PH_datatype_op", "args": [], "labels": null }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Trigger",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "trigger_head", [ "Cstor", "Pattern_head.t", [] ] ],
+            [
+              "trigger_patterns",
+              [ "Cstor", "list", [ [ "Cstor", "Fo_pattern.t", [] ] ] ]
+            ],
+            [
+              "trigger_instantiation_rule_name",
+              [ "Cstor", "Imandrax_api.Uid.t", [] ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Case",
+      "name": "t",
+      "params": [ "_tyreg_poly_t" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "case_cstor", [ "Cstor", "Applied_symbol.t", [] ] ],
+            [
+              "case_vars", [ "Cstor", "list", [ [ "Cstor", "Var.t", [] ] ] ]
+            ],
+            [ "case_rhs", [ "Var", "_tyreg_poly_t" ] ],
+            [
+              "case_labels",
+              [
+                "Cstor",
+                "option",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [ [ "Cstor", "Imandrax_api.Uid.t", [] ] ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Clique",
+      "name": "t",
+      "params": [],
+      "decl": [ "Alias", [ "Cstor", "Imandrax_api.Uid_set.t", [] ] ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Logic_config",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "timeout", [ "Cstor", "int", [] ] ],
+            [ "validate", [ "Cstor", "bool", [] ] ],
+            [ "skip_proofs", [ "Cstor", "bool", [] ] ],
+            [
+              "max_induct", [ "Cstor", "option", [ [ "Cstor", "int", [] ] ] ]
+            ],
+            [ "backchain_limit", [ "Cstor", "int", [] ] ],
+            [ "enable_all", [ "Cstor", "bool", [] ] ],
+            [ "induct_unroll_depth", [ "Cstor", "int", [] ] ],
+            [ "induct_subgoal_depth", [ "Cstor", "int", [] ] ],
+            [ "unroll_enable_all", [ "Cstor", "bool", [] ] ],
+            [ "unroll_depth", [ "Cstor", "int", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Logic_config",
+      "name": "op",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Op_timeout",
+            "args": [ [ "Cstor", "int", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Op_validate",
+            "args": [ [ "Cstor", "bool", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Op_skip_proofs",
+            "args": [ [ "Cstor", "bool", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Op_max_induct",
+            "args": [ [ "Cstor", "option", [ [ "Cstor", "int", [] ] ] ] ],
+            "labels": null
+          },
+          {
+            "c": "Op_backchain_limit",
+            "args": [ [ "Cstor", "int", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Op_enable_all",
+            "args": [ [ "Cstor", "bool", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Op_induct_unroll_depth",
+            "args": [ [ "Cstor", "int", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Op_induct_subgoal_depth",
+            "args": [ [ "Cstor", "int", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Op_unroll_enable_all",
+            "args": [ [ "Cstor", "bool", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Op_unroll_depth",
+            "args": [ [ "Cstor", "int", [] ] ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Term",
+      "name": "binding",
+      "params": [ "_tyreg_poly_t" ],
+      "decl": [
+        "Alias",
+        [ "Tuple", [ [ "Cstor", "Var.t", [] ], [ "Var", "_tyreg_poly_t" ] ] ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Term",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alias", [ "Cstor", "With_ty.t", [ [ "Cstor", "view", [] ] ] ]
+      ]
+    },
+    {
+      "path": "Imandrax_api_cir__Term",
+      "name": "view",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Const",
+            "args": [ [ "Cstor", "Imandrax_api.Const.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "If",
+            "args": [
+              [ "Cstor", "t", [] ],
+              [ "Cstor", "t", [] ],
+              [ "Cstor", "t", [] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "Let",
+            "args": [
+              [ "Cstor", "Imandrax_api.Misc_types.rec_flag", [] ],
+              [
+                "Cstor",
+                "list",
+                [ [ "Cstor", "binding", [ [ "Cstor", "t", [] ] ] ] ]
+              ],
+              [ "Cstor", "t", [] ]
+            ],
+            "labels": [ "flg", "bs", "body" ]
+          },
+          {
+            "c": "Apply",
+            "args": [
+              [ "Cstor", "t", [] ],
+              [ "Cstor", "list", [ [ "Cstor", "t", [] ] ] ]
+            ],
+            "labels": [ "f", "l" ]
+          },
+          {
+            "c": "Fun",
+            "args": [ [ "Cstor", "Var.t", [] ], [ "Cstor", "t", [] ] ],
+            "labels": [ "v", "body" ]
+          },
+          {
+            "c": "Var",
+            "args": [ [ "Cstor", "Var.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Sym",
+            "args": [ [ "Cstor", "Applied_symbol.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Construct",
+            "args": [
+              [ "Cstor", "Applied_symbol.t", [] ],
+              [ "Cstor", "list", [ [ "Cstor", "t", [] ] ] ],
+              [
+                "Cstor",
+                "option",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [ [ "Cstor", "Imandrax_api.Uid.t", [] ] ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": [ "c", "args", "labels" ]
+          },
+          {
+            "c": "Destruct",
+            "args": [
+              [ "Cstor", "Applied_symbol.t", [] ],
+              [ "Cstor", "int", [] ],
+              [ "Cstor", "t", [] ]
+            ],
+            "labels": [ "c", "i", "t" ]
+          },
+          {
+            "c": "Is_a",
+            "args": [
+              [ "Cstor", "Applied_symbol.t", [] ], [ "Cstor", "t", [] ]
+            ],
+            "labels": [ "c", "t" ]
+          },
+          {
+            "c": "Tuple",
+            "args": [ [ "Cstor", "list", [ [ "Cstor", "t", [] ] ] ] ],
+            "labels": [ "l" ]
+          },
+          {
+            "c": "Field",
+            "args": [
+              [ "Cstor", "Applied_symbol.t", [] ], [ "Cstor", "t", [] ]
+            ],
+            "labels": [ "f", "t" ]
+          },
+          {
+            "c": "Tuple_field",
+            "args": [ [ "Cstor", "int", [] ], [ "Cstor", "t", [] ] ],
+            "labels": [ "i", "t" ]
+          },
+          {
+            "c": "Record",
+            "args": [
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [
+                      [ "Cstor", "Applied_symbol.t", [] ],
+                      [ "Cstor", "t", [] ]
+                    ]
+                  ]
+                ]
+              ],
+              [ "Cstor", "option", [ [ "Cstor", "t", [] ] ] ]
+            ],
+            "labels": [ "rows", "rest" ]
+          },
+          {
+            "c": "Case",
+            "args": [
+              [ "Cstor", "t", [] ],
+              [
+                "Cstor",
+                "list",
+                [ [ "Cstor", "Case.t", [ [ "Cstor", "t", [] ] ] ] ]
+              ],
+              [ "Cstor", "option", [ [ "Cstor", "t", [] ] ] ]
+            ],
+            "labels": [ "u", "cases", "default" ]
+          },
+          {
+            "c": "Let_tuple",
+            "args": [
+              [ "Cstor", "list", [ [ "Cstor", "Var.t", [] ] ] ],
+              [ "Cstor", "t", [] ],
+              [ "Cstor", "t", [] ]
+            ],
+            "labels": [ "vars", "rhs", "body" ]
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Term",
+      "name": "term",
+      "params": [],
+      "decl": [ "Alias", [ "Cstor", "t", [] ] ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Hints",
+      "name": "style",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          { "c": "Multiplicative", "args": [], "labels": null },
+          { "c": "Additive", "args": [], "labels": null }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Hints",
+      "name": "Induct.t",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Functional",
+            "args": [
+              [
+                "Cstor", "option", [ [ "Cstor", "Imandrax_api.Uid.t", [] ] ]
+              ]
+            ],
+            "labels": [ "f_name" ]
+          },
+          {
+            "c": "Structural",
+            "args": [
+              [ "Cstor", "style", [] ],
+              [ "Cstor", "list", [ [ "Cstor", "string", [] ] ] ]
+            ],
+            "labels": [ "style", "vars" ]
+          },
+          {
+            "c": "Term",
+            "args": [
+              [ "Cstor", "Term.t", [] ],
+              [ "Cstor", "list", [ [ "Cstor", "Var.t", [] ] ] ]
+            ],
+            "labels": [ "t", "vars" ]
+          },
+          { "c": "Default", "args": [], "labels": null }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Hints",
+      "name": "Method.t",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Unroll",
+            "args": [ [ "Cstor", "option", [ [ "Cstor", "int", [] ] ] ] ],
+            "labels": [ "steps" ]
+          },
+          {
+            "c": "Ext_solver",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": [ "name" ]
+          },
+          { "c": "Auto", "args": [], "labels": null },
+          {
+            "c": "Induct",
+            "args": [ [ "Cstor", "Induct.t", [] ] ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Hints",
+      "name": "t",
+      "params": [ "_tyreg_poly_f" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "basis", [ "Cstor", "Imandrax_api.Uid_set.t", [] ] ],
+            [ "method_", [ "Cstor", "Method.t", [] ] ],
+            [
+              "apply_hint",
+              [ "Cstor", "list", [ [ "Var", "_tyreg_poly_f" ] ] ]
+            ],
+            [
+              "logic_config_ops",
+              [ "Cstor", "list", [ [ "Cstor", "Logic_config.op", [] ] ] ]
+            ],
+            [ "otf", [ "Cstor", "bool", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Fun_def",
+      "name": "fun_kind",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Fun_defined",
+            "args": [ [ "Cstor", "bool", [] ], [ "Cstor", "bool", [] ] ],
+            "labels": [ "is_macro", "from_lambda" ]
+          },
+          {
+            "c": "Fun_builtin",
+            "args": [ [ "Cstor", "Imandrax_api.Builtin.Fun.t", [] ] ],
+            "labels": null
+          },
+          { "c": "Fun_opaque", "args": [], "labels": null }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Fun_def",
+      "name": "validation_strategy",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "VS_validate",
+            "args": [ [ "Cstor", "option", [ [ "Cstor", "Term.t", [] ] ] ] ],
+            "labels": [ "tactic" ]
+          },
+          { "c": "VS_no_validate", "args": [], "labels": null }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Fun_def",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "f_name", [ "Cstor", "Imandrax_api.Uid.t", [] ] ],
+            [ "f_ty", [ "Cstor", "Type_schema.t", [] ] ],
+            [ "f_args", [ "Cstor", "list", [ [ "Cstor", "Var.t", [] ] ] ] ],
+            [ "f_body", [ "Cstor", "Term.t", [] ] ],
+            [
+              "f_clique",
+              [ "Cstor", "option", [ [ "Cstor", "Clique.t", [] ] ] ]
+            ],
+            [ "f_kind", [ "Cstor", "fun_kind", [] ] ],
+            [
+              "f_admission",
+              [
+                "Cstor",
+                "option",
+                [ [ "Cstor", "Imandrax_api.Admission.t", [] ] ]
+              ]
+            ],
+            [
+              "f_admission_measure",
+              [
+                "Cstor", "option", [ [ "Cstor", "Imandrax_api.Uid.t", [] ] ]
+              ]
+            ],
+            [ "f_validate_strat", [ "Cstor", "validation_strategy", [] ] ],
+            [
+              "f_hints",
+              [
+                "Cstor",
+                "option",
+                [
+                  [
+                    "Cstor", "Hints.Top.t", [ [ "Cstor", "apply_hint", [] ] ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "f_enable",
+              [ "Cstor", "list", [ [ "Cstor", "Imandrax_api.Uid.t", [] ] ] ]
+            ],
+            [
+              "f_disable",
+              [ "Cstor", "list", [ [ "Cstor", "Imandrax_api.Uid.t", [] ] ] ]
+            ],
+            [
+              "f_timeout", [ "Cstor", "option", [ [ "Cstor", "int", [] ] ] ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "path": "Imandrax_api_cir__Fun_def",
+      "name": "apply_hint",
+      "params": [],
+      "decl": [
+        "Record", { "fields": [ [ "apply_fun", [ "Cstor", "t", [] ] ] ] }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Pre_trigger",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alias",
+        [
+          "Tuple",
+          [
+            [ "Cstor", "Term.t", [] ],
+            [ "Cstor", "Imandrax_api.As_trigger.t", [] ]
+          ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Theorem",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "thm_link", [ "Cstor", "Fun_def.t", [] ] ],
+            [ "thm_rewriting", [ "Cstor", "bool", [] ] ],
+            [ "thm_perm_restrict", [ "Cstor", "bool", [] ] ],
+            [ "thm_fc", [ "Cstor", "bool", [] ] ],
+            [ "thm_elim", [ "Cstor", "bool", [] ] ],
+            [ "thm_gen", [ "Cstor", "bool", [] ] ],
+            [ "thm_otf", [ "Cstor", "bool", [] ] ],
+            [
+              "thm_triggers",
+              [ "Cstor", "list", [ [ "Cstor", "Pre_trigger.t", [] ] ] ]
+            ],
+            [ "thm_is_axiom", [ "Cstor", "bool", [] ] ],
+            [ "thm_by", [ "Cstor", "Term.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Tactic",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Default_termination",
+            "args": [ [ "Cstor", "Imandrax_api.Uid_set.t", [] ] ],
+            "labels": [ "basis" ]
+          },
+          { "c": "Default_thm", "args": [], "labels": null },
+          {
+            "c": "Term",
+            "args": [ [ "Cstor", "Term.t", [] ] ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Sequent",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "Imandrax_api.Sequent_poly.t",
+          [ [ "Cstor", "Term.t", [] ] ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Rewrite_rule",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "rw_name", [ "Cstor", "Imandrax_api.Uid.t", [] ] ],
+            [ "rw_head", [ "Cstor", "Pattern_head.t", [] ] ],
+            [ "rw_lhs", [ "Cstor", "Fo_pattern.t", [] ] ],
+            [ "rw_rhs", [ "Cstor", "Term.t", [] ] ],
+            [
+              "rw_guard", [ "Cstor", "list", [ [ "Cstor", "Term.t", [] ] ] ]
+            ],
+            [ "rw_vars", [ "Cstor", "Var_set.t", [] ] ],
+            [
+              "rw_triggers",
+              [ "Cstor", "list", [ [ "Cstor", "Fo_pattern.t", [] ] ] ]
+            ],
+            [ "rw_perm_restrict", [ "Cstor", "bool", [] ] ],
+            [
+              "rw_loop_break",
+              [ "Cstor", "option", [ [ "Cstor", "Fo_pattern.t", [] ] ] ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Proof_obligation",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "descr", [ "Cstor", "string", [] ] ],
+            [ "goal", [ "Cstor", "Term.t", [] ] ],
+            [ "tactic", [ "Cstor", "Tactic.t", [] ] ],
+            [ "is_instance", [ "Cstor", "bool", [] ] ],
+            [ "anchor", [ "Cstor", "Imandrax_api.Anchor.t", [] ] ],
+            [ "timeout", [ "Cstor", "option", [ [ "Cstor", "int", [] ] ] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Model",
+      "name": "ty_def",
+      "params": [],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "M.ty_def",
+          [ [ "Cstor", "Term.t", [] ], [ "Cstor", "Type.t", [] ] ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Model",
+      "name": "fi",
+      "params": [],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "M.fi",
+          [
+            [ "Cstor", "Term.t", [] ],
+            [ "Cstor", "Var.t", [] ],
+            [ "Cstor", "Type.t", [] ]
+          ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Model",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "M.t",
+          [
+            [ "Cstor", "Term.t", [] ],
+            [ "Cstor", "Applied_symbol.t", [] ],
+            [ "Cstor", "Var.t", [] ],
+            [ "Cstor", "Type.t", [] ]
+          ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Instantiation_rule_kind",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          { "c": "IR_forward_chaining", "args": [], "labels": null },
+          { "c": "IR_generalization", "args": [], "labels": null }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Instantiation_rule",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "ir_from", [ "Cstor", "Fun_def.t", [] ] ],
+            [
+              "ir_triggers",
+              [ "Cstor", "list", [ [ "Cstor", "Trigger.t", [] ] ] ]
+            ],
+            [ "ir_kind", [ "Cstor", "Instantiation_rule_kind.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Elimination_rule",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "er_name", [ "Cstor", "Imandrax_api.Uid.t", [] ] ],
+            [
+              "er_guard", [ "Cstor", "list", [ [ "Cstor", "Term.t", [] ] ] ]
+            ],
+            [ "er_lhs", [ "Cstor", "Term.t", [] ] ],
+            [ "er_rhs", [ "Cstor", "Var.t", [] ] ],
+            [
+              "er_dests",
+              [ "Cstor", "list", [ [ "Cstor", "Fo_pattern.t", [] ] ] ]
+            ],
+            [
+              "er_dest_tms",
+              [ "Cstor", "list", [ [ "Cstor", "Term.t", [] ] ] ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Db_ser",
+      "name": "uid_map",
+      "params": [ "_tyreg_poly_a" ],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "list",
+          [
+            [
+              "Tuple",
+              [
+                [ "Cstor", "Imandrax_api.Uid.t", [] ],
+                [ "Var", "_tyreg_poly_a" ]
+              ]
+            ]
+          ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Db_ser",
+      "name": "ph_map",
+      "params": [ "_tyreg_poly_a" ],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "list",
+          [
+            [
+              "Tuple",
+              [ [ "Cstor", "PH.t", [] ], [ "Var", "_tyreg_poly_a" ] ]
+            ]
+          ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Db_ser",
+      "name": "ca_ptr",
+      "params": [ "_tyreg_poly_a" ],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "Imandrax_api_ca_store.Ca_ptr.t",
+          [ [ "Var", "_tyreg_poly_a" ] ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_cir__Db_ser",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "decls", [ "Cstor", "Imandrax_api.Uid_set.t", [] ] ],
+            [
+              "rw_rules",
+              [
+                "Cstor",
+                "ph_map",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [
+                      [
+                        "Cstor",
+                        "ca_ptr",
+                        [ [ "Cstor", "Rewrite_rule.t", [] ] ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "inst_rules",
+              [
+                "Cstor",
+                "uid_map",
+                [
+                  [
+                    "Cstor",
+                    "ca_ptr",
+                    [ [ "Cstor", "Instantiation_rule.t", [] ] ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "rule_spec_fc",
+              [
+                "Cstor",
+                "uid_map",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [
+                      [ "Cstor", "ca_ptr", [ [ "Cstor", "Trigger.t", [] ] ] ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "rule_spec_rw_rules",
+              [
+                "Cstor",
+                "uid_map",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [
+                      [
+                        "Cstor",
+                        "ca_ptr",
+                        [ [ "Cstor", "Rewrite_rule.t", [] ] ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "fc",
+              [
+                "Cstor",
+                "ph_map",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [
+                      [ "Cstor", "ca_ptr", [ [ "Cstor", "Trigger.t", [] ] ] ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "elim",
+              [
+                "Cstor",
+                "ph_map",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [
+                      [
+                        "Cstor",
+                        "ca_ptr",
+                        [ [ "Cstor", "Elimination_rule.t", [] ] ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "gen",
+              [
+                "Cstor",
+                "ph_map",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [
+                      [ "Cstor", "ca_ptr", [ [ "Cstor", "Trigger.t", [] ] ] ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "thm_as_rw",
+              [
+                "Cstor",
+                "uid_map",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [
+                      [
+                        "Cstor",
+                        "ca_ptr",
+                        [ [ "Cstor", "Rewrite_rule.t", [] ] ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "thm_as_fc",
+              [
+                "Cstor",
+                "uid_map",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [
+                      [
+                        "Cstor",
+                        "ca_ptr",
+                        [ [ "Cstor", "Instantiation_rule.t", [] ] ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "thm_as_elim",
+              [
+                "Cstor",
+                "uid_map",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [
+                      [
+                        "Cstor",
+                        "ca_ptr",
+                        [ [ "Cstor", "Elimination_rule.t", [] ] ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "thm_as_gen",
+              [
+                "Cstor",
+                "uid_map",
+                [
+                  [
+                    "Cstor",
+                    "list",
+                    [
+                      [
+                        "Cstor",
+                        "ca_ptr",
+                        [ [ "Cstor", "Instantiation_rule.t", [] ] ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "admission",
+              [
+                "Cstor",
+                "uid_map",
+                [
+                  [
+                    "Cstor",
+                    "ca_ptr",
+                    [ [ "Cstor", "Imandrax_api.Admission.t", [] ] ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "count_funs_of_ty",
+              [
+                "Cstor", "uid_map", [ [ "Cstor", "Imandrax_api.Uid.t", [] ] ]
+              ]
+            ],
+            [
+              "config",
+              [ "Cstor", "ca_ptr", [ [ "Cstor", "Logic_config.t", [] ] ] ]
+            ],
+            [ "disabled", [ "Cstor", "Imandrax_api.Uid_set.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_eval__Ordinal",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Int",
+            "args": [ [ "Cstor", "Util_twine_.Z.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Cons",
+            "args": [
+              [ "Cstor", "t", [] ],
+              [ "Cstor", "Util_twine_.Z.t", [] ],
+              [ "Cstor", "t", [] ]
+            ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_eval__Value",
+      "name": "cstor_descriptor",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "cd_idx", [ "Cstor", "int", [] ] ],
+            [ "cd_name", [ "Cstor", "Uid.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_eval__Value",
+      "name": "record_descriptor",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "rd_name", [ "Cstor", "Uid.t", [] ] ],
+            [
+              "rd_fields", [ "Cstor", "array", [ [ "Cstor", "Uid.t", [] ] ] ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_eval__Value",
+      "name": "view",
+      "params": [ "_tyreg_poly_v", "_tyreg_poly_closure" ],
+      "decl": [
+        "Alg",
+        [
+          { "c": "V_true", "args": [], "labels": null },
+          { "c": "V_false", "args": [], "labels": null },
+          {
+            "c": "V_int",
+            "args": [ [ "Cstor", "Util_twine_.Z.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "V_real",
+            "args": [ [ "Cstor", "Util_twine_.Q.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "V_string",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "V_cstor",
+            "args": [
+              [ "Cstor", "cstor_descriptor", [] ],
+              [ "Cstor", "array", [ [ "Var", "_tyreg_poly_v" ] ] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "V_tuple",
+            "args": [ [ "Cstor", "array", [ [ "Var", "_tyreg_poly_v" ] ] ] ],
+            "labels": null
+          },
+          {
+            "c": "V_record",
+            "args": [
+              [ "Cstor", "record_descriptor", [] ],
+              [ "Cstor", "array", [ [ "Var", "_tyreg_poly_v" ] ] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "V_quoted_term",
+            "args": [ [ "Cstor", "Term.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "V_uid",
+            "args": [ [ "Cstor", "Uid.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "V_closure",
+            "args": [ [ "Var", "_tyreg_poly_closure" ] ],
+            "labels": null
+          },
+          {
+            "c": "V_custom",
+            "args": [ [ "Cstor", "Custom_value.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "V_ordinal",
+            "args": [ [ "Cstor", "Ordinal.t", [] ] ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_eval__Value",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [
+              "v",
+              [
+                "Cstor",
+                "view",
+                [ [ "Cstor", "t", [] ], [ "Cstor", "unit", [] ] ]
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_report__Expansion",
+      "name": "t",
+      "params": [ "_tyreg_poly_term" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "f_name", [ "Cstor", "Uid.t", [] ] ],
+            [ "lhs", [ "Var", "_tyreg_poly_term" ] ],
+            [ "rhs", [ "Var", "_tyreg_poly_term" ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_report__Instantiation",
+      "name": "t",
+      "params": [ "_tyreg_poly_term" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "assertion", [ "Var", "_tyreg_poly_term" ] ],
+            [ "from_rule", [ "Cstor", "Uid.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_report__Smt_proof",
+      "name": "t",
+      "params": [ "_tyreg_poly_term" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "logic", [ "Cstor", "Logic_fragment.t", [] ] ],
+            [
+              "unsat_core",
+              [ "Cstor", "list", [ [ "Var", "_tyreg_poly_term" ] ] ]
+            ],
+            [
+              "expansions",
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Cstor", "Expansion.t", [ [ "Var", "_tyreg_poly_term" ] ]
+                  ]
+                ]
+              ]
+            ],
+            [
+              "instantiations",
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Cstor",
+                    "Instantiation.t",
+                    [ [ "Var", "_tyreg_poly_term" ] ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_report__Rtext",
+      "name": "t",
+      "params": [ "_tyreg_poly_term" ],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "list",
+          [ [ "Cstor", "item", [ [ "Var", "_tyreg_poly_term" ] ] ] ]
+        ]
+      ]
+    },
+    {
+      "path": "Imandrax_api_report__Rtext",
+      "name": "item",
+      "params": [ "_tyreg_poly_term" ],
+      "decl": [
+        "Alg",
+        [
+          { "c": "S", "args": [ [ "Cstor", "string", [] ] ], "labels": null },
+          { "c": "B", "args": [ [ "Cstor", "string", [] ] ], "labels": null },
+          { "c": "I", "args": [ [ "Cstor", "string", [] ] ], "labels": null },
+          { "c": "Newline", "args": [], "labels": null },
+          {
+            "c": "Sub",
+            "args": [ [ "Cstor", "t", [ [ "Var", "_tyreg_poly_term" ] ] ] ],
+            "labels": null
+          },
+          {
+            "c": "L",
+            "args": [
+              [
+                "Cstor",
+                "list",
+                [ [ "Cstor", "t", [ [ "Var", "_tyreg_poly_term" ] ] ] ]
+              ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "Uid",
+            "args": [ [ "Cstor", "Uid.t", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Term",
+            "args": [ [ "Var", "_tyreg_poly_term" ] ],
+            "labels": null
+          },
+          {
+            "c": "Sequent",
+            "args": [
+              [
+                "Cstor", "Sequent_poly.t", [ [ "Var", "_tyreg_poly_term" ] ]
+              ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "Subst",
+            "args": [
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [
+                      [ "Var", "_tyreg_poly_term" ],
+                      [ "Var", "_tyreg_poly_term" ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_report__Atomic_event",
+      "name": "poly",
+      "params": [
+        "_tyreg_poly_term", "_tyreg_poly_fn", "_tyreg_poly_var",
+        "_tyreg_poly_ty"
+      ],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "E_message",
+            "args": [
+              [ "Cstor", "Rtext.t", [ [ "Var", "_tyreg_poly_term" ] ] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "E_title",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "E_enter_waterfall",
+            "args": [
+              [ "Cstor", "list", [ [ "Var", "_tyreg_poly_var" ] ] ],
+              [ "Var", "_tyreg_poly_term" ],
+              [ "Cstor", "Cir.Hints.Induct.t", [] ]
+            ],
+            "labels": [ "vars", "goal", "hints" ]
+          },
+          {
+            "c": "E_enter_tactic",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "E_rw_success",
+            "args": [
+              [ "Cstor", "Cir.Rewrite_rule.t", [] ],
+              [ "Var", "_tyreg_poly_term" ],
+              [ "Var", "_tyreg_poly_term" ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "E_rw_fail",
+            "args": [
+              [ "Cstor", "Cir.Rewrite_rule.t", [] ],
+              [ "Var", "_tyreg_poly_term" ],
+              [ "Cstor", "string", [] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "E_inst_success",
+            "args": [
+              [ "Cstor", "Cir.Instantiation_rule.t", [] ],
+              [ "Var", "_tyreg_poly_term" ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "E_waterfall_checkpoint",
+            "args": [
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Cstor",
+                    "Sequent_poly.t",
+                    [ [ "Var", "_tyreg_poly_term" ] ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "E_induction_scheme",
+            "args": [ [ "Var", "_tyreg_poly_term" ] ],
+            "labels": null
+          },
+          {
+            "c": "E_attack_subgoal",
+            "args": [
+              [ "Cstor", "string", [] ],
+              [
+                "Cstor", "Sequent_poly.t", [ [ "Var", "_tyreg_poly_term" ] ]
+              ],
+              [ "Cstor", "int", [] ]
+            ],
+            "labels": [ "name", "goal", "depth" ]
+          },
+          {
+            "c": "E_simplify_t",
+            "args": [
+              [ "Var", "_tyreg_poly_term" ], [ "Var", "_tyreg_poly_term" ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "E_simplify_clause",
+            "args": [
+              [ "Var", "_tyreg_poly_term" ],
+              [ "Cstor", "list", [ [ "Var", "_tyreg_poly_term" ] ] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "E_proved_by_smt",
+            "args": [
+              [ "Var", "_tyreg_poly_term" ],
+              [ "Cstor", "Smt_proof.t", [ [ "Var", "_tyreg_poly_term" ] ] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "E_refuted_by_smt",
+            "args": [
+              [ "Var", "_tyreg_poly_term" ],
+              [
+                "Cstor",
+                "option",
+                [
+                  [
+                    "Cstor",
+                    "Model.t",
+                    [
+                      [ "Var", "_tyreg_poly_term" ],
+                      [ "Var", "_tyreg_poly_fn" ],
+                      [ "Var", "_tyreg_poly_var" ],
+                      [ "Var", "_tyreg_poly_ty" ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "E_fun_expansion",
+            "args": [
+              [ "Var", "_tyreg_poly_term" ], [ "Var", "_tyreg_poly_term" ]
+            ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_report__Atomic_event",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "poly",
+          [
+            [ "Cstor", "Cir.Term.t", [] ],
+            [ "Cstor", "Cir.Applied_symbol.t", [] ],
+            [ "Cstor", "Cir.Var.t", [] ],
+            [ "Cstor", "Cir.Type.t", [] ]
+          ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_report__Event",
+      "name": "t_linear",
+      "params": [ "_tyreg_poly_atomic_ev" ],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "EL_atomic",
+            "args": [
+              [ "Cstor", "Timestamp_s.t", [] ],
+              [ "Var", "_tyreg_poly_atomic_ev" ]
+            ],
+            "labels": [ "ts", "ev" ]
+          },
+          {
+            "c": "EL_enter_span",
+            "args": [
+              [ "Cstor", "Timestamp_s.t", [] ],
+              [ "Var", "_tyreg_poly_atomic_ev" ]
+            ],
+            "labels": [ "ts", "ev" ]
+          },
+          {
+            "c": "EL_exit_span",
+            "args": [ [ "Cstor", "Timestamp_s.t", [] ] ],
+            "labels": [ "ts" ]
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_report__Event",
+      "name": "t_tree",
+      "params": [ "_tyreg_poly_atomic_ev", "_tyreg_poly_sub" ],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "ET_atomic",
+            "args": [
+              [ "Cstor", "Timestamp_s.t", [] ],
+              [ "Var", "_tyreg_poly_atomic_ev" ]
+            ],
+            "labels": [ "ts", "ev" ]
+          },
+          {
+            "c": "ET_span",
+            "args": [
+              [ "Cstor", "Timestamp_s.t", [] ],
+              [ "Cstor", "Duration_s.t", [] ],
+              [ "Var", "_tyreg_poly_atomic_ev" ],
+              [ "Var", "_tyreg_poly_sub" ]
+            ],
+            "labels": [ "ts", "duration", "ev", "sub" ]
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_report__Report",
+      "name": "event",
+      "params": [],
+      "decl": [
+        "Alias",
+        [ "Cstor", "Event.t_linear", [ [ "Cstor", "Atomic_event.t", [] ] ] ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_report__Report",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "events", [ "Cstor", "array", [ [ "Cstor", "event", [] ] ] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_proof__Arg",
+      "name": "t",
+      "params": [ "_tyreg_poly_term", "_tyreg_poly_ty" ],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "A_term",
+            "args": [ [ "Var", "_tyreg_poly_term" ] ],
+            "labels": null
+          },
+          {
+            "c": "A_ty",
+            "args": [ [ "Var", "_tyreg_poly_ty" ] ],
+            "labels": null
+          },
+          {
+            "c": "A_int",
+            "args": [ [ "Cstor", "int", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "A_string",
+            "args": [ [ "Cstor", "string", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "A_list",
+            "args": [
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Cstor",
+                    "t",
+                    [
+                      [ "Var", "_tyreg_poly_term" ],
+                      [ "Var", "_tyreg_poly_ty" ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "A_dict",
+            "args": [
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [
+                      [ "Cstor", "string", [] ],
+                      [
+                        "Cstor",
+                        "t",
+                        [
+                          [ "Var", "_tyreg_poly_term" ],
+                          [ "Var", "_tyreg_poly_ty" ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "A_seq",
+            "args": [
+              [
+                "Cstor", "Sequent_poly.t", [ [ "Var", "_tyreg_poly_term" ] ]
+              ]
+            ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_proof__Var_poly",
+      "name": "t",
+      "params": [ "_tyreg_poly_ty" ],
+      "decl": [
+        "Alias",
+        [
+          "Tuple", [ [ "Cstor", "Uid.t", [] ], [ "Var", "_tyreg_poly_ty" ] ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_proof__View",
+      "name": "t",
+      "params": [ "_tyreg_poly_term", "_tyreg_poly_ty", "_tyreg_poly_proof" ],
+      "decl": [
+        "Alg",
+        [
+          { "c": "T_assume", "args": [], "labels": null },
+          {
+            "c": "T_subst",
+            "args": [
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [
+                      [
+                        "Cstor",
+                        "Var_poly.t",
+                        [ [ "Var", "_tyreg_poly_ty" ] ]
+                      ],
+                      [ "Var", "_tyreg_poly_term" ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [ [ "Cstor", "Uid.t", [] ], [ "Var", "_tyreg_poly_ty" ] ]
+                  ]
+                ]
+              ],
+              [ "Var", "_tyreg_poly_proof" ]
+            ],
+            "labels": [ "t_subst", "ty_subst", "premise" ]
+          },
+          {
+            "c": "T_deduction",
+            "args": [
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Tuple",
+                    [
+                      [ "Cstor", "string", [] ],
+                      [ "Cstor", "list", [ [ "Var", "_tyreg_poly_proof" ] ] ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": [ "premises" ]
+          },
+          {
+            "c": "T_rule",
+            "args": [
+              [ "Cstor", "string", [] ],
+              [
+                "Cstor",
+                "list",
+                [
+                  [
+                    "Cstor",
+                    "Arg.t",
+                    [
+                      [ "Var", "_tyreg_poly_term" ],
+                      [ "Var", "_tyreg_poly_ty" ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "labels": [ "rule", "args" ]
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_proof__Proof_term_poly",
+      "name": "t",
+      "params": [ "_tyreg_poly_term", "_tyreg_poly_ty", "_tyreg_poly_proof" ],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "id", [ "Cstor", "int", [] ] ],
+            [
+              "concl",
+              [
+                "Cstor", "Sequent_poly.t", [ [ "Var", "_tyreg_poly_term" ] ]
+              ]
+            ],
+            [
+              "view",
+              [
+                "Cstor",
+                "View.t",
+                [
+                  [ "Var", "_tyreg_poly_term" ],
+                  [ "Var", "_tyreg_poly_ty" ],
+                  [ "Var", "_tyreg_poly_proof" ]
+                ]
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_proof__Cir_proof_term",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record", { "fields": [ [ "p", [ "Cstor", "t_inner", [] ] ] ] }
+      ]
+    },
+    {
+      "path": "Imandrax_api_proof__Cir_proof_term",
+      "name": "t_inner",
+      "params": [],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "Proof_term_poly.t",
+          [
+            [ "Cstor", "Cir.Term.t", [] ],
+            [ "Cstor", "Cir.Type.t", [] ],
+            [ "Cstor", "t", [] ]
+          ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__PO_task",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "from_sym", [ "Cstor", "string", [] ] ],
+            [ "count", [ "Cstor", "int", [] ] ],
+            [ "db", [ "Cstor", "Db_ser.t", [] ] ],
+            [ "po", [ "Cstor", "Proof_obligation.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__PO_res",
+      "name": "stats",
+      "params": [],
+      "decl": [ "Alias", [ "Cstor", "Imandrax_api.Stat_time.t", [] ] ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__PO_res",
+      "name": "proof_found",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "anchor", [ "Cstor", "Anchor.t", [] ] ],
+            [ "proof", [ "Cstor", "PT.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__PO_res",
+      "name": "instance",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "anchor", [ "Cstor", "Anchor.t", [] ] ],
+            [ "model", [ "Cstor", "Cir.Model.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__PO_res",
+      "name": "no_proof",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "err", [ "Cstor", "Error.t", [] ] ],
+            [
+              "counter_model",
+              [ "Cstor", "option", [ [ "Cstor", "Cir.Model.t", [] ] ] ]
+            ],
+            [
+              "subgoals",
+              [ "Cstor", "list", [ [ "Cstor", "Cir.Sequent.t", [] ] ] ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__PO_res",
+      "name": "unsat",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "anchor", [ "Cstor", "Anchor.t", [] ] ],
+            [ "err", [ "Cstor", "Error.t", [] ] ],
+            [ "proof", [ "Cstor", "PT.t", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__PO_res",
+      "name": "success",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "Proof",
+            "args": [ [ "Cstor", "proof_found", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Instance",
+            "args": [ [ "Cstor", "instance", [] ] ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__PO_res",
+      "name": "error",
+      "params": [],
+      "decl": [
+        "Alg",
+        [
+          {
+            "c": "No_proof",
+            "args": [ [ "Cstor", "no_proof", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Unsat",
+            "args": [ [ "Cstor", "unsat", [] ] ],
+            "labels": null
+          },
+          {
+            "c": "Invalid_model",
+            "args": [
+              [ "Cstor", "Error.t", [] ], [ "Cstor", "Cir.Model.t", [] ]
+            ],
+            "labels": null
+          },
+          {
+            "c": "Error",
+            "args": [ [ "Cstor", "Error.t", [] ] ],
+            "labels": null
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__PO_res",
+      "name": "result",
+      "params": [ "_tyreg_poly_a" ],
+      "decl": [
+        "Alias",
+        [
+          "Cstor",
+          "Util_twine.Result.t",
+          [ [ "Var", "_tyreg_poly_a" ], [ "Cstor", "error", [] ] ]
+        ]
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__PO_res",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [
+              "from",
+              [
+                "Cstor",
+                "Ca_ptr.t",
+                [ [ "Cstor", "Proof_obligation.t", [] ] ]
+              ]
+            ],
+            [ "res", [ "Cstor", "result", [ [ "Cstor", "success", [] ] ] ] ],
+            [ "stats", [ "Cstor", "stats", [] ] ],
+            [
+              "report",
+              [
+                "Cstor",
+                "In_mem_archive.t",
+                [ [ "Cstor", "Imandrax_api_report.Report.t", [] ] ]
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__Eval_task",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "db", [ "Cstor", "Db_ser.t", [] ] ],
+            [ "term", [ "Cstor", "Term.t", [] ] ],
+            [ "anchor", [ "Cstor", "Anchor.t", [] ] ],
+            [ "timeout", [ "Cstor", "option", [ [ "Cstor", "int", [] ] ] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__Eval_res",
+      "name": "value",
+      "params": [],
+      "decl": [ "Alias", [ "Cstor", "Value.t", [] ] ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__Eval_res",
+      "name": "stats",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [ "compile_time", [ "Cstor", "float", [] ] ],
+            [ "exec_time", [ "Cstor", "float", [] ] ]
+          ]
+        }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__Eval_res",
+      "name": "success",
+      "params": [],
+      "decl": [
+        "Record", { "fields": [ [ "v", [ "Cstor", "value", [] ] ] ] }
+      ]
+    }
+  ],
+  [
+    {
+      "path": "Imandrax_api_tasks__Eval_res",
+      "name": "t",
+      "params": [],
+      "decl": [
+        "Record",
+        {
+          "fields": [
+            [
+              "res",
+              [ "Cstor", "Error.result", [ [ "Cstor", "success", [] ] ] ]
+            ],
+            [ "stats", [ "Cstor", "stats", [] ] ]
+          ]
+        }
+      ]
+    }
+  ]
+]
