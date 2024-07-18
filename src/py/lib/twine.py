@@ -1,6 +1,7 @@
 from __future__ import annotations  # https://peps.python.org/pep-0563/
 from dataclasses import dataclass
-import struct, json
+import struct
+import json
 from typing import TypeAlias
 
 offset = int
@@ -323,5 +324,6 @@ class DictCursor(Cursor):
 def value_to_json(v: value) -> str:
     j = json.dumps(v)
     return j
+
 
 # vim:foldmethod=indent:
