@@ -2,7 +2,7 @@ from __future__ import annotations  # https://peps.python.org/pep-0563/
 from dataclasses import dataclass
 import struct
 import json
-from typing import TypeAlias
+from typing import Callable
 
 offset = int
 
@@ -172,16 +172,16 @@ class Decoder:
         off = off + 1 + n_bytes
         return DictCursor(dec=self, offset=off, num_items=len)
 
-    def get_tag(self, off: offset) -> Tag:
+    def get_tag(self, off: offset) -> Tag[offset]:
         off = self._deref(off=off)
         high, low = self.__first_byte(off=off)
         if high != 8:
             raise Error(f"expected tag, but high={high}")
         tag, n_bytes = self.__getint64(off=off, low=low)
         off = off + 1 + n_bytes
-        return Tag(tag=tag, arg=off)
+        return Tag[offset](tag=tag, arg=off)
 
-    def get_cstor(self, off: offset) -> Constructor:
+    def get_cstor(self, off: offset) -> Constructor[ArrayCursor]:
         """
         dec.get_cstor(off) returns the constructor index, and a cursor over its arguments
         """
@@ -190,12 +190,12 @@ class Decoder:
 
         if high == 10:
             idx, _ = self.__getint64(off=off, low=low)
-            return Constructor(
+            return Constructor[ArrayCursor](
                 idx=idx, args=ArrayCursor(dec=self, offset=off, num_items=0)
             )
         elif high == 11:
             idx, n_bytes = self.__getint64(off=off, low=low)
-            return Constructor(
+            return Constructor[ArrayCursor](
                 idx=idx,
                 args=ArrayCursor(dec=self, offset=off + 1 + n_bytes, num_items=1),
             )
@@ -203,12 +203,51 @@ class Decoder:
             idx, n_bytes = self.__getint64(off=off, low=low)
             off = off + 1 + n_bytes
             num_items, n_bytes = self._leb128(off=off)
-            return Constructor(
+            return Constructor[ArrayCursor](
                 idx=idx,
                 args=ArrayCursor(dec=self, offset=off + n_bytes, num_items=num_items),
             )
         else:
             raise Error(f"expected constructor (high={high})")
+
+    def shallow_value(self, off: offset) -> shallow_value:
+        """Read an arbitrary (shallow) value, non-recursively"""
+        off = self._deref(off=off)
+        high, low = self.__first_byte(off=off)
+        match high:
+            case 0:
+                if low == 2:
+                    return None
+                elif high == 0:
+                    return False
+                elif high == 1:
+                    return True
+                else:
+                    raise Error("expected true/false/None")
+            case 1 | 2:
+                return self.get_int(off=off)
+            case 3:
+                return self.get_float(off=off)
+            case 4:
+                return self.get_str(off=off)
+            case 5:
+                return self.get_bytes(off=off)
+            case 6:
+                c = self.get_array(off=off)
+                return tuple(c)
+            case 7:
+                c = self.get_dict(off=off)
+                d = dict(c)
+                return d
+            case 8:
+                return self.get_tag(off=off)
+            case 10 | 11 | 12:
+                c = self.get_cstor(off=off)
+                return Constructor(idx=c.idx, args=tuple(c.args))
+            case 15:
+                assert False
+            case _:
+                raise Error(f"invalid twine value (high={high})")
 
     def value(self, off: offset) -> value:
         """Read an arbitrary value"""
@@ -240,9 +279,12 @@ class Decoder:
                 d = {self.value(k): self.value(v) for k, v in c}
                 return d
             case 8:
-                return self.get_tag(off=off)
+                tag = self.get_tag(off=off)
+                return Tag(tag=tag.tag, arg=self.value(tag.arg))
             case 10 | 11 | 12:
-                return self.get_cstor(off=off)
+                c = self.get_cstor(off=off)
+                args: tuple[value, ...] = tuple(self.value(x) for x in c.args)
+                return Constructor(idx=c.idx, args=args)
             case 15:
                 assert False
             case _:
@@ -256,22 +298,22 @@ class Decoder:
 
 
 @dataclass(slots=True, frozen=True)
-class Tag:
+class Tag[Arg]:
     """A tagged value"""
 
     tag: int
-    arg: offset
+    arg: Arg
 
 
 @dataclass(slots=True, frozen=True)
-class Constructor:
+class Constructor[Args]:
     """A constructor for an ADT"""
 
     idx: int
-    args: ArrayCursor
+    args: Args
 
 
-value: TypeAlias = (
+type value = (
     None
     | int
     | str
@@ -279,8 +321,20 @@ value: TypeAlias = (
     | bytes
     | dict["value", "value"]
     | tuple["value", ...]
-    | Constructor
-    | Tag
+    | Constructor[tuple["value", ...]]
+    | Tag["value"]
+)
+
+type shallow_value = (
+    None
+    | int
+    | str
+    | float
+    | bytes
+    | dict[offset, offset]
+    | tuple[offset, ...]
+    | Constructor[tuple[offset, ...]]
+    | Tag[offset]
 )
 
 
@@ -319,6 +373,16 @@ class DictCursor(Cursor):
         self.offset = self.dec._skip(off=self.offset)
         self.num_items -= 1
         return off_key, off_value
+
+
+def optional[T](d: Decoder, dec_T: Callable[..., T], off: offset) -> T | None:
+    match d.shallow_value(off=off):
+        case None:
+            return None
+        case (c,):
+            return dec_T(d=d, off=c)
+        case v:
+            raise Error(f"expected optional, got {v}")
 
 
 def value_to_json(v: value) -> str:
