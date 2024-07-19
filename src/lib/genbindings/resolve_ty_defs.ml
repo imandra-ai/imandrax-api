@@ -78,6 +78,8 @@ let find_subst ~path ~subst (name : string) : string =
         name path (Path.show path0)
   in
 
+  (* FIXME: in path="imandrax_api_Model", name="Uid.t", do _not_ scrape "Uid" from prefix,
+     it has to remain *)
   let all_derived_path path : string list list =
     let rec loop = function
       | [] -> [ [] ]

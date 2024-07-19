@@ -19,11 +19,13 @@ from . import twine
 
 
 type Error = Error_Error_core
-def twine_result[T](d: twine.Decoder, off: int, dec_T: Any) -> T | Error:
+def twine_result[T](d: twine.Decoder, off: int, d0: Callable[...,T]) -> T | Error:
     match d.get_cstor(off=off):
-        case Constructor(idx=0, args=args):
-            return dec_T(d=d, off=args[0])
-        case Constructor(idx=1, args=args):
+        case twine.Constructor(idx=0, args=args):
+            args = tuple(args)
+            return d0(d=d, off=args[0])
+        case twine.Constructor(idx=1, args=args):
+            args = tuple(args)
             err = Error_Error_core_of_twine(d=d,off=args[0])
             return err
         case _:
@@ -115,10 +117,10 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
         off
     | ("Timestamp_s.t" | "Duration_s.t"), [] -> spf "d.get_float(off=%s)" off
     | "Error.result", [ x ] ->
-      spf "twine_result(d=d, off=%s, dec_T=lambda off: %s)" off
+      spf "twine_result(d=d, off=%s, d0=lambda off: %s)" off
         (of_twine_of_type_expr x ~off:"off")
     | "option", [ x ] ->
-      spf "twine.optional(d=d, off=%s, dec_T=lambda off: %s)" off
+      spf "twine.optional(d=d, off=%s, d0=lambda off: %s)" off
         (of_twine_of_type_expr ~off:"off" x)
     | "Util_twine_.Q.t", [] -> "string" (* TODO *)
     | s, [] -> spf "%s(d=d, off=%s)" (of_twine_of_ty_name s) off

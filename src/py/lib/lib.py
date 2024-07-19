@@ -8,11 +8,13 @@ from . import twine
 
 
 type Error = Error_Error_core
-def twine_result[T](d: twine.Decoder, off: int, dec_T: Any) -> T | Error:
+def twine_result[T](d: twine.Decoder, off: int, d0: Callable[...,T]) -> T | Error:
     match d.get_cstor(off=off):
-        case Constructor(idx=0, args=args):
-            return dec_T(d=d, off=args[0])
-        case Constructor(idx=1, args=args):
+        case twine.Constructor(idx=0, args=args):
+            args = tuple(args)
+            return d0(d=d, off=args[0])
+        case twine.Constructor(idx=1, args=args):
+            args = tuple(args)
             err = Error_Error_core_of_twine(d=d,off=args[0])
             return err
         case _:
@@ -41,7 +43,7 @@ class Error_Error_core_message:
 def Error_Error_core_message_of_twine(d: twine.Decoder, off: int) -> Error_Error_core_message:
     msg = d.get_str(off=off)
     data = Error_Error_core_of_twine(d=d, off=off)
-    bt = twine.optional(d=d, off=off, dec_T=lambda off: d.get_str(off=off))
+    bt = twine.optional(d=d, off=off, d0=lambda off: d.get_str(off=off))
     return Error_Error_core_message(msg=msg,data=data,bt=bt)
 
 # clique Imandrakit_error.Error_core.stack
@@ -273,9 +275,9 @@ def Ty_view_adt_row_of_twine[V_tyreg_poly_id,V_tyreg_poly_t](d: twine.Decoder, d
     decode__tyreg_poly_id = d0
     decode__tyreg_poly_t = d1
     c = decode__tyreg_poly_id(d=d,off=off)
-    labels = twine.optional(d=d, off=off, dec_T=lambda off: [decode__tyreg_poly_id(d=d,off=x) for x in d.get_array(off=off)])
+    labels = twine.optional(d=d, off=off, d0=lambda off: [decode__tyreg_poly_id(d=d,off=x) for x in d.get_array(off=off)])
     args = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=off)]
-    doc = twine.optional(d=d, off=off, dec_T=lambda off: d.get_str(off=off))
+    doc = twine.optional(d=d, off=off, d0=lambda off: d.get_str(off=off))
     return Ty_view_adt_row(c=c,labels=labels,args=args,doc=doc)
 
 # clique Imandrax_api.Ty_view.rec_row
@@ -291,7 +293,7 @@ def Ty_view_rec_row_of_twine[V_tyreg_poly_id,V_tyreg_poly_t](d: twine.Decoder, d
     decode__tyreg_poly_t = d1
     f = decode__tyreg_poly_id(d=d,off=off)
     ty = decode__tyreg_poly_t(d=d,off=off)
-    doc = twine.optional(d=d, off=off, dec_T=lambda off: d.get_str(off=off))
+    doc = twine.optional(d=d, off=off, d0=lambda off: d.get_str(off=off))
     return Ty_view_rec_row(f=f,ty=ty,doc=doc)
 
 # clique Imandrax_api.Ty_view.decl
@@ -329,7 +331,7 @@ def Ty_view_decl_Alias_of_twine[V_tyreg_poly_id,V_tyreg_poly_t,V_tyreg_poly_alia
     decode__tyreg_poly_t = d1
     decode__tyreg_poly_alias = d2
     target = decode__tyreg_poly_alias(d=d,off=args[0])
-    reexport_def = twine.optional(d=d, off=args[1], dec_T=lambda off: Ty_view_decl_of_twine(d=d,off=off,d0=(lambda off: decode__tyreg_poly_id(d=d,off=off)),d1=(lambda off: decode__tyreg_poly_t(d=d,off=off)),d2=(lambda off: decode__tyreg_poly_alias(d=d,off=off))))
+    reexport_def = twine.optional(d=d, off=args[1], d0=lambda off: Ty_view_decl_of_twine(d=d,off=off,d0=(lambda off: decode__tyreg_poly_id(d=d,off=off)),d1=(lambda off: decode__tyreg_poly_t(d=d,off=off)),d2=(lambda off: decode__tyreg_poly_alias(d=d,off=off))))
     return Ty_view_decl_Alias(target=target,reexport_def=reexport_def)
 
 
@@ -717,7 +719,7 @@ class Admission:
 
 def Admission_of_twine(d: twine.Decoder, off: int) -> Admission:
     measured_subset = [d.get_str(off=x) for x in d.get_array(off=off)]
-    measure_fun = twine.optional(d=d, off=off, dec_T=lambda off: Uid_of_twine(d=d, off=off))
+    measure_fun = twine.optional(d=d, off=off, d0=lambda off: Uid_of_twine(d=d, off=off))
     return Admission(measured_subset=measured_subset,measure_fun=measure_fun)
 
 # clique Imandrax_api_model.ty_def
@@ -836,8 +838,8 @@ def Cir_Type_def_of_twine(d: twine.Decoder, off: int) -> Cir_Type_def:
     name = Cir_Type_of_twine(d=d, off=off)
     params = [Cir_Type_var_of_twine(d=d, off=x) for x in d.get_array(off=off)]
     decl = Ty_view_decl_of_twine(d=d,off=off,d0=(lambda off: Cir_Type_of_twine(d=d, off=off)),d1=(lambda off: Cir_Type_of_twine(d=d, off=off)),d2=(lambda off: Cir_Type_of_twine(d=d, off=off)))
-    clique = twine.optional(d=d, off=off, dec_T=lambda off: Cir_Type_clique_of_twine(d=d, off=off))
-    timeout = twine.optional(d=d, off=off, dec_T=lambda off: d.get_int(off=off))
+    clique = twine.optional(d=d, off=off, d0=lambda off: Cir_Type_clique_of_twine(d=d, off=off))
+    timeout = twine.optional(d=d, off=off, d0=lambda off: d.get_int(off=off))
     return Cir_Type_def(name=name,params=params,decl=decl,clique=clique,timeout=timeout)
 
 # clique Imandrax_api_cir.With_ty.t
@@ -946,7 +948,7 @@ class Cir_Fo_pattern_view_FO_cstor[V_tyreg_poly_t]:
 
 def Cir_Fo_pattern_view_FO_cstor_of_twine[V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Fo_pattern_view_FO_cstor[V_tyreg_poly_t]:
     decode__tyreg_poly_t = d0
-    cargs = (twine.optional(d=d, off=args[0], dec_T=lambda off: Cir_Applied_symbol_of_twine(d=d, off=off)),[decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])])
+    cargs = (twine.optional(d=d, off=args[0], d0=lambda off: Cir_Applied_symbol_of_twine(d=d, off=off)),[decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])])
     return Cir_Fo_pattern_view_FO_cstor(args=cargs)
 
 @dataclass(slots=True)
@@ -958,7 +960,7 @@ class Cir_Fo_pattern_view_FO_destruct[V_tyreg_poly_t]:
 
 def Cir_Fo_pattern_view_FO_destruct_of_twine[V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Fo_pattern_view_FO_destruct[V_tyreg_poly_t]:
     decode__tyreg_poly_t = d0
-    c = twine.optional(d=d, off=args[0], dec_T=lambda off: Cir_Applied_symbol_of_twine(d=d, off=off))
+    c = twine.optional(d=d, off=args[0], d0=lambda off: Cir_Applied_symbol_of_twine(d=d, off=off))
     i = d.get_int(off=args[1])
     u = decode__tyreg_poly_t(d=d,off=args[2])
     return Cir_Fo_pattern_view_FO_destruct(c=c,i=i,u=u)
@@ -1084,7 +1086,7 @@ def Cir_Case_of_twine[V_tyreg_poly_t](d: twine.Decoder, d0=d0,off: int) -> Cir_C
     case_cstor = Cir_Applied_symbol_of_twine(d=d, off=off)
     case_vars = [Cir_Var_of_twine(d=d, off=x) for x in d.get_array(off=off)]
     case_rhs = decode__tyreg_poly_t(d=d,off=off)
-    case_labels = twine.optional(d=d, off=off, dec_T=lambda off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
+    case_labels = twine.optional(d=d, off=off, d0=lambda off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
     return Cir_Case(case_cstor=case_cstor,case_vars=case_vars,case_rhs=case_rhs,case_labels=case_labels)
 
 # clique Imandrax_api_cir.Clique.t
@@ -1113,7 +1115,7 @@ def Cir_Logic_config_of_twine(d: twine.Decoder, off: int) -> Cir_Logic_config:
     timeout = d.get_int(off=off)
     validate = d.get_bool(off=off)
     skip_proofs = d.get_bool(off=off)
-    max_induct = twine.optional(d=d, off=off, dec_T=lambda off: d.get_int(off=off))
+    max_induct = twine.optional(d=d, off=off, d0=lambda off: d.get_int(off=off))
     backchain_limit = d.get_int(off=off)
     enable_all = d.get_bool(off=off)
     induct_unroll_depth = d.get_int(off=off)
@@ -1153,7 +1155,7 @@ class Cir_Logic_config_op_Op_max_induct:
     arg: None | int
 
 def Cir_Logic_config_op_Op_max_induct_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_max_induct:
-    arg = twine.optional(d=d, off=args[0], dec_T=lambda off: d.get_int(off=off))
+    arg = twine.optional(d=d, off=args[0], d0=lambda off: d.get_int(off=off))
     return Cir_Logic_config_op_Op_max_induct(arg=arg)
 
 @dataclass(slots=True)
@@ -1336,7 +1338,7 @@ class Cir_Term_view_Construct:
 def Cir_Term_view_Construct_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Construct:
     c = Cir_Applied_symbol_of_twine(d=d, off=args[0])
     args = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=args[1])]
-    labels = twine.optional(d=d, off=args[2], dec_T=lambda off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
+    labels = twine.optional(d=d, off=args[2], d0=lambda off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
     return Cir_Term_view_Construct(c=c,args=args,labels=labels)
 
 
@@ -1408,7 +1410,7 @@ class Cir_Term_view_Record:
 
 def Cir_Term_view_Record_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Record:
     rows = [(Cir_Applied_symbol_of_twine(d=d, off=x),Cir_Term_of_twine(d=d, off=x)) for x in d.get_array(off=args[0])]
-    rest = twine.optional(d=d, off=args[1], dec_T=lambda off: Cir_Term_of_twine(d=d, off=off))
+    rest = twine.optional(d=d, off=args[1], d0=lambda off: Cir_Term_of_twine(d=d, off=off))
     return Cir_Term_view_Record(rows=rows,rest=rest)
 
 
@@ -1422,7 +1424,7 @@ class Cir_Term_view_Case:
 def Cir_Term_view_Case_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Case:
     u = Cir_Term_of_twine(d=d, off=args[0])
     cases = [Cir_Case_of_twine(d=d,off=x,d0=(lambda off: Cir_Term_of_twine(d=d, off=off))) for x in d.get_array(off=args[1])]
-    default = twine.optional(d=d, off=args[2], dec_T=lambda off: Cir_Term_of_twine(d=d, off=off))
+    default = twine.optional(d=d, off=args[2], d0=lambda off: Cir_Term_of_twine(d=d, off=off))
     return Cir_Term_view_Case(u=u,cases=cases,default=default)
 
 
@@ -1531,7 +1533,7 @@ class Cir_Hints_Induct_Functional:
 
 
 def Cir_Hints_Induct_Functional_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Hints_Induct_Functional:
-    f_name = twine.optional(d=d, off=args[0], dec_T=lambda off: Uid_of_twine(d=d, off=off))
+    f_name = twine.optional(d=d, off=args[0], d0=lambda off: Uid_of_twine(d=d, off=off))
     return Cir_Hints_Induct_Functional(f_name=f_name)
 
 
@@ -1589,7 +1591,7 @@ class Cir_Hints_Method_Unroll:
 
 
 def Cir_Hints_Method_Unroll_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Hints_Method_Unroll:
-    steps = twine.optional(d=d, off=args[0], dec_T=lambda off: d.get_int(off=off))
+    steps = twine.optional(d=d, off=args[0], d0=lambda off: d.get_int(off=off))
     return Cir_Hints_Method_Unroll(steps=steps)
 
 
@@ -1701,7 +1703,7 @@ class Cir_Fun_def_validation_strategy_VS_validate:
 
 
 def Cir_Fun_def_validation_strategy_VS_validate_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Fun_def_validation_strategy_VS_validate:
-    tactic = twine.optional(d=d, off=args[0], dec_T=lambda off: Cir_Term_of_twine(d=d, off=off))
+    tactic = twine.optional(d=d, off=args[0], d0=lambda off: Cir_Term_of_twine(d=d, off=off))
     return Cir_Fun_def_validation_strategy_VS_validate(tactic=tactic)
 
 
@@ -1744,15 +1746,15 @@ def Cir_Fun_def_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_def:
     f_ty = Cir_Type_schema_of_twine(d=d, off=off)
     f_args = [Cir_Var_of_twine(d=d, off=x) for x in d.get_array(off=off)]
     f_body = Cir_Term_of_twine(d=d, off=off)
-    f_clique = twine.optional(d=d, off=off, dec_T=lambda off: Cir_Clique_of_twine(d=d, off=off))
+    f_clique = twine.optional(d=d, off=off, d0=lambda off: Cir_Clique_of_twine(d=d, off=off))
     f_kind = Cir_Fun_def_fun_kind_of_twine(d=d, off=off)
-    f_admission = twine.optional(d=d, off=off, dec_T=lambda off: Admission_of_twine(d=d, off=off))
-    f_admission_measure = twine.optional(d=d, off=off, dec_T=lambda off: Uid_of_twine(d=d, off=off))
+    f_admission = twine.optional(d=d, off=off, d0=lambda off: Admission_of_twine(d=d, off=off))
+    f_admission_measure = twine.optional(d=d, off=off, d0=lambda off: Uid_of_twine(d=d, off=off))
     f_validate_strat = Cir_Fun_def_validation_strategy_of_twine(d=d, off=off)
-    f_hints = twine.optional(d=d, off=off, dec_T=lambda off: Cir_Hints_of_twine(d=d,off=off,d0=(lambda off: Cir_Fun_def_apply_hint_of_twine(d=d, off=off))))
+    f_hints = twine.optional(d=d, off=off, d0=lambda off: Cir_Hints_of_twine(d=d,off=off,d0=(lambda off: Cir_Fun_def_apply_hint_of_twine(d=d, off=off))))
     f_enable = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)]
     f_disable = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)]
-    f_timeout = twine.optional(d=d, off=off, dec_T=lambda off: d.get_int(off=off))
+    f_timeout = twine.optional(d=d, off=off, d0=lambda off: d.get_int(off=off))
     return Cir_Fun_def(f_name=f_name,f_ty=f_ty,f_args=f_args,f_body=f_body,f_clique=f_clique,f_kind=f_kind,f_admission=f_admission,f_admission_measure=f_admission_measure,f_validate_strat=f_validate_strat,f_hints=f_hints,f_enable=f_enable,f_disable=f_disable,f_timeout=f_timeout)
 # def Imandrax_api_cir.Fun_def.apply_hint (mangled name: "Cir_Fun_def_apply_hint")
 @dataclass(slots=True)
@@ -1867,7 +1869,7 @@ def Cir_Rewrite_rule_of_twine(d: twine.Decoder, off: int) -> Cir_Rewrite_rule:
     rw_vars = Cir_Rewrite_rule_of_twine(d=d, off=off)
     rw_triggers = [Cir_Fo_pattern_of_twine(d=d, off=x) for x in d.get_array(off=off)]
     rw_perm_restrict = d.get_bool(off=off)
-    rw_loop_break = twine.optional(d=d, off=off, dec_T=lambda off: Cir_Fo_pattern_of_twine(d=d, off=off))
+    rw_loop_break = twine.optional(d=d, off=off, d0=lambda off: Cir_Fo_pattern_of_twine(d=d, off=off))
     return Cir_Rewrite_rule(rw_name=rw_name,rw_head=rw_head,rw_lhs=rw_lhs,rw_rhs=rw_rhs,rw_guard=rw_guard,rw_vars=rw_vars,rw_triggers=rw_triggers,rw_perm_restrict=rw_perm_restrict,rw_loop_break=rw_loop_break)
 
 # clique Imandrax_api_cir.Proof_obligation.t
@@ -1887,7 +1889,7 @@ def Cir_Proof_obligation_of_twine(d: twine.Decoder, off: int) -> Cir_Proof_oblig
     tactic = Cir_Tactic_of_twine(d=d, off=off)
     is_instance = d.get_bool(off=off)
     anchor = Anchor_of_twine(d=d, off=off)
-    timeout = twine.optional(d=d, off=off, dec_T=lambda off: d.get_int(off=off))
+    timeout = twine.optional(d=d, off=off, d0=lambda off: d.get_int(off=off))
     return Cir_Proof_obligation(descr=descr,goal=goal,tactic=tactic,is_instance=is_instance,anchor=anchor,timeout=timeout)
 
 # clique Imandrax_api_cir.Model.ty_def
@@ -2612,7 +2614,7 @@ def Report_Atomic_event_poly_E_refuted_by_smt_of_twine[V_tyreg_poly_term,V_tyreg
     decode__tyreg_poly_fn = d1
     decode__tyreg_poly_var = d2
     decode__tyreg_poly_ty = d3
-    cargs = (decode__tyreg_poly_term(d=d,off=args[0]),twine.optional(d=d, off=args[1], dec_T=lambda off: Report_Atomic_event_of_twine(d=d,off=off,d0=(lambda off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda off: decode__tyreg_poly_fn(d=d,off=off)),d2=(lambda off: decode__tyreg_poly_var(d=d,off=off)),d3=(lambda off: decode__tyreg_poly_ty(d=d,off=off)))))
+    cargs = (decode__tyreg_poly_term(d=d,off=args[0]),twine.optional(d=d, off=args[1], d0=lambda off: Report_Atomic_event_of_twine(d=d,off=off,d0=(lambda off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda off: decode__tyreg_poly_fn(d=d,off=off)),d2=(lambda off: decode__tyreg_poly_var(d=d,off=off)),d3=(lambda off: decode__tyreg_poly_ty(d=d,off=off)))))
     return Report_Atomic_event_poly_E_refuted_by_smt(args=cargs)
 
 @dataclass(slots=True)
@@ -3071,7 +3073,7 @@ class Tasks_PO_res_no_proof:
 
 def Tasks_PO_res_no_proof_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_no_proof:
     err = Tasks_PO_res_of_twine(d=d, off=off)
-    counter_model = twine.optional(d=d, off=off, dec_T=lambda off: Tasks_PO_res_of_twine(d=d, off=off))
+    counter_model = twine.optional(d=d, off=off, d0=lambda off: Tasks_PO_res_of_twine(d=d, off=off))
     subgoals = [Tasks_PO_res_of_twine(d=d, off=x) for x in d.get_array(off=off)]
     return Tasks_PO_res_no_proof(err=err,counter_model=counter_model,subgoals=subgoals)
 
@@ -3210,7 +3212,7 @@ def Tasks_Eval_task_of_twine(d: twine.Decoder, off: int) -> Tasks_Eval_task:
     db = Tasks_Eval_task_of_twine(d=d, off=off)
     term = Tasks_Eval_task_of_twine(d=d, off=off)
     anchor = Tasks_Eval_task_of_twine(d=d, off=off)
-    timeout = twine.optional(d=d, off=off, dec_T=lambda off: d.get_int(off=off))
+    timeout = twine.optional(d=d, off=off, d0=lambda off: d.get_int(off=off))
     return Tasks_Eval_task(db=db,term=term,anchor=anchor,timeout=timeout)
 
 # clique Imandrax_api_tasks.Eval_res.value
@@ -3250,6 +3252,6 @@ class Tasks_Eval_res:
     stats: Tasks_Eval_res_stats
 
 def Tasks_Eval_res_of_twine(d: twine.Decoder, off: int) -> Tasks_Eval_res:
-    res = twine_result(d=d, off=off, dec_T=lambda off: Tasks_Eval_res_success_of_twine(d=d, off=off))
+    res = twine_result(d=d, off=off, d0=lambda off: Tasks_Eval_res_success_of_twine(d=d, off=off))
     stats = Tasks_Eval_res_stats_of_twine(d=d, off=off)
     return Tasks_Eval_res(res=res,stats=stats)
