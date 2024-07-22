@@ -59,7 +59,7 @@ module Top = struct
     logic_config_ops: Logic_config.op list;
     otf: bool;
   }
-  [@@deriving twine, typereg, map, eq] [@@typereg.name "t"]
+  [@@deriving twine, typereg, map, eq] [@@typereg.name "Top.t"]
   (** A hint *)
 
   open Imandrax_api

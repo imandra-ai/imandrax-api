@@ -6,7 +6,7 @@ module PH = Pattern_head
 type 'a uid_map = (Imandrax_api.Uid.t * 'a) list
 [@@deriving show, twine, typereg]
 
-type 'a ph_map = (PH.t * 'a) list [@@deriving show, twine, typereg]
+type 'a ph_map = (Pattern_head.t * 'a) list [@@deriving show, twine, typereg]
 type 'a ca_ptr = 'a Imandrax_api_ca_store.Ca_ptr.t [@@deriving twine, typereg]
 
 open struct

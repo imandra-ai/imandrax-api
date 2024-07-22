@@ -7,6 +7,7 @@ module Path = struct
   type t = string list * string
 
   let compare = Stdlib.compare
+  let append (p : string list) (self : t) : t = p @ fst self, snd self
 
   let show (self : t) =
     let path, n = self in
@@ -29,7 +30,11 @@ let names_to_exclude : Str_set.t =
       "Z.t";
       "_Z.t";
       "string";
+      "B.t";
+      "Uid.Set.t";
+      "Var_set.t";
       "int";
+      "Void.t";
       "bool";
       "list";
       "float";
@@ -38,38 +43,41 @@ let names_to_exclude : Str_set.t =
       "Timestamp_s.t";
       "Duration_s.t";
       "Error.result";
+      "Util_twine.Result.t";
       "option";
       "Util_twine_.Z.t";
       "Util_twine_.Q.t";
     ]
 
-let split_full_path (path : string) : Path.t =
+let split_any_path (path : string) : string list =
   let path = CCString.replace ~sub:"." ~by:"__" path in
-  match List.rev @@ CCString.Split.list_cpy ~by:"__" path with
+  CCString.Split.list_cpy ~by:"__" path
+
+let split_full_path (path : string) : Path.t =
+  match List.rev @@ split_any_path path with
   | [] -> [], path
   | p :: rest -> List.rev rest, p
 
-let path_of_path_name ~path (name : string) : Path.t =
+let path_of_path_name ~path (name : string) : string list * Path.t =
   if Str_set.mem name names_to_exclude then
-    [], name
+    [], ([], name)
   else if path = "" then
-    split_full_path name
+    [], split_full_path name
   else
-    split_full_path @@ spf "%s__%s" path name
+    split_any_path path, split_full_path name
 
 let path_of_def (def : TR.Ty_def.t) : Path.t =
   assert (def.path <> "");
-  path_of_path_name ~path:def.path def.name
+  let pre, path = path_of_path_name ~path:def.path def.name in
+  Path.append pre path
 
 type subst = { subst: string Path_map.t } [@@unboxed]
 
-(* TODO: list of builtins we support (option, etc.) to not warn about *)
-
 let find_subst ~path ~subst (name : string) : string =
-  let path0 = path_of_path_name ~path name in
+  let prefix0, path0 = path_of_path_name ~path name in
   if !debug then
-    Printf.eprintf "looking for %S in path=%S (path0=%s)\n" name path
-      (Path.show path0);
+    Printf.eprintf "looking for %S in path=%S (prefix0=%s, path0=%s)\n" name
+      path (show_prefix prefix0) (Path.show path0);
   let warn () =
     if Str_set.mem (snd path0) names_to_exclude then
       ()
@@ -78,9 +86,7 @@ let find_subst ~path ~subst (name : string) : string =
         name path (Path.show path0)
   in
 
-  (* FIXME: in path="imandrax_api_Model", name="Uid.t", do _not_ scrape "Uid" from prefix,
-     it has to remain *)
-  let all_derived_path path : string list list =
+  let all_derived_path path : Path.t list =
     let rec loop = function
       | [] -> [ [] ]
       | x :: tl ->
@@ -88,22 +94,21 @@ let find_subst ~path ~subst (name : string) : string =
         List.map (fun tl -> x :: tl) l @ l
     in
     loop (List.rev path)
+    |> List.map (fun pre -> Path.append (List.rev pre) path0)
   in
 
-  let path, name = path0 in
   match
     CCList.find_map
-      (fun rev_prefix ->
-        let prefix = List.rev rev_prefix in
-        if !debug then Printf.eprintf "trying %s\n%!" (Path.show (prefix, name));
-        Path_map.find_opt (prefix, name) subst.subst)
-      (all_derived_path path)
+      (fun path ->
+        if !debug then Printf.eprintf "trying %s\n%!" (Path.show path);
+        Path_map.find_opt path subst.subst)
+      (all_derived_path prefix0)
   with
   | Some r -> r
   | None ->
     warn ();
     (* just return the name *)
-    Path.to_string path0
+    Path.to_string @@ Path.append prefix0 path0
 
 let rec subst_ty ~path ~subst ty : TR.Ty_expr.t =
   let recurse ty = subst_ty ~path ~subst ty in

@@ -1,7 +1,7 @@
 (** Proof term for SMT *)
 
 type !'term t = {
-  logic: Logic_fragment.t;  (** The logic used  *)
+  logic: Imandrax_api.Logic_fragment.t;  (** The logic used  *)
   unsat_core: 'term list;  (** Subset of assumptions used in the proof *)
   expansions: 'term Expansion.t list;
       (** Set of function expansions used in the proof *)

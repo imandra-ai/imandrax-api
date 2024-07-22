@@ -10,9 +10,9 @@ and 'term item =
   | Newline
   | Sub of 'term t  (** Insert a rtext inside another *)
   | L of 'term t list  (** List of items *)
-  | Uid of Uid.t
+  | Uid of Imandrax_api.Uid.t
   | Term of 'term
-  | Sequent of 'term Sequent_poly.t
+  | Sequent of 'term Imandrax_api.Sequent_poly.t
   | Subst of ('term * 'term) list
 [@@deriving twine, typereg, map]
 

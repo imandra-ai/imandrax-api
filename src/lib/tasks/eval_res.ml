@@ -1,4 +1,4 @@
-type value = Value.t [@@deriving show, twine, typereg]
+type value = Imandrax_api_eval.Value.t [@@deriving show, twine, typereg]
 
 type stats = {
   compile_time: float; [@printer Util.pp_duration_s]

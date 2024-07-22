@@ -43,9 +43,9 @@ let () =
   Imandrakit_twine.Decode.add_cache of_twine_ref
 
 type def = {
-  name: Uid.t;
+  name: Imandrax_api.Uid.t;
   params: var list;
-  decl: (Uid.t, t, Void.t) Imandrax_api.Ty_view.decl;
+  decl: (Imandrax_api.Uid.t, t, Void.t) Imandrax_api.Ty_view.decl;
   clique: clique option;
   timeout: int option;
 }

@@ -12,7 +12,7 @@
   -open
   Imandrakit_log)
  (preprocess
-  (pps ppx_deriving.std imandrakit.twine.ppx))
+  (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
  (libraries
   containers
   iter

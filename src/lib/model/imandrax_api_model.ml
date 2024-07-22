@@ -26,7 +26,7 @@ type ('term, 'fn, 'var, 'ty) t = {
       (** Can it be entirely represented into OCaml?
         Not the case if it contains irrational reals *)
   completed: bool;  (** Indicates whether the model has been completed *)
-  ty_subst: (Uid.t * 'ty) list;
+  ty_subst: (Imandrax_api.Uid.t * 'ty) list;
       (** Types that had new ones substituted during model extraction. *)
 }
 [@@deriving show { with_path = false }, eq, map, twine, typereg]

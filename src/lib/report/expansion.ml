@@ -1,7 +1,7 @@
 (** Function expansion *)
 
 type 'term t = {
-  f_name: Uid.t;
+  f_name: Imandrax_api.Uid.t;
   lhs: 'term;  (** The function call [f t1…tn] *)
   rhs: 'term;
       (** The expansion of [f]'s body with variables replaced with [t1…tn].

@@ -19,17 +19,16 @@ from . import twine
 
 
 type Error = Error_Error_core
-def twine_result[T](d: twine.Decoder, off: int, d0: Callable[...,T]) -> T | Error:
+  def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
     match d.get_cstor(off=off):
         case twine.Constructor(idx=0, args=args):
             args = tuple(args)
             return d0(d=d, off=args[0])
         case twine.Constructor(idx=1, args=args):
             args = tuple(args)
-            err = Error_Error_core_of_twine(d=d,off=args[0])
-            return err
+            return d1(d=d, off=args[0])
         case _:
-            raise twine.Error('expected Error.result')
+            raise twine.Error('expected result')
 
   |}
 
@@ -85,6 +84,8 @@ let rec gen_type_expr (ty : tyexpr) : string =
     | "Uid.Set.t", [] -> "set[Uid]"
     | ("Timestamp_s.t" | "Duration_s.t"), [] -> "float"
     | "Error.result", [ x ] -> spf "Error | %s" (gen_type_expr x)
+    | "Util_twine.Result.t", [ x; y ] ->
+      spf "%s | %s" (gen_type_expr x) (gen_type_expr y)
     | "option", [ x ] -> spf "None | %s" (gen_type_expr x)
     | "Util_twine_.Q.t", [] -> "bytes" (* TODO *)
     | s, [] -> mangle_ty_name s
@@ -117,8 +118,15 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
         off
     | ("Timestamp_s.t" | "Duration_s.t"), [] -> spf "d.get_float(off=%s)" off
     | "Error.result", [ x ] ->
-      spf "twine_result(d=d, off=%s, d0=lambda off: %s)" off
+      spf
+        "twine_result(d=d, off=%s, d0=lambda off: %s, d1=lambda off: \
+         Error_Error_core_of_twine(d=d, off=off))"
+        off
         (of_twine_of_type_expr x ~off:"off")
+    | "Util_twine.result", [ x; y ] ->
+      spf "twine_result(d=d, off=%s, d0=lambda off: %s, d1=lambda off: %s)" off
+        (of_twine_of_type_expr x ~off:"off")
+        (of_twine_of_type_expr y ~off:"off")
     | "option", [ x ] ->
       spf "twine.optional(d=d, off=%s, d0=lambda off: %s)" off
         (of_twine_of_type_expr ~off:"off" x)
