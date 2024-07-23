@@ -23,9 +23,12 @@ check-format:
 genproto:
 	FORCE_GENPROTO=true $(DUNE) build @genproto
 
-genpython:
-	make genpython -C src/py/lib/ --debug
-	make genpython -C src/py/bindings/
+genlib:
+	#make genpython -C src/py/lib/ --debug
+	@make -s genpython -C src/py/lib/
+	@make -s genpython -C src/py/bindings/
+	@make -s genrust -C src/rust/lib/ --debug
+	#make genrust -C src/rust/
 
 build-dev:
 	$(DUNE) build @install @runtest $(DUNE_OPTS) --workspace=dune-workspace.dev

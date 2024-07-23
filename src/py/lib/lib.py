@@ -36,12 +36,12 @@ def Error_Kind_of_twine(d: twine.Decoder, off: int) -> Error_Kind:
 @dataclass(slots=True)
 class Error_Error_core_message:
     msg: str
-    data: Error_Error_core_Data
+    data: Error__Error_core_Data
     bt: None | str
 
 def Error_Error_core_message_of_twine(d: twine.Decoder, off: int) -> Error_Error_core_message:
     msg = d.get_str(off=off)
-    data = Error_Error_core_Data_of_twine(d=d, off=off)
+    data = Error__Error_core_Data_of_twine(d=d, off=off)
     bt = twine.optional(d=d, off=off, d0=lambda off: d.get_str(off=off))
     return Error_Error_core_message(msg=msg,data=data,bt=bt)
 
@@ -819,14 +819,21 @@ def Model_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyre
     ty_subst = [(Uid_of_twine(d=d, off=x),decode__tyreg_poly_ty(d=d,off=x)) for x in d.get_array(off=off)]
     return Model(tys=tys,consts=consts,funs=funs,representable=representable,completed=completed,ty_subst=ty_subst)
 
+# clique Imandrax_api_ca_store.Key.t
+# def Imandrax_api_ca_store.Key.t (mangled name: "Ca_store_Key")
+type Ca_store_Key = str
+
+def Ca_store_Key_of_twine(d: twine.Decoder, off: int) -> Ca_store_Key:
+    return d.get_str(off=off)
+
 # clique Imandrax_api_ca_store.Ca_ptr.Raw.t
 # def Imandrax_api_ca_store.Ca_ptr.Raw.t (mangled name: "Ca_store_Ca_ptr_Raw")
 @dataclass(slots=True)
 class Ca_store_Ca_ptr_Raw:
-    key: Ca_store_Ca_ptr_Key
+    key: Ca_store_Key
 
 def Ca_store_Ca_ptr_Raw_of_twine(d: twine.Decoder, off: int) -> Ca_store_Ca_ptr_Raw:
-    key = Ca_store_Ca_ptr_Key_of_twine(d=d, off=off)
+    key = Ca_store_Key_of_twine(d=d, off=off)
     return Ca_store_Ca_ptr_Raw(key=key)
 
 # clique Imandrax_api_ca_store.Ca_ptr.t
@@ -2226,12 +2233,12 @@ def Eval_Value_view_V_closure_of_twine[_V_tyreg_poly_v,_V_tyreg_poly_closure](d:
 
 @dataclass(slots=True)
 class Eval_Value_view_V_custom[_V_tyreg_poly_v,_V_tyreg_poly_closure]:
-    arg: Eval_Value_Custom_value
+    arg: Eval__Value_Custom_value
 
 def Eval_Value_view_V_custom_of_twine[_V_tyreg_poly_v,_V_tyreg_poly_closure](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_v],d1: Callable[...,_V_tyreg_poly_closure],args: tuple[int, ...]) -> Eval_Value_view_V_custom[_V_tyreg_poly_v,_V_tyreg_poly_closure]:
     decode__tyreg_poly_v = d0
     decode__tyreg_poly_closure = d1
-    arg = Eval_Value_Custom_value_of_twine(d=d, off=args[0])
+    arg = Eval__Value_Custom_value_of_twine(d=d, off=args[0])
     return Eval_Value_view_V_custom(arg=arg)
 
 @dataclass(slots=True)

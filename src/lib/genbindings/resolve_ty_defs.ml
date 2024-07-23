@@ -44,6 +44,8 @@ let names_to_exclude : Str_set.t =
       "Duration_s.t";
       "Error.result";
       "Util_twine.Result.t";
+      "Imandrakit_error__Error_core.Data.t";
+      "Imandrax_api_eval__Value.Custom_value.t";
       "option";
       "Util_twine_.Z.t";
       "Util_twine_.Q.t";
@@ -58,9 +60,20 @@ let split_full_path (path : string) : Path.t =
   | [] -> [], path
   | p :: rest -> List.rev rest, p
 
+let add_str_path_maybe ~path name : string =
+  if path = "" then
+    name
+  else
+    spf "%s.%s" path name
+
+let is_excluded name : bool = Str_set.mem name names_to_exclude
+
 let path_of_path_name ~path (name : string) : string list * Path.t =
-  if Str_set.mem name names_to_exclude then
+  let qname = add_str_path_maybe ~path name in
+  if is_excluded name then
     [], ([], name)
+  else if is_excluded qname then
+    [], ([], qname)
   else if path = "" then
     [], split_full_path name
   else
@@ -79,7 +92,7 @@ let find_subst ~path ~subst (name : string) : string =
     Printf.eprintf "looking for %S in path=%S (prefix0=%s, path0=%s)\n" name
       path (show_prefix prefix0) (Path.show path0);
   let warn () =
-    if Str_set.mem (snd path0) names_to_exclude then
+    if is_excluded name || is_excluded (add_str_path_maybe ~path name) then
       ()
     else
       Printf.eprintf "Could not find name %S in path %S (path=%s) in substs\n%!"
