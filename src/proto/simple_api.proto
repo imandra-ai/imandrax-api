@@ -6,6 +6,7 @@ package imandrax.simple;
 import "error.proto";
 import "utils.proto";
 import "session.proto";
+import "task.proto";
 
 service Simple {
   // Get server status
@@ -80,6 +81,9 @@ message EvalRes {
 
   // akin to stderr
   repeated Error errors = 3;
+
+  // all tasks started during eval
+  repeated Task tasks = 4;
 }
 
 message VerifySrcReq {
@@ -167,6 +171,9 @@ message VerifyRes {
   }
 
   repeated Error errors = 10;
+
+  // the ID of the task
+  Task task = 11;
 }
 
 message InstanceRes {
@@ -178,6 +185,9 @@ message InstanceRes {
   }
 
   repeated Error errors = 10;
+
+  // the ID of the task
+  Task task = 11;
 }
 
 message Hints {
@@ -217,3 +227,4 @@ message Hints {
 }
 
 // compat notes: no history, not reset
+// vim:foldmethod=indent:

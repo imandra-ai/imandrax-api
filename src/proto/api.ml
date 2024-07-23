@@ -1,20 +1,5 @@
 [@@@ocaml.warning "-27-30-39-44"]
 
-type task_kind =
-  | Task_unspecified 
-  | Task_eval 
-  | Task_check_po 
-  | Task_proof_check 
-
-type task_id = {
-  id : string;
-}
-
-type task = {
-  id : task_id option;
-  kind : task_kind;
-}
-
 type code_snippet = {
   session : Session.session option;
   code : string;
@@ -27,7 +12,7 @@ type eval_result =
 type code_snippet_eval_result = {
   res : eval_result;
   duration_s : float;
-  tasks : task list;
+  tasks : Task.task list;
   errors : Error.error list;
 }
 
@@ -36,7 +21,7 @@ type parse_query = {
 }
 
 type artifact_list_query = {
-  task_id : task_id option;
+  task_id : Task.task_id option;
 }
 
 type artifact_list_result = {
@@ -44,28 +29,12 @@ type artifact_list_result = {
 }
 
 type artifact_get_query = {
-  task_id : task_id option;
+  task_id : Task.task_id option;
   kind : string;
 }
 
 type artifact = {
   art : Artmsg.art option;
-}
-
-let rec default_task_kind () = (Task_unspecified:task_kind)
-
-let rec default_task_id 
-  ?id:((id:string) = "")
-  () : task_id  = {
-  id;
-}
-
-let rec default_task 
-  ?id:((id:task_id option) = None)
-  ?kind:((kind:task_kind) = default_task_kind ())
-  () : task  = {
-  id;
-  kind;
 }
 
 let rec default_code_snippet 
@@ -81,7 +50,7 @@ let rec default_eval_result () = (Eval_ok:eval_result)
 let rec default_code_snippet_eval_result 
   ?res:((res:eval_result) = default_eval_result ())
   ?duration_s:((duration_s:float) = 0.)
-  ?tasks:((tasks:task list) = [])
+  ?tasks:((tasks:Task.task list) = [])
   ?errors:((errors:Error.error list) = [])
   () : code_snippet_eval_result  = {
   res;
@@ -97,7 +66,7 @@ let rec default_parse_query
 }
 
 let rec default_artifact_list_query 
-  ?task_id:((task_id:task_id option) = None)
+  ?task_id:((task_id:Task.task_id option) = None)
   () : artifact_list_query  = {
   task_id;
 }
@@ -109,7 +78,7 @@ let rec default_artifact_list_result
 }
 
 let rec default_artifact_get_query 
-  ?task_id:((task_id:task_id option) = None)
+  ?task_id:((task_id:Task.task_id option) = None)
   ?kind:((kind:string) = "")
   () : artifact_get_query  = {
   task_id;
@@ -120,24 +89,6 @@ let rec default_artifact
   ?art:((art:Artmsg.art option) = None)
   () : artifact  = {
   art;
-}
-
-type task_id_mutable = {
-  mutable id : string;
-}
-
-let default_task_id_mutable () : task_id_mutable = {
-  id = "";
-}
-
-type task_mutable = {
-  mutable id : task_id option;
-  mutable kind : task_kind;
-}
-
-let default_task_mutable () : task_mutable = {
-  id = None;
-  kind = default_task_kind ();
 }
 
 type code_snippet_mutable = {
@@ -153,7 +104,7 @@ let default_code_snippet_mutable () : code_snippet_mutable = {
 type code_snippet_eval_result_mutable = {
   mutable res : eval_result;
   mutable duration_s : float;
-  mutable tasks : task list;
+  mutable tasks : Task.task list;
   mutable errors : Error.error list;
 }
 
@@ -173,7 +124,7 @@ let default_parse_query_mutable () : parse_query_mutable = {
 }
 
 type artifact_list_query_mutable = {
-  mutable task_id : task_id option;
+  mutable task_id : Task.task_id option;
 }
 
 let default_artifact_list_query_mutable () : artifact_list_query_mutable = {
@@ -189,7 +140,7 @@ let default_artifact_list_result_mutable () : artifact_list_result_mutable = {
 }
 
 type artifact_get_query_mutable = {
-  mutable task_id : task_id option;
+  mutable task_id : Task.task_id option;
   mutable kind : string;
 }
 
@@ -209,21 +160,6 @@ let default_artifact_mutable () : artifact_mutable = {
 
 (** {2 Make functions} *)
 
-
-let rec make_task_id 
-  ~(id:string)
-  () : task_id  = {
-  id;
-}
-
-let rec make_task 
-  ?id:((id:task_id option) = None)
-  ~(kind:task_kind)
-  () : task  = {
-  id;
-  kind;
-}
-
 let rec make_code_snippet 
   ?session:((session:Session.session option) = None)
   ~(code:string)
@@ -236,7 +172,7 @@ let rec make_code_snippet
 let rec make_code_snippet_eval_result 
   ~(res:eval_result)
   ~(duration_s:float)
-  ~(tasks:task list)
+  ~(tasks:Task.task list)
   ~(errors:Error.error list)
   () : code_snippet_eval_result  = {
   res;
@@ -252,7 +188,7 @@ let rec make_parse_query
 }
 
 let rec make_artifact_list_query 
-  ?task_id:((task_id:task_id option) = None)
+  ?task_id:((task_id:Task.task_id option) = None)
   () : artifact_list_query  = {
   task_id;
 }
@@ -264,7 +200,7 @@ let rec make_artifact_list_result
 }
 
 let rec make_artifact_get_query 
-  ?task_id:((task_id:task_id option) = None)
+  ?task_id:((task_id:Task.task_id option) = None)
   ~(kind:string)
   () : artifact_get_query  = {
   task_id;
@@ -280,26 +216,6 @@ let rec make_artifact
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Formatters} *)
-
-let rec pp_task_kind fmt (v:task_kind) =
-  match v with
-  | Task_unspecified -> Format.fprintf fmt "Task_unspecified"
-  | Task_eval -> Format.fprintf fmt "Task_eval"
-  | Task_check_po -> Format.fprintf fmt "Task_check_po"
-  | Task_proof_check -> Format.fprintf fmt "Task_proof_check"
-
-let rec pp_task_id fmt (v:task_id) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_string fmt v.id;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_task fmt (v:task) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "id" (Pbrt.Pp.pp_option pp_task_id) fmt v.id;
-    Pbrt.Pp.pp_record_field ~first:false "kind" pp_task_kind fmt v.kind;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
 
 let rec pp_code_snippet fmt (v:code_snippet) = 
   let pp_i fmt () =
@@ -317,7 +233,7 @@ let rec pp_code_snippet_eval_result fmt (v:code_snippet_eval_result) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "res" pp_eval_result fmt v.res;
     Pbrt.Pp.pp_record_field ~first:false "duration_s" Pbrt.Pp.pp_float fmt v.duration_s;
-    Pbrt.Pp.pp_record_field ~first:false "tasks" (Pbrt.Pp.pp_list pp_task) fmt v.tasks;
+    Pbrt.Pp.pp_record_field ~first:false "tasks" (Pbrt.Pp.pp_list Task.pp_task) fmt v.tasks;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
@@ -330,7 +246,7 @@ let rec pp_parse_query fmt (v:parse_query) =
 
 let rec pp_artifact_list_query fmt (v:artifact_list_query) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option pp_task_id) fmt v.task_id;
+    Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option Task.pp_task_id) fmt v.task_id;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -342,7 +258,7 @@ let rec pp_artifact_list_result fmt (v:artifact_list_result) =
 
 let rec pp_artifact_get_query fmt (v:artifact_get_query) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option pp_task_id) fmt v.task_id;
+    Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option Task.pp_task_id) fmt v.task_id;
     Pbrt.Pp.pp_record_field ~first:false "kind" Pbrt.Pp.pp_string fmt v.kind;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
@@ -356,29 +272,6 @@ let rec pp_artifact fmt (v:artifact) =
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Protobuf Encoding} *)
-
-let rec encode_pb_task_kind (v:task_kind) encoder =
-  match v with
-  | Task_unspecified -> Pbrt.Encoder.int_as_varint (0) encoder
-  | Task_eval -> Pbrt.Encoder.int_as_varint 1 encoder
-  | Task_check_po -> Pbrt.Encoder.int_as_varint 2 encoder
-  | Task_proof_check -> Pbrt.Encoder.int_as_varint 3 encoder
-
-let rec encode_pb_task_id (v:task_id) encoder = 
-  Pbrt.Encoder.string v.id encoder;
-  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  ()
-
-let rec encode_pb_task (v:task) encoder = 
-  begin match v.id with
-  | Some x -> 
-    Pbrt.Encoder.nested encode_pb_task_id x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  encode_pb_task_kind v.kind encoder;
-  Pbrt.Encoder.key 2 Pbrt.Varint encoder; 
-  ()
 
 let rec encode_pb_code_snippet (v:code_snippet) encoder = 
   begin match v.session with
@@ -402,7 +295,7 @@ let rec encode_pb_code_snippet_eval_result (v:code_snippet_eval_result) encoder 
   Pbrt.Encoder.float_as_bits32 v.duration_s encoder;
   Pbrt.Encoder.key 3 Pbrt.Bits32 encoder; 
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested encode_pb_task x encoder;
+    Pbrt.Encoder.nested Task.encode_pb_task x encoder;
     Pbrt.Encoder.key 9 Pbrt.Bytes encoder; 
   ) v.tasks encoder;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
@@ -419,7 +312,7 @@ let rec encode_pb_parse_query (v:parse_query) encoder =
 let rec encode_pb_artifact_list_query (v:artifact_list_query) encoder = 
   begin match v.task_id with
   | Some x -> 
-    Pbrt.Encoder.nested encode_pb_task_id x encoder;
+    Pbrt.Encoder.nested Task.encode_pb_task_id x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | None -> ();
   end;
@@ -435,7 +328,7 @@ let rec encode_pb_artifact_list_result (v:artifact_list_result) encoder =
 let rec encode_pb_artifact_get_query (v:artifact_get_query) encoder = 
   begin match v.task_id with
   | Some x -> 
-    Pbrt.Encoder.nested encode_pb_task_id x encoder;
+    Pbrt.Encoder.nested Task.encode_pb_task_id x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | None -> ();
   end;
@@ -455,56 +348,6 @@ let rec encode_pb_artifact (v:artifact) encoder =
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Protobuf Decoding} *)
-
-let rec decode_pb_task_kind d = 
-  match Pbrt.Decoder.int_as_varint d with
-  | 0 -> (Task_unspecified:task_kind)
-  | 1 -> (Task_eval:task_kind)
-  | 2 -> (Task_check_po:task_kind)
-  | 3 -> (Task_proof_check:task_kind)
-  | _ -> Pbrt.Decoder.malformed_variant "task_kind"
-
-let rec decode_pb_task_id d =
-  let v = default_task_id_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.id <- Pbrt.Decoder.string d;
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(task_id), field(1)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    id = v.id;
-  } : task_id)
-
-let rec decode_pb_task d =
-  let v = default_task_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.id <- Some (decode_pb_task_id (Pbrt.Decoder.nested d));
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(task), field(1)" pk
-    | Some (2, Pbrt.Varint) -> begin
-      v.kind <- decode_pb_task_kind d;
-    end
-    | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(task), field(2)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    id = v.id;
-    kind = v.kind;
-  } : task)
 
 let rec decode_pb_code_snippet d =
   let v = default_code_snippet_mutable () in
@@ -556,7 +399,7 @@ let rec decode_pb_code_snippet_eval_result d =
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(code_snippet_eval_result), field(3)" pk
     | Some (9, Pbrt.Bytes) -> begin
-      v.tasks <- (decode_pb_task (Pbrt.Decoder.nested d)) :: v.tasks;
+      v.tasks <- (Task.decode_pb_task (Pbrt.Decoder.nested d)) :: v.tasks;
     end
     | Some (9, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(code_snippet_eval_result), field(9)" pk
@@ -600,7 +443,7 @@ let rec decode_pb_artifact_list_query d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.task_id <- Some (decode_pb_task_id (Pbrt.Decoder.nested d));
+      v.task_id <- Some (Task.decode_pb_task_id (Pbrt.Decoder.nested d));
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(artifact_list_query), field(1)" pk
@@ -637,7 +480,7 @@ let rec decode_pb_artifact_get_query d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.task_id <- Some (decode_pb_task_id (Pbrt.Decoder.nested d));
+      v.task_id <- Some (Task.decode_pb_task_id (Pbrt.Decoder.nested d));
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(artifact_get_query), field(1)" pk
@@ -675,27 +518,6 @@ let rec decode_pb_artifact d =
 
 (** {2 Protobuf YoJson Encoding} *)
 
-let rec encode_json_task_kind (v:task_kind) = 
-  match v with
-  | Task_unspecified -> `String "TASK_UNSPECIFIED"
-  | Task_eval -> `String "TASK_EVAL"
-  | Task_check_po -> `String "TASK_CHECK_PO"
-  | Task_proof_check -> `String "TASK_PROOF_CHECK"
-
-let rec encode_json_task_id (v:task_id) = 
-  let assoc = [] in 
-  let assoc = ("id", Pbrt_yojson.make_string v.id) :: assoc in
-  `Assoc assoc
-
-let rec encode_json_task (v:task) = 
-  let assoc = [] in 
-  let assoc = match v.id with
-    | None -> assoc
-    | Some v -> ("id", encode_json_task_id v) :: assoc
-  in
-  let assoc = ("kind", encode_json_task_kind v.kind) :: assoc in
-  `Assoc assoc
-
 let rec encode_json_code_snippet (v:code_snippet) = 
   let assoc = [] in 
   let assoc = match v.session with
@@ -715,7 +537,7 @@ let rec encode_json_code_snippet_eval_result (v:code_snippet_eval_result) =
   let assoc = ("res", encode_json_eval_result v.res) :: assoc in
   let assoc = ("durationS", Pbrt_yojson.make_float v.duration_s) :: assoc in
   let assoc =
-    let l = v.tasks |> List.map encode_json_task in
+    let l = v.tasks |> List.map Task.encode_json_task in
     ("tasks", `List l) :: assoc 
   in
   let assoc =
@@ -733,7 +555,7 @@ let rec encode_json_artifact_list_query (v:artifact_list_query) =
   let assoc = [] in 
   let assoc = match v.task_id with
     | None -> assoc
-    | Some v -> ("taskId", encode_json_task_id v) :: assoc
+    | Some v -> ("taskId", Task.encode_json_task_id v) :: assoc
   in
   `Assoc assoc
 
@@ -749,7 +571,7 @@ let rec encode_json_artifact_get_query (v:artifact_get_query) =
   let assoc = [] in 
   let assoc = match v.task_id with
     | None -> assoc
-    | Some v -> ("taskId", encode_json_task_id v) :: assoc
+    | Some v -> ("taskId", Task.encode_json_task_id v) :: assoc
   in
   let assoc = ("kind", Pbrt_yojson.make_string v.kind) :: assoc in
   `Assoc assoc
@@ -765,49 +587,6 @@ let rec encode_json_artifact (v:artifact) =
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 JSON Decoding} *)
-
-let rec decode_json_task_kind json =
-  match json with
-  | `String "TASK_UNSPECIFIED" -> (Task_unspecified : task_kind)
-  | `String "TASK_EVAL" -> (Task_eval : task_kind)
-  | `String "TASK_CHECK_PO" -> (Task_check_po : task_kind)
-  | `String "TASK_PROOF_CHECK" -> (Task_proof_check : task_kind)
-  | _ -> Pbrt_yojson.E.malformed_variant "task_kind"
-
-let rec decode_json_task_id d =
-  let v = default_task_id_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("id", json_value) -> 
-      v.id <- Pbrt_yojson.string json_value "task_id" "id"
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    id = v.id;
-  } : task_id)
-
-let rec decode_json_task d =
-  let v = default_task_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("id", json_value) -> 
-      v.id <- Some ((decode_json_task_id json_value))
-    | ("kind", json_value) -> 
-      v.kind <- (decode_json_task_kind json_value)
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    id = v.id;
-    kind = v.kind;
-  } : task)
 
 let rec decode_json_code_snippet d =
   let v = default_code_snippet_mutable () in
@@ -847,7 +626,7 @@ let rec decode_json_code_snippet_eval_result d =
       v.duration_s <- Pbrt_yojson.float json_value "code_snippet_eval_result" "duration_s"
     | ("tasks", `List l) -> begin
       v.tasks <- List.map (function
-        | json_value -> (decode_json_task json_value)
+        | json_value -> (Task.decode_json_task json_value)
       ) l;
     end
     | ("errors", `List l) -> begin
@@ -889,7 +668,7 @@ let rec decode_json_artifact_list_query d =
   in
   List.iter (function 
     | ("taskId", json_value) -> 
-      v.task_id <- Some ((decode_json_task_id json_value))
+      v.task_id <- Some ((Task.decode_json_task_id json_value))
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -924,7 +703,7 @@ let rec decode_json_artifact_get_query d =
   in
   List.iter (function 
     | ("taskId", json_value) -> 
-      v.task_id <- Some ((decode_json_task_id json_value))
+      v.task_id <- Some ((Task.decode_json_task_id json_value))
     | ("kind", json_value) -> 
       v.kind <- Pbrt_yojson.string json_value "artifact_get_query" "kind"
     

@@ -35,6 +35,7 @@ type eval_res = {
   success : bool;
   messages : string list;
   errors : Error.error list;
+  tasks : Task.task list;
 }
 
 type hints_unroll = {
@@ -123,6 +124,7 @@ type verify_res_res =
 and verify_res = {
   res : verify_res_res;
   errors : Error.error list;
+  task : Task.task option;
 }
 
 type instance_res_res =
@@ -134,6 +136,7 @@ type instance_res_res =
 and instance_res = {
   res : instance_res_res;
   errors : Error.error list;
+  task : Task.task option;
 }
 
 
@@ -175,6 +178,7 @@ val default_eval_res :
   ?success:bool ->
   ?messages:string list ->
   ?errors:Error.error list ->
+  ?tasks:Task.task list ->
   unit ->
   eval_res
 (** [default_eval_res ()] is the default value for type [eval_res] *)
@@ -280,6 +284,7 @@ val default_verify_res_res : unit -> verify_res_res
 val default_verify_res : 
   ?res:verify_res_res ->
   ?errors:Error.error list ->
+  ?task:Task.task option ->
   unit ->
   verify_res
 (** [default_verify_res ()] is the default value for type [verify_res] *)
@@ -290,6 +295,7 @@ val default_instance_res_res : unit -> instance_res_res
 val default_instance_res : 
   ?res:instance_res_res ->
   ?errors:Error.error list ->
+  ?task:Task.task option ->
   unit ->
   instance_res
 (** [default_instance_res ()] is the default value for type [instance_res] *)
@@ -333,6 +339,7 @@ val make_eval_res :
   success:bool ->
   messages:string list ->
   errors:Error.error list ->
+  tasks:Task.task list ->
   unit ->
   eval_res
 (** [make_eval_res … ()] is a builder for type [eval_res] *)
@@ -428,6 +435,7 @@ val make_sat :
 val make_verify_res : 
   res:verify_res_res ->
   errors:Error.error list ->
+  ?task:Task.task option ->
   unit ->
   verify_res
 (** [make_verify_res … ()] is a builder for type [verify_res] *)
@@ -436,6 +444,7 @@ val make_verify_res :
 val make_instance_res : 
   res:instance_res_res ->
   errors:Error.error list ->
+  ?task:Task.task option ->
   unit ->
   instance_res
 (** [make_instance_res … ()] is a builder for type [instance_res] *)

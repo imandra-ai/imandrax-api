@@ -1,0 +1,20 @@
+
+syntax = "proto3";
+
+enum TaskKind {
+  TASK_UNSPECIFIED = 0;
+  TASK_EVAL = 1;
+  TASK_CHECK_PO = 2;
+  TASK_PROOF_CHECK = 3;
+}
+
+message TaskID {
+  // The task identifier.
+  string id = 1;
+}
+
+message Task {
+  TaskID id = 1;
+  TaskKind kind = 2;
+}
+
