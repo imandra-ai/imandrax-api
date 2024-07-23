@@ -70,7 +70,7 @@ let mangle_cstor_name ~tyname (c : TR.Ty_def.cstor) : string =
 let rec gen_type_expr (ty : tyexpr) : string =
   match ty with
   | Arrow (_, _, _) -> assert false
-  | Var s -> spf "%S" @@ spf "V%s" s
+  | Var s -> spf "%S" @@ spf "_V%s" s
   | Tuple l -> spf "tuple[%s]" (String.concat "," @@ List.map gen_type_expr l)
   | Cstor (s, args) ->
     (match s, args with
@@ -130,7 +130,8 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
     | "option", [ x ] ->
       spf "twine.optional(d=d, off=%s, d0=lambda off: %s)" off
         (of_twine_of_type_expr ~off:"off" x)
-    | "Util_twine_.Q.t", [] -> "string" (* TODO *)
+    | "Util_twine_.Q.t", [] ->
+      "string" (* TODO: add a decode_q function in prelude, use it *)
     | s, [] -> spf "%s(d=d, off=%s)" (of_twine_of_ty_name s) off
     | _ ->
       let args =
@@ -177,12 +178,12 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
       | [] -> "", "", [], ""
       | _ ->
         let params =
-          spf "[%s]" (String.concat "," @@ List.map (spf "V%s") def.params)
+          spf "[%s]" (String.concat "," @@ List.map (spf "_V%s") def.params)
         and twine_params =
           spf "%s,"
             (String.concat ","
             @@ List.mapi
-                 (fun i v -> spf "d%d: Callable[...,V%s]" i v)
+                 (fun i v -> spf "d%d: Callable[...,_V%s]" i v)
                  def.params)
         and params_decls =
           List.mapi (fun i v -> spf "decode_%s = d%d" v i) def.params
@@ -200,7 +201,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
         bpf buf "type %s%s = %s\n\n" pyname pyparams (gen_type_expr ty);
         bpf buf "def %s(d: twine.Decoder, %soff: int) -> %s:\n"
           (of_twine_of_ty_name def.name)
-          pytwine_params_kw pyname;
+          pytwine_params pyname;
         List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
         bpf buf "    return %s\n" (of_twine_of_type_expr ty ~off:"off")
       | Record r ->
@@ -213,7 +214,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
         bpf buf "\n";
 
         bpf buf "def %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s:\n"
-          pyname pyparams pytwine_params_kw pyname;
+          pyname pyparams pytwine_params pyname;
         List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
         List.iter
           (fun (field, ty) ->
