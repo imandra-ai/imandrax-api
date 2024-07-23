@@ -155,7 +155,8 @@
     (imandrax-api-client (= :version))
     (imandrax-api-client-ezcurl (= :version))
     (trace (>= 0.6))
-    ppx_deriving))
+    ppx_deriving
+    (down (>= 0.3.0))))
 
 (package
   (name imandrax-api-cli)

@@ -10,6 +10,7 @@
  (deps
   (:file api.proto))
  (mode promote)
+ (enabled_if %{env:FORCE_GENPROTO=false})
  (action
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
 
@@ -19,6 +20,7 @@
  (deps
   (:file error.proto))
  (mode promote)
+ (enabled_if %{env:FORCE_GENPROTO=false})
  (action
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
 
@@ -28,6 +30,7 @@
  (deps
   (:file session.proto))
  (mode promote)
+ (enabled_if %{env:FORCE_GENPROTO=false})
  (action
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
 
@@ -37,6 +40,7 @@
  (deps
   (:file system.proto))
  (mode promote)
+ (enabled_if %{env:FORCE_GENPROTO=false})
  (action
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
 
@@ -46,15 +50,7 @@
  (deps
   (:file locs.proto))
  (mode promote)
- (action
-  (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
-
-(rule
- (alias genproto)
- (targets task.ml task.mli)
- (deps
-  (:file task.proto))
- (mode promote)
+ (enabled_if %{env:FORCE_GENPROTO=false})
  (action
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
 
@@ -64,6 +60,7 @@
  (deps
   (:file utils.proto))
  (mode promote)
+ (enabled_if %{env:FORCE_GENPROTO=false})
  (action
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
 
@@ -73,5 +70,6 @@
  (deps
   (:file simple_api.proto))
  (mode promote)
+ (enabled_if %{env:FORCE_GENPROTO=false})
  (action
   (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))

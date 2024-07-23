@@ -21,7 +21,7 @@ check-format:
 	$(DUNE) build $(DUNE_OPTS) @fmt --ignore-promoted-rules
 
 genproto:
-	$(DUNE) build @genproto
+	FORCE_GENPROTO=true $(DUNE) build @genproto
 
 genpython:
 	make genpython -C src/py/lib/ --debug

@@ -93,11 +93,11 @@ module System = struct
     v.git_version
 end
 
-type task_id = Client.API.task_id [@@deriving show { with_path = false }]
+type task_id = Imandrax_api_proto__Task.task_id [@@deriving show { with_path = false }]
 
 type task = {
   id: task_id;
-  kind: Client.API.task_kind;
+  kind: Imandrax_api_proto__Task.task_kind;
 }
 [@@deriving show { with_path = false }]
 
@@ -122,7 +122,7 @@ module Eval = struct
     let tasks =
       List.map
         (function
-          | { Client.API.id = Some id; kind } -> { id; kind }
+          | { Imandrax_api_proto__Task.id = Some id; kind } -> { id; kind }
           | _ ->
             Error.fail ~kind:Error_kinds.rpcError "task does not have an ID")
         r.tasks
@@ -134,7 +134,7 @@ module Eval = struct
     let kind_as_str = Artifact.kind_to_string kind in
     let* r =
       Client.Artifact.get_artifact ?timeout_s client ~kind:kind_as_str
-        (Client.API.make_task_id ~id:task.id ())
+        (Imandrax_api_proto__Task.make_task_id ~id:task.id ())
     in
     match r.art with
     | None -> Error.fail ~kind:Error_kinds.rpcError "missing artifact"
