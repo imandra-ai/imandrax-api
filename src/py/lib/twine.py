@@ -375,12 +375,12 @@ class DictCursor(Cursor):
         return off_key, off_value
 
 
-def optional[T](d: Decoder, dec_T: Callable[..., T], off: offset) -> T | None:
+def optional[T](d: Decoder, d0: Callable[..., T], off: offset) -> T | None:
     match d.shallow_value(off=off):
         case None:
             return None
         case (c,):
-            return dec_T(d=d, off=c)
+            return d0(d=d, off=c)
         case v:
             raise Error(f"expected optional, got {v}")
 
