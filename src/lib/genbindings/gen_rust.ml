@@ -12,13 +12,13 @@ let prelude =
   {|
 // automatically generated using genbindings.ml, do not edit
 
-#![rustfmt::skip]
 #![allow(non_camel_case_types)]
+#[rustfmt::skip]
 
-use bumpalo::Bump;
+//use bumpalo::Bump;
 use num_bigint::BigInt;
-use std::collections::HashSet;
-use anyhow::bail;
+use num_rational::BigRational as Rational;
+//use anyhow::bail;
 
 // TODO: pub trait FromTwine { … }
 
@@ -26,17 +26,43 @@ use anyhow::bail;
 #[derive(Clone,Copy,Debug)]
 pub struct Ignored;
 
-pub type Error = ErrorError_core;
+pub type Error<'a> = ErrorError_core<'a>;
+
+#[derive(Debug, Clone)]
+pub enum Void {}
+
+pub type UidSet<'a> = [Uid<'a>];
+pub type Var_set<'a> = UidSet<'a>;
+
+// def Uid_set_of_twine(d, off:int) -> UidSet:
+//      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off)) 
+
+#[derive(Debug, Clone)]
+pub struct Chash<'a>(pub &'a [u8]);
+
+//fn Chash_of_twine(d, off: usize) -> Chash {
+//    d.get_bytes(off)
+//}
   |}
 
-(* TODO: B.t for the bitfield *)
-
 (* TODO:
-   - keep map of names to python names (replace . with _, capitalize, etc.)
-   - map cliques
-   - assume twine exists (!)
-   - implement small twine library
+   - find which types are immediate, in advance (build a set of them).
+       that includes some the special primitives below (bool, f64, etc.)
+       as well as nullary struct, true enums, etc.
+
+       we must carry around some state with all the immediate types in it, because we
+       need that info even deep in a typeexpr.
+   - a struct/enum gets a 'a lifetime if >= 1 argument/cstor is not immediate
+   - non immediate types in fields/cstors are stored via &'a (which takes care of
+    recursive types)
+
+   - ALSO: expand aliases eagerly, so we don't have to worry about phantom types in aliases.
+   - for structs we might need phantom markers in a few places
 *)
+
+module State = struct
+  type t = { immediate_types: Str_set.t } [@@deriving make]
+end
 
 let mangle_ty_name (s : string) : string =
   let s =
@@ -66,36 +92,85 @@ let mangle_cstor_name_def (c : TR.Ty_def.cstor) : string =
 let mangle_cstor_name_use ~tyname (c : TR.Ty_def.cstor) : string =
   spf "%s::%s" (mangle_ty_name tyname) (String.capitalize_ascii c.c)
 
-let rec gen_type_expr (ty : tyexpr) : string =
+type special_type = string * int * bool * (string list -> string)
+
+let special_types : special_type Str_map.t =
+  let mk0 name imm c = name, 0, imm, Fun.const c in
+  let mk1 name imm c =
+    ( name,
+      1,
+      imm,
+      function
+      | [ x ] -> c x
+      | _ -> assert false )
+  in
+  let mk2 name imm c =
+    ( name,
+      2,
+      imm,
+      function
+      | [ x; y ] -> c x y
+      | _ -> assert false )
+  in
+  [
+    mk0 "int" true "BigInt";
+    mk0 "Util_twine_.Z.t" true "BigInt";
+    mk0 "Z.t" true "BigInt";
+    mk0 "_Z.t" true "BigInt";
+    mk0 "string" false "&'a str";
+    mk0 "bool" true "bool";
+    mk1 "array" false (spf "&'a [%s]");
+    mk1 "list" false (spf "&'a [%s]");
+    mk0 "Imandrax_api.Uid_set.t" false "&'a UidSet<'a>";
+    mk0 "Imandrax_api.Chash.t" false "Chash<'a>";
+    mk0 "float" true "f64";
+    mk0 "unit" true "()";
+    mk0 "B.t" true "usize" (* bllbll bitfield *);
+    mk0 "Imandrakit_error__Error_core.Data.t" true
+      "Ignored /* data */" (* just skip *);
+    mk0 "Imandrax_api_eval__Value.Custom_value.t" true
+      "Ignored /* custom value */" (* just skip *);
+    mk0 "Uid.Set.t" false "&'a UidSet<'a>";
+    mk0 "Timestamp_s.t" true "f64";
+    mk0 "Duration_s.t" true "f64";
+    mk1 "Error.result" false (spf "&'a core::result::Result<%s,Error<'a>>");
+    mk2 "Util_twine.Result.t" false (spf "&'a core::result::Result<%s, %s>");
+    mk1 "option" true (spf "Option<%s>");
+    mk0 "Void.t" true "Void";
+    mk0 "Util_twine_.Q.t" true "Rational";
+  ]
+  |> List.map (fun ((name, _, _, _) as r) -> name, r)
+  |> Str_map.of_list
+
+let rec gen_type_expr (self : State.t) (ty : tyexpr) : string =
+  let gen_type_expr = gen_type_expr self in
   match ty with
   | Arrow (_, _, _) -> assert false
   | Var s -> spf "V%s" s
   | Tuple l -> spf "(%s)" (String.concat "," @@ List.map gen_type_expr l)
   | Cstor (s, args) ->
-    (match s, args with
-    | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] -> "BigInt"
-    | "string", [] -> "String"
-    | "bool", [] -> "bool"
-    | "array", [ x ] | "list", [ x ] -> spf "Vec<%s>" (gen_type_expr x)
-    | "float", [] -> "f64"
-    | "unit", [] -> "()"
-    | "B.t", [] -> "usize" (* bllbll bitfield *)
-    | "Imandrakit_error__Error_core.Data.t", [] ->
-      "Ignored /* data */" (* just skip *)
-    | "Imandrax_eval__Value.Custom_value.t", [] ->
-      "Ignored /* custom value */" (* just skip *)
-    | "Uid.Set.t", [] -> "HashSet<Uid>"
-    | ("Timestamp_s.t" | "Duration_s.t"), [] -> "f64"
-    | "Error.result", [ x ] ->
-      spf "core::result::Result<%s,Error>" (gen_type_expr x)
-    | "Util_twine.Result.t", [ x; y ] ->
-      spf "core::result::Result<%s, %s>" (gen_type_expr x) (gen_type_expr y)
-    | "option", [ x ] -> spf "Option<%s>" (gen_type_expr x)
-    | "Util_twine_.Q.t", [] -> "Vec<u8>" (* TODO *)
-    | s, [] -> spf "%s" (mangle_ty_name s)
-    | _ ->
-      spf "%s<%s>" (mangle_ty_name s)
-        (String.concat "," @@ List.map gen_type_expr args))
+    let is_immediate = Str_set.mem s self.immediate_types in
+    let lifetime_param =
+      if is_immediate then
+        []
+      else
+        [ "'a" ]
+    in
+    (match Str_map.find s special_types with
+    | _name, arity, _imm, mk ->
+      assert (arity = List.length args);
+      let args = List.map gen_type_expr args in
+      mk args
+    | exception Not_found ->
+      (match args with
+      | [] when is_immediate -> spf "%s" (mangle_ty_name s)
+      | [] -> spf "&'a %s<'a>" (mangle_ty_name s)
+      | _ when is_immediate ->
+        spf "&'a %s<%s>" (mangle_ty_name s)
+          (String.concat "," @@ List.map gen_type_expr args)
+      | _ ->
+        spf "&'a %s<%s>" (mangle_ty_name s)
+          (String.concat "," @@ lifetime_param @ List.map gen_type_expr args)))
 
 let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
   match ty with
@@ -151,28 +226,26 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
 let skip_clique (clique : tydef list) =
   List.exists (fun (d : tydef) -> CCString.mem d.name ~sub:"Util_twine.") clique
 
-let special_defs =
-  [
-    ( "Imandrax_api.Uid_set.t",
-      {|pub type Uid_set = HashSet<Uid>;
+let rec is_immediate_ty ~immediate_types (ty : tyexpr) : bool =
+  let recurse = is_immediate_ty ~immediate_types in
+  match ty with
+  | Cstor (s, args) ->
+    Str_set.mem s immediate_types && List.for_all recurse args
+  | Var _ -> true
+  | Tuple l -> List.for_all recurse l
+  | Arrow _ -> false
 
-// def Uid_set_of_twine(d, off:int) -> Uid_set:
-//      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off))
-      |}
-    );
-    ( "Imandrax_api.Chash.t",
-      {|#[derive(Debug, Clone)]
-pub struct Chash(pub Vec<u8>);
+let is_immediate_cstor ~immediate_types (c : tycstor) =
+  List.for_all (is_immediate_ty ~immediate_types) c.args
 
-//fn Chash_of_twine(d, off: usize) -> Chash {
-//    d.get_bytes(off)
-//}
-      |}
-    );
-  ]
-  |> Str_map.of_list
+let is_flat_def ~immediate_types (d : tydef) : bool =
+  match d.decl with
+  | Alg cs -> List.for_all (is_immediate_cstor ~immediate_types) cs
+  | Record { fields } ->
+    List.for_all (fun (_, ty) -> is_immediate_ty ~immediate_types ty) fields
+  | Alias _ -> false
 
-let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
+let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
   fpf oc "\n// clique %s\n"
     (String.concat "," @@ List.map (fun (d : tydef) -> d.name) clique);
 
@@ -182,10 +255,19 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
 
     let rsparams, _rs_twine_params, _params_decls, _rs_twine_params_kw =
       match def.params with
-      | [] -> "", "", [], ""
+      | [] when is_flat_def ~immediate_types:self.immediate_types def ->
+        "", "", [], ""
       | _ ->
+        let lifetime_param_bound, lifetime_param_l =
+          if is_flat_def ~immediate_types:self.immediate_types def then
+            "", []
+          else
+            ":'a", [ "'a" ]
+        in
         let params =
-          spf "<%s>" (String.concat "," @@ List.map (spf "V%s") def.params)
+          spf "<%s>"
+            (String.concat "," @@ lifetime_param_l
+            @ List.map (fun v -> spf "V%s%s" v lifetime_param_bound) def.params )
         and twine_params =
           spf "%s,"
             (String.concat ","
@@ -203,22 +285,16 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
     in
 
     let declare_ty (def : tydef) =
+      if Str_set.mem def.name self.immediate_types then bpf buf "// immediate\n";
       match def.decl with
-      | Alias ty ->
-        bpf buf "pub type %s%s = %s;\n\n" rsname rsparams (gen_type_expr ty)
-        (* bpf buf "fn %s(d: twine.Decoder, %soff: int) -> %s {\n" *)
-        (*   (of_twine_of_ty_name def.name) *)
-        (*   rs_twine_params rsname; *)
-        (* List.iter (fun s -> bpf buf "    %s\n" s) params_decls; *)
-        (* bpf buf "    return %s;\n" (of_twine_of_type_expr ty ~off:"off"); *)
-        (* bpf buf "}\n" *)
+      | Alias _ -> assert false (* expanded *)
       | Record r ->
         bpf buf "#[derive(Debug, Clone)]\n";
         bpf buf "pub struct %s%s {\n" rsname rsparams;
         List.iter
           (fun (field, ty) ->
             bpf buf "  pub %s: %s,\n" (mangle_field_name field)
-              (gen_type_expr ty))
+              (gen_type_expr self ty))
           r.fields;
         bpf buf "}\n\n"
         (* bpf buf "fn %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s {\n" *)
@@ -245,37 +321,66 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
             let c_name = mangle_cstor_name_def c in
             match c.args, c.labels with
             | [], _ -> bpf buf "  %s,\n" c_name
-            | [ x ], None -> bpf buf "  %s(%s),\n" c_name (gen_type_expr x)
+            | [ x ], None -> bpf buf "  %s(%s),\n" c_name (gen_type_expr self x)
             | _, None ->
               bpf buf "  %s(%s),\n" c_name
-                (String.concat "," @@ List.map gen_type_expr c.args)
+                (String.concat "," @@ List.map (gen_type_expr self) c.args)
             | _, Some labels ->
               bpf buf "  %s {\n" c_name;
               List.iter2
                 (fun lbl ty ->
                   bpf buf "    %s: %s,\n" (mangle_field_name lbl)
-                    (gen_type_expr ty))
+                    (gen_type_expr self ty))
                 labels c.args;
               bpf buf "  },\n")
           cstors;
         bpf buf "}\n"
     in
 
-    (match Str_map.find_opt def.name special_defs with
-    | Some d ->
-      (* special case *)
-      bpf buf "%s\n" d
-    | None -> declare_ty def);
+    declare_ty def;
     Buffer.output_buffer oc buf
   in
 
   List.iter gen_def clique;
   ()
 
+let find_immediate_types (cliques : tydef list list) : State.t =
+  let set =
+    ref
+      (Str_map.values special_types
+      |> Iter.filter_map (fun (name, _, imm, _) ->
+             if imm then
+               Some name
+             else
+               None)
+      |> Str_set.of_iter)
+  in
+  let add_def (d : tydef) =
+    let is_immediate =
+      match d.decl with
+      | Alias ty -> is_immediate_ty ~immediate_types:!set ty
+      | Alg cs -> List.for_all (is_immediate_cstor ~immediate_types:!set) cs
+      | Record { fields } ->
+        List.for_all
+          (fun (_, ty) -> is_immediate_ty ~immediate_types:!set ty)
+          fields
+    in
+    if is_immediate then set := Str_set.add d.name !set
+  in
+  List.iter (List.iter add_def) cliques;
+  State.make ~immediate_types:!set
+
 let gen ~out (cliques : TR.Ty_def.clique list) : unit =
   let@ oc = CCIO.with_out out in
 
+  (* aliases are complicated because sometimes they erase type
+     variables, which in rust requires a phantom data *)
+  let cliques = Expand_aliases.expand_aliases cliques in
+
   fpf oc "%s\n" prelude;
-  List.iter (fun cl -> if not (skip_clique cl) then gen_clique ~oc cl) cliques;
+  let st = find_immediate_types cliques in
+  List.iter
+    (fun cl -> if not (skip_clique cl) then gen_clique st ~oc cl)
+    cliques;
 
   ()

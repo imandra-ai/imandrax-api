@@ -1,1113 +1,1005 @@
+
 // automatically generated using genbindings.ml, do not edit
 
 #![allow(non_camel_case_types)]
+#[rustfmt::skip]
 
-use anyhow::bail;
+//use bumpalo::Bump;
 use num_bigint::BigInt;
-use std::collections::HashSet;
+use num_rational::BigRational as Rational;
+//use anyhow::bail;
 
 // TODO: pub trait FromTwine { … }
 
 // data we ignore upon deserialization.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone,Copy,Debug)]
 pub struct Ignored;
 
-pub type Error = ErrorError_core;
+pub type Error<'a> = ErrorError_core<'a>;
 
-// clique Imandrakit_error.Kind.t
-// def Imandrakit_error.Kind.t (mangled name: "ErrorKind")
 #[derive(Debug, Clone)]
-pub struct ErrorKind {
-    pub name: String,
-}
+pub enum Void {}
 
-// clique Imandrakit_error.Error_core.message
-// def Imandrakit_error.Error_core.message (mangled name: "ErrorError_coreMessage")
+pub type UidSet<'a> = [Uid<'a>];
+pub type Var_set<'a> = UidSet<'a>;
+
+// def Uid_set_of_twine(d, off:int) -> UidSet:
+//      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off)) 
+
 #[derive(Debug, Clone)]
-pub struct ErrorError_coreMessage {
-    pub msg: String,
-    pub data: Ignored, /* data */
-    pub bt: Option<String>,
-}
-
-// clique Imandrakit_error.Error_core.stack
-// def Imandrakit_error.Error_core.stack (mangled name: "ErrorError_coreStack")
-pub type ErrorError_coreStack = Vec<ErrorError_coreMessage>;
-
-// clique Imandrakit_error.Error_core.t
-// def Imandrakit_error.Error_core.t (mangled name: "ErrorError_core")
-#[derive(Debug, Clone)]
-pub struct ErrorError_core {
-    pub process: String,
-    pub kind: ErrorKind,
-    pub msg: ErrorError_coreMessage,
-    pub stack: ErrorError_coreStack,
-}
-
-// clique Imandrax_api.Util_twine_.as_pair
-// def Imandrax_api.Util_twine_.as_pair (mangled name: "Util_twine_As_pair")
-#[derive(Debug, Clone)]
-pub struct Util_twine_As_pair {
-    pub num: BigInt,
-    pub denum: BigInt,
-}
-
-// clique Imandrax_api.Builtin_data.kind
-// def Imandrax_api.Builtin_data.kind (mangled name: "Builtin_dataKind")
-#[derive(Debug, Clone)]
-pub enum Builtin_dataKind {
-    Logic_core { logic_core_name: String },
-    Special { tag: String },
-    Tactic { tac_name: String },
-}
-
-// clique Imandrax_api.Chash.t
-// def Imandrax_api.Chash.t (mangled name: "Chash")
-#[derive(Debug, Clone)]
-pub struct Chash(pub Vec<u8>);
+pub struct Chash<'a>(pub &'a [u8]);
 
 //fn Chash_of_twine(d, off: usize) -> Chash {
 //    d.get_bytes(off)
 //}
+  
 
-// clique Imandrax_api.Cname.t
-// def Imandrax_api.Cname.t (mangled name: "Cname")
+// clique Imandrakit_error.Kind.t
 #[derive(Debug, Clone)]
-pub struct Cname {
-    pub name: String,
-    pub chash: Chash,
+pub struct ErrorKind<'a> {
+  pub name: &'a str,
 }
 
+
+// clique Imandrakit_error.Error_core.message
+#[derive(Debug, Clone)]
+pub struct ErrorError_coreMessage<'a> {
+  pub msg: &'a str,
+  pub data: Ignored /* data */,
+  pub bt: Option<&'a str>,
+}
+
+
+// clique Imandrakit_error.Error_core.t
+#[derive(Debug, Clone)]
+pub struct ErrorError_core<'a> {
+  pub process: &'a str,
+  pub kind: &'a ErrorKind<'a>,
+  pub msg: &'a ErrorError_coreMessage<'a>,
+  pub stack: &'a [&'a ErrorError_coreMessage<'a>],
+}
+
+
+// clique Imandrax_api.Util_twine_.as_pair
+// immediate
+#[derive(Debug, Clone)]
+pub struct Util_twine_As_pair {
+  pub num: BigInt,
+  pub denum: BigInt,
+}
+
+
+// clique Imandrax_api.Builtin_data.kind
+#[derive(Debug, Clone)]
+pub enum Builtin_dataKind<'a> {
+  Logic_core {
+    logic_core_name: &'a str,
+  },
+  Special {
+    tag: &'a str,
+  },
+  Tactic {
+    tac_name: &'a str,
+  },
+}
+
+// clique Imandrax_api.Cname.t
+#[derive(Debug, Clone)]
+pub struct Cname<'a> {
+  pub name: &'a str,
+  pub chash: &'a str,
+}
+
+
 // clique Imandrax_api.Uid.gen_kind
-// def Imandrax_api.Uid.gen_kind (mangled name: "UidGen_kind")
+// immediate
 #[derive(Debug, Clone)]
 pub enum UidGen_kind {
-    Local,
-    To_be_rewritten,
+  Local,
+  To_be_rewritten,
 }
 
 // clique Imandrax_api.Uid.view
-// def Imandrax_api.Uid.view (mangled name: "UidView")
 #[derive(Debug, Clone)]
-pub enum UidView {
-    Generative { id: BigInt, gen_kind: UidGen_kind },
-    Persistent,
-    Cname { cname: Cname },
-    Builtin { kind: Builtin_dataKind },
+pub enum UidView<'a> {
+  Generative {
+    id: BigInt,
+    gen_kind: UidGen_kind,
+  },
+  Persistent,
+  Cname {
+    cname: &'a Cname<'a>,
+  },
+  Builtin {
+    kind: &'a Builtin_dataKind<'a>,
+  },
 }
 
 // clique Imandrax_api.Uid.t
-// def Imandrax_api.Uid.t (mangled name: "Uid")
 #[derive(Debug, Clone)]
-pub struct Uid {
-    pub name: String,
-    pub view: UidView,
+pub struct Uid<'a> {
+  pub name: &'a str,
+  pub view: &'a UidView<'a>,
 }
 
-// clique Imandrax_api.Uid_set.t
-// def Imandrax_api.Uid_set.t (mangled name: "Uid_set")
-pub type Uid_set = HashSet<Uid>;
-
-// def Uid_set_of_twine(d, off:int) -> Uid_set:
-//      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off))
 
 // clique Imandrax_api.Builtin.Fun.t
-// def Imandrax_api.Builtin.Fun.t (mangled name: "BuiltinFun")
 #[derive(Debug, Clone)]
-pub struct BuiltinFun {
-    pub id: Uid,
-    pub kind: Builtin_dataKind,
-    pub lassoc: bool,
-    pub commutative: bool,
-    pub connective: bool,
+pub struct BuiltinFun<'a> {
+  pub id: &'a Uid<'a>,
+  pub kind: &'a Builtin_dataKind<'a>,
+  pub lassoc: bool,
+  pub commutative: bool,
+  pub connective: bool,
 }
+
 
 // clique Imandrax_api.Builtin.Ty.t
-// def Imandrax_api.Builtin.Ty.t (mangled name: "BuiltinTy")
 #[derive(Debug, Clone)]
-pub struct BuiltinTy {
-    pub id: Uid,
-    pub kind: Builtin_dataKind,
+pub struct BuiltinTy<'a> {
+  pub id: &'a Uid<'a>,
+  pub kind: &'a Builtin_dataKind<'a>,
 }
+
 
 // clique Imandrax_api.Ty_view.adt_row
-// def Imandrax_api.Ty_view.adt_row (mangled name: "Ty_viewAdt_row")
 #[derive(Debug, Clone)]
-pub struct Ty_viewAdt_row<V_tyreg_poly_id, V_tyreg_poly_t> {
-    pub c: V_tyreg_poly_id,
-    pub labels: Option<Vec<V_tyreg_poly_id>>,
-    pub args: Vec<V_tyreg_poly_t>,
-    pub doc: Option<String>,
+pub struct Ty_viewAdt_row<'a,V_tyreg_poly_id:'a,V_tyreg_poly_t:'a> {
+  pub c: V_tyreg_poly_id,
+  pub labels: Option<&'a [V_tyreg_poly_id]>,
+  pub args: &'a [V_tyreg_poly_t],
+  pub doc: Option<&'a str>,
 }
+
 
 // clique Imandrax_api.Ty_view.rec_row
-// def Imandrax_api.Ty_view.rec_row (mangled name: "Ty_viewRec_row")
 #[derive(Debug, Clone)]
-pub struct Ty_viewRec_row<V_tyreg_poly_id, V_tyreg_poly_t> {
-    pub f: V_tyreg_poly_id,
-    pub ty: V_tyreg_poly_t,
-    pub doc: Option<String>,
+pub struct Ty_viewRec_row<'a,V_tyreg_poly_id:'a,V_tyreg_poly_t:'a> {
+  pub f: V_tyreg_poly_id,
+  pub ty: V_tyreg_poly_t,
+  pub doc: Option<&'a str>,
 }
 
+
 // clique Imandrax_api.Ty_view.decl
-// def Imandrax_api.Ty_view.decl (mangled name: "Ty_viewDecl")
 #[derive(Debug, Clone)]
-pub enum Ty_viewDecl<V_tyreg_poly_id, V_tyreg_poly_t, V_tyreg_poly_alias> {
-    Algebraic(Vec<Ty_viewAdt_row<V_tyreg_poly_id, V_tyreg_poly_t>>),
-    Record(Vec<Ty_viewRec_row<V_tyreg_poly_id, V_tyreg_poly_t>>),
-    Alias {
-        target: V_tyreg_poly_alias,
-        reexport_def: Option<Ty_viewDecl<V_tyreg_poly_id, V_tyreg_poly_t, V_tyreg_poly_alias>>,
-    },
-    Skolem,
-    Builtin(BuiltinTy),
-    Other,
+pub enum Ty_viewDecl<'a,V_tyreg_poly_id:'a,V_tyreg_poly_t:'a,V_tyreg_poly_alias:'a> {
+  Algebraic(&'a [&'a Ty_viewAdt_row<'a,V_tyreg_poly_id,V_tyreg_poly_t>]),
+  Record(&'a [&'a Ty_viewRec_row<'a,V_tyreg_poly_id,V_tyreg_poly_t>]),
+  Alias {
+    target: V_tyreg_poly_alias,
+    reexport_def: Option<&'a Ty_viewDecl<'a,V_tyreg_poly_id,V_tyreg_poly_t,V_tyreg_poly_alias>>,
+  },
+  Skolem,
+  Builtin(&'a BuiltinTy<'a>),
+  Other,
 }
 
 // clique Imandrax_api.Ty_view.view
-// def Imandrax_api.Ty_view.view (mangled name: "Ty_viewView")
 #[derive(Debug, Clone)]
-pub enum Ty_viewView<V_tyreg_poly_lbl, V_tyreg_poly_var, V_tyreg_poly_t> {
-    Var(V_tyreg_poly_var),
-    Arrow(V_tyreg_poly_lbl, V_tyreg_poly_t, V_tyreg_poly_t),
-    Tuple(Vec<V_tyreg_poly_t>),
-    Constr(Uid, Vec<V_tyreg_poly_t>),
+pub enum Ty_viewView<'a,V_tyreg_poly_lbl:'a,V_tyreg_poly_var:'a,V_tyreg_poly_t:'a> {
+  Var(V_tyreg_poly_var),
+  Arrow(V_tyreg_poly_lbl,V_tyreg_poly_t,V_tyreg_poly_t),
+  Tuple(&'a [V_tyreg_poly_t]),
+  Constr(&'a Uid<'a>,&'a [V_tyreg_poly_t]),
 }
 
 // clique Imandrax_api.Stat_time.t
-// def Imandrax_api.Stat_time.t (mangled name: "Stat_time")
+// immediate
 #[derive(Debug, Clone)]
 pub struct Stat_time {
-    pub time_s: f64,
+  pub time_s: f64,
 }
+
 
 // clique Imandrax_api.Sequent_poly.t
-// def Imandrax_api.Sequent_poly.t (mangled name: "Sequent_poly")
 #[derive(Debug, Clone)]
-pub struct Sequent_poly<V_tyreg_poly_term> {
-    pub hyps: Vec<V_tyreg_poly_term>,
-    pub concls: Vec<V_tyreg_poly_term>,
+pub struct Sequent_poly<'a,V_tyreg_poly_term:'a> {
+  pub hyps: &'a [V_tyreg_poly_term],
+  pub concls: &'a [V_tyreg_poly_term],
 }
 
+
 // clique Imandrax_api.Misc_types.rec_flag
-// def Imandrax_api.Misc_types.rec_flag (mangled name: "Misc_typesRec_flag")
+// immediate
 #[derive(Debug, Clone)]
 pub enum Misc_typesRec_flag {
-    Recursive,
-    Nonrecursive,
+  Recursive,
+  Nonrecursive,
 }
 
 // clique Imandrax_api.Misc_types.apply_label
-// def Imandrax_api.Misc_types.apply_label (mangled name: "Misc_typesApply_label")
 #[derive(Debug, Clone)]
-pub enum Misc_typesApply_label {
-    Nolabel,
-    Label(String),
-    Optional(String),
+pub enum Misc_typesApply_label<'a> {
+  Nolabel,
+  Label(&'a str),
+  Optional(&'a str),
 }
-
-// clique Imandrax_api.Logic_fragment.t
-// def Imandrax_api.Logic_fragment.t (mangled name: "Logic_fragment")
-pub type Logic_fragment = usize;
 
 // clique Imandrax_api.In_mem_archive.raw
-// def Imandrax_api.In_mem_archive.raw (mangled name: "In_mem_archiveRaw")
 #[derive(Debug, Clone)]
-pub struct In_mem_archiveRaw {
-    pub ty: String,
-    pub compressed: bool,
-    pub data: String,
+pub struct In_mem_archiveRaw<'a> {
+  pub ty: &'a str,
+  pub compressed: bool,
+  pub data: &'a str,
 }
 
-// clique Imandrax_api.In_mem_archive.t
-// def Imandrax_api.In_mem_archive.t (mangled name: "In_mem_archive")
-pub type In_mem_archive<V_tyreg_poly_a> = In_mem_archiveRaw;
 
 // clique Imandrax_api.Const.t
-// def Imandrax_api.Const.t (mangled name: "Const")
 #[derive(Debug, Clone)]
-pub enum Const {
-    Const_float(f64),
-    Const_string(String),
-    Const_z(BigInt),
-    Const_q(Vec<u8>),
-    Const_real_approx(String),
-    Const_uid(Uid),
-    Const_bool(bool),
+pub enum Const<'a> {
+  Const_float(f64),
+  Const_string(&'a str),
+  Const_z(BigInt),
+  Const_q(Rational),
+  Const_real_approx(&'a str),
+  Const_uid(&'a Uid<'a>),
+  Const_bool(bool),
 }
 
 // clique Imandrax_api.As_trigger.t
-// def Imandrax_api.As_trigger.t (mangled name: "As_trigger")
+// immediate
 #[derive(Debug, Clone)]
 pub enum As_trigger {
-    Trig_none,
-    Trig_anon,
-    Trig_named(BigInt),
-    Trig_rw,
+  Trig_none,
+  Trig_anon,
+  Trig_named(BigInt),
+  Trig_rw,
 }
 
 // clique Imandrax_api.Anchor.t
-// def Imandrax_api.Anchor.t (mangled name: "Anchor")
 #[derive(Debug, Clone)]
-pub enum Anchor {
-    Named(Cname),
-    Eval(BigInt),
-    Proof_check(Anchor),
+pub enum Anchor<'a> {
+  Named(&'a Cname<'a>),
+  Eval(BigInt),
+  Proof_check(&'a Anchor<'a>),
 }
 
 // clique Imandrax_api.Admission.t
-// def Imandrax_api.Admission.t (mangled name: "Admission")
 #[derive(Debug, Clone)]
-pub struct Admission {
-    pub measured_subset: Vec<String>,
-    pub measure_fun: Option<Uid>,
+pub struct Admission<'a> {
+  pub measured_subset: &'a [&'a str],
+  pub measure_fun: Option<&'a Uid<'a>>,
 }
 
+
 // clique Imandrax_api_model.ty_def
-// def Imandrax_api_model.ty_def (mangled name: "ModelTy_def")
 #[derive(Debug, Clone)]
-pub enum ModelTy_def<V_tyreg_poly_term, V_tyreg_poly_ty> {
-    Ty_finite(Vec<V_tyreg_poly_term>),
-    Ty_alias_unit(V_tyreg_poly_ty),
+pub enum ModelTy_def<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  Ty_finite(&'a [V_tyreg_poly_term]),
+  Ty_alias_unit(V_tyreg_poly_ty),
 }
 
 // clique Imandrax_api_model.fi
-// def Imandrax_api_model.fi (mangled name: "ModelFi")
 #[derive(Debug, Clone)]
-pub struct ModelFi<V_tyreg_poly_term, V_tyreg_poly_var, V_tyreg_poly_ty> {
-    pub fi_args: Vec<V_tyreg_poly_var>,
-    pub fi_ty_ret: V_tyreg_poly_ty,
-    pub fi_cases: Vec<(Vec<V_tyreg_poly_term>, V_tyreg_poly_term)>,
-    pub fi_else: V_tyreg_poly_term,
+pub struct ModelFi<'a,V_tyreg_poly_term:'a,V_tyreg_poly_var:'a,V_tyreg_poly_ty:'a> {
+  pub fi_args: &'a [V_tyreg_poly_var],
+  pub fi_ty_ret: V_tyreg_poly_ty,
+  pub fi_cases: &'a [(&'a [V_tyreg_poly_term],V_tyreg_poly_term)],
+  pub fi_else: V_tyreg_poly_term,
 }
+
 
 // clique Imandrax_api_model.t
-// def Imandrax_api_model.t (mangled name: "Model")
 #[derive(Debug, Clone)]
-pub struct Model<V_tyreg_poly_term, V_tyreg_poly_fn, V_tyreg_poly_var, V_tyreg_poly_ty> {
-    pub tys: Vec<(
-        V_tyreg_poly_ty,
-        ModelTy_def<V_tyreg_poly_term, V_tyreg_poly_ty>,
-    )>,
-    pub consts: Vec<(V_tyreg_poly_fn, V_tyreg_poly_term)>,
-    pub funs: Vec<(
-        V_tyreg_poly_fn,
-        ModelFi<V_tyreg_poly_term, V_tyreg_poly_var, V_tyreg_poly_ty>,
-    )>,
-    pub representable: bool,
-    pub completed: bool,
-    pub ty_subst: Vec<(Uid, V_tyreg_poly_ty)>,
+pub struct Model<'a,V_tyreg_poly_term:'a,V_tyreg_poly_fn:'a,V_tyreg_poly_var:'a,V_tyreg_poly_ty:'a> {
+  pub tys: &'a [(V_tyreg_poly_ty,&'a ModelTy_def<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)],
+  pub consts: &'a [(V_tyreg_poly_fn,V_tyreg_poly_term)],
+  pub funs: &'a [(V_tyreg_poly_fn,&'a ModelFi<'a,V_tyreg_poly_term,V_tyreg_poly_var,V_tyreg_poly_ty>)],
+  pub representable: bool,
+  pub completed: bool,
+  pub ty_subst: &'a [(&'a Uid<'a>,V_tyreg_poly_ty)],
 }
 
-// clique Imandrax_api_ca_store.Key.t
-// def Imandrax_api_ca_store.Key.t (mangled name: "Ca_storeKey")
-pub type Ca_storeKey = String;
 
 // clique Imandrax_api_ca_store.Ca_ptr.Raw.t
-// def Imandrax_api_ca_store.Ca_ptr.Raw.t (mangled name: "Ca_storeCa_ptrRaw")
 #[derive(Debug, Clone)]
-pub struct Ca_storeCa_ptrRaw {
-    pub key: Ca_storeKey,
+pub struct Ca_storeCa_ptrRaw<'a> {
+  pub key: &'a str,
 }
 
-// clique Imandrax_api_ca_store.Ca_ptr.t
-// def Imandrax_api_ca_store.Ca_ptr.t (mangled name: "Ca_storeCa_ptr")
-pub type Ca_storeCa_ptr<V_tyreg_poly_a> = Ca_storeCa_ptrRaw;
-
-// clique Imandrax_api_cir.Type.var
-// def Imandrax_api_cir.Type.var (mangled name: "CirTypeVar")
-pub type CirTypeVar = Uid;
-
-// clique Imandrax_api_cir.Type.clique
-// def Imandrax_api_cir.Type.clique (mangled name: "CirTypeClique")
-pub type CirTypeClique = Uid_set;
 
 // clique Imandrax_api_cir.Type.t
-// def Imandrax_api_cir.Type.t (mangled name: "CirType")
 #[derive(Debug, Clone)]
-pub struct CirType {
-    pub view: Ty_viewView<(), CirTypeVar, CirType>,
+pub struct CirType<'a> {
+  pub view: &'a Ty_viewView<'a,(),&'a Uid<'a>,&'a CirType<'a>>,
 }
+
 
 // clique Imandrax_api_cir.Type.def
-// def Imandrax_api_cir.Type.def (mangled name: "CirTypeDef")
 #[derive(Debug, Clone)]
-pub struct CirTypeDef {
-    pub name: Uid,
-    pub params: Vec<CirTypeVar>,
-    pub decl: Ty_viewDecl<Uid, CirType, Void>,
-    pub clique: Option<CirTypeClique>,
-    pub timeout: Option<BigInt>,
+pub struct CirTypeDef<'a> {
+  pub name: &'a Uid<'a>,
+  pub params: &'a [&'a Uid<'a>],
+  pub decl: &'a Ty_viewDecl<'a,&'a Uid<'a>,&'a CirType<'a>,Void>,
+  pub clique: Option<&'a UidSet<'a>>,
+  pub timeout: Option<BigInt>,
 }
+
 
 // clique Imandrax_api_cir.With_ty.t
-// def Imandrax_api_cir.With_ty.t (mangled name: "CirWith_ty")
 #[derive(Debug, Clone)]
-pub struct CirWith_ty<V_tyreg_poly_a> {
-    pub view: V_tyreg_poly_a,
-    pub ty: CirType,
+pub struct CirWith_ty<'a,V_tyreg_poly_a:'a> {
+  pub view: V_tyreg_poly_a,
+  pub ty: &'a CirType<'a>,
 }
 
-// clique Imandrax_api_cir.Var.t
-// def Imandrax_api_cir.Var.t (mangled name: "CirVar")
-pub type CirVar = CirWith_ty<Uid>;
 
 // clique Imandrax_api_cir.Type_schema.t
-// def Imandrax_api_cir.Type_schema.t (mangled name: "CirType_schema")
 #[derive(Debug, Clone)]
-pub struct CirType_schema {
-    pub params: Vec<CirTypeVar>,
-    pub ty: CirType,
+pub struct CirType_schema<'a> {
+  pub params: &'a [&'a Uid<'a>],
+  pub ty: &'a CirType<'a>,
 }
+
 
 // clique Imandrax_api_cir.Typed_symbol.t
-// def Imandrax_api_cir.Typed_symbol.t (mangled name: "CirTyped_symbol")
 #[derive(Debug, Clone)]
-pub struct CirTyped_symbol {
-    pub id: Uid,
-    pub ty: CirType_schema,
+pub struct CirTyped_symbol<'a> {
+  pub id: &'a Uid<'a>,
+  pub ty: &'a CirType_schema<'a>,
 }
+
 
 // clique Imandrax_api_cir.Applied_symbol.t
-// def Imandrax_api_cir.Applied_symbol.t (mangled name: "CirApplied_symbol")
 #[derive(Debug, Clone)]
-pub struct CirApplied_symbol {
-    pub sym: CirTyped_symbol,
-    pub args: Vec<CirType>,
-    pub ty: CirType,
+pub struct CirApplied_symbol<'a> {
+  pub sym: &'a CirTyped_symbol<'a>,
+  pub args: &'a [&'a CirType<'a>],
+  pub ty: &'a CirType<'a>,
 }
 
+
 // clique Imandrax_api_cir.Fo_pattern.view
-// def Imandrax_api_cir.Fo_pattern.view (mangled name: "CirFo_patternView")
 #[derive(Debug, Clone)]
-pub enum CirFo_patternView<V_tyreg_poly_t> {
-    FO_any,
-    FO_bool(bool),
-    FO_const(Const),
-    FO_var(CirVar),
-    FO_app(CirApplied_symbol, Vec<V_tyreg_poly_t>),
-    FO_cstor(Option<CirApplied_symbol>, Vec<V_tyreg_poly_t>),
-    FO_destruct {
-        c: Option<CirApplied_symbol>,
-        i: BigInt,
-        u: V_tyreg_poly_t,
-    },
-    FO_is_a {
-        c: CirApplied_symbol,
-        u: V_tyreg_poly_t,
-    },
+pub enum CirFo_patternView<'a,V_tyreg_poly_t:'a> {
+  FO_any,
+  FO_bool(bool),
+  FO_const(&'a Const<'a>),
+  FO_var(&'a CirWith_ty<'a,&'a Uid<'a>>),
+  FO_app(&'a CirApplied_symbol<'a>,&'a [V_tyreg_poly_t]),
+  FO_cstor(Option<&'a CirApplied_symbol<'a>>,&'a [V_tyreg_poly_t]),
+  FO_destruct {
+    c: Option<&'a CirApplied_symbol<'a>>,
+    i: BigInt,
+    u: V_tyreg_poly_t,
+  },
+  FO_is_a {
+    c: &'a CirApplied_symbol<'a>,
+    u: V_tyreg_poly_t,
+  },
 }
 
 // clique Imandrax_api_cir.Fo_pattern.t
-// def Imandrax_api_cir.Fo_pattern.t (mangled name: "CirFo_pattern")
 #[derive(Debug, Clone)]
-pub struct CirFo_pattern {
-    pub view: CirFo_patternView<CirFo_pattern>,
-    pub ty: CirType,
+pub struct CirFo_pattern<'a> {
+  pub view: &'a CirFo_patternView<'a,&'a CirFo_pattern<'a>>,
+  pub ty: &'a CirType<'a>,
 }
 
+
 // clique Imandrax_api_cir.Pattern_head.t
-// def Imandrax_api_cir.Pattern_head.t (mangled name: "CirPattern_head")
 #[derive(Debug, Clone)]
-pub enum CirPattern_head {
-    PH_id(Uid),
-    PH_ty(CirType),
-    PH_datatype_op,
+pub enum CirPattern_head<'a> {
+  PH_id(&'a Uid<'a>),
+  PH_ty(&'a CirType<'a>),
+  PH_datatype_op,
 }
 
 // clique Imandrax_api_cir.Trigger.t
-// def Imandrax_api_cir.Trigger.t (mangled name: "CirTrigger")
 #[derive(Debug, Clone)]
-pub struct CirTrigger {
-    pub trigger_head: CirPattern_head,
-    pub trigger_patterns: Vec<CirFo_pattern>,
-    pub trigger_instantiation_rule_name: Uid,
+pub struct CirTrigger<'a> {
+  pub trigger_head: &'a CirPattern_head<'a>,
+  pub trigger_patterns: &'a [&'a CirFo_pattern<'a>],
+  pub trigger_instantiation_rule_name: &'a Uid<'a>,
 }
+
 
 // clique Imandrax_api_cir.Case.t
-// def Imandrax_api_cir.Case.t (mangled name: "CirCase")
 #[derive(Debug, Clone)]
-pub struct CirCase<V_tyreg_poly_t> {
-    pub case_cstor: CirApplied_symbol,
-    pub case_vars: Vec<CirVar>,
-    pub case_rhs: V_tyreg_poly_t,
-    pub case_labels: Option<Vec<Uid>>,
+pub struct CirCase<'a,V_tyreg_poly_t:'a> {
+  pub case_cstor: &'a CirApplied_symbol<'a>,
+  pub case_vars: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
+  pub case_rhs: V_tyreg_poly_t,
+  pub case_labels: Option<&'a [&'a Uid<'a>]>,
 }
 
-// clique Imandrax_api_cir.Clique.t
-// def Imandrax_api_cir.Clique.t (mangled name: "CirClique")
-pub type CirClique = Uid_set;
 
 // clique Imandrax_api_cir.Logic_config.t
-// def Imandrax_api_cir.Logic_config.t (mangled name: "CirLogic_config")
+// immediate
 #[derive(Debug, Clone)]
 pub struct CirLogic_config {
-    pub timeout: BigInt,
-    pub validate: bool,
-    pub skip_proofs: bool,
-    pub max_induct: Option<BigInt>,
-    pub backchain_limit: BigInt,
-    pub enable_all: bool,
-    pub induct_unroll_depth: BigInt,
-    pub induct_subgoal_depth: BigInt,
-    pub unroll_enable_all: bool,
-    pub unroll_depth: BigInt,
+  pub timeout: BigInt,
+  pub validate: bool,
+  pub skip_proofs: bool,
+  pub max_induct: Option<BigInt>,
+  pub backchain_limit: BigInt,
+  pub enable_all: bool,
+  pub induct_unroll_depth: BigInt,
+  pub induct_subgoal_depth: BigInt,
+  pub unroll_enable_all: bool,
+  pub unroll_depth: BigInt,
 }
+
 
 // clique Imandrax_api_cir.Logic_config.op
-// def Imandrax_api_cir.Logic_config.op (mangled name: "CirLogic_configOp")
+// immediate
 #[derive(Debug, Clone)]
 pub enum CirLogic_configOp {
-    Op_timeout(BigInt),
-    Op_validate(bool),
-    Op_skip_proofs(bool),
-    Op_max_induct(Option<BigInt>),
-    Op_backchain_limit(BigInt),
-    Op_enable_all(bool),
-    Op_induct_unroll_depth(BigInt),
-    Op_induct_subgoal_depth(BigInt),
-    Op_unroll_enable_all(bool),
-    Op_unroll_depth(BigInt),
+  Op_timeout(BigInt),
+  Op_validate(bool),
+  Op_skip_proofs(bool),
+  Op_max_induct(Option<BigInt>),
+  Op_backchain_limit(BigInt),
+  Op_enable_all(bool),
+  Op_induct_unroll_depth(BigInt),
+  Op_induct_subgoal_depth(BigInt),
+  Op_unroll_enable_all(bool),
+  Op_unroll_depth(BigInt),
 }
 
-// clique Imandrax_api_cir.Term.binding
-// def Imandrax_api_cir.Term.binding (mangled name: "CirTermBinding")
-pub type CirTermBinding<V_tyreg_poly_t> = (CirVar, V_tyreg_poly_t);
-
-// clique Imandrax_api_cir.Term.t,Imandrax_api_cir.Term.view
-// def Imandrax_api_cir.Term.t (mangled name: "CirTerm")
-pub type CirTerm = CirWith_ty<CirTermView>;
-
-// def Imandrax_api_cir.Term.view (mangled name: "CirTermView")
+// clique Imandrax_api_cir.Term.view
 #[derive(Debug, Clone)]
-pub enum CirTermView {
-    Const(Const),
-    If(CirTerm, CirTerm, CirTerm),
-    Let {
-        flg: Misc_typesRec_flag,
-        bs: Vec<CirTermBinding<CirTerm>>,
-        body: CirTerm,
-    },
-    Apply {
-        f: CirTerm,
-        l: Vec<CirTerm>,
-    },
-    Fun {
-        v: CirVar,
-        body: CirTerm,
-    },
-    Var(CirVar),
-    Sym(CirApplied_symbol),
-    Construct {
-        c: CirApplied_symbol,
-        args: Vec<CirTerm>,
-        labels: Option<Vec<Uid>>,
-    },
-    Destruct {
-        c: CirApplied_symbol,
-        i: BigInt,
-        t: CirTerm,
-    },
-    Is_a {
-        c: CirApplied_symbol,
-        t: CirTerm,
-    },
-    Tuple {
-        l: Vec<CirTerm>,
-    },
-    Field {
-        f: CirApplied_symbol,
-        t: CirTerm,
-    },
-    Tuple_field {
-        i: BigInt,
-        t: CirTerm,
-    },
-    Record {
-        rows: Vec<(CirApplied_symbol, CirTerm)>,
-        rest: Option<CirTerm>,
-    },
-    Case {
-        u: CirTerm,
-        cases: Vec<CirCase<CirTerm>>,
-        default: Option<CirTerm>,
-    },
-    Let_tuple {
-        vars: Vec<CirVar>,
-        rhs: CirTerm,
-        body: CirTerm,
-    },
+pub enum CirTermView<'a> {
+  Const(&'a Const<'a>),
+  If(&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirWith_ty<'a,&'a CirTermView<'a>>),
+  Let {
+    flg: Misc_typesRec_flag,
+    bs: &'a [(&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirWith_ty<'a,&'a CirTermView<'a>>)],
+    body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  },
+  Apply {
+    f: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    l: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+  },
+  Fun {
+    v: &'a CirWith_ty<'a,&'a Uid<'a>>,
+    body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  },
+  Var(&'a CirWith_ty<'a,&'a Uid<'a>>),
+  Sym(&'a CirApplied_symbol<'a>),
+  Construct {
+    c: &'a CirApplied_symbol<'a>,
+    args: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+    labels: Option<&'a [&'a Uid<'a>]>,
+  },
+  Destruct {
+    c: &'a CirApplied_symbol<'a>,
+    i: BigInt,
+    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  },
+  Is_a {
+    c: &'a CirApplied_symbol<'a>,
+    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  },
+  Tuple {
+    l: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+  },
+  Field {
+    f: &'a CirApplied_symbol<'a>,
+    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  },
+  Tuple_field {
+    i: BigInt,
+    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  },
+  Record {
+    rows: &'a [(&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a CirTermView<'a>>)],
+    rest: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
+  },
+  Case {
+    u: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    cases: &'a [&'a CirCase<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>>],
+    default: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
+  },
+  Let_tuple {
+    vars: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
+    rhs: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  },
 }
-
-// clique Imandrax_api_cir.Term.term
-// def Imandrax_api_cir.Term.term (mangled name: "CirTermTerm")
-pub type CirTermTerm = CirTerm;
 
 // clique Imandrax_api_cir.Hints.style
-// def Imandrax_api_cir.Hints.style (mangled name: "CirHintsStyle")
+// immediate
 #[derive(Debug, Clone)]
 pub enum CirHintsStyle {
-    Multiplicative,
-    Additive,
+  Multiplicative,
+  Additive,
 }
 
 // clique Imandrax_api_cir.Hints.Induct.t
-// def Imandrax_api_cir.Hints.Induct.t (mangled name: "CirHintsInduct")
 #[derive(Debug, Clone)]
-pub enum CirHintsInduct {
-    Functional {
-        f_name: Option<Uid>,
-    },
-    Structural {
-        style: CirHintsStyle,
-        vars: Vec<String>,
-    },
-    Term {
-        t: CirTerm,
-        vars: Vec<CirVar>,
-    },
-    Default,
+pub enum CirHintsInduct<'a> {
+  Functional {
+    f_name: Option<&'a Uid<'a>>,
+  },
+  Structural {
+    style: CirHintsStyle,
+    vars: &'a [&'a str],
+  },
+  Term {
+    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    vars: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
+  },
+  Default,
 }
 
 // clique Imandrax_api_cir.Hints.Method.t
-// def Imandrax_api_cir.Hints.Method.t (mangled name: "CirHintsMethod")
 #[derive(Debug, Clone)]
-pub enum CirHintsMethod {
-    Unroll { steps: Option<BigInt> },
-    Ext_solver { name: String },
-    Auto,
-    Induct(CirHintsInduct),
+pub enum CirHintsMethod<'a> {
+  Unroll {
+    steps: Option<BigInt>,
+  },
+  Ext_solver {
+    name: &'a str,
+  },
+  Auto,
+  Induct(&'a CirHintsInduct<'a>),
 }
 
 // clique Imandrax_api_cir.Hints.Top.t
-// def Imandrax_api_cir.Hints.Top.t (mangled name: "CirHintsTop")
 #[derive(Debug, Clone)]
-pub struct CirHintsTop<V_tyreg_poly_f> {
-    pub basis: Uid_set,
-    pub method_: CirHintsMethod,
-    pub apply_hint: Vec<V_tyreg_poly_f>,
-    pub logic_config_ops: Vec<CirLogic_configOp>,
-    pub otf: bool,
+pub struct CirHintsTop<'a,V_tyreg_poly_f:'a> {
+  pub basis: &'a UidSet<'a>,
+  pub method_: &'a CirHintsMethod<'a>,
+  pub apply_hint: &'a [V_tyreg_poly_f],
+  pub logic_config_ops: &'a [CirLogic_configOp],
+  pub otf: bool,
 }
 
+
 // clique Imandrax_api_cir.Fun_def.fun_kind
-// def Imandrax_api_cir.Fun_def.fun_kind (mangled name: "CirFun_defFun_kind")
 #[derive(Debug, Clone)]
-pub enum CirFun_defFun_kind {
-    Fun_defined { is_macro: bool, from_lambda: bool },
-    Fun_builtin(BuiltinFun),
-    Fun_opaque,
+pub enum CirFun_defFun_kind<'a> {
+  Fun_defined {
+    is_macro: bool,
+    from_lambda: bool,
+  },
+  Fun_builtin(&'a BuiltinFun<'a>),
+  Fun_opaque,
 }
 
 // clique Imandrax_api_cir.Fun_def.validation_strategy
-// def Imandrax_api_cir.Fun_def.validation_strategy (mangled name: "CirFun_defValidation_strategy")
 #[derive(Debug, Clone)]
-pub enum CirFun_defValidation_strategy {
-    VS_validate { tactic: Option<CirTerm> },
-    VS_no_validate,
+pub enum CirFun_defValidation_strategy<'a> {
+  VS_validate {
+    tactic: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
+  },
+  VS_no_validate,
 }
 
 // clique Imandrax_api_cir.Fun_def.t,Imandrax_api_cir.Fun_def.apply_hint
-// def Imandrax_api_cir.Fun_def.t (mangled name: "CirFun_def")
 #[derive(Debug, Clone)]
-pub struct CirFun_def {
-    pub f_name: Uid,
-    pub f_ty: CirType_schema,
-    pub f_args: Vec<CirVar>,
-    pub f_body: CirTerm,
-    pub f_clique: Option<CirClique>,
-    pub f_kind: CirFun_defFun_kind,
-    pub f_admission: Option<Admission>,
-    pub f_admission_measure: Option<Uid>,
-    pub f_validate_strat: CirFun_defValidation_strategy,
-    pub f_hints: Option<CirHintsTop<CirFun_defApply_hint>>,
-    pub f_enable: Vec<Uid>,
-    pub f_disable: Vec<Uid>,
-    pub f_timeout: Option<BigInt>,
+pub struct CirFun_def<'a> {
+  pub f_name: &'a Uid<'a>,
+  pub f_ty: &'a CirType_schema<'a>,
+  pub f_args: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
+  pub f_body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub f_clique: Option<&'a UidSet<'a>>,
+  pub f_kind: &'a CirFun_defFun_kind<'a>,
+  pub f_admission: Option<&'a Admission<'a>>,
+  pub f_admission_measure: Option<&'a Uid<'a>>,
+  pub f_validate_strat: &'a CirFun_defValidation_strategy<'a>,
+  pub f_hints: Option<&'a CirHintsTop<'a,&'a CirFun_defApply_hint<'a>>>,
+  pub f_enable: &'a [&'a Uid<'a>],
+  pub f_disable: &'a [&'a Uid<'a>],
+  pub f_timeout: Option<BigInt>,
 }
 
-// def Imandrax_api_cir.Fun_def.apply_hint (mangled name: "CirFun_defApply_hint")
 #[derive(Debug, Clone)]
-pub struct CirFun_defApply_hint {
-    pub apply_fun: CirFun_def,
+pub struct CirFun_defApply_hint<'a> {
+  pub apply_fun: &'a CirFun_def<'a>,
 }
 
-// clique Imandrax_api_cir.Pre_trigger.t
-// def Imandrax_api_cir.Pre_trigger.t (mangled name: "CirPre_trigger")
-pub type CirPre_trigger = (CirTerm, As_trigger);
 
 // clique Imandrax_api_cir.Theorem.t
-// def Imandrax_api_cir.Theorem.t (mangled name: "CirTheorem")
 #[derive(Debug, Clone)]
-pub struct CirTheorem {
-    pub thm_link: CirFun_def,
-    pub thm_rewriting: bool,
-    pub thm_perm_restrict: bool,
-    pub thm_fc: bool,
-    pub thm_elim: bool,
-    pub thm_gen: bool,
-    pub thm_otf: bool,
-    pub thm_triggers: Vec<CirPre_trigger>,
-    pub thm_is_axiom: bool,
-    pub thm_by: CirTerm,
+pub struct CirTheorem<'a> {
+  pub thm_link: &'a CirFun_def<'a>,
+  pub thm_rewriting: bool,
+  pub thm_perm_restrict: bool,
+  pub thm_fc: bool,
+  pub thm_elim: bool,
+  pub thm_gen: bool,
+  pub thm_otf: bool,
+  pub thm_triggers: &'a [(&'a CirWith_ty<'a,&'a CirTermView<'a>>,As_trigger)],
+  pub thm_is_axiom: bool,
+  pub thm_by: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
 }
+
 
 // clique Imandrax_api_cir.Tactic.t
-// def Imandrax_api_cir.Tactic.t (mangled name: "CirTactic")
 #[derive(Debug, Clone)]
-pub enum CirTactic {
-    Default_termination { basis: Uid_set },
-    Default_thm,
-    Term(CirTerm),
+pub enum CirTactic<'a> {
+  Default_termination {
+    basis: &'a UidSet<'a>,
+  },
+  Default_thm,
+  Term(&'a CirWith_ty<'a,&'a CirTermView<'a>>),
 }
-
-// clique Imandrax_api_cir.Sequent.t
-// def Imandrax_api_cir.Sequent.t (mangled name: "CirSequent")
-pub type CirSequent = Sequent_poly<CirTerm>;
 
 // clique Imandrax_api_cir.Rewrite_rule.t
-// def Imandrax_api_cir.Rewrite_rule.t (mangled name: "CirRewrite_rule")
 #[derive(Debug, Clone)]
-pub struct CirRewrite_rule {
-    pub rw_name: Uid,
-    pub rw_head: CirPattern_head,
-    pub rw_lhs: CirFo_pattern,
-    pub rw_rhs: CirTerm,
-    pub rw_guard: Vec<CirTerm>,
-    pub rw_vars: Var_set,
-    pub rw_triggers: Vec<CirFo_pattern>,
-    pub rw_perm_restrict: bool,
-    pub rw_loop_break: Option<CirFo_pattern>,
+pub struct CirRewrite_rule<'a> {
+  pub rw_name: &'a Uid<'a>,
+  pub rw_head: &'a CirPattern_head<'a>,
+  pub rw_lhs: &'a CirFo_pattern<'a>,
+  pub rw_rhs: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub rw_guard: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+  pub rw_vars: &'a Var_set<'a>,
+  pub rw_triggers: &'a [&'a CirFo_pattern<'a>],
+  pub rw_perm_restrict: bool,
+  pub rw_loop_break: Option<&'a CirFo_pattern<'a>>,
 }
+
 
 // clique Imandrax_api_cir.Proof_obligation.t
-// def Imandrax_api_cir.Proof_obligation.t (mangled name: "CirProof_obligation")
 #[derive(Debug, Clone)]
-pub struct CirProof_obligation {
-    pub descr: String,
-    pub goal: CirTerm,
-    pub tactic: CirTactic,
-    pub is_instance: bool,
-    pub anchor: Anchor,
-    pub timeout: Option<BigInt>,
+pub struct CirProof_obligation<'a> {
+  pub descr: &'a str,
+  pub goal: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub tactic: &'a CirTactic<'a>,
+  pub is_instance: bool,
+  pub anchor: &'a Anchor<'a>,
+  pub timeout: Option<BigInt>,
 }
 
-// clique Imandrax_api_cir.Model.ty_def
-// def Imandrax_api_cir.Model.ty_def (mangled name: "CirModelTy_def")
-pub type CirModelTy_def = ModelTy_def<CirTerm, CirType>;
-
-// clique Imandrax_api_cir.Model.fi
-// def Imandrax_api_cir.Model.fi (mangled name: "CirModelFi")
-pub type CirModelFi = ModelFi<CirTerm, CirVar, CirType>;
-
-// clique Imandrax_api_cir.Model.t
-// def Imandrax_api_cir.Model.t (mangled name: "CirModel")
-pub type CirModel = Model<CirTerm, CirApplied_symbol, CirVar, CirType>;
 
 // clique Imandrax_api_cir.Instantiation_rule_kind.t
-// def Imandrax_api_cir.Instantiation_rule_kind.t (mangled name: "CirInstantiation_rule_kind")
+// immediate
 #[derive(Debug, Clone)]
 pub enum CirInstantiation_rule_kind {
-    IR_forward_chaining,
-    IR_generalization,
+  IR_forward_chaining,
+  IR_generalization,
 }
 
 // clique Imandrax_api_cir.Instantiation_rule.t
-// def Imandrax_api_cir.Instantiation_rule.t (mangled name: "CirInstantiation_rule")
 #[derive(Debug, Clone)]
-pub struct CirInstantiation_rule {
-    pub ir_from: CirFun_def,
-    pub ir_triggers: Vec<CirTrigger>,
-    pub ir_kind: CirInstantiation_rule_kind,
+pub struct CirInstantiation_rule<'a> {
+  pub ir_from: &'a CirFun_def<'a>,
+  pub ir_triggers: &'a [&'a CirTrigger<'a>],
+  pub ir_kind: CirInstantiation_rule_kind,
 }
+
 
 // clique Imandrax_api_cir.Elimination_rule.t
-// def Imandrax_api_cir.Elimination_rule.t (mangled name: "CirElimination_rule")
 #[derive(Debug, Clone)]
-pub struct CirElimination_rule {
-    pub er_name: Uid,
-    pub er_guard: Vec<CirTerm>,
-    pub er_lhs: CirTerm,
-    pub er_rhs: CirVar,
-    pub er_dests: Vec<CirFo_pattern>,
-    pub er_dest_tms: Vec<CirTerm>,
+pub struct CirElimination_rule<'a> {
+  pub er_name: &'a Uid<'a>,
+  pub er_guard: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+  pub er_lhs: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub er_rhs: &'a CirWith_ty<'a,&'a Uid<'a>>,
+  pub er_dests: &'a [&'a CirFo_pattern<'a>],
+  pub er_dest_tms: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
 }
 
-// clique Imandrax_api_cir.Db_ser.uid_map
-// def Imandrax_api_cir.Db_ser.uid_map (mangled name: "CirDb_serUid_map")
-pub type CirDb_serUid_map<V_tyreg_poly_a> = Vec<(Uid, V_tyreg_poly_a)>;
-
-// clique Imandrax_api_cir.Db_ser.ph_map
-// def Imandrax_api_cir.Db_ser.ph_map (mangled name: "CirDb_serPh_map")
-pub type CirDb_serPh_map<V_tyreg_poly_a> = Vec<(CirPattern_head, V_tyreg_poly_a)>;
-
-// clique Imandrax_api_cir.Db_ser.ca_ptr
-// def Imandrax_api_cir.Db_ser.ca_ptr (mangled name: "CirDb_serCa_ptr")
-pub type CirDb_serCa_ptr<V_tyreg_poly_a> = Ca_storeCa_ptr<V_tyreg_poly_a>;
 
 // clique Imandrax_api_cir.Db_ser.t
-// def Imandrax_api_cir.Db_ser.t (mangled name: "CirDb_ser")
 #[derive(Debug, Clone)]
-pub struct CirDb_ser {
-    pub decls: Uid_set,
-    pub rw_rules: CirDb_serPh_map<Vec<CirDb_serCa_ptr<CirRewrite_rule>>>,
-    pub inst_rules: CirDb_serUid_map<CirDb_serCa_ptr<CirInstantiation_rule>>,
-    pub rule_spec_fc: CirDb_serUid_map<Vec<CirDb_serCa_ptr<CirTrigger>>>,
-    pub rule_spec_rw_rules: CirDb_serUid_map<Vec<CirDb_serCa_ptr<CirRewrite_rule>>>,
-    pub fc: CirDb_serPh_map<Vec<CirDb_serCa_ptr<CirTrigger>>>,
-    pub elim: CirDb_serPh_map<Vec<CirDb_serCa_ptr<CirElimination_rule>>>,
-    pub gen: CirDb_serPh_map<Vec<CirDb_serCa_ptr<CirTrigger>>>,
-    pub thm_as_rw: CirDb_serUid_map<Vec<CirDb_serCa_ptr<CirRewrite_rule>>>,
-    pub thm_as_fc: CirDb_serUid_map<Vec<CirDb_serCa_ptr<CirInstantiation_rule>>>,
-    pub thm_as_elim: CirDb_serUid_map<Vec<CirDb_serCa_ptr<CirElimination_rule>>>,
-    pub thm_as_gen: CirDb_serUid_map<Vec<CirDb_serCa_ptr<CirInstantiation_rule>>>,
-    pub admission: CirDb_serUid_map<CirDb_serCa_ptr<Admission>>,
-    pub count_funs_of_ty: CirDb_serUid_map<Uid>,
-    pub config: CirDb_serCa_ptr<CirLogic_config>,
-    pub disabled: Uid_set,
+pub struct CirDb_ser<'a> {
+  pub decls: &'a UidSet<'a>,
+  pub rw_rules: &'a [(&'a CirPattern_head<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub inst_rules: &'a [(&'a Uid<'a>,&'a Ca_storeCa_ptrRaw<'a>)],
+  pub rule_spec_fc: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub rule_spec_rw_rules: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub fc: &'a [(&'a CirPattern_head<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub elim: &'a [(&'a CirPattern_head<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub gen: &'a [(&'a CirPattern_head<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub thm_as_rw: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub thm_as_fc: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub thm_as_elim: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub thm_as_gen: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub admission: &'a [(&'a Uid<'a>,&'a Ca_storeCa_ptrRaw<'a>)],
+  pub count_funs_of_ty: &'a [(&'a Uid<'a>,&'a Uid<'a>)],
+  pub config: &'a Ca_storeCa_ptrRaw<'a>,
+  pub disabled: &'a UidSet<'a>,
 }
 
+
 // clique Imandrax_api_eval.Ordinal.t
-// def Imandrax_api_eval.Ordinal.t (mangled name: "EvalOrdinal")
 #[derive(Debug, Clone)]
-pub enum EvalOrdinal {
-    Int(BigInt),
-    Cons(EvalOrdinal, BigInt, EvalOrdinal),
+pub enum EvalOrdinal<'a> {
+  Int(BigInt),
+  Cons(&'a EvalOrdinal<'a>,BigInt,&'a EvalOrdinal<'a>),
 }
 
 // clique Imandrax_api_eval.Value.cstor_descriptor
-// def Imandrax_api_eval.Value.cstor_descriptor (mangled name: "EvalValueCstor_descriptor")
 #[derive(Debug, Clone)]
-pub struct EvalValueCstor_descriptor {
-    pub cd_idx: BigInt,
-    pub cd_name: Uid,
+pub struct EvalValueCstor_descriptor<'a> {
+  pub cd_idx: BigInt,
+  pub cd_name: &'a Uid<'a>,
 }
+
 
 // clique Imandrax_api_eval.Value.record_descriptor
-// def Imandrax_api_eval.Value.record_descriptor (mangled name: "EvalValueRecord_descriptor")
 #[derive(Debug, Clone)]
-pub struct EvalValueRecord_descriptor {
-    pub rd_name: Uid,
-    pub rd_fields: Vec<Uid>,
+pub struct EvalValueRecord_descriptor<'a> {
+  pub rd_name: &'a Uid<'a>,
+  pub rd_fields: &'a [&'a Uid<'a>],
 }
 
+
 // clique Imandrax_api_eval.Value.view
-// def Imandrax_api_eval.Value.view (mangled name: "EvalValueView")
 #[derive(Debug, Clone)]
-pub enum EvalValueView<V_tyreg_poly_v, V_tyreg_poly_closure> {
-    V_true,
-    V_false,
-    V_int(BigInt),
-    V_real(Vec<u8>),
-    V_string(String),
-    V_cstor(EvalValueCstor_descriptor, Vec<V_tyreg_poly_v>),
-    V_tuple(Vec<V_tyreg_poly_v>),
-    V_record(EvalValueRecord_descriptor, Vec<V_tyreg_poly_v>),
-    V_quoted_term(CirTerm),
-    V_uid(Uid),
-    V_closure(V_tyreg_poly_closure),
-    V_custom(Eval__ValueCustom_value),
-    V_ordinal(EvalOrdinal),
+pub enum EvalValueView<'a,V_tyreg_poly_v:'a,V_tyreg_poly_closure:'a> {
+  V_true,
+  V_false,
+  V_int(BigInt),
+  V_real(Rational),
+  V_string(&'a str),
+  V_cstor(&'a EvalValueCstor_descriptor<'a>,&'a [V_tyreg_poly_v]),
+  V_tuple(&'a [V_tyreg_poly_v]),
+  V_record(&'a EvalValueRecord_descriptor<'a>,&'a [V_tyreg_poly_v]),
+  V_quoted_term(&'a CirWith_ty<'a,&'a CirTermView<'a>>),
+  V_uid(&'a Uid<'a>),
+  V_closure(V_tyreg_poly_closure),
+  V_custom(Ignored /* custom value */),
+  V_ordinal(&'a EvalOrdinal<'a>),
 }
 
 // clique Imandrax_api_eval.Value.t
-// def Imandrax_api_eval.Value.t (mangled name: "EvalValue")
 #[derive(Debug, Clone)]
-pub struct EvalValue {
-    pub v: EvalValueView<EvalValue, ()>,
+pub struct EvalValue<'a> {
+  pub v: &'a EvalValueView<'a,&'a EvalValue<'a>,()>,
 }
+
 
 // clique Imandrax_api_report.Expansion.t
-// def Imandrax_api_report.Expansion.t (mangled name: "ReportExpansion")
 #[derive(Debug, Clone)]
-pub struct ReportExpansion<V_tyreg_poly_term> {
-    pub f_name: Uid,
-    pub lhs: V_tyreg_poly_term,
-    pub rhs: V_tyreg_poly_term,
+pub struct ReportExpansion<'a,V_tyreg_poly_term:'a> {
+  pub f_name: &'a Uid<'a>,
+  pub lhs: V_tyreg_poly_term,
+  pub rhs: V_tyreg_poly_term,
 }
+
 
 // clique Imandrax_api_report.Instantiation.t
-// def Imandrax_api_report.Instantiation.t (mangled name: "ReportInstantiation")
 #[derive(Debug, Clone)]
-pub struct ReportInstantiation<V_tyreg_poly_term> {
-    pub assertion: V_tyreg_poly_term,
-    pub from_rule: Uid,
+pub struct ReportInstantiation<'a,V_tyreg_poly_term:'a> {
+  pub assertion: V_tyreg_poly_term,
+  pub from_rule: &'a Uid<'a>,
 }
+
 
 // clique Imandrax_api_report.Smt_proof.t
-// def Imandrax_api_report.Smt_proof.t (mangled name: "ReportSmt_proof")
 #[derive(Debug, Clone)]
-pub struct ReportSmt_proof<V_tyreg_poly_term> {
-    pub logic: Logic_fragment,
-    pub unsat_core: Vec<V_tyreg_poly_term>,
-    pub expansions: Vec<ReportExpansion<V_tyreg_poly_term>>,
-    pub instantiations: Vec<ReportInstantiation<V_tyreg_poly_term>>,
+pub struct ReportSmt_proof<'a,V_tyreg_poly_term:'a> {
+  pub logic: usize,
+  pub unsat_core: &'a [V_tyreg_poly_term],
+  pub expansions: &'a [&'a ReportExpansion<'a,V_tyreg_poly_term>],
+  pub instantiations: &'a [&'a ReportInstantiation<'a,V_tyreg_poly_term>],
 }
 
-// clique Imandrax_api_report.Rtext.t,Imandrax_api_report.Rtext.item
-// def Imandrax_api_report.Rtext.t (mangled name: "ReportRtext")
-pub type ReportRtext<V_tyreg_poly_term> = Vec<ReportRtextItem<V_tyreg_poly_term>>;
 
-// def Imandrax_api_report.Rtext.item (mangled name: "ReportRtextItem")
+// clique Imandrax_api_report.Rtext.item
 #[derive(Debug, Clone)]
-pub enum ReportRtextItem<V_tyreg_poly_term> {
-    S(String),
-    B(String),
-    I(String),
-    Newline,
-    Sub(ReportRtext<V_tyreg_poly_term>),
-    L(Vec<ReportRtext<V_tyreg_poly_term>>),
-    Uid(Uid),
-    Term(V_tyreg_poly_term),
-    Sequent(Sequent_poly<V_tyreg_poly_term>),
-    Subst(Vec<(V_tyreg_poly_term, V_tyreg_poly_term)>),
+pub enum ReportRtextItem<'a,V_tyreg_poly_term:'a> {
+  S(&'a str),
+  B(&'a str),
+  I(&'a str),
+  Newline,
+  Sub(&'a [&'a ReportRtextItem<'a,V_tyreg_poly_term>]),
+  L(&'a [&'a [&'a ReportRtextItem<'a,V_tyreg_poly_term>]]),
+  Uid(&'a Uid<'a>),
+  Term(V_tyreg_poly_term),
+  Sequent(&'a Sequent_poly<'a,V_tyreg_poly_term>),
+  Subst(&'a [(V_tyreg_poly_term,V_tyreg_poly_term)]),
 }
 
 // clique Imandrax_api_report.Atomic_event.poly
-// def Imandrax_api_report.Atomic_event.poly (mangled name: "ReportAtomic_eventPoly")
 #[derive(Debug, Clone)]
-pub enum ReportAtomic_eventPoly<
-    V_tyreg_poly_term,
-    V_tyreg_poly_fn,
-    V_tyreg_poly_var,
-    V_tyreg_poly_ty,
-> {
-    E_message(ReportRtext<V_tyreg_poly_term>),
-    E_title(String),
-    E_enter_waterfall {
-        vars: Vec<V_tyreg_poly_var>,
-        goal: V_tyreg_poly_term,
-        hints: CirHintsInduct,
-    },
-    E_enter_tactic(String),
-    E_rw_success(CirRewrite_rule, V_tyreg_poly_term, V_tyreg_poly_term),
-    E_rw_fail(CirRewrite_rule, V_tyreg_poly_term, String),
-    E_inst_success(CirInstantiation_rule, V_tyreg_poly_term),
-    E_waterfall_checkpoint(Vec<Sequent_poly<V_tyreg_poly_term>>),
-    E_induction_scheme(V_tyreg_poly_term),
-    E_attack_subgoal {
-        name: String,
-        goal: Sequent_poly<V_tyreg_poly_term>,
-        depth: BigInt,
-    },
-    E_simplify_t(V_tyreg_poly_term, V_tyreg_poly_term),
-    E_simplify_clause(V_tyreg_poly_term, Vec<V_tyreg_poly_term>),
-    E_proved_by_smt(V_tyreg_poly_term, ReportSmt_proof<V_tyreg_poly_term>),
-    E_refuted_by_smt(
-        V_tyreg_poly_term,
-        Option<Model<V_tyreg_poly_term, V_tyreg_poly_fn, V_tyreg_poly_var, V_tyreg_poly_ty>>,
-    ),
-    E_fun_expansion(V_tyreg_poly_term, V_tyreg_poly_term),
+pub enum ReportAtomic_eventPoly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_fn:'a,V_tyreg_poly_var:'a,V_tyreg_poly_ty:'a> {
+  E_message(&'a [&'a ReportRtextItem<'a,V_tyreg_poly_term>]),
+  E_title(&'a str),
+  E_enter_waterfall {
+    vars: &'a [V_tyreg_poly_var],
+    goal: V_tyreg_poly_term,
+    hints: &'a CirHintsInduct<'a>,
+  },
+  E_enter_tactic(&'a str),
+  E_rw_success(&'a CirRewrite_rule<'a>,V_tyreg_poly_term,V_tyreg_poly_term),
+  E_rw_fail(&'a CirRewrite_rule<'a>,V_tyreg_poly_term,&'a str),
+  E_inst_success(&'a CirInstantiation_rule<'a>,V_tyreg_poly_term),
+  E_waterfall_checkpoint(&'a [&'a Sequent_poly<'a,V_tyreg_poly_term>]),
+  E_induction_scheme(V_tyreg_poly_term),
+  E_attack_subgoal {
+    name: &'a str,
+    goal: &'a Sequent_poly<'a,V_tyreg_poly_term>,
+    depth: BigInt,
+  },
+  E_simplify_t(V_tyreg_poly_term,V_tyreg_poly_term),
+  E_simplify_clause(V_tyreg_poly_term,&'a [V_tyreg_poly_term]),
+  E_proved_by_smt(V_tyreg_poly_term,&'a ReportSmt_proof<'a,V_tyreg_poly_term>),
+  E_refuted_by_smt(V_tyreg_poly_term,Option<&'a Model<'a,V_tyreg_poly_term,V_tyreg_poly_fn,V_tyreg_poly_var,V_tyreg_poly_ty>>),
+  E_fun_expansion(V_tyreg_poly_term,V_tyreg_poly_term),
 }
 
-// clique Imandrax_api_report.Atomic_event.t
-// def Imandrax_api_report.Atomic_event.t (mangled name: "ReportAtomic_event")
-pub type ReportAtomic_event = ReportAtomic_eventPoly<CirTerm, CirApplied_symbol, CirVar, CirType>;
-
 // clique Imandrax_api_report.Event.t_linear
-// def Imandrax_api_report.Event.t_linear (mangled name: "ReportEventT_linear")
+// immediate
 #[derive(Debug, Clone)]
 pub enum ReportEventT_linear<V_tyreg_poly_atomic_ev> {
-    EL_atomic { ts: f64, ev: V_tyreg_poly_atomic_ev },
-    EL_enter_span { ts: f64, ev: V_tyreg_poly_atomic_ev },
-    EL_exit_span { ts: f64 },
+  EL_atomic {
+    ts: f64,
+    ev: V_tyreg_poly_atomic_ev,
+  },
+  EL_enter_span {
+    ts: f64,
+    ev: V_tyreg_poly_atomic_ev,
+  },
+  EL_exit_span {
+    ts: f64,
+  },
 }
 
 // clique Imandrax_api_report.Event.t_tree
-// def Imandrax_api_report.Event.t_tree (mangled name: "ReportEventT_tree")
+// immediate
 #[derive(Debug, Clone)]
-pub enum ReportEventT_tree<V_tyreg_poly_atomic_ev, V_tyreg_poly_sub> {
-    ET_atomic {
-        ts: f64,
-        ev: V_tyreg_poly_atomic_ev,
-    },
-    ET_span {
-        ts: f64,
-        duration: f64,
-        ev: V_tyreg_poly_atomic_ev,
-        sub: V_tyreg_poly_sub,
-    },
+pub enum ReportEventT_tree<V_tyreg_poly_atomic_ev,V_tyreg_poly_sub> {
+  ET_atomic {
+    ts: f64,
+    ev: V_tyreg_poly_atomic_ev,
+  },
+  ET_span {
+    ts: f64,
+    duration: f64,
+    ev: V_tyreg_poly_atomic_ev,
+    sub: V_tyreg_poly_sub,
+  },
 }
-
-// clique Imandrax_api_report.Report.event
-// def Imandrax_api_report.Report.event (mangled name: "ReportReportEvent")
-pub type ReportReportEvent = ReportEventT_linear<ReportAtomic_event>;
 
 // clique Imandrax_api_report.Report.t
-// def Imandrax_api_report.Report.t (mangled name: "ReportReport")
 #[derive(Debug, Clone)]
-pub struct ReportReport {
-    pub events: Vec<ReportReportEvent>,
+pub struct ReportReport<'a> {
+  pub events: &'a [&'a ReportEventT_linear<&'a ReportAtomic_eventPoly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>>],
 }
+
 
 // clique Imandrax_api_proof.Arg.t
-// def Imandrax_api_proof.Arg.t (mangled name: "ProofArg")
 #[derive(Debug, Clone)]
-pub enum ProofArg<V_tyreg_poly_term, V_tyreg_poly_ty> {
-    A_term(V_tyreg_poly_term),
-    A_ty(V_tyreg_poly_ty),
-    A_int(BigInt),
-    A_string(String),
-    A_list(Vec<ProofArg<V_tyreg_poly_term, V_tyreg_poly_ty>>),
-    A_dict(Vec<(String, ProofArg<V_tyreg_poly_term, V_tyreg_poly_ty>)>),
-    A_seq(Sequent_poly<V_tyreg_poly_term>),
+pub enum ProofArg<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  A_term(V_tyreg_poly_term),
+  A_ty(V_tyreg_poly_ty),
+  A_int(BigInt),
+  A_string(&'a str),
+  A_list(&'a [&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>]),
+  A_dict(&'a [(&'a str,&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)]),
+  A_seq(&'a Sequent_poly<'a,V_tyreg_poly_term>),
 }
 
-// clique Imandrax_api_proof.Var_poly.t
-// def Imandrax_api_proof.Var_poly.t (mangled name: "ProofVar_poly")
-pub type ProofVar_poly<V_tyreg_poly_ty> = (Uid, V_tyreg_poly_ty);
-
 // clique Imandrax_api_proof.View.t
-// def Imandrax_api_proof.View.t (mangled name: "ProofView")
 #[derive(Debug, Clone)]
-pub enum ProofView<V_tyreg_poly_term, V_tyreg_poly_ty, V_tyreg_poly_proof> {
-    T_assume,
-    T_subst {
-        t_subst: Vec<(ProofVar_poly<V_tyreg_poly_ty>, V_tyreg_poly_term)>,
-        ty_subst: Vec<(Uid, V_tyreg_poly_ty)>,
-        premise: V_tyreg_poly_proof,
-    },
-    T_deduction {
-        premises: Vec<(String, Vec<V_tyreg_poly_proof>)>,
-    },
-    T_rule {
-        rule: String,
-        args: Vec<ProofArg<V_tyreg_poly_term, V_tyreg_poly_ty>>,
-    },
+pub enum ProofView<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_proof:'a> {
+  T_assume,
+  T_subst {
+    t_subst: &'a [((&'a Uid<'a>,V_tyreg_poly_ty),V_tyreg_poly_term)],
+    ty_subst: &'a [(&'a Uid<'a>,V_tyreg_poly_ty)],
+    premise: V_tyreg_poly_proof,
+  },
+  T_deduction {
+    premises: &'a [(&'a str,&'a [V_tyreg_poly_proof])],
+  },
+  T_rule {
+    rule: &'a str,
+    args: &'a [&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>],
+  },
 }
 
 // clique Imandrax_api_proof.Proof_term_poly.t
-// def Imandrax_api_proof.Proof_term_poly.t (mangled name: "ProofProof_term_poly")
 #[derive(Debug, Clone)]
-pub struct ProofProof_term_poly<V_tyreg_poly_term, V_tyreg_poly_ty, V_tyreg_poly_proof> {
-    pub id: BigInt,
-    pub concl: Sequent_poly<V_tyreg_poly_term>,
-    pub view: ProofView<V_tyreg_poly_term, V_tyreg_poly_ty, V_tyreg_poly_proof>,
+pub struct ProofProof_term_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_proof:'a> {
+  pub id: BigInt,
+  pub concl: &'a Sequent_poly<'a,V_tyreg_poly_term>,
+  pub view: &'a ProofView<'a,V_tyreg_poly_term,V_tyreg_poly_ty,V_tyreg_poly_proof>,
 }
 
-// clique Imandrax_api_proof.Cir_proof_term.t,Imandrax_api_proof.Cir_proof_term.t_inner
-// def Imandrax_api_proof.Cir_proof_term.t (mangled name: "ProofCir_proof_term")
+
+// clique Imandrax_api_proof.Cir_proof_term.t
 #[derive(Debug, Clone)]
-pub struct ProofCir_proof_term {
-    pub p: ProofCir_proof_termT_inner,
+pub struct ProofCir_proof_term<'a> {
+  pub p: &'a ProofProof_term_poly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirType<'a>,&'a ProofCir_proof_term<'a>>,
 }
 
-// def Imandrax_api_proof.Cir_proof_term.t_inner (mangled name: "ProofCir_proof_termT_inner")
-pub type ProofCir_proof_termT_inner = ProofProof_term_poly<CirTerm, CirType, ProofCir_proof_term>;
 
 // clique Imandrax_api_tasks.PO_task.t
-// def Imandrax_api_tasks.PO_task.t (mangled name: "TasksPO_task")
 #[derive(Debug, Clone)]
-pub struct TasksPO_task {
-    pub from_sym: String,
-    pub count: BigInt,
-    pub db: CirDb_ser,
-    pub po: CirProof_obligation,
+pub struct TasksPO_task<'a> {
+  pub from_sym: &'a str,
+  pub count: BigInt,
+  pub db: &'a CirDb_ser<'a>,
+  pub po: &'a CirProof_obligation<'a>,
 }
 
-// clique Imandrax_api_tasks.PO_res.stats
-// def Imandrax_api_tasks.PO_res.stats (mangled name: "TasksPO_resStats")
-pub type TasksPO_resStats = Stat_time;
 
 // clique Imandrax_api_tasks.PO_res.proof_found
-// def Imandrax_api_tasks.PO_res.proof_found (mangled name: "TasksPO_resProof_found")
 #[derive(Debug, Clone)]
-pub struct TasksPO_resProof_found {
-    pub anchor: Anchor,
-    pub proof: ProofCir_proof_term,
+pub struct TasksPO_resProof_found<'a> {
+  pub anchor: &'a Anchor<'a>,
+  pub proof: &'a ProofCir_proof_term<'a>,
 }
+
 
 // clique Imandrax_api_tasks.PO_res.instance
-// def Imandrax_api_tasks.PO_res.instance (mangled name: "TasksPO_resInstance")
 #[derive(Debug, Clone)]
-pub struct TasksPO_resInstance {
-    pub anchor: Anchor,
-    pub model: CirModel,
+pub struct TasksPO_resInstance<'a> {
+  pub anchor: &'a Anchor<'a>,
+  pub model: &'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>,
 }
+
 
 // clique Imandrax_api_tasks.PO_res.no_proof
-// def Imandrax_api_tasks.PO_res.no_proof (mangled name: "TasksPO_resNo_proof")
 #[derive(Debug, Clone)]
-pub struct TasksPO_resNo_proof {
-    pub err: ErrorError_core,
-    pub counter_model: Option<CirModel>,
-    pub subgoals: Vec<CirSequent>,
+pub struct TasksPO_resNo_proof<'a> {
+  pub err: &'a ErrorError_core<'a>,
+  pub counter_model: Option<&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>>,
+  pub subgoals: &'a [&'a Sequent_poly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>>],
 }
+
 
 // clique Imandrax_api_tasks.PO_res.unsat
-// def Imandrax_api_tasks.PO_res.unsat (mangled name: "TasksPO_resUnsat")
 #[derive(Debug, Clone)]
-pub struct TasksPO_resUnsat {
-    pub anchor: Anchor,
-    pub err: ErrorError_core,
-    pub proof: ProofCir_proof_term,
+pub struct TasksPO_resUnsat<'a> {
+  pub anchor: &'a Anchor<'a>,
+  pub err: &'a ErrorError_core<'a>,
+  pub proof: &'a ProofCir_proof_term<'a>,
 }
 
+
 // clique Imandrax_api_tasks.PO_res.success
-// def Imandrax_api_tasks.PO_res.success (mangled name: "TasksPO_resSuccess")
 #[derive(Debug, Clone)]
-pub enum TasksPO_resSuccess {
-    Proof(TasksPO_resProof_found),
-    Instance(TasksPO_resInstance),
+pub enum TasksPO_resSuccess<'a> {
+  Proof(&'a TasksPO_resProof_found<'a>),
+  Instance(&'a TasksPO_resInstance<'a>),
 }
 
 // clique Imandrax_api_tasks.PO_res.error
-// def Imandrax_api_tasks.PO_res.error (mangled name: "TasksPO_resError")
 #[derive(Debug, Clone)]
-pub enum TasksPO_resError {
-    No_proof(TasksPO_resNo_proof),
-    Unsat(TasksPO_resUnsat),
-    Invalid_model(ErrorError_core, CirModel),
-    Error(ErrorError_core),
+pub enum TasksPO_resError<'a> {
+  No_proof(&'a TasksPO_resNo_proof<'a>),
+  Unsat(&'a TasksPO_resUnsat<'a>),
+  Invalid_model(&'a ErrorError_core<'a>,&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>),
+  Error(&'a ErrorError_core<'a>),
 }
-
-// clique Imandrax_api_tasks.PO_res.result
-// def Imandrax_api_tasks.PO_res.result (mangled name: "TasksPO_resResult")
-pub type TasksPO_resResult<V_tyreg_poly_a> = core::result::Result<V_tyreg_poly_a, TasksPO_resError>;
 
 // clique Imandrax_api_tasks.PO_res.t
-// def Imandrax_api_tasks.PO_res.t (mangled name: "TasksPO_res")
 #[derive(Debug, Clone)]
-pub struct TasksPO_res {
-    pub from_: Ca_storeCa_ptr<CirProof_obligation>,
-    pub res: TasksPO_resResult<TasksPO_resSuccess>,
-    pub stats: TasksPO_resStats,
-    pub report: In_mem_archive<ReportReport>,
+pub struct TasksPO_res<'a> {
+  pub from_: &'a Ca_storeCa_ptrRaw<'a>,
+  pub res: &'a core::result::Result<&'a TasksPO_resSuccess<'a>, &'a TasksPO_resError<'a>>,
+  pub stats: Stat_time,
+  pub report: &'a In_mem_archiveRaw<'a>,
 }
+
 
 // clique Imandrax_api_tasks.Eval_task.t
-// def Imandrax_api_tasks.Eval_task.t (mangled name: "TasksEval_task")
 #[derive(Debug, Clone)]
-pub struct TasksEval_task {
-    pub db: CirDb_ser,
-    pub term: CirTerm,
-    pub anchor: Anchor,
-    pub timeout: Option<BigInt>,
+pub struct TasksEval_task<'a> {
+  pub db: &'a CirDb_ser<'a>,
+  pub term: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub anchor: &'a Anchor<'a>,
+  pub timeout: Option<BigInt>,
 }
 
-// clique Imandrax_api_tasks.Eval_res.value
-// def Imandrax_api_tasks.Eval_res.value (mangled name: "TasksEval_resValue")
-pub type TasksEval_resValue = EvalValue;
 
 // clique Imandrax_api_tasks.Eval_res.stats
-// def Imandrax_api_tasks.Eval_res.stats (mangled name: "TasksEval_resStats")
+// immediate
 #[derive(Debug, Clone)]
 pub struct TasksEval_resStats {
-    pub compile_time: f64,
-    pub exec_time: f64,
+  pub compile_time: f64,
+  pub exec_time: f64,
 }
+
 
 // clique Imandrax_api_tasks.Eval_res.success
-// def Imandrax_api_tasks.Eval_res.success (mangled name: "TasksEval_resSuccess")
 #[derive(Debug, Clone)]
-pub struct TasksEval_resSuccess {
-    pub v: TasksEval_resValue,
+pub struct TasksEval_resSuccess<'a> {
+  pub v: &'a EvalValue<'a>,
 }
 
+
 // clique Imandrax_api_tasks.Eval_res.t
-// def Imandrax_api_tasks.Eval_res.t (mangled name: "TasksEval_res")
 #[derive(Debug, Clone)]
-pub struct TasksEval_res {
-    pub res: core::result::Result<TasksEval_resSuccess, Error>,
-    pub stats: TasksEval_resStats,
+pub struct TasksEval_res<'a> {
+  pub res: &'a core::result::Result<&'a TasksEval_resSuccess<'a>,Error<'a>>,
+  pub stats: TasksEval_resStats,
 }
+

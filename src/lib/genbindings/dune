@@ -3,7 +3,8 @@
 (executable
  (name genbindings)
  (flags :standard -open Imandrakit)
- (libraries imandrakit imandrakit.typereg))
+ (preprocess (pps ppx_deriving.std))
+ (libraries imandrakit imandrakit.typereg iter))
 
 (rule
  (targets types_.ml)
