@@ -8,11 +8,7 @@
   imandrax-api.model
   imandrax-api.ca-store
   zarith)
- (flags
-  :standard
-  -open
-  Imandrakit
-  )
+ (flags :standard -open Imandrakit)
  (modes native byte)
  (preprocess
   (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))

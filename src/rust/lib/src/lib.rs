@@ -2,7 +2,9 @@
 // automatically generated using genbindings.ml, do not edit
 
 #![allow(non_camel_case_types)]
-#[rustfmt::skip]
+
+// do not format
+#![cfg_attr(any(), rustfmt::skip)]
 
 //use bumpalo::Bump;
 use num_bigint::BigInt;

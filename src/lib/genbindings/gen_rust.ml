@@ -13,7 +13,9 @@ let prelude =
 // automatically generated using genbindings.ml, do not edit
 
 #![allow(non_camel_case_types)]
-#[rustfmt::skip]
+
+// do not format
+#![cfg_attr(any(), rustfmt::skip)]
 
 //use bumpalo::Bump;
 use num_bigint::BigInt;
@@ -267,7 +269,8 @@ let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
         let params =
           spf "<%s>"
             (String.concat "," @@ lifetime_param_l
-            @ List.map (fun v -> spf "V%s%s" v lifetime_param_bound) def.params )
+            @ List.map (fun v -> spf "V%s%s" v lifetime_param_bound) def.params
+            )
         and twine_params =
           spf "%s,"
             (String.concat ","
