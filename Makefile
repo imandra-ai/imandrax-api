@@ -8,9 +8,10 @@ release:
 
 FEATURES?=bumpalo
 test:
-	cargo test --features $(FEATURES)
+	#cargo test --features $(FEATURES)
+	cargo insta test --features $(FEATURES)
 
-test-insta-review: test
+test-insta-review:
 	cargo insta review
 
 clean:
