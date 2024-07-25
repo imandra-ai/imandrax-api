@@ -23,6 +23,8 @@ pub fn get_value<'a, 'tmp>(
     off: Offset,
 ) -> Result<Value<'a, 'tmp>> {
     use Value::*;
+
+    println!("get value at off={off:x}");
     let off = d.deref(off)?;
     let (high, low) = d.first_byte(off);
     let v: Value = match high {
@@ -90,4 +92,13 @@ pub fn get_value<'a, 'tmp>(
         }
     };
     Ok(v)
+}
+
+/// Find the entrypoint and read a value from it.
+pub fn get_value_from_entrypoint<'a, 'tmp>(
+    d: &'a Decoder<'a>,
+    bump: &'tmp Bump,
+) -> Result<Value<'a, 'tmp>> {
+    let off = d.entrypoint()?;
+    get_value(d, bump, off)
 }

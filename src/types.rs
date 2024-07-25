@@ -32,7 +32,11 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "twine error: {} at offset={}", self.msg, self.off)
+        write!(
+            f,
+            "Twine error: {} at offset=0x{:x} ({})",
+            self.msg, self.off, self.off
+        )
     }
 }
 

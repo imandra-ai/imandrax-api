@@ -9,3 +9,10 @@ edition = "2021"
 
 bumpalo = {version="3.16", optional=true}
 
+[dev-dependencies]
+
+anyhow = "1"
+bumpalo = "3.16"
+insta = "1.39.0"
+pretty-hex = "0.4.1"
+

@@ -36,7 +36,7 @@ impl<'a> Decoder<'a> {
             let c = self.bs[off as usize];
             off += 1;
             let cur = c & 0x7f;
-            res = res & ((cur as u64) << shift);
+            res = res | ((cur as u64) << shift);
 
             if cur == c {
                 // last byte
@@ -57,7 +57,7 @@ impl<'a> Decoder<'a> {
         if low < 15 {
             return Ok((low as u64, 0));
         }
-        let (rest, consumed) = self.leb128(off)?;
+        let (rest, consumed) = self.leb128(off + 1)?;
         Ok((rest + 15, consumed as Offset))
     }
 
@@ -66,15 +66,24 @@ impl<'a> Decoder<'a> {
             let (high, low) = self.first_byte(off);
             if high == 15 {
                 let (p, _) = self.u64_with_low(off, low)?;
+                println!("deref ptr {p} at 0x{off:x}");
                 // checked sub
                 off = off.checked_sub(p as Offset + 1).ok_or_else(|| Error {
                     msg: "pointer underflow",
                     off,
                 })?;
+                println!("deref yields: {off:x}");
             } else {
                 return Ok(off);
             }
         }
+    }
+
+    /// Find the entrypoint.
+    pub fn entrypoint(&self) -> Result<Offset> {
+        let last = self.bs.len() as u32 - 1;
+        let off = last - self.bs[last as usize] as u32 - 1;
+        self.deref(off)
     }
 
     /// Skip an immediate value, return offset of next value.
@@ -259,9 +268,13 @@ impl<'a> Decoder<'a> {
         off = self.deref(off)?;
         let (high, low) = self.first_byte(off);
 
+        println!("reading array at {off:x}");
+
         if high == 6 {
             let (len, n_bytes) = self.u64_with_low(off, low)?;
             off = off + 1 + n_bytes;
+
+            println!("array data: {len} items at {off:x}");
 
             for _ in 0..len {
                 res.push(off);
