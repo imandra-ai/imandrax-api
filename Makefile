@@ -6,10 +6,15 @@ release:
 	cargo build --release
 
 
-FEATURES?=bumpalo
+build-ci: debug
+
+TEST_FEATURES?=bumpalo
+
+test-ci:
+	cargo test --features $(TEST_FEATURES)
+
 test:
-	#cargo test --features $(FEATURES)
-	cargo insta test --features $(FEATURES)
+	cargo insta test --features $(TEST_FEATURES)
 
 test-insta-review:
 	cargo insta review

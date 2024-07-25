@@ -17,6 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build
-      run: make build
+      run: make build-ci
     - name: Run tests
-      run: make test
+      run: make test-ci
