@@ -237,7 +237,20 @@ impl<'a> Decoder<'a> {
         }
     }
 
-    // TODO: bytes
+    pub fn get_bytes(&self, mut off: Offset) -> Result<&[u8]> {
+        off = self.deref(off)?;
+        let (high, low) = self.first_byte(off);
+        if high == 5 {
+            let (len, n_bytes) = self.u64_with_low(off, low)?;
+            off = off + 1 + n_bytes;
+            Ok(&self.bs[off as usize..(off as usize + len as usize)])
+        } else {
+            Err(Error {
+                msg: "expected float",
+                off,
+            })
+        }
+    }
 
     /// Read an array of offsets into `res`
     pub fn get_array(&self, mut off: Offset, res: &mut Vec<Offset>) -> Result<()> {
@@ -290,7 +303,68 @@ impl<'a> Decoder<'a> {
         }
     }
 
-    // TODO: tag
-    // TODO: cstor
-}
+    pub fn get_tag(&self, mut off: Offset) -> Result<(Tag, Offset)> {
+        off = self.deref(off)?;
+        let (high, low) = self.first_byte(off);
 
+        if high == 8 {
+            let (tag, n_bytes) = self.u64_with_low(off, low)?;
+            if tag > u32::MAX as u64 {
+                return Err(Error {
+                    msg: "tag overflow",
+                    off,
+                });
+            }
+            off = off + 1 + n_bytes;
+            Ok((tag as Tag, off))
+        } else {
+            Err(Error {
+                msg: "expected tag",
+                off,
+            })
+        }
+    }
+
+    pub fn get_cstor(&self, mut off: Offset, args: &mut Vec<Offset>) -> Result<CstorIdx> {
+        args.clear();
+
+        off = self.deref(off)?;
+        let (high, low) = self.first_byte(off);
+
+        macro_rules! mk_cstor {
+            ($idx: expr) => {{
+                if $idx > u32::MAX as u64 {
+                    return Err(Error {
+                        msg: "cstor overflow",
+                        off,
+                    });
+                }
+                CstorIdx($idx as u32)
+            }};
+        }
+
+        if high == 10 {
+            let (idx, _) = self.u64_with_low(off, low)?;
+            Ok(mk_cstor!(idx))
+        } else if high == 11 {
+            let (idx, n_bytes_idx) = self.u64_with_low(off, low)?;
+            args.push(off + 1 + n_bytes_idx);
+            Ok(mk_cstor!(idx))
+        } else if high == 12 {
+            let (idx, n_bytes_idx) = self.u64_with_low(off, low)?;
+            off = off + 1 + n_bytes_idx;
+            let (n_items, n_bytes_n_items) = self.leb128(off)?;
+            off = off + n_bytes_n_items as u32;
+            for _ in 0..n_items {
+                args.push(off);
+                off = self.skip(off)?;
+            }
+            Ok(mk_cstor!(idx))
+        } else {
+            Err(Error {
+                msg: "expected tag",
+                off,
+            })
+        }
+    }
+}
