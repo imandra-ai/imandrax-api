@@ -39,19 +39,20 @@ pub fn get_value<'a, 'tmp>(
             Tag(tag, v)
         }
         ShallowValue::Array(arr) => {
-            let local: Vec<Offset> = arr.into_iter().collect::<Result<Vec<_>>>()?;
-            let args: &'tmp mut [Value] =
-                bump.alloc_slice_fill_copy(local.len(), Default::default());
-            for (i, off) in local.into_iter().enumerate() {
+            let n_items = arr.len();
+            let args: &'tmp mut [Value] = bump.alloc_slice_fill_copy(n_items, Default::default());
+            for (i, off) in arr.into_iter().enumerate() {
+                let off = off?;
                 args[i] = get_value(d, bump, off)?;
             }
             Array(args)
         }
         ShallowValue::Dict(dict) => {
-            let local = dict.into_iter().collect::<Result<Vec<_>>>()?;
+            let n_items = dict.len();
             let pairs: &'tmp mut [(Value, Value)] =
-                bump.alloc_slice_fill_copy(local.len(), Default::default());
-            for (i, (k, v)) in local.into_iter().enumerate() {
+                bump.alloc_slice_fill_copy(n_items, Default::default());
+            for (i, pair) in dict.into_iter().enumerate() {
+                let (k, v) = pair?;
                 pairs[i] = (get_value(d, bump, k)?, get_value(d, bump, v)?);
             }
             Dict(pairs)

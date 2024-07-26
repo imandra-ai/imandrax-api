@@ -1,6 +1,6 @@
 //! Shallow values.
 
-use super::{
+use crate::{
     types::{CstorIdx, Offset, Tag},
     Decoder, Immediate, Result,
 };

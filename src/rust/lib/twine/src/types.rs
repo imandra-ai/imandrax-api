@@ -18,7 +18,6 @@ pub enum Immediate<'a> {
     String(&'a str),
     Bytes(&'a [u8]),
     Pointer(Offset),
-    Cstor0(u32),
 }
 
 impl<'a> Default for Immediate<'a> {

@@ -26,6 +26,7 @@ impl<'a> Decoder<'a> {
         Ok(Self { bs })
     }
 
+    /// Read (high, low) nibbles at the given offset.
     #[inline]
     pub(crate) fn first_byte(&self, off: Offset) -> (u8, u8) {
         let c = self.bs[off as usize];
@@ -75,13 +76,11 @@ impl<'a> Decoder<'a> {
             let (high, low) = self.first_byte(off);
             if high == 15 {
                 let (p, _) = self.u64_with_low(off, low)?;
-                println!("deref ptr {p} at 0x{off:x}");
                 // checked sub
                 off = off.checked_sub(p as Offset + 1).ok_or_else(|| Error {
                     msg: "pointer underflow",
                     off,
                 })?;
-                println!("deref yields: {off:x}");
             } else {
                 return Ok(off);
             }
