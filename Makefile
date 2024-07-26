@@ -33,6 +33,9 @@ genlib:
 build-dev:
 	$(DUNE) build @install @runtest $(DUNE_OPTS) --workspace=dune-workspace.dev
 
+pull-twine:
+	git subtree pull --prefix src/rust/lib/twine/ twine-origin main
+
 WATCH?= @check @runtest
 watch:
 	$(DUNE) build $(DUNE_OPTS) --ignore-promoted-rules -w $(WATCH)

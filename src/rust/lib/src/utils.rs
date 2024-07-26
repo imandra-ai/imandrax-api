@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::deser::FromTwine;
 
 use anyhow::bail;
@@ -6,6 +8,20 @@ use bumpalo::Bump;
 use num_bigint::BigInt;
 use num_rational::BigRational as Rational;
 use twine::{types::Offset, Decoder};
+
+/// Used for type-erasing aliases
+pub struct Alias<T, Raw> {
+    alias: Raw,
+    phantom: PhantomData<T>,
+}
+
+impl<T, Raw> std::ops::Deref for Alias<T, Raw> {
+    type Target = Raw;
+
+    fn deref(&self) -> &Self::Target {
+        &self.alias
+    }
+}
 
 // data we ignore upon deserialization.
 #[derive(Clone, Copy, Debug)]
@@ -44,6 +60,6 @@ impl<'a> FromTwine<'a> for Chash<'a> {
 impl<'a> FromTwine<'a> for BigInt {
     fn read(d: &Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
         todo!()
-    \}
+    }
 }
 impl<'a> FromTwine<'a> for Rational {}
