@@ -14,6 +14,12 @@ let prelude =
 
 #![allow(non_camel_case_types)]
 
+pub mod deser;
+pub use deser::FromTwine;
+pub mod utils;
+  use utils::*;
+
+
 // do not format
 #![cfg_attr(any(), rustfmt::skip)]
 
@@ -22,30 +28,14 @@ use num_bigint::BigInt;
 use num_rational::BigRational as Rational;
 //use anyhow::bail;
 
-// TODO: pub trait FromTwine { … }
-
-// data we ignore upon deserialization.
-#[derive(Clone,Copy,Debug)]
-pub struct Ignored;
-
 pub type Error<'a> = ErrorError_core<'a>;
-
-#[derive(Debug, Clone)]
-pub enum Void {}
 
 pub type UidSet<'a> = [Uid<'a>];
 pub type Var_set<'a> = UidSet<'a>;
 
 // def Uid_set_of_twine(d, off:int) -> UidSet:
 //      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off)) 
-
-#[derive(Debug, Clone)]
-pub struct Chash<'a>(pub &'a [u8]);
-
-//fn Chash_of_twine(d, off: usize) -> Chash {
-//    d.get_bytes(off)
-//}
-  |}
+|}
 
 (* TODO:
    - find which types are immediate, in advance (build a set of them).
