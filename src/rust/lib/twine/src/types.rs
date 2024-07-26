@@ -21,6 +21,12 @@ pub enum Immediate<'a> {
     Cstor0(u32),
 }
 
+impl<'a> Default for Immediate<'a> {
+    fn default() -> Self {
+        Immediate::Null
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Error {
     pub msg: &'static str,

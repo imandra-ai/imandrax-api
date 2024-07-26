@@ -2,6 +2,7 @@
 
 pub mod deser;
 pub mod ser;
+pub mod shallow_value;
 pub mod types;
 
 pub use deser::Decoder;

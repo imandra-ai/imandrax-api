@@ -1,8 +1,10 @@
 //! Values that rely on a bump allocator.
 
+use crate::shallow_value::ShallowValue;
+
 use super::{
     types::{CstorIdx, Offset, Tag},
-    Decoder, Error, Immediate, Result,
+    Decoder, Immediate, Result,
 };
 use bumpalo::Bump;
 
@@ -16,6 +18,12 @@ pub enum Value<'a, 'tmp> {
     Cstor(CstorIdx, &'tmp [Value<'a, 'tmp>]),
 }
 
+impl<'a, 'tmp> Default for Value<'a, 'tmp> {
+    fn default() -> Self {
+        Value::Imm(Default::default())
+    }
+}
+
 /// Read a value
 pub fn get_value<'a, 'tmp>(
     d: &'a Decoder<'a>,
@@ -24,71 +32,38 @@ pub fn get_value<'a, 'tmp>(
 ) -> Result<Value<'a, 'tmp>> {
     use Value::*;
 
-    println!("get value at off={off:x}");
-    let off = d.deref(off)?;
-    let (high, low) = d.first_byte(off);
-    let v: Value = match high {
-        0 => {
-            if low == 2 {
-                Imm(Immediate::Null)
-            } else if low == 0 {
-                Imm(Immediate::Bool(false))
-            } else if low == 1 {
-                Imm(Immediate::Bool(true))
-            } else {
-                return Err(Error {
-                    msg: "invalid value with high=0",
-                    off,
-                });
-            }
-        }
-        1 | 2 => Imm(Immediate::Int64(d.get_i64(off)?)),
-        3 => Imm(Immediate::Float(d.get_float(off)?)),
-        4 => Imm(Immediate::String(d.get_str(off)?)),
-        5 => Imm(Immediate::Bytes(d.get_bytes(off)?)),
-        6 => {
-            let mut offsets = vec![];
-            d.get_array(off, &mut offsets)?;
-            let res: &'tmp mut [Value] =
-                bump.alloc_slice_fill_copy(offsets.len(), Imm(Immediate::Null));
-            for (idx, off) in offsets.into_iter().enumerate() {
-                res[idx] = get_value(d, bump, off)?;
-            }
-            Array(res)
-        }
-        7 => {
-            let mut offsets_kv = vec![];
-            d.get_dict(off, &mut offsets_kv)?;
-            let res: &'tmp mut [(Value, Value)] = bump.alloc_slice_fill_copy(
-                offsets_kv.len(),
-                (Imm(Immediate::Null), Imm(Immediate::Null)),
-            );
-            for (idx, (k, v)) in offsets_kv.into_iter().enumerate() {
-                res[idx] = (get_value(d, bump, k)?, get_value(d, bump, v)?);
-            }
-            Dict(res)
-        }
-        8 => {
-            let (tag, off) = d.get_tag(off)?;
+    let v: Value = match d.get_shallow_value(off)? {
+        ShallowValue::Imm(v) => Imm(v),
+        ShallowValue::Tag(tag, off) => {
             let v = bump.alloc(get_value(d, bump, off)?);
             Tag(tag, v)
         }
-        10 | 11 | 12 => {
-            let mut offset_args = vec![];
-            let cstor_idx = d.get_cstor(off, &mut offset_args)?;
+        ShallowValue::Array(arr) => {
+            let local: Vec<Offset> = arr.into_iter().collect::<Result<Vec<_>>>()?;
             let args: &'tmp mut [Value] =
-                bump.alloc_slice_fill_copy(offset_args.len(), Imm(Immediate::Null));
-            for (idx, off) in offset_args.into_iter().enumerate() {
-                args[idx] = get_value(d, bump, off)?;
+                bump.alloc_slice_fill_copy(local.len(), Default::default());
+            for (i, off) in local.into_iter().enumerate() {
+                args[i] = get_value(d, bump, off)?;
+            }
+            Array(args)
+        }
+        ShallowValue::Dict(dict) => {
+            let local = dict.into_iter().collect::<Result<Vec<_>>>()?;
+            let pairs: &'tmp mut [(Value, Value)] =
+                bump.alloc_slice_fill_copy(local.len(), Default::default());
+            for (i, (k, v)) in local.into_iter().enumerate() {
+                pairs[i] = (get_value(d, bump, k)?, get_value(d, bump, v)?);
+            }
+            Dict(pairs)
+        }
+        ShallowValue::Cstor(cstor_idx, args) => {
+            let local: Vec<Offset> = args.into_iter().collect::<Result<Vec<_>>>()?;
+            let args: &'tmp mut [Value] =
+                bump.alloc_slice_fill_copy(local.len(), Default::default());
+            for (i, off) in local.into_iter().enumerate() {
+                args[i] = get_value(d, bump, off)?;
             }
             Cstor(cstor_idx, args)
-        }
-        15 => unreachable!(), // we did deref
-        _ => {
-            return Err(Error {
-                msg: "invalid value",
-                off,
-            })
         }
     };
     Ok(v)
