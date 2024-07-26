@@ -1,16 +1,21 @@
-module Cir = Imandrax_api_cir
-
 type t = { p: t_inner } [@@unboxed]
 (** A CIR-level proof term *)
 
-and t_inner = (Cir.Term.t, Cir.Type.t, t) Proof_term_poly.t
+and t_inner =
+  (Imandrax_api_cir.Term.t, Imandrax_api_cir.Type.t, t) Proof_term_poly.t
 [@@deriving twine, typereg]
 
-let rec pp out self = Proof_term_poly.pp Cir.Term.pp Cir.Type.pp pp out self.p
+let rec pp out self =
+  Proof_term_poly.pp Imandrax_api_cir.Term.pp Imandrax_api_cir.Type.pp pp out
+    self.p
+
 let show = Fmt.to_string pp
 
-type view = (Cir.Term.t, Cir.Type.t, t) View.t [@@deriving show]
-type arg = (Cir.Term.t, Cir.Type.t) Arg.t [@@deriving show]
+type view = (Imandrax_api_cir.Term.t, Imandrax_api_cir.Type.t, t) View.t
+[@@deriving show]
+
+type arg = (Imandrax_api_cir.Term.t, Imandrax_api_cir.Type.t) Arg.t
+[@@deriving show]
 
 module Phys = struct
   module As_key = struct

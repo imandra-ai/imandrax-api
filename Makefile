@@ -21,13 +21,20 @@ check-format:
 	$(DUNE) build $(DUNE_OPTS) @fmt --ignore-promoted-rules
 
 genproto:
-	$(DUNE) build @genproto
+	$(DUNE) build @genproto --auto-promote
 
-genpython:
-	make genpython -C src/proto/py/bindings/
+genlib:
+	#make genpython -C src/py/lib/ --debug
+	@make -s genpython -C src/py/lib/
+	@make -s genpython -C src/py/bindings/
+	@make -s genrust -C src/rust/lib/ --debug
+	#make genrust -C src/rust/
 
 build-dev:
 	$(DUNE) build @install @runtest $(DUNE_OPTS) --workspace=dune-workspace.dev
+
+pull-twine:
+	git subtree pull --prefix src/rust/lib/twine/ twine-origin main
 
 WATCH?= @check @runtest
 watch:

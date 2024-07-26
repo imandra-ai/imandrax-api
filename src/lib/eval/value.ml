@@ -4,14 +4,14 @@ open Imandrax_api_cir
 
 type cstor_descriptor = {
   cd_idx: int;  (** Index in the list of cstors of its type *)
-  cd_name: Uid.t;
+  cd_name: Imandrax_api.Uid.t;
 }
 [@@deriving show { with_path = false }, twine, typereg]
 (** Representation of a constructor *)
 
 type record_descriptor = {
-  rd_name: Uid.t;
-  rd_fields: Uid.t array;  (** Labels of fields of the record *)
+  rd_name: Imandrax_api.Uid.t;
+  rd_fields: Imandrax_api.Uid.t array;  (** Labels of fields of the record *)
 }
 [@@deriving show { with_path = false }, twine, typereg]
 (** Description of a record's fields *)
@@ -25,8 +25,8 @@ type ('v, 'closure) view =
   | V_cstor of cstor_descriptor * 'v array
   | V_tuple of 'v array
   | V_record of record_descriptor * 'v array
-  | V_quoted_term of Term.t  (** A quoted term *)
-  | V_uid of Uid.t
+  | V_quoted_term of Imandrax_api_cir.Term.t  (** A quoted term *)
+  | V_uid of Imandrax_api.Uid.t
   | V_closure of 'closure
   | V_custom of Custom_value.t
   | V_ordinal of Ordinal.t

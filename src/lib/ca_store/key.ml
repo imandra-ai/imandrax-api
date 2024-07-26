@@ -1,4 +1,4 @@
-type t = string [@@deriving eq, ord]
+type t = string [@@deriving eq, ord, typereg]
 
 let show self = spf "(cstore.key %s)" self
 let pp = Fmt.of_to_string show

@@ -5,7 +5,7 @@ type ('term, 'ty, 'proof) t =
           This can be replaced with the actual proof of this proof's goal. *)
   | T_subst of {
       t_subst: ('ty Var_poly.t * 'term) list;
-      ty_subst: (Uid.t * 'ty) list;
+      ty_subst: (Imandrax_api.Uid.t * 'ty) list;
       premise: 'proof;
     }  (** Instantiation of a previous step *)
   | T_deduction of {

@@ -1,0 +1,20 @@
+; generate bindings to the API types from other languages
+
+(executable
+ (name genbindings)
+ (flags :standard -open Imandrakit)
+ (preprocess
+  (pps ppx_deriving.std))
+ (libraries imandrakit imandrakit.typereg iter))
+
+(rule
+ (targets types_.ml)
+ (deps
+  (:file ../typereg.json))
+ (action
+  (with-stdout-to
+   %{targets}
+   (progn
+    (echo "let json = {yolojson|")
+    (cat %{file})
+    (echo "|yolojson}")))))

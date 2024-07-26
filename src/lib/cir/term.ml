@@ -10,10 +10,10 @@ type 't binding = Var.t * 't [@@deriving twine, typereg, show]
 type t = view With_ty.t
 
 and view =
-  | Const of Const.t
+  | Const of Imandrax_api.Const.t
   | If of t * t * t
   | Let of {
-      flg: Misc_types.rec_flag;
+      flg: Imandrax_api.Misc_types.rec_flag;
       bs: t binding list;
       body: t;
     }
@@ -30,7 +30,7 @@ and view =
   | Construct of {
       c: Applied_symbol.t;
       args: t list;
-      labels: Uid.t list option;
+      labels: Imandrax_api.Uid.t list option;
     }
   | Destruct of {
       c: Applied_symbol.t;
@@ -67,6 +67,8 @@ and view =
 [@@deriving twine, typereg, show { with_path = false }]
 
 type term = t [@@deriving twine, typereg, show]
+
+open Imandrax_api
 
 let () =
   (* we can cache on the decoding end, but during encoding

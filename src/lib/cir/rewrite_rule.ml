@@ -1,5 +1,6 @@
 type t = {
-  rw_name: Uid.t;  (** name of theorem that gives this rewrite rule *)
+  rw_name: Imandrax_api.Uid.t;
+      (** name of theorem that gives this rewrite rule *)
   rw_head: Pattern_head.t;  (** head symbol of LHS *)
   rw_lhs: Fo_pattern.t;
   rw_rhs: Term.t;

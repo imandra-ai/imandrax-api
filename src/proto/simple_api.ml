@@ -28,6 +28,7 @@ type eval_res = {
   success : bool;
   messages : string list;
   errors : Error.error list;
+  tasks : Task.task list;
 }
 
 type hints_unroll = {
@@ -116,6 +117,7 @@ type verify_res_res =
 and verify_res = {
   res : verify_res_res;
   errors : Error.error list;
+  task : Task.task option;
 }
 
 type instance_res_res =
@@ -127,6 +129,7 @@ type instance_res_res =
 and instance_res = {
   res : instance_res_res;
   errors : Error.error list;
+  task : Task.task option;
 }
 
 let rec default_decompose_req 
@@ -173,10 +176,12 @@ let rec default_eval_res
   ?success:((success:bool) = false)
   ?messages:((messages:string list) = [])
   ?errors:((errors:Error.error list) = [])
+  ?tasks:((tasks:Task.task list) = [])
   () : eval_res  = {
   success;
   messages;
   errors;
+  tasks;
 }
 
 let rec default_hints_unroll 
@@ -286,9 +291,11 @@ let rec default_verify_res_res () : verify_res_res = Unknown (Utils.default_stri
 and default_verify_res 
   ?res:((res:verify_res_res) = Unknown (Utils.default_string_msg ()))
   ?errors:((errors:Error.error list) = [])
+  ?task:((task:Task.task option) = None)
   () : verify_res  = {
   res;
   errors;
+  task;
 }
 
 let rec default_instance_res_res () : instance_res_res = Unknown (Utils.default_string_msg ())
@@ -296,9 +303,11 @@ let rec default_instance_res_res () : instance_res_res = Unknown (Utils.default_
 and default_instance_res 
   ?res:((res:instance_res_res) = Unknown (Utils.default_string_msg ()))
   ?errors:((errors:Error.error list) = [])
+  ?task:((task:Task.task option) = None)
   () : instance_res  = {
   res;
   errors;
+  task;
 }
 
 type decompose_req_mutable = {
@@ -353,12 +362,14 @@ type eval_res_mutable = {
   mutable success : bool;
   mutable messages : string list;
   mutable errors : Error.error list;
+  mutable tasks : Task.task list;
 }
 
 let default_eval_res_mutable () : eval_res_mutable = {
   success = false;
   messages = [];
   errors = [];
+  tasks = [];
 }
 
 type hints_unroll_mutable = {
@@ -482,21 +493,25 @@ let default_sat_mutable () : sat_mutable = {
 type verify_res_mutable = {
   mutable res : verify_res_res;
   mutable errors : Error.error list;
+  mutable task : Task.task option;
 }
 
 let default_verify_res_mutable () : verify_res_mutable = {
   res = Unknown (Utils.default_string_msg ());
   errors = [];
+  task = None;
 }
 
 type instance_res_mutable = {
   mutable res : instance_res_res;
   mutable errors : Error.error list;
+  mutable task : Task.task option;
 }
 
 let default_instance_res_mutable () : instance_res_mutable = {
   res = Unknown (Utils.default_string_msg ());
   errors = [];
+  task = None;
 }
 
 
@@ -546,10 +561,12 @@ let rec make_eval_res
   ~(success:bool)
   ~(messages:string list)
   ~(errors:Error.error list)
+  ~(tasks:Task.task list)
   () : eval_res  = {
   success;
   messages;
   errors;
+  tasks;
 }
 
 let rec make_hints_unroll 
@@ -654,18 +671,22 @@ let rec make_sat
 let rec make_verify_res 
   ~(res:verify_res_res)
   ~(errors:Error.error list)
+  ?task:((task:Task.task option) = None)
   () : verify_res  = {
   res;
   errors;
+  task;
 }
 
 
 let rec make_instance_res 
   ~(res:instance_res_res)
   ~(errors:Error.error list)
+  ?task:((task:Task.task option) = None)
   () : instance_res  = {
   res;
   errors;
+  task;
 }
 
 [@@@ocaml.warning "-27-30-39"]
@@ -709,6 +730,7 @@ let rec pp_eval_res fmt (v:eval_res) =
     Pbrt.Pp.pp_record_field ~first:true "success" Pbrt.Pp.pp_bool fmt v.success;
     Pbrt.Pp.pp_record_field ~first:false "messages" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.messages;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
+    Pbrt.Pp.pp_record_field ~first:false "tasks" (Pbrt.Pp.pp_list Task.pp_task) fmt v.tasks;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -828,6 +850,7 @@ and pp_verify_res fmt (v:verify_res) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "res" pp_verify_res_res fmt v.res;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
+    Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -842,6 +865,7 @@ and pp_instance_res fmt (v:instance_res) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "res" pp_instance_res_res fmt v.res;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
+    Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -924,6 +948,10 @@ let rec encode_pb_eval_res (v:eval_res) encoder =
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
     Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
   ) v.errors encoder;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested Task.encode_pb_task x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  ) v.tasks encoder;
   ()
 
 let rec encode_pb_hints_unroll (v:hints_unroll) encoder = 
@@ -1137,6 +1165,12 @@ and encode_pb_verify_res (v:verify_res) encoder =
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   ) v.errors encoder;
+  begin match v.task with
+  | Some x -> 
+    Pbrt.Encoder.nested Task.encode_pb_task x encoder;
+    Pbrt.Encoder.key 11 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
   ()
 
 let rec encode_pb_instance_res_res (v:instance_res_res) encoder = 
@@ -1174,6 +1208,12 @@ and encode_pb_instance_res (v:instance_res) encoder =
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   ) v.errors encoder;
+  begin match v.task with
+  | Some x -> 
+    Pbrt.Encoder.nested Task.encode_pb_task x encoder;
+    Pbrt.Encoder.key 11 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
   ()
 
 [@@@ocaml.warning "-27-30-39"]
@@ -1308,6 +1348,7 @@ let rec decode_pb_eval_res d =
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
+      v.tasks <- List.rev v.tasks;
       v.errors <- List.rev v.errors;
       v.messages <- List.rev v.messages;
     ); continue__ := false
@@ -1326,12 +1367,18 @@ let rec decode_pb_eval_res d =
     end
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(eval_res), field(3)" pk
+    | Some (4, Pbrt.Bytes) -> begin
+      v.tasks <- (Task.decode_pb_task (Pbrt.Decoder.nested d)) :: v.tasks;
+    end
+    | Some (4, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(eval_res), field(4)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     success = v.success;
     messages = v.messages;
     errors = v.errors;
+    tasks = v.tasks;
   } : eval_res)
 
 let rec decode_pb_hints_unroll d =
@@ -1721,11 +1768,17 @@ and decode_pb_verify_res d =
     end
     | Some (10, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(verify_res), field(10)" pk
+    | Some (11, Pbrt.Bytes) -> begin
+      v.task <- Some (Task.decode_pb_task (Pbrt.Decoder.nested d));
+    end
+    | Some (11, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(11)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     res = v.res;
     errors = v.errors;
+    task = v.task;
   } : verify_res)
 
 let rec decode_pb_instance_res_res d = 
@@ -1782,11 +1835,17 @@ and decode_pb_instance_res d =
     end
     | Some (10, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(instance_res), field(10)" pk
+    | Some (11, Pbrt.Bytes) -> begin
+      v.task <- Some (Task.decode_pb_task (Pbrt.Decoder.nested d));
+    end
+    | Some (11, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(11)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     res = v.res;
     errors = v.errors;
+    task = v.task;
   } : instance_res)
 
 [@@@ocaml.warning "-27-30-39"]
@@ -1855,6 +1914,10 @@ let rec encode_json_eval_res (v:eval_res) =
   let assoc =
     let l = v.errors |> List.map Error.encode_json_error in
     ("errors", `List l) :: assoc 
+  in
+  let assoc =
+    let l = v.tasks |> List.map Task.encode_json_task in
+    ("tasks", `List l) :: assoc 
   in
   `Assoc assoc
 
@@ -2018,6 +2081,10 @@ and encode_json_verify_res (v:verify_res) =
     let l = v.errors |> List.map Error.encode_json_error in
     ("errors", `List l) :: assoc 
   in
+  let assoc = match v.task with
+    | None -> assoc
+    | Some v -> ("task", Task.encode_json_task v) :: assoc
+  in
   `Assoc assoc
 
 let rec encode_json_instance_res_res (v:instance_res_res) = 
@@ -2039,6 +2106,10 @@ and encode_json_instance_res (v:instance_res) =
   let assoc =
     let l = v.errors |> List.map Error.encode_json_error in
     ("errors", `List l) :: assoc 
+  in
+  let assoc = match v.task with
+    | None -> assoc
+    | Some v -> ("task", Task.encode_json_task v) :: assoc
   in
   `Assoc assoc
 
@@ -2159,6 +2230,11 @@ let rec decode_json_eval_res d =
         | json_value -> (Error.decode_json_error json_value)
       ) l;
     end
+    | ("tasks", `List l) -> begin
+      v.tasks <- List.map (function
+        | json_value -> (Task.decode_json_task json_value)
+      ) l;
+    end
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -2166,6 +2242,7 @@ let rec decode_json_eval_res d =
     success = v.success;
     messages = v.messages;
     errors = v.errors;
+    tasks = v.tasks;
   } : eval_res)
 
 let rec decode_json_hints_unroll d =
@@ -2480,12 +2557,15 @@ and decode_json_verify_res d =
         | json_value -> (Error.decode_json_error json_value)
       ) l;
     end
+    | ("task", json_value) -> 
+      v.task <- Some ((Task.decode_json_task json_value))
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     res = v.res;
     errors = v.errors;
+    task = v.task;
   } : verify_res)
 
 let rec decode_json_instance_res_res json =
@@ -2526,12 +2606,15 @@ and decode_json_instance_res d =
         | json_value -> (Error.decode_json_error json_value)
       ) l;
     end
+    | ("task", json_value) -> 
+      v.task <- Some ((Task.decode_json_task json_value))
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     res = v.res;
     errors = v.errors;
+    task = v.task;
   } : instance_res)
 
 module Simple = struct

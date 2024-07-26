@@ -51,6 +51,15 @@
 
 (rule
  (alias genproto)
+ (targets task.ml task.mli)
+ (deps
+  (:file task.proto))
+ (mode promote)
+ (action
+  (run ocaml-protoc --ml_out=. --pp --binary --services --make %{file})))
+
+(rule
+ (alias genproto)
  (targets utils.ml utils.mli)
  (deps
   (:file utils.proto))

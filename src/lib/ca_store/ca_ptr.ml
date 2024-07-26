@@ -1,7 +1,8 @@
 open Common_cstore_
 
 module Raw = struct
-  type t = { key: Key.t } [@@unboxed] [@@deriving eq, ord]
+  type t = { key: Key.t }
+  [@@unboxed] [@@deriving eq, ord, typereg] [@@typereg.name "Raw.t"]
 
   let show self = Key.show self.key
   let pp out self = Key.pp out self.key
@@ -16,7 +17,7 @@ module Raw = struct
   let[@inline] unslugify_exn s : t = { key = Key.unslugify_exn s }
 end
 
-type 'a t = Raw.t
+type 'a t = Raw.t [@@deriving typereg]
 
 let[@inline] raw self = self
 let show (self : _ t) = Raw.show self

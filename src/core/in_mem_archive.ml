@@ -10,7 +10,7 @@ type raw = {
 }
 [@@deriving twine, typereg, show { with_path = false }]
 
-type _ t = raw
+type 'a t = raw [@@deriving typereg]
 
 let pp _ out (self : _ t) = pp_raw out self
 let to_twine = raw_to_twine

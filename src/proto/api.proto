@@ -4,28 +4,12 @@ syntax = "proto3";
 import "utils.proto";
 import "error.proto";
 import "session.proto";
+import "task.proto";
 
 package imandrax.api;
 
 // artifacts as messages
 import "../lib/artifact/artmsg.proto";
-
-enum TaskKind {
-  TASK_UNSPECIFIED = 0;
-  TASK_EVAL = 1;
-  TASK_CHECK_PO = 2;
-  TASK_PROOF_CHECK = 3;
-}
-
-message TaskID {
-  // The task identifier.
-  string id = 1;
-}
-
-message Task {
-  TaskID id = 1;
-  TaskKind kind = 2;
-}
 
 // ## Evaluation of snippets
 //

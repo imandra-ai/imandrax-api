@@ -1,6 +1,8 @@
 (** Variables *)
 
-type t = Uid.t With_ty.t [@@deriving twine, typereg, show]
+type t = Imandrax_api.Uid.t With_ty.t [@@deriving twine, typereg, show]
+
+open Imandrax_api
 
 let[@inline] equal (a : t) (b : t) : bool = Uid.equal a.view b.view
 let[@inline] compare (a : t) (b : t) = Uid.compare a.view b.view
