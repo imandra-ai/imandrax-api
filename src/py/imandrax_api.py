@@ -1,6 +1,13 @@
 from typing import Optional
 from twirp.context import Context
-from bindings import utils_pb2, simple_api_twirp, simple_api_pb2
+from bindings import (
+    task_pb2,
+    utils_pb2,
+    simple_api_twirp,
+    simple_api_pb2,
+    api_pb2,
+    api_twirp,
+)
 
 
 class Client(object):
@@ -8,6 +15,7 @@ class Client(object):
         self._url = url
         self._server_path_prefix = server_path_prefix
         self._client = simple_api_twirp.SimpleClient(url)
+        self._api_client = api_twirp.EvalClient(url)
 
         self._sesh = self._client.create_session(
             ctx=Context(),
@@ -49,4 +57,18 @@ class Client(object):
             request=simple_api_pb2.InstanceSrcReq(
                 src=src, session=self._sesh, hints=hints
             ),
+        )
+
+    def list_artifacts(self, task: task.Task) -> api_pb2.ArtifactListResult:
+        return self._api_client.list_artifacts(
+            ctx=Context(),
+            server_path_prefix=self._server_path_prefix,
+            request=api_pb2.ArtifactListQuery(session=self._sesh, task=task),
+        )
+
+    def get_artifact_zip(self, task: task_pb2.Task, kind: str) -> api_pb2.ArtifactZip:
+        return self._api_client.get_artifact_zip(
+            ctx=Context(),
+            server_path_prefix=self._server_path_prefix,
+            request=api_pb2.ArtifactGetQuery(task=Task, kind=kind),
         )
