@@ -37,6 +37,10 @@ type artifact = {
   art : Artmsg.art option;
 }
 
+type artifact_zip = {
+  art_zip : bytes;
+}
+
 let rec default_code_snippet 
   ?session:((session:Session.session option) = None)
   ?code:((code:string) = "")
@@ -89,6 +93,12 @@ let rec default_artifact
   ?art:((art:Artmsg.art option) = None)
   () : artifact  = {
   art;
+}
+
+let rec default_artifact_zip 
+  ?art_zip:((art_zip:bytes) = Bytes.create 0)
+  () : artifact_zip  = {
+  art_zip;
 }
 
 type code_snippet_mutable = {
@@ -157,6 +167,14 @@ let default_artifact_mutable () : artifact_mutable = {
   art = None;
 }
 
+type artifact_zip_mutable = {
+  mutable art_zip : bytes;
+}
+
+let default_artifact_zip_mutable () : artifact_zip_mutable = {
+  art_zip = Bytes.create 0;
+}
+
 
 (** {2 Make functions} *)
 
@@ -213,6 +231,12 @@ let rec make_artifact
   art;
 }
 
+let rec make_artifact_zip 
+  ~(art_zip:bytes)
+  () : artifact_zip  = {
+  art_zip;
+}
+
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Formatters} *)
@@ -266,6 +290,12 @@ let rec pp_artifact_get_query fmt (v:artifact_get_query) =
 let rec pp_artifact fmt (v:artifact) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "art" (Pbrt.Pp.pp_option Artmsg.pp_art) fmt v.art;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_artifact_zip fmt (v:artifact_zip) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "art_zip" Pbrt.Pp.pp_bytes fmt v.art_zip;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -343,6 +373,11 @@ let rec encode_pb_artifact (v:artifact) encoder =
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | None -> ();
   end;
+  ()
+
+let rec encode_pb_artifact_zip (v:artifact_zip) encoder = 
+  Pbrt.Encoder.bytes v.art_zip encoder;
+  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   ()
 
 [@@@ocaml.warning "-27-30-39"]
@@ -514,6 +549,24 @@ let rec decode_pb_artifact d =
     art = v.art;
   } : artifact)
 
+let rec decode_pb_artifact_zip d =
+  let v = default_artifact_zip_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.art_zip <- Pbrt.Decoder.bytes d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(artifact_zip), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    art_zip = v.art_zip;
+  } : artifact_zip)
+
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -582,6 +635,11 @@ let rec encode_json_artifact (v:artifact) =
     | None -> assoc
     | Some v -> ("art", Artmsg.encode_json_art v) :: assoc
   in
+  `Assoc assoc
+
+let rec encode_json_artifact_zip (v:artifact_zip) = 
+  let assoc = [] in 
+  let assoc = ("artZip", Pbrt_yojson.make_bytes v.art_zip) :: assoc in
   `Assoc assoc
 
 [@@@ocaml.warning "-27-30-39"]
@@ -730,6 +788,22 @@ let rec decode_json_artifact d =
     art = v.art;
   } : artifact)
 
+let rec decode_json_artifact_zip d =
+  let v = default_artifact_zip_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("artZip", json_value) -> 
+      v.art_zip <- Pbrt_yojson.bytes json_value "artifact_zip" "art_zip"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    art_zip = v.art_zip;
+  } : artifact_zip)
+
 module Eval = struct
   open Pbrt_services.Value_mode
   module Client = struct
@@ -798,6 +872,19 @@ module Eval = struct
         ~decode_json_res:decode_json_artifact
         ~decode_pb_res:decode_pb_artifact
         () : (artifact_get_query, unary, artifact, unary) Client.rpc)
+    open Pbrt_services
+    
+    let get_artifact_zip : (artifact_get_query, unary, artifact_zip, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"api"]
+        ~service_name:"Eval" ~rpc_name:"get_artifact_zip"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_artifact_get_query
+        ~encode_pb_req:encode_pb_artifact_get_query
+        ~decode_json_res:decode_json_artifact_zip
+        ~decode_pb_res:decode_pb_artifact_zip
+        () : (artifact_get_query, unary, artifact_zip, unary) Client.rpc)
   end
   
   module Server = struct
@@ -853,12 +940,23 @@ module Eval = struct
         ~decode_pb_req:decode_pb_artifact_get_query
         () : _ Server.rpc)
     
+    let get_artifact_zip : (artifact_get_query,unary,artifact_zip,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"get_artifact_zip"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_artifact_zip
+        ~encode_pb_res:encode_pb_artifact_zip
+        ~decode_json_req:decode_json_artifact_get_query
+        ~decode_pb_req:decode_pb_artifact_get_query
+        () : _ Server.rpc)
+    
     let make
       ~eval_code_snippet:__handler__eval_code_snippet
       ~parse_term:__handler__parse_term
       ~parse_type:__handler__parse_type
       ~list_artifacts:__handler__list_artifacts
       ~get_artifact:__handler__get_artifact
+      ~get_artifact_zip:__handler__get_artifact_zip
       () : _ Server.t =
       { Server.
         service_name="Eval";
@@ -869,6 +967,7 @@ module Eval = struct
            (__handler__parse_type parse_type);
            (__handler__list_artifacts list_artifacts);
            (__handler__get_artifact get_artifact);
+           (__handler__get_artifact_zip get_artifact_zip);
         ];
       }
   end

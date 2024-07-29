@@ -44,6 +44,10 @@ type artifact = {
   art : Artmsg.art option;
 }
 
+type artifact_zip = {
+  art_zip : bytes;
+}
+
 
 (** {2 Basic values} *)
 
@@ -97,6 +101,12 @@ val default_artifact :
   artifact
 (** [default_artifact ()] is the default value for type [artifact] *)
 
+val default_artifact_zip : 
+  ?art_zip:bytes ->
+  unit ->
+  artifact_zip
+(** [default_artifact_zip ()] is the default value for type [artifact_zip] *)
+
 
 (** {2 Make functions} *)
 
@@ -148,6 +158,12 @@ val make_artifact :
   artifact
 (** [make_artifact … ()] is a builder for type [artifact] *)
 
+val make_artifact_zip : 
+  art_zip:bytes ->
+  unit ->
+  artifact_zip
+(** [make_artifact_zip … ()] is a builder for type [artifact_zip] *)
+
 
 (** {2 Formatters} *)
 
@@ -174,6 +190,9 @@ val pp_artifact_get_query : Format.formatter -> artifact_get_query -> unit
 
 val pp_artifact : Format.formatter -> artifact -> unit 
 (** [pp_artifact v] formats v *)
+
+val pp_artifact_zip : Format.formatter -> artifact_zip -> unit 
+(** [pp_artifact_zip v] formats v *)
 
 
 (** {2 Protobuf Encoding} *)
@@ -202,6 +221,9 @@ val encode_pb_artifact_get_query : artifact_get_query -> Pbrt.Encoder.t -> unit
 val encode_pb_artifact : artifact -> Pbrt.Encoder.t -> unit
 (** [encode_pb_artifact v encoder] encodes [v] with the given [encoder] *)
 
+val encode_pb_artifact_zip : artifact_zip -> Pbrt.Encoder.t -> unit
+(** [encode_pb_artifact_zip v encoder] encodes [v] with the given [encoder] *)
+
 
 (** {2 Protobuf Decoding} *)
 
@@ -228,6 +250,9 @@ val decode_pb_artifact_get_query : Pbrt.Decoder.t -> artifact_get_query
 
 val decode_pb_artifact : Pbrt.Decoder.t -> artifact
 (** [decode_pb_artifact decoder] decodes a [artifact] binary value from [decoder] *)
+
+val decode_pb_artifact_zip : Pbrt.Decoder.t -> artifact_zip
+(** [decode_pb_artifact_zip decoder] decodes a [artifact_zip] binary value from [decoder] *)
 
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -256,6 +281,9 @@ val encode_json_artifact_get_query : artifact_get_query -> Yojson.Basic.t
 val encode_json_artifact : artifact -> Yojson.Basic.t
 (** [encode_json_artifact v encoder] encodes [v] to to json *)
 
+val encode_json_artifact_zip : artifact_zip -> Yojson.Basic.t
+(** [encode_json_artifact_zip v encoder] encodes [v] to to json *)
+
 
 (** {2 JSON Decoding} *)
 
@@ -283,6 +311,9 @@ val decode_json_artifact_get_query : Yojson.Basic.t -> artifact_get_query
 val decode_json_artifact : Yojson.Basic.t -> artifact
 (** [decode_json_artifact decoder] decodes a [artifact] value from [decoder] *)
 
+val decode_json_artifact_zip : Yojson.Basic.t -> artifact_zip
+(** [decode_json_artifact_zip decoder] decodes a [artifact_zip] value from [decoder] *)
+
 
 (** {2 Services} *)
 
@@ -302,6 +333,8 @@ module Eval : sig
     val list_artifacts : (artifact_list_query, unary, artifact_list_result, unary) Client.rpc
     
     val get_artifact : (artifact_get_query, unary, artifact, unary) Client.rpc
+    
+    val get_artifact_zip : (artifact_get_query, unary, artifact_zip, unary) Client.rpc
   end
   
   module Server : sig
@@ -312,6 +345,7 @@ module Eval : sig
       parse_type:((code_snippet, unary, artifact, unary) Server.rpc -> 'handler) ->
       list_artifacts:((artifact_list_query, unary, artifact_list_result, unary) Server.rpc -> 'handler) ->
       get_artifact:((artifact_get_query, unary, artifact, unary) Server.rpc -> 'handler) ->
+      get_artifact_zip:((artifact_get_query, unary, artifact_zip, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
     
     (** The individual server stubs are only exposed for advanced users. Casual users should prefer accessing them through {!make}. *)
@@ -325,5 +359,7 @@ module Eval : sig
     val list_artifacts : (artifact_list_query,unary,artifact_list_result,unary) Server.rpc
     
     val get_artifact : (artifact_get_query,unary,artifact,unary) Server.rpc
+    
+    val get_artifact_zip : (artifact_get_query,unary,artifact_zip,unary) Server.rpc
   end
 end

@@ -73,6 +73,11 @@ message Artifact {
   Art art = 1;
 }
 
+message ArtifactZip {
+  // requested artifact as a .zip file
+  bytes art_zip = 1;
+}
+
 service Eval {
   /// Evaluate a snippet
   rpc eval_code_snippet(CodeSnippet) returns (CodeSnippetEvalResult);
@@ -87,4 +92,7 @@ service Eval {
 
   // Obtain an artifact from a task
   rpc get_artifact(ArtifactGetQuery) returns (Artifact);
+
+  // Obtain an artifact from a task as a zip file
+  rpc get_artifact_zip(ArtifactGetQuery) returns (ArtifactZip);
 }
