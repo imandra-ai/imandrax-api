@@ -3,6 +3,6 @@
  (public_name imandrax-api-client.lwt)
  (optional) ; lwt
  (libraries
-  imandrax-api-proto
+  imandrax-api.proto
   (re_export imandrax-api-client.core)
   lwt))

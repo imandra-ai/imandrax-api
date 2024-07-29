@@ -1,8 +1,17 @@
 (library
- (public_name imandrax-api-proto)
+ (public_name imandrax-api.proto)
  (name imandrax_api_proto)
- (flags :standard -open Imandrax_api_artifact)
- (libraries pbrt pbrt_yojson pbrt_services imandrax-api.artifact))
+ (flags :standard)
+ (libraries pbrt pbrt_yojson pbrt_services))
+
+(rule
+ (targets artmsg.ml artmsg.mli)
+ (deps
+  (:file artmsg.proto))
+ (mode promote)
+ (alias genproto)
+ (action
+  (run ocaml-protoc --ml_out=. --yojson --pp --binary --make %{file})))
 
 (rule
  (alias genproto)

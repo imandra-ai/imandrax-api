@@ -36,6 +36,10 @@
    (>= 3.0))
   (pbrt_yojson
    (>= 3.0))
+  (ocaml-protoc
+   (and
+    (>= 3.1.1)
+    :with-dev-setup))
   ; TODO: bump to next release with the static build fix
   (cryptokit
    (>= 0.19))
@@ -54,21 +58,6 @@
   (imandrax-api :version)
   ppxlib
   (odoc :with-doc)))
-
-(package
- (name imandrax-api-proto)
- (synopsis "protobuf definitions for ImandraX's API")
- (depends
-  (pbrt
-   (>= 3.0))
-  (pbrt_yojson
-   (>= 3.0))
-  (pbrt_services
-   (>= 3.0))
-  (ocaml-protoc
-   (and
-    (>= 3.1.1)
-    :with-dev-setup))))
 
 (package
  (name imandrax-api-client)

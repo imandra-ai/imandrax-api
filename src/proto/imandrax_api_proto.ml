@@ -1,3 +1,4 @@
+include Artmsg
 include Utils
 include Error
 include Session
