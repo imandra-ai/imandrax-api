@@ -5,3 +5,7 @@ type t = {
 }
 [@@deriving twine, typereg, ord, eq, show { with_path = false }]
 (** A value with its type schema *)
+
+let pp_ = ref pp
+let pp out d = !pp_ out d
+let show = Fmt.to_string pp
