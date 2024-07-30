@@ -6,7 +6,12 @@ type msg = Proto.art [@@deriving show]
 
 let to_msg (self : Artifact.t) : msg =
   let (Artifact (kind, _)) = self in
-  let data = Imandrakit_twine.Encode.encode_to_string Artifact.to_twine self in
+  let data =
+    let@ _sp =
+      Trace.with_span ~__FILE__ ~__LINE__ "x.artifact.proto.to-twine"
+    in
+    Imandrakit_twine.Encode.encode_to_string Artifact.to_twine self
+  in
   Proto.make_art
     ~kind:(Artifact.kind_to_string kind)
     ~data:(Bytes.unsafe_of_string data)
