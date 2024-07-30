@@ -47,7 +47,6 @@ let of_msg (msg : msg) : Artifact.t Error.result =
   Artifact.make ~kind res
 
 let of_msg_str (str : string) : Artifact.t Error.result =
-  Format.eprintf "proto.of-msg %S@." str;
   let@ () = Error.guards "Decoding artifact encoded in protobuf form" in
   let@ () = Error.try_catch ~kind:Error_kinds.deserializationError () in
   let msg =
