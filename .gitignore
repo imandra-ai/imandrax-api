@@ -6,3 +6,5 @@ node_modules
 *.json
 .venv
 *.twine
+*.zip
+*.gz
