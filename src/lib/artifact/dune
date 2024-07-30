@@ -23,4 +23,11 @@
  (action
   (with-stdout-to
    %{targets}
-   (run ./gen/gen.exe))))
+   (run ./gen/gen.exe ml))))
+
+(rule
+ (targets artifact.json)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./gen/gen.exe json))))

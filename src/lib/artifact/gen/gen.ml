@@ -28,15 +28,15 @@ let mk ~tag ~docstring ?to_twine ?of_twine name ty : kind =
 
 let all : kind list =
   [
-    mk "Term" "Cir.Term.t" ~tag:"term" ~docstring:"A CIR term";
-    mk "Type" "Cir.Type.t" ~tag:"ty" ~docstring:"A CIR type";
-    mk "PO_task" "Task.PO_task.t" ~tag:"po_task"
+    mk "Term" "Imandrax_api_cir.Term.t" ~tag:"term" ~docstring:"A CIR term";
+    mk "Type" "Imandrax_api_cir.Type.t" ~tag:"ty" ~docstring:"A CIR type";
+    mk "PO_task" "Imandrax_api_tasks.PO_task.t" ~tag:"po_task"
       ~docstring:"Task to verify a Proof Obligation";
-    mk "PO_res" "Task.PO_res.t" ~tag:"po_res"
+    mk "PO_res" "Imandrax_api_tasks.PO_res.t" ~tag:"po_res"
       ~docstring:"Result of verifying a PO";
-    mk "Eval_task" "Task.Eval_task.t" ~tag:"eval_task"
+    mk "Eval_task" "Imandrax_api_tasks.Eval_task.t" ~tag:"eval_task"
       ~docstring:"Task to evaluate a term";
-    mk "Eval_res" "Task.Eval_res.t" ~tag:"eval_res"
+    mk "Eval_res" "Imandrax_api_tasks.Eval_res.t" ~tag:"eval_res"
       ~docstring:"Result of evaluating a term";
     mk "Show" "string" ~tag:"show"
       ~to_twine:"(fun _enc s -> Imandrakit_twine.Immediate.string s)"
@@ -66,7 +66,7 @@ type t = Artifact : 'a kind * 'a -> t
 let[@inline] make ~kind x : t = Artifact (kind, x)
 |}
 
-let () =
+let main_ml () =
   pf "%s\n" prelude;
 
   pf "(** The kind of artifact. *)\n";
@@ -134,3 +134,22 @@ let () =
   List.iter (fun { name; of_twine; _ } -> pf "| %s -> %s\n" name of_twine) all;
 
   ()
+
+let main_json () =
+  pf "[\n";
+  List.iteri
+    (fun i (k : kind) ->
+      if i > 0 then
+        pf ",\n"
+      else
+        pf "\n";
+      pf {|  {"tag": %S, "ty": %S}|} k.tag k.ty)
+    all;
+  pf "\n]\n";
+  ()
+
+let () =
+  match Sys.argv.(1) with
+  | "ml" -> main_ml ()
+  | "json" -> main_json ()
+  | _ -> failwith "need json|ml"
