@@ -159,7 +159,7 @@ let qualify_types_in_cliques (cliques : TR.Ty_def.clique list) :
 let parse_typereg () : TR.Ty_def.clique list =
   let cliques = ref [] in
   let l =
-    let j = J.from_string Types_.json in
+    let j = J.from_string Data_.types in
     J.Util.to_list j
   in
   List.iter

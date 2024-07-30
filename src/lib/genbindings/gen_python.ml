@@ -14,6 +14,8 @@ let prelude =
 
 from __future__ import annotations  # delaying typing: https://peps.python.org/pep-0563/
 from dataclasses import dataclass
+from zipfile import ZipFile
+import json
 from typing import Callable
 from . import twine
 
@@ -64,8 +66,11 @@ let of_twine_of_ty_name (s : string) : string =
   let s = mangle_ty_name s in
   spf "%s_of_twine" s
 
+let mangle_cstor_name_str ~tyname (c : string) : string =
+  spf "%s_%s" (mangle_ty_name tyname) (String.capitalize_ascii c)
+
 let mangle_cstor_name ~tyname (c : TR.Ty_def.cstor) : string =
-  spf "%s_%s" (mangle_ty_name tyname) (String.capitalize_ascii c.c)
+  mangle_cstor_name_str ~tyname c.c
 
 let rec gen_type_expr (ty : tyexpr) : string =
   match ty with
@@ -331,10 +336,27 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
   List.iter gen_def clique;
   ()
 
-let gen ~out (cliques : TR.Ty_def.clique list) : unit =
+let gen_artifacts (artifacts : Artifact.t list) : string =
+  let buf = Buffer.create 32 in
+
+  (* union of the types! *)
+  bpf buf "\n\n# Artifacts\n\n";
+
+  bpf buf "type Artifact = %s\n"
+  @@ String.concat "|"
+  @@ List.map (fun (a : Artifact.t) -> gen_type_expr a.ty) artifacts;
+
+  (* TODO: function that reads a zipfile, finds manifest.json, finds kind, decodes type *)
+  bpf buf "# TODO: read from zipfile\n";
+
+  Buffer.contents buf
+
+let gen ~out ~(artifacts : Artifact.t list)
+    ~types:(cliques : TR.Ty_def.clique list) () : unit =
   let@ oc = CCIO.with_out out in
 
   fpf oc "%s\n" prelude;
   List.iter (fun cl -> if not (skip_clique cl) then gen_clique ~oc cl) cliques;
+  fpf oc "%s\n" (gen_artifacts artifacts);
 
   ()

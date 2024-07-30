@@ -363,7 +363,7 @@ let find_immediate_types (cliques : tydef list list) : State.t =
   List.iter (List.iter add_def) cliques;
   State.make ~immediate_types:!set
 
-let gen ~out (cliques : TR.Ty_def.clique list) : unit =
+let gen ~out ~artifacts:_ ~types:(cliques : TR.Ty_def.clique list) () : unit =
   let@ oc = CCIO.with_out out in
 
   (* aliases are complicated because sometimes they erase type
