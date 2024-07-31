@@ -9,7 +9,6 @@ from .bindings import (
     api_twirp,
 )
 
-
 class Client:
     def __init__(
         self, url: str, server_path_prefix="/api/v1", timeout: float = 30.0

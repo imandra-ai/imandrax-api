@@ -3,12 +3,14 @@
 
 from __future__ import annotations  # delaying typing: https://peps.python.org/pep-0563/
 from dataclasses import dataclass
+from zipfile import ZipFile
+import json
 from typing import Callable
 from . import twine
 
 
 type Error = Error_Error_core
-  def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
+def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
     match d.get_cstor(off=off):
         case twine.Constructor(idx=0, args=args):
             args = tuple(args)
@@ -3299,3 +3301,30 @@ def Tasks_Eval_res_of_twine(d: twine.Decoder, off: int) -> Tasks_Eval_res:
     res = twine_result(d=d, off=off, d0=lambda off: Tasks_Eval_res_success_of_twine(d=d, off=off), d1=lambda off: Error_Error_core_of_twine(d=d, off=off))
     stats = Tasks_Eval_res_stats_of_twine(d=d, off=off)
     return Tasks_Eval_res(res=res,stats=stats)
+
+
+# Artifacts
+
+type Artifact = Cir_Term|Cir_Type|Tasks_PO_task|Tasks_PO_res|Tasks_Eval_task|Tasks_Eval_res|str
+
+artifact_decoders = {\
+  'term': (lambda d, off: Cir_Term_of_twine(d=d, off=off)),
+  'ty': (lambda d, off: Cir_Type_of_twine(d=d, off=off)),
+  'po_task': (lambda d, off: Tasks_PO_task_of_twine(d=d, off=off)),
+  'po_res': (lambda d, off: Tasks_PO_res_of_twine(d=d, off=off)),
+  'eval_task': (lambda d, off: Tasks_Eval_task_of_twine(d=d, off=off)),
+  'eval_res': (lambda d, off: Tasks_Eval_res_of_twine(d=d, off=off)),
+  'show': (lambda d, off: d.get_str(off=off)),
+}
+
+def read_artifact_zip(path: str) -> Artifact:
+    'Read artifact from a zip file'
+    with ZipFile(path) as f:
+        manifest = json.loads(f.read('manifest.json'))
+        kind = str(manifest['kind'])
+        decoder = artifact_decoders[kind]
+        twine_data = f.read('data.twine')
+    twine_dec = twine.Decoder(twine_data)
+    return decoder(twine_dec, twine_dec.entrypoint())
+
+

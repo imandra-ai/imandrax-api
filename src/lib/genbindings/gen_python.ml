@@ -21,7 +21,7 @@ from . import twine
 
 
 type Error = Error_Error_core
-  def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
+def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
     match d.get_cstor(off=off):
         case twine.Constructor(idx=0, args=args):
             args = tuple(args)
@@ -152,6 +152,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
 let skip_clique (clique : tydef list) =
   List.exists (fun (d : tydef) -> CCString.mem d.name ~sub:"Util_twine.") clique
 
+(* TODO: ca store key (decode with tag) *)
 let special_defs =
   [
     ( "Imandrax_api.Uid_set.t",
@@ -342,12 +343,28 @@ let gen_artifacts (artifacts : Artifact.t list) : string =
   (* union of the types! *)
   bpf buf "\n\n# Artifacts\n\n";
 
-  bpf buf "type Artifact = %s\n"
+  bpf buf "type Artifact = %s\n\n"
   @@ String.concat "|"
   @@ List.map (fun (a : Artifact.t) -> gen_type_expr a.ty) artifacts;
 
-  (* TODO: function that reads a zipfile, finds manifest.json, finds kind, decodes type *)
-  bpf buf "# TODO: read from zipfile\n";
+  bpf buf "artifact_decoders = {\\\n";
+  List.iter
+    (fun (a : Artifact.t) ->
+      bpf buf "  '%s': (lambda d, off: %s),\n" a.tag
+        (of_twine_of_type_expr ~off:"off" a.ty))
+    artifacts;
+  bpf buf "}\n\n";
+
+  bpf buf "def read_artifact_zip(path: str) -> Artifact:\n";
+  bpf buf "    'Read artifact from a zip file'\n";
+  bpf buf "    with ZipFile(path) as f:\n";
+  bpf buf "        manifest = json.loads(f.read('manifest.json'))\n";
+  bpf buf "        kind = str(manifest['kind'])\n";
+  bpf buf "        decoder = artifact_decoders[kind]\n";
+  bpf buf "        twine_data = f.read('data.twine')\n";
+  bpf buf "    twine_dec = twine.Decoder(twine_data)\n";
+  bpf buf "    return decoder(twine_dec, twine_dec.entrypoint())\n";
+  bpf buf "\n";
 
   Buffer.contents buf
 
