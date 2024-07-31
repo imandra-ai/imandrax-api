@@ -44,6 +44,7 @@ let names_to_exclude : Str_set.t =
       "Duration_s.t";
       "Error.result";
       "Util_twine.Result.t";
+      "Util_twine_.With_tag7.t";
       "Imandrakit_error__Error_core.Data.t";
       "Imandrax_api_eval__Value.Custom_value.t";
       "option";

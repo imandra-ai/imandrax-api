@@ -287,7 +287,7 @@ pub struct Model<'a,V_tyreg_poly_term:'a,V_tyreg_poly_fn:'a,V_tyreg_poly_var:'a,
 // clique Imandrax_api_ca_store.Ca_ptr.Raw.t
 #[derive(Debug, Clone)]
 pub struct Ca_storeCa_ptrRaw<'a> {
-  pub key: &'a str,
+  pub key: &'a Util_twine_With_tag7<'a,&'a str>,
 }
 
 

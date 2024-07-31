@@ -57,3 +57,18 @@ end = struct
     let { num; denum } = as_pair_of_twine deser x in
     Q.make num denum
 end
+
+(** A value that will be tagged with 7 in twine *)
+module With_tag7 = struct
+  type 'a t = 'a [@@deriving show, eq, ord, typereg]
+
+  let to_twine enc_a enc (self : 'a t) =
+    Imandrakit_twine.Encode.(tag enc ~tag:7 ~v:(enc_a enc self))
+
+  let of_twine (dec_a : 'a Imandrakit_twine.Decode.decoder) dec off : 'a t =
+    Imandrakit_twine.Decode.(
+      let n, v = tag dec off in
+      if n <> 7 then fail "Expected a `tag(7, …)`";
+      let s = dec_a dec v in
+      s)
+end
