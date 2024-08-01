@@ -213,7 +213,7 @@ pub enum Misc_typesApply_label<'a> {
 pub struct In_mem_archiveRaw<'a> {
   pub ty: &'a str,
   pub compressed: bool,
-  pub data: &'a str,
+  pub data: &'a [u8],
 }
 
 

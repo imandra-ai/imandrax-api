@@ -293,7 +293,7 @@ class Decoder:
     def entrypoint(self) -> offset:
         last = len(self.bs) - 1
         offset = last - int(self.bs[last]) - 1
-        print(f"offset = 0x{offset:x}")
+        # print(f"offset = 0x{offset:x}")
         return self._deref(off=offset)
 
 
