@@ -9,4 +9,4 @@
    -strict-sequence)))
 
 (mdx
- (libraries imandrax-api-proto imandrax-api-client))
+ (libraries imandrax_api_proto imandrax_api_client_core))
