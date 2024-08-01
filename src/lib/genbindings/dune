@@ -8,13 +8,17 @@
  (libraries imandrakit imandrakit.typereg iter))
 
 (rule
- (targets types_.ml)
+ (targets data_.ml)
  (deps
-  (:file ../typereg.json))
+  (:types ../typereg.json)
+  (:arts ../artifact/artifact.json))
  (action
   (with-stdout-to
    %{targets}
    (progn
-    (echo "let json = {yolojson|")
-    (cat %{file})
+    (echo "let types = {yolojson|")
+    (cat %{types})
+    (echo "|yolojson}")
+    (echo "let artifacts = {yolojson|")
+    (cat %{arts})
     (echo "|yolojson}")))))

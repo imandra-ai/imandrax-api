@@ -5,7 +5,7 @@
 (* for now we are conservative and use over-specific versions. *)
 
 open struct
-  let internal_count_ = 1
+  let internal_count_ = 2
 end
 
 (** The main version. *)

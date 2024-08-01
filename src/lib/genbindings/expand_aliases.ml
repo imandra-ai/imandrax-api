@@ -11,7 +11,8 @@ type aliases = alias Str_map.t
 let rec expand_in_ty (aliases : aliases) (ty : tyexpr) =
   match ty with
   | Var _ -> ty
-  | Tuple _ | Arrow _ -> TR.Ty_expr.map_shallow ty ~f:(expand_in_ty aliases)
+  | Tuple _ | Arrow _ | Attrs _ ->
+    TR.Ty_expr.map_shallow ty ~f:(expand_in_ty aliases)
   | Cstor (s, s_args) ->
     (match Str_map.find s aliases with
     | exception Not_found -> TR.Ty_expr.map_shallow ty ~f:(expand_in_ty aliases)

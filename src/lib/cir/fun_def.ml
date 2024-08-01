@@ -40,6 +40,12 @@ and apply_hint = { apply_fun: t }
 [@@unboxed] [@@deriving twine, typereg, eq, show { with_path = false }]
 (** A local function that has the same signature as the theorem *)
 
+let pp_ = ref pp
+let pp out d = !pp_ out d
+let show = Fmt.to_string pp
+let pp_apply_hint_ = ref pp_apply_hint
+let pp_apply_hint out h = !pp_apply_hint_ out h
+
 open Imandrax_api
 
 let () =

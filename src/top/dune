@@ -9,6 +9,7 @@
   imandrakit
   imandrax-api
   imandrax-api.cir
+  imandrax-api.artifact
   imandrax-api-client.core
   lwt
   lwt.unix

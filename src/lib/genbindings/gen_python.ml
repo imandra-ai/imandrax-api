@@ -1,5 +1,7 @@
 open Common_
 
+(* FIXME: for ca store key: we need to read a tag 7 around the actual value *)
+
 let bpf = Printf.bprintf
 let fpf = Printf.fprintf
 let ( |? ) o x = Option.value ~default:x o
@@ -14,12 +16,15 @@ let prelude =
 
 from __future__ import annotations  # delaying typing: https://peps.python.org/pep-0563/
 from dataclasses import dataclass
+from zipfile import ZipFile
+import json
 from typing import Callable
 from . import twine
 
+__all__ = ['twine']
 
 type Error = Error_Error_core
-  def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
+def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
     match d.get_cstor(off=off):
         case twine.Constructor(idx=0, args=args):
             args = tuple(args)
@@ -30,6 +35,13 @@ type Error = Error_Error_core
         case _:
             raise twine.Error('expected result')
 
+type WithTag7[T] = T
+
+def decode_with_tag7[T](d: twine.Decoder, off: int, d0: [Callable[...,T]]) -> With_tag7[T]:
+    tag = d.get_tag(off=off)
+    if tag.tag != 7:
+        raise Error(f'Expected tag 7, got tag {tag.tag} at off=0x{off:x}')
+    return d0(d=d, off=tag.arg)
   |}
 
 (* TODO: B.t for the bitfield *)
@@ -64,14 +76,21 @@ let of_twine_of_ty_name (s : string) : string =
   let s = mangle_ty_name s in
   spf "%s_of_twine" s
 
+let mangle_cstor_name_str ~tyname (c : string) : string =
+  spf "%s_%s" (mangle_ty_name tyname) (String.capitalize_ascii c)
+
 let mangle_cstor_name ~tyname (c : TR.Ty_def.cstor) : string =
-  spf "%s_%s" (mangle_ty_name tyname) (String.capitalize_ascii c.c)
+  mangle_cstor_name_str ~tyname c.c
 
 let rec gen_type_expr (ty : tyexpr) : string =
   match ty with
   | Arrow (_, _, _) -> assert false
   | Var s -> spf "%S" @@ spf "_V%s" s
   | Tuple l -> spf "tuple[%s]" (String.concat "," @@ List.map gen_type_expr l)
+  | Attrs (Cstor ("string", []), attrs)
+    when List.mem_assoc "twine.use_bytes" attrs ->
+    "bytes"
+  | Attrs (ty, _) -> gen_type_expr ty
   | Cstor (s, args) ->
     (match s, args with
     | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] -> "int"
@@ -87,6 +106,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
     | "Util_twine.Result.t", [ x; y ] ->
       spf "%s | %s" (gen_type_expr x) (gen_type_expr y)
     | "option", [ x ] -> spf "None | %s" (gen_type_expr x)
+    | "Util_twine_.With_tag7.t", [ x ] -> spf "WithTag7[%s]" (gen_type_expr x)
     | "Util_twine_.Q.t", [] -> "bytes" (* TODO *)
     | s, [] -> mangle_ty_name s
     | _ ->
@@ -98,7 +118,16 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
   | Arrow (_, _, _) -> assert false
   | Var s -> spf "decode_%s(d=d,off=%s)" s off
   | Tuple l ->
-    spf "(%s)" (String.concat "," @@ List.map (of_twine_of_type_expr ~off) l)
+    spf "(lambda tup: (%s))(tuple(d.get_array(off=%s)))"
+      (String.concat ","
+      @@ List.mapi
+           (fun i ty -> of_twine_of_type_expr ~off:(spf "tup[%d]" i) ty)
+           l)
+      off
+  | Attrs (Cstor ("string", []), attrs)
+    when List.mem_assoc "twine.use_bytes" attrs ->
+    spf "d.get_bytes(off=%s)" off
+  | Attrs (ty, _) -> of_twine_of_type_expr ty ~off
   | Cstor (s, args) ->
     (match s, args with
     | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] ->
@@ -119,16 +148,21 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
     | ("Timestamp_s.t" | "Duration_s.t"), [] -> spf "d.get_float(off=%s)" off
     | "Error.result", [ x ] ->
       spf
-        "twine_result(d=d, off=%s, d0=lambda off: %s, d1=lambda off: \
+        "twine_result(d=d, off=%s, d0=lambda d, off: %s, d1=lambda d, off: \
          Error_Error_core_of_twine(d=d, off=off))"
         off
         (of_twine_of_type_expr x ~off:"off")
-    | "Util_twine.result", [ x; y ] ->
-      spf "twine_result(d=d, off=%s, d0=lambda off: %s, d1=lambda off: %s)" off
+    | "Util_twine.Result.t", [ x; y ] ->
+      spf
+        "twine_result(d=d, off=%s, d0=lambda d, off: %s, d1=lambda d, off: %s)"
+        off
         (of_twine_of_type_expr x ~off:"off")
         (of_twine_of_type_expr y ~off:"off")
+    | "Util_twine_.With_tag7.t", [ x ] ->
+      spf "decode_with_tag7(d=d, off=%s, d0=lambda d, off: %s)" off
+        (of_twine_of_type_expr x ~off:"off")
     | "option", [ x ] ->
-      spf "twine.optional(d=d, off=%s, d0=lambda off: %s)" off
+      spf "twine.optional(d=d, off=%s, d0=lambda d, off: %s)" off
         (of_twine_of_type_expr ~off:"off" x)
     | "Util_twine_.Q.t", [] ->
       "string" (* TODO: add a decode_q function in prelude, use it *)
@@ -138,7 +172,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
         String.concat ","
         @@ List.mapi
              (fun i ty ->
-               spf "d%d=(lambda off: %s)" i
+               spf "d%d=(lambda d, off: %s)" i
                  (of_twine_of_type_expr ~off:"off" ty))
              args
       in
@@ -147,6 +181,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
 let skip_clique (clique : tydef list) =
   List.exists (fun (d : tydef) -> CCString.mem d.name ~sub:"Util_twine.") clique
 
+(* TODO: ca store key (decode with tag) *)
 let special_defs =
   [
     ( "Imandrax_api.Uid_set.t",
@@ -205,7 +240,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
         List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
         bpf buf "    return %s\n" (of_twine_of_type_expr ty ~off:"off")
       | Record r ->
-        bpf buf "@dataclass(slots=True)\n";
+        bpf buf "@dataclass(slots=True, frozen=True)\n";
         bpf buf "class %s%s:\n" pyname pyparams;
         List.iter
           (fun (field, ty) ->
@@ -215,23 +250,36 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
 
         bpf buf "def %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s:\n"
           pyname pyparams pytwine_params pyname;
-        List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
-        List.iter
-          (fun (field, ty) ->
-            bpf buf "    %s = %s\n" (mangle_field_name field)
-              (of_twine_of_type_expr ~off:"off" ty))
-          r.fields;
-        bpf buf "    return %s(%s)\n" pyname
-          (String.concat ","
-          @@ List.map
-               (fun (field, _) ->
-                 spf "%s=%s" (mangle_field_name field) (mangle_field_name field))
-               r.fields)
+        if def.unboxed then (
+          let field_name, field_ty =
+            match r.fields with
+            | [ hd ] -> hd
+            | _ -> assert false
+          in
+          bpf buf "    x = %s # single unboxed field\n"
+            (of_twine_of_type_expr ~off:"off" field_ty);
+          bpf buf "    return %s(%s=x)\n" pyname (mangle_field_name field_name)
+        ) else (
+          List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
+          bpf buf "    fields = list(d.get_array(off=off))\n";
+          List.iteri
+            (fun i (field, ty) ->
+              bpf buf "    %s = %s\n" (mangle_field_name field)
+                (of_twine_of_type_expr ~off:(spf "fields[%d]" i) ty))
+            r.fields;
+          bpf buf "    return %s(%s)\n" pyname
+            (String.concat ","
+            @@ List.map
+                 (fun (field, _) ->
+                   spf "%s=%s" (mangle_field_name field)
+                     (mangle_field_name field))
+                 r.fields)
+        )
       | TR.Ty_def.Alg cstors ->
         List.iter
           (fun (c : TR.Ty_def.cstor) ->
             let c_pyname = mangle_cstor_name ~tyname:def.name c in
-            bpf buf "@dataclass(slots=True)\n";
+            bpf buf "@dataclass(slots=True, frozen=True)\n";
             bpf buf "class %s%s:\n" c_pyname pyparams;
 
             (match c.args, c.labels with
@@ -331,10 +379,43 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
   List.iter gen_def clique;
   ()
 
-let gen ~out (cliques : TR.Ty_def.clique list) : unit =
+let gen_artifacts (artifacts : Artifact.t list) : string =
+  let buf = Buffer.create 32 in
+
+  (* union of the types! *)
+  bpf buf "\n\n# Artifacts\n\n";
+
+  bpf buf "type Artifact = %s\n\n"
+  @@ String.concat "|"
+  @@ List.map (fun (a : Artifact.t) -> gen_type_expr a.ty) artifacts;
+
+  bpf buf "artifact_decoders = {\\\n";
+  List.iter
+    (fun (a : Artifact.t) ->
+      bpf buf "  '%s': (lambda d, off: %s),\n" a.tag
+        (of_twine_of_type_expr ~off:"off" a.ty))
+    artifacts;
+  bpf buf "}\n\n";
+
+  bpf buf "def read_artifact_zip(path: str) -> Artifact:\n";
+  bpf buf "    'Read artifact from a zip file'\n";
+  bpf buf "    with ZipFile(path) as f:\n";
+  bpf buf "        manifest = json.loads(f.read('manifest.json'))\n";
+  bpf buf "        kind = str(manifest['kind'])\n";
+  bpf buf "        decoder = artifact_decoders[kind]\n";
+  bpf buf "        twine_data = f.read('data.twine')\n";
+  bpf buf "    twine_dec = twine.Decoder(twine_data)\n";
+  bpf buf "    return decoder(twine_dec, twine_dec.entrypoint())\n";
+  bpf buf "\n";
+
+  Buffer.contents buf
+
+let gen ~out ~(artifacts : Artifact.t list)
+    ~types:(cliques : TR.Ty_def.clique list) () : unit =
   let@ oc = CCIO.with_out out in
 
   fpf oc "%s\n" prelude;
   List.iter (fun cl -> if not (skip_clique cl) then gen_clique ~oc cl) cliques;
+  fpf oc "%s\n" (gen_artifacts artifacts);
 
   ()

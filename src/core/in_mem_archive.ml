@@ -6,9 +6,9 @@ end
 type raw = {
   ty: string;
   compressed: bool;
-  data: string; [@use_bytes] [@printer pp_data]
+  data: (string[@twine.use_bytes]); [@printer pp_data]
 }
-[@@deriving twine, typereg, show { with_path = false }]
+[@@deriving typereg, twine, show { with_path = false }]
 
 type 'a t = raw [@@deriving typereg]
 

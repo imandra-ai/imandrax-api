@@ -12,6 +12,9 @@ type t = { view: (unit, var, t) Imandrax_api.Ty_view.view }
 
 open Imandrax_api
 
+let pp_ = ref pp
+let pp out x = !pp_ out x
+let show = Fmt.to_string pp
 let[@inline] view (self : t) = self.view
 
 let rec equal (a : t) (b : t) : bool =

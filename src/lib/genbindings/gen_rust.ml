@@ -140,6 +140,10 @@ let rec gen_type_expr (self : State.t) (ty : tyexpr) : string =
   | Arrow (_, _, _) -> assert false
   | Var s -> spf "V%s" s
   | Tuple l -> spf "(%s)" (String.concat "," @@ List.map gen_type_expr l)
+  | Attrs (Cstor ("string", []), attrs)
+    when List.mem_assoc "twine.use_bytes" attrs ->
+    "&'a [u8]"
+  | Attrs (ty, _) -> gen_type_expr ty
   | Cstor (s, args) ->
     let is_immediate = Str_set.mem s self.immediate_types in
     let lifetime_param =
@@ -170,6 +174,10 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
   | Var s -> spf "decode_%s(d=d,off=%s)" s off
   | Tuple l ->
     spf "(%s)" (String.concat "," @@ List.map (of_twine_of_type_expr ~off) l)
+  | Attrs (Cstor ("string", []), attrs)
+    when List.mem_assoc "twine.use_bytes" attrs ->
+    spf "d.get_bytes(off=%s)" off
+  | Attrs (ty, _) -> of_twine_of_type_expr ty ~off
   | Cstor (s, args) ->
     (match s, args with
     | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] ->
@@ -223,6 +231,9 @@ let rec is_immediate_ty ~immediate_types (ty : tyexpr) : bool =
   match ty with
   | Cstor (s, args) ->
     Str_set.mem s immediate_types && List.for_all recurse args
+  | Attrs (Cstor ("string", []), attrs) ->
+    List.mem_assoc "twine.use_bytes" attrs
+  | Attrs (ty, _) -> recurse ty
   | Var _ -> true
   | Tuple l -> List.for_all recurse l
   | Arrow _ -> false
@@ -363,7 +374,7 @@ let find_immediate_types (cliques : tydef list list) : State.t =
   List.iter (List.iter add_def) cliques;
   State.make ~immediate_types:!set
 
-let gen ~out (cliques : TR.Ty_def.clique list) : unit =
+let gen ~out ~artifacts:_ ~types:(cliques : TR.Ty_def.clique list) () : unit =
   let@ oc = CCIO.with_out out in
 
   (* aliases are complicated because sometimes they erase type

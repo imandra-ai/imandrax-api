@@ -66,6 +66,12 @@ and view =
     }
 [@@deriving twine, typereg, show { with_path = false }]
 
+let pp_ = ref pp
+let pp_view_ = ref pp_view
+let pp out x = !pp_ out x
+let pp_view out v = !pp_view_ out v
+let show = Fmt.to_string pp
+
 type term = t [@@deriving twine, typereg, show]
 
 open Imandrax_api

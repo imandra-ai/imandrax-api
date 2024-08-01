@@ -76,14 +76,14 @@ class Decoder:
                 len, n_bytes = self.__getint64(off=off, low=low)
                 return off + 1 + n_bytes + len
             case 6 | 7 | 8:
-                raise Error(f"cannot skip over array/dict/tag (high={high})")
+                raise Error(f"cannot skip over array/dict/tag (high={high}) at off=0x{off:x}")
             case 9 | 13 | 14:
                 raise Error(f"tag {high} is reserved")
             case 10:
                 _, n_bytes = self.__getint64(off=off, low=low)
                 return off + 1 + n_bytes
             case 11 | 12:
-                raise Error(f"cannot skip over constructor (high={high})")
+                raise Error(f"cannot skip over constructor (high={high}) at off=0x{off:x}")
             case 15:
                 _, n_bytes = self.__getint64(off=off, low=low)
                 return off + 1 + n_bytes
@@ -101,19 +101,19 @@ class Decoder:
             x, _ = self.__getint64(off=off, low=low)
             return -x - 1
         else:
-            raise Error(f"expected integer, but high={high}")
+            raise Error(f"expected integer, but high={high} at off=0x{off:x}")
 
     def get_bool(self, off: offset) -> bool:
         off = self._deref(off=off)
         high, low = self.__first_byte(off=off)
         if high != 0:
-            raise Error(f"expected bool, but high={high}")
+            raise Error(f"expected bool, but high={high} at off=0x{off:x}")
         if low == 0:
             return False
         elif low == 1:
             return True
         else:
-            raise Error(f"expected bool, but high={high}, low={low}")
+            raise Error(f"expected bool, but high={high}, low={low} at off=0x{off:x}")
 
     def get_null(self, off: offset) -> None:
         off = self._deref(off=off)
@@ -121,13 +121,13 @@ class Decoder:
         if high == 0 and low == 2:
             return None
         else:
-            raise Error(f"expected bool, but high={high}, low={low}")
+            raise Error(f"expected bool, but high={high}, low={low} at off=0x{off:x}")
 
     def get_float(self, off: offset) -> float:
         off = self._deref(off=off)
         high, low = self.__first_byte(off=off)
         if high != 3:
-            raise Error(f"expected float, but high={high}")
+            raise Error(f"expected float, but high={high} at off=0x{off:x}")
 
         isf32 = low == 0
         if isf32:
@@ -139,7 +139,7 @@ class Decoder:
         off = self._deref(off=off)
         high, low = self.__first_byte(off=off)
         if high != 4:
-            raise Error(f"expected string, but high={high}")
+            raise Error(f"expected string, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
         off = off + 1 + n_bytes
         s = self.bs[off : off + len].decode("utf8")
@@ -149,7 +149,7 @@ class Decoder:
         off = self._deref(off=off)
         high, low = self.__first_byte(off=off)
         if high != 5:
-            raise Error(f"expected bytes, but high={high}")
+            raise Error(f"expected bytes, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
         off = off + 1 + n_bytes
         return bytes(self.bs[off : off + len])
@@ -158,7 +158,7 @@ class Decoder:
         off = self._deref(off=off)
         high, low = self.__first_byte(off=off)
         if high != 6:
-            raise Error(f"expected array, but high={high}")
+            raise Error(f"expected array, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
         off = off + 1 + n_bytes
         return ArrayCursor(dec=self, offset=off, num_items=len)
@@ -167,7 +167,7 @@ class Decoder:
         off = self._deref(off=off)
         high, low = self.__first_byte(off=off)
         if high != 7:
-            raise Error(f"expected dict, but high={high}")
+            raise Error(f"expected dict, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
         off = off + 1 + n_bytes
         return DictCursor(dec=self, offset=off, num_items=len)
@@ -176,7 +176,7 @@ class Decoder:
         off = self._deref(off=off)
         high, low = self.__first_byte(off=off)
         if high != 8:
-            raise Error(f"expected tag, but high={high}")
+            raise Error(f"expected tag, but high={high} at off=0x{off:x}")
         tag, n_bytes = self.__getint64(off=off, low=low)
         off = off + 1 + n_bytes
         return Tag[offset](tag=tag, arg=off)
@@ -208,7 +208,7 @@ class Decoder:
                 args=ArrayCursor(dec=self, offset=off + n_bytes, num_items=num_items),
             )
         else:
-            raise Error(f"expected constructor (high={high})")
+            raise Error(f"expected constructor (high={high}) at off=0x{off:x}")
 
     def shallow_value(self, off: offset) -> shallow_value:
         """Read an arbitrary (shallow) value, non-recursively"""
@@ -223,7 +223,7 @@ class Decoder:
                 elif high == 1:
                     return True
                 else:
-                    raise Error("expected true/false/None")
+                    raise Error(f"expected true/false/None at off=0x{off:x}")
             case 1 | 2:
                 return self.get_int(off=off)
             case 3:
@@ -247,7 +247,7 @@ class Decoder:
             case 15:
                 assert False
             case _:
-                raise Error(f"invalid twine value (high={high})")
+                raise Error(f"invalid twine value (high={high}) at off=0x{off:x}")
 
     def value(self, off: offset) -> value:
         """Read an arbitrary value"""
@@ -262,7 +262,7 @@ class Decoder:
                 elif high == 1:
                     return True
                 else:
-                    raise Error("expected true/false/None")
+                    raise Error(f"expected true/false/None at off=0x{off:x}")
             case 1 | 2:
                 return self.get_int(off=off)
             case 3:
@@ -288,12 +288,12 @@ class Decoder:
             case 15:
                 assert False
             case _:
-                raise Error(f"invalid twine value (high={high})")
+                raise Error(f"invalid twine value (high={high}) at off=0x{off:x}")
 
     def entrypoint(self) -> offset:
         last = len(self.bs) - 1
         offset = last - int(self.bs[last]) - 1
-        print(f"offset = {offset}")
+        # print(f"offset = 0x{offset:x}")
         return self._deref(off=offset)
 
 

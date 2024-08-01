@@ -2,15 +2,21 @@ open Common_
 
 let main ~out ~lang () : unit =
   let types = Resolve_ty_defs.parse_typereg () in
+  let artifacts = Resolve_artifacts.get_arts () in
 
-  if !dump then
+  if !dump then (
     List.iter
       (fun d -> Format.printf "@[<2>got clique@ %a@]@." TR.Ty_def.pp_clique d)
       types;
+    List.iter
+      (fun (a : Artifact.t) ->
+        Format.printf "got artifact %s@." (Artifact.show a))
+      artifacts
+  );
 
   match lang with
-  | "python" -> Gen_python.gen ~out types
-  | "rust" -> Gen_rust.gen ~out types
+  | "python" -> Gen_python.gen ~out ~artifacts ~types ()
+  | "rust" -> Gen_rust.gen ~out ~artifacts ~types ()
   | _ -> failwith @@ spf "unsupported target language: %S" lang
 
 let () =

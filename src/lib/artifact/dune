@@ -13,6 +13,7 @@
   imandrax-api
   imandrax-api.cir
   imandrax-api.report
+  imandrax-api.proto
   imandrax-api.tasks))
 
 ; most code is auto-generated
@@ -22,13 +23,11 @@
  (action
   (with-stdout-to
    %{targets}
-   (run ./gen/gen.exe))))
+   (run ./gen/gen.exe ml))))
 
 (rule
- (targets artmsg.ml artmsg.mli)
- (deps
-  (:file artmsg.proto))
- (mode promote)
- (alias genproto)
+ (targets artifact.json)
  (action
-  (run ocaml-protoc --ml_out=. --yojson --pp --binary --make %{file})))
+  (with-stdout-to
+   %{targets}
+   (run ./gen/gen.exe json))))

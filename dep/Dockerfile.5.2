@@ -6,7 +6,6 @@ COPY --chown=opam ./src/ ./src/
 COPY --chown=opam ./vendor ./vendor
 COPY --chown=opam \
   imandrax-api.opam \
-  imandrax-api-proto.opam \
   imandrax-api-cli.opam  \
   imandrax-api-client.opam  \
   imandrax-api-client-batrpc.opam  \
@@ -21,7 +20,7 @@ RUN opam depext -yt zarith conf-pkg-config camlzip
 RUN opam exec -- make opam-pin-submodules-nodep
 RUN opam pin -n .
 
-RUN opam install -t imandrax-api imandrax-api-proto imandrax-api-client \
+RUN opam install -t imandrax-api imandrax-api-client \
   imandrax-api-client-batrpc imandrax-api-client-ezcurl \
   imandrax-api-client-cohttp imandrax-api-cli \
   --deps-only

@@ -47,10 +47,12 @@ let write_zip_file ?metadata (filename : string) (self : Artifact.t) : unit =
   write_zip ?metadata zip self
 
 let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
+  let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "api.artifact.zip.read" in
   let@ () = Error.try_catch ~kind:Error_kinds.deserializationError () in
 
   (* read manifest *)
   let manifest : Manifest.t =
+    let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "read-manifest" in
     let@ () = Error.guards "Reading manifest.json" in
     let e =
       let@ () = Error.guards "Finding entry in zip" in
@@ -83,12 +85,16 @@ let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
   in
 
   let res =
+    let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "read-twine-from-data" in
     let@ () = Error.guards "Reading data from twine" in
     let entry =
       let@ () = Error.guards "Finding 'data.twine' entry…" in
       Util_zip.find_entry zip "data.twine"
     in
-    let data = Util_zip.read_entry zip entry in
+    let data =
+      let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "read-zip-entry" in
+      Util_zip.read_entry zip entry
+    in
     Imandrakit_twine.Decode.decode_string (Artifact.of_twine kind) data
   in
 

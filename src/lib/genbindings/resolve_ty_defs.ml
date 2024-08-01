@@ -44,6 +44,7 @@ let names_to_exclude : Str_set.t =
       "Duration_s.t";
       "Error.result";
       "Util_twine.Result.t";
+      "Util_twine_.With_tag7.t";
       "Imandrakit_error__Error_core.Data.t";
       "Imandrax_api_eval__Value.Custom_value.t";
       "option";
@@ -159,7 +160,7 @@ let qualify_types_in_cliques (cliques : TR.Ty_def.clique list) :
 let parse_typereg () : TR.Ty_def.clique list =
   let cliques = ref [] in
   let l =
-    let j = J.from_string Types_.json in
+    let j = J.from_string Data_.types in
     J.Util.to_list j
   in
   List.iter

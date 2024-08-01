@@ -3,7 +3,7 @@
  (public_name imandrax-api-client-ezcurl)
  (synopsis "Client for ImandraX using ezcurl+twirp")
  (libraries
-  imandrax-api-proto
+  imandrax-api.proto
   (re_export imandrax-api-client.core)
   (re_export imandrax-api-client.moonpool)
   (re_export moonpool)
