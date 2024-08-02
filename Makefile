@@ -42,8 +42,19 @@ test-docker-5.2:
 build-dev:
 	$(DUNE) build @install @runtest $(DUNE_OPTS) --workspace=dune-workspace.dev
 
-pull-twine:
+pull-rust-twine:
 	git subtree pull --prefix src/rust/lib/twine/ twine-origin main
+
+build-python:
+	make -C src/py build
+
+PYTHON_REPO_URL = https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/
+publish-python: build-python
+	@echo "uploading to $(PYTHON_REPO_URL)"
+	twine upload --repository-url $(PYTHON_REPO_URL)  src/py/imandrax_api.whl
+
+list-python-artifacts:
+	gcloud artifacts packages list --location=europe-west1 --project=imandra-dev --repository=imandrax-api
 
 WATCH?= @check @runtest
 watch:
