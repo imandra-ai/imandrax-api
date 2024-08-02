@@ -44,18 +44,6 @@ def decode_with_tag7[T](d: twine.Decoder, off: int, d0: [Callable[...,T]]) -> Wi
     return d0(d=d, off=tag.arg)
   |}
 
-(* TODO: B.t for the bitfield *)
-
-(* TODO:
-   - keep map of names to python names (replace . with _, capitalize, etc.)
-   - map cliques
-   - assume twine exists (!)
-   - implement small twine library
-
-
-   @dataclass(frozen=True, slots=True)
-*)
-
 let mangle_ty_name (s : string) : string =
   let s =
     CCString.chop_prefix ~pre:"Imandrax_api." s
