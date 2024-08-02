@@ -46,13 +46,13 @@ def Error_Kind_of_twine(d: twine.Decoder, off: int) -> Error_Kind:
 @dataclass(slots=True, frozen=True)
 class Error_Error_core_message:
     msg: str
-    data: Error__Error_core_Data
+    data: unit
     bt: None | str
 
 def Error_Error_core_message_of_twine(d: twine.Decoder, off: int) -> Error_Error_core_message:
     fields = list(d.get_array(off=off))
     msg = d.get_str(off=fields[0])
-    data = Error__Error_core_Data_of_twine(d=d, off=fields[1])
+    data = ()
     bt = twine.optional(d=d, off=fields[2], d0=lambda d, off: d.get_str(off=off))
     return Error_Error_core_message(msg=msg,data=data,bt=bt)
 
