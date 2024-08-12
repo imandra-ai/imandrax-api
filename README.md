@@ -70,6 +70,14 @@ $ curl -X POST http://localhost:8083/api/v1/System/gc_stats -H 'content-type: ap
 
 See library `imandrax-api-client`.
 
+### Python API
+
+Install via:
+
+```sh
+$ pip install --index-url https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/simple/ imandrax-api
+```
+
 ### JS/TS
 
 (TODO)

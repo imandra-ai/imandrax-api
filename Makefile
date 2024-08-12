@@ -48,13 +48,11 @@ pull-rust-twine:
 build-python:
 	make -C src/py build
 
-PYTHON_REPO_URL = https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/
-publish-python: build-python
-	@echo "uploading to $(PYTHON_REPO_URL)"
-	twine upload --repository-url $(PYTHON_REPO_URL)  src/py/imandrax_api.whl
+publish-python:
+	make -C src/py publish
 
 list-python-artifacts:
-	gcloud artifacts packages list --location=europe-west1 --project=imandra-dev --repository=imandrax-api
+	make -C src/py list-artifacts
 
 WATCH?= @check @runtest
 watch:
