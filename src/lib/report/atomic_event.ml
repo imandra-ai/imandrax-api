@@ -28,6 +28,7 @@ type ('term, 'fn, 'var, 'ty) poly =
   | E_refuted_by_smt of
       'term * ('term, 'fn, 'var, 'ty) Imandrax_api_model.t option
   | E_fun_expansion of 'term * 'term (* TODO: generalize, elim, etc. *)
+  | E_enumerate of string list
 [@@deriving show { with_path = false }, twine, typereg, map]
 
 type t =
