@@ -72,7 +72,14 @@ See library `imandrax-api-client`.
 
 ### Python API
 
-Install via:
+Install dependencies to be able to fetch the package, and login to google cloud:
+
+```sh
+$ pip install keyring keyrings-google-artifactregistry-auth twirp google-cloud-storage
+$ gcloud auth application-default login
+```
+
+then install via:
 
 ```sh
 $ pip install --index-url https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/simple/ imandrax-api
