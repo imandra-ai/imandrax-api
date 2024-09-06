@@ -1,0 +1,14 @@
+
+(library
+  (name imandra_proof_system)
+  (public_name imandra-proof-system)
+  (libraries containers yojson))
+
+(rule
+  (targets commands_.ml)
+  (deps (:file commands.json))
+  (action (with-stdout-to %{targets}
+                          (progn
+                            (echo "let commands = {json|")
+                            (cat %{file})
+                            (echo "|json}")))))

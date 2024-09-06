@@ -143,3 +143,11 @@
     (tiny_httpd (>= 0.16))
     (ppx_subliner (>= 0.2))
     (linenoise (and (>= 1.4) (< 2.0)))))
+
+(package
+ (name imandra-proof-system)
+ (synopsis "Description and codegen for Imandra's durable proof system")
+ (depends
+  (ocaml (>= 4.12))
+  (yojson (>= 1.6))
+  (containers (>= 3.0))))
