@@ -11,6 +11,9 @@ clean:
 test:
 	$(DUNE) runtest $(DUNE_OPTS) --ignore-promoted-rules
 
+test-autopromote:
+	$(DUNE) runtest $(DUNE_OPTS) --ignore-promoted-rules --auto-promote
+
 doc:
 	$(DUNE) build $(DUNE_OPTS) @doc --ignore-promoted-rules
 
@@ -50,6 +53,9 @@ publish-python:
 
 list-python-artifacts:
 	make -C src/py list-artifacts
+
+lint:
+	$(DUNE) build @lint --auto-promote
 
 WATCH?= @check @runtest
 watch:

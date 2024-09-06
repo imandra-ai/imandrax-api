@@ -33,7 +33,7 @@
       "doc": "A tuple of arguments"
     }
   ],
-  "types": [
+  "dag_types": [
     {
       "name": "Const",
       "doc": "A literal constant (integer, float, etc.)."
@@ -177,7 +177,7 @@
       "doc": "Defines a set of mutually recursive functions. Each tuple is a regular function definition."
     }
   ],
-  "terms": [
+  "dag_terms": [
     {
       "name": "const.int",
       "ret": "Const",
@@ -316,10 +316,6 @@
         [
           "List",
           "Term"
-        ],
-        [
-          "List",
-          "Term"
         ]
       ],
       "doc": "Build a sequent from premises and conclusions"
@@ -332,9 +328,7 @@
           "List",
           "Clause"
         ],
-        [
           "Clause"
-        ]
       ],
       "doc": "Build a meta-sequent from premises and conclusion"
     },
@@ -728,23 +722,20 @@
     {
       "name": "Bool",
       "args": [],
-      "ret": [
+      "ret": 
         "Type"
-      ]
     },
     {
       "name": "Int",
       "args": [],
-      "ret": [
+      "ret": 
         "Type"
-      ]
     },
     {
       "name": "Rational",
       "args": [],
-      "ret": [
+      "ret": 
         "Type"
-      ]
     },
     {
       "name": "not",

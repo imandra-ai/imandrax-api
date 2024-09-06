@@ -1,21 +1,22 @@
 (library
  (name imandra_proof_system)
  (public_name imandra-proof-system)
+ (preprocess (pps ppx_deriving_yojson ppx_deriving.std))
  (libraries containers yojson))
 
 (rule
- (targets commands_.ml)
+ (targets spec_.ml)
  (deps
-  (:file commands.json))
+  (:file spec.json))
  (action
   (with-stdout-to
    %{targets}
    (progn
-    (echo "let commands = {json|")
+    (echo "let spec = {json|")
     (cat %{file})
     (echo "|json}")))))
 
 (install
  (package imandra-proof-system)
  (section share)
- (files commands.json))
+ (files spec.json))

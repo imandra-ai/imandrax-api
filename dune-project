@@ -150,4 +150,6 @@
  (depends
   (ocaml (>= 4.12))
   (yojson (>= 1.6))
+  ppx_deriving 
+  ppx_deriving_yojson 
   (containers (>= 3.0))))
