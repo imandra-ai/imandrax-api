@@ -1,0 +1,4 @@
+(test
+ (name t_spec)
+ (package imandra-proof-system)
+ (libraries imandra-proof-system))
