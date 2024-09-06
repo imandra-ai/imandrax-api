@@ -1,5 +1,5 @@
 {
-  "encoding_types": [
+  "wire_types": [
     {
       "name": "Int",
       "doc": "An integer"
@@ -31,71 +31,6 @@
     {
       "name": "Tuple",
       "doc": "A tuple of arguments"
-    }
-  ],
-  "builtin_symbols": [
-    {
-      "name": "Bool",
-      "args": [],
-      "ret": [
-        "Type"
-      ]
-    },
-    {
-      "name": "Int",
-      "args": [],
-      "ret": [
-        "Type"
-      ]
-    },
-    {
-      "name": "Rational",
-      "args": [],
-      "ret": [
-        "Type"
-      ]
-    },
-    {
-      "name": "not",
-      "args": [
-        "Bool"
-      ],
-      "ret": "Bool"
-    },
-    {
-      "name": "and",
-      "args": [
-        "Bool",
-        "Bool"
-      ],
-      "ret": "Bool"
-    },
-    {
-      "name": "or",
-      "args": [
-        "Bool",
-        "Bool"
-      ],
-      "ret": "Bool"
-    },
-    {
-      "name": "=>",
-      "args": [
-        "Bool",
-        "Bool"
-      ],
-      "ret": "Bool"
-    },
-    {
-      "name": "=",
-      "params": [
-        "A"
-      ],
-      "args": [
-        "A",
-        "A"
-      ],
-      "ret": "Bool"
     }
   ],
   "types": [
@@ -137,6 +72,14 @@
     }
   ],
   "commands": [
+    {
+      "name": "def.str",
+      "args": [
+        "String"
+      ],
+      "defines_node": true,
+      "doc": "Defines a string, to shorten names."
+    },
     {
       "name": "def.t",
       "args": [
@@ -779,6 +722,71 @@
         "Term"
       ],
       "doc": "a = false --> not a"
+    }
+  ],
+  "builtin_symbols": [
+    {
+      "name": "Bool",
+      "args": [],
+      "ret": [
+        "Type"
+      ]
+    },
+    {
+      "name": "Int",
+      "args": [],
+      "ret": [
+        "Type"
+      ]
+    },
+    {
+      "name": "Rational",
+      "args": [],
+      "ret": [
+        "Type"
+      ]
+    },
+    {
+      "name": "not",
+      "args": [
+        "Bool"
+      ],
+      "ret": "Bool"
+    },
+    {
+      "name": "and",
+      "args": [
+        "Bool",
+        "Bool"
+      ],
+      "ret": "Bool"
+    },
+    {
+      "name": "or",
+      "args": [
+        "Bool",
+        "Bool"
+      ],
+      "ret": "Bool"
+    },
+    {
+      "name": "=>",
+      "args": [
+        "Bool",
+        "Bool"
+      ],
+      "ret": "Bool"
+    },
+    {
+      "name": "=",
+      "params": [
+        "A"
+      ],
+      "args": [
+        "A",
+        "A"
+      ],
+      "ret": "Bool"
     }
   ]
 }
