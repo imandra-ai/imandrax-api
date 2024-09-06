@@ -1,5 +1,4 @@
-
 (library
-  (name imandra_proof_system_codegen)
-  (public_name imandra-proof-system.codegen)
-  (libraries containers yojson imandra-proof-system))
+ (name imandra_proof_system_codegen)
+ (public_name imandra-proof-system.codegen)
+ (libraries containers yojson imandra-proof-system))

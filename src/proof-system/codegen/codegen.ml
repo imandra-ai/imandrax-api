@@ -1,8 +1,4 @@
-
-
-
 let pf = Printf.printf
-
 let spf = Printf.sprintf
 
 type arg =
@@ -10,7 +6,7 @@ type arg =
   | Seq
   | Int
   | List of arg
-  (* | String *)
+(* | String *)
 
 type rule = {
   name: string;
