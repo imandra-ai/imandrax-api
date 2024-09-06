@@ -1,0 +1,784 @@
+{
+  "encoding_types": [
+    {
+      "name": "Int",
+      "doc": "An integer"
+    },
+    {
+      "name": "Bool",
+      "doc": "A boolean"
+    },
+    {
+      "name": "Identifier",
+      "doc": "An identifier for a DAG node.\nConcrete type should be Int|String|list(Int|String)."
+    },
+    {
+      "name": "Ref",
+      "doc": "A reference to a previous identifier."
+    },
+    {
+      "name": "String",
+      "doc": "A UTF8 string"
+    },
+    {
+      "name": "Bytes",
+      "doc": "A binary blob"
+    },
+    {
+      "name": "List",
+      "doc": "A list"
+    },
+    {
+      "name": "Tuple",
+      "doc": "A tuple of arguments"
+    }
+  ],
+  "builtin_symbols": [
+    {
+      "name": "Bool",
+      "args": [],
+      "ret": [
+        "Type"
+      ]
+    },
+    {
+      "name": "Int",
+      "args": [],
+      "ret": [
+        "Type"
+      ]
+    },
+    {
+      "name": "Rational",
+      "args": [],
+      "ret": [
+        "Type"
+      ]
+    },
+    {
+      "name": "not",
+      "args": [
+        "Bool"
+      ],
+      "ret": "Bool"
+    },
+    {
+      "name": "and",
+      "args": [
+        "Bool",
+        "Bool"
+      ],
+      "ret": "Bool"
+    },
+    {
+      "name": "or",
+      "args": [
+        "Bool",
+        "Bool"
+      ],
+      "ret": "Bool"
+    },
+    {
+      "name": "=>",
+      "args": [
+        "Bool",
+        "Bool"
+      ],
+      "ret": "Bool"
+    },
+    {
+      "name": "=",
+      "params": [
+        "A"
+      ],
+      "args": [
+        "A",
+        "A"
+      ],
+      "ret": "Bool"
+    }
+  ],
+  "types": [
+    {
+      "name": "Const",
+      "doc": "A literal constant (integer, float, etc.)."
+    },
+    {
+      "name": "Var",
+      "doc": "A term variable."
+    },
+    {
+      "name": "Fun",
+      "doc": "A function or constant symbol."
+    },
+    {
+      "name": "Term",
+      "doc": "A term."
+    },
+    {
+      "name": "Type",
+      "doc": "A type."
+    },
+    {
+      "name": "Clause",
+      "doc": "A classical clause made of terms."
+    },
+    {
+      "name": "MSeq",
+      "doc": "A meta-sequent (sequent-of-sequents), with one conclusion and a list of premises."
+    },
+    {
+      "name": "ProofStep",
+      "doc": "A proof step, proving a clause using logical rules."
+    },
+    {
+      "name": "MProofStep",
+      "doc": "A meta-level proof step, proving a meta-sequent."
+    }
+  ],
+  "commands": [
+    {
+      "name": "def.t",
+      "args": [
+        "Term"
+      ],
+      "defines_node": true,
+      "doc": "Defines a term in the graph."
+    },
+    {
+      "name": "def.ty",
+      "args": [
+        "Type"
+      ],
+      "defines_node": true,
+      "doc": "Defines a type in the graph."
+    },
+    {
+      "name": "def.p",
+      "args": [
+        "ProofStep"
+      ],
+      "defines_node": true,
+      "doc": "Defines a proof node in the graph."
+    },
+    {
+      "name": "def.mp",
+      "args": [
+        "MProofStep"
+      ],
+      "defines_node": true,
+      "doc": "Defines a meta-proof node in the graph."
+    },
+    {
+      "name": "assert",
+      "args": [
+        "Clause"
+      ],
+      "defines_node": false,
+      "doc": "Asserts `F` as an axiom, returns nothing."
+    },
+    {
+      "name": "ty.decl",
+      "args": [
+        "String",
+        "Int"
+      ],
+      "defines_node": false,
+      "doc": "Declares a type constructor with given arity."
+    },
+    {
+      "name": "fun.decl",
+      "args": [
+        "Fun",
+        [
+          "List",
+          "Type"
+        ],
+        "Type"
+      ],
+      "defines_node": false,
+      "doc": "Declares a function symbol `f : args -> ret`."
+    },
+    {
+      "name": "fun.def",
+      "args": [
+        "Fun",
+        [
+          "List",
+          "Var"
+        ],
+        "Type",
+        "Term"
+      ],
+      "defines_node": false,
+      "doc": "Defines a function `f args : ret := body`."
+    },
+    {
+      "name": "fun.defs",
+      "args": [
+        [
+          "List",
+          [
+            "Tuple",
+            "Fun",
+            [
+              "List",
+              "Var"
+            ],
+            "Type",
+            "Term"
+          ]
+        ]
+      ],
+      "defines_node": false,
+      "doc": "Defines a set of mutually recursive functions. Each tuple is a regular function definition."
+    }
+  ],
+  "terms": [
+    {
+      "name": "const.int",
+      "ret": "Const",
+      "args": [
+        "Int"
+      ],
+      "doc": "An integer literal."
+    },
+    {
+      "name": "const.z",
+      "ret": "Const",
+      "args": [
+        "Bytes"
+      ],
+      "doc": "A bigint, serialized to bytes with zigzag encoding."
+    },
+    {
+      "name": "const.q",
+      "ret": "Const",
+      "args": [
+        "Bytes",
+        "Bytes"
+      ],
+      "doc": "A rational, as a pair of bigints."
+    },
+    {
+      "name": "const.string",
+      "ret": "Const",
+      "args": [
+        "String"
+      ],
+      "doc": "A string literal."
+    },
+    {
+      "name": "var.mk",
+      "ret": "Var",
+      "args": [
+        "String",
+        "Type"
+      ],
+      "doc": "A variable."
+    },
+    {
+      "name": "t.const",
+      "ret": "Term",
+      "args": [
+        "Const"
+      ],
+      "doc": "A literal term."
+    },
+    {
+      "name": "t.bool",
+      "ret": "Term",
+      "args": [
+        "Bool"
+      ],
+      "doc": "A boolean term"
+    },
+    {
+      "name": "t.app",
+      "ret": "Term",
+      "args": [
+        "Fun",
+        [
+          "List",
+          "Type"
+        ],
+        [
+          "List",
+          "Term"
+        ]
+      ],
+      "doc": "An application."
+    },
+    {
+      "name": "t.var",
+      "ret": "Term",
+      "args": [
+        "Var"
+      ],
+      "doc": "A free variable."
+    },
+    {
+      "name": "t.if",
+      "ret": "Term",
+      "args": [
+        "Term",
+        "Term",
+        "Term"
+      ],
+      "doc": "A conditional term (if/then/else)."
+    },
+    {
+      "name": "t.cstor",
+      "ret": "Term",
+      "args": [
+        "Fun",
+        [
+          "List",
+          "Type"
+        ],
+        [
+          "List",
+          "Term"
+        ]
+      ],
+      "doc": "A constructor term (takes cstor, type params, argument list)."
+    },
+    {
+      "name": "t.isa",
+      "ret": "Term",
+      "args": [
+        "Fun",
+        "Term"
+      ],
+      "doc": "A cstor-testing term (takes the constructor and the term to test)"
+    },
+    {
+      "name": "t.destr",
+      "ret": "Term",
+      "args": [
+        "Fun",
+        [
+          "List",
+          "Type"
+        ],
+        "Int",
+        "Term"
+      ],
+      "doc": "A construct destruction (takes cstor, type parameters, argument index, destructed term)."
+    },
+    {
+      "name": "clause.mk",
+      "ret": "Clause",
+      "args": [
+        [
+          "List",
+          "Term"
+        ],
+        [
+          "List",
+          "Term"
+        ]
+      ],
+      "doc": "Build a sequent from premises and conclusions"
+    },
+    {
+      "name": "mseq.mk",
+      "ret": "MSeq",
+      "args": [
+        [
+          "List",
+          "Clause"
+        ],
+        [
+          "Clause"
+        ]
+      ],
+      "doc": "Build a meta-sequent from premises and conclusion"
+    },
+    {
+      "name": "ty.var",
+      "ret": "Type",
+      "args": [
+        "String"
+      ],
+      "doc": "A type variable."
+    },
+    {
+      "name": "ty.app",
+      "ret": "Type",
+      "args": [
+        "String",
+        [
+          "List",
+          "Type"
+        ]
+      ],
+      "doc": "A type constructor applied to arguments, e.g `list(int)`."
+    },
+    {
+      "name": "ty.arr",
+      "ret": "Type",
+      "args": [
+        [
+          "List",
+          "Type"
+        ],
+        "Type"
+      ],
+      "doc": "An arrow type `args -> ret`."
+    },
+    {
+      "name": "p.assume",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "Takes `t` and returns `t |- t`."
+    },
+    {
+      "name": "p.by-def",
+      "ret": "Clause",
+      "args": [
+        "Term",
+        "Term"
+      ],
+      "doc": "Takes `f(t1…tn)` and `body_f[t1…tn]` and asserts `|- f(t1…tn) = body_f[t1…tn]` when `f = λx1…xn. body_f[x1…xn]`."
+    },
+    {
+      "name": "p.lemma",
+      "ret": "Clause",
+      "args": [
+        "Term",
+        "Clause"
+      ],
+      "doc": "Takes `p(t1…tn)` and `body_p`, where `p(x1…xn) := body_p[x1…xn]` is a previously proved theorem, and asserts `|- body_p[t1…tn]`"
+    },
+    {
+      "name": "p.sorry",
+      "ret": "Clause",
+      "args": [
+        "Clause"
+      ],
+      "doc": "Takes `G ?- t` and returns `G |- t`. This is a hole in the proof, only useful as a temporary placeholder while looking for a real proof."
+    },
+    {
+      "name": "p.cc",
+      "ret": "Clause",
+      "args": [
+        "Clause"
+      ],
+      "doc": "Takes `hyps ?- t=u` and proves `hyps |- t=u` by congruence closure."
+    },
+    {
+      "name": "p.intros",
+      "ret": "Clause",
+      "args": [
+        "Clause"
+      ],
+      "doc": "Takes `hyps ?- (t1…tn => u)`,\n returns `box (hyps, t1…tn |- u) |- box (hyps |- (t1…tn => u))`."
+    },
+    {
+      "name": "p.unintros",
+      "ret": "Clause",
+      "args": [
+        [
+          "List",
+          "Term"
+        ],
+        "Clause"
+      ],
+      "doc": "Takes `{i1…in}, (H_{i1…in} U other_hyps ?- u)` and returns `box (other_hyps ?- (hyps_{i1} / … / H_n) ==> u)) |- box (H_{i1…in} |- u)`."
+    },
+    {
+      "name": "p.if-true",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`if+ (if a b c)` is `a=true |- (if a b c) = b`."
+    },
+    {
+      "name": "p.if-false",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`if- (if a b c)` is `a=false |- (if a b c) = c`."
+    },
+    {
+      "name": "p.if-trivial",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`b=true, c=false |- (if a b c) = a`."
+    },
+    {
+      "name": "p.if-trivial-neg",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`b=false, c=true |- (if a b c) = not a`."
+    },
+    {
+      "name": "p.trivial",
+      "ret": "Clause",
+      "args": [
+        "Clause"
+      ],
+      "doc": "`trivial (G,t |- t, _)` proves `box (G,t|-t, …)`"
+    },
+    {
+      "name": "p.and-elim",
+      "ret": "Clause",
+      "args": [
+        "Clause",
+        "Clause"
+      ],
+      "doc": "Takes `G1 ?- a` and `G2 ?- b`,\n   produces a proof of `box (G1 |- a), box (G2 |- b) |- box (G1, G2 |- a && b)`."
+    },
+    {
+      "name": "p.or-left",
+      "ret": "Clause",
+      "args": [
+        "Clause",
+        "Term"
+      ],
+      "doc": "Takes `G ?- a` and `b`, produces a proof of `box (G |- a) |- box (G |- a || b)`."
+    },
+    {
+      "name": "p.or-right",
+      "ret": "Clause",
+      "args": [
+        "Clause",
+        "Term"
+      ],
+      "doc": "Takes `G ?- b` and `a`, produces a proof of `box (G |- b) |- box (G |- a || b)`."
+    },
+    {
+      "name": "p.cstor-inj",
+      "ret": "Clause",
+      "args": [
+        "Term",
+        "Term",
+        "Int"
+      ],
+      "doc": "Given terms `t := C(t1…tn)` and `u := C(u1…un)` with same constructors, and index `i`,\nreturns `t = u |- ti = ui`."
+    },
+    {
+      "name": "p.cstor-disj",
+      "ret": "Clause",
+      "args": [
+        "Term",
+        "Term"
+      ],
+      "doc": "Given terms `t1 := C1(…)` and `t2 := C2(…)` with distinct constructors,\n    returns `|- (t1 = t2) = false`."
+    },
+    {
+      "name": "p.cstor-is-a-true",
+      "ret": "Clause",
+      "args": [
+        "Term",
+        "Term"
+      ],
+      "doc": "Given terms `is(C) t` and `v := C(…)`, prove `t = v |- is(C) t = true`."
+    },
+    {
+      "name": "p.cstor-is-a-false",
+      "ret": "Clause",
+      "args": [
+        "Term",
+        "Term"
+      ],
+      "doc": "Given terms `is(C) t` and `v := C2(…)` with `C2` a distinct constructor,\n    prove `t = v |- is(C) t = false`."
+    },
+    {
+      "name": "p.cstor-is-a-project",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "Given term `is-a(C,t)`, return `is-a(C,t) = true |- t = C(select(C,0,t), …)`"
+    },
+    {
+      "name": "p.cstor-select",
+      "ret": "Clause",
+      "args": [
+        "Term",
+        "Term"
+      ],
+      "doc": "Given `t1 := select(C,i,u)` and `t2 := C(v1…vn)`, returns `u=t2 |- t1=v_i`"
+    },
+    {
+      "name": "p.destruct",
+      "ret": "Clause",
+      "args": [
+        "Term",
+        "Term"
+      ],
+      "doc": "Given terms `t := destruct (C, i, sub_t)` and `u := C (v1…vn)`,\n    return `sub_t = u |- t = v_i`."
+    },
+    {
+      "name": "p.and-true-left",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`true && x --> x`"
+    },
+    {
+      "name": "p.and-true-right",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`x && true --> x`"
+    },
+    {
+      "name": "p.and-false-left",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`false && _ --> false`"
+    },
+    {
+      "name": "p.and-false-right",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`_  && false --> false`"
+    },
+    {
+      "name": "p.and-refl",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`x && x  --> x`"
+    },
+    {
+      "name": "p.or-false-left",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`false || x --> x`"
+    },
+    {
+      "name": "p.or-false-right",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`x || false --> x`"
+    },
+    {
+      "name": "p.or-true-left",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`true && _ --> true`"
+    },
+    {
+      "name": "p.or-true-right",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`_ || true  --> true`"
+    },
+    {
+      "name": "p.or-refl",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`x || x  --> x`"
+    },
+    {
+      "name": "p.imply-true-right",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`_ ==> true  --> true`"
+    },
+    {
+      "name": "p.imply-true-left",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`true ==> b  --> b`"
+    },
+    {
+      "name": "p.imply-false-left",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`false ==> _  --> true`"
+    },
+    {
+      "name": "p.imply-false-right",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`true ==> false  --> false`"
+    },
+    {
+      "name": "p.imply-refl",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`a ==> a  --> true`"
+    },
+    {
+      "name": "p.neq",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`|- (a <> b) = not (a=b)`"
+    },
+    {
+      "name": "p.eq-const",
+      "ret": "Clause",
+      "args": [
+        "Term",
+        "Term"
+      ],
+      "doc": "Decides equality of constants: `|- (c1 = c2) = true/false`"
+    },
+    {
+      "name": "p.double_neg_elim",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "`not (not a)  --> a`"
+    },
+    {
+      "name": "p.eq_true_elim",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "a = true  --> a"
+    },
+    {
+      "name": "p.eq_false_not",
+      "ret": "Clause",
+      "args": [
+        "Term"
+      ],
+      "doc": "a = false --> not a"
+    }
+  ]
+}
