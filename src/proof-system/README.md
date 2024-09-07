@@ -22,11 +22,13 @@ Sections of the json file:
 - `wire_types`: wire-level types that are used to encode individual DAG
 nods in a concrete serialization format (e.g. CBOR).
 - `dag_terms`: Each item defines a term constructor, used to build terms.
-    Terms appear in some of the commands.
-- `dag_types`: The data types that are described by the proof DAG. Each
+    Terms appear in some of the commands. Terms are typed, their types
+    are described by `dag_types`.
+- `dag_types`: The logical data types that are described by the DAG. Each
     term in the DAG has one of these types. Ultimately
     the goal of the proof DAG is to describe a `MProofStep` that corresponds
     to a theorem that we proved, ie its conclusion is the theorem's statement.
+- `dag_type_defs`: Additional type definitions that are not built by terms.
 - `commands`: Each command defines a node in the DAG, or defines some
     pervasively available object (e.g. a type definition). Commands
     for which field `defines_node` is true must carry a proper identifier

@@ -29,6 +29,10 @@
       "doc": "A list"
     },
     {
+      "name": "Option",
+      "doc": "An optional."
+    },
+    {
       "name": "Tuple",
       "doc": "A tuple of arguments"
     }
@@ -175,6 +179,38 @@
       ],
       "defines_node": false,
       "doc": "Defines a set of mutually recursive functions. Each tuple is a regular function definition."
+    }
+  ],
+  "dag_type_defs": [
+    {
+      "name": "FunDef",
+      "doc": "A function definition or declaration",
+      "def": {
+        "struct": [
+          {
+            "field": "name",
+            "type": "String"
+          },
+          {
+            "field": "args",
+            "type": [
+              "List",
+              "Type"
+            ]
+          },
+          {
+            "field": "ret",
+            "type": "Type"
+          },
+          {
+            "field": "body",
+            "type": [
+              "Option",
+              "Term"
+            ]
+          }
+        ]
+      }
     }
   ],
   "dag_terms": [
@@ -328,7 +364,7 @@
           "List",
           "Clause"
         ],
-          "Clause"
+        "Clause"
       ],
       "doc": "Build a meta-sequent from premises and conclusion"
     },
@@ -366,7 +402,7 @@
     },
     {
       "name": "p.assume",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -374,7 +410,7 @@
     },
     {
       "name": "p.by-def",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term",
         "Term"
@@ -383,7 +419,7 @@
     },
     {
       "name": "p.lemma",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term",
         "Clause"
@@ -392,7 +428,7 @@
     },
     {
       "name": "p.sorry",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Clause"
       ],
@@ -400,7 +436,7 @@
     },
     {
       "name": "p.cc",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Clause"
       ],
@@ -408,7 +444,7 @@
     },
     {
       "name": "p.intros",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Clause"
       ],
@@ -416,7 +452,7 @@
     },
     {
       "name": "p.unintros",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         [
           "List",
@@ -428,7 +464,7 @@
     },
     {
       "name": "p.if-true",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -436,7 +472,7 @@
     },
     {
       "name": "p.if-false",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -444,7 +480,7 @@
     },
     {
       "name": "p.if-trivial",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -452,7 +488,7 @@
     },
     {
       "name": "p.if-trivial-neg",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -460,7 +496,7 @@
     },
     {
       "name": "p.trivial",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Clause"
       ],
@@ -468,7 +504,7 @@
     },
     {
       "name": "p.and-elim",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Clause",
         "Clause"
@@ -477,7 +513,7 @@
     },
     {
       "name": "p.or-left",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Clause",
         "Term"
@@ -486,7 +522,7 @@
     },
     {
       "name": "p.or-right",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Clause",
         "Term"
@@ -495,7 +531,7 @@
     },
     {
       "name": "p.cstor-inj",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term",
         "Term",
@@ -505,7 +541,7 @@
     },
     {
       "name": "p.cstor-disj",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term",
         "Term"
@@ -514,7 +550,7 @@
     },
     {
       "name": "p.cstor-is-a-true",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term",
         "Term"
@@ -523,7 +559,7 @@
     },
     {
       "name": "p.cstor-is-a-false",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term",
         "Term"
@@ -532,7 +568,7 @@
     },
     {
       "name": "p.cstor-is-a-project",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -540,7 +576,7 @@
     },
     {
       "name": "p.cstor-select",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term",
         "Term"
@@ -549,7 +585,7 @@
     },
     {
       "name": "p.destruct",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term",
         "Term"
@@ -558,7 +594,7 @@
     },
     {
       "name": "p.and-true-left",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -566,7 +602,7 @@
     },
     {
       "name": "p.and-true-right",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -574,7 +610,7 @@
     },
     {
       "name": "p.and-false-left",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -582,7 +618,7 @@
     },
     {
       "name": "p.and-false-right",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -590,7 +626,7 @@
     },
     {
       "name": "p.and-refl",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -598,7 +634,7 @@
     },
     {
       "name": "p.or-false-left",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -606,7 +642,7 @@
     },
     {
       "name": "p.or-false-right",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -614,7 +650,7 @@
     },
     {
       "name": "p.or-true-left",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -622,7 +658,7 @@
     },
     {
       "name": "p.or-true-right",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -630,7 +666,7 @@
     },
     {
       "name": "p.or-refl",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -638,7 +674,7 @@
     },
     {
       "name": "p.imply-true-right",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -646,7 +682,7 @@
     },
     {
       "name": "p.imply-true-left",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -654,7 +690,7 @@
     },
     {
       "name": "p.imply-false-left",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -662,7 +698,7 @@
     },
     {
       "name": "p.imply-false-right",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -670,7 +706,7 @@
     },
     {
       "name": "p.imply-refl",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -678,7 +714,7 @@
     },
     {
       "name": "p.neq",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -686,7 +722,7 @@
     },
     {
       "name": "p.eq-const",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term",
         "Term"
@@ -695,7 +731,7 @@
     },
     {
       "name": "p.double_neg_elim",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -703,7 +739,7 @@
     },
     {
       "name": "p.eq_true_elim",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -711,7 +747,7 @@
     },
     {
       "name": "p.eq_false_not",
-      "ret": "Clause",
+      "ret": "ProofStep",
       "args": [
         "Term"
       ],
@@ -722,20 +758,17 @@
     {
       "name": "Bool",
       "args": [],
-      "ret": 
-        "Type"
+      "ret": "Type"
     },
     {
       "name": "Int",
       "args": [],
-      "ret": 
-        "Type"
+      "ret": "Type"
     },
     {
       "name": "Rational",
       "args": [],
-      "ret": 
-        "Type"
+      "ret": "Type"
     },
     {
       "name": "not",
