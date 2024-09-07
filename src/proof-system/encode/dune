@@ -1,0 +1,10 @@
+
+(library
+  (name imandra_proof_system_encode)
+  (public_name imandra-proof-system.encode)
+  (synopsis "Encoder for proofs using CBOR")
+  (libraries containers.cbor iostream))
+
+(rule
+  (targets raw_.ml)
+  (action (with-stdout-to %{targets} (run ./gen/gen.exe))))
