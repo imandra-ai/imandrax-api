@@ -37,19 +37,17 @@ let rec type_of_meta_type (m : PS.meta_type) : string =
   | M_tuple l ->
     spf "(%s)" @@ String.concat " * " @@ List.map type_of_meta_type l
 
-let codegen_ (out : Buffer.t) (spec : PS.t) : unit =
+let codegen_decode_ (out : Buffer.t) (spec : PS.t) : unit =
   let emit fmt = bpf out fmt in
 
-  emit "(* auto-generated from spec.json *)\n\n";
-  emit "%s\n" prelude;
-
-  List.iter
-    (fun (ty : PS.dag_type) ->
-      emit "(** %s *)\n" ty.doc;
-      emit "module %s_id = Make_id()\n" (capitalize ty.name);
-      emit "\n")
-    spec.dag_types;
-
+  (* do we need this?
+     List.iter
+       (fun (ty : PS.dag_type) ->
+         emit "(** %s *)\n" ty.doc;
+         emit "module %s_id = Make_id()\n" (capitalize ty.name);
+         emit "\n")
+       spec.dag_types;
+  *)
   let terms_by_ret = terms_by_ret_type_ spec in
 
   (let first = ref true in
@@ -103,7 +101,16 @@ let codegen_ (out : Buffer.t) (spec : PS.t) : unit =
 
   ()
 
+let codegen_encode_ (out : Buffer.t) (_spec : PS.t) : unit =
+  let _emit fmt = bpf out fmt in
+
+  (* TODO: for all terms, add a encoder function; same for all commands *)
+  ()
+
 let codegen (oc : out_channel) : unit =
   let buf = Buffer.create 32 in
-  codegen_ buf PS.spec;
+  bpf buf "(* auto-generated from spec.json *)\n\n";
+  bpf buf "%s\n" prelude;
+  codegen_decode_ buf PS.spec;
+  codegen_encode_ buf PS.spec;
   Buffer.output_buffer oc buf

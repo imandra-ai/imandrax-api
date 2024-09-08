@@ -1,3 +1,5 @@
+(* prelude *)
+
 module Identifier = struct
   type t =
     | I of int
@@ -24,3 +26,20 @@ end = struct
 end
 
 type fn = string
+
+module Cbor_encoder = struct
+  type 'enc t = {
+    bool: 'enc -> bool -> unit;
+    int64: 'enc -> int64 -> unit;
+    string: 'enc -> string -> unit;
+    bytes: 'enc -> string -> unit;
+    begin_list: 'enc -> int -> unit;
+    begin_dict: 'enc -> int -> unit;
+  }
+end
+
+type 'a encoder = { encode: 'enc. 'enc Cbor_encoder.t -> 'enc -> 'a -> unit }
+[@@unboxed]
+(** An encoder to CBOR *)
+
+(* end prelude *)
