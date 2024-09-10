@@ -35,6 +35,7 @@ function install_linux() {
   echo "using sudo to copy files"
   sudo install -t "$BIN_DIR/" "${TMPDIR:-/tmp}/imandrax-cli"
   sudo install -t "$BIN_DIR/" "${TMPDIR:-/tmp}/imandrax-ws-client"
+  sudo install -t "$BIN_DIR/" "${TMPDIR:-/tmp}/tldrs"
 }
 
 function install_macos() {
