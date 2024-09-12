@@ -1,114 +1,94 @@
 module PS = Imandra_proof_system
-module Str_set = Set.Make (String)
 
 let bpf = Printf.bprintf
 let spf = Printf.sprintf
 let capitalize = String.capitalize_ascii
 let prelude = Preludes.ocaml_prelude
 
-let terms_by_ret_type_ (spec : PS.t) : (string, PS.dag_term list) Hashtbl.t =
-  let res = Hashtbl.create 32 in
-  List.iter
-    (fun (t : PS.dag_term) ->
-      let l = Hashtbl.find_opt res t.ret |> Option.value ~default:[] in
-      Hashtbl.replace res t.ret (t :: l))
-    spec.dag_terms;
-  res
+module Make (X : sig
+  val spec : PS.t
+end) =
+struct
+  open X
 
-let cstor_name (s : string) : string =
-  s |> capitalize
-  |> String.map (function
-       | '-' | '.' -> '_'
-       | c -> c)
+  let terms_by_ret_type_ : (PS.meta_type, PS.dag_term list) Hashtbl.t =
+    let res = Hashtbl.create 32 in
+    List.iter
+      (fun (t : PS.dag_term) ->
+        let l = Hashtbl.find_opt res t.ret |> Option.value ~default:[] in
+        Hashtbl.replace res t.ret (t :: l))
+      spec.dag_terms;
+    res
 
-let type_name s =
-  String.uncapitalize_ascii s |> function
-  | "type" -> "ty"
-  | "fun" -> "fn"
-  | s -> s
+  let fun_name (s : string) : string =
+    s |> String.uncapitalize_ascii
+    |> String.map (function
+         | '-' | '.' -> '_'
+         | c -> c)
 
-let field_name (s : string) : string = type_name s
+  let is_dag_type s : bool = Hashtbl.mem terms_by_ret_type_ (PS.M_ty s)
 
-let rec type_of_meta_type (m : PS.meta_type) : string =
-  match m with
-  | M_ty s -> type_name s
-  | M_list s -> spf "%s list" (type_of_meta_type s)
-  | M_option s -> spf "%s option" (type_of_meta_type s)
-  | M_tuple l ->
-    spf "(%s)" @@ String.concat " * " @@ List.map type_of_meta_type l
+  let type_name s =
+    if is_dag_type s then
+      spf "%s_id.t" (capitalize s)
+    else
+      String.uncapitalize_ascii s |> function
+      | "type" -> "ty"
+      | "fun" -> "fn"
+      | s -> s
 
-let codegen_decode_ (out : Buffer.t) (spec : PS.t) : unit =
-  let emit fmt = bpf out fmt in
+  let rec type_of_meta_type (m : PS.meta_type) : string =
+    match m with
+    | M_ty s -> type_name s
+    | M_list s -> spf "%s list" (type_of_meta_type s)
+    | M_option s -> spf "%s option" (type_of_meta_type s)
+    | M_tuple l ->
+      spf "(%s)" @@ String.concat " * " @@ List.map type_of_meta_type l
 
-  List.iter
-    (fun (ty : PS.dag_type) ->
-      emit "(** %s *)\n" ty.doc;
-      emit "module %s_id = Make_id()\n" (capitalize ty.name);
-      emit "\n")
-    spec.dag_types;
-  let terms_by_ret = terms_by_ret_type_ spec in
+  let codegen_decode_ (out : Buffer.t) : unit =
+    (* declare ID types *)
+    List.iter
+      (fun (ty : PS.dag_type) ->
+        bpf out "(** %s *)\n" ty.doc;
+        bpf out "module %s_id = Make_id()\n" (capitalize ty.name);
+        bpf out "\n")
+      spec.dag_types;
 
-  (let first = ref true in
+    let emit_dag_term (t : PS.dag_term) : unit =
+      let args_as_fun_params =
+        List.mapi (fun i ty -> spf "(x%d : %s)" i (type_of_meta_type ty)) t.args
+        |> String.concat " "
+      in
 
-   let emitted = ref Str_set.empty in
-   let get_prefix () =
-     if !first then (
-       first := false;
-       "type"
-     ) else
-       "and"
-   in
+      bpf out "let %s ((Output.Out out):Output.t) %s : %s =\n" (fun_name t.name)
+        args_as_fun_params (type_of_meta_type t.ret);
+      bpf out "  Buffer.reset out.buf;\n";
+      bpf out "  let id = out.new_id out.st in\n";
+      bpf out "  Cbor_enc.array_begin out.buf ~len:%d\n" (List.length t.args);
+      bpf out "  %s_id.make id\n\n" (capitalize t.ret)
+    in
 
-   Hashtbl.iter
-     (fun (ty : string) ts ->
-       emitted := Str_set.add ty !emitted;
-       let prefix = get_prefix () in
-       emit "%s %s =\n" prefix (type_name ty);
-       List.iter
-         (fun (t : PS.dag_term) ->
-           let args =
-             match t.args with
-             | [] -> ""
-             | l ->
-               spf " of %s" @@ String.concat " * "
-               @@ List.map type_of_meta_type l
-           in
+    Hashtbl.iter
+      (fun (ty : PS.meta_type) ts ->
+        bpf out "(** {2 constructors for %s} *)\n\n" (PS.show_meta_type ty);
+        List.iter emit_dag_term ts;
+        bpf out "\n")
+      terms_by_ret_type_;
 
-           emit "  | %s%s\n" (cstor_name t.name) args)
-         ts;
-       emit "\n")
-     terms_by_ret;
+    ()
 
-   List.iter
-     (fun (ty : PS.dag_type_def) ->
-       match ty.def with
-       | Some { struct_ = Some d; _ } when not (Str_set.mem ty.name !emitted) ->
-         emitted := Str_set.add ty.name !emitted;
-
-         let prefix = get_prefix () in
-         emit "%s %s = {\n" prefix (type_name ty.name);
-         List.iter
-           (fun (field : PS.dag_type_field) ->
-             emit "  %s: %s;\n"
-               (field_name field.field_name)
-               (type_of_meta_type field.ty))
-           d;
-         emit "}\n\n"
-       | _ -> ())
-     spec.dag_type_defs);
-
-  ()
-
-let codegen_encode_ (out : Buffer.t) (_spec : PS.t) : unit =
-  let _emit fmt = bpf out fmt in
-
-  (* TODO: for all terms, add a encoder function; same for all commands *)
-  ()
+  let codegen_encode_ (_out : Buffer.t) : unit =
+    (* TODO: for all terms, add a encoder function; same for all commands *)
+    ()
+end
 
 let codegen (oc : out_channel) : unit =
+  let module M = Make (struct
+    let spec = PS.spec
+  end) in
   let buf = Buffer.create 32 in
   bpf buf "(* auto-generated from spec.json *)\n\n";
   bpf buf "%s\n" prelude;
-  codegen_decode_ buf PS.spec;
-  codegen_encode_ buf PS.spec;
+  M.codegen_decode_ buf;
+  M.codegen_encode_ buf;
   Buffer.output_buffer oc buf

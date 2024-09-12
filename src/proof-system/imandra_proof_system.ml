@@ -21,7 +21,7 @@ type meta_type =
   | M_list of meta_type
   | M_option of meta_type
   | M_tuple of meta_type list
-[@@deriving show { with_path = false }]
+[@@deriving show { with_path = false }, ord]
 
 let meta_type_of_yojson j =
   let rec loop = function
@@ -59,16 +59,8 @@ type dag_type_def = {
 
 type dag_term = {
   name: string;
-  ret: string;
+  ret: meta_type;
   args: meta_type list;
-  doc: string;
-}
-[@@deriving show { with_path = false }, of_yojson]
-
-type command = {
-  name: string;
-  args: meta_type list;
-  defines_node: bool;
   doc: string;
 }
 [@@deriving show { with_path = false }, of_yojson]
@@ -86,7 +78,6 @@ type t = {
   dag_types: dag_type list;
   dag_type_defs: dag_type_def list;
   dag_terms: dag_term list;
-  commands: command list;
   builtin_symbols: builtin_symbol list;
 }
 [@@deriving show { with_path = false }, of_yojson]
