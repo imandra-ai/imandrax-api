@@ -40,6 +40,12 @@ let rec type_of_meta_type (m : PS.meta_type) : string =
 let codegen_decode_ (out : Buffer.t) (spec : PS.t) : unit =
   let emit fmt = bpf out fmt in
 
+  List.iter
+    (fun (ty : PS.dag_type) ->
+      emit "(** %s *)\n" ty.doc;
+      emit "module %s_id = Make_id()\n" (capitalize ty.name);
+      emit "\n")
+    spec.dag_types;
   let terms_by_ret = terms_by_ret_type_ spec in
 
   (let first = ref true in
