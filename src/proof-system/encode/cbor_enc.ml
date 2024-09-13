@@ -58,6 +58,22 @@ let float (self : t) f =
 let[@inline] array_begin (self : t) ~len : unit =
   add_uint self 4 (Int64.of_int len)
 
+let array self enc arr : unit =
+  array_begin self ~len:(Array.length arr);
+  for i = 0 to Array.length arr - 1 do
+    let x = Array.get arr i in
+    enc self x
+  done
+
+let array_l self enc l : unit =
+  array_begin self ~len:(List.length l);
+  List.iter (enc self) l
+
+let[@inline] nullable self enc x =
+  match x with
+  | None -> null self
+  | Some x -> enc self x
+
 let[@inline] map_begin (self : t) ~len : unit =
   add_uint self 5 (Int64.of_int len)
 

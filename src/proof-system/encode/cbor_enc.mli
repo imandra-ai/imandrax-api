@@ -21,7 +21,10 @@ val false_ : t -> unit
 val null : t -> unit
 val undefined : t -> unit
 val array_begin : t -> len:int -> unit
+val array : t -> 'a enc -> 'a array -> unit
+val array_l : t -> 'a enc -> 'a list -> unit
 val map_begin : t -> len:int -> unit
+val nullable : t -> 'a enc -> 'a option -> unit
 val tag : t -> tag:int -> unit
 
 (** {2 Helpers} *)

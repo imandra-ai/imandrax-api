@@ -45,7 +45,35 @@ struct
     | M_tuple l ->
       spf "(%s)" @@ String.concat " * " @@ List.map type_of_meta_type l
 
-  let codegen_decode_ (out : Buffer.t) : unit =
+  (** Emit code to encode [x:ty] to CBOR.
+
+      Format for a command is a CBOR array [["command" "id" arg0 arg1…]] *)
+  let rec encode_meta_type (ty : PS.meta_type) enc (x : string) : string =
+    match ty with
+    | M_ty "Int" -> spf "Cbor_enc.int %s %s" enc x
+    | M_ty "Int64" -> spf "Cbor_enc.int64 %s %s" enc x
+    | M_ty "Bool" -> spf "Cbor_enc.bool %s %s" enc x
+    | M_ty "String" -> spf "Cbor_enc.text %s %s" enc x
+    | M_ty "Bytes" -> spf "Cbor_enc.bytes %s (Bytes.unsafe_to_string %s)" enc x
+    | M_ty s when is_dag_type s -> spf "%s_id.encode %s %s" (capitalize s) enc x
+    | M_ty s -> failwith @@ spf "cannot encode type %S" s
+    | M_list s ->
+      spf "Cbor_enc.array_l %s (fun enc x -> %s) %s" enc
+        (encode_meta_type s "enc" "x")
+        x
+    | M_option s ->
+      spf "Cbor_enc.nullable %s (fun enc x -> %s) %s" enc
+        (encode_meta_type s "enc" "x")
+        x
+    | M_tuple l ->
+      let n = List.length l in
+      spf "(let %s = %s in Cbor_enc.array_begin %s ~len:%d; %s)"
+        (String.concat "," @@ List.init n (spf "x_%d"))
+        x enc n
+        (String.concat ";"
+        @@ List.mapi (fun i ty -> encode_meta_type ty enc (spf "x_%d" i)) l)
+
+  let codegen_encode_ (out : Buffer.t) : unit =
     (* declare ID types *)
     List.iter
       (fun (ty : PS.dag_type) ->
@@ -60,14 +88,28 @@ struct
         |> String.concat " "
       in
 
-      bpf out "let %s ((Output.Out out):Output.t) %s : %s =\n" (fun_name t.name)
-        args_as_fun_params (type_of_meta_type t.ret);
+      bpf out
+        "let %s ((Output.Out out):Output.t) ~(id:Identifier.t) %s : %s =\n"
+        (fun_name t.name) args_as_fun_params (type_of_meta_type t.ret);
       bpf out "  Buffer.reset out.buf;\n";
-      bpf out "  let id = out.new_id out.st in\n";
-      bpf out "  Cbor_enc.array_begin out.buf ~len:%d\n" (List.length t.args);
-      (* FIXME: t.ret must be a string. Find a solution for mutually recursive functions :/,
-         everything else returns a single ID *)
-      bpf out "  %s_id.make id\n\n" (capitalize t.ret)
+      (* array with space for "command", "id", and args *)
+      bpf out "  Cbor_enc.array_begin out.enc ~len:%d;\n"
+        (2 + List.length t.args);
+      bpf out "  Cbor_enc.text out.enc %S;\n" t.name;
+      bpf out "  Identifier.encode out.enc id;\n";
+      List.iteri
+        (fun i (ty : PS.meta_type) ->
+          bpf out "  %s;\n" (encode_meta_type ty "out.enc" (spf "x%d" i)))
+        t.args;
+
+      (* return *)
+      match t.ret with
+      | M_ty s -> bpf out "  %s_id.make id\n\n" (capitalize s)
+      | M_list (M_ty s) ->
+        bpf out "  List.init %d (fun i -> %s_id.make @@ Identifier.QI (id, i))"
+          (List.length t.args) (capitalize s)
+      | _ty ->
+        failwith (spf "cannot handle return type %s" (PS.show_meta_type _ty))
     in
 
     Hashtbl.iter
@@ -79,8 +121,8 @@ struct
 
     ()
 
-  let codegen_encode_ (_out : Buffer.t) : unit =
-    (* TODO: for all terms, add a encoder function; same for all commands *)
+  let codegen_decode_ (_out : Buffer.t) : unit =
+    (* TODO: for all terms, add a type decl + decoder *)
     ()
 end
 

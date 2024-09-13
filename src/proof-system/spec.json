@@ -137,7 +137,7 @@
     {
       "name": "fun.decl",
       "args": [
-        "Fun",
+        "FunDefID",
         [
           "List",
           "Type"
@@ -150,7 +150,7 @@
     {
       "name": "fun.def",
       "args": [
-        "Fun",
+        "String",
         [
           "List",
           "Var"
@@ -168,7 +168,7 @@
           "List",
           [
             "Tuple",
-            "Fun",
+            "String",
             [
               "List",
               "Var"
@@ -246,7 +246,7 @@
       "name": "t.app",
       "ret": "Term",
       "args": [
-        "Fun",
+        "FunDefID",
         [
           "List",
           "Type"
@@ -280,7 +280,7 @@
       "name": "t.cstor",
       "ret": "Term",
       "args": [
-        "Fun",
+        "FunDefID",
         [
           "List",
           "Type"
@@ -296,7 +296,7 @@
       "name": "t.isa",
       "ret": "Term",
       "args": [
-        "Fun",
+        "FunDefID",
         "Term"
       ],
       "doc": "A cstor-testing term (takes the constructor and the term to test)"
@@ -305,7 +305,7 @@
       "name": "t.destr",
       "ret": "Term",
       "args": [
-        "Fun",
+        "FunDefID",
         [
           "List",
           "Type"

@@ -4,8 +4,8 @@ module Identifier = struct
   type t =
     | I of int
     | S of string
-    | QI of int * t
-    | QS of string * t
+    | QI of t * int
+    | QS of t * string
 
   let equal : t -> t -> bool = ( = )
 
@@ -18,25 +18,27 @@ module Identifier = struct
     match self with
     | I i -> Cbor_enc.int enc i
     | S s -> Cbor_enc.text enc s
-    | QI (pre, id) ->
+    | QI (id, x) ->
       Cbor_enc.array_begin enc ~len:2;
-      Cbor_enc.int enc pre;
-      encode enc id
-    | QS (pre, id) ->
+      encode enc id;
+      Cbor_enc.int enc x
+    | QS (id, x) ->
       Cbor_enc.array_begin enc ~len:2;
-      Cbor_enc.text enc pre;
-      encode enc id
+      encode enc id;
+      Cbor_enc.text enc x
 end
 
 module Make_id () : sig
   type t = private Identifier.t
 
   val make : Identifier.t -> t
+  val encode : t Cbor_enc.enc
   val equal : t -> t -> bool
 end = struct
   type t = Identifier.t
 
   let equal = Identifier.equal
+  let encode = Identifier.encode
   let make = Fun.id
 end
 
@@ -47,8 +49,8 @@ module Output = struct
   type t =
     | Out : {
         st: 'st;
-        new_id: 'st -> Identifier.t;
         buf: Buffer.t;
+        enc: Cbor_enc.t;  (** Encoder that writes into [buf] *)
         output_entry: 'st -> Buffer.t -> unit;
       }
         -> t
