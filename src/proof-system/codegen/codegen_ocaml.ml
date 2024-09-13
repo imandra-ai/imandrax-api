@@ -65,6 +65,8 @@ struct
       bpf out "  Buffer.reset out.buf;\n";
       bpf out "  let id = out.new_id out.st in\n";
       bpf out "  Cbor_enc.array_begin out.buf ~len:%d\n" (List.length t.args);
+      (* FIXME: t.ret must be a string. Find a solution for mutually recursive functions :/,
+         everything else returns a single ID *)
       bpf out "  %s_id.make id\n\n" (capitalize t.ret)
     in
 
