@@ -14,7 +14,7 @@ type t =
       array_begin: 'st -> len:int -> unit;
       array_end: 'st -> unit;
       map_begin: 'st -> len:int -> unit;
-      map_end: 'st -> len:int -> unit;
+      map_end: 'st -> unit;
       tag: 'st -> tag:int -> unit;
     }
       -> t
@@ -37,7 +37,7 @@ let[@inline] array_end : 'st -> unit = fun (Enc r) -> r.array_end r.st
 let[@inline] map_begin : 'st -> len:int -> unit =
  fun (Enc r) ~len -> r.map_begin r.st ~len
 
-let[@inline] map_end : 'st -> len:int -> unit = fun (Enc r) -> r.map_end r.st
+let[@inline] map_end : 'st -> unit = fun (Enc r) -> r.map_end r.st
 let[@inline] tag : 'st -> tag:int -> unit = fun (Enc r) ~tag -> r.tag r.st ~tag
 
 let[@inline] nullable : 'a enc -> 'a option enc =

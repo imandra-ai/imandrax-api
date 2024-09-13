@@ -27,7 +27,6 @@ val map_begin : t -> len:int -> unit
 val nullable : t -> 'a enc -> 'a option -> unit
 val tag : t -> tag:int -> unit
 
-(** {2 Helpers} *)
+(** {2 Interface} *)
 
-val cstor1 : t -> string -> 'a enc -> 'a -> unit
-val cstor2 : t -> string -> 'a enc -> 'a -> 'b enc -> 'b -> unit
+val encoder : t -> Imandra_proof_system_encode.Encoder.t

@@ -67,11 +67,14 @@ struct
         x
     | M_tuple l ->
       let n = List.length l in
-      spf "(let %s = %s in Encoder.array_begin %s ~len:%d; %s)"
+      spf
+        "(let %s = %s in Encoder.array_begin %s ~len:%d; %s; Encoder.array_end \
+         %s)"
         (String.concat "," @@ List.init n (spf "x_%d"))
         x enc n
         (String.concat ";"
         @@ List.mapi (fun i ty -> encode_meta_type ty enc (spf "x_%d" i)) l)
+        enc
 
   let codegen_encode_ (out : Buffer.t) : unit =
     (* declare ID types *)
@@ -100,6 +103,7 @@ struct
         (fun i (ty : PS.meta_type) ->
           bpf out "  %s;\n" (encode_meta_type ty "out.enc" (spf "x%d" i)))
         t.args;
+      bpf out "  Encoder.array_end out.enc;\n";
 
       (* return *)
       match t.ret with
