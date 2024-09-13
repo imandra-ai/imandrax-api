@@ -4,6 +4,8 @@ open struct
   let spf = Printf.sprintf
 end
 
+module Encoder = Encoder
+
 (** The raw text *)
 module Raw = struct
   let spec = Spec_.spec

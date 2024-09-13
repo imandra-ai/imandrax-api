@@ -1,5 +1,7 @@
 (* prelude *)
 
+module Encoder = Encoder
+
 module Identifier = struct
   type t =
     | I of int
@@ -14,25 +16,25 @@ module Identifier = struct
     let n = Atomic.make 0 in
     fun [@inline] () -> Atomic.fetch_and_add n 1
 
-  let rec encode (enc : Cbor_enc.t) (self : t) =
+  let rec encode (enc : Encoder.t) (self : t) =
     match self with
-    | I i -> Cbor_enc.int enc i
-    | S s -> Cbor_enc.text enc s
+    | I i -> Encoder.int enc i
+    | S s -> Encoder.text enc s
     | QI (id, x) ->
-      Cbor_enc.array_begin enc ~len:2;
+      Encoder.array_begin enc ~len:2;
       encode enc id;
-      Cbor_enc.int enc x
+      Encoder.int enc x
     | QS (id, x) ->
-      Cbor_enc.array_begin enc ~len:2;
+      Encoder.array_begin enc ~len:2;
       encode enc id;
-      Cbor_enc.text enc x
+      Encoder.text enc x
 end
 
 module Make_id () : sig
   type t = private Identifier.t
 
   val make : Identifier.t -> t
-  val encode : t Cbor_enc.enc
+  val encode : t Encoder.enc
   val equal : t -> t -> bool
 end = struct
   type t = Identifier.t
@@ -50,7 +52,7 @@ module Output = struct
     | Out : {
         st: 'st;
         buf: Buffer.t;
-        enc: Cbor_enc.t;  (** Encoder that writes into [buf] *)
+        enc: Encoder.t;  (** Encoder that writes into [buf] *)
         output_entry: 'st -> Buffer.t -> unit;
       }
         -> t

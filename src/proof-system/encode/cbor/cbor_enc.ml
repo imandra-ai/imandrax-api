@@ -107,13 +107,20 @@ let bytes_slice self s i len =
 
 let tag (self : t) ~tag : unit = add_uint self 6 (Int64.of_int tag)
 
-let cstor1 self s enc x : unit =
-  array_begin self ~len:2;
-  text self s;
-  enc self x
-
-let cstor2 self s enc1 x1 enc2 x2 : unit =
-  array_begin self ~len:3;
-  text self s;
-  enc1 self x1;
-  enc2 self x2
+let encoder (self : t) : Imandra_proof_system_encode.Encoder.t =
+  Imandra_proof_system_encode.Encoder.Enc
+    {
+      st = self;
+      int;
+      int64;
+      float;
+      bool;
+      text;
+      bytes;
+      null;
+      array_begin;
+      array_end = ignore;
+      map_begin;
+      map_end = ignore;
+      tag;
+    }

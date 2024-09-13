@@ -50,24 +50,24 @@ struct
       Format for a command is a CBOR array [["command" "id" arg0 arg1…]] *)
   let rec encode_meta_type (ty : PS.meta_type) enc (x : string) : string =
     match ty with
-    | M_ty "Int" -> spf "Cbor_enc.int %s %s" enc x
-    | M_ty "Int64" -> spf "Cbor_enc.int64 %s %s" enc x
-    | M_ty "Bool" -> spf "Cbor_enc.bool %s %s" enc x
-    | M_ty "String" -> spf "Cbor_enc.text %s %s" enc x
-    | M_ty "Bytes" -> spf "Cbor_enc.bytes %s (Bytes.unsafe_to_string %s)" enc x
+    | M_ty "Int" -> spf "Encoder.int %s %s" enc x
+    | M_ty "Int64" -> spf "Encoder.int64 %s %s" enc x
+    | M_ty "Bool" -> spf "Encoder.bool %s %s" enc x
+    | M_ty "String" -> spf "Encoder.text %s %s" enc x
+    | M_ty "Bytes" -> spf "Encoder.bytes %s (Bytes.unsafe_to_string %s)" enc x
     | M_ty s when is_dag_type s -> spf "%s_id.encode %s %s" (capitalize s) enc x
     | M_ty s -> failwith @@ spf "cannot encode type %S" s
     | M_list s ->
-      spf "Cbor_enc.array_l %s (fun enc x -> %s) %s" enc
+      spf "Encoder.array_l %s (fun enc x -> %s) %s" enc
         (encode_meta_type s "enc" "x")
         x
     | M_option s ->
-      spf "Cbor_enc.nullable %s (fun enc x -> %s) %s" enc
+      spf "Encoder.nullable %s (fun enc x -> %s) %s" enc
         (encode_meta_type s "enc" "x")
         x
     | M_tuple l ->
       let n = List.length l in
-      spf "(let %s = %s in Cbor_enc.array_begin %s ~len:%d; %s)"
+      spf "(let %s = %s in Encoder.array_begin %s ~len:%d; %s)"
         (String.concat "," @@ List.init n (spf "x_%d"))
         x enc n
         (String.concat ";"
@@ -93,9 +93,8 @@ struct
         (fun_name t.name) args_as_fun_params (type_of_meta_type t.ret);
       bpf out "  Buffer.reset out.buf;\n";
       (* array with space for "command", "id", and args *)
-      bpf out "  Cbor_enc.array_begin out.enc ~len:%d;\n"
-        (2 + List.length t.args);
-      bpf out "  Cbor_enc.text out.enc %S;\n" t.name;
+      bpf out "  Encoder.array_begin out.enc ~len:%d;\n" (2 + List.length t.args);
+      bpf out "  Encoder.text out.enc %S;\n" t.name;
       bpf out "  Identifier.encode out.enc id;\n";
       List.iteri
         (fun i (ty : PS.meta_type) ->

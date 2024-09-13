@@ -2,8 +2,7 @@
 (library
   (name imandra_proof_system_encode)
   (public_name imandra-proof-system.encode)
-  (synopsis "Encoder for proofs using CBOR")
-  (libraries containers.cbor iostream))
+  (synopsis "Generic encoder for proofs"))
 
 (rule
   (targets raw_.ml)
