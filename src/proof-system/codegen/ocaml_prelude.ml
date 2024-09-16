@@ -2,32 +2,41 @@
 
 module Encoder = Encoder
 
+(** Identifiers used for DAG nodes *)
 module Identifier = struct
   type t =
     | I of int
     | S of string
-    | QI of t * int
-    | QS of t * string
+    | QI of int * t
+    | QS of string * t
 
   let equal : t -> t -> bool = ( = )
+
+  let rec append a b =
+    match a with
+    | I i -> QI (i, b)
+    | S s -> QS (s, b)
+    | QI (i, a2) -> QI (i, append a2 b)
+    | QS (s, a2) -> QS (s, append a2 b)
 
   (** Generate a fresh new integer identifier *)
   let gen =
     let n = Atomic.make 0 in
     fun [@inline] () -> Atomic.fetch_and_add n 1
 
+  (** Encode an identifier *)
   let rec encode (enc : Encoder.t) (self : t) =
     match self with
     | I i -> Encoder.int enc i
     | S s -> Encoder.text enc s
-    | QI (id, x) ->
+    | QI (x, id) ->
       Encoder.array_begin enc ~len:2;
-      encode enc id;
-      Encoder.int enc x
-    | QS (id, x) ->
+      Encoder.int enc x;
+      encode enc id
+    | QS (x, id) ->
       Encoder.array_begin enc ~len:2;
-      encode enc id;
-      Encoder.text enc x
+      Encoder.text enc x;
+      encode enc id
 end
 
 module Make_id () : sig

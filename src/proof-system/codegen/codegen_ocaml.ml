@@ -91,6 +91,7 @@ struct
         |> String.concat " "
       in
 
+      bpf out "(** %s *)\n" t.doc;
       bpf out
         "let %s ((Output.Out out):Output.t) ~(id:Identifier.t) %s : %s =\n"
         (fun_name t.name) args_as_fun_params (type_of_meta_type t.ret);
@@ -109,7 +110,9 @@ struct
       match t.ret with
       | M_ty s -> bpf out "  %s_id.make id\n\n" (capitalize s)
       | M_list (M_ty s) ->
-        bpf out "  List.init %d (fun i -> %s_id.make @@ Identifier.QI (id, i))"
+        (* for each item, with index [i], use identifier [id.<i>] *)
+        bpf out
+          "  List.init %d (fun i -> %s_id.make @@ Identifier.append id (I i))"
           (List.length t.args) (capitalize s)
       | _ty ->
         failwith (spf "cannot handle return type %s" (PS.show_meta_type _ty))
