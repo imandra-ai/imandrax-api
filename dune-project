@@ -73,9 +73,7 @@
   (ocaml
    (>= 4.12))
   (moonpool
-   (and
-    (>= 0.6)
-    (< 0.7)))
+   (>= 0.7))
   (pbrt
    (>= 3.0))
   (pbrt_yojson
