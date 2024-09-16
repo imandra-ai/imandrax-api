@@ -44,19 +44,20 @@ spec:
      }
     ];
   dag_terms =
-  [{ name = "scope.enter"; ret = (M_ty "Scope"); args = [(M_ty "Scope")];
+  [{ name = "scope.enter"; full_name = None; ret = (M_ty "Scope");
+     args = [(M_ty "Scope")];
      doc = "Enter a new scope, child of a previous scope (or 0)." };
-    { name = "ty.decl"; ret = (M_ty "TypeDefID");
+    { name = "ty.decl"; full_name = None; ret = (M_ty "TypeDefID");
       args = [(M_ty "String"); (M_ty "Int")];
       doc = "Declares a type constructor with given arity." };
-    { name = "fun.decl"; ret = (M_ty "FunDefID");
+    { name = "fun.decl"; full_name = None; ret = (M_ty "FunDefID");
       args = [(M_ty "FunDefID"); (M_list (M_ty "Type")); (M_ty "Type")];
       doc = "Declares a function symbol `f : args -> ret`." };
-    { name = "fun.def"; ret = (M_ty "FunDefID");
+    { name = "fun.def"; full_name = None; ret = (M_ty "FunDefID");
       args =
       [(M_ty "String"); (M_list (M_ty "Var")); (M_ty "Type"); (M_ty "Term")];
       doc = "Defines a function `f args : ret := body`." };
-    { name = "fun.defs"; ret = (M_list (M_ty "FunDefID"));
+    { name = "fun.defs"; full_name = None; ret = (M_list (M_ty "FunDefID"));
       args =
       [(M_list
           (M_tuple
@@ -66,204 +67,213 @@ spec:
       doc =
       "Defines a set of mutually recursive functions. Each tuple is a regular function definition."
       };
-    { name = "const.int"; ret = (M_ty "Const"); args = [(M_ty "Int")];
-      doc = "An integer literal." };
-    { name = "const.z"; ret = (M_ty "Const"); args = [(M_ty "Bytes")];
+    { name = "cn.int"; full_name = None; ret = (M_ty "Const");
+      args = [(M_ty "Int")]; doc = "An integer literal." };
+    { name = "cn.z"; full_name = None; ret = (M_ty "Const");
+      args = [(M_ty "Bytes")];
       doc = "A bigint, serialized to bytes with zigzag encoding." };
-    { name = "const.q"; ret = (M_ty "Const");
+    { name = "cn.q"; full_name = None; ret = (M_ty "Const");
       args = [(M_ty "Bytes"); (M_ty "Bytes")];
       doc = "A rational, as a pair of bigints." };
-    { name = "const.string"; ret = (M_ty "Const"); args = [(M_ty "String")];
-      doc = "A string literal." };
-    { name = "var.mk"; ret = (M_ty "Var");
+    { name = "cn.string"; full_name = None; ret = (M_ty "Const");
+      args = [(M_ty "String")]; doc = "A string literal." };
+    { name = "var"; full_name = None; ret = (M_ty "Var");
       args = [(M_ty "String"); (M_ty "Type")]; doc = "A variable." };
-    { name = "t.const"; ret = (M_ty "Term"); args = [(M_ty "Const")];
-      doc = "A literal term." };
-    { name = "t.bool"; ret = (M_ty "Term"); args = [(M_ty "Bool")];
-      doc = "A boolean term" };
-    { name = "t.app"; ret = (M_ty "Term");
+    { name = "t.cn"; full_name = None; ret = (M_ty "Term");
+      args = [(M_ty "Const")]; doc = "A literal term." };
+    { name = "t.bool"; full_name = None; ret = (M_ty "Term");
+      args = [(M_ty "Bool")]; doc = "A boolean term" };
+    { name = "t.@"; full_name = (Some "t.app"); ret = (M_ty "Term");
       args =
       [(M_ty "FunDefID"); (M_list (M_ty "Type")); (M_list (M_ty "Term"))];
       doc = "An application." };
-    { name = "t.var"; ret = (M_ty "Term"); args = [(M_ty "Var")];
-      doc = "A free variable." };
-    { name = "t.if"; ret = (M_ty "Term");
+    { name = "t.b"; full_name = (Some "t.builtin"); ret = (M_ty "Term");
+      args =
+      [(M_ty "String"); (M_list (M_ty "Type")); (M_list (M_ty "Term"))];
+      doc = "An application of a builtin symbol." };
+    { name = "t.v"; full_name = (Some "t.var"); ret = (M_ty "Term");
+      args = [(M_ty "Var")]; doc = "A free variable." };
+    { name = "t.if"; full_name = None; ret = (M_ty "Term");
       args = [(M_ty "Term"); (M_ty "Term"); (M_ty "Term")];
       doc = "A conditional term (if/then/else)." };
-    { name = "t.cstor"; ret = (M_ty "Term");
+    { name = "t.cs"; full_name = None; ret = (M_ty "Term");
       args =
       [(M_ty "FunDefID"); (M_list (M_ty "Type")); (M_list (M_ty "Term"))];
       doc = "A constructor term (takes cstor, type params, argument list)." };
-    { name = "t.isa"; ret = (M_ty "Term");
+    { name = "t.isa"; full_name = None; ret = (M_ty "Term");
       args = [(M_ty "FunDefID"); (M_ty "Term")];
       doc =
       "A cstor-testing term (takes the constructor and the term to test)" };
-    { name = "t.destr"; ret = (M_ty "Term");
+    { name = "t.destr"; full_name = None; ret = (M_ty "Term");
       args =
       [(M_ty "FunDefID"); (M_list (M_ty "Type")); (M_ty "Int"); (M_ty "Term")
         ];
       doc =
       "A construct destruction (takes cstor, type parameters, argument index, destructed term)."
       };
-    { name = "clause.mk"; ret = (M_ty "Clause");
+    { name = "clause"; full_name = None; ret = (M_ty "Clause");
       args = [(M_list (M_ty "Term"))];
       doc = "Build a sequent from premises and conclusions" };
-    { name = "mseq.mk"; ret = (M_ty "MSeq");
+    { name = "mseq"; full_name = None; ret = (M_ty "MSeq");
       args = [(M_list (M_ty "Clause")); (M_ty "Clause")];
       doc = "Build a meta-sequent from premises and conclusion" };
-    { name = "ty.var"; ret = (M_ty "Type"); args = [(M_ty "String")];
-      doc = "A type variable." };
-    { name = "ty.app"; ret = (M_ty "Type");
+    { name = "ty.v"; full_name = (Some "ty.var"); ret = (M_ty "Type");
+      args = [(M_ty "String")]; doc = "A type variable." };
+    { name = "ty.@"; full_name = (Some "ty.app"); ret = (M_ty "Type");
       args = [(M_ty "String"); (M_list (M_ty "Type"))];
       doc = "A type constructor applied to arguments, e.g `list(int)`." };
-    { name = "ty.arr"; ret = (M_ty "Type");
+    { name = "ty.b"; full_name = (Some "ty.builtin"); ret = (M_ty "Type");
+      args = [(M_ty "String"); (M_list (M_ty "Type"))];
+      doc = "A builtin type constructor, e.g `int`." };
+    { name = "ty.arr"; full_name = None; ret = (M_ty "Type");
       args = [(M_list (M_ty "Type")); (M_ty "Type")];
       doc = "An arrow type `args -> ret`." };
-    { name = "p.assume"; ret = (M_ty "ProofStep");
+    { name = "p.assume"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")];
       doc =
       "Takes `t` and returns `|- t`, adding it to assumptions in the given scope."
       };
-    { name = "p.by-def"; ret = (M_ty "ProofStep");
+    { name = "p.by-def"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term"); (M_ty "Term")];
       doc =
       "Takes `f(t1\226\128\166tn)` and `body_f[t1\226\128\166tn]` and asserts `|- f(t1\226\128\166tn) = body_f[t1\226\128\166tn]` when `f = \206\187x1\226\128\166xn. body_f[x1\226\128\166xn]`."
       };
-    { name = "p.lemma"; ret = (M_ty "ProofStep");
+    { name = "p.lemma"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term"); (M_ty "Clause")];
       doc =
       "Takes `p(t1\226\128\166tn)` and `body_p`, where `p(x1\226\128\166xn) := body_p[x1\226\128\166xn]` is a previously proved theorem, and asserts `|- body_p[t1\226\128\166tn]`"
       };
-    { name = "p.sorry"; ret = (M_ty "ProofStep");
+    { name = "p.sorry"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Clause")];
       doc =
       "Takes `G ?- t` and returns `G |- t`. This is a hole in the proof, only useful as a temporary placeholder while looking for a real proof."
       };
-    { name = "p.cc"; ret = (M_ty "ProofStep");
+    { name = "p.cc"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Clause")];
       doc =
       "Takes `hyps ?- t=u` and proves `hyps |- t=u` by congruence closure." };
-    { name = "p.intros"; ret = (M_ty "ProofStep");
+    { name = "p.intros"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Clause")];
       doc =
       "Takes `hyps ?- (t1\226\128\166tn => u)`,\n returns `box (hyps, t1\226\128\166tn |- u) |- box (hyps |- (t1\226\128\166tn => u))`."
       };
-    { name = "p.unintros"; ret = (M_ty "ProofStep");
+    { name = "p.unintros"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_list (M_ty "Term")); (M_ty "Clause")];
       doc =
       "Takes `{i1\226\128\166in}, (H_{i1\226\128\166in} U other_hyps ?- u)` and returns `box (other_hyps ?- (hyps_{i1} / \226\128\166 / H_n) ==> u)) |- box (H_{i1\226\128\166in} |- u)`."
       };
-    { name = "p.if-true"; ret = (M_ty "ProofStep");
+    { name = "p.if-true"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")];
       doc = "`if+ (if a b c)` is `a=true |- (if a b c) = b`." };
-    { name = "p.if-false"; ret = (M_ty "ProofStep");
+    { name = "p.if-false"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")];
       doc = "`if- (if a b c)` is `a=false |- (if a b c) = c`." };
-    { name = "p.if-trivial"; ret = (M_ty "ProofStep");
+    { name = "p.if-trivial"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")];
       doc = "`b=true, c=false |- (if a b c) = a`." };
-    { name = "p.if-trivial-neg"; ret = (M_ty "ProofStep");
+    { name = "p.if-trivial-neg"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")];
       doc = "`b=false, c=true |- (if a b c) = not a`." };
-    { name = "p.trivial"; ret = (M_ty "ProofStep");
+    { name = "p.trivial"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Clause")];
       doc = "`trivial (G,t |- t, _)` proves `box (G,t|-t, \226\128\166)`" };
-    { name = "p.and-elim"; ret = (M_ty "ProofStep");
+    { name = "p.and-elim"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Clause"); (M_ty "Clause")];
       doc =
       "Takes `G1 ?- a` and `G2 ?- b`,\n   produces a proof of `box (G1 |- a), box (G2 |- b) |- box (G1, G2 |- a && b)`."
       };
-    { name = "p.or-left"; ret = (M_ty "ProofStep");
+    { name = "p.or-left"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Clause"); (M_ty "Term")];
       doc =
       "Takes `G ?- a` and `b`, produces a proof of `box (G |- a) |- box (G |- a || b)`."
       };
-    { name = "p.or-right"; ret = (M_ty "ProofStep");
+    { name = "p.or-right"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Clause"); (M_ty "Term")];
       doc =
       "Takes `G ?- b` and `a`, produces a proof of `box (G |- b) |- box (G |- a || b)`."
       };
-    { name = "p.cstor-inj"; ret = (M_ty "ProofStep");
+    { name = "p.cstor-inj"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term"); (M_ty "Term"); (M_ty "Int")];
       doc =
       "Given terms `t := C(t1\226\128\166tn)` and `u := C(u1\226\128\166un)` with same constructors, and index `i`,\nreturns `t = u |- ti = ui`."
       };
-    { name = "p.cstor-disj"; ret = (M_ty "ProofStep");
+    { name = "p.cstor-disj"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term"); (M_ty "Term")];
       doc =
       "Given terms `t1 := C1(\226\128\166)` and `t2 := C2(\226\128\166)` with distinct constructors,\n    returns `|- (t1 = t2) = false`."
       };
-    { name = "p.cstor-is-a-true"; ret = (M_ty "ProofStep");
+    { name = "p.cstor-is-a-true"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term"); (M_ty "Term")];
       doc =
       "Given terms `is(C) t` and `v := C(\226\128\166)`, prove `t = v |- is(C) t = true`."
       };
-    { name = "p.cstor-is-a-false"; ret = (M_ty "ProofStep");
+    { name = "p.cstor-is-a-false"; full_name = None;
+      ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term"); (M_ty "Term")];
       doc =
       "Given terms `is(C) t` and `v := C2(\226\128\166)` with `C2` a distinct constructor,\n    prove `t = v |- is(C) t = false`."
       };
-    { name = "p.cstor-is-a-project"; ret = (M_ty "ProofStep");
-      args = [(M_ty "Scope"); (M_ty "Term")];
+    { name = "p.cstor-is-a-project"; full_name = None;
+      ret = (M_ty "ProofStep"); args = [(M_ty "Scope"); (M_ty "Term")];
       doc =
       "Given term `is-a(C,t)`, return `is-a(C,t) = true |- t = C(select(C,0,t), \226\128\166)`"
       };
-    { name = "p.cstor-select"; ret = (M_ty "ProofStep");
+    { name = "p.cstor-select"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term"); (M_ty "Term")];
       doc =
       "Given `t1 := select(C,i,u)` and `t2 := C(v1\226\128\166vn)`, returns `u=t2 |- t1=v_i`"
       };
-    { name = "p.destruct"; ret = (M_ty "ProofStep");
+    { name = "p.destruct"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term"); (M_ty "Term")];
       doc =
       "Given terms `t := destruct (C, i, sub_t)` and `u := C (v1\226\128\166vn)`,\n    return `sub_t = u |- t = v_i`."
       };
-    { name = "p.and-true-left"; ret = (M_ty "ProofStep");
+    { name = "p.and-true-left"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`true && x --> x`" };
-    { name = "p.and-true-right"; ret = (M_ty "ProofStep");
+    { name = "p.and-true-right"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`x && true --> x`" };
-    { name = "p.and-false-left"; ret = (M_ty "ProofStep");
+    { name = "p.and-false-left"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`false && _ --> false`"
       };
-    { name = "p.and-false-right"; ret = (M_ty "ProofStep");
+    { name = "p.and-false-right"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`_  && false --> false`"
       };
-    { name = "p.and-refl"; ret = (M_ty "ProofStep");
+    { name = "p.and-refl"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`x && x  --> x`" };
-    { name = "p.or-false-left"; ret = (M_ty "ProofStep");
+    { name = "p.or-false-left"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`false || x --> x`" };
-    { name = "p.or-false-right"; ret = (M_ty "ProofStep");
+    { name = "p.or-false-right"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`x || false --> x`" };
-    { name = "p.or-true-left"; ret = (M_ty "ProofStep");
+    { name = "p.or-true-left"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`true && _ --> true`" };
-    { name = "p.or-true-right"; ret = (M_ty "ProofStep");
+    { name = "p.or-true-right"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`_ || true  --> true`" };
-    { name = "p.or-refl"; ret = (M_ty "ProofStep");
+    { name = "p.or-refl"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`x || x  --> x`" };
-    { name = "p.imply-true-right"; ret = (M_ty "ProofStep");
-      args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`_ ==> true  --> true`"
-      };
-    { name = "p.imply-true-left"; ret = (M_ty "ProofStep");
+    { name = "p.imply-true-right"; full_name = None;
+      ret = (M_ty "ProofStep"); args = [(M_ty "Scope"); (M_ty "Term")];
+      doc = "`_ ==> true  --> true`" };
+    { name = "p.imply-true-left"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`true ==> b  --> b`" };
-    { name = "p.imply-false-left"; ret = (M_ty "ProofStep");
-      args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`false ==> _  --> true`"
-      };
-    { name = "p.imply-false-right"; ret = (M_ty "ProofStep");
-      args = [(M_ty "Scope"); (M_ty "Term")];
+    { name = "p.imply-false-left"; full_name = None;
+      ret = (M_ty "ProofStep"); args = [(M_ty "Scope"); (M_ty "Term")];
+      doc = "`false ==> _  --> true`" };
+    { name = "p.imply-false-right"; full_name = None;
+      ret = (M_ty "ProofStep"); args = [(M_ty "Scope"); (M_ty "Term")];
       doc = "`true ==> false  --> false`" };
-    { name = "p.imply-refl"; ret = (M_ty "ProofStep");
+    { name = "p.imply-refl"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`a ==> a  --> true`" };
-    { name = "p.neq"; ret = (M_ty "ProofStep");
+    { name = "p.neq"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")];
       doc = "`|- (a <> b) = not (a=b)`" };
-    { name = "p.eq-const"; ret = (M_ty "ProofStep");
+    { name = "p.eq-const"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term"); (M_ty "Term")];
       doc = "Decides equality of constants: `|- (c1 = c2) = true/false`" };
-    { name = "p.double_neg_elim"; ret = (M_ty "ProofStep");
+    { name = "p.double_neg_elim"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "`not (not a)  --> a`" };
-    { name = "p.eq_true_elim"; ret = (M_ty "ProofStep");
+    { name = "p.eq_true_elim"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "a = true  --> a" };
-    { name = "p.eq_false_not"; ret = (M_ty "ProofStep");
+    { name = "p.eq_false_not"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "a = false --> not a" }
     ];
   builtin_symbols =

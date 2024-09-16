@@ -25,8 +25,9 @@ let () =
   let id_bool = P.ty_app out "bool" [] in
   let id_true = P.t_bool out true in
 
-  let id_x = P.t_var out (P.var_mk out "x" id_bool) in
+  let id_x = P.t_var out (P.var out "x" id_bool) in
+  let id_x_eq_x = P.t_builtin_eq out id_bool id_x id_x in
+  let _id_ass = P.p_assume out P.scope0 id_x_eq_x in
 
-  (* let id_x_eq_x = P.t_app *)
   Printf.printf "proof done (%d B total)\n%!" !total_bytes;
   ()

@@ -1,6 +1,8 @@
 start proof
-entry (15B): ["ty.app", 0, "bool", []]
+entry (13B): ["ty.@", 0, "bool", []]
 entry (10B): ["t.bool", 1, true]
-entry (12B): ["var.mk", 2, "x", 0]
-entry (9B): ["t.var", 3, 2]
-proof done (46 B total)
+entry (9B): ["var", 2, "x", 0]
+entry (7B): ["t.v", 3, 2]
+entry (13B): ["t.b", 4, "=", [0], [3, 3]]
+entry (13B): ["p.assume", 5, 0, 4]
+proof done (65 B total)
