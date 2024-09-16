@@ -61,6 +61,7 @@ type dag_type_def = {
 
 type dag_term = {
   name: string;
+  full_name: string option; [@default None]
   ret: meta_type;
   args: meta_type list;
   doc: string;
