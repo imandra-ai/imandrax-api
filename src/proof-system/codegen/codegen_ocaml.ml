@@ -93,8 +93,10 @@ struct
         |> String.concat " "
       in
 
+      let name = Option.value t.full_name ~default:t.name in
+
       bpf out "(** %s *)\n" t.doc;
-      bpf out "let %s ((Output.Out out):Output.t) %s : %s =\n" (fun_name t.name)
+      bpf out "let %s ((Output.Out out):Output.t) %s : %s =\n" (fun_name name)
         args_as_fun_params (type_of_meta_type t.ret);
       (* array with space for "command", "id", and args *)
       bpf out "  let id = out.gen_id() in\n";
@@ -128,6 +130,44 @@ struct
         List.iter emit_dag_term ts;
         bpf out "\n")
       terms_by_ret_type_;
+
+    let emit_builtin_sym (t : PS.builtin_symbol) =
+      (* TODO: a comment with the type signature *)
+      if t.ret = PS.M_ty "Type" then (
+        assert (t.args = []);
+        bpf out "let ty_builtin_%s (out: Output.t) : Type_id.t =\n"
+          (String.uncapitalize_ascii t.name);
+        bpf out "  ty_builtin out %S []\n\n" t.name
+      ) else (
+        let ty_params =
+          String.concat " "
+          @@ List.mapi (fun i _ty -> spf "(ty%d : Type_id.t)" i) t.params
+        in
+        let params =
+          String.concat " "
+          @@ List.mapi (fun i _ty -> spf "(x%d : Term_id.t)" i) t.args
+        in
+
+        let ml_name =
+          match t.name with
+          | "=" -> "eq"
+          | "=>" -> "imply"
+          | s -> String.uncapitalize_ascii s
+        in
+
+        bpf out "let t_builtin_%s (out: Output.t)%s%s : Term_id.t =\n" ml_name
+          ty_params params;
+        bpf out "  t_builtin out %S [%s] [%s]\n\n" t.name
+          (String.concat ";" @@ List.mapi (fun i _ -> spf "ty%d" i) t.params)
+          (String.concat ";" @@ List.mapi (fun i _ -> spf "x%d" i) t.args)
+      )
+    in
+
+    (* shortcuts for builtins *)
+    List.iter emit_builtin_sym spec.builtin_symbols;
+
+    (* scope 0 *)
+    bpf out "let scope0 : Scope_id.t = Scope_id.make (Identifier.I 0)\n";
 
     ()
 
