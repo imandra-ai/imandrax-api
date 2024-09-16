@@ -1,18 +1,16 @@
-type t = Buffer.t
-type 'a enc = t -> 'a -> unit
+type 'a enc = Buffer.t -> 'a -> unit
 
 let i64_to_int = Int64.to_int
-let create (buf : Buffer.t) : t = buf
 
-let[@inline] add_byte (self : t) (high : int) (low : int) =
+let[@inline] add_byte (self : Buffer.t) (high : int) (low : int) =
   let i = (high lsl 5) lor low in
   assert (i land 0xff == i);
   Buffer.add_char self (Char.unsafe_chr i)
 
-let[@inline] add_i64 (self : t) (i : int64) = Buffer.add_int64_be self i
+let[@inline] add_i64 (self : Buffer.t) (i : int64) = Buffer.add_int64_be self i
 
 (* add unsigned integer, including first tag byte *)
-let[@inline] add_uint (self : t) (high : int) (x : int64) =
+let[@inline] add_uint (self : Buffer.t) (high : int) (x : int64) =
   assert (x >= 0L);
   if x < 24L then
     add_byte self high (i64_to_int x)
@@ -30,18 +28,18 @@ let[@inline] add_uint (self : t) (high : int) (x : int64) =
     Buffer.add_int64_be self x
   )
 
-let[@inline] false_ (self : t) = add_byte self 7 20
-let[@inline] true_ (self : t) = add_byte self 7 21
+let[@inline] false_ (self : Buffer.t) = add_byte self 7 20
+let[@inline] true_ (self : Buffer.t) = add_byte self 7 21
 let[@inline] null self = add_byte self 7 22
 let[@inline] undefined self = add_byte self 7 23
 
-let[@inline] bool (self : t) b =
+let[@inline] bool (self : Buffer.t) b =
   if b then
     true_ self
   else
     false_ self
 
-let simple (self : t) i =
+let simple (self : Buffer.t) i =
   if i < 24 then
     add_byte self 7 i
   else if i <= 0xff then (
@@ -50,12 +48,12 @@ let simple (self : t) i =
   ) else
     failwith "cbor: simple value too high (above 255)"
 
-let float (self : t) f =
+let float (self : Buffer.t) f =
   add_byte self 7 27;
   (* float 64 *)
   add_i64 self (Int64.bits_of_float f)
 
-let[@inline] array_begin (self : t) ~len : unit =
+let[@inline] array_begin (self : Buffer.t) ~len : unit =
   add_uint self 4 (Int64.of_int len)
 
 let array self enc arr : unit =
@@ -74,10 +72,10 @@ let[@inline] nullable self enc x =
   | None -> null self
   | Some x -> enc self x
 
-let[@inline] map_begin (self : t) ~len : unit =
+let[@inline] map_begin (self : Buffer.t) ~len : unit =
   add_uint self 5 (Int64.of_int len)
 
-let[@inline] int64 (self : t) (i : int64) =
+let[@inline] int64 (self : Buffer.t) (i : int64) =
   if i >= Int64.zero then
     add_uint self 0 i
   else if Int64.(add min_int 2L) > i then (
@@ -87,7 +85,8 @@ let[@inline] int64 (self : t) (i : int64) =
   ) else
     add_uint self 1 Int64.(sub (neg i) one)
 
-let[@inline] int (self : t) (i : int) : unit = int64 self (Int64.of_int i)
+let[@inline] int (self : Buffer.t) (i : int) : unit =
+  int64 self (Int64.of_int i)
 
 let text self s =
   add_uint self 3 (Int64.of_int (String.length s));
@@ -105,22 +104,20 @@ let bytes_slice self s i len =
   add_uint self 2 (Int64.of_int len);
   Buffer.add_substring self s i len
 
-let tag (self : t) ~tag : unit = add_uint self 6 (Int64.of_int tag)
+let tag (self : Buffer.t) ~tag : unit = add_uint self 6 (Int64.of_int tag)
 
-let encoder (self : t) : Imandra_proof_system_encode.Encoder.t =
-  Imandra_proof_system_encode.Encoder.Enc
-    {
-      st = self;
-      int;
-      int64;
-      float;
-      bool;
-      text;
-      bytes;
-      null;
-      array_begin;
-      array_end = ignore;
-      map_begin;
-      map_end = ignore;
-      tag;
-    }
+let encoder : Buffer.t Imandra_proof_system_encode.Encoder.t =
+  {
+    int;
+    int64;
+    float;
+    bool;
+    text;
+    bytes;
+    null;
+    array_begin;
+    array_end = ignore;
+    map_begin;
+    map_end = ignore;
+    tag;
+  }

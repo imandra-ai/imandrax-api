@@ -1,6 +1,7 @@
 (library
- (name imandra_proof_system)
- (public_name imandra-proof-system)
+ (name imandra_proof_system_spec)
+ (public_name imandra-proof-system.spec)
+ (synopsis "Specification for the proof system")
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std))
  (libraries containers yojson))

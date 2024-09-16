@@ -1,4 +1,4 @@
-module PS = Imandra_proof_system
+module PS = Imandra_proof_system_spec
 
 let bpf = Printf.bprintf
 let spf = Printf.sprintf
@@ -48,33 +48,35 @@ struct
   (** Emit code to encode [x:ty] to CBOR.
 
       Format for a command is a CBOR array [["command" "id" arg0 arg1…]] *)
-  let rec encode_meta_type (ty : PS.meta_type) enc (x : string) : string =
+  let rec encode_meta_type (ty : PS.meta_type) enc st (x : string) : string =
     match ty with
-    | M_ty "Int" -> spf "Encoder.int %s %s" enc x
-    | M_ty "Int64" -> spf "Encoder.int64 %s %s" enc x
-    | M_ty "Bool" -> spf "Encoder.bool %s %s" enc x
-    | M_ty "String" -> spf "Encoder.text %s %s" enc x
-    | M_ty "Bytes" -> spf "Encoder.bytes %s (Bytes.unsafe_to_string %s)" enc x
-    | M_ty s when is_dag_type s -> spf "%s_id.encode %s %s" (capitalize s) enc x
+    | M_ty "Int" -> spf "Encoder.int %s %s %s" enc st x
+    | M_ty "Int64" -> spf "Encoder.int64 %s %s %s" enc st x
+    | M_ty "Bool" -> spf "Encoder.bool %s %s %s" enc st x
+    | M_ty "String" -> spf "Encoder.text %s %s %s" enc st x
+    | M_ty "Bytes" ->
+      spf "Encoder.bytes %s %s (Bytes.unsafe_to_string %s)" enc st x
+    | M_ty s when is_dag_type s ->
+      spf "%s_id.encode %s %s %s" (capitalize s) enc st x
     | M_ty s -> failwith @@ spf "cannot encode type %S" s
     | M_list s ->
-      spf "Encoder.array_l %s (fun enc x -> %s) %s" enc
-        (encode_meta_type s "enc" "x")
+      spf "Encoder.array_l %s %s (fun enc st x -> %s) %s" enc st
+        (encode_meta_type s "enc" "st" "x")
         x
     | M_option s ->
-      spf "Encoder.nullable %s (fun enc x -> %s) %s" enc
-        (encode_meta_type s "enc" "x")
+      spf "Encoder.nullable %s %s (fun enc st x -> %s) %s" enc st
+        (encode_meta_type s "enc" "st" "x")
         x
     | M_tuple l ->
       let n = List.length l in
       spf
-        "(let %s = %s in Encoder.array_begin %s ~len:%d; %s; Encoder.array_end \
-         %s)"
+        "(let %s = %s in Encoder.array_begin %s %s ~len:%d; %s; \
+         Encoder.array_end %s %s)"
         (String.concat "," @@ List.init n (spf "x_%d"))
-        x enc n
+        x enc st n
         (String.concat ";"
-        @@ List.mapi (fun i ty -> encode_meta_type ty enc (spf "x_%d" i)) l)
-        enc
+        @@ List.mapi (fun i ty -> encode_meta_type ty enc st (spf "x_%d" i)) l)
+        enc st
 
   let codegen_encode_ (out : Buffer.t) : unit =
     (* declare ID types *)
@@ -92,19 +94,21 @@ struct
       in
 
       bpf out "(** %s *)\n" t.doc;
-      bpf out
-        "let %s ((Output.Out out):Output.t) ~(id:Identifier.t) %s : %s =\n"
-        (fun_name t.name) args_as_fun_params (type_of_meta_type t.ret);
-      bpf out "  Buffer.reset out.buf;\n";
+      bpf out "let %s ((Output.Out out):Output.t) %s : %s =\n" (fun_name t.name)
+        args_as_fun_params (type_of_meta_type t.ret);
       (* array with space for "command", "id", and args *)
-      bpf out "  Encoder.array_begin out.enc ~len:%d;\n" (2 + List.length t.args);
-      bpf out "  Encoder.text out.enc %S;\n" t.name;
-      bpf out "  Identifier.encode out.enc id;\n";
+      bpf out "  let id = out.gen_id() in\n";
+      bpf out "  Encoder.array_begin out.enc out.st ~len:%d;\n"
+        (2 + List.length t.args);
+      bpf out "  Encoder.text out.enc out.st %S;\n" t.name;
+      bpf out "  Identifier.encode out.enc out.st id;\n";
       List.iteri
         (fun i (ty : PS.meta_type) ->
-          bpf out "  %s;\n" (encode_meta_type ty "out.enc" (spf "x%d" i)))
+          bpf out "  %s;\n"
+            (encode_meta_type ty "out.enc" "out.st" (spf "x%d" i)))
         t.args;
-      bpf out "  Encoder.array_end out.enc;\n";
+      bpf out "  Encoder.array_end out.enc out.st;\n";
+      bpf out "  out.output_entry out.st;\n";
 
       (* return *)
       match t.ret with
