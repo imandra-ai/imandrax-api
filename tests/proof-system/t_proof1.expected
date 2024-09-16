@@ -1,0 +1,6 @@
+start proof
+entry (15B): ["ty.app", 0, "bool", []]
+entry (10B): ["t.bool", 1, true]
+entry (12B): ["var.mk", 2, "x", 0]
+entry (9B): ["t.var", 3, 2]
+proof done (46 B total)

@@ -12,6 +12,7 @@ depends: [
   "ppx_deriving"
   "ppx_deriving_yojson"
   "containers" {>= "3.0"}
+  "cbor" {with-test}
   "odoc" {with-doc}
 ]
 build: [

@@ -148,8 +148,12 @@
  (name imandra-proof-system)
  (synopsis "Description and codegen for Imandra's durable proof system")
  (depends
-  (ocaml (>= 4.12))
-  (yojson (>= 1.6))
-  ppx_deriving 
-  ppx_deriving_yojson 
-  (containers (>= 3.0))))
+  (ocaml
+   (>= 4.12))
+  (yojson
+   (>= 1.6))
+  ppx_deriving
+  ppx_deriving_yojson
+  (containers
+   (>= 3.0))
+  (cbor :with-test)))
