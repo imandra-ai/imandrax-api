@@ -1,6 +1,5 @@
-
 (library
-  (name imandra_proof_system_encode_cbor)
-  (public_name imandra-proof-system.encode.cbor)
-  (libraries imandra-proof-system.encode)
-  (synopsis "CBOR adapter for proof encoding"))
+ (name imandra_proof_system_encode_cbor)
+ (public_name imandra-proof-system.encode.cbor)
+ (libraries imandra-proof-system.encode)
+ (synopsis "CBOR adapter for proof encoding"))

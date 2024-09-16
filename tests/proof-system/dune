@@ -9,4 +9,7 @@
  (flags :standard -w -26)
  (package imandra-proof-system)
  (modules t_proof1)
- (libraries imandra-proof-system.encode imandra-proof-system.encode.cbor cbor))
+ (libraries
+  imandra-proof-system.encode
+  imandra-proof-system.encode.cbor
+  cbor))
