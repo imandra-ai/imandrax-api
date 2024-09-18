@@ -3,25 +3,25 @@ DUNE_OPTS?=
 DUNE?=opam exec -- dune
 
 build:
-	$(DUNE) build @install $(DUNE_OPTS) --ignore-promoted-rules
+	$(DUNE) build @install $(DUNE_OPTS)
 
 clean:
 	$(DUNE) clean
 
 test:
-	$(DUNE) runtest $(DUNE_OPTS) --ignore-promoted-rules
+	$(DUNE) runtest $(DUNE_OPTS)
 
 test-autopromote:
-	$(DUNE) runtest $(DUNE_OPTS) --ignore-promoted-rules --auto-promote
+	$(DUNE) runtest $(DUNE_OPTS) --auto-promote
 
 doc:
-	$(DUNE) build $(DUNE_OPTS) @doc --ignore-promoted-rules
+	$(DUNE) build $(DUNE_OPTS) @doc
 
 format:
-	$(DUNE) build @fmt --auto-promote --ignore-promoted-rules
+	$(DUNE) build @fmt --auto-promote
 
 check-format:
-	$(DUNE) build $(DUNE_OPTS) @fmt --ignore-promoted-rules
+	$(DUNE) build $(DUNE_OPTS) @fmt
 
 genproto:
 	FORCE_GENPROTO=true $(DUNE) build @genproto --auto-promote
@@ -59,7 +59,7 @@ lint:
 
 WATCH?= @check @runtest
 watch:
-	$(DUNE) build $(DUNE_OPTS) --ignore-promoted-rules -w $(WATCH)
+	$(DUNE) build $(DUNE_OPTS) -w $(WATCH)
 
 ## handle vendored deps
 
