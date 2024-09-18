@@ -29,7 +29,11 @@ spec:
     { name = "ProofStep";
       doc = "A proof step, proving a clause using logical rules." };
     { name = "MProofStep";
-      doc = "A meta-level proof step, proving a meta-sequent." }
+      doc = "A meta-level proof step, proving a meta-sequent." };
+    { name = "MProofTreeNode";
+      doc =
+      "A node in the meta-level proof tree, used to encode the structure of the proof."
+      }
     ];
   dag_type_defs =
   [{ name = "FunDef"; doc = "A defined function.";
@@ -46,7 +50,9 @@ spec:
   dag_terms =
   [{ name = "scope.enter"; full_name = None; ret = (M_ty "Scope");
      args = [(M_ty "Scope")];
-     doc = "Enter a new scope, child of a previous scope (or 0)." };
+     doc =
+     "Enter a new scope, child of a previous scope (or `0` for the root scope)."
+     };
     { name = "ty.decl"; full_name = None; ret = (M_ty "TypeDefID");
       args = [(M_ty "String"); (M_ty "Int")];
       doc = "Declares a type constructor with given arity." };
@@ -80,9 +86,10 @@ spec:
     { name = "var"; full_name = None; ret = (M_ty "Var");
       args = [(M_ty "String"); (M_ty "Type")]; doc = "A variable." };
     { name = "t.cn"; full_name = None; ret = (M_ty "Term");
-      args = [(M_ty "Const")]; doc = "A literal term." };
+      args = [(M_ty "Const")]; doc = "A literal constant term." };
     { name = "t.bool"; full_name = None; ret = (M_ty "Term");
-      args = [(M_ty "Bool")]; doc = "A boolean term" };
+      args = [(M_ty "Bool")]; doc = "A boolean literal term (true or false)."
+      };
     { name = "t.@"; full_name = (Some "t.app"); ret = (M_ty "Term");
       args =
       [(M_ty "FunDefID"); (M_list (M_ty "Type")); (M_list (M_ty "Term"))];
@@ -303,6 +310,16 @@ spec:
         (M_list (M_tuple [(M_ty "Var"); (M_ty "Term")]))];
       doc =
       "`A1\226\128\166 An ||- C` and `\207\131` --> `A1\226\128\166An ||- C\207\131`."
+      };
+    { name = "pt.top"; full_name = None; ret = (M_ty "MProofTreeNode");
+      args = [];
+      doc =
+      "The root of the proof tree. Each node in the proof tree has a parent, except this one."
+      };
+    { name = "pt.node"; full_name = None; ret = (M_ty "MProofTreeNode");
+      args = [(M_ty "MProofTreeNode"); (M_ty "MProofStep")];
+      doc =
+      "A node in the proof tree. The arguments are the node's parent, and the node's corresponding proof step."
       }
     ];
   builtin_symbols =

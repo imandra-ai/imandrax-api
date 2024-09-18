@@ -1,6 +1,33 @@
 # Imandra Proof System
 
 
+## DAG types 
+
+- `Const`: A literal constant (integer, float, etc.).
+
+- `Var`: A term variable.
+
+- `FunDefID`: A reference to a function or constant symbol.
+
+- `TypeDefID`: A reference to a type definition.
+
+- `Term`: A term.
+
+- `Type`: A type.
+
+- `Clause`: A classical clause made of terms.
+
+- `Scope`: A scope for assumptions, used for natural deduction.
+
+- `MSeq`: A meta-sequent (sequent-of-sequents), with one conclusion and a list of premises.
+
+- `ProofStep`: A proof step, proving a clause using logical rules.
+
+- `MProofStep`: A meta-level proof step, proving a meta-sequent.
+
+- `MProofTreeNode`: A node in the meta-level proof tree, used to encode the structure of the proof.
+
+
 ## DAG terms
 
 ### Terms returning `Clause`
@@ -267,6 +294,15 @@
   Enter a new scope, child of a previous scope (or `0` for the root scope).
 
 
+### Terms returning `MProofTreeNode`
+
+- `pt.node : MProofTreeNode, MProofStep -> MProofTreeNode`
+  A node in the proof tree. The arguments are the node's parent, and the node's corresponding proof step.
+
+- `pt.top :  -> MProofTreeNode`
+  The root of the proof tree. Each node in the proof tree has a parent, except this one.
+
+
 
 ## Builtin symbols
 
@@ -284,5 +320,5 @@
 
 - builtin symbol `=> : Bool, Bool -> Bool`
 
-- builtin symbol `= : A. A, A -> Bool`
+- builtin symbol `= : forall A. A, A -> Bool`
 

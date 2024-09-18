@@ -46,6 +46,13 @@ struct
       bpf out "  %s\n\n" (indent 2 t.doc)
     in
 
+    let emit_dag_type (ty : PS.dag_type) : unit =
+      bpf out "- `%s`: %s\n\n" ty.name ty.doc
+    in
+
+    bpf out "\n## DAG types \n\n";
+    List.iter emit_dag_type spec.dag_types;
+
     bpf out "\n## DAG terms\n\n";
 
     Hashtbl.iter

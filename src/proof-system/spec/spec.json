@@ -81,6 +81,10 @@
     {
       "name": "MProofStep",
       "doc": "A meta-level proof step, proving a meta-sequent."
+    },
+    {
+      "name": "MProofTreeNode",
+      "doc": "A node in the meta-level proof tree, used to encode the structure of the proof."
     }
   ],
   "dag_type_defs": [
@@ -867,6 +871,21 @@
         ]
       ],
       "doc": "`A1… An ||- C` and `σ` --> `A1…An ||- Cσ`."
+    },
+    {
+      "name": "pt.top",
+      "ret": "MProofTreeNode",
+      "args": [],
+      "doc": "The root of the proof tree. Each node in the proof tree has a parent, except this one."
+    },
+    {
+      "name": "pt.node",
+      "ret": "MProofTreeNode",
+      "args": [
+        "MProofTreeNode",
+        "MProofStep"
+      ],
+      "doc": "A node in the proof tree. The arguments are the node's parent, and the node's corresponding proof step."
     }
   ],
   "builtin_symbols": [
