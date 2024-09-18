@@ -71,7 +71,7 @@
    (>= 0.6))
   logs
   (ocaml
-   (>= 4.12))
+   (>= 4.14))
   (moonpool
    (and
     (>= 0.7)
@@ -90,7 +90,7 @@
   (imandrax-api-client
    (= :version))
   batrpc
-  moonpool
+  (moonpool (and (>= 0.7) (< 0.8)))
   (trace
    (>= 0.6))
   (pbrt
@@ -108,6 +108,7 @@
    (= :version))
   imandrakit-thread
   ezcurl
+  (moonpool (and (>= 0.7) (< 0.8)))
   (trace
    (>= 0.6))
   (pbrt
@@ -154,7 +155,7 @@
     (containers (>= 3.0))
     (imandrax-api-client (= :version))
     (imandrax-api-client-ezcurl (= :version))
-    moonpool
+    (moonpool (and (>= 0.7) (< 0.8)))
     (trace (>= 0.6))
     uuidm
     xdg

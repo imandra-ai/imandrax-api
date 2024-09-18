@@ -12,7 +12,7 @@ depends: [
   "containers" {>= "3.0"}
   "imandrax-api-client" {= version}
   "imandrax-api-client-ezcurl" {= version}
-  "moonpool"
+  "moonpool" {>= "0.7" & < "0.8"}
   "trace" {>= "0.6"}
   "uuidm"
   "xdg"
