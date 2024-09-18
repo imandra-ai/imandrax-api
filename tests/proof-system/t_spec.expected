@@ -274,7 +274,36 @@ spec:
     { name = "p.eq_true_elim"; full_name = None; ret = (M_ty "ProofStep");
       args = [(M_ty "Scope"); (M_ty "Term")]; doc = "a = true  --> a" };
     { name = "p.eq_false_not"; full_name = None; ret = (M_ty "ProofStep");
-      args = [(M_ty "Scope"); (M_ty "Term")]; doc = "a = false --> not a" }
+      args = [(M_ty "Scope"); (M_ty "Term")]; doc = "a = false --> not a" };
+    { name = "p.cut"; full_name = None; ret = (M_ty "ProofStep");
+      args =
+      [(M_ty "Scope"); (M_ty "ProofStep"); (M_list (M_ty "ProofStep"))];
+      doc =
+      "Takes `A1\226\128\166An,B |- G` and `C_i |- A_i` and returns `B, ,(C_i)_i |- G`."
+      };
+    { name = "p.subst"; full_name = None; ret = (M_ty "ProofStep");
+      args =
+      [(M_ty "Scope"); (M_ty "ProofStep");
+        (M_list (M_tuple [(M_ty "Var"); (M_ty "Term")]))];
+      doc = "`C` and `\207\131` --> `C\207\131`." };
+    { name = "m.cut"; full_name = None; ret = (M_ty "MProofStep");
+      args =
+      [(M_ty "Scope"); (M_ty "MProofStep"); (M_list (M_ty "MProofStep"))];
+      doc =
+      "Takes `A1\226\128\166An,B ||- G` and `C_i ||- A_i` and returns `B, ,(C_i)_i ||- G`."
+      };
+    { name = "m.intro"; full_name = None; ret = (M_ty "MProofStep");
+      args = [(M_ty "Scope"); (M_ty "ProofStep")];
+      doc =
+      "Takes `A |- B` and returns `C1, C2 \226\128\166, Cn ||- (A|-B)`, where `C_i` are the assumptions in the current scope."
+      };
+    { name = "m.subst"; full_name = None; ret = (M_ty "MProofStep");
+      args =
+      [(M_ty "Scope"); (M_ty "MProofStep");
+        (M_list (M_tuple [(M_ty "Var"); (M_ty "Term")]))];
+      doc =
+      "`A1\226\128\166 An ||- C` and `\207\131` --> `A1\226\128\166An ||- C\207\131`."
+      }
     ];
   builtin_symbols =
   [{ name = "Bool"; params = []; args = []; ret = (M_ty "Type") };

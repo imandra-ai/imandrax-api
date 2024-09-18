@@ -119,7 +119,7 @@
   "dag_terms": [
     {
       "name": "scope.enter",
-      "doc": "Enter a new scope, child of a previous scope (or 0).",
+      "doc": "Enter a new scope, child of a previous scope (or `0` for the root scope).",
       "args": [
         "Scope"
       ],
@@ -232,7 +232,7 @@
       "args": [
         "Const"
       ],
-      "doc": "A literal term."
+      "doc": "A literal constant term."
     },
     {
       "name": "t.bool",
@@ -240,7 +240,7 @@
       "args": [
         "Bool"
       ],
-      "doc": "A boolean term"
+      "doc": "A boolean literal term (true or false)."
     },
     {
       "name": "t.@",
@@ -798,6 +798,75 @@
         "Term"
       ],
       "doc": "a = false --> not a"
+    },
+    {
+      "name": "p.cut",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "ProofStep",
+        [
+          "List",
+          "ProofStep"
+        ]
+      ],
+      "doc": "Takes `A1…An,B |- G` and `C_i |- A_i` and returns `B, ,(C_i)_i |- G`."
+    },
+    {
+      "name": "p.subst",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "ProofStep",
+        [
+          "List",
+          [
+            "Tuple",
+            "Var",
+            "Term"
+          ]
+        ]
+      ],
+      "doc": "`C` and `σ` --> `Cσ`."
+    },
+    {
+      "name": "m.cut",
+      "ret": "MProofStep",
+      "args": [
+        "Scope",
+        "MProofStep",
+        [
+          "List",
+          "MProofStep"
+        ]
+      ],
+      "doc": "Takes `A1…An,B ||- G` and `C_i ||- A_i` and returns `B, ,(C_i)_i ||- G`."
+    },
+    {
+      "name": "m.intro",
+      "ret": "MProofStep",
+      "args": [
+        "Scope",
+        "ProofStep"
+      ],
+      "doc": "Takes `A |- B` and returns `C1, C2 …, Cn ||- (A|-B)`, where `C_i` are the assumptions in the current scope."
+    },
+    {
+      "name": "m.subst",
+      "ret": "MProofStep",
+      "args": [
+        "Scope",
+        "MProofStep",
+        [
+          "List",
+          [
+            "Tuple",
+            "Var",
+            "Term"
+          ]
+        ]
+      ],
+      "doc": "`A1… An ||- C` and `σ` --> `A1…An ||- Cσ`."
     }
   ],
   "builtin_symbols": [
