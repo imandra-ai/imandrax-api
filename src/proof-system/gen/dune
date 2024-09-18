@@ -1,0 +1,4 @@
+
+(executable
+  (name gen_doc)
+  (libraries containers imandra-proof-system.codegen))
