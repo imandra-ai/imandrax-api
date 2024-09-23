@@ -3372,6 +3372,12 @@ artifact_decoders = {\
   'show': (lambda d, off: d.get_str(off=off)),
 }
 
+def read_artifact_data(data: bytes, kind: str) -> Artifact:
+    'Read artifact from `data`, with artifact kind `kind`'
+    decoder = artifact_decoders[kind]
+    twine_dec = twine.Decoder(data)
+    return decoder(twine_dec, twine_dec.entrypoint())
+
 def read_artifact_zip(path: str) -> Artifact:
     'Read artifact from a zip file'
     with ZipFile(path) as f:
@@ -3381,5 +3387,4 @@ def read_artifact_zip(path: str) -> Artifact:
         twine_data = f.read('data.twine')
     twine_dec = twine.Decoder(twine_data)
     return decoder(twine_dec, twine_dec.entrypoint())
-
 
