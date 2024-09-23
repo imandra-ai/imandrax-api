@@ -176,6 +176,7 @@
    (>= 1.6))
   ppx_deriving
   ppx_deriving_yojson
+  imandrakit
   (containers
    (>= 3.0))
   (cbor :with-test)))
