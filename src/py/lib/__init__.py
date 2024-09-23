@@ -3367,7 +3367,7 @@ def Tasks_Eval_res_of_twine(d: twine.Decoder, off: int) -> Tasks_Eval_res:
 
 # Artifacts
 
-type Artifact = Cir_Term|Cir_Type|Tasks_PO_task|Tasks_PO_res|Tasks_Eval_task|Tasks_Eval_res|str
+type Artifact = Cir_Term|Cir_Type|Tasks_PO_task|Tasks_PO_res|Tasks_Eval_task|Tasks_Eval_res|Cir_Model|str
 
 artifact_decoders = {\
   'term': (lambda d, off: Cir_Term_of_twine(d=d, off=off)),
@@ -3376,6 +3376,7 @@ artifact_decoders = {\
   'po_res': (lambda d, off: Tasks_PO_res_of_twine(d=d, off=off)),
   'eval_task': (lambda d, off: Tasks_Eval_task_of_twine(d=d, off=off)),
   'eval_res': (lambda d, off: Tasks_Eval_res_of_twine(d=d, off=off)),
+  'cir.model': (lambda d, off: Cir_Model_of_twine(d=d, off=off)),
   'show': (lambda d, off: d.get_str(off=off)),
 }
 

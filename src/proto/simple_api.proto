@@ -6,6 +6,7 @@ package imandrax.simple;
 import "error.proto";
 import "utils.proto";
 import "session.proto";
+import "artmsg.proto";
 import "task.proto";
 
 service Simple {
@@ -152,6 +153,9 @@ message Model {
 
   // iml source code for the model
   string src = 2;
+
+  // the model as an artifact
+  optional Art artifact = 3;
 }
 
 message Refuted {

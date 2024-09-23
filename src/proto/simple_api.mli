@@ -105,6 +105,7 @@ type model_type =
 type model = {
   m_type : model_type;
   src : string;
+  artifact : Artmsg.art option;
 }
 
 type refuted = {
@@ -262,6 +263,7 @@ val default_model_type : unit -> model_type
 val default_model : 
   ?m_type:model_type ->
   ?src:string ->
+  ?artifact:Artmsg.art option ->
   unit ->
   model
 (** [default_model ()] is the default value for type [model] *)
@@ -415,6 +417,7 @@ val make_unsat :
 val make_model : 
   m_type:model_type ->
   src:string ->
+  ?artifact:Artmsg.art option ->
   unit ->
   model
 (** [make_model … ()] is a builder for type [model] *)

@@ -98,6 +98,7 @@ type model_type =
 type model = {
   m_type : model_type;
   src : string;
+  artifact : Artmsg.art option;
 }
 
 type refuted = {
@@ -269,9 +270,11 @@ let rec default_model_type () = (Counter_example:model_type)
 let rec default_model 
   ?m_type:((m_type:model_type) = default_model_type ())
   ?src:((src:string) = "")
+  ?artifact:((artifact:Artmsg.art option) = None)
   () : model  = {
   m_type;
   src;
+  artifact;
 }
 
 let rec default_refuted 
@@ -467,11 +470,13 @@ let default_unsat_mutable () : unsat_mutable = {
 type model_mutable = {
   mutable m_type : model_type;
   mutable src : string;
+  mutable artifact : Artmsg.art option;
 }
 
 let default_model_mutable () : model_mutable = {
   m_type = default_model_type ();
   src = "";
+  artifact = None;
 }
 
 type refuted_mutable = {
@@ -650,9 +655,11 @@ let rec make_unsat
 let rec make_model 
   ~(m_type:model_type)
   ~(src:string)
+  ?artifact:((artifact:Artmsg.art option) = None)
   () : model  = {
   m_type;
   src;
+  artifact;
 }
 
 let rec make_refuted 
@@ -824,6 +831,7 @@ let rec pp_model fmt (v:model) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "m_type" pp_model_type fmt v.m_type;
     Pbrt.Pp.pp_record_field ~first:false "src" Pbrt.Pp.pp_string fmt v.src;
+    Pbrt.Pp.pp_record_field ~first:false "artifact" (Pbrt.Pp.pp_option Artmsg.pp_art) fmt v.artifact;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1110,6 +1118,12 @@ let rec encode_pb_model (v:model) encoder =
   Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
   Pbrt.Encoder.string v.src encoder;
   Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  begin match v.artifact with
+  | Some x -> 
+    Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
   ()
 
 let rec encode_pb_refuted (v:refuted) encoder = 
@@ -1671,11 +1685,17 @@ let rec decode_pb_model d =
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(model), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.artifact <- Some (Artmsg.decode_pb_art (Pbrt.Decoder.nested d));
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(model), field(3)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     m_type = v.m_type;
     src = v.src;
+    artifact = v.artifact;
   } : model)
 
 let rec decode_pb_refuted d =
@@ -2043,6 +2063,10 @@ let rec encode_json_model (v:model) =
   let assoc = [] in 
   let assoc = ("mType", encode_json_model_type v.m_type) :: assoc in
   let assoc = ("src", Pbrt_yojson.make_string v.src) :: assoc in
+  let assoc = match v.artifact with
+    | None -> assoc
+    | Some v -> ("artifact", Artmsg.encode_json_art v) :: assoc
+  in
   `Assoc assoc
 
 let rec encode_json_refuted (v:refuted) = 
@@ -2479,12 +2503,15 @@ let rec decode_json_model d =
       v.m_type <- (decode_json_model_type json_value)
     | ("src", json_value) -> 
       v.src <- Pbrt_yojson.string json_value "model" "src"
+    | ("artifact", json_value) -> 
+      v.artifact <- Some ((Artmsg.decode_json_art json_value))
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     m_type = v.m_type;
     src = v.src;
+    artifact = v.artifact;
   } : model)
 
 let rec decode_json_refuted d =
