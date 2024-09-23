@@ -1,0 +1,18 @@
+(library
+  (name imandra_proof_system)
+  (public_name imandra-proof-system)
+  (preprocess (pps ppx_deriving.std imandrakit.twine.ppx))
+  (libraries imandrakit.twine imandrakit.bytes))
+
+(rule
+ (targets doc.md)
+ (mode promote)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run gen/gen_doc.exe))))
+
+(install
+ (section doc)
+ (package imandra-proof-system)
+ (files doc.md))
