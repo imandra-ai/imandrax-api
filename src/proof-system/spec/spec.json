@@ -141,7 +141,7 @@
     {
       "name": "fun.decl",
       "args": [
-        "FunDefID",
+        "String",
         [
           "List",
           "Type"
