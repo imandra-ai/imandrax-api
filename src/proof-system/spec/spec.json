@@ -328,6 +328,10 @@
       "ret": "Term",
       "args": [
         "FunDefID",
+        [
+          "List",
+          "Type"
+        ],
         "Term"
       ],
       "doc": "A cstor-testing term (takes the constructor and the term to test)"
