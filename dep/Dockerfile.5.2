@@ -5,6 +5,7 @@ RUN sudo chown -R opam: /build/
 COPY --chown=opam ./src/ ./src/
 COPY --chown=opam ./vendor ./vendor
 COPY --chown=opam \
+  imandra-proof-system.opam \
   imandrax-api.opam \
   imandrax-api-cli.opam  \
   imandrax-api-client.opam  \
