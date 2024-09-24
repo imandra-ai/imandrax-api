@@ -19,11 +19,11 @@ RUN opam exec -- make opam-pin-submodules-nodep
 RUN opam pin -n .
 
 RUN opam install -t imandrax-api imandrax-api-client imandrax-api-client-cohttp \
-  --deps-only
+  imandra-proof-system --deps-only
 RUN opam exec -- dune build @install -p \
-  imandrax-api,imandrax-api-client,imandrax-api-client-cohttp
+  imandrax-api,imandrax-api-client,imandrax-api-client-cohttp,imandra-proof-system 
 RUN opam exec -- dune runtest -p \
-  imandrax-api,imandrax-api-client,imandrax-api-client-cohttp
+  imandrax-api,imandrax-api-client,imandrax-api-client-cohttp,imandra-proof-system 
 
 # check that the generated code is up to date
 RUN for pkg in pbrt pbrt_yojson ocaml-protoc; do opam pin $pkg --dev -y -n ; done
