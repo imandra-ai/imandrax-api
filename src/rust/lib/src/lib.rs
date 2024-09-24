@@ -846,49 +846,10 @@ pub struct ReportReport<'a> {
 }
 
 
-// clique Imandrax_api_proof.Arg.t
+// clique Imandrax_api_proof.proof
 #[derive(Debug, Clone)]
-pub enum ProofArg<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
-  A_term(V_tyreg_poly_term),
-  A_ty(V_tyreg_poly_ty),
-  A_int(BigInt),
-  A_string(&'a str),
-  A_list(&'a [&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>]),
-  A_dict(&'a [(&'a str,&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)]),
-  A_seq(&'a Sequent_poly<'a,V_tyreg_poly_term>),
-}
-
-// clique Imandrax_api_proof.View.t
-#[derive(Debug, Clone)]
-pub enum ProofView<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_proof:'a> {
-  T_assume,
-  T_subst {
-    t_subst: &'a [((&'a Uid<'a>,V_tyreg_poly_ty),V_tyreg_poly_term)],
-    ty_subst: &'a [(&'a Uid<'a>,V_tyreg_poly_ty)],
-    premise: V_tyreg_poly_proof,
-  },
-  T_deduction {
-    premises: &'a [(&'a str,&'a [V_tyreg_poly_proof])],
-  },
-  T_rule {
-    rule: &'a str,
-    args: &'a [&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>],
-  },
-}
-
-// clique Imandrax_api_proof.Proof_term_poly.t
-#[derive(Debug, Clone)]
-pub struct ProofProof_term_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_proof:'a> {
-  pub id: BigInt,
-  pub concl: &'a Sequent_poly<'a,V_tyreg_poly_term>,
-  pub view: &'a ProofView<'a,V_tyreg_poly_term,V_tyreg_poly_ty,V_tyreg_poly_proof>,
-}
-
-
-// clique Imandrax_api_proof.Cir_proof_term.t
-#[derive(Debug, Clone)]
-pub struct ProofCir_proof_term<'a> {
-  pub p: &'a ProofProof_term_poly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirType<'a>,&'a ProofCir_proof_term<'a>>,
+pub struct ProofProof<'a> {
+  pub data: &'a ProofBytes<'a>,
 }
 
 
@@ -906,7 +867,7 @@ pub struct TasksPO_task<'a> {
 #[derive(Debug, Clone)]
 pub struct TasksPO_resProof_found<'a> {
   pub anchor: &'a Anchor<'a>,
-  pub proof: &'a ProofCir_proof_term<'a>,
+  pub proof: &'a TasksPO_resImandrax_api_proofMproof_step<'a>,
 }
 
 
@@ -932,7 +893,7 @@ pub struct TasksPO_resNo_proof<'a> {
 pub struct TasksPO_resUnsat<'a> {
   pub anchor: &'a Anchor<'a>,
   pub err: &'a ErrorError_core<'a>,
-  pub proof: &'a ProofCir_proof_term<'a>,
+  pub proof: &'a TasksPO_resImandrax_api_proofMproof_step<'a>,
 }
 
 
