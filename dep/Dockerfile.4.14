@@ -6,7 +6,9 @@ COPY --chown=opam ./src/ ./src/
 COPY --chown=opam ./vendor ./vendor
 COPY --chown=opam \
   imandrax-api.opam  \
+  imandra-proof-system.opam \
   imandrax-api-cli.opam  \
+  imandra-proof-system.opam \
   imandrax-api-client.opam  \
   imandrax-api-client-ezcurl.opam  \
   imandrax-api-client-cohttp.opam  \
