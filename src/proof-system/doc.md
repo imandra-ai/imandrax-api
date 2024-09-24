@@ -206,8 +206,9 @@
 
 ### Terms returning `[FunDefID]`
 
-- `fun.defs : [(String, [Var], Type, Term)] -> [FunDefID]`
-  Defines a set of mutually recursive functions. Each tuple is a regular function definition.
+- `fun.defs : [(String, [String], [Var], Type, Term)] -> [FunDefID]`
+  Defines a set of mutually recursive functions. Each tuple is a regular function definition
+  with name, type parameters, variables, return type, and body.
 
 
 ### Terms returning `Term`
@@ -281,11 +282,11 @@
 
 ### Terms returning `FunDefID`
 
-- `fun.def : String, [Var], Type, Term -> FunDefID`
-  Defines a function `f args : ret := body`.
+- `fun.def : String, [String], [Var], Type, Term -> FunDefID`
+  Defines a function `f typarams args : ret := body` with type parameters first.
 
-- `fun.decl : FunDefID, [Type], Type -> FunDefID`
-  Declares a function symbol `f : args -> ret`.
+- `fun.decl : String, [String], Type -> FunDefID`
+  Declares a function symbol `f : forall params. type`.
 
 
 ### Terms returning `Scope`

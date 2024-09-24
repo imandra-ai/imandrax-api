@@ -144,17 +144,21 @@
         "String",
         [
           "List",
-          "Type"
+          "String"
         ],
         "Type"
       ],
       "ret": "FunDefID",
-      "doc": "Declares a function symbol `f : args -> ret`."
+      "doc": "Declares a function symbol `f : forall params. type`."
     },
     {
       "name": "fun.def",
       "args": [
         "String",
+        [
+          "List",
+          "String"
+        ],
         [
           "List",
           "Var"
@@ -163,7 +167,7 @@
         "Term"
       ],
       "ret": "FunDefID",
-      "doc": "Defines a function `f args : ret := body`."
+      "doc": "Defines a function `f typarams args : ret := body` with type parameters first."
     },
     {
       "name": "fun.defs",
@@ -173,6 +177,10 @@
           [
             "Tuple",
             "String",
+            [
+              "List",
+              "String"
+            ],
             [
               "List",
               "Var"
@@ -186,7 +194,7 @@
         "List",
         "FunDefID"
       ],
-      "doc": "Defines a set of mutually recursive functions. Each tuple is a regular function definition."
+      "doc": "Defines a set of mutually recursive functions. Each tuple is a regular function definition\nwith name, type parameters, variables, return type, and body."
     },
     {
       "name": "cn.int",
