@@ -11,6 +11,7 @@ depends: [
   "containers" {>= "3.4"}
   "iter" {>= "1.0"}
   "zarith" {>= "1.12"}
+  "imandra-proof-system" {= version}
   "ppx_deriving"
   "ppx_deriving_yojson"
   "imandrakit"

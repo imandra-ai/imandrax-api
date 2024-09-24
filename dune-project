@@ -27,6 +27,7 @@
    (>= 1.0))
   (zarith
    (>= 1.12))
+  (imandra-proof-system (= :version))
   ppx_deriving
   ppx_deriving_yojson
   imandrakit
