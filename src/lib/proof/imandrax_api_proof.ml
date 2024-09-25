@@ -18,7 +18,7 @@ module MProofStep_id = PSE.MProofStep_id
 module MProofTreeNode_id = PSE.MProofTreeNode_id
 
 type proof_step = ProofStep_id.t [@@deriving show, twine]
-type mproof_step = MProofStep_id.t [@@deriving show, twine]
+type mproof_step = MetaProofStep_id.t [@@deriving show, twine]
 
 (** {2 Outputting proofs} *)
 

@@ -1,15 +1,15 @@
 
 # Proof format
 
-This describes, in a machine readable way, the proof format we use for all
+This describes the machine readable proof format we use for all
 proofs.
-A proof is a streamed DAG of steps, each of which can define new symbols,
+A proof is a streamed DAG of nodes containing proof steps. Each step defines new symbols, declares a new proof step, or declares a new meta-proof step.
 declare a new proof step, or declare a new meta-proof step.
 
 ## References
 
 Nodes in the proof DAG are associated with an _identifier_.
-In practice the identifier can be a integer, string, or a list of these
+The identifier is an integer, a string, or a list of these
 (but the list can only contain integers or strings, not other lists).
 
 Once a node is defined, it can be referred to using a _reference_.
@@ -20,7 +20,7 @@ In `spec.json`, we define all types relevant to the proof DAG.
 Sections of the json file:
 
 - `wire_types`: wire-level types that are used to encode individual DAG
-nods in a concrete serialization format (e.g. CBOR).
+nodes in a concrete serialization format (e.g. CBOR).
 - `dag_terms`: Each item defines a term constructor, used to build terms.
     Terms appear in some of the commands. Terms are typed, their types
     are described by `dag_types`.

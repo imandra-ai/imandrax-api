@@ -4,7 +4,7 @@ type stats = Imandrax_api.Stat_time.t [@@deriving show, twine, typereg]
 
 type proof_found = {
   anchor: Imandrax_api.Anchor.t;
-  proof: Imandrax_api_proof.mproof_step;  (** Proof term. *)
+  proof: Imandrax_api_proof.meta_proof_step;  (** Proof term. *)
 }
 [@@deriving twine, typereg, show { with_path = false }]
 (** Type returned on success for verify *)
