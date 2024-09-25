@@ -181,7 +181,8 @@ let codegen (oc : out_channel) : unit =
     let spec = PS.spec
   end) in
   let buf = Buffer.create 32 in
-  bpf buf "(* auto-generated from spec.json *)\n\n";
+  bpf buf
+    "(* auto-generated from spec.json by codegen_ocaml.ml, do not modify *)\n\n";
   bpf buf "%s\n" prelude;
   M.codegen_decode_ buf;
   M.codegen_encode_ buf;

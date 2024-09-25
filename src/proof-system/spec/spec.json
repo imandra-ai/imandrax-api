@@ -885,7 +885,7 @@
       "doc": "`A1… An ||- C` and `σ` --> `A1…An ||- Cσ`."
     },
     {
-      "name": "pt.top",
+      "name": "pt.root",
       "ret": "MProofTreeNode",
       "args": [],
       "doc": "The root of the proof tree. Each node in the proof tree has a parent, except this one."
