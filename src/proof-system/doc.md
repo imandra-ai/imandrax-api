@@ -19,16 +19,25 @@
 
 - `Scope`: A scope for assumptions, used for natural deduction.
 
-- `MSeq`: A meta-sequent (sequent-of-sequents), with one conclusion and a list of premises.
+- `DeepSeq`: A depp sequent (sequent-of-sequents), with one conclusion and a list of premises.
 
 - `ProofStep`: A proof step, proving a clause using logical rules.
 
-- `MProofStep`: A meta-level proof step, proving a meta-sequent.
+- `DeepProofStep`: A proof step at the level of deep sequents.
 
-- `MProofTreeNode`: A node in the meta-level proof tree, used to encode the structure of the proof.
+- `DeepProofTreeNode`: A node in the proof tree, annotated with a deep sequent, used to encode the structure of the proof.
 
 
 ## DAG terms
+
+### Terms returning `DeepProofTreeNode`
+
+- `pt.node : DeepProofTreeNode, DeepProofStep -> DeepProofTreeNode`
+  A node in the proof tree. The arguments are the node's parent, and the node's corresponding proof step.
+
+- `pt.root :  -> DeepProofTreeNode`
+  The root of the proof tree. Each node in the proof tree has a parent, except this one.
+
 
 ### Terms returning `Clause`
 
@@ -49,18 +58,6 @@
 
 - `cn.int : Int -> Const`
   An integer literal.
-
-
-### Terms returning `MProofStep`
-
-- `m.subst : Scope, MProofStep, [(Var, Term)] -> MProofStep`
-  `A1… An ||- C` and `σ` --> `A1…An ||- Cσ`.
-
-- `m.intro : Scope, ProofStep -> MProofStep`
-  Takes `A |- B` and returns `C1, C2 …, Cn ||- (A|-B)`, where `C_i` are the assumptions in the current scope.
-
-- `m.cut : Scope, MProofStep, [MProofStep] -> MProofStep`
-  Takes `A1…An,B ||- G` and `C_i ||- A_i` and returns `B, ,(C_i)_i ||- G`.
 
 
 ### Terms returning `ProofStep`
@@ -244,6 +241,12 @@
   A literal constant term.
 
 
+### Terms returning `DeepSeq`
+
+- `dseq : [Clause], Clause -> DeepSeq`
+  Build a deep sequent from premises and conclusion
+
+
 ### Terms returning `TypeDefID`
 
 - `ty.decl : String, Int -> TypeDefID`
@@ -268,10 +271,16 @@
   A type variable.
 
 
-### Terms returning `MSeq`
+### Terms returning `DeepProofStep`
 
-- `mseq : [Clause], Clause -> MSeq`
-  Build a meta-sequent from premises and conclusion
+- `m.subst : Scope, DeepProofStep, [(Var, Term)] -> DeepProofStep`
+  `A1… An ||- C` and `σ` --> `A1…An ||- Cσ`.
+
+- `m.intro : Scope, ProofStep -> DeepProofStep`
+  Takes `A |- B` and returns `C1, C2 …, Cn ||- (A|-B)`, where `C_i` are the assumptions in the current scope.
+
+- `m.cut : Scope, DeepProofStep, [DeepProofStep] -> DeepProofStep`
+  Takes `A1…An,B ||- G` and `C_i ||- A_i` and returns `B, ,(C_i)_i ||- G`.
 
 
 ### Terms returning `Var`
@@ -293,15 +302,6 @@
 
 - `scope.enter : Scope -> Scope`
   Enter a new scope, child of a previous scope (or `0` for the root scope).
-
-
-### Terms returning `MProofTreeNode`
-
-- `pt.node : MProofTreeNode, MProofStep -> MProofTreeNode`
-  A node in the proof tree. The arguments are the node's parent, and the node's corresponding proof step.
-
-- `pt.root :  -> MProofTreeNode`
-  The root of the proof tree. Each node in the proof tree has a parent, except this one.
 
 
 
