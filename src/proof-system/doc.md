@@ -216,7 +216,7 @@
 - `t.destr : FunDefID, [Type], Int, Term -> Term`
   A construct destruction (takes cstor, type parameters, argument index, destructed term).
 
-- `t.isa : FunDefID, Term -> Term`
+- `t.isa : FunDefID, [Type], Term -> Term`
   A cstor-testing term (takes the constructor and the term to test)
 
 - `t.cs : FunDefID, [Type], [Term] -> Term`
@@ -300,7 +300,7 @@
 - `pt.node : MProofTreeNode, MProofStep -> MProofTreeNode`
   A node in the proof tree. The arguments are the node's parent, and the node's corresponding proof step.
 
-- `pt.top :  -> MProofTreeNode`
+- `pt.root :  -> MProofTreeNode`
   The root of the proof tree. Each node in the proof tree has a parent, except this one.
 
 
