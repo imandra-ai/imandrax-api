@@ -51,16 +51,10 @@ let get_auth_token ~dev () : string option =
         k "could not read token from %S:\n%s" file (Printexc.to_string exn));
     None
 
-let with_client ?rpc_port ~rpc_json ~local_rpc ~local_http ~dev ~runner ~debug
-    () (f : C.t -> 'a) : 'a =
+let with_client ~local_http ~dev ~runner ~debug () (f : C.t -> 'a) : 'a =
   let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "cli.with-client" in
   let client =
-    if local_rpc then (
-      let port = Option.value ~default:9991 rpc_port in
-      Log.app (fun k -> k "connecting via RPC on port %d" port);
-      C_RPC.connect_tcp_exn ~runner ~json:rpc_json
-      @@ C_RPC.addr_inet_local ~port ()
-    ) else if local_http then
+    if local_http then
       C_curl.create ~verbose:debug ~runner ~tls:false ~host:"localhost"
         ~port:8086 ~auth_token:None ()
     else (

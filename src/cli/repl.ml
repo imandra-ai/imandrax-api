@@ -123,8 +123,7 @@ let run (self : t) : int =
   let@ runner = Moonpool.Fifo_pool.with_ () in
   let@ (client : C.t) =
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.connect" in
-    Utils.with_client ~rpc_json:self.rpc_json ?rpc_port:self.rpc_port ~runner
-      ~local_http:self.local_http ~debug:self.debug ~local_rpc:self.local_rpc
+    Utils.with_client ~runner ~local_http:self.local_http ~debug:self.debug
       ~dev:self.dev ()
   in
 
