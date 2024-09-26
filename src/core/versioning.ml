@@ -4,12 +4,8 @@
 
 (* for now we are conservative and use over-specific versions. *)
 
-open struct
-  let internal_count_ = 2
-end
-
-(** The main version. *)
-let version : string = spf "v%d" internal_count_
+(** The main version. See [VERSION]. *)
+let version : string = Version_.version
 
 (** Full git version *)
 let git_version = Gitid.rev

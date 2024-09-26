@@ -7,7 +7,10 @@ from zipfile import ZipFile
 import json
 from typing import Callable
 from . import twine
+from . import version
 
+# Version number for these types.
+api_type_version = version.api_type_version
 
 type Error = Error_Error_core
 def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
