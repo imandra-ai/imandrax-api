@@ -19,7 +19,7 @@ service Simple {
   rpc decompose(DecomposeReq) returns (DecomposeRes);
 
   // create a session easily
-  rpc create_session(Empty) returns (imandrax.session.Session);
+  rpc create_session(SessionCreateReq) returns (imandrax.session.Session);
 
   rpc eval_src(EvalSrcReq) returns (EvalRes);
 
@@ -31,6 +31,11 @@ service Simple {
 
   rpc instance_name(InstanceNameReq) returns (InstanceRes);
 
+}
+
+message SessionCreateReq {
+  // the API types version (mandatory)
+  string api_version = 1;
 }
 
 message DecomposeReq {

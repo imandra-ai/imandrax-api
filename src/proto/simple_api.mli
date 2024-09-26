@@ -7,6 +7,10 @@
 
 (** {2 Types} *)
 
+type session_create_req = {
+  api_version : string;
+}
+
 type decompose_req = {
   session : Session.session option;
   name : string;
@@ -142,6 +146,12 @@ and instance_res = {
 
 
 (** {2 Basic values} *)
+
+val default_session_create_req : 
+  ?api_version:string ->
+  unit ->
+  session_create_req
+(** [default_session_create_req ()] is the default value for type [session_create_req] *)
 
 val default_decompose_req : 
   ?session:Session.session option ->
@@ -305,6 +315,12 @@ val default_instance_res :
 
 (** {2 Make functions} *)
 
+val make_session_create_req : 
+  api_version:string ->
+  unit ->
+  session_create_req
+(** [make_session_create_req … ()] is a builder for type [session_create_req] *)
+
 val make_decompose_req : 
   ?session:Session.session option ->
   name:string ->
@@ -455,6 +471,9 @@ val make_instance_res :
 
 (** {2 Formatters} *)
 
+val pp_session_create_req : Format.formatter -> session_create_req -> unit 
+(** [pp_session_create_req v] formats v *)
+
 val pp_decompose_req : Format.formatter -> decompose_req -> unit 
 (** [pp_decompose_req v] formats v *)
 
@@ -532,6 +551,9 @@ val pp_instance_res : Format.formatter -> instance_res -> unit
 
 
 (** {2 Protobuf Encoding} *)
+
+val encode_pb_session_create_req : session_create_req -> Pbrt.Encoder.t -> unit
+(** [encode_pb_session_create_req v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_decompose_req : decompose_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req v encoder] encodes [v] with the given [encoder] *)
@@ -611,6 +633,9 @@ val encode_pb_instance_res : instance_res -> Pbrt.Encoder.t -> unit
 
 (** {2 Protobuf Decoding} *)
 
+val decode_pb_session_create_req : Pbrt.Decoder.t -> session_create_req
+(** [decode_pb_session_create_req decoder] decodes a [session_create_req] binary value from [decoder] *)
+
 val decode_pb_decompose_req : Pbrt.Decoder.t -> decompose_req
 (** [decode_pb_decompose_req decoder] decodes a [decompose_req] binary value from [decoder] *)
 
@@ -689,6 +714,9 @@ val decode_pb_instance_res : Pbrt.Decoder.t -> instance_res
 
 (** {2 Protobuf YoJson Encoding} *)
 
+val encode_json_session_create_req : session_create_req -> Yojson.Basic.t
+(** [encode_json_session_create_req v encoder] encodes [v] to to json *)
+
 val encode_json_decompose_req : decompose_req -> Yojson.Basic.t
 (** [encode_json_decompose_req v encoder] encodes [v] to to json *)
 
@@ -766,6 +794,9 @@ val encode_json_instance_res : instance_res -> Yojson.Basic.t
 
 
 (** {2 JSON Decoding} *)
+
+val decode_json_session_create_req : Yojson.Basic.t -> session_create_req
+(** [decode_json_session_create_req decoder] decodes a [session_create_req] value from [decoder] *)
 
 val decode_json_decompose_req : Yojson.Basic.t -> decompose_req
 (** [decode_json_decompose_req decoder] decodes a [decompose_req] value from [decoder] *)
@@ -858,7 +889,7 @@ module Simple : sig
     
     val decompose : (decompose_req, unary, decompose_res, unary) Client.rpc
     
-    val create_session : (Utils.empty, unary, Session.session, unary) Client.rpc
+    val create_session : (session_create_req, unary, Session.session, unary) Client.rpc
     
     val eval_src : (eval_src_req, unary, eval_res, unary) Client.rpc
     
@@ -877,7 +908,7 @@ module Simple : sig
       status:((Utils.empty, unary, Utils.string_msg, unary) Server.rpc -> 'handler) ->
       shutdown:((Utils.empty, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
       decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
-      create_session:((Utils.empty, unary, Session.session, unary) Server.rpc -> 'handler) ->
+      create_session:((session_create_req, unary, Session.session, unary) Server.rpc -> 'handler) ->
       eval_src:((eval_src_req, unary, eval_res, unary) Server.rpc -> 'handler) ->
       verify_src:((verify_src_req, unary, verify_res, unary) Server.rpc -> 'handler) ->
       verify_name:((verify_name_req, unary, verify_res, unary) Server.rpc -> 'handler) ->
@@ -893,7 +924,7 @@ module Simple : sig
     
     val decompose : (decompose_req,unary,decompose_res,unary) Server.rpc
     
-    val create_session : (Utils.empty,unary,Session.session,unary) Server.rpc
+    val create_session : (session_create_req,unary,Session.session,unary) Server.rpc
     
     val eval_src : (eval_src_req,unary,eval_res,unary) Server.rpc
     
