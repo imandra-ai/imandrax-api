@@ -71,20 +71,20 @@
       "doc": "A scope for assumptions, used for natural deduction."
     },
     {
-      "name": "MSeq",
-      "doc": "A meta-sequent (sequent-of-sequents), with one conclusion and a list of premises."
+      "name": "DeepSeq",
+      "doc": "A depp sequent (sequent-of-sequents), with one conclusion and a list of premises."
     },
     {
       "name": "ProofStep",
       "doc": "A proof step, proving a clause using logical rules."
     },
     {
-      "name": "MProofStep",
-      "doc": "A meta-level proof step, proving a meta-sequent."
+      "name": "DeepProofStep",
+      "doc": "A proof step at the level of deep sequents."
     },
     {
-      "name": "MProofTreeNode",
-      "doc": "A node in the meta-level proof tree, used to encode the structure of the proof."
+      "name": "DeepProofTreeNode",
+      "doc": "A node in the proof tree, annotated with a deep sequent, used to encode the structure of the proof."
     }
   ],
   "dag_type_defs": [
@@ -362,8 +362,8 @@
       "doc": "Build a sequent from premises and conclusions"
     },
     {
-      "name": "mseq",
-      "ret": "MSeq",
+      "name": "dseq",
+      "ret": "DeepSeq",
       "args": [
         [
           "List",
@@ -371,7 +371,7 @@
         ],
         "Clause"
       ],
-      "doc": "Build a meta-sequent from premises and conclusion"
+      "doc": "Build a deep sequent from premises and conclusion"
     },
     {
       "name": "ty.v",
@@ -847,20 +847,20 @@
     },
     {
       "name": "m.cut",
-      "ret": "MProofStep",
+      "ret": "DeepProofStep",
       "args": [
         "Scope",
-        "MProofStep",
+        "DeepProofStep",
         [
           "List",
-          "MProofStep"
+          "DeepProofStep"
         ]
       ],
       "doc": "Takes `A1…An,B ||- G` and `C_i ||- A_i` and returns `B, ,(C_i)_i ||- G`."
     },
     {
       "name": "m.intro",
-      "ret": "MProofStep",
+      "ret": "DeepProofStep",
       "args": [
         "Scope",
         "ProofStep"
@@ -869,10 +869,10 @@
     },
     {
       "name": "m.subst",
-      "ret": "MProofStep",
+      "ret": "DeepProofStep",
       "args": [
         "Scope",
-        "MProofStep",
+        "DeepProofStep",
         [
           "List",
           [
@@ -886,16 +886,16 @@
     },
     {
       "name": "pt.root",
-      "ret": "MProofTreeNode",
+      "ret": "DeepProofTreeNode",
       "args": [],
       "doc": "The root of the proof tree. Each node in the proof tree has a parent, except this one."
     },
     {
       "name": "pt.node",
-      "ret": "MProofTreeNode",
+      "ret": "DeepProofTreeNode",
       "args": [
-        "MProofTreeNode",
-        "MProofStep"
+        "DeepProofTreeNode",
+        "DeepProofStep"
       ],
       "doc": "A node in the proof tree. The arguments are the node's parent, and the node's corresponding proof step."
     }

@@ -3,8 +3,8 @@
 
 This describes the machine readable proof format we use for all
 proofs.
-A proof is a streamed DAG of nodes containing proof steps. Each step defines new symbols, declares a new proof step, or declares a new meta-proof step.
-declare a new proof step, or declare a new meta-proof step.
+A proof is a streamed DAG of nodes containing proof steps. Each step defines new symbols, declares a new proof step, or declares a deep proof step.
+declare a new proof step, or declare a new deep sequent-level proof step.
 
 ## References
 
@@ -25,7 +25,7 @@ Sections of the json file:
     Terms are typed, their types are described by `dag_types`.
 - `dag_types`: The logical data types that are described by the DAG. Each
     term in the DAG has one of these types. Ultimately
-    the goal of the proof DAG is to describe a _`MetaProofStep`_ (a DAG node with a meta-sequent)
+    the goal of the proof DAG is to describe a _`DeepProofStep`_ (a DAG node proving a deep sequent)
     that corresponds to a theorem that we proved, i.e. its conclusion is the theorem's statement.
 - `builtin_symbols`: Symbols that are predefined in the logic, as well as their type.
     A type symbol is described as returning type `Type` (which otherwise doesn't exist in the logic).

@@ -12,13 +12,13 @@ module Term_id = PSE.Term_id
 module Type_id = PSE.Type_id
 module Clause_id = PSE.Clause_id
 module Scope_id = PSE.Scope_id
-module MSeq_id = PSE.MSeq_id
+module DeepSeq_id = PSE.DeepSeq_id
 module ProofStep_id = PSE.ProofStep_id
-module MProofStep_id = PSE.MProofStep_id
-module MProofTreeNode_id = PSE.MProofTreeNode_id
+module DeepProofStep_id = PSE.DeepProofStep_id
+module DeepProofTreeNode_id = PSE.DeepProofTreeNode_id
 
 type proof_step = ProofStep_id.t [@@deriving show, twine]
-type mproof_step = MetaProofStep_id.t [@@deriving show, twine]
+type deep_proof_step = DeepProofStep_id.t [@@deriving show, twine]
 
 (** {2 Outputting proofs} *)
 
