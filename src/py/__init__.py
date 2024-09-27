@@ -80,7 +80,7 @@ class Client:
         self._session = requests.Session()
         self._auth_token = auth_token
         if auth_token:
-            self._session.headers['Authorization'] = auth_token
+            self._session.headers['Authorization'] = f'Bearer {auth_token}'
         self._url = url
         self._server_path_prefix = server_path_prefix
         self._client = SimpleClient(url, timeout=timeout, session=self._session)
