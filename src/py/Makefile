@@ -3,7 +3,11 @@ VERSION=$(shell grep VERSION= setup.py | sed 's/VERSION=//' | tr -d '"')
 echo-version:
 	@echo version: $(VERSION)
 
-build:
+API_TYPES_VERSION=$(shell cat ../core/API_TYPES_VERSION)
+api_types_version.py:
+	@echo "api_types_version = 'v$(API_TYPES_VERSION)'" > $@
+
+build: api_types_version.py
 	python -m build --wheel
 
 clean:

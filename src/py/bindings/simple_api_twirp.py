@@ -46,7 +46,7 @@ class SimpleServer(TwirpServer):
 				service_name="Simple",
 				name="create_session",
 				function=getattr(service, "create_session"),
-				input=_sym_db.GetSymbol("Empty"),
+				input=_sym_db.GetSymbol("imandrax.simple.SessionCreateReq"),
 				output=_sym_db.GetSymbol("imandrax.session.Session"),
 			),
 			"eval_src": Endpoint(

@@ -1,4 +1,5 @@
 import requests
+import requests.cookies
 from typing import Optional
 from twirp.context import Context
 from twirp import exceptions, errors
@@ -7,32 +8,35 @@ from .bindings import (
     utils_pb2,
     simple_api_twirp,
     simple_api_pb2,
+    session_pb2,
     api_pb2,
     api_twirp,
 )
+from . import api_types_version
 
 # TODO: https://requests.readthedocs.io/en/latest/user/advanced/#example-automatic-retries (for calls that are idempotent, maybe we pass `idempotent=True` for them
 
-class SessionfullTwirpClient(simple_api_twirp.SimpleClient):
-    def __init__(self, address, timeout=5):
-        # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
-        self._session = requests.Session()
-        super().__init__(address, timeout=timeout)
+class ClientWithSession:
+    def __init__(self, url, session, timeout=5, **kwargs):
+        self._address = url
+        self._timeout = timeout
+        self._session = session
 
     def _make_request(self, *args, url, ctx, request, response_obj, **kwargs):
         # copy of the original code in twirp, except we use the session.
-        if 'timeout' not in kwargs:
-            kwargs['timeout'] = self._timeout
+        print(f"HELLO sesh={self._session}, cookies={self._session.cookies}")
+        if "timeout" not in kwargs:
+            kwargs["timeout"] = self._timeout
         headers = ctx.get_headers()
-        if 'headers' in kwargs:
-            headers.update(kwargs['headers'])
-        kwargs['headers'] = headers
-        kwargs['headers']['Content-Type'] = 'application/protobuf'
-        # print('ABOUT TO MAKE REQUEST WITH COOKIES', self._session.cookies)
+        if "headers" in kwargs:
+            headers.update(kwargs["headers"])
+        kwargs["headers"] = headers
+        kwargs["headers"]["Content-Type"] = "application/protobuf"
         try:
             # change here
-            resp = self._session.post(url=self._address+url, data=request.SerializeToString(), **kwargs)
-            print('resp: ', resp, resp.cookies)
+            resp = self._session.post(
+                url=self._address + url, data=request.SerializeToString(), **kwargs
+            )
             if resp.status_code == 200:
                 response = response_obj()
                 response.ParseFromString(resp.content)
@@ -41,7 +45,8 @@ class SessionfullTwirpClient(simple_api_twirp.SimpleClient):
                 raise exceptions.TwirpServerException.from_json(resp.json())
             except requests.JSONDecodeError:
                 raise exceptions.twirp_error_from_intermediary(
-                    resp.status_code, resp.reason, resp.headers, resp.text) from None
+                    resp.status_code, resp.reason, resp.headers, resp.text
+                ) from None
             # Todo: handle error
         except requests.exceptions.Timeout as e:
             raise exceptions.TwirpServerException(
@@ -56,22 +61,43 @@ class SessionfullTwirpClient(simple_api_twirp.SimpleClient):
                 meta={"original_exception": e},
             )
 
+class SimpleClient(ClientWithSession, simple_api_twirp.SimpleClient):
+    pass
+
+class EvalClient(ClientWithSession, api_twirp.EvalClient):
+    pass
+
+
 class Client:
     def __init__(
-        self, url: str, server_path_prefix="/api/v1", timeout: float = 30.0
+        self,
+        url: str,
+        server_path_prefix="/api/v1",
+        timeout: float = 30.0,
+        session_id: str | None = None,
     ) -> None:
+        # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
+        self._session = requests.Session()
         self._url = url
         self._server_path_prefix = server_path_prefix
-        self._client = SessionfullTwirpClient(url)
-        self._api_client = api_twirp.EvalClient(url)
+        self._client = SimpleClient(url, timeout=timeout, session=self._session)
+        self._api_client = EvalClient(url, timeout=timeout, session=self._session)
         self._timeout = timeout
 
-        self._sesh = self._client.create_session(
-            ctx=Context(),
-            server_path_prefix=self._server_path_prefix,
-            request=utils_pb2.Empty(),
-            timeout=timeout,
-        )
+        if session_id is None:
+            self._sesh = self._client.create_session(
+                ctx=Context(),
+                server_path_prefix=self._server_path_prefix,
+                request=simple_api_pb2.SessionCreateReq(
+                    api_version=api_types_version.api_types_version
+                ),
+                timeout=timeout,
+            )
+        else:
+            # TODO: actually re-open session via RPC
+            self._sesh = session_pb2.Session(
+                session_id=session_id, 
+            )
 
     def status(self) -> str:
         return self._client.status(
