@@ -24,7 +24,6 @@ class ClientWithSession:
 
     def _make_request(self, *args, url, ctx, request, response_obj, **kwargs):
         # copy of the original code in twirp, except we use the session.
-        print(f"HELLO sesh={self._session}, cookies={self._session.cookies}")
         if "timeout" not in kwargs:
             kwargs["timeout"] = self._timeout
         headers = ctx.get_headers()
@@ -73,11 +72,15 @@ class Client:
         self,
         url: str,
         server_path_prefix="/api/v1",
+        auth_token: str | None = None,
         timeout: float = 30.0,
         session_id: str | None = None,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session = requests.Session()
+        self._auth_token = auth_token
+        if auth_token:
+            self._session.headers['Authorization'] = auth_token
         self._url = url
         self._server_path_prefix = server_path_prefix
         self._client = SimpleClient(url, timeout=timeout, session=self._session)
