@@ -1,5 +1,7 @@
+import requests
 from typing import Optional
 from twirp.context import Context
+from twirp import exceptions, errors
 from .bindings import (
     task_pb2,
     utils_pb2,
@@ -9,13 +11,58 @@ from .bindings import (
     api_twirp,
 )
 
+# TODO: https://requests.readthedocs.io/en/latest/user/advanced/#example-automatic-retries (for calls that are idempotent, maybe we pass `idempotent=True` for them
+
+class SessionfullTwirpClient(simple_api_twirp.SimpleClient):
+    def __init__(self, address, timeout=5):
+        # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
+        self._session = requests.Session()
+        super().__init__(address, timeout=timeout)
+
+    def _make_request(self, *args, url, ctx, request, response_obj, **kwargs):
+        # copy of the original code in twirp, except we use the session.
+        if 'timeout' not in kwargs:
+            kwargs['timeout'] = self._timeout
+        headers = ctx.get_headers()
+        if 'headers' in kwargs:
+            headers.update(kwargs['headers'])
+        kwargs['headers'] = headers
+        kwargs['headers']['Content-Type'] = 'application/protobuf'
+        # print('ABOUT TO MAKE REQUEST WITH COOKIES', self._session.cookies)
+        try:
+            # change here
+            resp = self._session.post(url=self._address+url, data=request.SerializeToString(), **kwargs)
+            print('resp: ', resp, resp.cookies)
+            if resp.status_code == 200:
+                response = response_obj()
+                response.ParseFromString(resp.content)
+                return response
+            try:
+                raise exceptions.TwirpServerException.from_json(resp.json())
+            except requests.JSONDecodeError:
+                raise exceptions.twirp_error_from_intermediary(
+                    resp.status_code, resp.reason, resp.headers, resp.text) from None
+            # Todo: handle error
+        except requests.exceptions.Timeout as e:
+            raise exceptions.TwirpServerException(
+                code=errors.Errors.DeadlineExceeded,
+                message=str(e),
+                meta={"original_exception": e},
+            )
+        except requests.exceptions.ConnectionError as e:
+            raise exceptions.TwirpServerException(
+                code=errors.Errors.Unavailable,
+                message=str(e),
+                meta={"original_exception": e},
+            )
+
 class Client:
     def __init__(
         self, url: str, server_path_prefix="/api/v1", timeout: float = 30.0
     ) -> None:
         self._url = url
         self._server_path_prefix = server_path_prefix
-        self._client = simple_api_twirp.SimpleClient(url)
+        self._client = SessionfullTwirpClient(url)
         self._api_client = api_twirp.EvalClient(url)
         self._timeout = timeout
 
