@@ -44,6 +44,24 @@ def decode_with_tag7[T](d: twine.Decoder, off: int, d0: [Callable[...,T]]) -> Wi
     return d0(d=d, off=tag.arg)
   |}
 
+let footer =
+  {|
+
+def read_artifact_data(data: bytes, kind: str) -> Artifact:
+    'Read artifact from `data`, with artifact kind `kind`'
+    decoder = artifact_decoders[kind]
+    twine_dec = twine.Decoder(data)
+    return decoder(twine_dec, twine_dec.entrypoint())
+
+def read_artifact_zip(path: str) -> Artifact:
+    'Read artifact from a zip file'
+    with ZipFile(path) as f:
+        manifest = json.loads(f.read('manifest.json'))
+        kind = str(manifest['kind'])
+        twine_data = f.read('data.twine')
+    return read_artifact_data(data=twine_data, kind=kind)
+  |}
+
 let mangle_ty_name (s : string) : string =
   let s =
     CCString.chop_prefix ~pre:"Imandrax_api." s
@@ -387,16 +405,7 @@ let gen_artifacts (artifacts : Artifact.t list) : string =
     artifacts;
   bpf buf "}\n\n";
 
-  bpf buf "def read_artifact_zip(path: str) -> Artifact:\n";
-  bpf buf "    'Read artifact from a zip file'\n";
-  bpf buf "    with ZipFile(path) as f:\n";
-  bpf buf "        manifest = json.loads(f.read('manifest.json'))\n";
-  bpf buf "        kind = str(manifest['kind'])\n";
-  bpf buf "        decoder = artifact_decoders[kind]\n";
-  bpf buf "        twine_data = f.read('data.twine')\n";
-  bpf buf "    twine_dec = twine.Decoder(twine_data)\n";
-  bpf buf "    return decoder(twine_dec, twine_dec.entrypoint())\n";
-  bpf buf "\n";
+  bpf buf "%s\n" footer;
 
   Buffer.contents buf
 

@@ -33,9 +33,6 @@ genlib:
 test-docker-4.14:
 	docker build . -f dep/Dockerfile.4.14 --network=host
 
-test-docker-4.12:
-	docker build . -f dep/Dockerfile.4.12 --network=host
-
 test-docker-5.2:
 	docker build . -f dep/Dockerfile.5.2 --network=host
 

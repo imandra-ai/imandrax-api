@@ -38,6 +38,8 @@ let all : kind list =
       ~docstring:"Task to evaluate a term";
     mk "Eval_res" "Imandrax_api_tasks.Eval_res.t" ~tag:"eval_res"
       ~docstring:"Result of evaluating a term";
+    mk "Model" "Imandrax_api_cir.Model.t" ~tag:"cir.model"
+      ~docstring:"A CIR-level model";
     mk "Show" "string" ~tag:"show"
       ~to_twine:"(fun _enc s -> Imandrakit_twine.Immediate.string s)"
       ~of_twine:

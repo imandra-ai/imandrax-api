@@ -100,6 +100,12 @@ class Decoder:
             # negative int
             x, _ = self.__getint64(off=off, low=low)
             return -x - 1
+        elif high == 5:
+            # bigint
+            bytes = self.get_bytes(off)
+            sign = 1 if bytes[0] & 0b1 == 0 else -1
+            absvalue = int.from_bytes(bytes, byteorder='little', signed=False) >> 1
+            return sign * absvalue
         else:
             raise Error(f"expected integer, but high={high} at off=0x{off:x}")
 
