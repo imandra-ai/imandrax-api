@@ -75,12 +75,16 @@ module Make (Fut : FUT) = struct
     let create ?timeout_s (self : client) : t Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
       self.rpc#rpc_call ~timeout_s API.SessionManager.Client.create_session
-      @@ API.make_session_create ~po_check:(Some true) ()
+      @@ API.make_session_create
+           ~api_version:Imandrax_api.Versioning.api_types_version
+           ~po_check:(Some true) ()
 
     let open_ ?timeout_s (self : client) (sesh : t) : unit Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
       self.rpc#rpc_call ~timeout_s API.SessionManager.Client.open_session
-      @@ API.make_session_open ~id:(Some sesh) ()
+      @@ API.make_session_open
+           ~api_version:Imandrax_api.Versioning.api_types_version
+           ~id:(Some sesh) ()
 
     let keep_alive ?timeout_s (self : client) sesh : unit Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in

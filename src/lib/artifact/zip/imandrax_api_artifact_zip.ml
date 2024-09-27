@@ -26,7 +26,7 @@ let write_zip ?(metadata = true) (zip : Util_zip.out_file) (self : Artifact.t) :
 
   let manifest : Manifest.t =
     let kind = Artifact.kind_to_string kind in
-    let api_version = Versioning.version in
+    let api_version = Versioning.api_types_version in
     let metadata =
       if metadata then (
         let creation_time = Timestamp.now () in
@@ -71,10 +71,10 @@ let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
   in
 
   (* check version compat *)
-  if manifest.api_version <> Versioning.version then
+  if manifest.api_version <> Versioning.api_types_version then
     Error.failf ~kind:Error_kinds.versionMismatchError
       "ImandraX API types version is %S, but data has version %S."
-      Versioning.version manifest.api_version;
+      Versioning.api_types_version manifest.api_version;
 
   let (Any_kind kind) =
     match Artifact.kind_of_string manifest.kind with

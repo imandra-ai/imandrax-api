@@ -15,7 +15,7 @@ let to_msg (self : Artifact.t) : msg =
   Proto.make_art
     ~kind:(Artifact.kind_to_string kind)
     ~data:(Bytes.unsafe_of_string data)
-    ~api_version:Versioning.version ()
+    ~api_version:Versioning.api_types_version ()
 
 let to_msg_str ?(enc = Pbrt.Encoder.create ()) (self : Artifact.t) : string =
   Pbrt.Encoder.clear enc;
@@ -34,10 +34,10 @@ let of_msg (msg : msg) : Artifact.t Error.result =
   in
 
   (* check version compat *)
-  if msg.api_version <> Versioning.version then
+  if msg.api_version <> Versioning.api_types_version then
     Error.failf ~kind:Error_kinds.versionMismatchError
       "ImandraX API types version is %S, but data has version %S."
-      Versioning.version msg.api_version;
+      Versioning.api_types_version msg.api_version;
 
   let res =
     let@ () = Error.guards "Reading data from protobuf" in
