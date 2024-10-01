@@ -1,16 +1,21 @@
 (** Simple client for ImandraX *)
 
-module Log = (val Logs.src_log (Logs.Src.create "imandrax.api.client"))
-module API = Imandrax_api_proto
-module Rpool = Rpool
+open struct
+  module Prelude = struct
+    module Log = (val Logs.src_log (Logs.Src.create "imandrax.api.client"))
+    module API = Imandrax_api_proto
+    module L_API = Imandrax_api
+    module Rpool = Rpool
+  end
+end
+
+include Prelude
 
 module type FUT = sig
   type 'a t
 end
 
 module Make (Fut : FUT) = struct
-  module Fut = Fut
-
   class type rpc_client = object
     method disconnect : unit -> unit
     method active : unit -> bool
@@ -53,6 +58,50 @@ module Make (Fut : FUT) = struct
   let disconnect (self : t) =
     Log.info (fun k -> k "disconnecting %a" pp self);
     self.rpc#disconnect ()
+
+  let get_session ?timeout_s (self : t) : API.session Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let req =
+      API.make_session_create_req
+        ~api_version:L_API.Versioning.api_types_version ()
+    in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.create_session req
+
+  let status ?timeout_s (self : t) : API.string_msg Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.status ()
+
+  let eval_src ?timeout_s (self : t) ~(src : string) ~(session : API.session) ()
+      : API.eval_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_eval_src_req ~session:(Some session) ~src () in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.eval_src arg
+
+  let instance_src ?timeout_s (self : t) ~(src : string) ?hints
+      ~(session : API.session) () : API.instance_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg =
+      API.make_instance_src_req ~session:(Some session) ~hints ~src ()
+    in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.instance_src arg
+
+  let verify_src ?timeout_s (self : t) ~(src : string) ?hints
+      ~(session : API.session) () : API.verify_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_verify_src_req ~session:(Some session) ~hints ~src () in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.verify_src arg
+
+  let list_artifacts ?timeout_s (self : t) ~(task : API.task_id) () :
+      API.artifact_list_result Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_artifact_list_query ~task_id:(Some task) () in
+    self.rpc#rpc_call ~timeout_s API.Eval.Client.list_artifacts arg
+
+  let get_artifact_zip ?timeout_s (self : t) ~(task : API.task_id)
+      ~(kind : string) () : API.artifact_zip Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_artifact_get_query ~task_id:(Some task) ~kind () in
+    self.rpc#rpc_call ~timeout_s API.Eval.Client.get_artifact_zip arg
 
   module System = struct
     (** GC statistics *)
@@ -115,4 +164,14 @@ module Make (Fut : FUT) = struct
       let q = API.make_artifact_get_query ~task_id:(Some t) ~kind () in
       self.rpc#rpc_call ~timeout_s API.Eval.Client.get_artifact q
   end
+end
+
+module Fut_blocking = struct
+  type 'a t = 'a
+end
+
+(** Blocking style RPC *)
+module Blocking = struct
+  include Prelude
+  include Make (Fut_blocking)
 end
