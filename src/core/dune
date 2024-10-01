@@ -15,7 +15,10 @@
    (run ../internal/gen/gen_errors.exe))))
 
 (rule
-  (targets version_.ml)
-  (mode promote)
-  (deps API_TYPES_VERSION)
-  (action (with-stdout-to %{targets} (run ./gen/gen.exe))))
+ (targets version_.ml)
+ (mode promote)
+ (deps API_TYPES_VERSION)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./gen/gen.exe))))
