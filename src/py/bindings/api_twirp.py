@@ -4,183 +4,64 @@
 
 from google.protobuf import symbol_database as _symbol_database
 
-from twirp.base import Endpoint
-from twirp.server import TwirpServer
-from twirp.client import TwirpClient
-try:
-	from twirp.async_client import AsyncTwirpClient
-	_async_available = True
-except ModuleNotFoundError:
-	_async_available = False
+from ..twirp.client import TwirpClient
+_async_available = False
 
 _sym_db = _symbol_database.Default()
 
-class EvalServer(TwirpServer):
-
-	def __init__(self, *args, service, server_path_prefix="/twirp"):
-		super().__init__(service=service)
-		self._prefix = F"{server_path_prefix}/imandrax.api.Eval"
-		self._endpoints = {
-			"eval_code_snippet": Endpoint(
-				service_name="Eval",
-				name="eval_code_snippet",
-				function=getattr(service, "eval_code_snippet"),
-				input=_sym_db.GetSymbol("imandrax.api.CodeSnippet"),
-				output=_sym_db.GetSymbol("imandrax.api.CodeSnippetEvalResult"),
-			),
-			"parse_term": Endpoint(
-				service_name="Eval",
-				name="parse_term",
-				function=getattr(service, "parse_term"),
-				input=_sym_db.GetSymbol("imandrax.api.CodeSnippet"),
-				output=_sym_db.GetSymbol("imandrax.api.Artifact"),
-			),
-			"parse_type": Endpoint(
-				service_name="Eval",
-				name="parse_type",
-				function=getattr(service, "parse_type"),
-				input=_sym_db.GetSymbol("imandrax.api.CodeSnippet"),
-				output=_sym_db.GetSymbol("imandrax.api.Artifact"),
-			),
-			"list_artifacts": Endpoint(
-				service_name="Eval",
-				name="list_artifacts",
-				function=getattr(service, "list_artifacts"),
-				input=_sym_db.GetSymbol("imandrax.api.ArtifactListQuery"),
-				output=_sym_db.GetSymbol("imandrax.api.ArtifactListResult"),
-			),
-			"get_artifact": Endpoint(
-				service_name="Eval",
-				name="get_artifact",
-				function=getattr(service, "get_artifact"),
-				input=_sym_db.GetSymbol("imandrax.api.ArtifactGetQuery"),
-				output=_sym_db.GetSymbol("imandrax.api.Artifact"),
-			),
-			"get_artifact_zip": Endpoint(
-				service_name="Eval",
-				name="get_artifact_zip",
-				function=getattr(service, "get_artifact_zip"),
-				input=_sym_db.GetSymbol("imandrax.api.ArtifactGetQuery"),
-				output=_sym_db.GetSymbol("imandrax.api.ArtifactZip"),
-			),
-		}
 
 class EvalClient(TwirpClient):
 
-	def eval_code_snippet(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
+	def eval_code_snippet(self, *args, ctx, request, **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/imandrax.api.Eval/eval_code_snippet",
+			url=F"{self._server_path_prefix}/imandrax.api.Eval/eval_code_snippet",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("imandrax.api.CodeSnippetEvalResult"),
 			**kwargs,
 		)
 
-	def parse_term(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
+	def parse_term(self, *args, ctx, request, **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/imandrax.api.Eval/parse_term",
+			url=F"{self._server_path_prefix}/imandrax.api.Eval/parse_term",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
 			**kwargs,
 		)
 
-	def parse_type(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
+	def parse_type(self, *args, ctx, request, **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/imandrax.api.Eval/parse_type",
+			url=F"{self._server_path_prefix}/imandrax.api.Eval/parse_type",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
 			**kwargs,
 		)
 
-	def list_artifacts(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
+	def list_artifacts(self, *args, ctx, request, **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/imandrax.api.Eval/list_artifacts",
+			url=F"{self._server_path_prefix}/imandrax.api.Eval/list_artifacts",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactListResult"),
 			**kwargs,
 		)
 
-	def get_artifact(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
+	def get_artifact(self, *args, ctx, request, **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/imandrax.api.Eval/get_artifact",
+			url=F"{self._server_path_prefix}/imandrax.api.Eval/get_artifact",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
 			**kwargs,
 		)
 
-	def get_artifact_zip(self, *args, ctx, request, server_path_prefix="/twirp", **kwargs):
+	def get_artifact_zip(self, *args, ctx, request, **kwargs):
 		return self._make_request(
-			url=F"{server_path_prefix}/imandrax.api.Eval/get_artifact_zip",
+			url=F"{self._server_path_prefix}/imandrax.api.Eval/get_artifact_zip",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactZip"),
 			**kwargs,
 		)
-
-
-if _async_available:
-	class AsyncEvalClient(AsyncTwirpClient):
-
-		async def eval_code_snippet(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
-			return await self._make_request(
-				url=F"{server_path_prefix}/imandrax.api.Eval/eval_code_snippet",
-				ctx=ctx,
-				request=request,
-				response_obj=_sym_db.GetSymbol("imandrax.api.CodeSnippetEvalResult"),
-				session=session,
-				**kwargs,
-			)
-
-		async def parse_term(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
-			return await self._make_request(
-				url=F"{server_path_prefix}/imandrax.api.Eval/parse_term",
-				ctx=ctx,
-				request=request,
-				response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
-				session=session,
-				**kwargs,
-			)
-
-		async def parse_type(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
-			return await self._make_request(
-				url=F"{server_path_prefix}/imandrax.api.Eval/parse_type",
-				ctx=ctx,
-				request=request,
-				response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
-				session=session,
-				**kwargs,
-			)
-
-		async def list_artifacts(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
-			return await self._make_request(
-				url=F"{server_path_prefix}/imandrax.api.Eval/list_artifacts",
-				ctx=ctx,
-				request=request,
-				response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactListResult"),
-				session=session,
-				**kwargs,
-			)
-
-		async def get_artifact(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
-			return await self._make_request(
-				url=F"{server_path_prefix}/imandrax.api.Eval/get_artifact",
-				ctx=ctx,
-				request=request,
-				response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
-				session=session,
-				**kwargs,
-			)
-
-		async def get_artifact_zip(self, *, ctx, request, server_path_prefix="/twirp", session=None, **kwargs):
-			return await self._make_request(
-				url=F"{server_path_prefix}/imandrax.api.Eval/get_artifact_zip",
-				ctx=ctx,
-				request=request,
-				response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactZip"),
-				session=session,
-				**kwargs,
-			)
