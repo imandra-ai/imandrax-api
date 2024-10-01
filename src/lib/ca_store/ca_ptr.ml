@@ -21,7 +21,7 @@ type 'a t = Raw.t [@@deriving typereg]
 
 let[@inline] raw self = self
 let show (self : _ t) = Raw.show self
-let pp out self = Raw.pp out self
+let pp out (self : _ t) = Raw.pp out self
 let to_twine' st (self : _ t) = Raw.to_twine st (raw self)
 let of_twine' : _ t Imandrakit_twine.decoder = fun dec x -> Raw.of_twine dec x
 let to_twine _ st self = to_twine' st self
