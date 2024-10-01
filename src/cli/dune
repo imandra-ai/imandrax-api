@@ -14,7 +14,6 @@
   containers
   trace
   trace-tef
-  batrpc
   unix
   uuidm
   webbrowser
