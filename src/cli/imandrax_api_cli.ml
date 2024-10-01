@@ -19,13 +19,11 @@ type cli =
 
 let version (self : Opts.conn) : int =
   Utils.setup_logs ~debug:self.debug ();
-  let@ runner = Moonpool.Fifo_pool.with_ () in
   let@ (c : C.t) =
-    Utils.with_client ~rpc_json:self.rpc_json ?rpc_port:self.rpc_port ~runner
-      ~debug:self.debug ~local_rpc:self.local_rpc ~local_http:self.local_http
+    Utils.with_client ~debug:self.debug ~local_http:self.local_http
       ~dev:self.dev ()
   in
-  let v = C.System.version c |> Fut.wait_block_exn in
+  let v = C.System.version c in
   Fmt.printf "version %s (git=%s)" v.version
     (Option.value ~default:"<unknown>" v.git_version);
   0
@@ -44,17 +42,15 @@ let repeat_ ~every f =
 let gc_stats (self : Opts.conn_with_repeat) : int =
   Utils.setup_logs ~debug:self.debug ();
   Log.debug (fun k -> k "CONNECT %a" Opts.pp_conn_with_repeat self);
-  let@ runner = Moonpool.Fifo_pool.with_ () in
   let@ (c : C.t) =
-    Utils.with_client ~rpc_json:self.rpc_json ?rpc_port:self.rpc_port ~runner
-      ~local_http:self.local_http ~debug:self.debug ~local_rpc:self.local_rpc
+    Utils.with_client ~local_http:self.local_http ~debug:self.debug
       ~dev:self.dev ()
   in
 
   Log.debug (fun k -> k "CONNECTED %a" C.pp c);
 
   let run () =
-    let v = C.System.gc_stats c |> Fut.wait_block_exn in
+    let v = C.System.gc_stats c in
     Fmt.printf "%a@." pp_gc_stats v
   in
   match self.repeat with
@@ -65,13 +61,11 @@ let gc_stats (self : Opts.conn_with_repeat) : int =
 
 let reduce_memory (self : Opts.conn) : int =
   Utils.setup_logs ~debug:self.debug ();
-  let@ runner = Moonpool.Fifo_pool.with_ () in
   let@ (c : C.t) =
-    Utils.with_client ~rpc_json:self.rpc_json ?rpc_port:self.rpc_port ~runner
-      ~local_http:self.local_http ~debug:self.debug ~local_rpc:self.local_rpc
+    Utils.with_client ~local_http:self.local_http ~debug:self.debug
       ~dev:self.dev ()
   in
-  let v = C.System.release_memory c |> Fut.wait_block_exn in
+  let v = C.System.release_memory c in
   Fmt.printf "%a@." pp_gc_stats v;
   0
 

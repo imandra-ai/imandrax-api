@@ -8,7 +8,6 @@ bug-reports: "https://github.com/imandra-ai/imandrax-api/issues"
 depends: [
   "dune" {>= "3.0"}
   "ocaml" {>= "5.0"}
-  "moonpool"
   "containers" {>= "3.0"}
   "imandrax-api-client" {= version}
   "imandrax-api-client-ezcurl" {= version}

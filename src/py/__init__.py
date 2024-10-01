@@ -66,7 +66,6 @@ class SimpleClient(ClientWithSession, simple_api_twirp.SimpleClient):
 class EvalClient(ClientWithSession, api_twirp.EvalClient):
     pass
 
-
 class Client:
     def __init__(
         self,
