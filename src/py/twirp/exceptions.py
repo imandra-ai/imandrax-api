@@ -6,7 +6,7 @@ except ImportError:
 
 try:
     import ujson as json
-except:
+except ImportError:
     import json
 
 from . import errors
@@ -14,7 +14,7 @@ from . import errors
 
 
 class TwirpServerException(httplib.HTTPException):
-    def __init__(self, *args, code, message, meta={}):
+    def __init__(self, *, code, message, meta={}):
         try:
             self._code = errors.Errors(code)
         except ValueError:
@@ -58,7 +58,7 @@ class TwirpServerException(httplib.HTTPException):
             meta=err_dict.get('meta',{}),
         )
 
-def InvalidArgument(*args, argument, error):
+def InvalidArgument(*, argument, error):
     return TwirpServerException(
         code=errors.Errors.InvalidArgument,
         message="{} {}".format(argument, error),
@@ -67,7 +67,7 @@ def InvalidArgument(*args, argument, error):
         }
     )
 
-def RequiredArgument(*args, argument):
+def RequiredArgument(*, argument):
     return InvalidArgument(
         argument=argument,
         error="is required"

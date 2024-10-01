@@ -1,6 +1,5 @@
 import os
 import logging
-import sys
 
 import structlog
 from structlog.stdlib import LoggerFactory, add_log_level
