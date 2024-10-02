@@ -4,12 +4,13 @@ type kind = {
   name: string;
   ty: string;
   tag: string;
+  pp: string;
   docstring: string;
   to_twine: string;
   of_twine: string;
 }
 
-let mk ~tag ~docstring ?to_twine ?of_twine name ty : kind =
+let mk ~tag ~docstring ?pp ?to_twine ?of_twine name ty : kind =
   let to_twine =
     match to_twine with
     | Some t -> t
@@ -24,7 +25,15 @@ let mk ~tag ~docstring ?to_twine ?of_twine name ty : kind =
       let pre = CCString.chop_suffix ~suf:".t" ty |> Option.get in
       pre ^ ".of_twine"
   in
-  { name; ty; tag; to_twine; of_twine; docstring }
+
+  let pp =
+    match pp with
+    | Some f -> f
+    | None ->
+      let pre = CCString.chop_suffix ~suf:".t" ty |> Option.get in
+      pre ^ ".pp"
+  in
+  { name; ty; tag; to_twine; of_twine; docstring; pp }
 
 let all : kind list =
   [
@@ -40,7 +49,7 @@ let all : kind list =
       ~docstring:"Result of evaluating a term";
     mk "Model" "Imandrax_api_cir.Model.t" ~tag:"cir.model"
       ~docstring:"A CIR-level model";
-    mk "Show" "string" ~tag:"show"
+    mk "Show" "string" ~tag:"show" ~pp:"CCFormat.Dump.string"
       ~to_twine:"(fun _enc s -> Imandrakit_twine.Immediate.string s)"
       ~of_twine:
         "(fun d i -> Imandrakit_twine.Decode.(string d @@ deref_rec d i))"
@@ -122,6 +131,7 @@ let main_ml () =
   List.iter
     (fun { name; to_twine; _ } -> pf "|  %s -> %s enc x\n" name to_twine)
     all;
+  pf "\n";
 
   List.iter
     (fun { name; ty; of_twine; _ } ->
@@ -134,6 +144,11 @@ let main_ml () =
     "let of_twine : type a. a kind -> a Imandrakit_twine.Decode.decoder = \
      function\n";
   List.iter (fun { name; of_twine; _ } -> pf "| %s -> %s\n" name of_twine) all;
+  pf "\n";
+
+  pf "let pp out (Artifact (kind,x)) : unit = match kind with\n";
+  List.iter (fun { name; pp; _ } -> pf "| %s -> %s out x\n" name pp) all;
+  pf "\n";
 
   ()
 

@@ -1,5 +1,9 @@
 [@@@ocaml.warning "-27-30-39-44"]
 
+type session_create_req = {
+  api_version : string;
+}
+
 type decompose_req = {
   session : Session.session option;
   name : string;
@@ -131,6 +135,12 @@ and instance_res = {
   res : instance_res_res;
   errors : Error.error list;
   task : Task.task option;
+}
+
+let rec default_session_create_req 
+  ?api_version:((api_version:string) = "")
+  () : session_create_req  = {
+  api_version;
 }
 
 let rec default_decompose_req 
@@ -311,6 +321,14 @@ and default_instance_res
   res;
   errors;
   task;
+}
+
+type session_create_req_mutable = {
+  mutable api_version : string;
+}
+
+let default_session_create_req_mutable () : session_create_req_mutable = {
+  api_version = "";
 }
 
 type decompose_req_mutable = {
@@ -522,6 +540,12 @@ let default_instance_res_mutable () : instance_res_mutable = {
 
 (** {2 Make functions} *)
 
+let rec make_session_create_req 
+  ~(api_version:string)
+  () : session_create_req  = {
+  api_version;
+}
+
 let rec make_decompose_req 
   ?session:((session:Session.session option) = None)
   ~(name:string)
@@ -699,6 +723,12 @@ let rec make_instance_res
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Formatters} *)
+
+let rec pp_session_create_req fmt (v:session_create_req) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "api_version" Pbrt.Pp.pp_string fmt v.api_version;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
 
 let rec pp_decompose_req fmt (v:decompose_req) = 
   let pp_i fmt () =
@@ -880,6 +910,11 @@ and pp_instance_res fmt (v:instance_res) =
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Protobuf Encoding} *)
+
+let rec encode_pb_session_create_req (v:session_create_req) encoder = 
+  Pbrt.Encoder.string v.api_version encoder;
+  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  ()
 
 let rec encode_pb_decompose_req (v:decompose_req) encoder = 
   begin match v.session with
@@ -1233,6 +1268,24 @@ and encode_pb_instance_res (v:instance_res) encoder =
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Protobuf Decoding} *)
+
+let rec decode_pb_session_create_req d =
+  let v = default_session_create_req_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.api_version <- Pbrt.Decoder.string d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(session_create_req), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    api_version = v.api_version;
+  } : session_create_req)
 
 let rec decode_pb_decompose_req d =
   let v = default_decompose_req_mutable () in
@@ -1872,6 +1925,11 @@ and decode_pb_instance_res d =
 
 (** {2 Protobuf YoJson Encoding} *)
 
+let rec encode_json_session_create_req (v:session_create_req) = 
+  let assoc = [] in 
+  let assoc = ("apiVersion", Pbrt_yojson.make_string v.api_version) :: assoc in
+  `Assoc assoc
+
 let rec encode_json_decompose_req (v:decompose_req) = 
   let assoc = [] in 
   let assoc = match v.session with
@@ -2140,6 +2198,22 @@ and encode_json_instance_res (v:instance_res) =
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 JSON Decoding} *)
+
+let rec decode_json_session_create_req d =
+  let v = default_session_create_req_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("apiVersion", json_value) -> 
+      v.api_version <- Pbrt_yojson.string json_value "session_create_req" "api_version"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    api_version = v.api_version;
+  } : session_create_req)
 
 let rec decode_json_decompose_req d =
   let v = default_decompose_req_mutable () in
@@ -2688,17 +2762,17 @@ module Simple = struct
         () : (decompose_req, unary, decompose_res, unary) Client.rpc)
     open Pbrt_services
     
-    let create_session : (Utils.empty, unary, Session.session, unary) Client.rpc =
+    let create_session : (session_create_req, unary, Session.session, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"create_session"
         ~req_mode:Client.Unary
         ~res_mode:Client.Unary
-        ~encode_json_req:Utils.encode_json_empty
-        ~encode_pb_req:Utils.encode_pb_empty
+        ~encode_json_req:encode_json_session_create_req
+        ~encode_pb_req:encode_pb_session_create_req
         ~decode_json_res:Session.decode_json_session
         ~decode_pb_res:Session.decode_pb_session
-        () : (Utils.empty, unary, Session.session, unary) Client.rpc)
+        () : (session_create_req, unary, Session.session, unary) Client.rpc)
     open Pbrt_services
     
     let eval_src : (eval_src_req, unary, eval_res, unary) Client.rpc =
@@ -2799,14 +2873,14 @@ module Simple = struct
         ~decode_pb_req:decode_pb_decompose_req
         () : _ Server.rpc)
     
-    let create_session : (Utils.empty,unary,Session.session,unary) Server.rpc = 
+    let create_session : (session_create_req,unary,Session.session,unary) Server.rpc = 
       (Server.mk_rpc ~name:"create_session"
         ~req_mode:Server.Unary
         ~res_mode:Server.Unary
         ~encode_json_res:Session.encode_json_session
         ~encode_pb_res:Session.encode_pb_session
-        ~decode_json_req:Utils.decode_json_empty
-        ~decode_pb_req:Utils.decode_pb_empty
+        ~decode_json_req:decode_json_session_create_req
+        ~decode_pb_req:decode_pb_session_create_req
         () : _ Server.rpc)
     
     let eval_src : (eval_src_req,unary,eval_res,unary) Server.rpc = 

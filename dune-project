@@ -72,27 +72,6 @@
   logs
   (ocaml
    (>= 4.12))
-  (moonpool
-   (and
-    (>= 0.7)
-    (< 0.8)))
-  (pbrt
-   (>= 3.0))
-  (pbrt_yojson
-   (>= 3.0))
-  (pbrt_services
-   (>= 3.0))))
-
-(package
- (name imandrax-api-client-batrpc)
- (synopsis "RPC client for ImandraX's API using BatRPC")
- (depends
-  (imandrax-api-client
-   (= :version))
-  batrpc
-  moonpool
-  (trace
-   (>= 0.6))
   (pbrt
    (>= 3.0))
   (pbrt_yojson
@@ -106,8 +85,8 @@
  (depends
   (imandrax-api-client
    (= :version))
+  imandrakit-thread
   ezcurl
-  moonpool
   (trace
    (>= 0.6))
   (pbrt
@@ -139,7 +118,6 @@
   (synopsis "Interactive toplevel for ImandraX's API")
   (depends
     (ocaml (>= 5.0))
-    moonpool
     (containers (>= 3.0))
     (imandrax-api-client (= :version))
     (imandrax-api-client-ezcurl (= :version))
@@ -151,12 +129,11 @@
   (synopsis "CLI for ImandraX's API")
   (depends
     (ocaml (>= 5.0))
-    batrpc
-    moonpool
     (linenoise (>= 1.4))
     (containers (>= 3.0))
     (imandrax-api-client (= :version))
-    (imandrax-api-client-batrpc (= :version))
+    (imandrax-api-client-ezcurl (= :version))
+    moonpool
     (trace (>= 0.6))
     uuidm
     xdg

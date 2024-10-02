@@ -4,7 +4,6 @@
  (synopsis "Client for ImandraX using ezcurl+twirp")
  (libraries
   imandrax-api.proto
+  imandrakit-thread
   (re_export imandrax-api-client.core)
-  (re_export imandrax-api-client.moonpool)
-  (re_export moonpool)
   (re_export twirp_ezcurl)))

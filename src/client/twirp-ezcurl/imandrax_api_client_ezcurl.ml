@@ -1,10 +1,15 @@
+(** A simple HTTP client based on {{: https://github.com/c-cube/ezcurl/} ezcurl}.
+
+    All calls in this clients are blocking. The client is not thread safe and must be
+    protected adequately if shared between threads. *)
+
 (* TODO: instantiate core client with
    our Fut, our way of connecting, and our way of making a request/reply
 *)
 
+open Imandrakit_thread
+
 open struct
-  module Log = Imandrax_api_client_core.Log
-  module Rpool = Imandrax_api_client_core.Rpool
   module C = Twirp_ezcurl
 
   let ( let@ ) = ( @@ )
@@ -17,7 +22,7 @@ open struct
       | _ -> None)
 end
 
-include Imandrax_api_client_moonpool
+include Imandrax_api_client_core.Blocking
 
 module Addr = struct
   type t = {
@@ -41,9 +46,8 @@ module Conn = struct
     addr: Addr.t;
     encoding: [ `JSON | `BINARY ];
     verbose: bool;
-    clients: Curl.t Rpool.t;  (** pool of clients *)
+    client: Curl.t Lock.t;  (** single, sessionfull client *)
     auth_token: string option;  (** JWT *)
-    runner: Moonpool.Runner.t;
   }
 
   let pp out (self : t) =
@@ -52,35 +56,32 @@ module Conn = struct
   let disconnect (self : t) : unit =
     if Atomic.exchange self.active false then (
       Log.debug (fun k -> k "disconnecting %a" pp self);
-      Rpool.dispose self.clients
+      let@ c = Lock.with_lock self.client in
+      Ezcurl.delete c
     );
     ()
 
-  let rpc_call (self : t) ~timeout_s:_ rpc req : _ Fut.t =
+  let rpc_call (self : t) ~timeout_s:_ rpc req : _ =
     (* FIXME: use timeout *)
-    let run () =
-      let@ client = Rpool.with_resource self.clients in
+    let@ client = Lock.with_lock self.client in
 
-      let auth_header =
-        match self.auth_token with
-        | None -> []
-        | Some tok -> [ "Authorization", spf "Bearer %s" tok ]
-      in
-      Log.debug (fun k ->
-          k "auth headers: [%s]"
-            (String.concat ","
-            @@ List.map (fun (k, v) -> spf "%s: %s" k v)
-            @@ auth_header));
-
-      let headers = auth_header in
-      Curl.set_verbose client self.verbose;
-
-      C.call_exn ~encoding:self.encoding ~prefix:(Some "api/v1") ~client
-        ~host:self.addr.host ~port:self.addr.port ~use_tls:self.addr.tls
-        ~headers rpc req
+    let auth_header =
+      match self.auth_token with
+      | None -> []
+      | Some tok -> [ "Authorization", spf "Bearer %s" tok ]
     in
+    Log.debug (fun k ->
+        k "auth headers: [%s]"
+          (String.concat ","
+          @@ List.map (fun (k, v) -> spf "%s: %s" k v)
+          @@ auth_header));
 
-    Moonpool.Fut.spawn ~on:self.runner run
+    let headers = auth_header in
+    Curl.set_verbose client self.verbose;
+
+    C.call_exn ~encoding:self.encoding ~prefix:(Some "api/v1") ~client
+      ~host:self.addr.host ~port:self.addr.port ~use_tls:self.addr.tls ~headers
+      rpc req
 
   let to_rpc (self : t) : rpc_client =
     object
@@ -96,18 +97,21 @@ module Conn = struct
               Pbrt_services.Value_mode.unary )
             Pbrt_services.Client.rpc ->
             'req ->
-            'res Fut.t =
+            'res =
         fun ~timeout_s rpc req -> rpc_call self ~timeout_s rpc req
     end
 end
 
 let create ?(tls = true) ?(verbose = false) ?(encoding = `JSON) ~host ~port
-    ~runner ~(auth_token : string option) () : t =
+    ~(auth_token : string option) () : t =
   let addr = { Addr.tls; host; port } in
-  let clients =
-    Rpool.create ~clear:Curl.reset ~dispose:Curl.cleanup
-      ~mk_item:(fun () -> Curl.init ())
-      ~max_size:16 ()
+  let client =
+    let set_opts curl =
+      (* enable cookie handling so we always talk to the same server *)
+      Curl.set_cookiefile curl ""
+    in
+    let c = Ezcurl.make ~set_opts () in
+    Lock.create c
   in
   let conn =
     {
@@ -115,9 +119,8 @@ let create ?(tls = true) ?(verbose = false) ?(encoding = `JSON) ~host ~port
       encoding;
       verbose;
       addr;
-      clients;
+      client;
       auth_token;
-      runner;
     }
   in
   create ~addr:(Addr.show addr) ~rpc:(Conn.to_rpc conn) ()

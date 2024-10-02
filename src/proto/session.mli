@@ -13,10 +13,12 @@ type session = {
 
 type session_create = {
   po_check : bool option;
+  api_version : string;
 }
 
 type session_open = {
   id : session option;
+  api_version : string;
 }
 
 
@@ -30,12 +32,14 @@ val default_session :
 
 val default_session_create : 
   ?po_check:bool option ->
+  ?api_version:string ->
   unit ->
   session_create
 (** [default_session_create ()] is the default value for type [session_create] *)
 
 val default_session_open : 
   ?id:session option ->
+  ?api_version:string ->
   unit ->
   session_open
 (** [default_session_open ()] is the default value for type [session_open] *)
@@ -51,12 +55,14 @@ val make_session :
 
 val make_session_create : 
   ?po_check:bool option ->
+  api_version:string ->
   unit ->
   session_create
 (** [make_session_create … ()] is a builder for type [session_create] *)
 
 val make_session_open : 
   ?id:session option ->
+  api_version:string ->
   unit ->
   session_open
 (** [make_session_open … ()] is a builder for type [session_open] *)

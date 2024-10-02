@@ -72,5 +72,6 @@ let all : t list =
   make "DirectoryCreationError" "Error while creating directory";
   make "DecompError" "Error during decomposition";
   make "VersionMismatchError" "Versions do not match";
+  make "OhNoError" "Oh no 😰";
   ]
   [@ocamlformat "disable"]

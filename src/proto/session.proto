@@ -15,11 +15,17 @@ message Session {
 message SessionCreate {
   /// Do we check Proof Obligations? Default true.
   optional bool po_check = 1;
+
+  // the API types version (mandatory)
+  string api_version = 2;
 }
 
 /// Reconnect to the given session
 message SessionOpen {
   Session id = 1;
+
+  // the API types version (mandatory)
+  string api_version = 2;
 }
 
 service SessionManager {

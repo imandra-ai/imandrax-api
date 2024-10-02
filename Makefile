@@ -60,10 +60,7 @@ watch:
 update-submodules:
 	git submodule update --init
 
-opam-pin-submodules-nodep:
-	opam pin -k path -y -n vendor/batrpc
-
-opam-pin-submodules: update-submodules opam-pin-submodules-nodep
+opam-pin-submodules: update-submodules
 
 opam-install-deps: update-submodules
 	opam install . --deps-only

@@ -77,13 +77,12 @@ end = struct
 end
 
 let process_input ~client ~session ~(code : string) () : unit =
-  let res = C.Eval.eval_code client ~session ~code () in
-
-  match Fut.wait_block res with
-  | Error (e, bt) ->
+  match C.Eval.eval_code client ~session ~code () with
+  | exception e ->
+    let bt = Printexc.get_raw_backtrace () in
     Fmt.eprintf "RPC call failed with %s@ %s@." (Printexc.to_string e)
       (Printexc.raw_backtrace_to_string bt)
-  | Ok _res ->
+  | _res ->
     (* TODO: also wait for each Task! *)
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.show-res" in
     Fmt.printf "EVALed: %a@." C.API.pp_code_snippet_eval_result _res
@@ -99,15 +98,12 @@ let main_loop ~reader ~session ~(client : C.t) () : unit =
   Reader.dispose reader
 
 let do_keepalive ~runner ~(client : C.t) ~session () =
-  ignore
-    (Fut.spawn ~on:runner (fun () ->
-         Log.info (fun k -> k "send keep alive");
-         try C.Session.keep_alive client session |> Fut.wait_block_exn
-         with exn ->
-           Log.err (fun k ->
-               k "error in keepalive: %s" (Printexc.to_string exn));
-           C.disconnect client)
-      : unit Fut.t)
+  Moonpool.run_async runner (fun () ->
+      Log.info (fun k -> k "send keep alive");
+      try C.Session.keep_alive client session
+      with exn ->
+        Log.err (fun k -> k "error in keepalive: %s" (Printexc.to_string exn));
+        C.disconnect client)
 
 let period_keep_session_alive_s = 30.
 
@@ -123,18 +119,17 @@ let run (self : t) : int =
   let@ runner = Moonpool.Fifo_pool.with_ () in
   let@ (client : C.t) =
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "repl.connect" in
-    Utils.with_client ~rpc_json:self.rpc_json ?rpc_port:self.rpc_port ~runner
-      ~local_http:self.local_http ~debug:self.debug ~local_rpc:self.local_rpc
+    Utils.with_client ~local_http:self.local_http ~debug:self.debug
       ~dev:self.dev ()
   in
 
   let session =
     match self.session with
-    | None -> C.Session.create client |> Fut.wait_block_exn
+    | None -> C.Session.create client
     | Some id ->
       (* reuse an existing session *)
       let sesh = C.API.make_session ~id () in
-      (try C.Session.open_ client sesh |> Fut.wait_block_exn
+      (try C.Session.open_ client sesh
        with e ->
          Fmt.eprintf "could not open session: %s@." (Printexc.to_string e);
          raise e);

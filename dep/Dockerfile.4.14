@@ -7,14 +7,12 @@ COPY --chown=opam \
   imandrax-api.opam  \
   imandrax-api-cli.opam  \
   imandrax-api-client.opam  \
-  imandrax-api-client-batrpc.opam  \
   imandrax-api-client-ezcurl.opam  \
   imandrax-api-client-cohttp.opam  \
   Makefile dune-project .ocamlformat \
   ./
 
 RUN opam depext -yt zarith conf-pkg-config camlzip
-RUN opam exec -- make opam-pin-submodules-nodep
 RUN opam pin -n .
 
 RUN opam install -t imandrax-api imandrax-api-client imandrax-api-client-cohttp \

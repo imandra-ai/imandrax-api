@@ -6,10 +6,12 @@ type session = {
 
 type session_create = {
   po_check : bool option;
+  api_version : string;
 }
 
 type session_open = {
   id : session option;
+  api_version : string;
 }
 
 let rec default_session 
@@ -20,14 +22,18 @@ let rec default_session
 
 let rec default_session_create 
   ?po_check:((po_check:bool option) = None)
+  ?api_version:((api_version:string) = "")
   () : session_create  = {
   po_check;
+  api_version;
 }
 
 let rec default_session_open 
   ?id:((id:session option) = None)
+  ?api_version:((api_version:string) = "")
   () : session_open  = {
   id;
+  api_version;
 }
 
 type session_mutable = {
@@ -40,18 +46,22 @@ let default_session_mutable () : session_mutable = {
 
 type session_create_mutable = {
   mutable po_check : bool option;
+  mutable api_version : string;
 }
 
 let default_session_create_mutable () : session_create_mutable = {
   po_check = None;
+  api_version = "";
 }
 
 type session_open_mutable = {
   mutable id : session option;
+  mutable api_version : string;
 }
 
 let default_session_open_mutable () : session_open_mutable = {
   id = None;
+  api_version = "";
 }
 
 
@@ -65,14 +75,18 @@ let rec make_session
 
 let rec make_session_create 
   ?po_check:((po_check:bool option) = None)
+  ~(api_version:string)
   () : session_create  = {
   po_check;
+  api_version;
 }
 
 let rec make_session_open 
   ?id:((id:session option) = None)
+  ~(api_version:string)
   () : session_open  = {
   id;
+  api_version;
 }
 
 [@@@ocaml.warning "-27-30-39"]
@@ -88,12 +102,14 @@ let rec pp_session fmt (v:session) =
 let rec pp_session_create fmt (v:session_create) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "po_check" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.po_check;
+    Pbrt.Pp.pp_record_field ~first:false "api_version" Pbrt.Pp.pp_string fmt v.api_version;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
 let rec pp_session_open fmt (v:session_open) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "id" (Pbrt.Pp.pp_option pp_session) fmt v.id;
+    Pbrt.Pp.pp_record_field ~first:false "api_version" Pbrt.Pp.pp_string fmt v.api_version;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -113,6 +129,8 @@ let rec encode_pb_session_create (v:session_create) encoder =
     Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
   | None -> ();
   end;
+  Pbrt.Encoder.string v.api_version encoder;
+  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   ()
 
 let rec encode_pb_session_open (v:session_open) encoder = 
@@ -122,6 +140,8 @@ let rec encode_pb_session_open (v:session_open) encoder =
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | None -> ();
   end;
+  Pbrt.Encoder.string v.api_version encoder;
+  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   ()
 
 [@@@ocaml.warning "-27-30-39"]
@@ -158,10 +178,16 @@ let rec decode_pb_session_create d =
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(session_create), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.api_version <- Pbrt.Decoder.string d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(session_create), field(2)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     po_check = v.po_check;
+    api_version = v.api_version;
   } : session_create)
 
 let rec decode_pb_session_open d =
@@ -176,10 +202,16 @@ let rec decode_pb_session_open d =
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(session_open), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.api_version <- Pbrt.Decoder.string d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(session_open), field(2)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     id = v.id;
+    api_version = v.api_version;
   } : session_open)
 
 [@@@ocaml.warning "-27-30-39"]
@@ -197,6 +229,7 @@ let rec encode_json_session_create (v:session_create) =
     | None -> assoc
     | Some v -> ("poCheck", Pbrt_yojson.make_bool v) :: assoc
   in
+  let assoc = ("apiVersion", Pbrt_yojson.make_string v.api_version) :: assoc in
   `Assoc assoc
 
 let rec encode_json_session_open (v:session_open) = 
@@ -205,6 +238,7 @@ let rec encode_json_session_open (v:session_open) =
     | None -> assoc
     | Some v -> ("id", encode_json_session v) :: assoc
   in
+  let assoc = ("apiVersion", Pbrt_yojson.make_string v.api_version) :: assoc in
   `Assoc assoc
 
 [@@@ocaml.warning "-27-30-39"]
@@ -236,11 +270,14 @@ let rec decode_json_session_create d =
   List.iter (function 
     | ("poCheck", json_value) -> 
       v.po_check <- Some (Pbrt_yojson.bool json_value "session_create" "po_check")
+    | ("apiVersion", json_value) -> 
+      v.api_version <- Pbrt_yojson.string json_value "session_create" "api_version"
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     po_check = v.po_check;
+    api_version = v.api_version;
   } : session_create)
 
 let rec decode_json_session_open d =
@@ -252,11 +289,14 @@ let rec decode_json_session_open d =
   List.iter (function 
     | ("id", json_value) -> 
       v.id <- Some ((decode_json_session json_value))
+    | ("apiVersion", json_value) -> 
+      v.api_version <- Pbrt_yojson.string json_value "session_open" "api_version"
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     id = v.id;
+    api_version = v.api_version;
   } : session_open)
 
 module SessionManager = struct
