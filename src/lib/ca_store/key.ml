@@ -13,6 +13,7 @@ let hash = CCHash.string
 
 module Tbl = Str_tbl
 module Map = Str_map
+module Set = Str_set
 
 (* caching *)
 let () =
