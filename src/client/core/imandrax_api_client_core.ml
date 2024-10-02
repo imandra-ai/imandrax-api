@@ -1,4 +1,4 @@
-(** Simple client for ImandraX *)
+(** Example client for ImandraX *)
 
 open struct
   module Prelude = struct
