@@ -85,23 +85,6 @@
    (>= 3.0))))
 
 (package
- (name imandrax-api-client-batrpc)
- (synopsis "RPC client for ImandraX's API using BatRPC")
- (depends
-  (imandrax-api-client
-   (= :version))
-  batrpc
-  (moonpool (and (>= 0.7) (< 0.8)))
-  (trace
-   (>= 0.6))
-  (pbrt
-   (>= 3.0))
-  (pbrt_yojson
-   (>= 3.0))
-  (pbrt_services
-   (>= 3.0))))
-
-(package
  (name imandrax-api-client-ezcurl)
  (synopsis "RPC client for ImandraX's API using Ezcurl")
  (depends
