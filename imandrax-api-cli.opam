@@ -8,14 +8,6 @@ bug-reports: "https://github.com/imandra-ai/imandrax-api/issues"
 depends: [
   "dune" {>= "3.0"}
   "ocaml" {>= "5.0"}
-<<<<<<< HEAD
-||||||| parent of 4047c97 (chore: update opam files)
-  "batrpc"
-  "moonpool"
-=======
-  "batrpc"
-  "moonpool" {>= "0.7" & < "0.8"}
->>>>>>> 4047c97 (chore: update opam files)
   "linenoise" {>= "1.4"}
   "containers" {>= "3.0"}
   "imandrax-api-client" {= version}
