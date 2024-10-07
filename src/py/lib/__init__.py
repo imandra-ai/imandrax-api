@@ -2905,215 +2905,16 @@ def Report_Report_of_twine(d: twine.Decoder, off: int) -> Report_Report:
     x = [Report_Report_event_of_twine(d=d, off=x) for x in d.get_array(off=off)] # single unboxed field
     return Report_Report(events=x)
 
-# clique Imandrax_api_proof.Arg.t
-# def Imandrax_api_proof.Arg.t (mangled name: "Proof_Arg")
+# clique Imandrax_api_proof.proof
+# def Imandrax_api_proof.proof (mangled name: "Proof_proof")
 @dataclass(slots=True, frozen=True)
-class Proof_Arg_A_term[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    arg: "_V_tyreg_poly_term"
+class Proof_proof:
+    data: Proof_bytes
 
-def Proof_Arg_A_term_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Proof_Arg_A_term[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    arg = decode__tyreg_poly_term(d=d,off=args[0])
-    return Proof_Arg_A_term(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Proof_Arg_A_ty[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    arg: "_V_tyreg_poly_ty"
-
-def Proof_Arg_A_ty_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Proof_Arg_A_ty[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    arg = decode__tyreg_poly_ty(d=d,off=args[0])
-    return Proof_Arg_A_ty(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Proof_Arg_A_int[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    arg: int
-
-def Proof_Arg_A_int_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Proof_Arg_A_int[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    arg = d.get_int(off=args[0])
-    return Proof_Arg_A_int(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Proof_Arg_A_string[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    arg: str
-
-def Proof_Arg_A_string_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Proof_Arg_A_string[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    arg = d.get_str(off=args[0])
-    return Proof_Arg_A_string(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Proof_Arg_A_list[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    arg: list[Proof_Arg["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
-
-def Proof_Arg_A_list_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Proof_Arg_A_list[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    arg = [Proof_Arg_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=args[0])]
-    return Proof_Arg_A_list(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Proof_Arg_A_dict[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    arg: list[tuple[str,Proof_Arg["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]
-
-def Proof_Arg_A_dict_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Proof_Arg_A_dict[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    arg = [(lambda tup: (d.get_str(off=tup[0]),Proof_Arg_of_twine(d=d,off=tup[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[0])]
-    return Proof_Arg_A_dict(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Proof_Arg_A_seq[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    arg: Sequent_poly["_V_tyreg_poly_term"]
-
-def Proof_Arg_A_seq_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Proof_Arg_A_seq[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    arg = Sequent_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
-    return Proof_Arg_A_seq(arg=arg)
-
-type Proof_Arg[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Proof_Arg_A_term[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_ty[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_int[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_string[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_list[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_dict[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_seq[_V_tyreg_poly_term,_V_tyreg_poly_ty]
-
-def Proof_Arg_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Proof_Arg:
-    match d.get_cstor(off=off):
-         case twine.Constructor(idx=0, args=args):
-             args = tuple(args)
-             return Proof_Arg_A_term_of_twine(d=d, args=args, d0=d0,d1=d1,)
-         case twine.Constructor(idx=1, args=args):
-             args = tuple(args)
-             return Proof_Arg_A_ty_of_twine(d=d, args=args, d0=d0,d1=d1,)
-         case twine.Constructor(idx=2, args=args):
-             args = tuple(args)
-             return Proof_Arg_A_int_of_twine(d=d, args=args, d0=d0,d1=d1,)
-         case twine.Constructor(idx=3, args=args):
-             args = tuple(args)
-             return Proof_Arg_A_string_of_twine(d=d, args=args, d0=d0,d1=d1,)
-         case twine.Constructor(idx=4, args=args):
-             args = tuple(args)
-             return Proof_Arg_A_list_of_twine(d=d, args=args, d0=d0,d1=d1,)
-         case twine.Constructor(idx=5, args=args):
-             args = tuple(args)
-             return Proof_Arg_A_dict_of_twine(d=d, args=args, d0=d0,d1=d1,)
-         case twine.Constructor(idx=6, args=args):
-             args = tuple(args)
-             return Proof_Arg_A_seq_of_twine(d=d, args=args, d0=d0,d1=d1,)
-         case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Proof_Arg, got invalid constructor {idx}')
-
-# clique Imandrax_api_proof.Var_poly.t
-# def Imandrax_api_proof.Var_poly.t (mangled name: "Proof_Var_poly")
-type Proof_Var_poly[_V_tyreg_poly_ty] = tuple[Uid,"_V_tyreg_poly_ty"]
-
-def Proof_Var_poly_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],off: int) -> Proof_Var_poly:
-    decode__tyreg_poly_ty = d0
-    return (lambda tup: (Uid_of_twine(d=d, off=tup[0]),decode__tyreg_poly_ty(d=d,off=tup[1])))(tuple(d.get_array(off=off)))
-
-# clique Imandrax_api_proof.View.t
-# def Imandrax_api_proof.View.t (mangled name: "Proof_View")
-@dataclass(slots=True, frozen=True)
-class Proof_View_T_assume[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]:
-    pass
-
-@dataclass(slots=True, frozen=True)
-class Proof_View_T_subst[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]:
-    t_subst: list[tuple[Proof_Var_poly["_V_tyreg_poly_ty"],"_V_tyreg_poly_term"]]
-    ty_subst: list[tuple[Uid,"_V_tyreg_poly_ty"]]
-    premise: "_V_tyreg_poly_proof"
-
-
-def Proof_View_T_subst_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_proof],args: tuple[int, ...]) -> Proof_View_T_subst[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    decode__tyreg_poly_proof = d2
-    t_subst = [(lambda tup: (Proof_Var_poly_of_twine(d=d,off=tup[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[0])]
-    ty_subst = [(lambda tup: (Uid_of_twine(d=d, off=tup[0]),decode__tyreg_poly_ty(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[1])]
-    premise = decode__tyreg_poly_proof(d=d,off=args[2])
-    return Proof_View_T_subst(t_subst=t_subst,ty_subst=ty_subst,premise=premise)
-
-
-@dataclass(slots=True, frozen=True)
-class Proof_View_T_deduction[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]:
-    premises: list[tuple[str,list["_V_tyreg_poly_proof"]]]
-
-
-def Proof_View_T_deduction_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_proof],args: tuple[int, ...]) -> Proof_View_T_deduction[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    decode__tyreg_poly_proof = d2
-    premises = [(lambda tup: (d.get_str(off=tup[0]),[decode__tyreg_poly_proof(d=d,off=x) for x in d.get_array(off=tup[1])]))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[0])]
-    return Proof_View_T_deduction(premises=premises)
-
-
-@dataclass(slots=True, frozen=True)
-class Proof_View_T_rule[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]:
-    rule: str
-    args: list[Proof_Arg["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
-
-
-def Proof_View_T_rule_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_proof],args: tuple[int, ...]) -> Proof_View_T_rule[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    decode__tyreg_poly_proof = d2
-    rule = d.get_str(off=args[0])
-    args = [Proof_Arg_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=args[1])]
-    return Proof_View_T_rule(rule=rule,args=args)
-
-
-type Proof_View[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof] = Proof_View_T_assume[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]| Proof_View_T_subst[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]| Proof_View_T_deduction[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]| Proof_View_T_rule[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]
-
-def Proof_View_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_proof],off: int) -> Proof_View:
-    match d.get_cstor(off=off):
-         case twine.Constructor(idx=0, args=args):
-             return Proof_View_T_assume[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]()
-         case twine.Constructor(idx=1, args=args):
-             args = tuple(args)
-             return Proof_View_T_subst_of_twine(d=d, args=args, d0=d0,d1=d1,d2=d2,)
-         case twine.Constructor(idx=2, args=args):
-             args = tuple(args)
-             return Proof_View_T_deduction_of_twine(d=d, args=args, d0=d0,d1=d1,d2=d2,)
-         case twine.Constructor(idx=3, args=args):
-             args = tuple(args)
-             return Proof_View_T_rule_of_twine(d=d, args=args, d0=d0,d1=d1,d2=d2,)
-         case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Proof_View, got invalid constructor {idx}')
-
-# clique Imandrax_api_proof.Proof_term_poly.t
-# def Imandrax_api_proof.Proof_term_poly.t (mangled name: "Proof_Proof_term_poly")
-@dataclass(slots=True, frozen=True)
-class Proof_Proof_term_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]:
-    id: int
-    concl: Sequent_poly["_V_tyreg_poly_term"]
-    view: Proof_View["_V_tyreg_poly_term","_V_tyreg_poly_ty","_V_tyreg_poly_proof"]
-
-def Proof_Proof_term_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_proof],off: int) -> Proof_Proof_term_poly:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    decode__tyreg_poly_proof = d2
+def Proof_proof_of_twine(d: twine.Decoder, off: int) -> Proof_proof:
     fields = list(d.get_array(off=off))
-    id = d.get_int(off=fields[0])
-    concl = Sequent_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
-    view = Proof_View_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_proof(d=d,off=off)))
-    return Proof_Proof_term_poly(id=id,concl=concl,view=view)
-
-# clique Imandrax_api_proof.Cir_proof_term.t,Imandrax_api_proof.Cir_proof_term.t_inner
-# def Imandrax_api_proof.Cir_proof_term.t (mangled name: "Proof_Cir_proof_term")
-@dataclass(slots=True, frozen=True)
-class Proof_Cir_proof_term:
-    p: Proof_Cir_proof_term_t_inner
-
-def Proof_Cir_proof_term_of_twine(d: twine.Decoder, off: int) -> Proof_Cir_proof_term:
-    x = Proof_Cir_proof_term_t_inner_of_twine(d=d, off=off) # single unboxed field
-    return Proof_Cir_proof_term(p=x)
-# def Imandrax_api_proof.Cir_proof_term.t_inner (mangled name: "Proof_Cir_proof_term_t_inner")
-type Proof_Cir_proof_term_t_inner = Proof_Proof_term_poly[Cir_Term,Cir_Type,Proof_Cir_proof_term]
-
-def Proof_Cir_proof_term_t_inner_of_twine(d: twine.Decoder, off: int) -> Proof_Cir_proof_term_t_inner:
-    return Proof_Proof_term_poly_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Cir_Type_of_twine(d=d, off=off)),d2=(lambda d, off: Proof_Cir_proof_term_of_twine(d=d, off=off)))
+    data = Proof_bytes_of_twine(d=d, off=fields[0])
+    return Proof_proof(data=data)
 
 # clique Imandrax_api_tasks.PO_task.t
 # def Imandrax_api_tasks.PO_task.t (mangled name: "Tasks_PO_task")
@@ -3144,12 +2945,12 @@ def Tasks_PO_res_stats_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_stat
 @dataclass(slots=True, frozen=True)
 class Tasks_PO_res_proof_found:
     anchor: Anchor
-    proof: Proof_Cir_proof_term
+    proof: Tasks_PO_res_Imandrax_api_proof_mproof_step
 
 def Tasks_PO_res_proof_found_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_proof_found:
     fields = list(d.get_array(off=off))
     anchor = Anchor_of_twine(d=d, off=fields[0])
-    proof = Proof_Cir_proof_term_of_twine(d=d, off=fields[1])
+    proof = Tasks_PO_res_Imandrax_api_proof_mproof_step_of_twine(d=d, off=fields[1])
     return Tasks_PO_res_proof_found(anchor=anchor,proof=proof)
 
 # clique Imandrax_api_tasks.PO_res.instance
@@ -3186,13 +2987,13 @@ def Tasks_PO_res_no_proof_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_n
 class Tasks_PO_res_unsat:
     anchor: Anchor
     err: Error_Error_core
-    proof: Proof_Cir_proof_term
+    proof: Tasks_PO_res_Imandrax_api_proof_mproof_step
 
 def Tasks_PO_res_unsat_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_unsat:
     fields = list(d.get_array(off=off))
     anchor = Anchor_of_twine(d=d, off=fields[0])
     err = Error_Error_core_of_twine(d=d, off=fields[1])
-    proof = Proof_Cir_proof_term_of_twine(d=d, off=fields[2])
+    proof = Tasks_PO_res_Imandrax_api_proof_mproof_step_of_twine(d=d, off=fields[2])
     return Tasks_PO_res_unsat(anchor=anchor,err=err,proof=proof)
 
 # clique Imandrax_api_tasks.PO_res.success

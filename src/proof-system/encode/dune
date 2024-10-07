@@ -1,0 +1,12 @@
+(library
+ (name imandra_proof_system_encode)
+ (public_name imandra-proof-system.encode)
+ (libraries imandra-proof-system)
+ (synopsis "Generic encoder for proofs"))
+
+(rule
+ (targets raw_.ml)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./gen/gen.exe))))

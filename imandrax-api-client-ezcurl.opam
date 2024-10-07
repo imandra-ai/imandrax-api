@@ -10,6 +10,7 @@ depends: [
   "imandrax-api-client" {= version}
   "imandrakit-thread"
   "ezcurl"
+  "moonpool" {>= "0.7" & < "0.8"}
   "trace" {>= "0.6"}
   "pbrt" {>= "3.0"}
   "pbrt_yojson" {>= "3.0"}

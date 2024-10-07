@@ -1,0 +1,17 @@
+(library
+ (name imandra_proof_system_codegen)
+ (public_name imandra-proof-system.codegen)
+ (modules :standard \ ocaml_prelude)
+ (libraries containers yojson imandra-proof-system.spec))
+
+(rule
+ (targets preludes.ml)
+ (deps
+  (:ml ocaml_prelude.ml))
+ (action
+  (with-stdout-to
+   %{targets}
+   (progn
+    (echo "let ocaml_prelude = {yolo|")
+    (cat %{ml})
+    (echo "|yolo}")))))

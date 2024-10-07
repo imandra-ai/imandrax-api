@@ -1,0 +1,12 @@
+(rule
+ (targets doc.md)
+ (mode promote)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run gen/gen_doc.exe))))
+
+(install
+ (section doc)
+ (package imandra-proof-system)
+ (files doc.md))

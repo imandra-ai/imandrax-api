@@ -1,3 +1,2 @@
 (executable
- (name gen)
- (libraries containers))
+ (name gen))

@@ -4,7 +4,7 @@ type stats = Imandrax_api.Stat_time.t [@@deriving show, twine, typereg]
 
 type proof_found = {
   anchor: Imandrax_api.Anchor.t;
-  proof: Imandrax_api_proof.Cir_proof_term.t;  (** Proof term. *)
+  proof: Imandrax_api_proof.deep_proof_step;  (** Proof term. *)
 }
 [@@deriving twine, typereg, show { with_path = false }]
 (** Type returned on success for verify *)
@@ -27,7 +27,7 @@ type no_proof = {
 type unsat = {
   anchor: Imandrax_api.Anchor.t;
   err: Imandrakit_error.Error_core.t;
-  proof: Imandrax_api_proof.Cir_proof_term.t;  (** Proof term for unsat. *)
+  proof: Imandrax_api_proof.deep_proof_step;  (** Proof term for unsat. *)
 }
 [@@deriving twine, typereg, show { with_path = false }]
 (** Error case for instance *)

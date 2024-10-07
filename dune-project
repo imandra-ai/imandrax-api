@@ -27,6 +27,7 @@
    (>= 1.0))
   (zarith
    (>= 1.12))
+  (imandra-proof-system (= :version))
   ppx_deriving
   ppx_deriving_yojson
   imandrakit
@@ -71,7 +72,11 @@
    (>= 0.6))
   logs
   (ocaml
-   (>= 4.12))
+   (>= 4.14))
+  (moonpool
+   (and
+    (>= 0.7)
+    (< 0.8)))
   (pbrt
    (>= 3.0))
   (pbrt_yojson
@@ -87,6 +92,7 @@
    (= :version))
   imandrakit-thread
   ezcurl
+  (moonpool (and (>= 0.7) (< 0.8)))
   (trace
    (>= 0.6))
   (pbrt
@@ -133,7 +139,7 @@
     (containers (>= 3.0))
     (imandrax-api-client (= :version))
     (imandrax-api-client-ezcurl (= :version))
-    moonpool
+    (moonpool (and (>= 0.7) (< 0.8)))
     (trace (>= 0.6))
     uuidm
     xdg
@@ -143,3 +149,18 @@
     (tiny_httpd (>= 0.16))
     (ppx_subliner (>= 0.2))
     (linenoise (and (>= 1.4) (< 2.0)))))
+
+(package
+ (name imandra-proof-system)
+ (synopsis "Description and codegen for Imandra's durable proof system")
+ (depends
+  (ocaml
+   (>= 4.12))
+  (yojson
+   (>= 1.6))
+  ppx_deriving
+  ppx_deriving_yojson
+  imandrakit
+  (containers
+   (>= 3.0))
+  (cbor :with-test)))
