@@ -22,17 +22,17 @@ spec:
     { name = "Clause"; doc = "A classical clause made of terms." };
     { name = "Scope";
       doc = "A scope for assumptions, used for natural deduction." };
-    { name = "MSeq";
+    { name = "DeepSeq";
       doc =
-      "A meta-sequent (sequent-of-sequents), with one conclusion and a list of premises."
+      "A depp sequent (sequent-of-sequents), with one conclusion and a list of premises."
       };
     { name = "ProofStep";
       doc = "A proof step, proving a clause using logical rules." };
-    { name = "MProofStep";
-      doc = "A meta-level proof step, proving a meta-sequent." };
-    { name = "MProofTreeNode";
+    { name = "DeepProofStep";
+      doc = "A proof step at the level of deep sequents." };
+    { name = "DeepProofTreeNode";
       doc =
-      "A node in the meta-level proof tree, used to encode the structure of the proof."
+      "A node in the proof tree, annotated with a deep sequent, used to encode the structure of the proof."
       }
     ];
   dag_type_defs =
@@ -57,21 +57,24 @@ spec:
       args = [(M_ty "String"); (M_ty "Int")];
       doc = "Declares a type constructor with given arity." };
     { name = "fun.decl"; full_name = None; ret = (M_ty "FunDefID");
-      args = [(M_ty "FunDefID"); (M_list (M_ty "Type")); (M_ty "Type")];
-      doc = "Declares a function symbol `f : args -> ret`." };
+      args = [(M_ty "String"); (M_list (M_ty "String")); (M_ty "Type")];
+      doc = "Declares a function symbol `f : forall params. type`." };
     { name = "fun.def"; full_name = None; ret = (M_ty "FunDefID");
       args =
-      [(M_ty "String"); (M_list (M_ty "Var")); (M_ty "Type"); (M_ty "Term")];
-      doc = "Defines a function `f args : ret := body`." };
+      [(M_ty "String"); (M_list (M_ty "String")); (M_list (M_ty "Var"));
+        (M_ty "Type"); (M_ty "Term")];
+      doc =
+      "Defines a function `f typarams args : ret := body` with type parameters first."
+      };
     { name = "fun.defs"; full_name = None; ret = (M_list (M_ty "FunDefID"));
       args =
       [(M_list
           (M_tuple
-             [(M_ty "String"); (M_list (M_ty "Var")); (M_ty "Type");
-               (M_ty "Term")]))
+             [(M_ty "String"); (M_list (M_ty "String"));
+               (M_list (M_ty "Var")); (M_ty "Type"); (M_ty "Term")]))
         ];
       doc =
-      "Defines a set of mutually recursive functions. Each tuple is a regular function definition."
+      "Defines a set of mutually recursive functions. Each tuple is a regular function definition\nwith name, type parameters, variables, return type, and body."
       };
     { name = "cn.int"; full_name = None; ret = (M_ty "Const");
       args = [(M_ty "Int")]; doc = "An integer literal." };
@@ -108,7 +111,7 @@ spec:
       [(M_ty "FunDefID"); (M_list (M_ty "Type")); (M_list (M_ty "Term"))];
       doc = "A constructor term (takes cstor, type params, argument list)." };
     { name = "t.isa"; full_name = None; ret = (M_ty "Term");
-      args = [(M_ty "FunDefID"); (M_ty "Term")];
+      args = [(M_ty "FunDefID"); (M_list (M_ty "Type")); (M_ty "Term")];
       doc =
       "A cstor-testing term (takes the constructor and the term to test)" };
     { name = "t.destr"; full_name = None; ret = (M_ty "Term");
@@ -121,9 +124,9 @@ spec:
     { name = "clause"; full_name = None; ret = (M_ty "Clause");
       args = [(M_list (M_ty "Term"))];
       doc = "Build a sequent from premises and conclusions" };
-    { name = "mseq"; full_name = None; ret = (M_ty "MSeq");
+    { name = "dseq"; full_name = None; ret = (M_ty "DeepSeq");
       args = [(M_list (M_ty "Clause")); (M_ty "Clause")];
-      doc = "Build a meta-sequent from premises and conclusion" };
+      doc = "Build a deep sequent from premises and conclusion" };
     { name = "ty.v"; full_name = (Some "ty.var"); ret = (M_ty "Type");
       args = [(M_ty "String")]; doc = "A type variable." };
     { name = "ty.@"; full_name = (Some "ty.app"); ret = (M_ty "Type");
@@ -293,31 +296,32 @@ spec:
       [(M_ty "Scope"); (M_ty "ProofStep");
         (M_list (M_tuple [(M_ty "Var"); (M_ty "Term")]))];
       doc = "`C` and `\207\131` --> `C\207\131`." };
-    { name = "m.cut"; full_name = None; ret = (M_ty "MProofStep");
+    { name = "m.cut"; full_name = None; ret = (M_ty "DeepProofStep");
       args =
-      [(M_ty "Scope"); (M_ty "MProofStep"); (M_list (M_ty "MProofStep"))];
+      [(M_ty "Scope"); (M_ty "DeepProofStep");
+        (M_list (M_ty "DeepProofStep"))];
       doc =
       "Takes `A1\226\128\166An,B ||- G` and `C_i ||- A_i` and returns `B, ,(C_i)_i ||- G`."
       };
-    { name = "m.intro"; full_name = None; ret = (M_ty "MProofStep");
+    { name = "m.intro"; full_name = None; ret = (M_ty "DeepProofStep");
       args = [(M_ty "Scope"); (M_ty "ProofStep")];
       doc =
       "Takes `A |- B` and returns `C1, C2 \226\128\166, Cn ||- (A|-B)`, where `C_i` are the assumptions in the current scope."
       };
-    { name = "m.subst"; full_name = None; ret = (M_ty "MProofStep");
+    { name = "m.subst"; full_name = None; ret = (M_ty "DeepProofStep");
       args =
-      [(M_ty "Scope"); (M_ty "MProofStep");
+      [(M_ty "Scope"); (M_ty "DeepProofStep");
         (M_list (M_tuple [(M_ty "Var"); (M_ty "Term")]))];
       doc =
       "`A1\226\128\166 An ||- C` and `\207\131` --> `A1\226\128\166An ||- C\207\131`."
       };
-    { name = "pt.top"; full_name = None; ret = (M_ty "MProofTreeNode");
+    { name = "pt.root"; full_name = None; ret = (M_ty "DeepProofTreeNode");
       args = [];
       doc =
       "The root of the proof tree. Each node in the proof tree has a parent, except this one."
       };
-    { name = "pt.node"; full_name = None; ret = (M_ty "MProofTreeNode");
-      args = [(M_ty "MProofTreeNode"); (M_ty "MProofStep")];
+    { name = "pt.node"; full_name = None; ret = (M_ty "DeepProofTreeNode");
+      args = [(M_ty "DeepProofTreeNode"); (M_ty "DeepProofStep")];
       doc =
       "A node in the proof tree. The arguments are the node's parent, and the node's corresponding proof step."
       }
