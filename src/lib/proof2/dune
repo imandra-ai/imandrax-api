@@ -1,0 +1,13 @@
+(library
+ (name imandrax_api_proof2)
+ (public_name imandrax-api.proof2)
+ (synopsis "Proof terms for ImandraX (v2).")
+ (flags :standard -open Imandrakit -open Imandrax_api)
+ (preprocess
+  (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
+ (libraries
+  imandrakit.twine
+  imandrakit
+  imandrax-api
+  imandra-proof-system
+  imandra-proof-system.encode))
