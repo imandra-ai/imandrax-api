@@ -4,14 +4,14 @@ module Region = struct
   type status =
     | Unknown
     | Feasible of Model.t
-  [@@deriving show, twine, typereg]
+  [@@deriving show, twine, typereg] [@@typereg.name "Region.status"]
 
   type t = {
     constraints: Term.t list;
     invariant: Term.t;
     status: status;
   }
-  [@@deriving show, twine, typereg]
+  [@@deriving show, twine, typereg] [@@typereg.name "Region.t"]
 end
 
 type t = {
