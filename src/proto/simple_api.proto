@@ -47,29 +47,14 @@ message DecomposeReq {
   // name of side condition function
   optional string assuming = 3;
 
-  bool prune = 4;
+  repeated string basis = 4;
 
-  optional int32 max_rounds = 10;
-
-  optional int32 stop_at = 11;
-}
-
-message DecomposeRegion {
-  // pretty-printed constraints
-  repeated string constraints_pp = 1;
-
-  // pretty-printed invariant
-  string invariant_pp = 2;
-
-  // the AST as JSON
-  optional string ast_json = 3;
-
-  // TODO: AST as twine
+  bool prune = 5;
 }
 
 // Result of a decomposition
 message DecomposeRes {
-  repeated DecomposeRegion regions = 1;
+  Art artifact = 1;
 }
 
 message EvalSrcReq {
@@ -101,7 +86,7 @@ message VerifySrcReq {
   optional Hints hints = 10;
 
   // we don't support that
-  reserved 11; //instance_printer 
+  reserved 11; //instance_printer
 }
 
 message VerifyNameReq {
@@ -125,7 +110,7 @@ message InstanceSrcReq {
   optional Hints hints = 10;
 
   // we don't support that
-  reserved 11; //instance_printer 
+  reserved 11; //instance_printer
 }
 
 message InstanceNameReq {
