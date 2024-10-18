@@ -2060,31 +2060,31 @@ def Cir_Elimination_rule_of_twine(d: twine.Decoder, off: int) -> Cir_Elimination
     er_dest_tms = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=fields[5])]
     return Cir_Elimination_rule(er_name=er_name,er_guard=er_guard,er_lhs=er_lhs,er_rhs=er_rhs,er_dests=er_dests,er_dest_tms=er_dest_tms)
 
-# clique Imandrax_api_cir.Decomp.Region.status
-# def Imandrax_api_cir.Decomp.Region.status (mangled name: "Cir_Decomp_Region_status")
+# clique Imandrax_api_cir.Decomp.status
+# def Imandrax_api_cir.Decomp.status (mangled name: "Cir_Decomp_status")
 @dataclass(slots=True, frozen=True)
-class Cir_Decomp_Region_status_Unknown:
+class Cir_Decomp_status_Unknown:
     pass
 
 @dataclass(slots=True, frozen=True)
-class Cir_Decomp_Region_status_Feasible:
+class Cir_Decomp_status_Feasible:
     arg: Cir_Model
 
-def Cir_Decomp_Region_status_Feasible_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Decomp_Region_status_Feasible:
+def Cir_Decomp_status_Feasible_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Decomp_status_Feasible:
     arg = Cir_Model_of_twine(d=d, off=args[0])
-    return Cir_Decomp_Region_status_Feasible(arg=arg)
+    return Cir_Decomp_status_Feasible(arg=arg)
 
-type Cir_Decomp_Region_status = Cir_Decomp_Region_status_Unknown| Cir_Decomp_Region_status_Feasible
+type Cir_Decomp_status = Cir_Decomp_status_Unknown| Cir_Decomp_status_Feasible
 
-def Cir_Decomp_Region_status_of_twine(d: twine.Decoder, off: int) -> Cir_Decomp_Region_status:
+def Cir_Decomp_status_of_twine(d: twine.Decoder, off: int) -> Cir_Decomp_status:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
-             return Cir_Decomp_Region_status_Unknown()
+             return Cir_Decomp_status_Unknown()
          case twine.Constructor(idx=1, args=args):
              args = tuple(args)
-             return Cir_Decomp_Region_status_Feasible_of_twine(d=d, args=args, )
+             return Cir_Decomp_status_Feasible_of_twine(d=d, args=args, )
          case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Decomp_Region_status, got invalid constructor {idx}')
+             raise twine.Error(f'expected Cir_Decomp_status, got invalid constructor {idx}')
 
 # clique Imandrax_api_cir.Decomp.Region.t
 # def Imandrax_api_cir.Decomp.Region.t (mangled name: "Cir_Decomp_Region")
@@ -2105,13 +2105,13 @@ def Cir_Decomp_Region_of_twine(d: twine.Decoder, off: int) -> Cir_Decomp_Region:
 # def Imandrax_api_cir.Decomp.t (mangled name: "Cir_Decomp")
 @dataclass(slots=True, frozen=True)
 class Cir_Decomp:
-    f_id: Cir_Decomp_Uid
+    f_id: Uid
     f_args: list[Cir_Var]
     regions: list[Cir_Decomp_Region]
 
 def Cir_Decomp_of_twine(d: twine.Decoder, off: int) -> Cir_Decomp:
     fields = list(d.get_array(off=off))
-    f_id = Cir_Decomp_Uid_of_twine(d=d, off=fields[0])
+    f_id = Uid_of_twine(d=d, off=fields[0])
     f_args = [Cir_Var_of_twine(d=d, off=x) for x in d.get_array(off=fields[1])]
     regions = [Cir_Decomp_Region_of_twine(d=d, off=x) for x in d.get_array(off=fields[2])]
     return Cir_Decomp(f_id=f_id,f_args=f_args,regions=regions)

@@ -666,6 +666,31 @@ pub struct CirElimination_rule<'a> {
 }
 
 
+// clique Imandrax_api_cir.Decomp.status
+#[derive(Debug, Clone)]
+pub enum CirDecompStatus<'a> {
+  Unknown,
+  Feasible(&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>),
+}
+
+// clique Imandrax_api_cir.Decomp.Region.t
+#[derive(Debug, Clone)]
+pub struct CirDecompRegion<'a> {
+  pub constraints: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+  pub invariant: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub status: &'a CirDecompStatus<'a>,
+}
+
+
+// clique Imandrax_api_cir.Decomp.t
+#[derive(Debug, Clone)]
+pub struct CirDecomp<'a> {
+  pub f_id: &'a Uid<'a>,
+  pub f_args: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
+  pub regions: &'a [&'a CirDecompRegion<'a>],
+}
+
+
 // clique Imandrax_api_cir.Db_ser.t
 #[derive(Debug, Clone)]
 pub struct CirDb_ser<'a> {
@@ -846,10 +871,49 @@ pub struct ReportReport<'a> {
 }
 
 
-// clique Imandrax_api_proof.proof
+// clique Imandrax_api_proof.Arg.t
 #[derive(Debug, Clone)]
-pub struct ProofProof<'a> {
-  pub data: &'a ProofBytes<'a>,
+pub enum ProofArg<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  A_term(V_tyreg_poly_term),
+  A_ty(V_tyreg_poly_ty),
+  A_int(BigInt),
+  A_string(&'a str),
+  A_list(&'a [&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>]),
+  A_dict(&'a [(&'a str,&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)]),
+  A_seq(&'a Sequent_poly<'a,V_tyreg_poly_term>),
+}
+
+// clique Imandrax_api_proof.View.t
+#[derive(Debug, Clone)]
+pub enum ProofView<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_proof:'a> {
+  T_assume,
+  T_subst {
+    t_subst: &'a [((&'a Uid<'a>,V_tyreg_poly_ty),V_tyreg_poly_term)],
+    ty_subst: &'a [(&'a Uid<'a>,V_tyreg_poly_ty)],
+    premise: V_tyreg_poly_proof,
+  },
+  T_deduction {
+    premises: &'a [(&'a str,&'a [V_tyreg_poly_proof])],
+  },
+  T_rule {
+    rule: &'a str,
+    args: &'a [&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>],
+  },
+}
+
+// clique Imandrax_api_proof.Proof_term_poly.t
+#[derive(Debug, Clone)]
+pub struct ProofProof_term_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_proof:'a> {
+  pub id: BigInt,
+  pub concl: &'a Sequent_poly<'a,V_tyreg_poly_term>,
+  pub view: &'a ProofView<'a,V_tyreg_poly_term,V_tyreg_poly_ty,V_tyreg_poly_proof>,
+}
+
+
+// clique Imandrax_api_proof.Cir_proof_term.t
+#[derive(Debug, Clone)]
+pub struct ProofCir_proof_term<'a> {
+  pub p: &'a ProofProof_term_poly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirType<'a>,&'a ProofCir_proof_term<'a>>,
 }
 
 
@@ -867,7 +931,7 @@ pub struct TasksPO_task<'a> {
 #[derive(Debug, Clone)]
 pub struct TasksPO_resProof_found<'a> {
   pub anchor: &'a Anchor<'a>,
-  pub proof: &'a TasksPO_resImandrax_api_proofMproof_step<'a>,
+  pub proof: &'a ProofCir_proof_term<'a>,
 }
 
 
@@ -893,7 +957,7 @@ pub struct TasksPO_resNo_proof<'a> {
 pub struct TasksPO_resUnsat<'a> {
   pub anchor: &'a Anchor<'a>,
   pub err: &'a ErrorError_core<'a>,
-  pub proof: &'a TasksPO_resImandrax_api_proofMproof_step<'a>,
+  pub proof: &'a ProofCir_proof_term<'a>,
 }
 
 
