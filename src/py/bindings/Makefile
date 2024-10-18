@@ -5,8 +5,4 @@ genpython:
 		protoc --python_out=./ --twirpy_out=./ -I ../../proto "../../proto/$$f"; \
 	done
 
-help:
-	echo "see https://github.com/verloop/twirpy"
-	echo "install protoc plugin using: GOBIN=~/bin/ go install github.com/verloop/twirpy/protoc-gen-twirpy@latest"
-
 .PHONY: genpython
