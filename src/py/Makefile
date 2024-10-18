@@ -25,4 +25,9 @@ publish: build
 	@echo "uploading to $(PYTHON_REPO_URL)"
 	python -m twine upload --non-interactive --repository-url $(PYTHON_REPO_URL) dist/*
 
-.PHONY: remove-wheels build
+GOBIN?=~/.local/bin
+install-go-protobuf-plugin:
+	@echo "installing twirp plugin for protoc into `echo $(GOBIN)`"
+	cd protoc-gen-twirpy && GOBIN="`echo $(GOBIN)`" go install ./
+
+.PHONY: remove-wheels build genversion api_types_version.py
