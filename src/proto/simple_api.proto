@@ -54,7 +54,15 @@ message DecomposeReq {
 
 // Result of a decomposition
 message DecomposeRes {
-  Art artifact = 1;
+  oneof res {
+    Art artifact = 1;
+    Empty err = 2;
+  }
+
+  repeated Error errors = 10;
+
+  // the ID of the task
+  Task task = 11;
 }
 
 message EvalSrcReq {
