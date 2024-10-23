@@ -40,6 +40,25 @@ $ imandrax-cli login --dev
 ```
 )
 
+and configure imandrax to talk to the relevant cloud server:
+```sh
+$ mkdir -p ~/.config/imandrax
+$ echo <<EOF > ~/.config/imandrax/config.toml
+[net]
+deployment = "prod"
+EOF
+```
+
+(or for the development version:
+```sh
+$ mkdir -p ~/.config/imandrax
+$ echo <<EOF > ~/.config/imandrax/config.toml
+[net]
+deployment = "dev"
+EOF
+```
+)
+
 This is necessary for the CLI to be able to communicate with the server.
 Once logged in, the CLI can be freely used, e.g. with
 
