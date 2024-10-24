@@ -20,3 +20,11 @@ type t = {
   regions: Region.t list;
 }
 [@@deriving show, twine, typereg]
+
+type req = {
+  f_id: Imandrax_api.Uid.t;
+  assuming: Imandrax_api.Uid.t option;
+  basis: Imandrax_api.Uid.t list;
+  prune: bool;
+}
+[@@deriving show, twine, typereg]
