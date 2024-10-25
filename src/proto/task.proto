@@ -6,6 +6,7 @@ enum TaskKind {
   TASK_EVAL = 1;
   TASK_CHECK_PO = 2;
   TASK_PROOF_CHECK = 3;
+  TASK_DECOMP = 4;
 }
 
 message TaskID {
@@ -17,4 +18,3 @@ message Task {
   TaskID id = 1;
   TaskKind kind = 2;
 }
-
