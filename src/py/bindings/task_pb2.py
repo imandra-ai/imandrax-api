@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\ntask.proto\"\x14\n\x06TaskID\x12\n\n\x02id\x18\x01 \x01(\t\"4\n\x04Task\x12\x13\n\x02id\x18\x01 \x01(\x0b\x32\x07.TaskID\x12\x17\n\x04kind\x18\x02 \x01(\x0e\x32\t.TaskKind*X\n\x08TaskKind\x12\x14\n\x10TASK_UNSPECIFIED\x10\x00\x12\r\n\tTASK_EVAL\x10\x01\x12\x11\n\rTASK_CHECK_PO\x10\x02\x12\x14\n\x10TASK_PROOF_CHECK\x10\x03\x62\x06proto3'
+  serialized_pb=b'\n\ntask.proto\"\x14\n\x06TaskID\x12\n\n\x02id\x18\x01 \x01(\t\"4\n\x04Task\x12\x13\n\x02id\x18\x01 \x01(\x0b\x32\x07.TaskID\x12\x17\n\x04kind\x18\x02 \x01(\x0e\x32\t.TaskKind*i\n\x08TaskKind\x12\x14\n\x10TASK_UNSPECIFIED\x10\x00\x12\r\n\tTASK_EVAL\x10\x01\x12\x11\n\rTASK_CHECK_PO\x10\x02\x12\x14\n\x10TASK_PROOF_CHECK\x10\x03\x12\x0f\n\x0bTASK_DECOMP\x10\x04\x62\x06proto3'
 )
 
 _TASKKIND = _descriptor.EnumDescriptor(
@@ -50,11 +50,16 @@ _TASKKIND = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='TASK_DECOMP', index=4, number=4,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
   serialized_start=90,
-  serialized_end=178,
+  serialized_end=195,
 )
 _sym_db.RegisterEnumDescriptor(_TASKKIND)
 
@@ -63,6 +68,7 @@ TASK_UNSPECIFIED = 0
 TASK_EVAL = 1
 TASK_CHECK_PO = 2
 TASK_PROOF_CHECK = 3
+TASK_DECOMP = 4
 
 
 

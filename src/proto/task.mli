@@ -12,6 +12,7 @@ type task_kind =
   | Task_eval 
   | Task_check_po 
   | Task_proof_check 
+  | Task_decomp 
 
 type task_id = {
   id : string;
