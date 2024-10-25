@@ -245,6 +245,7 @@ pub enum Anchor<'a> {
   Named(&'a Cname<'a>),
   Eval(BigInt),
   Proof_check(&'a Anchor<'a>),
+  Decomp(&'a Anchor<'a>),
 }
 
 // clique Imandrax_api.Admission.t
@@ -654,6 +655,31 @@ pub struct CirInstantiation_rule<'a> {
 }
 
 
+// clique Imandrax_api_cir.Fun_decomp.status
+#[derive(Debug, Clone)]
+pub enum CirFun_decompStatus<'a> {
+  Unknown,
+  Feasible(&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>),
+}
+
+// clique Imandrax_api_cir.Fun_decomp.Region.t
+#[derive(Debug, Clone)]
+pub struct CirFun_decompRegion<'a> {
+  pub constraints: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+  pub invariant: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub status: &'a CirFun_decompStatus<'a>,
+}
+
+
+// clique Imandrax_api_cir.Fun_decomp.t
+#[derive(Debug, Clone)]
+pub struct CirFun_decomp<'a> {
+  pub f_id: &'a Uid<'a>,
+  pub f_args: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
+  pub regions: &'a [&'a CirFun_decompRegion<'a>],
+}
+
+
 // clique Imandrax_api_cir.Elimination_rule.t
 #[derive(Debug, Clone)]
 pub struct CirElimination_rule<'a> {
@@ -666,28 +692,13 @@ pub struct CirElimination_rule<'a> {
 }
 
 
-// clique Imandrax_api_cir.Decomp.status
-#[derive(Debug, Clone)]
-pub enum CirDecompStatus<'a> {
-  Unknown,
-  Feasible(&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>),
-}
-
-// clique Imandrax_api_cir.Decomp.Region.t
-#[derive(Debug, Clone)]
-pub struct CirDecompRegion<'a> {
-  pub constraints: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
-  pub invariant: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  pub status: &'a CirDecompStatus<'a>,
-}
-
-
 // clique Imandrax_api_cir.Decomp.t
 #[derive(Debug, Clone)]
 pub struct CirDecomp<'a> {
   pub f_id: &'a Uid<'a>,
-  pub f_args: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
-  pub regions: &'a [&'a CirDecompRegion<'a>],
+  pub assuming: Option<&'a Uid<'a>>,
+  pub basis: &'a [&'a Uid<'a>],
+  pub prune: bool,
 }
 
 
@@ -1018,5 +1029,37 @@ pub struct TasksEval_resSuccess<'a> {
 pub struct TasksEval_res<'a> {
   pub res: &'a core::result::Result<&'a TasksEval_resSuccess<'a>,Error<'a>>,
   pub stats: TasksEval_resStats,
+}
+
+
+// clique Imandrax_api_tasks.Decomp_task.t
+#[derive(Debug, Clone)]
+pub struct TasksDecomp_task<'a> {
+  pub db: &'a CirDb_ser<'a>,
+  pub decomp: &'a CirDecomp<'a>,
+  pub anchor: &'a Anchor<'a>,
+}
+
+
+// clique Imandrax_api_tasks.Decomp_res.success
+#[derive(Debug, Clone)]
+pub struct TasksDecomp_resSuccess<'a> {
+  pub anchor: &'a Anchor<'a>,
+  pub decomp: &'a CirFun_decomp<'a>,
+}
+
+
+// clique Imandrax_api_tasks.Decomp_res.error
+#[derive(Debug, Clone)]
+pub enum TasksDecomp_resError<'a> {
+  Error(&'a ErrorError_core<'a>),
+}
+
+// clique Imandrax_api_tasks.Decomp_res.t
+#[derive(Debug, Clone)]
+pub struct TasksDecomp_res<'a> {
+  pub from_: &'a Ca_storeCa_ptrRaw<'a>,
+  pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a>, &'a TasksDecomp_resError<'a>>,
+  pub report: &'a In_mem_archiveRaw<'a>,
 }
 
