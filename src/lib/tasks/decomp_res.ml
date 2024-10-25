@@ -1,6 +1,6 @@
 type success = {
   anchor: Imandrax_api.Anchor.t;
-  decomp: Imandrax_api_cir.Decomp.t;
+  decomp: Imandrax_api_cir.Fun_decomp.t;
 }
 [@@deriving twine, typereg, show { with_path = false }]
 
@@ -12,7 +12,7 @@ type 'a result = ('a, error) Util_twine.Result.t
 
 type t = {
   from:
-    (Imandrax_api_cir.Decomp.req Imandrax_api_ca_store.Ca_ptr.t
+    (Imandrax_api_cir.Decomp.t Imandrax_api_ca_store.Ca_ptr.t
     [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
   res: success result;
   report:
