@@ -71,6 +71,14 @@ EOF
 $ imandrax-cli check foo.iml
 ```
 
+## VS Code Plugin / LSP
+
+The VS Code plugin needs to be obtained separately.
+If you have access, you can find the latest release binary (.vsix) file here:
+https://github.com/imandra-ai/imandrax-vscode/releases
+
+Soon we will bundle this with the installer and/or make the plugin available through
+the VS Code extensions marketplace.
 
 ## API
 
