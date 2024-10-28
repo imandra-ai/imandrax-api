@@ -2133,16 +2133,18 @@ def Cir_Elimination_rule_of_twine(d: twine.Decoder, off: int) -> Cir_Elimination
 class Cir_Decomp:
     f_id: Uid
     assuming: None | Uid
-    basis: list[Uid]
+    basis: Uid_set
+    rule_specs: Uid_set
     prune: bool
 
 def Cir_Decomp_of_twine(d: twine.Decoder, off: int) -> Cir_Decomp:
     fields = list(d.get_array(off=off))
     f_id = Uid_of_twine(d=d, off=fields[0])
     assuming = twine.optional(d=d, off=fields[1], d0=lambda d, off: Uid_of_twine(d=d, off=off))
-    basis = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=fields[2])]
-    prune = d.get_bool(off=fields[3])
-    return Cir_Decomp(f_id=f_id,assuming=assuming,basis=basis,prune=prune)
+    basis = Uid_set_of_twine(d=d, off=fields[2])
+    rule_specs = Uid_set_of_twine(d=d, off=fields[3])
+    prune = d.get_bool(off=fields[4])
+    return Cir_Decomp(f_id=f_id,assuming=assuming,basis=basis,rule_specs=rule_specs,prune=prune)
 
 # clique Imandrax_api_cir.Db_ser.uid_map
 # def Imandrax_api_cir.Db_ser.uid_map (mangled name: "Cir_Db_ser_uid_map")

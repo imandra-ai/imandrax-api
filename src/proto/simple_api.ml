@@ -9,6 +9,7 @@ type decompose_req = {
   name : string;
   assuming : string option;
   basis : string list;
+  rule_specs : string list;
   prune : bool;
 }
 
@@ -147,12 +148,14 @@ let rec default_decompose_req
   ?name:((name:string) = "")
   ?assuming:((assuming:string option) = None)
   ?basis:((basis:string list) = [])
+  ?rule_specs:((rule_specs:string list) = [])
   ?prune:((prune:bool) = false)
   () : decompose_req  = {
   session;
   name;
   assuming;
   basis;
+  rule_specs;
   prune;
 }
 
@@ -329,6 +332,7 @@ type decompose_req_mutable = {
   mutable name : string;
   mutable assuming : string option;
   mutable basis : string list;
+  mutable rule_specs : string list;
   mutable prune : bool;
 }
 
@@ -337,6 +341,7 @@ let default_decompose_req_mutable () : decompose_req_mutable = {
   name = "";
   assuming = None;
   basis = [];
+  rule_specs = [];
   prune = false;
 }
 
@@ -534,12 +539,14 @@ let rec make_decompose_req
   ~(name:string)
   ?assuming:((assuming:string option) = None)
   ~(basis:string list)
+  ~(rule_specs:string list)
   ~(prune:bool)
   () : decompose_req  = {
   session;
   name;
   assuming;
   basis;
+  rule_specs;
   prune;
 }
 
@@ -712,6 +719,7 @@ let rec pp_decompose_req fmt (v:decompose_req) =
     Pbrt.Pp.pp_record_field ~first:false "name" Pbrt.Pp.pp_string fmt v.name;
     Pbrt.Pp.pp_record_field ~first:false "assuming" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.assuming;
     Pbrt.Pp.pp_record_field ~first:false "basis" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.basis;
+    Pbrt.Pp.pp_record_field ~first:false "rule_specs" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.rule_specs;
     Pbrt.Pp.pp_record_field ~first:false "prune" Pbrt.Pp.pp_bool fmt v.prune;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
@@ -909,8 +917,12 @@ let rec encode_pb_decompose_req (v:decompose_req) encoder =
     Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
   ) v.basis encoder;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
+  ) v.rule_specs encoder;
   Pbrt.Encoder.bool v.prune encoder;
-  Pbrt.Encoder.key 5 Pbrt.Varint encoder; 
+  Pbrt.Encoder.key 6 Pbrt.Varint encoder; 
   ()
 
 let rec encode_pb_decompose_res_res (v:decompose_res_res) encoder = 
@@ -1268,6 +1280,7 @@ let rec decode_pb_decompose_req d =
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
+      v.rule_specs <- List.rev v.rule_specs;
       v.basis <- List.rev v.basis;
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
@@ -1290,11 +1303,16 @@ let rec decode_pb_decompose_req d =
     end
     | Some (4, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(decompose_req), field(4)" pk
-    | Some (5, Pbrt.Varint) -> begin
-      v.prune <- Pbrt.Decoder.bool d;
+    | Some (5, Pbrt.Bytes) -> begin
+      v.rule_specs <- (Pbrt.Decoder.string d) :: v.rule_specs;
     end
     | Some (5, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(decompose_req), field(5)" pk
+    | Some (6, Pbrt.Varint) -> begin
+      v.prune <- Pbrt.Decoder.bool d;
+    end
+    | Some (6, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req), field(6)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
@@ -1302,6 +1320,7 @@ let rec decode_pb_decompose_req d =
     name = v.name;
     assuming = v.assuming;
     basis = v.basis;
+    rule_specs = v.rule_specs;
     prune = v.prune;
   } : decompose_req)
 
@@ -1920,6 +1939,10 @@ let rec encode_json_decompose_req (v:decompose_req) =
     let l = v.basis |> List.map Pbrt_yojson.make_string in
     ("basis", `List l) :: assoc 
   in
+  let assoc =
+    let l = v.rule_specs |> List.map Pbrt_yojson.make_string in
+    ("ruleSpecs", `List l) :: assoc 
+  in
   let assoc = ("prune", Pbrt_yojson.make_bool v.prune) :: assoc in
   `Assoc assoc
 
@@ -2205,6 +2228,11 @@ let rec decode_json_decompose_req d =
         | json_value -> Pbrt_yojson.string json_value "decompose_req" "basis"
       ) l;
     end
+    | ("ruleSpecs", `List l) -> begin
+      v.rule_specs <- List.map (function
+        | json_value -> Pbrt_yojson.string json_value "decompose_req" "rule_specs"
+      ) l;
+    end
     | ("prune", json_value) -> 
       v.prune <- Pbrt_yojson.bool json_value "decompose_req" "prune"
     
@@ -2215,6 +2243,7 @@ let rec decode_json_decompose_req d =
     name = v.name;
     assuming = v.assuming;
     basis = v.basis;
+    rule_specs = v.rule_specs;
     prune = v.prune;
   } : decompose_req)
 

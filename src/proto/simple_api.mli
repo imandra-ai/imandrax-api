@@ -16,6 +16,7 @@ type decompose_req = {
   name : string;
   assuming : string option;
   basis : string list;
+  rule_specs : string list;
   prune : bool;
 }
 
@@ -157,6 +158,7 @@ val default_decompose_req :
   ?name:string ->
   ?assuming:string option ->
   ?basis:string list ->
+  ?rule_specs:string list ->
   ?prune:bool ->
   unit ->
   decompose_req
@@ -321,6 +323,7 @@ val make_decompose_req :
   name:string ->
   ?assuming:string option ->
   basis:string list ->
+  rule_specs:string list ->
   prune:bool ->
   unit ->
   decompose_req

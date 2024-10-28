@@ -25,7 +25,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x10simple_api.proto\x12\x0fimandrax.simple\x1a\x0b\x65rror.proto\x1a\x0butils.proto\x1a\rsession.proto\x1a\x0c\x61rtmsg.proto\x1a\ntask.proto\"\'\n\x10SessionCreateReq\x12\x13\n\x0b\x61pi_version\x18\x01 \x01(\t\"\x8a\x01\n\x0c\x44\x65\x63omposeReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x15\n\x08\x61ssuming\x18\x03 \x01(\tH\x00\x88\x01\x01\x12\r\n\x05\x62\x61sis\x18\x04 \x03(\t\x12\r\n\x05prune\x18\x05 \x01(\x08\x42\x0b\n\t_assuming\"s\n\x0c\x44\x65\x63omposeRes\x12\x18\n\x08\x61rtifact\x18\x01 \x01(\x0b\x32\x04.ArtH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res\"E\n\nEvalSrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\"Z\n\x07\x45valRes\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x10\n\x08messages\x18\x02 \x03(\t\x12\x16\n\x06\x65rrors\x18\x03 \x03(\x0b\x32\x06.Error\x12\x14\n\x05tasks\x18\x04 \x03(\x0b\x32\x05.Task\"\x83\x01\n\x0cVerifySrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\x12*\n\x05hints\x18\n \x01(\x0b\x32\x16.imandrax.simple.HintsH\x00\x88\x01\x01\x42\x08\n\x06_hintsJ\x04\x08\x0b\x10\x0c\"\x85\x01\n\rVerifyNameReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12*\n\x05hints\x18\n \x01(\x0b\x32\x16.imandrax.simple.HintsH\x00\x88\x01\x01\x42\x08\n\x06_hintsJ\x04\x08\x0b\x10\x0c\"\x85\x01\n\x0eInstanceSrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\x12*\n\x05hints\x18\n \x01(\x0b\x32\x16.imandrax.simple.HintsH\x00\x88\x01\x01\x42\x08\n\x06_hintsJ\x04\x08\x0b\x10\x0c\"\x87\x01\n\x0fInstanceNameReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12*\n\x05hints\x18\n \x01(\x0b\x32\x16.imandrax.simple.HintsH\x00\x88\x01\x01\x42\x08\n\x06_hintsJ\x04\x08\x0b\x10\x0c\",\n\x06Proved\x12\x15\n\x08proof_pp\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_proof_pp\"+\n\x05Unsat\x12\x15\n\x08proof_pp\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_proof_pp\"j\n\x05Model\x12*\n\x06m_type\x18\x01 \x01(\x0e\x32\x1a.imandrax.simple.ModelType\x12\x0b\n\x03src\x18\x02 \x01(\t\x12\x1b\n\x08\x61rtifact\x18\x03 \x01(\x0b\x32\x04.ArtH\x00\x88\x01\x01\x42\x0b\n\t_artifact\"?\n\x07Refuted\x12*\n\x05model\x18\x01 \x01(\x0b\x32\x16.imandrax.simple.ModelH\x00\x88\x01\x01\x42\x08\n\x06_model\";\n\x03Sat\x12*\n\x05model\x18\x01 \x01(\x0b\x32\x16.imandrax.simple.ModelH\x00\x88\x01\x01\x42\x08\n\x06_model\"\xcd\x01\n\tVerifyRes\x12\x1d\n\x07unknown\x18\x01 \x01(\x0b\x32\n.StringMsgH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12)\n\x06proved\x18\x03 \x01(\x0b\x32\x17.imandrax.simple.ProvedH\x00\x12+\n\x07refuted\x18\x04 \x01(\x0b\x32\x18.imandrax.simple.RefutedH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res\"\xc5\x01\n\x0bInstanceRes\x12\x1d\n\x07unknown\x18\x01 \x01(\x0b\x32\n.StringMsgH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12\'\n\x05unsat\x18\x03 \x01(\x0b\x32\x16.imandrax.simple.UnsatH\x00\x12#\n\x03sat\x18\x04 \x01(\x0b\x32\x14.imandrax.simple.SatH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res\"\xc1\x04\n\x05Hints\x12\x16\n\x04\x61uto\x18\x01 \x01(\x0b\x32\x06.EmptyH\x00\x12/\n\x06unroll\x18\x02 \x01(\x0b\x32\x1d.imandrax.simple.Hints.UnrollH\x00\x12/\n\x06induct\x18\x03 \x01(\x0b\x32\x1d.imandrax.simple.Hints.InductH\x00\x1a\xda\x02\n\x06Induct\x12\x19\n\x07\x64\x65\x66\x61ult\x18\x01 \x01(\x0b\x32\x06.EmptyH\x00\x12>\n\nfunctional\x18\x02 \x01(\x0b\x32(.imandrax.simple.Hints.Induct.FunctionalH\x00\x12>\n\nstructural\x18\x03 \x01(\x0b\x32(.imandrax.simple.Hints.Induct.StructuralH\x00\x1a\x1c\n\nFunctional\x12\x0e\n\x06\x66_name\x18\x01 \x01(\t\x1aX\n\nStructural\x12<\n\x05style\x18\x01 \x01(\x0e\x32-.imandrax.simple.Hints.Induct.StructuralStyle\x12\x0c\n\x04vars\x18\x02 \x03(\t\"3\n\x0fStructuralStyle\x12\x0c\n\x08\x41\x64\x64itive\x10\x00\x12\x12\n\x0eMultiplicative\x10\x01\x42\x08\n\x06induct\x1aV\n\x06Unroll\x12\x17\n\nsmt_solver\x18\n \x01(\tH\x00\x88\x01\x01\x12\x16\n\tmax_steps\x18\x0b \x01(\x05H\x01\x88\x01\x01\x42\r\n\x0b_smt_solverB\x0c\n\n_max_stepsB\t\n\x07method_*.\n\tModelType\x12\x13\n\x0f\x43ounter_example\x10\x00\x12\x0c\n\x08Instance\x10\x01\x32\xd4\x04\n\x06Simple\x12\x1c\n\x06status\x12\x06.Empty\x1a\n.StringMsg\x12\x1a\n\x08shutdown\x12\x06.Empty\x1a\x06.Empty\x12I\n\tdecompose\x12\x1d.imandrax.simple.DecomposeReq\x1a\x1d.imandrax.simple.DecomposeRes\x12N\n\x0e\x63reate_session\x12!.imandrax.simple.SessionCreateReq\x1a\x19.imandrax.session.Session\x12\x41\n\x08\x65val_src\x12\x1b.imandrax.simple.EvalSrcReq\x1a\x18.imandrax.simple.EvalRes\x12G\n\nverify_src\x12\x1d.imandrax.simple.VerifySrcReq\x1a\x1a.imandrax.simple.VerifyRes\x12I\n\x0bverify_name\x12\x1e.imandrax.simple.VerifyNameReq\x1a\x1a.imandrax.simple.VerifyRes\x12M\n\x0cinstance_src\x12\x1f.imandrax.simple.InstanceSrcReq\x1a\x1c.imandrax.simple.InstanceRes\x12O\n\rinstance_name\x12 .imandrax.simple.InstanceNameReq\x1a\x1c.imandrax.simple.InstanceResb\x06proto3'
+  serialized_pb=b'\n\x10simple_api.proto\x12\x0fimandrax.simple\x1a\x0b\x65rror.proto\x1a\x0butils.proto\x1a\rsession.proto\x1a\x0c\x61rtmsg.proto\x1a\ntask.proto\"\'\n\x10SessionCreateReq\x12\x13\n\x0b\x61pi_version\x18\x01 \x01(\t\"\x9e\x01\n\x0c\x44\x65\x63omposeReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x15\n\x08\x61ssuming\x18\x03 \x01(\tH\x00\x88\x01\x01\x12\r\n\x05\x62\x61sis\x18\x04 \x03(\t\x12\x12\n\nrule_specs\x18\x05 \x03(\t\x12\r\n\x05prune\x18\x06 \x01(\x08\x42\x0b\n\t_assuming\"s\n\x0c\x44\x65\x63omposeRes\x12\x18\n\x08\x61rtifact\x18\x01 \x01(\x0b\x32\x04.ArtH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res\"E\n\nEvalSrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\"Z\n\x07\x45valRes\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x10\n\x08messages\x18\x02 \x03(\t\x12\x16\n\x06\x65rrors\x18\x03 \x03(\x0b\x32\x06.Error\x12\x14\n\x05tasks\x18\x04 \x03(\x0b\x32\x05.Task\"\x83\x01\n\x0cVerifySrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\x12*\n\x05hints\x18\n \x01(\x0b\x32\x16.imandrax.simple.HintsH\x00\x88\x01\x01\x42\x08\n\x06_hintsJ\x04\x08\x0b\x10\x0c\"\x85\x01\n\rVerifyNameReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12*\n\x05hints\x18\n \x01(\x0b\x32\x16.imandrax.simple.HintsH\x00\x88\x01\x01\x42\x08\n\x06_hintsJ\x04\x08\x0b\x10\x0c\"\x85\x01\n\x0eInstanceSrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\x12*\n\x05hints\x18\n \x01(\x0b\x32\x16.imandrax.simple.HintsH\x00\x88\x01\x01\x42\x08\n\x06_hintsJ\x04\x08\x0b\x10\x0c\"\x87\x01\n\x0fInstanceNameReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12*\n\x05hints\x18\n \x01(\x0b\x32\x16.imandrax.simple.HintsH\x00\x88\x01\x01\x42\x08\n\x06_hintsJ\x04\x08\x0b\x10\x0c\",\n\x06Proved\x12\x15\n\x08proof_pp\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_proof_pp\"+\n\x05Unsat\x12\x15\n\x08proof_pp\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_proof_pp\"j\n\x05Model\x12*\n\x06m_type\x18\x01 \x01(\x0e\x32\x1a.imandrax.simple.ModelType\x12\x0b\n\x03src\x18\x02 \x01(\t\x12\x1b\n\x08\x61rtifact\x18\x03 \x01(\x0b\x32\x04.ArtH\x00\x88\x01\x01\x42\x0b\n\t_artifact\"?\n\x07Refuted\x12*\n\x05model\x18\x01 \x01(\x0b\x32\x16.imandrax.simple.ModelH\x00\x88\x01\x01\x42\x08\n\x06_model\";\n\x03Sat\x12*\n\x05model\x18\x01 \x01(\x0b\x32\x16.imandrax.simple.ModelH\x00\x88\x01\x01\x42\x08\n\x06_model\"\xcd\x01\n\tVerifyRes\x12\x1d\n\x07unknown\x18\x01 \x01(\x0b\x32\n.StringMsgH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12)\n\x06proved\x18\x03 \x01(\x0b\x32\x17.imandrax.simple.ProvedH\x00\x12+\n\x07refuted\x18\x04 \x01(\x0b\x32\x18.imandrax.simple.RefutedH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res\"\xc5\x01\n\x0bInstanceRes\x12\x1d\n\x07unknown\x18\x01 \x01(\x0b\x32\n.StringMsgH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12\'\n\x05unsat\x18\x03 \x01(\x0b\x32\x16.imandrax.simple.UnsatH\x00\x12#\n\x03sat\x18\x04 \x01(\x0b\x32\x14.imandrax.simple.SatH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res\"\xc1\x04\n\x05Hints\x12\x16\n\x04\x61uto\x18\x01 \x01(\x0b\x32\x06.EmptyH\x00\x12/\n\x06unroll\x18\x02 \x01(\x0b\x32\x1d.imandrax.simple.Hints.UnrollH\x00\x12/\n\x06induct\x18\x03 \x01(\x0b\x32\x1d.imandrax.simple.Hints.InductH\x00\x1a\xda\x02\n\x06Induct\x12\x19\n\x07\x64\x65\x66\x61ult\x18\x01 \x01(\x0b\x32\x06.EmptyH\x00\x12>\n\nfunctional\x18\x02 \x01(\x0b\x32(.imandrax.simple.Hints.Induct.FunctionalH\x00\x12>\n\nstructural\x18\x03 \x01(\x0b\x32(.imandrax.simple.Hints.Induct.StructuralH\x00\x1a\x1c\n\nFunctional\x12\x0e\n\x06\x66_name\x18\x01 \x01(\t\x1aX\n\nStructural\x12<\n\x05style\x18\x01 \x01(\x0e\x32-.imandrax.simple.Hints.Induct.StructuralStyle\x12\x0c\n\x04vars\x18\x02 \x03(\t\"3\n\x0fStructuralStyle\x12\x0c\n\x08\x41\x64\x64itive\x10\x00\x12\x12\n\x0eMultiplicative\x10\x01\x42\x08\n\x06induct\x1aV\n\x06Unroll\x12\x17\n\nsmt_solver\x18\n \x01(\tH\x00\x88\x01\x01\x12\x16\n\tmax_steps\x18\x0b \x01(\x05H\x01\x88\x01\x01\x42\r\n\x0b_smt_solverB\x0c\n\n_max_stepsB\t\n\x07method_*.\n\tModelType\x12\x13\n\x0f\x43ounter_example\x10\x00\x12\x0c\n\x08Instance\x10\x01\x32\xd4\x04\n\x06Simple\x12\x1c\n\x06status\x12\x06.Empty\x1a\n.StringMsg\x12\x1a\n\x08shutdown\x12\x06.Empty\x1a\x06.Empty\x12I\n\tdecompose\x12\x1d.imandrax.simple.DecomposeReq\x1a\x1d.imandrax.simple.DecomposeRes\x12N\n\x0e\x63reate_session\x12!.imandrax.simple.SessionCreateReq\x1a\x19.imandrax.session.Session\x12\x41\n\x08\x65val_src\x12\x1b.imandrax.simple.EvalSrcReq\x1a\x18.imandrax.simple.EvalRes\x12G\n\nverify_src\x12\x1d.imandrax.simple.VerifySrcReq\x1a\x1a.imandrax.simple.VerifyRes\x12I\n\x0bverify_name\x12\x1e.imandrax.simple.VerifyNameReq\x1a\x1a.imandrax.simple.VerifyRes\x12M\n\x0cinstance_src\x12\x1f.imandrax.simple.InstanceSrcReq\x1a\x1c.imandrax.simple.InstanceRes\x12O\n\rinstance_name\x12 .imandrax.simple.InstanceNameReq\x1a\x1c.imandrax.simple.InstanceResb\x06proto3'
   ,
   dependencies=[error__pb2.DESCRIPTOR,utils__pb2.DESCRIPTOR,session__pb2.DESCRIPTOR,artmsg__pb2.DESCRIPTOR,task__pb2.DESCRIPTOR,])
 
@@ -49,8 +49,8 @@ _MODELTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2423,
-  serialized_end=2469,
+  serialized_start=2443,
+  serialized_end=2489,
 )
 _sym_db.RegisterEnumDescriptor(_MODELTYPE)
 
@@ -79,8 +79,8 @@ _HINTS_INDUCT_STRUCTURALSTYLE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2261,
-  serialized_end=2312,
+  serialized_start=2281,
+  serialized_end=2332,
 )
 _sym_db.RegisterEnumDescriptor(_HINTS_INDUCT_STRUCTURALSTYLE)
 
@@ -154,8 +154,15 @@ _DECOMPOSEREQ = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='prune', full_name='imandrax.simple.DecomposeReq.prune', index=4,
-      number=5, type=8, cpp_type=7, label=1,
+      name='rule_specs', full_name='imandrax.simple.DecomposeReq.rule_specs', index=4,
+      number=5, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='prune', full_name='imandrax.simple.DecomposeReq.prune', index=5,
+      number=6, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -178,7 +185,7 @@ _DECOMPOSEREQ = _descriptor.Descriptor(
     fields=[]),
   ],
   serialized_start=146,
-  serialized_end=284,
+  serialized_end=304,
 )
 
 
@@ -235,8 +242,8 @@ _DECOMPOSERES = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=286,
-  serialized_end=401,
+  serialized_start=306,
+  serialized_end=421,
 )
 
 
@@ -274,8 +281,8 @@ _EVALSRCREQ = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=403,
-  serialized_end=472,
+  serialized_start=423,
+  serialized_end=492,
 )
 
 
@@ -327,8 +334,8 @@ _EVALRES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=474,
-  serialized_end=564,
+  serialized_start=494,
+  serialized_end=584,
 )
 
 
@@ -378,8 +385,8 @@ _VERIFYSRCREQ = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=567,
-  serialized_end=698,
+  serialized_start=587,
+  serialized_end=718,
 )
 
 
@@ -429,8 +436,8 @@ _VERIFYNAMEREQ = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=701,
-  serialized_end=834,
+  serialized_start=721,
+  serialized_end=854,
 )
 
 
@@ -480,8 +487,8 @@ _INSTANCESRCREQ = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=837,
-  serialized_end=970,
+  serialized_start=857,
+  serialized_end=990,
 )
 
 
@@ -531,8 +538,8 @@ _INSTANCENAMEREQ = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=973,
-  serialized_end=1108,
+  serialized_start=993,
+  serialized_end=1128,
 )
 
 
@@ -568,8 +575,8 @@ _PROVED = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1110,
-  serialized_end=1154,
+  serialized_start=1130,
+  serialized_end=1174,
 )
 
 
@@ -605,8 +612,8 @@ _UNSAT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1156,
-  serialized_end=1199,
+  serialized_start=1176,
+  serialized_end=1219,
 )
 
 
@@ -656,8 +663,8 @@ _MODEL = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1201,
-  serialized_end=1307,
+  serialized_start=1221,
+  serialized_end=1327,
 )
 
 
@@ -693,8 +700,8 @@ _REFUTED = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1309,
-  serialized_end=1372,
+  serialized_start=1329,
+  serialized_end=1392,
 )
 
 
@@ -730,8 +737,8 @@ _SAT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1374,
-  serialized_end=1433,
+  serialized_start=1394,
+  serialized_end=1453,
 )
 
 
@@ -802,8 +809,8 @@ _VERIFYRES = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1436,
-  serialized_end=1641,
+  serialized_start=1456,
+  serialized_end=1661,
 )
 
 
@@ -874,8 +881,8 @@ _INSTANCERES = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1644,
-  serialized_end=1841,
+  serialized_start=1664,
+  serialized_end=1861,
 )
 
 
@@ -906,8 +913,8 @@ _HINTS_INDUCT_FUNCTIONAL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2141,
-  serialized_end=2169,
+  serialized_start=2161,
+  serialized_end=2189,
 )
 
 _HINTS_INDUCT_STRUCTURAL = _descriptor.Descriptor(
@@ -944,8 +951,8 @@ _HINTS_INDUCT_STRUCTURAL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2171,
-  serialized_end=2259,
+  serialized_start=2191,
+  serialized_end=2279,
 )
 
 _HINTS_INDUCT = _descriptor.Descriptor(
@@ -995,8 +1002,8 @@ _HINTS_INDUCT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1976,
-  serialized_end=2322,
+  serialized_start=1996,
+  serialized_end=2342,
 )
 
 _HINTS_UNROLL = _descriptor.Descriptor(
@@ -1043,8 +1050,8 @@ _HINTS_UNROLL = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2324,
-  serialized_end=2410,
+  serialized_start=2344,
+  serialized_end=2430,
 )
 
 _HINTS = _descriptor.Descriptor(
@@ -1093,8 +1100,8 @@ _HINTS = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1844,
-  serialized_end=2421,
+  serialized_start=1864,
+  serialized_end=2441,
 )
 
 _DECOMPOSEREQ.fields_by_name['session'].message_type = session__pb2._SESSION
@@ -1405,8 +1412,8 @@ _SIMPLE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=2472,
-  serialized_end=3068,
+  serialized_start=2492,
+  serialized_end=3088,
   methods=[
   _descriptor.MethodDescriptor(
     name='status',

@@ -697,7 +697,8 @@ pub struct CirElimination_rule<'a> {
 pub struct CirDecomp<'a> {
   pub f_id: &'a Uid<'a>,
   pub assuming: Option<&'a Uid<'a>>,
-  pub basis: &'a [&'a Uid<'a>],
+  pub basis: &'a UidSet<'a>,
+  pub rule_specs: &'a UidSet<'a>,
   pub prune: bool,
 }
 
