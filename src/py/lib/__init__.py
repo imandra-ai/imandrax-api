@@ -3512,14 +3512,16 @@ def Tasks_Decomp_res_result_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg
 class Tasks_Decomp_res:
     from_: Ca_store_Ca_ptr[Cir_Decomp]
     res: Tasks_Decomp_res_result[Tasks_Decomp_res_success]
+    stats: Stat_time
     report: In_mem_archive[Report_Report]
 
 def Tasks_Decomp_res_of_twine(d: twine.Decoder, off: int) -> Tasks_Decomp_res:
     fields = list(d.get_array(off=off))
     from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Cir_Decomp_of_twine(d=d, off=off)))
     res = Tasks_Decomp_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_Decomp_res_success_of_twine(d=d, off=off)))
-    report = In_mem_archive_of_twine(d=d,off=fields[2],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
-    return Tasks_Decomp_res(from_=from_,res=res,report=report)
+    stats = Stat_time_of_twine(d=d, off=fields[2])
+    report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
+    return Tasks_Decomp_res(from_=from_,res=res,stats=stats,report=report)
 
 
 # Artifacts

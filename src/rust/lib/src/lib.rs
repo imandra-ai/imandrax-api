@@ -1061,6 +1061,7 @@ pub enum TasksDecomp_resError<'a> {
 pub struct TasksDecomp_res<'a> {
   pub from_: &'a Ca_storeCa_ptrRaw<'a>,
   pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a>, &'a TasksDecomp_resError<'a>>,
+  pub stats: Stat_time,
   pub report: &'a In_mem_archiveRaw<'a>,
 }
 
