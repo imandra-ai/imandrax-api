@@ -49,7 +49,9 @@ message DecomposeReq {
 
   repeated string basis = 4;
 
-  bool prune = 5;
+  repeated string rule_specs = 5;
+
+  bool prune = 6;
 }
 
 // Result of a decomposition
