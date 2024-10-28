@@ -43,7 +43,7 @@ $ imandrax-cli login --dev
 and configure imandrax to talk to the relevant cloud server:
 ```sh
 $ mkdir -p ~/.config/imandrax
-$ echo <<EOF > ~/.config/imandrax/config.toml
+$ cat <<EOF > ~/.config/imandrax/config.toml
 [net]
 deployment = "prod"
 EOF
@@ -52,7 +52,7 @@ EOF
 (or for the development version:
 ```sh
 $ mkdir -p ~/.config/imandrax
-$ echo <<EOF > ~/.config/imandrax/config.toml
+$ cat <<EOF > ~/.config/imandrax/config.toml
 [net]
 deployment = "dev"
 EOF
