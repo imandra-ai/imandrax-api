@@ -15,6 +15,7 @@ type t = {
     (Imandrax_api_cir.Decomp.t Imandrax_api_ca_store.Ca_ptr.t
     [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
   res: success result;
+  stats: Imandrax_api.Stat_time.t;
   report:
     (Imandrax_api_report.Report.t Imandrax_api.In_mem_archive.t
     [@twine.encode In_mem_archive.to_twine]
