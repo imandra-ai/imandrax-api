@@ -54,6 +54,8 @@ let all : kind list =
       ~of_twine:
         "(fun d i -> Imandrakit_twine.Decode.(string d @@ deref_rec d i))"
       ~docstring:"A human readable description";
+    mk "Fun_decomp" "Imandrax_api_cir.Fun_decomp.t" ~tag:"cir.fun_decomp"
+      ~docstring:"A CIR-level function decomposition";
     mk "Decomp_task" "Imandrax_api_tasks.Decomp_task.t" ~tag:"decomp_task"
       ~docstring:"Task to decompose a function";
     mk "Decomp_res" "Imandrax_api_tasks.Decomp_res.t" ~tag:"decomp_res"
