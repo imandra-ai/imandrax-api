@@ -42,6 +42,12 @@ def decode_with_tag7[T](d: twine.Decoder, off: int, d0: [Callable[...,T]]) -> Wi
     if tag.tag != 7:
         raise Error(f'Expected tag 7, got tag {tag.tag} at off=0x{off:x}')
     return d0(d=d, off=tag.arg)
+
+def decode_q(d: twine.Decoder, off:int) -> tuple[int,int]:
+    num, denum = d.get_array(off=off)
+    num = d.get_int(off=num)
+    denum = d.get_int(off=denum)
+    return num, denum
   |}
 
 let footer =
@@ -114,7 +120,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
     | "Imandrakit_error__Error_core.Data.t", [] -> spf "unit"
     | "option", [ x ] -> spf "None | %s" (gen_type_expr x)
     | "Util_twine_.With_tag7.t", [ x ] -> spf "WithTag7[%s]" (gen_type_expr x)
-    | "Util_twine_.Q.t", [] -> "bytes" (* TODO *)
+    | "Util_twine_.Q.t", [] -> "tuple[int, int]"
     | s, [] -> mangle_ty_name s
     | _ ->
       spf "%s[%s]" (mangle_ty_name s)
@@ -172,8 +178,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
     | "option", [ x ] ->
       spf "twine.optional(d=d, off=%s, d0=lambda d, off: %s)" off
         (of_twine_of_type_expr ~off:"off" x)
-    | "Util_twine_.Q.t", [] ->
-      "string" (* TODO: add a decode_q function in prelude, use it *)
+    | "Util_twine_.Q.t", [] -> spf "decode_q(d=d,off=%s)" off
     | s, [] -> spf "%s(d=d, off=%s)" (of_twine_of_ty_name s) off
     | _ ->
       let args =
