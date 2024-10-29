@@ -5,6 +5,7 @@ type task_kind =
   | Task_eval 
   | Task_check_po 
   | Task_proof_check 
+  | Task_decomp 
 
 type task_id = {
   id : string;
@@ -77,6 +78,7 @@ let rec pp_task_kind fmt (v:task_kind) =
   | Task_eval -> Format.fprintf fmt "Task_eval"
   | Task_check_po -> Format.fprintf fmt "Task_check_po"
   | Task_proof_check -> Format.fprintf fmt "Task_proof_check"
+  | Task_decomp -> Format.fprintf fmt "Task_decomp"
 
 let rec pp_task_id fmt (v:task_id) = 
   let pp_i fmt () =
@@ -101,6 +103,7 @@ let rec encode_pb_task_kind (v:task_kind) encoder =
   | Task_eval -> Pbrt.Encoder.int_as_varint 1 encoder
   | Task_check_po -> Pbrt.Encoder.int_as_varint 2 encoder
   | Task_proof_check -> Pbrt.Encoder.int_as_varint 3 encoder
+  | Task_decomp -> Pbrt.Encoder.int_as_varint 4 encoder
 
 let rec encode_pb_task_id (v:task_id) encoder = 
   Pbrt.Encoder.string v.id encoder;
@@ -128,6 +131,7 @@ let rec decode_pb_task_kind d =
   | 1 -> (Task_eval:task_kind)
   | 2 -> (Task_check_po:task_kind)
   | 3 -> (Task_proof_check:task_kind)
+  | 4 -> (Task_decomp:task_kind)
   | _ -> Pbrt.Decoder.malformed_variant "task_kind"
 
 let rec decode_pb_task_id d =
@@ -182,6 +186,7 @@ let rec encode_json_task_kind (v:task_kind) =
   | Task_eval -> `String "TASK_EVAL"
   | Task_check_po -> `String "TASK_CHECK_PO"
   | Task_proof_check -> `String "TASK_PROOF_CHECK"
+  | Task_decomp -> `String "TASK_DECOMP"
 
 let rec encode_json_task_id (v:task_id) = 
   let assoc = [] in 
@@ -207,6 +212,7 @@ let rec decode_json_task_kind json =
   | `String "TASK_EVAL" -> (Task_eval : task_kind)
   | `String "TASK_CHECK_PO" -> (Task_check_po : task_kind)
   | `String "TASK_PROOF_CHECK" -> (Task_proof_check : task_kind)
+  | `String "TASK_DECOMP" -> (Task_decomp : task_kind)
   | _ -> Pbrt_yojson.E.malformed_variant "task_kind"
 
 let rec decode_json_task_id d =

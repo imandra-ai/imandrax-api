@@ -15,19 +15,19 @@ type decompose_req = {
   session : Session.session option;
   name : string;
   assuming : string option;
+  basis : string list;
+  rule_specs : string list;
   prune : bool;
-  max_rounds : int32 option;
-  stop_at : int32 option;
 }
 
-type decompose_region = {
-  constraints_pp : string list;
-  invariant_pp : string;
-  ast_json : string option;
-}
+type decompose_res_res =
+  | Artifact of Artmsg.art
+  | Err
 
-type decompose_res = {
-  regions : decompose_region list;
+and decompose_res = {
+  res : decompose_res_res;
+  errors : Error.error list;
+  task : Task.task option;
 }
 
 type eval_src_req = {
@@ -157,23 +157,20 @@ val default_decompose_req :
   ?session:Session.session option ->
   ?name:string ->
   ?assuming:string option ->
+  ?basis:string list ->
+  ?rule_specs:string list ->
   ?prune:bool ->
-  ?max_rounds:int32 option ->
-  ?stop_at:int32 option ->
   unit ->
   decompose_req
 (** [default_decompose_req ()] is the default value for type [decompose_req] *)
 
-val default_decompose_region : 
-  ?constraints_pp:string list ->
-  ?invariant_pp:string ->
-  ?ast_json:string option ->
-  unit ->
-  decompose_region
-(** [default_decompose_region ()] is the default value for type [decompose_region] *)
+val default_decompose_res_res : unit -> decompose_res_res
+(** [default_decompose_res_res ()] is the default value for type [decompose_res_res] *)
 
 val default_decompose_res : 
-  ?regions:decompose_region list ->
+  ?res:decompose_res_res ->
+  ?errors:Error.error list ->
+  ?task:Task.task option ->
   unit ->
   decompose_res
 (** [default_decompose_res ()] is the default value for type [decompose_res] *)
@@ -325,23 +322,18 @@ val make_decompose_req :
   ?session:Session.session option ->
   name:string ->
   ?assuming:string option ->
+  basis:string list ->
+  rule_specs:string list ->
   prune:bool ->
-  ?max_rounds:int32 option ->
-  ?stop_at:int32 option ->
   unit ->
   decompose_req
 (** [make_decompose_req … ()] is a builder for type [decompose_req] *)
 
-val make_decompose_region : 
-  constraints_pp:string list ->
-  invariant_pp:string ->
-  ?ast_json:string option ->
-  unit ->
-  decompose_region
-(** [make_decompose_region … ()] is a builder for type [decompose_region] *)
 
 val make_decompose_res : 
-  regions:decompose_region list ->
+  res:decompose_res_res ->
+  errors:Error.error list ->
+  ?task:Task.task option ->
   unit ->
   decompose_res
 (** [make_decompose_res … ()] is a builder for type [decompose_res] *)
@@ -477,8 +469,8 @@ val pp_session_create_req : Format.formatter -> session_create_req -> unit
 val pp_decompose_req : Format.formatter -> decompose_req -> unit 
 (** [pp_decompose_req v] formats v *)
 
-val pp_decompose_region : Format.formatter -> decompose_region -> unit 
-(** [pp_decompose_region v] formats v *)
+val pp_decompose_res_res : Format.formatter -> decompose_res_res -> unit 
+(** [pp_decompose_res_res v] formats v *)
 
 val pp_decompose_res : Format.formatter -> decompose_res -> unit 
 (** [pp_decompose_res v] formats v *)
@@ -558,8 +550,8 @@ val encode_pb_session_create_req : session_create_req -> Pbrt.Encoder.t -> unit
 val encode_pb_decompose_req : decompose_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_decompose_region : decompose_region -> Pbrt.Encoder.t -> unit
-(** [encode_pb_decompose_region v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_decompose_res_res : decompose_res_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_res_res v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_decompose_res : decompose_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_res v encoder] encodes [v] with the given [encoder] *)
@@ -639,8 +631,8 @@ val decode_pb_session_create_req : Pbrt.Decoder.t -> session_create_req
 val decode_pb_decompose_req : Pbrt.Decoder.t -> decompose_req
 (** [decode_pb_decompose_req decoder] decodes a [decompose_req] binary value from [decoder] *)
 
-val decode_pb_decompose_region : Pbrt.Decoder.t -> decompose_region
-(** [decode_pb_decompose_region decoder] decodes a [decompose_region] binary value from [decoder] *)
+val decode_pb_decompose_res_res : Pbrt.Decoder.t -> decompose_res_res
+(** [decode_pb_decompose_res_res decoder] decodes a [decompose_res_res] binary value from [decoder] *)
 
 val decode_pb_decompose_res : Pbrt.Decoder.t -> decompose_res
 (** [decode_pb_decompose_res decoder] decodes a [decompose_res] binary value from [decoder] *)
@@ -720,8 +712,8 @@ val encode_json_session_create_req : session_create_req -> Yojson.Basic.t
 val encode_json_decompose_req : decompose_req -> Yojson.Basic.t
 (** [encode_json_decompose_req v encoder] encodes [v] to to json *)
 
-val encode_json_decompose_region : decompose_region -> Yojson.Basic.t
-(** [encode_json_decompose_region v encoder] encodes [v] to to json *)
+val encode_json_decompose_res_res : decompose_res_res -> Yojson.Basic.t
+(** [encode_json_decompose_res_res v encoder] encodes [v] to to json *)
 
 val encode_json_decompose_res : decompose_res -> Yojson.Basic.t
 (** [encode_json_decompose_res v encoder] encodes [v] to to json *)
@@ -801,8 +793,8 @@ val decode_json_session_create_req : Yojson.Basic.t -> session_create_req
 val decode_json_decompose_req : Yojson.Basic.t -> decompose_req
 (** [decode_json_decompose_req decoder] decodes a [decompose_req] value from [decoder] *)
 
-val decode_json_decompose_region : Yojson.Basic.t -> decompose_region
-(** [decode_json_decompose_region decoder] decodes a [decompose_region] value from [decoder] *)
+val decode_json_decompose_res_res : Yojson.Basic.t -> decompose_res_res
+(** [decode_json_decompose_res_res decoder] decodes a [decompose_res_res] value from [decoder] *)
 
 val decode_json_decompose_res : Yojson.Basic.t -> decompose_res
 (** [decode_json_decompose_res decoder] decodes a [decompose_res] value from [decoder] *)

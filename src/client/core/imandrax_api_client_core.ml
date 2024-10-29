@@ -91,6 +91,16 @@ module Make (Fut : FUT) = struct
     let arg = API.make_verify_src_req ~session:(Some session) ~hints ~src () in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.verify_src arg
 
+  let decompose ?timeout_s (self : t) ~(name : string) ?assuming ?(basis = [])
+      ?(rule_specs = []) ?(prune = true) ~(session : API.session) () :
+      API.decompose_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg =
+      API.make_decompose_req ~session:(Some session) ~name ?assuming ~basis
+        ~rule_specs ~prune ()
+    in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.decompose arg
+
   let list_artifacts ?timeout_s (self : t) ~(task : API.task_id) () :
       API.artifact_list_result Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in

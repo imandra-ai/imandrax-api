@@ -103,7 +103,7 @@ class Decoder:
         elif high == 5:
             # bigint
             bytes = self.get_bytes(off)
-            sign = 1 if bytes[0] & 0b1 == 0 else -1
+            sign = 1 if bytes == b'' or bytes[0] & 0b1 == 0 else -1
             absvalue = int.from_bytes(bytes, byteorder='little', signed=False) >> 1
             return sign * absvalue
         else:
