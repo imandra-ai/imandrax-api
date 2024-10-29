@@ -65,6 +65,27 @@ class Client:
             request=utils_pb2.Empty(),
         )
 
+    def decompose(
+        self,
+        name: str,
+        assuming: Optional[str] = None,
+        basis: Optional[list[str]] = [],
+        rule_specs: Optional[list[str]] = [],
+        prune: Optional[bool] = True,
+        timeout: Optional[float] = None,
+    ) -> simple_api_pb2.DecomposeRes:
+        timeout = timeout or self._timeout
+        return self._client.decompose(
+            ctx=Context(),
+            request=simple_api_pb2.DecomposeReq(name=name,
+                                                assuming=assuming,
+                                                basis=basis,
+                                                rule_specs=rule_specs,
+                                                prune=prune,
+                                                session=self._sesh),
+            timeout=timeout,
+        )
+
     def eval_src(
         self,
         src: str,
