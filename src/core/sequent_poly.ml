@@ -10,7 +10,7 @@ type 'term t = {
 let pp ppt out (self : _ t) : unit =
   if self.hyps = [] then
     Fmt.fprintf out "`@[|- %a@]`" (Util.pp_list ~sep:"," ppt) self.concls
-  else if self.hyps = [] then
+  else
     Fmt.fprintf out "`@[%a |- %a@]`"
       (Util.pp_list ~sep:"," ppt)
       self.hyps
