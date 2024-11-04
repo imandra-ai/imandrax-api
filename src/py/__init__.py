@@ -72,6 +72,8 @@ class Client:
         basis: Optional[list[str]] = [],
         rule_specs: Optional[list[str]] = [],
         prune: Optional[bool] = True,
+        ctx_simp: Optional[bool] = None,
+        lift_bool: Optional[simple_api_pb2.LiftBool] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.DecomposeRes:
         timeout = timeout or self._timeout
@@ -82,6 +84,8 @@ class Client:
                                                 basis=basis,
                                                 rule_specs=rule_specs,
                                                 prune=prune,
+                                                ctx_simp=ctx_simp,
+                                                lift_bool=lift_bool,
                                                 session=self._sesh),
             timeout=timeout,
         )
