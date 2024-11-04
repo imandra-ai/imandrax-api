@@ -11,6 +11,12 @@ type session_create_req = {
   api_version : string;
 }
 
+type lift_bool =
+  | Default 
+  | Nested_equalities 
+  | Equalities 
+  | All 
+
 type decompose_req = {
   session : Session.session option;
   name : string;
@@ -18,6 +24,8 @@ type decompose_req = {
   basis : string list;
   rule_specs : string list;
   prune : bool;
+  ctx_simp : bool option;
+  lift_bool : lift_bool option;
 }
 
 type decompose_res_res =
@@ -153,6 +161,9 @@ val default_session_create_req :
   session_create_req
 (** [default_session_create_req ()] is the default value for type [session_create_req] *)
 
+val default_lift_bool : unit -> lift_bool
+(** [default_lift_bool ()] is the default value for type [lift_bool] *)
+
 val default_decompose_req : 
   ?session:Session.session option ->
   ?name:string ->
@@ -160,6 +171,8 @@ val default_decompose_req :
   ?basis:string list ->
   ?rule_specs:string list ->
   ?prune:bool ->
+  ?ctx_simp:bool option ->
+  ?lift_bool:lift_bool option ->
   unit ->
   decompose_req
 (** [default_decompose_req ()] is the default value for type [decompose_req] *)
@@ -318,6 +331,7 @@ val make_session_create_req :
   session_create_req
 (** [make_session_create_req … ()] is a builder for type [session_create_req] *)
 
+
 val make_decompose_req : 
   ?session:Session.session option ->
   name:string ->
@@ -325,6 +339,8 @@ val make_decompose_req :
   basis:string list ->
   rule_specs:string list ->
   prune:bool ->
+  ?ctx_simp:bool option ->
+  ?lift_bool:lift_bool option ->
   unit ->
   decompose_req
 (** [make_decompose_req … ()] is a builder for type [decompose_req] *)
@@ -466,6 +482,9 @@ val make_instance_res :
 val pp_session_create_req : Format.formatter -> session_create_req -> unit 
 (** [pp_session_create_req v] formats v *)
 
+val pp_lift_bool : Format.formatter -> lift_bool -> unit 
+(** [pp_lift_bool v] formats v *)
+
 val pp_decompose_req : Format.formatter -> decompose_req -> unit 
 (** [pp_decompose_req v] formats v *)
 
@@ -546,6 +565,9 @@ val pp_instance_res : Format.formatter -> instance_res -> unit
 
 val encode_pb_session_create_req : session_create_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_session_create_req v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_lift_bool : lift_bool -> Pbrt.Encoder.t -> unit
+(** [encode_pb_lift_bool v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_decompose_req : decompose_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req v encoder] encodes [v] with the given [encoder] *)
@@ -628,6 +650,9 @@ val encode_pb_instance_res : instance_res -> Pbrt.Encoder.t -> unit
 val decode_pb_session_create_req : Pbrt.Decoder.t -> session_create_req
 (** [decode_pb_session_create_req decoder] decodes a [session_create_req] binary value from [decoder] *)
 
+val decode_pb_lift_bool : Pbrt.Decoder.t -> lift_bool
+(** [decode_pb_lift_bool decoder] decodes a [lift_bool] binary value from [decoder] *)
+
 val decode_pb_decompose_req : Pbrt.Decoder.t -> decompose_req
 (** [decode_pb_decompose_req decoder] decodes a [decompose_req] binary value from [decoder] *)
 
@@ -709,6 +734,9 @@ val decode_pb_instance_res : Pbrt.Decoder.t -> instance_res
 val encode_json_session_create_req : session_create_req -> Yojson.Basic.t
 (** [encode_json_session_create_req v encoder] encodes [v] to to json *)
 
+val encode_json_lift_bool : lift_bool -> Yojson.Basic.t
+(** [encode_json_lift_bool v encoder] encodes [v] to to json *)
+
 val encode_json_decompose_req : decompose_req -> Yojson.Basic.t
 (** [encode_json_decompose_req v encoder] encodes [v] to to json *)
 
@@ -789,6 +817,9 @@ val encode_json_instance_res : instance_res -> Yojson.Basic.t
 
 val decode_json_session_create_req : Yojson.Basic.t -> session_create_req
 (** [decode_json_session_create_req decoder] decodes a [session_create_req] value from [decoder] *)
+
+val decode_json_lift_bool : Yojson.Basic.t -> lift_bool
+(** [decode_json_lift_bool decoder] decodes a [lift_bool] value from [decoder] *)
 
 val decode_json_decompose_req : Yojson.Basic.t -> decompose_req
 (** [decode_json_decompose_req decoder] decodes a [decompose_req] value from [decoder] *)

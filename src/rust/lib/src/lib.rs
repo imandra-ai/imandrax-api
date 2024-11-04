@@ -692,6 +692,16 @@ pub struct CirElimination_rule<'a> {
 }
 
 
+// clique Imandrax_api_cir.Decomp.lift_bool
+// immediate
+#[derive(Debug, Clone)]
+pub enum CirDecompLift_bool {
+  Default,
+  Nested_equalities,
+  Equalities,
+  All,
+}
+
 // clique Imandrax_api_cir.Decomp.t
 #[derive(Debug, Clone)]
 pub struct CirDecomp<'a> {
@@ -699,6 +709,8 @@ pub struct CirDecomp<'a> {
   pub assuming: Option<&'a Uid<'a>>,
   pub basis: &'a UidSet<'a>,
   pub rule_specs: &'a UidSet<'a>,
+  pub ctx_simp: bool,
+  pub lift_bool: CirDecompLift_bool,
   pub prune: bool,
 }
 

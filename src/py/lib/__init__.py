@@ -29,6 +29,12 @@ def decode_with_tag7[T](d: twine.Decoder, off: int, d0: [Callable[...,T]]) -> Wi
     if tag.tag != 7:
         raise Error(f'Expected tag 7, got tag {tag.tag} at off=0x{off:x}')
     return d0(d=d, off=tag.arg)
+
+def decode_q(d: twine.Decoder, off:int) -> tuple[int,int]:
+    num, denum = d.get_array(off=off)
+    num = d.get_int(off=num)
+    denum = d.get_int(off=denum)
+    return num, denum
   
 
 # clique Imandrakit_error.Kind.t
@@ -620,10 +626,10 @@ def Const_Const_z_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Const_Con
 
 @dataclass(slots=True, frozen=True)
 class Const_Const_q:
-    arg: bytes
+    arg: tuple[int, int]
 
 def Const_Const_q_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Const_Const_q:
-    arg = string
+    arg = decode_q(d=d,off=args[0])
     return Const_Const_q(arg=arg)
 
 @dataclass(slots=True, frozen=True)
@@ -2127,6 +2133,39 @@ def Cir_Elimination_rule_of_twine(d: twine.Decoder, off: int) -> Cir_Elimination
     er_dest_tms = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=fields[5])]
     return Cir_Elimination_rule(er_name=er_name,er_guard=er_guard,er_lhs=er_lhs,er_rhs=er_rhs,er_dests=er_dests,er_dest_tms=er_dest_tms)
 
+# clique Imandrax_api_cir.Decomp.lift_bool
+# def Imandrax_api_cir.Decomp.lift_bool (mangled name: "Cir_Decomp_lift_bool")
+@dataclass(slots=True, frozen=True)
+class Cir_Decomp_lift_bool_Default:
+    pass
+
+@dataclass(slots=True, frozen=True)
+class Cir_Decomp_lift_bool_Nested_equalities:
+    pass
+
+@dataclass(slots=True, frozen=True)
+class Cir_Decomp_lift_bool_Equalities:
+    pass
+
+@dataclass(slots=True, frozen=True)
+class Cir_Decomp_lift_bool_All:
+    pass
+
+type Cir_Decomp_lift_bool = Cir_Decomp_lift_bool_Default| Cir_Decomp_lift_bool_Nested_equalities| Cir_Decomp_lift_bool_Equalities| Cir_Decomp_lift_bool_All
+
+def Cir_Decomp_lift_bool_of_twine(d: twine.Decoder, off: int) -> Cir_Decomp_lift_bool:
+    match d.get_cstor(off=off):
+         case twine.Constructor(idx=0, args=args):
+             return Cir_Decomp_lift_bool_Default()
+         case twine.Constructor(idx=1, args=args):
+             return Cir_Decomp_lift_bool_Nested_equalities()
+         case twine.Constructor(idx=2, args=args):
+             return Cir_Decomp_lift_bool_Equalities()
+         case twine.Constructor(idx=3, args=args):
+             return Cir_Decomp_lift_bool_All()
+         case twine.Constructor(idx=idx):
+             raise twine.Error(f'expected Cir_Decomp_lift_bool, got invalid constructor {idx}')
+
 # clique Imandrax_api_cir.Decomp.t
 # def Imandrax_api_cir.Decomp.t (mangled name: "Cir_Decomp")
 @dataclass(slots=True, frozen=True)
@@ -2135,6 +2174,8 @@ class Cir_Decomp:
     assuming: None | Uid
     basis: Uid_set
     rule_specs: Uid_set
+    ctx_simp: bool
+    lift_bool: Cir_Decomp_lift_bool
     prune: bool
 
 def Cir_Decomp_of_twine(d: twine.Decoder, off: int) -> Cir_Decomp:
@@ -2143,8 +2184,10 @@ def Cir_Decomp_of_twine(d: twine.Decoder, off: int) -> Cir_Decomp:
     assuming = twine.optional(d=d, off=fields[1], d0=lambda d, off: Uid_of_twine(d=d, off=off))
     basis = Uid_set_of_twine(d=d, off=fields[2])
     rule_specs = Uid_set_of_twine(d=d, off=fields[3])
-    prune = d.get_bool(off=fields[4])
-    return Cir_Decomp(f_id=f_id,assuming=assuming,basis=basis,rule_specs=rule_specs,prune=prune)
+    ctx_simp = d.get_bool(off=fields[4])
+    lift_bool = Cir_Decomp_lift_bool_of_twine(d=d, off=fields[5])
+    prune = d.get_bool(off=fields[6])
+    return Cir_Decomp(f_id=f_id,assuming=assuming,basis=basis,rule_specs=rule_specs,ctx_simp=ctx_simp,lift_bool=lift_bool,prune=prune)
 
 # clique Imandrax_api_cir.Db_ser.uid_map
 # def Imandrax_api_cir.Db_ser.uid_map (mangled name: "Cir_Db_ser_uid_map")
@@ -2290,12 +2333,12 @@ def Eval_Value_view_V_int_of_twine[_V_tyreg_poly_v,_V_tyreg_poly_closure](d: twi
 
 @dataclass(slots=True, frozen=True)
 class Eval_Value_view_V_real[_V_tyreg_poly_v,_V_tyreg_poly_closure]:
-    arg: bytes
+    arg: tuple[int, int]
 
 def Eval_Value_view_V_real_of_twine[_V_tyreg_poly_v,_V_tyreg_poly_closure](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_v],d1: Callable[...,_V_tyreg_poly_closure],args: tuple[int, ...]) -> Eval_Value_view_V_real[_V_tyreg_poly_v,_V_tyreg_poly_closure]:
     decode__tyreg_poly_v = d0
     decode__tyreg_poly_closure = d1
-    arg = string
+    arg = decode_q(d=d,off=args[0])
     return Eval_Value_view_V_real(arg=arg)
 
 @dataclass(slots=True, frozen=True)
