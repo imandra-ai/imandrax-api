@@ -20,6 +20,12 @@ module Induct = struct
 
   type t = {
     otf: bool;
+    timeout: int;
+    max_induct: int option;  (** max induction depth *)
+    backchain_limit: int;  (** global back-chaining limit, for rewriting *)
+    subgoal_depth: int;  (** Max depth of successive subgoals in induction *)
+    unroll_enable_all: bool;
+    unroll_depth: int;
     method_: method_;
   }
   [@@deriving twine, typereg, eq] [@@typereg.name "Induct.t"]
@@ -35,8 +41,22 @@ module Induct = struct
     | Functional { f_name = None } -> Format.fprintf out "(@[functional ?@])"
     | Term { t; _ } -> Format.fprintf out "(@[term %a@])" Term.pp t
 
-  let pp out { otf; method_ } =
-    Fmt.fprintf out "(@[otf:%b, method:%a@])" otf pp_method method_
+  let pp out
+      {
+        otf;
+        timeout;
+        method_;
+        max_induct;
+        backchain_limit;
+        subgoal_depth;
+        unroll_depth;
+        unroll_enable_all;
+      } =
+    Fmt.fprintf out
+      "(@[otf:%b, timeout: %i, max_induct:%a, backchain_limit:%i, \
+       subgoal_depth:%i, unroll_depth:%i, unroll_enable_all:%b, method:%a@])"
+      otf timeout (Fmt.opt Fmt.int) max_induct backchain_limit subgoal_depth
+      unroll_depth unroll_enable_all pp_method method_
 
   let show = Fmt.to_string pp
 end
