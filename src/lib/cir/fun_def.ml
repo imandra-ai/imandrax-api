@@ -29,22 +29,17 @@ type t = {
   f_admission_measure: Imandrax_api.Uid.t option;
       (** custom measure function *)
   f_validate_strat: validation_strategy;
-  f_hints: apply_hint Hints.Top.t option;  (** how to verify the function? *)
+  f_unroll_def: int option;
   f_enable: Imandrax_api.Uid.t list;  (** local enables *)
   f_disable: Imandrax_api.Uid.t list;  (** local disables *)
   f_timeout: int option;  (** timeout for POs *)
 }
+[@@deriving twine, typereg, eq, show { with_path = false }]
 (** A function definition. *)
-
-and apply_hint = { apply_fun: t }
-[@@unboxed] [@@deriving twine, typereg, eq, show { with_path = false }]
-(** A local function that has the same signature as the theorem *)
 
 let pp_ = ref pp
 let pp out d = !pp_ out d
 let show = Fmt.to_string pp
-let pp_apply_hint_ = ref pp_apply_hint
-let pp_apply_hint out h = !pp_apply_hint_ out h
 
 open Imandrax_api
 
