@@ -8,13 +8,6 @@ type fun_kind =
   | Fun_opaque
 [@@deriving show { with_path = false }, eq, twine, typereg]
 
-(** How to validate a function *)
-type validation_strategy =
-  | VS_validate of { tactic: Term.t option }
-      (** Validate using this tactic for POs *)
-  | VS_no_validate  (** Admitted, or builtin. *)
-[@@deriving show { with_path = false }, eq, twine, typereg]
-
 type t = {
   f_name: Imandrax_api.Uid.t; [@printer Util.pp_backquote Imandrax_api.Uid.pp]
   f_ty: Type_schema.t;
@@ -28,11 +21,7 @@ type t = {
   f_admission: Imandrax_api.Admission.t option;
   f_admission_measure: Imandrax_api.Uid.t option;
       (** custom measure function *)
-  f_validate_strat: validation_strategy;
-  f_unroll_def: int option;
-  f_enable: Imandrax_api.Uid.t list;  (** local enables *)
-  f_disable: Imandrax_api.Uid.t list;  (** local disables *)
-  f_timeout: int option;  (** timeout for POs *)
+  f_hints: Hints.t;
 }
 [@@deriving twine, typereg, eq, show { with_path = false }]
 (** A function definition. *)
