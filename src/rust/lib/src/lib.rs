@@ -398,39 +398,6 @@ pub struct CirCase<'a,V_tyreg_poly_t:'a> {
 }
 
 
-// clique Imandrax_api_cir.Logic_config.t
-// immediate
-#[derive(Debug, Clone)]
-pub struct CirLogic_config {
-  pub timeout: BigInt,
-  pub validate: bool,
-  pub skip_proofs: bool,
-  pub max_induct: Option<BigInt>,
-  pub backchain_limit: BigInt,
-  pub enable_all: bool,
-  pub induct_unroll_depth: BigInt,
-  pub induct_subgoal_depth: BigInt,
-  pub unroll_enable_all: bool,
-  pub unroll_depth: BigInt,
-}
-
-
-// clique Imandrax_api_cir.Logic_config.op
-// immediate
-#[derive(Debug, Clone)]
-pub enum CirLogic_configOp {
-  Op_timeout(BigInt),
-  Op_validate(bool),
-  Op_skip_proofs(bool),
-  Op_max_induct(Option<BigInt>),
-  Op_backchain_limit(BigInt),
-  Op_enable_all(bool),
-  Op_induct_unroll_depth(BigInt),
-  Op_induct_subgoal_depth(BigInt),
-  Op_unroll_enable_all(bool),
-  Op_unroll_depth(BigInt),
-}
-
 // clique Imandrax_api_cir.Term.view
 #[derive(Debug, Clone)]
 pub enum CirTermView<'a> {
@@ -492,52 +459,24 @@ pub enum CirTermView<'a> {
   },
 }
 
-// clique Imandrax_api_cir.Hints.style
-// immediate
+// clique Imandrax_api_cir.Hints.validation_strategy
 #[derive(Debug, Clone)]
-pub enum CirHintsStyle {
-  Multiplicative,
-  Additive,
+pub enum CirHintsValidation_strategy<'a> {
+  VS_validate {
+    tactic: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
+  },
+  VS_no_validate,
 }
 
-// clique Imandrax_api_cir.Hints.Induct.t
+// clique Imandrax_api_cir.Hints.t
 #[derive(Debug, Clone)]
-pub enum CirHintsInduct<'a> {
-  Functional {
-    f_name: Option<&'a Uid<'a>>,
-  },
-  Structural {
-    style: CirHintsStyle,
-    vars: &'a [&'a str],
-  },
-  Term {
-    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-    vars: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
-  },
-  Default,
-}
-
-// clique Imandrax_api_cir.Hints.Method.t
-#[derive(Debug, Clone)]
-pub enum CirHintsMethod<'a> {
-  Unroll {
-    steps: Option<BigInt>,
-  },
-  Ext_solver {
-    name: &'a str,
-  },
-  Auto,
-  Induct(&'a CirHintsInduct<'a>),
-}
-
-// clique Imandrax_api_cir.Hints.Top.t
-#[derive(Debug, Clone)]
-pub struct CirHintsTop<'a,V_tyreg_poly_f:'a> {
-  pub basis: &'a UidSet<'a>,
-  pub method_: &'a CirHintsMethod<'a>,
-  pub apply_hint: &'a [V_tyreg_poly_f],
-  pub logic_config_ops: &'a [CirLogic_configOp],
-  pub otf: bool,
+pub struct CirHints<'a> {
+  pub f_validate_strat: &'a CirHintsValidation_strategy<'a>,
+  pub f_unroll_def: Option<BigInt>,
+  pub f_enable: &'a [&'a Uid<'a>],
+  pub f_disable: &'a [&'a Uid<'a>],
+  pub f_timeout: Option<BigInt>,
+  pub f_admission: Option<&'a Admission<'a>>,
 }
 
 
@@ -552,16 +491,7 @@ pub enum CirFun_defFun_kind<'a> {
   Fun_opaque,
 }
 
-// clique Imandrax_api_cir.Fun_def.validation_strategy
-#[derive(Debug, Clone)]
-pub enum CirFun_defValidation_strategy<'a> {
-  VS_validate {
-    tactic: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
-  },
-  VS_no_validate,
-}
-
-// clique Imandrax_api_cir.Fun_def.t,Imandrax_api_cir.Fun_def.apply_hint
+// clique Imandrax_api_cir.Fun_def.t
 #[derive(Debug, Clone)]
 pub struct CirFun_def<'a> {
   pub f_name: &'a Uid<'a>,
@@ -570,18 +500,7 @@ pub struct CirFun_def<'a> {
   pub f_body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
   pub f_clique: Option<&'a UidSet<'a>>,
   pub f_kind: &'a CirFun_defFun_kind<'a>,
-  pub f_admission: Option<&'a Admission<'a>>,
-  pub f_admission_measure: Option<&'a Uid<'a>>,
-  pub f_validate_strat: &'a CirFun_defValidation_strategy<'a>,
-  pub f_hints: Option<&'a CirHintsTop<'a,&'a CirFun_defApply_hint<'a>>>,
-  pub f_enable: &'a [&'a Uid<'a>],
-  pub f_disable: &'a [&'a Uid<'a>],
-  pub f_timeout: Option<BigInt>,
-}
-
-#[derive(Debug, Clone)]
-pub struct CirFun_defApply_hint<'a> {
-  pub apply_fun: &'a CirFun_def<'a>,
+  pub f_hints: &'a CirHints<'a>,
 }
 
 
@@ -732,7 +651,6 @@ pub struct CirDb_ser<'a> {
   pub thm_as_gen: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
   pub admission: &'a [(&'a Uid<'a>,&'a Ca_storeCa_ptrRaw<'a>)],
   pub count_funs_of_ty: &'a [(&'a Uid<'a>,&'a Uid<'a>)],
-  pub config: &'a Ca_storeCa_ptrRaw<'a>,
   pub disabled: &'a UidSet<'a>,
 }
 
@@ -835,7 +753,6 @@ pub enum ReportAtomic_eventPoly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_fn:'a,V_tyr
   E_enter_waterfall {
     vars: &'a [V_tyreg_poly_var],
     goal: V_tyreg_poly_term,
-    hints: &'a CirHintsInduct<'a>,
   },
   E_enter_tactic(&'a str),
   E_rw_success(&'a CirRewrite_rule<'a>,V_tyreg_poly_term,V_tyreg_poly_term),

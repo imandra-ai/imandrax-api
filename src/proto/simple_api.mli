@@ -50,56 +50,28 @@ type eval_res = {
   tasks : Task.task list;
 }
 
-type hints_unroll = {
-  smt_solver : string option;
-  max_steps : int32 option;
-}
-
-type hints_induct_functional = {
-  f_name : string;
-}
-
-type hints_induct_structural_style =
-  | Additive 
-  | Multiplicative 
-
-type hints_induct_structural = {
-  style : hints_induct_structural_style;
-  vars : string list;
-}
-
-type hints_induct =
-  | Default
-  | Functional of hints_induct_functional
-  | Structural of hints_induct_structural
-
-type hints =
-  | Auto
-  | Unroll of hints_unroll
-  | Induct of hints_induct
-
 type verify_src_req = {
   session : Session.session option;
   src : string;
-  hints : hints option;
+  hints : string option;
 }
 
 type verify_name_req = {
   session : Session.session option;
   name : string;
-  hints : hints option;
+  hints : string option;
 }
 
 type instance_src_req = {
   session : Session.session option;
   src : string;
-  hints : hints option;
+  hints : string option;
 }
 
 type instance_name_req = {
   session : Session.session option;
   name : string;
-  hints : hints option;
+  hints : string option;
 }
 
 type proved = {
@@ -204,39 +176,10 @@ val default_eval_res :
   eval_res
 (** [default_eval_res ()] is the default value for type [eval_res] *)
 
-val default_hints_unroll : 
-  ?smt_solver:string option ->
-  ?max_steps:int32 option ->
-  unit ->
-  hints_unroll
-(** [default_hints_unroll ()] is the default value for type [hints_unroll] *)
-
-val default_hints_induct_functional : 
-  ?f_name:string ->
-  unit ->
-  hints_induct_functional
-(** [default_hints_induct_functional ()] is the default value for type [hints_induct_functional] *)
-
-val default_hints_induct_structural_style : unit -> hints_induct_structural_style
-(** [default_hints_induct_structural_style ()] is the default value for type [hints_induct_structural_style] *)
-
-val default_hints_induct_structural : 
-  ?style:hints_induct_structural_style ->
-  ?vars:string list ->
-  unit ->
-  hints_induct_structural
-(** [default_hints_induct_structural ()] is the default value for type [hints_induct_structural] *)
-
-val default_hints_induct : unit -> hints_induct
-(** [default_hints_induct ()] is the default value for type [hints_induct] *)
-
-val default_hints : unit -> hints
-(** [default_hints ()] is the default value for type [hints] *)
-
 val default_verify_src_req : 
   ?session:Session.session option ->
   ?src:string ->
-  ?hints:hints option ->
+  ?hints:string option ->
   unit ->
   verify_src_req
 (** [default_verify_src_req ()] is the default value for type [verify_src_req] *)
@@ -244,7 +187,7 @@ val default_verify_src_req :
 val default_verify_name_req : 
   ?session:Session.session option ->
   ?name:string ->
-  ?hints:hints option ->
+  ?hints:string option ->
   unit ->
   verify_name_req
 (** [default_verify_name_req ()] is the default value for type [verify_name_req] *)
@@ -252,7 +195,7 @@ val default_verify_name_req :
 val default_instance_src_req : 
   ?session:Session.session option ->
   ?src:string ->
-  ?hints:hints option ->
+  ?hints:string option ->
   unit ->
   instance_src_req
 (** [default_instance_src_req ()] is the default value for type [instance_src_req] *)
@@ -260,7 +203,7 @@ val default_instance_src_req :
 val default_instance_name_req : 
   ?session:Session.session option ->
   ?name:string ->
-  ?hints:hints option ->
+  ?hints:string option ->
   unit ->
   instance_name_req
 (** [default_instance_name_req ()] is the default value for type [instance_name_req] *)
@@ -370,33 +313,10 @@ val make_eval_res :
   eval_res
 (** [make_eval_res … ()] is a builder for type [eval_res] *)
 
-val make_hints_unroll : 
-  ?smt_solver:string option ->
-  ?max_steps:int32 option ->
-  unit ->
-  hints_unroll
-(** [make_hints_unroll … ()] is a builder for type [hints_unroll] *)
-
-val make_hints_induct_functional : 
-  f_name:string ->
-  unit ->
-  hints_induct_functional
-(** [make_hints_induct_functional … ()] is a builder for type [hints_induct_functional] *)
-
-
-val make_hints_induct_structural : 
-  style:hints_induct_structural_style ->
-  vars:string list ->
-  unit ->
-  hints_induct_structural
-(** [make_hints_induct_structural … ()] is a builder for type [hints_induct_structural] *)
-
-
-
 val make_verify_src_req : 
   ?session:Session.session option ->
   src:string ->
-  ?hints:hints option ->
+  ?hints:string option ->
   unit ->
   verify_src_req
 (** [make_verify_src_req … ()] is a builder for type [verify_src_req] *)
@@ -404,7 +324,7 @@ val make_verify_src_req :
 val make_verify_name_req : 
   ?session:Session.session option ->
   name:string ->
-  ?hints:hints option ->
+  ?hints:string option ->
   unit ->
   verify_name_req
 (** [make_verify_name_req … ()] is a builder for type [verify_name_req] *)
@@ -412,7 +332,7 @@ val make_verify_name_req :
 val make_instance_src_req : 
   ?session:Session.session option ->
   src:string ->
-  ?hints:hints option ->
+  ?hints:string option ->
   unit ->
   instance_src_req
 (** [make_instance_src_req … ()] is a builder for type [instance_src_req] *)
@@ -420,7 +340,7 @@ val make_instance_src_req :
 val make_instance_name_req : 
   ?session:Session.session option ->
   name:string ->
-  ?hints:hints option ->
+  ?hints:string option ->
   unit ->
   instance_name_req
 (** [make_instance_name_req … ()] is a builder for type [instance_name_req] *)
@@ -500,24 +420,6 @@ val pp_eval_src_req : Format.formatter -> eval_src_req -> unit
 val pp_eval_res : Format.formatter -> eval_res -> unit 
 (** [pp_eval_res v] formats v *)
 
-val pp_hints_unroll : Format.formatter -> hints_unroll -> unit 
-(** [pp_hints_unroll v] formats v *)
-
-val pp_hints_induct_functional : Format.formatter -> hints_induct_functional -> unit 
-(** [pp_hints_induct_functional v] formats v *)
-
-val pp_hints_induct_structural_style : Format.formatter -> hints_induct_structural_style -> unit 
-(** [pp_hints_induct_structural_style v] formats v *)
-
-val pp_hints_induct_structural : Format.formatter -> hints_induct_structural -> unit 
-(** [pp_hints_induct_structural v] formats v *)
-
-val pp_hints_induct : Format.formatter -> hints_induct -> unit 
-(** [pp_hints_induct v] formats v *)
-
-val pp_hints : Format.formatter -> hints -> unit 
-(** [pp_hints v] formats v *)
-
 val pp_verify_src_req : Format.formatter -> verify_src_req -> unit 
 (** [pp_verify_src_req v] formats v *)
 
@@ -583,24 +485,6 @@ val encode_pb_eval_src_req : eval_src_req -> Pbrt.Encoder.t -> unit
 
 val encode_pb_eval_res : eval_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_eval_res v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_hints_unroll : hints_unroll -> Pbrt.Encoder.t -> unit
-(** [encode_pb_hints_unroll v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_hints_induct_functional : hints_induct_functional -> Pbrt.Encoder.t -> unit
-(** [encode_pb_hints_induct_functional v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_hints_induct_structural_style : hints_induct_structural_style -> Pbrt.Encoder.t -> unit
-(** [encode_pb_hints_induct_structural_style v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_hints_induct_structural : hints_induct_structural -> Pbrt.Encoder.t -> unit
-(** [encode_pb_hints_induct_structural v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_hints_induct : hints_induct -> Pbrt.Encoder.t -> unit
-(** [encode_pb_hints_induct v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_hints : hints -> Pbrt.Encoder.t -> unit
-(** [encode_pb_hints v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_verify_src_req : verify_src_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_verify_src_req v encoder] encodes [v] with the given [encoder] *)
@@ -668,24 +552,6 @@ val decode_pb_eval_src_req : Pbrt.Decoder.t -> eval_src_req
 val decode_pb_eval_res : Pbrt.Decoder.t -> eval_res
 (** [decode_pb_eval_res decoder] decodes a [eval_res] binary value from [decoder] *)
 
-val decode_pb_hints_unroll : Pbrt.Decoder.t -> hints_unroll
-(** [decode_pb_hints_unroll decoder] decodes a [hints_unroll] binary value from [decoder] *)
-
-val decode_pb_hints_induct_functional : Pbrt.Decoder.t -> hints_induct_functional
-(** [decode_pb_hints_induct_functional decoder] decodes a [hints_induct_functional] binary value from [decoder] *)
-
-val decode_pb_hints_induct_structural_style : Pbrt.Decoder.t -> hints_induct_structural_style
-(** [decode_pb_hints_induct_structural_style decoder] decodes a [hints_induct_structural_style] binary value from [decoder] *)
-
-val decode_pb_hints_induct_structural : Pbrt.Decoder.t -> hints_induct_structural
-(** [decode_pb_hints_induct_structural decoder] decodes a [hints_induct_structural] binary value from [decoder] *)
-
-val decode_pb_hints_induct : Pbrt.Decoder.t -> hints_induct
-(** [decode_pb_hints_induct decoder] decodes a [hints_induct] binary value from [decoder] *)
-
-val decode_pb_hints : Pbrt.Decoder.t -> hints
-(** [decode_pb_hints decoder] decodes a [hints] binary value from [decoder] *)
-
 val decode_pb_verify_src_req : Pbrt.Decoder.t -> verify_src_req
 (** [decode_pb_verify_src_req decoder] decodes a [verify_src_req] binary value from [decoder] *)
 
@@ -751,24 +617,6 @@ val encode_json_eval_src_req : eval_src_req -> Yojson.Basic.t
 
 val encode_json_eval_res : eval_res -> Yojson.Basic.t
 (** [encode_json_eval_res v encoder] encodes [v] to to json *)
-
-val encode_json_hints_unroll : hints_unroll -> Yojson.Basic.t
-(** [encode_json_hints_unroll v encoder] encodes [v] to to json *)
-
-val encode_json_hints_induct_functional : hints_induct_functional -> Yojson.Basic.t
-(** [encode_json_hints_induct_functional v encoder] encodes [v] to to json *)
-
-val encode_json_hints_induct_structural_style : hints_induct_structural_style -> Yojson.Basic.t
-(** [encode_json_hints_induct_structural_style v encoder] encodes [v] to to json *)
-
-val encode_json_hints_induct_structural : hints_induct_structural -> Yojson.Basic.t
-(** [encode_json_hints_induct_structural v encoder] encodes [v] to to json *)
-
-val encode_json_hints_induct : hints_induct -> Yojson.Basic.t
-(** [encode_json_hints_induct v encoder] encodes [v] to to json *)
-
-val encode_json_hints : hints -> Yojson.Basic.t
-(** [encode_json_hints v encoder] encodes [v] to to json *)
 
 val encode_json_verify_src_req : verify_src_req -> Yojson.Basic.t
 (** [encode_json_verify_src_req v encoder] encodes [v] to to json *)
@@ -836,24 +684,6 @@ val decode_json_eval_src_req : Yojson.Basic.t -> eval_src_req
 val decode_json_eval_res : Yojson.Basic.t -> eval_res
 (** [decode_json_eval_res decoder] decodes a [eval_res] value from [decoder] *)
 
-val decode_json_hints_unroll : Yojson.Basic.t -> hints_unroll
-(** [decode_json_hints_unroll decoder] decodes a [hints_unroll] value from [decoder] *)
-
-val decode_json_hints_induct_functional : Yojson.Basic.t -> hints_induct_functional
-(** [decode_json_hints_induct_functional decoder] decodes a [hints_induct_functional] value from [decoder] *)
-
-val decode_json_hints_induct_structural_style : Yojson.Basic.t -> hints_induct_structural_style
-(** [decode_json_hints_induct_structural_style decoder] decodes a [hints_induct_structural_style] value from [decoder] *)
-
-val decode_json_hints_induct_structural : Yojson.Basic.t -> hints_induct_structural
-(** [decode_json_hints_induct_structural decoder] decodes a [hints_induct_structural] value from [decoder] *)
-
-val decode_json_hints_induct : Yojson.Basic.t -> hints_induct
-(** [decode_json_hints_induct decoder] decodes a [hints_induct] value from [decoder] *)
-
-val decode_json_hints : Yojson.Basic.t -> hints
-(** [decode_json_hints decoder] decodes a [hints] value from [decoder] *)
-
 val decode_json_verify_src_req : Yojson.Basic.t -> verify_src_req
 (** [decode_json_verify_src_req decoder] decodes a [verify_src_req] value from [decoder] *)
 
@@ -910,8 +740,6 @@ module Simple : sig
     
     val shutdown : (Utils.empty, unary, Utils.empty, unary) Client.rpc
     
-    val decompose : (decompose_req, unary, decompose_res, unary) Client.rpc
-    
     val create_session : (session_create_req, unary, Session.session, unary) Client.rpc
     
     val eval_src : (eval_src_req, unary, eval_res, unary) Client.rpc
@@ -923,6 +751,8 @@ module Simple : sig
     val instance_src : (instance_src_req, unary, instance_res, unary) Client.rpc
     
     val instance_name : (instance_name_req, unary, instance_res, unary) Client.rpc
+    
+    val decompose : (decompose_req, unary, decompose_res, unary) Client.rpc
   end
   
   module Server : sig
@@ -930,13 +760,13 @@ module Simple : sig
     val make : 
       status:((Utils.empty, unary, Utils.string_msg, unary) Server.rpc -> 'handler) ->
       shutdown:((Utils.empty, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
-      decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
       create_session:((session_create_req, unary, Session.session, unary) Server.rpc -> 'handler) ->
       eval_src:((eval_src_req, unary, eval_res, unary) Server.rpc -> 'handler) ->
       verify_src:((verify_src_req, unary, verify_res, unary) Server.rpc -> 'handler) ->
       verify_name:((verify_name_req, unary, verify_res, unary) Server.rpc -> 'handler) ->
       instance_src:((instance_src_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       instance_name:((instance_name_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
+      decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
     
     (** The individual server stubs are only exposed for advanced users. Casual users should prefer accessing them through {!make}. *)
@@ -944,8 +774,6 @@ module Simple : sig
     val status : (Utils.empty,unary,Utils.string_msg,unary) Server.rpc
     
     val shutdown : (Utils.empty,unary,Utils.empty,unary) Server.rpc
-    
-    val decompose : (decompose_req,unary,decompose_res,unary) Server.rpc
     
     val create_session : (session_create_req,unary,Session.session,unary) Server.rpc
     
@@ -958,5 +786,7 @@ module Simple : sig
     val instance_src : (instance_src_req,unary,instance_res,unary) Server.rpc
     
     val instance_name : (instance_name_req,unary,instance_res,unary) Server.rpc
+    
+    val decompose : (decompose_req,unary,decompose_res,unary) Server.rpc
   end
 end
