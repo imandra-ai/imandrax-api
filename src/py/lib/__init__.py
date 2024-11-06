@@ -1197,154 +1197,6 @@ type Cir_Clique = Uid_set
 def Cir_Clique_of_twine(d: twine.Decoder, off: int) -> Cir_Clique:
     return Uid_set_of_twine(d=d, off=off)
 
-# clique Imandrax_api_cir.Logic_config.t
-# def Imandrax_api_cir.Logic_config.t (mangled name: "Cir_Logic_config")
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config:
-    timeout: int
-    validate: bool
-    skip_proofs: bool
-    max_induct: None | int
-    backchain_limit: int
-    enable_all: bool
-    induct_unroll_depth: int
-    induct_subgoal_depth: int
-    unroll_enable_all: bool
-    unroll_depth: int
-
-def Cir_Logic_config_of_twine(d: twine.Decoder, off: int) -> Cir_Logic_config:
-    fields = list(d.get_array(off=off))
-    timeout = d.get_int(off=fields[0])
-    validate = d.get_bool(off=fields[1])
-    skip_proofs = d.get_bool(off=fields[2])
-    max_induct = twine.optional(d=d, off=fields[3], d0=lambda d, off: d.get_int(off=off))
-    backchain_limit = d.get_int(off=fields[4])
-    enable_all = d.get_bool(off=fields[5])
-    induct_unroll_depth = d.get_int(off=fields[6])
-    induct_subgoal_depth = d.get_int(off=fields[7])
-    unroll_enable_all = d.get_bool(off=fields[8])
-    unroll_depth = d.get_int(off=fields[9])
-    return Cir_Logic_config(timeout=timeout,validate=validate,skip_proofs=skip_proofs,max_induct=max_induct,backchain_limit=backchain_limit,enable_all=enable_all,induct_unroll_depth=induct_unroll_depth,induct_subgoal_depth=induct_subgoal_depth,unroll_enable_all=unroll_enable_all,unroll_depth=unroll_depth)
-
-# clique Imandrax_api_cir.Logic_config.op
-# def Imandrax_api_cir.Logic_config.op (mangled name: "Cir_Logic_config_op")
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config_op_Op_timeout:
-    arg: int
-
-def Cir_Logic_config_op_Op_timeout_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_timeout:
-    arg = d.get_int(off=args[0])
-    return Cir_Logic_config_op_Op_timeout(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config_op_Op_validate:
-    arg: bool
-
-def Cir_Logic_config_op_Op_validate_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_validate:
-    arg = d.get_bool(off=args[0])
-    return Cir_Logic_config_op_Op_validate(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config_op_Op_skip_proofs:
-    arg: bool
-
-def Cir_Logic_config_op_Op_skip_proofs_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_skip_proofs:
-    arg = d.get_bool(off=args[0])
-    return Cir_Logic_config_op_Op_skip_proofs(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config_op_Op_max_induct:
-    arg: None | int
-
-def Cir_Logic_config_op_Op_max_induct_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_max_induct:
-    arg = twine.optional(d=d, off=args[0], d0=lambda d, off: d.get_int(off=off))
-    return Cir_Logic_config_op_Op_max_induct(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config_op_Op_backchain_limit:
-    arg: int
-
-def Cir_Logic_config_op_Op_backchain_limit_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_backchain_limit:
-    arg = d.get_int(off=args[0])
-    return Cir_Logic_config_op_Op_backchain_limit(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config_op_Op_enable_all:
-    arg: bool
-
-def Cir_Logic_config_op_Op_enable_all_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_enable_all:
-    arg = d.get_bool(off=args[0])
-    return Cir_Logic_config_op_Op_enable_all(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config_op_Op_induct_unroll_depth:
-    arg: int
-
-def Cir_Logic_config_op_Op_induct_unroll_depth_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_induct_unroll_depth:
-    arg = d.get_int(off=args[0])
-    return Cir_Logic_config_op_Op_induct_unroll_depth(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config_op_Op_induct_subgoal_depth:
-    arg: int
-
-def Cir_Logic_config_op_Op_induct_subgoal_depth_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_induct_subgoal_depth:
-    arg = d.get_int(off=args[0])
-    return Cir_Logic_config_op_Op_induct_subgoal_depth(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config_op_Op_unroll_enable_all:
-    arg: bool
-
-def Cir_Logic_config_op_Op_unroll_enable_all_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_unroll_enable_all:
-    arg = d.get_bool(off=args[0])
-    return Cir_Logic_config_op_Op_unroll_enable_all(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Logic_config_op_Op_unroll_depth:
-    arg: int
-
-def Cir_Logic_config_op_Op_unroll_depth_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Logic_config_op_Op_unroll_depth:
-    arg = d.get_int(off=args[0])
-    return Cir_Logic_config_op_Op_unroll_depth(arg=arg)
-
-type Cir_Logic_config_op = Cir_Logic_config_op_Op_timeout| Cir_Logic_config_op_Op_validate| Cir_Logic_config_op_Op_skip_proofs| Cir_Logic_config_op_Op_max_induct| Cir_Logic_config_op_Op_backchain_limit| Cir_Logic_config_op_Op_enable_all| Cir_Logic_config_op_Op_induct_unroll_depth| Cir_Logic_config_op_Op_induct_subgoal_depth| Cir_Logic_config_op_Op_unroll_enable_all| Cir_Logic_config_op_Op_unroll_depth
-
-def Cir_Logic_config_op_of_twine(d: twine.Decoder, off: int) -> Cir_Logic_config_op:
-    match d.get_cstor(off=off):
-         case twine.Constructor(idx=0, args=args):
-             args = tuple(args)
-             return Cir_Logic_config_op_Op_timeout_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=1, args=args):
-             args = tuple(args)
-             return Cir_Logic_config_op_Op_validate_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=2, args=args):
-             args = tuple(args)
-             return Cir_Logic_config_op_Op_skip_proofs_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=3, args=args):
-             args = tuple(args)
-             return Cir_Logic_config_op_Op_max_induct_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=4, args=args):
-             args = tuple(args)
-             return Cir_Logic_config_op_Op_backchain_limit_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=5, args=args):
-             args = tuple(args)
-             return Cir_Logic_config_op_Op_enable_all_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=6, args=args):
-             args = tuple(args)
-             return Cir_Logic_config_op_Op_induct_unroll_depth_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=7, args=args):
-             args = tuple(args)
-             return Cir_Logic_config_op_Op_induct_subgoal_depth_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=8, args=args):
-             args = tuple(args)
-             return Cir_Logic_config_op_Op_unroll_enable_all_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=9, args=args):
-             args = tuple(args)
-             return Cir_Logic_config_op_Op_unroll_depth_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Logic_config_op, got invalid constructor {idx}')
-
 # clique Imandrax_api_cir.Term.binding
 # def Imandrax_api_cir.Term.binding (mangled name: "Cir_Term_binding")
 type Cir_Term_binding[_V_tyreg_poly_t] = tuple[Cir_Var,"_V_tyreg_poly_t"]
@@ -1606,156 +1458,54 @@ type Cir_Term_term = Cir_Term
 def Cir_Term_term_of_twine(d: twine.Decoder, off: int) -> Cir_Term_term:
     return Cir_Term_of_twine(d=d, off=off)
 
-# clique Imandrax_api_cir.Hints.style
-# def Imandrax_api_cir.Hints.style (mangled name: "Cir_Hints_style")
+# clique Imandrax_api_cir.Hints.validation_strategy
+# def Imandrax_api_cir.Hints.validation_strategy (mangled name: "Cir_Hints_validation_strategy")
 @dataclass(slots=True, frozen=True)
-class Cir_Hints_style_Multiplicative:
+class Cir_Hints_validation_strategy_VS_validate:
+    tactic: None | Cir_Term
+
+
+def Cir_Hints_validation_strategy_VS_validate_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Hints_validation_strategy_VS_validate:
+    tactic = twine.optional(d=d, off=args[0], d0=lambda d, off: Cir_Term_of_twine(d=d, off=off))
+    return Cir_Hints_validation_strategy_VS_validate(tactic=tactic)
+
+
+@dataclass(slots=True, frozen=True)
+class Cir_Hints_validation_strategy_VS_no_validate:
     pass
 
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_style_Additive:
-    pass
+type Cir_Hints_validation_strategy = Cir_Hints_validation_strategy_VS_validate| Cir_Hints_validation_strategy_VS_no_validate
 
-type Cir_Hints_style = Cir_Hints_style_Multiplicative| Cir_Hints_style_Additive
-
-def Cir_Hints_style_of_twine(d: twine.Decoder, off: int) -> Cir_Hints_style:
-    match d.get_cstor(off=off):
-         case twine.Constructor(idx=0, args=args):
-             return Cir_Hints_style_Multiplicative()
-         case twine.Constructor(idx=1, args=args):
-             return Cir_Hints_style_Additive()
-         case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Hints_style, got invalid constructor {idx}')
-
-# clique Imandrax_api_cir.Hints.Induct.t
-# def Imandrax_api_cir.Hints.Induct.t (mangled name: "Cir_Hints_Induct")
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_Induct_Functional:
-    f_name: None | Uid
-
-
-def Cir_Hints_Induct_Functional_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Hints_Induct_Functional:
-    f_name = twine.optional(d=d, off=args[0], d0=lambda d, off: Uid_of_twine(d=d, off=off))
-    return Cir_Hints_Induct_Functional(f_name=f_name)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_Induct_Structural:
-    style: Cir_Hints_style
-    vars: list[str]
-
-
-def Cir_Hints_Induct_Structural_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Hints_Induct_Structural:
-    style = Cir_Hints_style_of_twine(d=d, off=args[0])
-    vars = [d.get_str(off=x) for x in d.get_array(off=args[1])]
-    return Cir_Hints_Induct_Structural(style=style,vars=vars)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_Induct_Term:
-    t: Cir_Term
-    vars: list[Cir_Var]
-
-
-def Cir_Hints_Induct_Term_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Hints_Induct_Term:
-    t = Cir_Term_of_twine(d=d, off=args[0])
-    vars = [Cir_Var_of_twine(d=d, off=x) for x in d.get_array(off=args[1])]
-    return Cir_Hints_Induct_Term(t=t,vars=vars)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_Induct_Default:
-    pass
-
-type Cir_Hints_Induct = Cir_Hints_Induct_Functional| Cir_Hints_Induct_Structural| Cir_Hints_Induct_Term| Cir_Hints_Induct_Default
-
-def Cir_Hints_Induct_of_twine(d: twine.Decoder, off: int) -> Cir_Hints_Induct:
+def Cir_Hints_validation_strategy_of_twine(d: twine.Decoder, off: int) -> Cir_Hints_validation_strategy:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
              args = tuple(args)
-             return Cir_Hints_Induct_Functional_of_twine(d=d, args=args, )
+             return Cir_Hints_validation_strategy_VS_validate_of_twine(d=d, args=args, )
          case twine.Constructor(idx=1, args=args):
-             args = tuple(args)
-             return Cir_Hints_Induct_Structural_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=2, args=args):
-             args = tuple(args)
-             return Cir_Hints_Induct_Term_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=3, args=args):
-             return Cir_Hints_Induct_Default()
+             return Cir_Hints_validation_strategy_VS_no_validate()
          case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Hints_Induct, got invalid constructor {idx}')
+             raise twine.Error(f'expected Cir_Hints_validation_strategy, got invalid constructor {idx}')
 
-# clique Imandrax_api_cir.Hints.Method.t
-# def Imandrax_api_cir.Hints.Method.t (mangled name: "Cir_Hints_Method")
+# clique Imandrax_api_cir.Hints.t
+# def Imandrax_api_cir.Hints.t (mangled name: "Cir_Hints")
 @dataclass(slots=True, frozen=True)
-class Cir_Hints_Method_Unroll:
-    steps: None | int
+class Cir_Hints:
+    f_validate_strat: Cir_Hints_validation_strategy
+    f_unroll_def: None | int
+    f_enable: list[Uid]
+    f_disable: list[Uid]
+    f_timeout: None | int
+    f_admission: None | Admission
 
-
-def Cir_Hints_Method_Unroll_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Hints_Method_Unroll:
-    steps = twine.optional(d=d, off=args[0], d0=lambda d, off: d.get_int(off=off))
-    return Cir_Hints_Method_Unroll(steps=steps)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_Method_Ext_solver:
-    name: str
-
-
-def Cir_Hints_Method_Ext_solver_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Hints_Method_Ext_solver:
-    name = d.get_str(off=args[0])
-    return Cir_Hints_Method_Ext_solver(name=name)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_Method_Auto:
-    pass
-
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_Method_Induct:
-    arg: Cir_Hints_Induct
-
-def Cir_Hints_Method_Induct_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Hints_Method_Induct:
-    arg = Cir_Hints_Induct_of_twine(d=d, off=args[0])
-    return Cir_Hints_Method_Induct(arg=arg)
-
-type Cir_Hints_Method = Cir_Hints_Method_Unroll| Cir_Hints_Method_Ext_solver| Cir_Hints_Method_Auto| Cir_Hints_Method_Induct
-
-def Cir_Hints_Method_of_twine(d: twine.Decoder, off: int) -> Cir_Hints_Method:
-    match d.get_cstor(off=off):
-         case twine.Constructor(idx=0, args=args):
-             args = tuple(args)
-             return Cir_Hints_Method_Unroll_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=1, args=args):
-             args = tuple(args)
-             return Cir_Hints_Method_Ext_solver_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=2, args=args):
-             return Cir_Hints_Method_Auto()
-         case twine.Constructor(idx=3, args=args):
-             args = tuple(args)
-             return Cir_Hints_Method_Induct_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Hints_Method, got invalid constructor {idx}')
-
-# clique Imandrax_api_cir.Hints.Top.t
-# def Imandrax_api_cir.Hints.Top.t (mangled name: "Cir_Hints_Top")
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_Top[_V_tyreg_poly_f]:
-    basis: Uid_set
-    method_: Cir_Hints_Method
-    apply_hint: list["_V_tyreg_poly_f"]
-    logic_config_ops: list[Cir_Logic_config_op]
-    otf: bool
-
-def Cir_Hints_Top_of_twine[_V_tyreg_poly_f](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_f],off: int) -> Cir_Hints_Top:
-    decode__tyreg_poly_f = d0
+def Cir_Hints_of_twine(d: twine.Decoder, off: int) -> Cir_Hints:
     fields = list(d.get_array(off=off))
-    basis = Uid_set_of_twine(d=d, off=fields[0])
-    method_ = Cir_Hints_Method_of_twine(d=d, off=fields[1])
-    apply_hint = [decode__tyreg_poly_f(d=d,off=x) for x in d.get_array(off=fields[2])]
-    logic_config_ops = [Cir_Logic_config_op_of_twine(d=d, off=x) for x in d.get_array(off=fields[3])]
-    otf = d.get_bool(off=fields[4])
-    return Cir_Hints_Top(basis=basis,method_=method_,apply_hint=apply_hint,logic_config_ops=logic_config_ops,otf=otf)
+    f_validate_strat = Cir_Hints_validation_strategy_of_twine(d=d, off=fields[0])
+    f_unroll_def = twine.optional(d=d, off=fields[1], d0=lambda d, off: d.get_int(off=off))
+    f_enable = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=fields[2])]
+    f_disable = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=fields[3])]
+    f_timeout = twine.optional(d=d, off=fields[4], d0=lambda d, off: d.get_int(off=off))
+    f_admission = twine.optional(d=d, off=fields[5], d0=lambda d, off: Admission_of_twine(d=d, off=off))
+    return Cir_Hints(f_validate_strat=f_validate_strat,f_unroll_def=f_unroll_def,f_enable=f_enable,f_disable=f_disable,f_timeout=f_timeout,f_admission=f_admission)
 
 # clique Imandrax_api_cir.Fun_def.fun_kind
 # def Imandrax_api_cir.Fun_def.fun_kind (mangled name: "Cir_Fun_def_fun_kind")
@@ -1798,35 +1548,7 @@ def Cir_Fun_def_fun_kind_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_def_fun
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Cir_Fun_def_fun_kind, got invalid constructor {idx}')
 
-# clique Imandrax_api_cir.Fun_def.validation_strategy
-# def Imandrax_api_cir.Fun_def.validation_strategy (mangled name: "Cir_Fun_def_validation_strategy")
-@dataclass(slots=True, frozen=True)
-class Cir_Fun_def_validation_strategy_VS_validate:
-    tactic: None | Cir_Term
-
-
-def Cir_Fun_def_validation_strategy_VS_validate_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Fun_def_validation_strategy_VS_validate:
-    tactic = twine.optional(d=d, off=args[0], d0=lambda d, off: Cir_Term_of_twine(d=d, off=off))
-    return Cir_Fun_def_validation_strategy_VS_validate(tactic=tactic)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Fun_def_validation_strategy_VS_no_validate:
-    pass
-
-type Cir_Fun_def_validation_strategy = Cir_Fun_def_validation_strategy_VS_validate| Cir_Fun_def_validation_strategy_VS_no_validate
-
-def Cir_Fun_def_validation_strategy_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_def_validation_strategy:
-    match d.get_cstor(off=off):
-         case twine.Constructor(idx=0, args=args):
-             args = tuple(args)
-             return Cir_Fun_def_validation_strategy_VS_validate_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=1, args=args):
-             return Cir_Fun_def_validation_strategy_VS_no_validate()
-         case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Fun_def_validation_strategy, got invalid constructor {idx}')
-
-# clique Imandrax_api_cir.Fun_def.t,Imandrax_api_cir.Fun_def.apply_hint
+# clique Imandrax_api_cir.Fun_def.t
 # def Imandrax_api_cir.Fun_def.t (mangled name: "Cir_Fun_def")
 @dataclass(slots=True, frozen=True)
 class Cir_Fun_def:
@@ -1836,13 +1558,7 @@ class Cir_Fun_def:
     f_body: Cir_Term
     f_clique: None | Cir_Clique
     f_kind: Cir_Fun_def_fun_kind
-    f_admission: None | Admission
-    f_admission_measure: None | Uid
-    f_validate_strat: Cir_Fun_def_validation_strategy
-    f_hints: None | Cir_Hints_Top[Cir_Fun_def_apply_hint]
-    f_enable: list[Uid]
-    f_disable: list[Uid]
-    f_timeout: None | int
+    f_hints: Cir_Hints
 
 def Cir_Fun_def_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_def:
     fields = list(d.get_array(off=off))
@@ -1852,22 +1568,8 @@ def Cir_Fun_def_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_def:
     f_body = Cir_Term_of_twine(d=d, off=fields[3])
     f_clique = twine.optional(d=d, off=fields[4], d0=lambda d, off: Cir_Clique_of_twine(d=d, off=off))
     f_kind = Cir_Fun_def_fun_kind_of_twine(d=d, off=fields[5])
-    f_admission = twine.optional(d=d, off=fields[6], d0=lambda d, off: Admission_of_twine(d=d, off=off))
-    f_admission_measure = twine.optional(d=d, off=fields[7], d0=lambda d, off: Uid_of_twine(d=d, off=off))
-    f_validate_strat = Cir_Fun_def_validation_strategy_of_twine(d=d, off=fields[8])
-    f_hints = twine.optional(d=d, off=fields[9], d0=lambda d, off: Cir_Hints_Top_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Fun_def_apply_hint_of_twine(d=d, off=off))))
-    f_enable = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=fields[10])]
-    f_disable = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=fields[11])]
-    f_timeout = twine.optional(d=d, off=fields[12], d0=lambda d, off: d.get_int(off=off))
-    return Cir_Fun_def(f_name=f_name,f_ty=f_ty,f_args=f_args,f_body=f_body,f_clique=f_clique,f_kind=f_kind,f_admission=f_admission,f_admission_measure=f_admission_measure,f_validate_strat=f_validate_strat,f_hints=f_hints,f_enable=f_enable,f_disable=f_disable,f_timeout=f_timeout)
-# def Imandrax_api_cir.Fun_def.apply_hint (mangled name: "Cir_Fun_def_apply_hint")
-@dataclass(slots=True, frozen=True)
-class Cir_Fun_def_apply_hint:
-    apply_fun: Cir_Fun_def
-
-def Cir_Fun_def_apply_hint_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_def_apply_hint:
-    x = Cir_Fun_def_of_twine(d=d, off=off) # single unboxed field
-    return Cir_Fun_def_apply_hint(apply_fun=x)
+    f_hints = Cir_Hints_of_twine(d=d, off=fields[6])
+    return Cir_Fun_def(f_name=f_name,f_ty=f_ty,f_args=f_args,f_body=f_body,f_clique=f_clique,f_kind=f_kind,f_hints=f_hints)
 
 # clique Imandrax_api_cir.Pre_trigger.t
 # def Imandrax_api_cir.Pre_trigger.t (mangled name: "Cir_Pre_trigger")
@@ -2231,7 +1933,6 @@ class Cir_Db_ser:
     thm_as_gen: Cir_Db_ser_uid_map[list[Cir_Db_ser_ca_ptr[Cir_Instantiation_rule]]]
     admission: Cir_Db_ser_uid_map[Cir_Db_ser_ca_ptr[Admission]]
     count_funs_of_ty: Cir_Db_ser_uid_map[Uid]
-    config: Cir_Db_ser_ca_ptr[Cir_Logic_config]
     disabled: Uid_set
 
 def Cir_Db_ser_of_twine(d: twine.Decoder, off: int) -> Cir_Db_ser:
@@ -2250,9 +1951,8 @@ def Cir_Db_ser_of_twine(d: twine.Decoder, off: int) -> Cir_Db_ser:
     thm_as_gen = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[11],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Instantiation_rule_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
     admission = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[12],d0=(lambda d, off: Cir_Db_ser_ca_ptr_of_twine(d=d,off=off,d0=(lambda d, off: Admission_of_twine(d=d, off=off)))))
     count_funs_of_ty = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[13],d0=(lambda d, off: Uid_of_twine(d=d, off=off)))
-    config = Cir_Db_ser_ca_ptr_of_twine(d=d,off=fields[14],d0=(lambda d, off: Cir_Logic_config_of_twine(d=d, off=off)))
-    disabled = Uid_set_of_twine(d=d, off=fields[15])
-    return Cir_Db_ser(decls=decls,rw_rules=rw_rules,inst_rules=inst_rules,rule_spec_fc=rule_spec_fc,rule_spec_rw_rules=rule_spec_rw_rules,fc=fc,elim=elim,gen=gen,thm_as_rw=thm_as_rw,thm_as_fc=thm_as_fc,thm_as_elim=thm_as_elim,thm_as_gen=thm_as_gen,admission=admission,count_funs_of_ty=count_funs_of_ty,config=config,disabled=disabled)
+    disabled = Uid_set_of_twine(d=d, off=fields[14])
+    return Cir_Db_ser(decls=decls,rw_rules=rw_rules,inst_rules=inst_rules,rule_spec_fc=rule_spec_fc,rule_spec_rw_rules=rule_spec_rw_rules,fc=fc,elim=elim,gen=gen,thm_as_rw=thm_as_rw,thm_as_fc=thm_as_fc,thm_as_elim=thm_as_elim,thm_as_gen=thm_as_gen,admission=admission,count_funs_of_ty=count_funs_of_ty,disabled=disabled)
 
 # clique Imandrax_api_eval.Ordinal.t
 # def Imandrax_api_eval.Ordinal.t (mangled name: "Eval_Ordinal")
@@ -2692,7 +2392,6 @@ def Report_Atomic_event_poly_E_title_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_f
 class Report_Atomic_event_poly_E_enter_waterfall[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
     vars: list["_V_tyreg_poly_var"]
     goal: "_V_tyreg_poly_term"
-    hints: Cir_Hints_Induct
 
 
 def Report_Atomic_event_poly_E_enter_waterfall_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_enter_waterfall[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
@@ -2702,8 +2401,7 @@ def Report_Atomic_event_poly_E_enter_waterfall_of_twine[_V_tyreg_poly_term,_V_ty
     decode__tyreg_poly_ty = d3
     vars = [decode__tyreg_poly_var(d=d,off=x) for x in d.get_array(off=args[0])]
     goal = decode__tyreg_poly_term(d=d,off=args[1])
-    hints = Cir_Hints_Induct_of_twine(d=d, off=args[2])
-    return Report_Atomic_event_poly_E_enter_waterfall(vars=vars,goal=goal,hints=hints)
+    return Report_Atomic_event_poly_E_enter_waterfall(vars=vars,goal=goal)
 
 
 @dataclass(slots=True, frozen=True)

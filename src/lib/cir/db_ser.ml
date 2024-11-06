@@ -29,7 +29,6 @@ type t = {
   admission: Imandrax_api.Admission.t ca_ptr uid_map;
   count_funs_of_ty: Imandrax_api.Uid.t uid_map;
       (** Type -> count function for it *)
-  config: Logic_config.t ca_ptr;
   disabled: Imandrax_api.Uid_set.t;
 }
 [@@deriving show { with_path = false }, twine, typereg]

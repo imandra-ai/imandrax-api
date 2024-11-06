@@ -9,7 +9,6 @@ type ('term, 'fn, 'var, 'ty) poly =
   | E_enter_waterfall of {
       vars: 'var list;
       goal: 'term;
-      hints: Imandrax_api_cir.Hints.Induct.t;
     }
   | E_enter_tactic of string  (** Running the given tactic *)
   | E_rw_success of Imandrax_api_cir.Rewrite_rule.t * 'term * 'term

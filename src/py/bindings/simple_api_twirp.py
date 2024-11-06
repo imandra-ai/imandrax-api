@@ -30,15 +30,6 @@ class SimpleClient(TwirpClient):
 			**kwargs,
 		)
 
-	def decompose(self, *args, ctx, request, **kwargs):
-		return self._make_request(
-			url=F"{self._server_path_prefix}/imandrax.simple.Simple/decompose",
-			ctx=ctx,
-			request=request,
-			response_obj=_sym_db.GetSymbol("imandrax.simple.DecomposeRes"),
-			**kwargs,
-		)
-
 	def create_session(self, *args, ctx, request, **kwargs):
 		return self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.simple.Simple/create_session",
@@ -90,5 +81,14 @@ class SimpleClient(TwirpClient):
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("imandrax.simple.InstanceRes"),
+			**kwargs,
+		)
+
+	def decompose(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/decompose",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("imandrax.simple.DecomposeRes"),
 			**kwargs,
 		)

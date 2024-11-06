@@ -105,7 +105,7 @@ class Client:
     def verify_src(
         self,
         src: str,
-        hints: Optional[simple_api_pb2.Hints] = None,
+        hints: Optional[string] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.VerifyRes:
         timeout = timeout or self._timeout
@@ -120,7 +120,7 @@ class Client:
     def instance_src(
         self,
         src: str,
-        hints: Optional[simple_api_pb2.Hints] = None,
+        hints: Optional[string] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.InstanceRes:
         timeout = timeout or self._timeout

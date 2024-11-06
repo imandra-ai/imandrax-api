@@ -16,8 +16,6 @@ service Simple {
   // ask the server to exit
   rpc shutdown(Empty) returns (Empty);
 
-  rpc decompose(DecomposeReq) returns (DecomposeRes);
-
   // create a session easily
   rpc create_session(SessionCreateReq) returns (imandrax.session.Session);
 
@@ -31,6 +29,7 @@ service Simple {
 
   rpc instance_name(InstanceNameReq) returns (InstanceRes);
 
+  rpc decompose(DecomposeReq) returns (DecomposeRes);
 }
 
 message SessionCreateReq {
@@ -104,10 +103,7 @@ message VerifySrcReq {
   // source code
   string src = 2;
 
-  optional Hints hints = 10;
-
-  // we don't support that
-  reserved 11; //instance_printer
+  optional string hints = 10;
 }
 
 message VerifyNameReq {
@@ -116,10 +112,7 @@ message VerifyNameReq {
   // name of the predicate to verify
   string name = 2;
 
-  optional Hints hints = 10;
-
-  // we don't support that
-  reserved 11; //instance_printer
+  optional string hints = 10;
 }
 
 message InstanceSrcReq {
@@ -128,10 +121,7 @@ message InstanceSrcReq {
   // source code
   string src = 2;
 
-  optional Hints hints = 10;
-
-  // we don't support that
-  reserved 11; //instance_printer
+  optional string hints = 10;
 }
 
 message InstanceNameReq {
@@ -140,10 +130,7 @@ message InstanceNameReq {
   // name of the predicate to verify
   string name = 2;
 
-  optional Hints hints = 10;
-
-  // we don't support that
-  reserved 11; //instance_printer
+  optional string hints = 10;
 }
 
 message Proved {
@@ -203,42 +190,6 @@ message InstanceRes {
 
   // the ID of the task
   Task task = 11;
-}
-
-message Hints {
-  message Induct {
-    message Functional {
-      string f_name = 1;
-    }
-
-    enum StructuralStyle {
-      Additive = 0;
-      Multiplicative = 1;
-    }
-
-    message Structural {
-      StructuralStyle style = 1;
-      repeated string vars = 2;
-    }
-
-    oneof induct {
-      Empty default = 1;
-      Functional functional = 2;
-      Structural structural = 3;
-    }
-  }
-
-  message Unroll {
-    optional string smt_solver = 10;
-
-    optional int32 max_steps = 11;
-  }
-
-  oneof method_ {
-    Empty auto = 1;
-    Unroll unroll = 2;
-    Induct induct = 3;
-  }
 }
 
 // compat notes: no history, not reset

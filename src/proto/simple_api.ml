@@ -43,56 +43,28 @@ type eval_res = {
   tasks : Task.task list;
 }
 
-type hints_unroll = {
-  smt_solver : string option;
-  max_steps : int32 option;
-}
-
-type hints_induct_functional = {
-  f_name : string;
-}
-
-type hints_induct_structural_style =
-  | Additive 
-  | Multiplicative 
-
-type hints_induct_structural = {
-  style : hints_induct_structural_style;
-  vars : string list;
-}
-
-type hints_induct =
-  | Default
-  | Functional of hints_induct_functional
-  | Structural of hints_induct_structural
-
-type hints =
-  | Auto
-  | Unroll of hints_unroll
-  | Induct of hints_induct
-
 type verify_src_req = {
   session : Session.session option;
   src : string;
-  hints : hints option;
+  hints : string option;
 }
 
 type verify_name_req = {
   session : Session.session option;
   name : string;
-  hints : hints option;
+  hints : string option;
 }
 
 type instance_src_req = {
   session : Session.session option;
   src : string;
-  hints : hints option;
+  hints : string option;
 }
 
 type instance_name_req = {
   session : Session.session option;
   name : string;
-  hints : hints option;
+  hints : string option;
 }
 
 type proved = {
@@ -205,38 +177,10 @@ let rec default_eval_res
   tasks;
 }
 
-let rec default_hints_unroll 
-  ?smt_solver:((smt_solver:string option) = None)
-  ?max_steps:((max_steps:int32 option) = None)
-  () : hints_unroll  = {
-  smt_solver;
-  max_steps;
-}
-
-let rec default_hints_induct_functional 
-  ?f_name:((f_name:string) = "")
-  () : hints_induct_functional  = {
-  f_name;
-}
-
-let rec default_hints_induct_structural_style () = (Additive:hints_induct_structural_style)
-
-let rec default_hints_induct_structural 
-  ?style:((style:hints_induct_structural_style) = default_hints_induct_structural_style ())
-  ?vars:((vars:string list) = [])
-  () : hints_induct_structural  = {
-  style;
-  vars;
-}
-
-let rec default_hints_induct (): hints_induct = Default
-
-let rec default_hints (): hints = Auto
-
 let rec default_verify_src_req 
   ?session:((session:Session.session option) = None)
   ?src:((src:string) = "")
-  ?hints:((hints:hints option) = None)
+  ?hints:((hints:string option) = None)
   () : verify_src_req  = {
   session;
   src;
@@ -246,7 +190,7 @@ let rec default_verify_src_req
 let rec default_verify_name_req 
   ?session:((session:Session.session option) = None)
   ?name:((name:string) = "")
-  ?hints:((hints:hints option) = None)
+  ?hints:((hints:string option) = None)
   () : verify_name_req  = {
   session;
   name;
@@ -256,7 +200,7 @@ let rec default_verify_name_req
 let rec default_instance_src_req 
   ?session:((session:Session.session option) = None)
   ?src:((src:string) = "")
-  ?hints:((hints:hints option) = None)
+  ?hints:((hints:string option) = None)
   () : instance_src_req  = {
   session;
   src;
@@ -266,7 +210,7 @@ let rec default_instance_src_req
 let rec default_instance_name_req 
   ?session:((session:Session.session option) = None)
   ?name:((name:string) = "")
-  ?hints:((hints:hints option) = None)
+  ?hints:((hints:string option) = None)
   () : instance_name_req  = {
   session;
   name;
@@ -399,38 +343,10 @@ let default_eval_res_mutable () : eval_res_mutable = {
   tasks = [];
 }
 
-type hints_unroll_mutable = {
-  mutable smt_solver : string option;
-  mutable max_steps : int32 option;
-}
-
-let default_hints_unroll_mutable () : hints_unroll_mutable = {
-  smt_solver = None;
-  max_steps = None;
-}
-
-type hints_induct_functional_mutable = {
-  mutable f_name : string;
-}
-
-let default_hints_induct_functional_mutable () : hints_induct_functional_mutable = {
-  f_name = "";
-}
-
-type hints_induct_structural_mutable = {
-  mutable style : hints_induct_structural_style;
-  mutable vars : string list;
-}
-
-let default_hints_induct_structural_mutable () : hints_induct_structural_mutable = {
-  style = default_hints_induct_structural_style ();
-  vars = [];
-}
-
 type verify_src_req_mutable = {
   mutable session : Session.session option;
   mutable src : string;
-  mutable hints : hints option;
+  mutable hints : string option;
 }
 
 let default_verify_src_req_mutable () : verify_src_req_mutable = {
@@ -442,7 +358,7 @@ let default_verify_src_req_mutable () : verify_src_req_mutable = {
 type verify_name_req_mutable = {
   mutable session : Session.session option;
   mutable name : string;
-  mutable hints : hints option;
+  mutable hints : string option;
 }
 
 let default_verify_name_req_mutable () : verify_name_req_mutable = {
@@ -454,7 +370,7 @@ let default_verify_name_req_mutable () : verify_name_req_mutable = {
 type instance_src_req_mutable = {
   mutable session : Session.session option;
   mutable src : string;
-  mutable hints : hints option;
+  mutable hints : string option;
 }
 
 let default_instance_src_req_mutable () : instance_src_req_mutable = {
@@ -466,7 +382,7 @@ let default_instance_src_req_mutable () : instance_src_req_mutable = {
 type instance_name_req_mutable = {
   mutable session : Session.session option;
   mutable name : string;
-  mutable hints : hints option;
+  mutable hints : string option;
 }
 
 let default_instance_name_req_mutable () : instance_name_req_mutable = {
@@ -604,35 +520,10 @@ let rec make_eval_res
   tasks;
 }
 
-let rec make_hints_unroll 
-  ?smt_solver:((smt_solver:string option) = None)
-  ?max_steps:((max_steps:int32 option) = None)
-  () : hints_unroll  = {
-  smt_solver;
-  max_steps;
-}
-
-let rec make_hints_induct_functional 
-  ~(f_name:string)
-  () : hints_induct_functional  = {
-  f_name;
-}
-
-
-let rec make_hints_induct_structural 
-  ~(style:hints_induct_structural_style)
-  ~(vars:string list)
-  () : hints_induct_structural  = {
-  style;
-  vars;
-}
-
-
-
 let rec make_verify_src_req 
   ?session:((session:Session.session option) = None)
   ~(src:string)
-  ?hints:((hints:hints option) = None)
+  ?hints:((hints:string option) = None)
   () : verify_src_req  = {
   session;
   src;
@@ -642,7 +533,7 @@ let rec make_verify_src_req
 let rec make_verify_name_req 
   ?session:((session:Session.session option) = None)
   ~(name:string)
-  ?hints:((hints:hints option) = None)
+  ?hints:((hints:string option) = None)
   () : verify_name_req  = {
   session;
   name;
@@ -652,7 +543,7 @@ let rec make_verify_name_req
 let rec make_instance_src_req 
   ?session:((session:Session.session option) = None)
   ~(src:string)
-  ?hints:((hints:hints option) = None)
+  ?hints:((hints:string option) = None)
   () : instance_src_req  = {
   session;
   src;
@@ -662,7 +553,7 @@ let rec make_instance_src_req
 let rec make_instance_name_req 
   ?session:((session:Session.session option) = None)
   ~(name:string)
-  ?hints:((hints:hints option) = None)
+  ?hints:((hints:string option) = None)
   () : instance_name_req  = {
   session;
   name;
@@ -785,48 +676,11 @@ let rec pp_eval_res fmt (v:eval_res) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_hints_unroll fmt (v:hints_unroll) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "smt_solver" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.smt_solver;
-    Pbrt.Pp.pp_record_field ~first:false "max_steps" (Pbrt.Pp.pp_option Pbrt.Pp.pp_int32) fmt v.max_steps;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_hints_induct_functional fmt (v:hints_induct_functional) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "f_name" Pbrt.Pp.pp_string fmt v.f_name;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_hints_induct_structural_style fmt (v:hints_induct_structural_style) =
-  match v with
-  | Additive -> Format.fprintf fmt "Additive"
-  | Multiplicative -> Format.fprintf fmt "Multiplicative"
-
-let rec pp_hints_induct_structural fmt (v:hints_induct_structural) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "style" pp_hints_induct_structural_style fmt v.style;
-    Pbrt.Pp.pp_record_field ~first:false "vars" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.vars;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_hints_induct fmt (v:hints_induct) =
-  match v with
-  | Default  -> Format.fprintf fmt "Default"
-  | Functional x -> Format.fprintf fmt "@[<hv2>Functional(@,%a)@]" pp_hints_induct_functional x
-  | Structural x -> Format.fprintf fmt "@[<hv2>Structural(@,%a)@]" pp_hints_induct_structural x
-
-let rec pp_hints fmt (v:hints) =
-  match v with
-  | Auto  -> Format.fprintf fmt "Auto"
-  | Unroll x -> Format.fprintf fmt "@[<hv2>Unroll(@,%a)@]" pp_hints_unroll x
-  | Induct x -> Format.fprintf fmt "@[<hv2>Induct(@,%a)@]" pp_hints_induct x
-
 let rec pp_verify_src_req fmt (v:verify_src_req) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~first:false "src" Pbrt.Pp.pp_string fmt v.src;
-    Pbrt.Pp.pp_record_field ~first:false "hints" (Pbrt.Pp.pp_option pp_hints) fmt v.hints;
+    Pbrt.Pp.pp_record_field ~first:false "hints" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.hints;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -834,7 +688,7 @@ let rec pp_verify_name_req fmt (v:verify_name_req) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~first:false "name" Pbrt.Pp.pp_string fmt v.name;
-    Pbrt.Pp.pp_record_field ~first:false "hints" (Pbrt.Pp.pp_option pp_hints) fmt v.hints;
+    Pbrt.Pp.pp_record_field ~first:false "hints" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.hints;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -842,7 +696,7 @@ let rec pp_instance_src_req fmt (v:instance_src_req) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~first:false "src" Pbrt.Pp.pp_string fmt v.src;
-    Pbrt.Pp.pp_record_field ~first:false "hints" (Pbrt.Pp.pp_option pp_hints) fmt v.hints;
+    Pbrt.Pp.pp_record_field ~first:false "hints" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.hints;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -850,7 +704,7 @@ let rec pp_instance_name_req fmt (v:instance_name_req) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~first:false "name" Pbrt.Pp.pp_string fmt v.name;
-    Pbrt.Pp.pp_record_field ~first:false "hints" (Pbrt.Pp.pp_option pp_hints) fmt v.hints;
+    Pbrt.Pp.pp_record_field ~first:false "hints" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.hints;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1035,66 +889,6 @@ let rec encode_pb_eval_res (v:eval_res) encoder =
   ) v.tasks encoder;
   ()
 
-let rec encode_pb_hints_unroll (v:hints_unroll) encoder = 
-  begin match v.smt_solver with
-  | Some x -> 
-    Pbrt.Encoder.string x encoder;
-    Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  begin match v.max_steps with
-  | Some x -> 
-    Pbrt.Encoder.int32_as_varint x encoder;
-    Pbrt.Encoder.key 11 Pbrt.Varint encoder; 
-  | None -> ();
-  end;
-  ()
-
-let rec encode_pb_hints_induct_functional (v:hints_induct_functional) encoder = 
-  Pbrt.Encoder.string v.f_name encoder;
-  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  ()
-
-let rec encode_pb_hints_induct_structural_style (v:hints_induct_structural_style) encoder =
-  match v with
-  | Additive -> Pbrt.Encoder.int_as_varint (0) encoder
-  | Multiplicative -> Pbrt.Encoder.int_as_varint 1 encoder
-
-let rec encode_pb_hints_induct_structural (v:hints_induct_structural) encoder = 
-  encode_pb_hints_induct_structural_style v.style encoder;
-  Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
-  Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.string x encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  ) v.vars encoder;
-  ()
-
-let rec encode_pb_hints_induct (v:hints_induct) encoder = 
-  begin match v with
-  | Default ->
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-    Pbrt.Encoder.empty_nested encoder
-  | Functional x ->
-    Pbrt.Encoder.nested encode_pb_hints_induct_functional x encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  | Structural x ->
-    Pbrt.Encoder.nested encode_pb_hints_induct_structural x encoder;
-    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  end
-
-let rec encode_pb_hints (v:hints) encoder = 
-  begin match v with
-  | Auto ->
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-    Pbrt.Encoder.empty_nested encoder
-  | Unroll x ->
-    Pbrt.Encoder.nested encode_pb_hints_unroll x encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  | Induct x ->
-    Pbrt.Encoder.nested encode_pb_hints_induct x encoder;
-    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  end
-
 let rec encode_pb_verify_src_req (v:verify_src_req) encoder = 
   begin match v.session with
   | Some x -> 
@@ -1106,7 +900,7 @@ let rec encode_pb_verify_src_req (v:verify_src_req) encoder =
   Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   begin match v.hints with
   | Some x -> 
-    Pbrt.Encoder.nested encode_pb_hints x encoder;
+    Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   | None -> ();
   end;
@@ -1123,7 +917,7 @@ let rec encode_pb_verify_name_req (v:verify_name_req) encoder =
   Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   begin match v.hints with
   | Some x -> 
-    Pbrt.Encoder.nested encode_pb_hints x encoder;
+    Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   | None -> ();
   end;
@@ -1140,7 +934,7 @@ let rec encode_pb_instance_src_req (v:instance_src_req) encoder =
   Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   begin match v.hints with
   | Some x -> 
-    Pbrt.Encoder.nested encode_pb_hints x encoder;
+    Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   | None -> ();
   end;
@@ -1157,7 +951,7 @@ let rec encode_pb_instance_name_req (v:instance_name_req) encoder =
   Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   begin match v.hints with
   | Some x -> 
-    Pbrt.Encoder.nested encode_pb_hints x encoder;
+    Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   | None -> ();
   end;
@@ -1513,117 +1307,6 @@ let rec decode_pb_eval_res d =
     tasks = v.tasks;
   } : eval_res)
 
-let rec decode_pb_hints_unroll d =
-  let v = default_hints_unroll_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (10, Pbrt.Bytes) -> begin
-      v.smt_solver <- Some (Pbrt.Decoder.string d);
-    end
-    | Some (10, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(hints_unroll), field(10)" pk
-    | Some (11, Pbrt.Varint) -> begin
-      v.max_steps <- Some (Pbrt.Decoder.int32_as_varint d);
-    end
-    | Some (11, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(hints_unroll), field(11)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    smt_solver = v.smt_solver;
-    max_steps = v.max_steps;
-  } : hints_unroll)
-
-let rec decode_pb_hints_induct_functional d =
-  let v = default_hints_induct_functional_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.f_name <- Pbrt.Decoder.string d;
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(hints_induct_functional), field(1)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    f_name = v.f_name;
-  } : hints_induct_functional)
-
-let rec decode_pb_hints_induct_structural_style d = 
-  match Pbrt.Decoder.int_as_varint d with
-  | 0 -> (Additive:hints_induct_structural_style)
-  | 1 -> (Multiplicative:hints_induct_structural_style)
-  | _ -> Pbrt.Decoder.malformed_variant "hints_induct_structural_style"
-
-let rec decode_pb_hints_induct_structural d =
-  let v = default_hints_induct_structural_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-      v.vars <- List.rev v.vars;
-    ); continue__ := false
-    | Some (1, Pbrt.Varint) -> begin
-      v.style <- decode_pb_hints_induct_structural_style d;
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(hints_induct_structural), field(1)" pk
-    | Some (2, Pbrt.Bytes) -> begin
-      v.vars <- (Pbrt.Decoder.string d) :: v.vars;
-    end
-    | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(hints_induct_structural), field(2)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    style = v.style;
-    vars = v.vars;
-  } : hints_induct_structural)
-
-let rec decode_pb_hints_induct d = 
-  let rec loop () = 
-    let ret:hints_induct = match Pbrt.Decoder.key d with
-      | None -> Pbrt.Decoder.malformed_variant "hints_induct"
-      | Some (1, _) -> begin 
-        Pbrt.Decoder.empty_nested d ;
-        (Default : hints_induct)
-      end
-      | Some (2, _) -> (Functional (decode_pb_hints_induct_functional (Pbrt.Decoder.nested d)) : hints_induct) 
-      | Some (3, _) -> (Structural (decode_pb_hints_induct_structural (Pbrt.Decoder.nested d)) : hints_induct) 
-      | Some (n, payload_kind) -> (
-        Pbrt.Decoder.skip d payload_kind; 
-        loop () 
-      )
-    in
-    ret
-  in
-  loop ()
-
-let rec decode_pb_hints d = 
-  let rec loop () = 
-    let ret:hints = match Pbrt.Decoder.key d with
-      | None -> Pbrt.Decoder.malformed_variant "hints"
-      | Some (1, _) -> begin 
-        Pbrt.Decoder.empty_nested d ;
-        (Auto : hints)
-      end
-      | Some (2, _) -> (Unroll (decode_pb_hints_unroll (Pbrt.Decoder.nested d)) : hints) 
-      | Some (3, _) -> (Induct (decode_pb_hints_induct (Pbrt.Decoder.nested d)) : hints) 
-      | Some (n, payload_kind) -> (
-        Pbrt.Decoder.skip d payload_kind; 
-        loop () 
-      )
-    in
-    ret
-  in
-  loop ()
-
 let rec decode_pb_verify_src_req d =
   let v = default_verify_src_req_mutable () in
   let continue__= ref true in
@@ -1642,7 +1325,7 @@ let rec decode_pb_verify_src_req d =
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(verify_src_req), field(2)" pk
     | Some (10, Pbrt.Bytes) -> begin
-      v.hints <- Some (decode_pb_hints (Pbrt.Decoder.nested d));
+      v.hints <- Some (Pbrt.Decoder.string d);
     end
     | Some (10, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(verify_src_req), field(10)" pk
@@ -1672,7 +1355,7 @@ let rec decode_pb_verify_name_req d =
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(verify_name_req), field(2)" pk
     | Some (10, Pbrt.Bytes) -> begin
-      v.hints <- Some (decode_pb_hints (Pbrt.Decoder.nested d));
+      v.hints <- Some (Pbrt.Decoder.string d);
     end
     | Some (10, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(verify_name_req), field(10)" pk
@@ -1702,7 +1385,7 @@ let rec decode_pb_instance_src_req d =
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(instance_src_req), field(2)" pk
     | Some (10, Pbrt.Bytes) -> begin
-      v.hints <- Some (decode_pb_hints (Pbrt.Decoder.nested d));
+      v.hints <- Some (Pbrt.Decoder.string d);
     end
     | Some (10, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(instance_src_req), field(10)" pk
@@ -1732,7 +1415,7 @@ let rec decode_pb_instance_name_req d =
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(instance_name_req), field(2)" pk
     | Some (10, Pbrt.Bytes) -> begin
-      v.hints <- Some (decode_pb_hints (Pbrt.Decoder.nested d));
+      v.hints <- Some (Pbrt.Decoder.string d);
     end
     | Some (10, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(instance_name_req), field(10)" pk
@@ -2080,51 +1763,6 @@ let rec encode_json_eval_res (v:eval_res) =
   in
   `Assoc assoc
 
-let rec encode_json_hints_unroll (v:hints_unroll) = 
-  let assoc = [] in 
-  let assoc = match v.smt_solver with
-    | None -> assoc
-    | Some v -> ("smtSolver", Pbrt_yojson.make_string v) :: assoc
-  in
-  let assoc = match v.max_steps with
-    | None -> assoc
-    | Some v -> ("maxSteps", Pbrt_yojson.make_int (Int32.to_int v)) :: assoc
-  in
-  `Assoc assoc
-
-let rec encode_json_hints_induct_functional (v:hints_induct_functional) = 
-  let assoc = [] in 
-  let assoc = ("fName", Pbrt_yojson.make_string v.f_name) :: assoc in
-  `Assoc assoc
-
-let rec encode_json_hints_induct_structural_style (v:hints_induct_structural_style) = 
-  match v with
-  | Additive -> `String "Additive"
-  | Multiplicative -> `String "Multiplicative"
-
-let rec encode_json_hints_induct_structural (v:hints_induct_structural) = 
-  let assoc = [] in 
-  let assoc = ("style", encode_json_hints_induct_structural_style v.style) :: assoc in
-  let assoc =
-    let l = v.vars |> List.map Pbrt_yojson.make_string in
-    ("vars", `List l) :: assoc 
-  in
-  `Assoc assoc
-
-let rec encode_json_hints_induct (v:hints_induct) = 
-  begin match v with
-  | Default -> `Assoc [("default", `Null)]
-  | Functional v -> `Assoc [("functional", encode_json_hints_induct_functional v)]
-  | Structural v -> `Assoc [("structural", encode_json_hints_induct_structural v)]
-  end
-
-let rec encode_json_hints (v:hints) = 
-  begin match v with
-  | Auto -> `Assoc [("auto", `Null)]
-  | Unroll v -> `Assoc [("unroll", encode_json_hints_unroll v)]
-  | Induct v -> `Assoc [("induct", encode_json_hints_induct v)]
-  end
-
 let rec encode_json_verify_src_req (v:verify_src_req) = 
   let assoc = [] in 
   let assoc = match v.session with
@@ -2134,7 +1772,7 @@ let rec encode_json_verify_src_req (v:verify_src_req) =
   let assoc = ("src", Pbrt_yojson.make_string v.src) :: assoc in
   let assoc = match v.hints with
     | None -> assoc
-    | Some v -> ("hints", encode_json_hints v) :: assoc
+    | Some v -> ("hints", Pbrt_yojson.make_string v) :: assoc
   in
   `Assoc assoc
 
@@ -2147,7 +1785,7 @@ let rec encode_json_verify_name_req (v:verify_name_req) =
   let assoc = ("name", Pbrt_yojson.make_string v.name) :: assoc in
   let assoc = match v.hints with
     | None -> assoc
-    | Some v -> ("hints", encode_json_hints v) :: assoc
+    | Some v -> ("hints", Pbrt_yojson.make_string v) :: assoc
   in
   `Assoc assoc
 
@@ -2160,7 +1798,7 @@ let rec encode_json_instance_src_req (v:instance_src_req) =
   let assoc = ("src", Pbrt_yojson.make_string v.src) :: assoc in
   let assoc = match v.hints with
     | None -> assoc
-    | Some v -> ("hints", encode_json_hints v) :: assoc
+    | Some v -> ("hints", Pbrt_yojson.make_string v) :: assoc
   in
   `Assoc assoc
 
@@ -2173,7 +1811,7 @@ let rec encode_json_instance_name_req (v:instance_name_req) =
   let assoc = ("name", Pbrt_yojson.make_string v.name) :: assoc in
   let assoc = match v.hints with
     | None -> assoc
-    | Some v -> ("hints", encode_json_hints v) :: assoc
+    | Some v -> ("hints", Pbrt_yojson.make_string v) :: assoc
   in
   `Assoc assoc
 
@@ -2441,103 +2079,6 @@ let rec decode_json_eval_res d =
     tasks = v.tasks;
   } : eval_res)
 
-let rec decode_json_hints_unroll d =
-  let v = default_hints_unroll_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("smtSolver", json_value) -> 
-      v.smt_solver <- Some (Pbrt_yojson.string json_value "hints_unroll" "smt_solver")
-    | ("maxSteps", json_value) -> 
-      v.max_steps <- Some (Pbrt_yojson.int32 json_value "hints_unroll" "max_steps")
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    smt_solver = v.smt_solver;
-    max_steps = v.max_steps;
-  } : hints_unroll)
-
-let rec decode_json_hints_induct_functional d =
-  let v = default_hints_induct_functional_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("fName", json_value) -> 
-      v.f_name <- Pbrt_yojson.string json_value "hints_induct_functional" "f_name"
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    f_name = v.f_name;
-  } : hints_induct_functional)
-
-let rec decode_json_hints_induct_structural_style json =
-  match json with
-  | `String "Additive" -> (Additive : hints_induct_structural_style)
-  | `String "Multiplicative" -> (Multiplicative : hints_induct_structural_style)
-  | _ -> Pbrt_yojson.E.malformed_variant "hints_induct_structural_style"
-
-let rec decode_json_hints_induct_structural d =
-  let v = default_hints_induct_structural_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("style", json_value) -> 
-      v.style <- (decode_json_hints_induct_structural_style json_value)
-    | ("vars", `List l) -> begin
-      v.vars <- List.map (function
-        | json_value -> Pbrt_yojson.string json_value "hints_induct_structural" "vars"
-      ) l;
-    end
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    style = v.style;
-    vars = v.vars;
-  } : hints_induct_structural)
-
-let rec decode_json_hints_induct json =
-  let assoc = match json with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  let rec loop = function
-    | [] -> Pbrt_yojson.E.malformed_variant "hints_induct"
-    | ("default", _)::_-> (Default : hints_induct)
-    | ("functional", json_value)::_ -> 
-      (Functional ((decode_json_hints_induct_functional json_value)) : hints_induct)
-    | ("structural", json_value)::_ -> 
-      (Structural ((decode_json_hints_induct_structural json_value)) : hints_induct)
-    
-    | _ :: tl -> loop tl
-  in
-  loop assoc
-
-let rec decode_json_hints json =
-  let assoc = match json with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  let rec loop = function
-    | [] -> Pbrt_yojson.E.malformed_variant "hints"
-    | ("auto", _)::_-> (Auto : hints)
-    | ("unroll", json_value)::_ -> 
-      (Unroll ((decode_json_hints_unroll json_value)) : hints)
-    | ("induct", json_value)::_ -> 
-      (Induct ((decode_json_hints_induct json_value)) : hints)
-    
-    | _ :: tl -> loop tl
-  in
-  loop assoc
-
 let rec decode_json_verify_src_req d =
   let v = default_verify_src_req_mutable () in
   let assoc = match d with
@@ -2550,7 +2091,7 @@ let rec decode_json_verify_src_req d =
     | ("src", json_value) -> 
       v.src <- Pbrt_yojson.string json_value "verify_src_req" "src"
     | ("hints", json_value) -> 
-      v.hints <- Some ((decode_json_hints json_value))
+      v.hints <- Some (Pbrt_yojson.string json_value "verify_src_req" "hints")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -2572,7 +2113,7 @@ let rec decode_json_verify_name_req d =
     | ("name", json_value) -> 
       v.name <- Pbrt_yojson.string json_value "verify_name_req" "name"
     | ("hints", json_value) -> 
-      v.hints <- Some ((decode_json_hints json_value))
+      v.hints <- Some (Pbrt_yojson.string json_value "verify_name_req" "hints")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -2594,7 +2135,7 @@ let rec decode_json_instance_src_req d =
     | ("src", json_value) -> 
       v.src <- Pbrt_yojson.string json_value "instance_src_req" "src"
     | ("hints", json_value) -> 
-      v.hints <- Some ((decode_json_hints json_value))
+      v.hints <- Some (Pbrt_yojson.string json_value "instance_src_req" "hints")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -2616,7 +2157,7 @@ let rec decode_json_instance_name_req d =
     | ("name", json_value) -> 
       v.name <- Pbrt_yojson.string json_value "instance_name_req" "name"
     | ("hints", json_value) -> 
-      v.hints <- Some ((decode_json_hints json_value))
+      v.hints <- Some (Pbrt_yojson.string json_value "instance_name_req" "hints")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -2847,19 +2388,6 @@ module Simple = struct
         () : (Utils.empty, unary, Utils.empty, unary) Client.rpc)
     open Pbrt_services
     
-    let decompose : (decompose_req, unary, decompose_res, unary) Client.rpc =
-      (Client.mk_rpc 
-        ~package:["imandrax";"simple"]
-        ~service_name:"Simple" ~rpc_name:"decompose"
-        ~req_mode:Client.Unary
-        ~res_mode:Client.Unary
-        ~encode_json_req:encode_json_decompose_req
-        ~encode_pb_req:encode_pb_decompose_req
-        ~decode_json_res:decode_json_decompose_res
-        ~decode_pb_res:decode_pb_decompose_res
-        () : (decompose_req, unary, decompose_res, unary) Client.rpc)
-    open Pbrt_services
-    
     let create_session : (session_create_req, unary, Session.session, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"simple"]
@@ -2936,6 +2464,19 @@ module Simple = struct
         ~decode_json_res:decode_json_instance_res
         ~decode_pb_res:decode_pb_instance_res
         () : (instance_name_req, unary, instance_res, unary) Client.rpc)
+    open Pbrt_services
+    
+    let decompose : (decompose_req, unary, decompose_res, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"simple"]
+        ~service_name:"Simple" ~rpc_name:"decompose"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_decompose_req
+        ~encode_pb_req:encode_pb_decompose_req
+        ~decode_json_res:decode_json_decompose_res
+        ~decode_pb_res:decode_pb_decompose_res
+        () : (decompose_req, unary, decompose_res, unary) Client.rpc)
   end
   
   module Server = struct
@@ -2959,16 +2500,6 @@ module Simple = struct
         ~encode_pb_res:Utils.encode_pb_empty
         ~decode_json_req:Utils.decode_json_empty
         ~decode_pb_req:Utils.decode_pb_empty
-        () : _ Server.rpc)
-    
-    let decompose : (decompose_req,unary,decompose_res,unary) Server.rpc = 
-      (Server.mk_rpc ~name:"decompose"
-        ~req_mode:Server.Unary
-        ~res_mode:Server.Unary
-        ~encode_json_res:encode_json_decompose_res
-        ~encode_pb_res:encode_pb_decompose_res
-        ~decode_json_req:decode_json_decompose_req
-        ~decode_pb_req:decode_pb_decompose_req
         () : _ Server.rpc)
     
     let create_session : (session_create_req,unary,Session.session,unary) Server.rpc = 
@@ -3031,16 +2562,26 @@ module Simple = struct
         ~decode_pb_req:decode_pb_instance_name_req
         () : _ Server.rpc)
     
+    let decompose : (decompose_req,unary,decompose_res,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"decompose"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_decompose_res
+        ~encode_pb_res:encode_pb_decompose_res
+        ~decode_json_req:decode_json_decompose_req
+        ~decode_pb_req:decode_pb_decompose_req
+        () : _ Server.rpc)
+    
     let make
       ~status:__handler__status
       ~shutdown:__handler__shutdown
-      ~decompose:__handler__decompose
       ~create_session:__handler__create_session
       ~eval_src:__handler__eval_src
       ~verify_src:__handler__verify_src
       ~verify_name:__handler__verify_name
       ~instance_src:__handler__instance_src
       ~instance_name:__handler__instance_name
+      ~decompose:__handler__decompose
       () : _ Server.t =
       { Server.
         service_name="Simple";
@@ -3048,13 +2589,13 @@ module Simple = struct
         handlers=[
            (__handler__status status);
            (__handler__shutdown shutdown);
-           (__handler__decompose decompose);
            (__handler__create_session create_session);
            (__handler__eval_src eval_src);
            (__handler__verify_src verify_src);
            (__handler__verify_name verify_name);
            (__handler__instance_src instance_src);
            (__handler__instance_name instance_name);
+           (__handler__decompose decompose);
         ];
       }
   end
