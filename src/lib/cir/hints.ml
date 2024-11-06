@@ -74,5 +74,6 @@ type t = {
   f_enable: Imandrax_api.Uid.t list;  (** local enables *)
   f_disable: Imandrax_api.Uid.t list;  (** local disables *)
   f_timeout: int option;  (** timeout for POs *)
+  f_admission: Imandrax_api.Admission.t option;
 }
 [@@deriving show { with_path = false }, eq, twine, typereg]

@@ -18,9 +18,6 @@ type t = {
           same block of mutual defs, this one included. It's [None]
           for non-recursive functions. *)
   f_kind: fun_kind;
-  f_admission: Imandrax_api.Admission.t option;
-  f_admission_measure: Imandrax_api.Uid.t option;
-      (** custom measure function *)
   f_hints: Hints.t;
 }
 [@@deriving twine, typereg, eq, show { with_path = false }]
