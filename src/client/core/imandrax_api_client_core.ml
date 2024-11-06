@@ -92,12 +92,12 @@ module Make (Fut : FUT) = struct
     self.rpc#rpc_call ~timeout_s API.Simple.Client.verify_src arg
 
   let decompose ?timeout_s (self : t) ~(name : string) ?assuming ?(basis = [])
-      ?(rule_specs = []) ?(prune = true) ~(session : API.session) () :
-      API.decompose_res Fut.t =
+      ?(rule_specs = []) ?(prune = true) ?ctx_simp ?lift_bool
+      ~(session : API.session) () : API.decompose_res Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
     let arg =
       API.make_decompose_req ~session:(Some session) ~name ?assuming ~basis
-        ~rule_specs ~prune ()
+        ?lift_bool ?ctx_simp ~rule_specs ~prune ()
     in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.decompose arg
 

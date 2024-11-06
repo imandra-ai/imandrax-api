@@ -4,6 +4,12 @@ type session_create_req = {
   api_version : string;
 }
 
+type lift_bool =
+  | Default 
+  | Nested_equalities 
+  | Equalities 
+  | All 
+
 type decompose_req = {
   session : Session.session option;
   name : string;
@@ -11,6 +17,8 @@ type decompose_req = {
   basis : string list;
   rule_specs : string list;
   prune : bool;
+  ctx_simp : bool option;
+  lift_bool : lift_bool option;
 }
 
 type decompose_res_res =
@@ -143,6 +151,8 @@ let rec default_session_create_req
   api_version;
 }
 
+let rec default_lift_bool () = (Default:lift_bool)
+
 let rec default_decompose_req 
   ?session:((session:Session.session option) = None)
   ?name:((name:string) = "")
@@ -150,6 +160,8 @@ let rec default_decompose_req
   ?basis:((basis:string list) = [])
   ?rule_specs:((rule_specs:string list) = [])
   ?prune:((prune:bool) = false)
+  ?ctx_simp:((ctx_simp:bool option) = None)
+  ?lift_bool:((lift_bool:lift_bool option) = None)
   () : decompose_req  = {
   session;
   name;
@@ -157,6 +169,8 @@ let rec default_decompose_req
   basis;
   rule_specs;
   prune;
+  ctx_simp;
+  lift_bool;
 }
 
 let rec default_decompose_res_res () : decompose_res_res = Artifact (Artmsg.default_art ())
@@ -334,6 +348,8 @@ type decompose_req_mutable = {
   mutable basis : string list;
   mutable rule_specs : string list;
   mutable prune : bool;
+  mutable ctx_simp : bool option;
+  mutable lift_bool : lift_bool option;
 }
 
 let default_decompose_req_mutable () : decompose_req_mutable = {
@@ -343,6 +359,8 @@ let default_decompose_req_mutable () : decompose_req_mutable = {
   basis = [];
   rule_specs = [];
   prune = false;
+  ctx_simp = None;
+  lift_bool = None;
 }
 
 type decompose_res_mutable = {
@@ -534,6 +552,7 @@ let rec make_session_create_req
   api_version;
 }
 
+
 let rec make_decompose_req 
   ?session:((session:Session.session option) = None)
   ~(name:string)
@@ -541,6 +560,8 @@ let rec make_decompose_req
   ~(basis:string list)
   ~(rule_specs:string list)
   ~(prune:bool)
+  ?ctx_simp:((ctx_simp:bool option) = None)
+  ?lift_bool:((lift_bool:lift_bool option) = None)
   () : decompose_req  = {
   session;
   name;
@@ -548,6 +569,8 @@ let rec make_decompose_req
   basis;
   rule_specs;
   prune;
+  ctx_simp;
+  lift_bool;
 }
 
 
@@ -713,6 +736,13 @@ let rec pp_session_create_req fmt (v:session_create_req) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
+let rec pp_lift_bool fmt (v:lift_bool) =
+  match v with
+  | Default -> Format.fprintf fmt "Default"
+  | Nested_equalities -> Format.fprintf fmt "Nested_equalities"
+  | Equalities -> Format.fprintf fmt "Equalities"
+  | All -> Format.fprintf fmt "All"
+
 let rec pp_decompose_req fmt (v:decompose_req) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
@@ -721,6 +751,8 @@ let rec pp_decompose_req fmt (v:decompose_req) =
     Pbrt.Pp.pp_record_field ~first:false "basis" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.basis;
     Pbrt.Pp.pp_record_field ~first:false "rule_specs" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.rule_specs;
     Pbrt.Pp.pp_record_field ~first:false "prune" Pbrt.Pp.pp_bool fmt v.prune;
+    Pbrt.Pp.pp_record_field ~first:false "ctx_simp" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.ctx_simp;
+    Pbrt.Pp.pp_record_field ~first:false "lift_bool" (Pbrt.Pp.pp_option pp_lift_bool) fmt v.lift_bool;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -898,6 +930,13 @@ let rec encode_pb_session_create_req (v:session_create_req) encoder =
   Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   ()
 
+let rec encode_pb_lift_bool (v:lift_bool) encoder =
+  match v with
+  | Default -> Pbrt.Encoder.int_as_varint (0) encoder
+  | Nested_equalities -> Pbrt.Encoder.int_as_varint 1 encoder
+  | Equalities -> Pbrt.Encoder.int_as_varint 2 encoder
+  | All -> Pbrt.Encoder.int_as_varint 3 encoder
+
 let rec encode_pb_decompose_req (v:decompose_req) encoder = 
   begin match v.session with
   | Some x -> 
@@ -923,6 +962,18 @@ let rec encode_pb_decompose_req (v:decompose_req) encoder =
   ) v.rule_specs encoder;
   Pbrt.Encoder.bool v.prune encoder;
   Pbrt.Encoder.key 6 Pbrt.Varint encoder; 
+  begin match v.ctx_simp with
+  | Some x -> 
+    Pbrt.Encoder.bool x encoder;
+    Pbrt.Encoder.key 7 Pbrt.Varint encoder; 
+  | None -> ();
+  end;
+  begin match v.lift_bool with
+  | Some x -> 
+    encode_pb_lift_bool x encoder;
+    Pbrt.Encoder.key 8 Pbrt.Varint encoder; 
+  | None -> ();
+  end;
   ()
 
 let rec encode_pb_decompose_res_res (v:decompose_res_res) encoder = 
@@ -1274,6 +1325,14 @@ let rec decode_pb_session_create_req d =
     api_version = v.api_version;
   } : session_create_req)
 
+let rec decode_pb_lift_bool d = 
+  match Pbrt.Decoder.int_as_varint d with
+  | 0 -> (Default:lift_bool)
+  | 1 -> (Nested_equalities:lift_bool)
+  | 2 -> (Equalities:lift_bool)
+  | 3 -> (All:lift_bool)
+  | _ -> Pbrt.Decoder.malformed_variant "lift_bool"
+
 let rec decode_pb_decompose_req d =
   let v = default_decompose_req_mutable () in
   let continue__= ref true in
@@ -1313,6 +1372,16 @@ let rec decode_pb_decompose_req d =
     end
     | Some (6, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(decompose_req), field(6)" pk
+    | Some (7, Pbrt.Varint) -> begin
+      v.ctx_simp <- Some (Pbrt.Decoder.bool d);
+    end
+    | Some (7, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req), field(7)" pk
+    | Some (8, Pbrt.Varint) -> begin
+      v.lift_bool <- Some (decode_pb_lift_bool d);
+    end
+    | Some (8, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req), field(8)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
@@ -1322,6 +1391,8 @@ let rec decode_pb_decompose_req d =
     basis = v.basis;
     rule_specs = v.rule_specs;
     prune = v.prune;
+    ctx_simp = v.ctx_simp;
+    lift_bool = v.lift_bool;
   } : decompose_req)
 
 let rec decode_pb_decompose_res_res d = 
@@ -1924,6 +1995,13 @@ let rec encode_json_session_create_req (v:session_create_req) =
   let assoc = ("apiVersion", Pbrt_yojson.make_string v.api_version) :: assoc in
   `Assoc assoc
 
+let rec encode_json_lift_bool (v:lift_bool) = 
+  match v with
+  | Default -> `String "Default"
+  | Nested_equalities -> `String "NestedEqualities"
+  | Equalities -> `String "Equalities"
+  | All -> `String "All"
+
 let rec encode_json_decompose_req (v:decompose_req) = 
   let assoc = [] in 
   let assoc = match v.session with
@@ -1944,6 +2022,14 @@ let rec encode_json_decompose_req (v:decompose_req) =
     ("ruleSpecs", `List l) :: assoc 
   in
   let assoc = ("prune", Pbrt_yojson.make_bool v.prune) :: assoc in
+  let assoc = match v.ctx_simp with
+    | None -> assoc
+    | Some v -> ("ctxSimp", Pbrt_yojson.make_bool v) :: assoc
+  in
+  let assoc = match v.lift_bool with
+    | None -> assoc
+    | Some v -> ("liftBool", encode_json_lift_bool v) :: assoc
+  in
   `Assoc assoc
 
 let rec encode_json_decompose_res_res (v:decompose_res_res) = 
@@ -2210,6 +2296,14 @@ let rec decode_json_session_create_req d =
     api_version = v.api_version;
   } : session_create_req)
 
+let rec decode_json_lift_bool json =
+  match json with
+  | `String "Default" -> (Default : lift_bool)
+  | `String "NestedEqualities" -> (Nested_equalities : lift_bool)
+  | `String "Equalities" -> (Equalities : lift_bool)
+  | `String "All" -> (All : lift_bool)
+  | _ -> Pbrt_yojson.E.malformed_variant "lift_bool"
+
 let rec decode_json_decompose_req d =
   let v = default_decompose_req_mutable () in
   let assoc = match d with
@@ -2235,6 +2329,10 @@ let rec decode_json_decompose_req d =
     end
     | ("prune", json_value) -> 
       v.prune <- Pbrt_yojson.bool json_value "decompose_req" "prune"
+    | ("ctxSimp", json_value) -> 
+      v.ctx_simp <- Some (Pbrt_yojson.bool json_value "decompose_req" "ctx_simp")
+    | ("liftBool", json_value) -> 
+      v.lift_bool <- Some ((decode_json_lift_bool json_value))
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -2245,6 +2343,8 @@ let rec decode_json_decompose_req d =
     basis = v.basis;
     rule_specs = v.rule_specs;
     prune = v.prune;
+    ctx_simp = v.ctx_simp;
+    lift_bool = v.lift_bool;
   } : decompose_req)
 
 let rec decode_json_decompose_res_res json =

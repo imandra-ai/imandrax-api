@@ -38,6 +38,13 @@ message SessionCreateReq {
   string api_version = 1;
 }
 
+enum LiftBool {
+  Default = 0;
+  NestedEqualities = 1;
+  Equalities = 2;
+  All = 3;
+}
+
 message DecomposeReq {
   imandrax.session.Session session = 1;
 
@@ -52,6 +59,10 @@ message DecomposeReq {
   repeated string rule_specs = 5;
 
   bool prune = 6;
+
+  optional bool ctx_simp = 7;
+
+  optional LiftBool lift_bool = 8;
 }
 
 // Result of a decomposition
