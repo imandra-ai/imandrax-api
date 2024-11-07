@@ -9,6 +9,10 @@
 
 (name imandrax-api)
 
+;; keep in sync with imandrax
+
+(version 0.6)
+
 (authors "the imandrax team")
 
 (maintainers "imandra.ai")
@@ -27,7 +31,8 @@
    (>= 1.0))
   (zarith
    (>= 1.12))
-  (imandra-proof-system (= :version))
+  (imandra-proof-system
+   (= :version))
   ppx_deriving
   ppx_deriving_yojson
   imandrakit
@@ -92,7 +97,10 @@
    (= :version))
   imandrakit-thread
   ezcurl
-  (moonpool (and (>= 0.7) (< 0.8)))
+  (moonpool
+   (and
+    (>= 0.7)
+    (< 0.8)))
   (trace
    (>= 0.6))
   (pbrt
@@ -120,35 +128,54 @@
    (>= 3.0))))
 
 (package
-  (name imandrax-api-top)
-  (synopsis "Interactive toplevel for ImandraX's API")
-  (depends
-    (ocaml (>= 5.0))
-    (containers (>= 3.0))
-    (imandrax-api-client (= :version))
-    (imandrax-api-client-ezcurl (= :version))
-    (trace (>= 0.6))
-    ppx_deriving))
+ (name imandrax-api-top)
+ (synopsis "Interactive toplevel for ImandraX's API")
+ (depends
+  (ocaml
+   (>= 5.0))
+  (containers
+   (>= 3.0))
+  (imandrax-api-client
+   (= :version))
+  (imandrax-api-client-ezcurl
+   (= :version))
+  (trace
+   (>= 0.6))
+  ppx_deriving))
 
 (package
-  (name imandrax-api-cli)
-  (synopsis "CLI for ImandraX's API")
-  (depends
-    (ocaml (>= 5.0))
-    (linenoise (>= 1.4))
-    (containers (>= 3.0))
-    (imandrax-api-client (= :version))
-    (imandrax-api-client-ezcurl (= :version))
-    (moonpool (and (>= 0.7) (< 0.8)))
-    (trace (>= 0.6))
-    uuidm
-    xdg
-    webbrowser
-    ppx_deriving
-    trace-tef
-    (tiny_httpd (>= 0.16))
-    (ppx_subliner (>= 0.2))
-    (linenoise (and (>= 1.4) (< 2.0)))))
+ (name imandrax-api-cli)
+ (synopsis "CLI for ImandraX's API")
+ (depends
+  (ocaml
+   (>= 5.0))
+  (linenoise
+   (>= 1.4))
+  (containers
+   (>= 3.0))
+  (imandrax-api-client
+   (= :version))
+  (imandrax-api-client-ezcurl
+   (= :version))
+  (moonpool
+   (and
+    (>= 0.7)
+    (< 0.8)))
+  (trace
+   (>= 0.6))
+  uuidm
+  xdg
+  webbrowser
+  ppx_deriving
+  trace-tef
+  (tiny_httpd
+   (>= 0.16))
+  (ppx_subliner
+   (>= 0.2))
+  (linenoise
+   (and
+    (>= 1.4)
+    (< 2.0)))))
 
 (package
  (name imandra-proof-system)
