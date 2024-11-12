@@ -1588,7 +1588,6 @@ class Cir_Theorem:
     thm_fc: bool
     thm_elim: bool
     thm_gen: bool
-    thm_otf: bool
     thm_triggers: list[Cir_Pre_trigger]
     thm_is_axiom: bool
     thm_by: Cir_Term
@@ -1601,11 +1600,10 @@ def Cir_Theorem_of_twine(d: twine.Decoder, off: int) -> Cir_Theorem:
     thm_fc = d.get_bool(off=fields[3])
     thm_elim = d.get_bool(off=fields[4])
     thm_gen = d.get_bool(off=fields[5])
-    thm_otf = d.get_bool(off=fields[6])
-    thm_triggers = [Cir_Pre_trigger_of_twine(d=d, off=x) for x in d.get_array(off=fields[7])]
-    thm_is_axiom = d.get_bool(off=fields[8])
-    thm_by = Cir_Term_of_twine(d=d, off=fields[9])
-    return Cir_Theorem(thm_link=thm_link,thm_rewriting=thm_rewriting,thm_perm_restrict=thm_perm_restrict,thm_fc=thm_fc,thm_elim=thm_elim,thm_gen=thm_gen,thm_otf=thm_otf,thm_triggers=thm_triggers,thm_is_axiom=thm_is_axiom,thm_by=thm_by)
+    thm_triggers = [Cir_Pre_trigger_of_twine(d=d, off=x) for x in d.get_array(off=fields[6])]
+    thm_is_axiom = d.get_bool(off=fields[7])
+    thm_by = Cir_Term_of_twine(d=d, off=fields[8])
+    return Cir_Theorem(thm_link=thm_link,thm_rewriting=thm_rewriting,thm_perm_restrict=thm_perm_restrict,thm_fc=thm_fc,thm_elim=thm_elim,thm_gen=thm_gen,thm_triggers=thm_triggers,thm_is_axiom=thm_is_axiom,thm_by=thm_by)
 
 # clique Imandrax_api_cir.Tactic.t
 # def Imandrax_api_cir.Tactic.t (mangled name: "Cir_Tactic")
