@@ -1,1 +1,1 @@
-api_types_version = 'v5'
+api_types_version = 'v6'
