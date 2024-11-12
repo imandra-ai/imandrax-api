@@ -513,7 +513,6 @@ pub struct CirTheorem<'a> {
   pub thm_fc: bool,
   pub thm_elim: bool,
   pub thm_gen: bool,
-  pub thm_otf: bool,
   pub thm_triggers: &'a [(&'a CirWith_ty<'a,&'a CirTermView<'a>>,As_trigger)],
   pub thm_is_axiom: bool,
   pub thm_by: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
