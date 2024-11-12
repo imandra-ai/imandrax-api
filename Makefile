@@ -74,3 +74,9 @@ opam-install-deps: update-submodules
 opam-install-test-deps: update-submodules
 	opam install . --deps-only -t
 
+bump-api-version:
+	@v="$(shell expr $$(cat src/core/API_TYPES_VERSION) + 1)"; \
+	echo "bumping version to $$v"; \
+	echo $$v > src/core/API_TYPES_VERSION; \
+	echo "let version = \"v$$v"\" > src/core/version_.ml; \
+	echo "api_types_version = 'v$$v'" > src/py/api_types_version.py
