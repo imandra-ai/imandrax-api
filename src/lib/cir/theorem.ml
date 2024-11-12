@@ -5,7 +5,6 @@ type t = {
   thm_fc: bool;  (** forward chaining rule? *)
   thm_elim: bool;  (** elimination rule? *)
   thm_gen: bool;  (** generalization rule? *)
-  thm_otf: bool;  (** should induction proceed "onward through the fog"? *)
   thm_triggers: Pre_trigger.t list;
   thm_is_axiom: bool;
   thm_by: Term.t;
