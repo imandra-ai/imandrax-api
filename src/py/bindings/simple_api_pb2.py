@@ -29,49 +29,51 @@ import artmsg_pb2 as artmsg__pb2
 import task_pb2 as task__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10simple_api.proto\x12\x0fimandrax.simple\x1a\x0b\x65rror.proto\x1a\x0butils.proto\x1a\rsession.proto\x1a\x0c\x61rtmsg.proto\x1a\ntask.proto\"\'\n\x10SessionCreateReq\x12\x13\n\x0b\x61pi_version\x18\x01 \x01(\t\"\x83\x02\n\x0c\x44\x65\x63omposeReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x15\n\x08\x61ssuming\x18\x03 \x01(\tH\x00\x88\x01\x01\x12\r\n\x05\x62\x61sis\x18\x04 \x03(\t\x12\x12\n\nrule_specs\x18\x05 \x03(\t\x12\r\n\x05prune\x18\x06 \x01(\x08\x12\x15\n\x08\x63tx_simp\x18\x07 \x01(\x08H\x01\x88\x01\x01\x12\x31\n\tlift_bool\x18\x08 \x01(\x0e\x32\x19.imandrax.simple.LiftBoolH\x02\x88\x01\x01\x42\x0b\n\t_assumingB\x0b\n\t_ctx_simpB\x0c\n\n_lift_bool\"s\n\x0c\x44\x65\x63omposeRes\x12\x18\n\x08\x61rtifact\x18\x01 \x01(\x0b\x32\x04.ArtH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res\"E\n\nEvalSrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\"Z\n\x07\x45valRes\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x10\n\x08messages\x18\x02 \x03(\t\x12\x16\n\x06\x65rrors\x18\x03 \x03(\x0b\x32\x06.Error\x12\x14\n\x05tasks\x18\x04 \x03(\x0b\x32\x05.Task\"e\n\x0cVerifySrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\x12\x12\n\x05hints\x18\n \x01(\tH\x00\x88\x01\x01\x42\x08\n\x06_hints\"g\n\rVerifyNameReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x12\n\x05hints\x18\n \x01(\tH\x00\x88\x01\x01\x42\x08\n\x06_hints\"g\n\x0eInstanceSrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\x12\x12\n\x05hints\x18\n \x01(\tH\x00\x88\x01\x01\x42\x08\n\x06_hints\"i\n\x0fInstanceNameReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x12\n\x05hints\x18\n \x01(\tH\x00\x88\x01\x01\x42\x08\n\x06_hints\",\n\x06Proved\x12\x15\n\x08proof_pp\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_proof_pp\"+\n\x05Unsat\x12\x15\n\x08proof_pp\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_proof_pp\"j\n\x05Model\x12*\n\x06m_type\x18\x01 \x01(\x0e\x32\x1a.imandrax.simple.ModelType\x12\x0b\n\x03src\x18\x02 \x01(\t\x12\x1b\n\x08\x61rtifact\x18\x03 \x01(\x0b\x32\x04.ArtH\x00\x88\x01\x01\x42\x0b\n\t_artifact\"?\n\x07Refuted\x12*\n\x05model\x18\x01 \x01(\x0b\x32\x16.imandrax.simple.ModelH\x00\x88\x01\x01\x42\x08\n\x06_model\";\n\x03Sat\x12*\n\x05model\x18\x01 \x01(\x0b\x32\x16.imandrax.simple.ModelH\x00\x88\x01\x01\x42\x08\n\x06_model\"\xcd\x01\n\tVerifyRes\x12\x1d\n\x07unknown\x18\x01 \x01(\x0b\x32\n.StringMsgH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12)\n\x06proved\x18\x03 \x01(\x0b\x32\x17.imandrax.simple.ProvedH\x00\x12+\n\x07refuted\x18\x04 \x01(\x0b\x32\x18.imandrax.simple.RefutedH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res\"\xc5\x01\n\x0bInstanceRes\x12\x1d\n\x07unknown\x18\x01 \x01(\x0b\x32\n.StringMsgH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12\'\n\x05unsat\x18\x03 \x01(\x0b\x32\x16.imandrax.simple.UnsatH\x00\x12#\n\x03sat\x18\x04 \x01(\x0b\x32\x14.imandrax.simple.SatH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res*F\n\x08LiftBool\x12\x0b\n\x07\x44\x65\x66\x61ult\x10\x00\x12\x14\n\x10NestedEqualities\x10\x01\x12\x0e\n\nEqualities\x10\x02\x12\x07\n\x03\x41ll\x10\x03*.\n\tModelType\x12\x13\n\x0f\x43ounter_example\x10\x00\x12\x0c\n\x08Instance\x10\x01\x32\xd4\x04\n\x06Simple\x12\x1c\n\x06status\x12\x06.Empty\x1a\n.StringMsg\x12\x1a\n\x08shutdown\x12\x06.Empty\x1a\x06.Empty\x12N\n\x0e\x63reate_session\x12!.imandrax.simple.SessionCreateReq\x1a\x19.imandrax.session.Session\x12\x41\n\x08\x65val_src\x12\x1b.imandrax.simple.EvalSrcReq\x1a\x18.imandrax.simple.EvalRes\x12G\n\nverify_src\x12\x1d.imandrax.simple.VerifySrcReq\x1a\x1a.imandrax.simple.VerifyRes\x12I\n\x0bverify_name\x12\x1e.imandrax.simple.VerifyNameReq\x1a\x1a.imandrax.simple.VerifyRes\x12M\n\x0cinstance_src\x12\x1f.imandrax.simple.InstanceSrcReq\x1a\x1c.imandrax.simple.InstanceRes\x12O\n\rinstance_name\x12 .imandrax.simple.InstanceNameReq\x1a\x1c.imandrax.simple.InstanceRes\x12I\n\tdecompose\x12\x1d.imandrax.simple.DecomposeReq\x1a\x1d.imandrax.simple.DecomposeResb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10simple_api.proto\x12\x0fimandrax.simple\x1a\x0b\x65rror.proto\x1a\x0butils.proto\x1a\rsession.proto\x1a\x0c\x61rtmsg.proto\x1a\ntask.proto\"\'\n\x10SessionCreateReq\x12\x13\n\x0b\x61pi_version\x18\x01 \x01(\t\"\x9d\x02\n\x0c\x44\x65\x63omposeReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x15\n\x08\x61ssuming\x18\x03 \x01(\tH\x00\x88\x01\x01\x12\r\n\x05\x62\x61sis\x18\x04 \x03(\t\x12\x12\n\nrule_specs\x18\x05 \x03(\t\x12\r\n\x05prune\x18\x06 \x01(\x08\x12\x15\n\x08\x63tx_simp\x18\x07 \x01(\x08H\x01\x88\x01\x01\x12\x31\n\tlift_bool\x18\x08 \x01(\x0e\x32\x19.imandrax.simple.LiftBoolH\x02\x88\x01\x01\x12\x10\n\x03str\x18\t \x01(\x08H\x03\x88\x01\x01\x42\x0b\n\t_assumingB\x0b\n\t_ctx_simpB\x0c\n\n_lift_boolB\x06\n\x04_str\"\xa4\x01\n\x0c\x44\x65\x63omposeRes\x12\x18\n\x08\x61rtifact\x18\x01 \x01(\x0b\x32\x04.ArtH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12/\n\x0bregions_str\x18\x05 \x03(\x0b\x32\x1a.imandrax.simple.RegionStr\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res\"a\n\tRegionStr\x12\x17\n\x0f\x63onstraints_str\x18\x01 \x03(\t\x12\x15\n\rinvariant_str\x18\x02 \x01(\t\x12\x16\n\tmodel_str\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\x0c\n\n_model_str\"E\n\nEvalSrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\"Z\n\x07\x45valRes\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x10\n\x08messages\x18\x02 \x03(\t\x12\x16\n\x06\x65rrors\x18\x03 \x03(\x0b\x32\x06.Error\x12\x14\n\x05tasks\x18\x04 \x03(\x0b\x32\x05.Task\"e\n\x0cVerifySrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\x12\x12\n\x05hints\x18\n \x01(\tH\x00\x88\x01\x01\x42\x08\n\x06_hints\"g\n\rVerifyNameReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x12\n\x05hints\x18\n \x01(\tH\x00\x88\x01\x01\x42\x08\n\x06_hints\"g\n\x0eInstanceSrcReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0b\n\x03src\x18\x02 \x01(\t\x12\x12\n\x05hints\x18\n \x01(\tH\x00\x88\x01\x01\x42\x08\n\x06_hints\"i\n\x0fInstanceNameReq\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x12\n\x05hints\x18\n \x01(\tH\x00\x88\x01\x01\x42\x08\n\x06_hints\",\n\x06Proved\x12\x15\n\x08proof_pp\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_proof_pp\"+\n\x05Unsat\x12\x15\n\x08proof_pp\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_proof_pp\"j\n\x05Model\x12*\n\x06m_type\x18\x01 \x01(\x0e\x32\x1a.imandrax.simple.ModelType\x12\x0b\n\x03src\x18\x02 \x01(\t\x12\x1b\n\x08\x61rtifact\x18\x03 \x01(\x0b\x32\x04.ArtH\x00\x88\x01\x01\x42\x0b\n\t_artifact\"?\n\x07Refuted\x12*\n\x05model\x18\x01 \x01(\x0b\x32\x16.imandrax.simple.ModelH\x00\x88\x01\x01\x42\x08\n\x06_model\";\n\x03Sat\x12*\n\x05model\x18\x01 \x01(\x0b\x32\x16.imandrax.simple.ModelH\x00\x88\x01\x01\x42\x08\n\x06_model\"\xcd\x01\n\tVerifyRes\x12\x1d\n\x07unknown\x18\x01 \x01(\x0b\x32\n.StringMsgH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12)\n\x06proved\x18\x03 \x01(\x0b\x32\x17.imandrax.simple.ProvedH\x00\x12+\n\x07refuted\x18\x04 \x01(\x0b\x32\x18.imandrax.simple.RefutedH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res\"\xc5\x01\n\x0bInstanceRes\x12\x1d\n\x07unknown\x18\x01 \x01(\x0b\x32\n.StringMsgH\x00\x12\x15\n\x03\x65rr\x18\x02 \x01(\x0b\x32\x06.EmptyH\x00\x12\'\n\x05unsat\x18\x03 \x01(\x0b\x32\x16.imandrax.simple.UnsatH\x00\x12#\n\x03sat\x18\x04 \x01(\x0b\x32\x14.imandrax.simple.SatH\x00\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\x12\x13\n\x04task\x18\x0b \x01(\x0b\x32\x05.TaskB\x05\n\x03res*F\n\x08LiftBool\x12\x0b\n\x07\x44\x65\x66\x61ult\x10\x00\x12\x14\n\x10NestedEqualities\x10\x01\x12\x0e\n\nEqualities\x10\x02\x12\x07\n\x03\x41ll\x10\x03*.\n\tModelType\x12\x13\n\x0f\x43ounter_example\x10\x00\x12\x0c\n\x08Instance\x10\x01\x32\xd4\x04\n\x06Simple\x12\x1c\n\x06status\x12\x06.Empty\x1a\n.StringMsg\x12\x1a\n\x08shutdown\x12\x06.Empty\x1a\x06.Empty\x12N\n\x0e\x63reate_session\x12!.imandrax.simple.SessionCreateReq\x1a\x19.imandrax.session.Session\x12\x41\n\x08\x65val_src\x12\x1b.imandrax.simple.EvalSrcReq\x1a\x18.imandrax.simple.EvalRes\x12G\n\nverify_src\x12\x1d.imandrax.simple.VerifySrcReq\x1a\x1a.imandrax.simple.VerifyRes\x12I\n\x0bverify_name\x12\x1e.imandrax.simple.VerifyNameReq\x1a\x1a.imandrax.simple.VerifyRes\x12M\n\x0cinstance_src\x12\x1f.imandrax.simple.InstanceSrcReq\x1a\x1c.imandrax.simple.InstanceRes\x12O\n\rinstance_name\x12 .imandrax.simple.InstanceNameReq\x1a\x1c.imandrax.simple.InstanceRes\x12I\n\tdecompose\x12\x1d.imandrax.simple.DecomposeReq\x1a\x1d.imandrax.simple.DecomposeResb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'simple_api_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_LIFTBOOL']._serialized_start=1840
-  _globals['_LIFTBOOL']._serialized_end=1910
-  _globals['_MODELTYPE']._serialized_start=1912
-  _globals['_MODELTYPE']._serialized_end=1958
+  _globals['_LIFTBOOL']._serialized_start=2015
+  _globals['_LIFTBOOL']._serialized_end=2085
+  _globals['_MODELTYPE']._serialized_start=2087
+  _globals['_MODELTYPE']._serialized_end=2133
   _globals['_SESSIONCREATEREQ']._serialized_start=104
   _globals['_SESSIONCREATEREQ']._serialized_end=143
   _globals['_DECOMPOSEREQ']._serialized_start=146
-  _globals['_DECOMPOSEREQ']._serialized_end=405
-  _globals['_DECOMPOSERES']._serialized_start=407
-  _globals['_DECOMPOSERES']._serialized_end=522
-  _globals['_EVALSRCREQ']._serialized_start=524
-  _globals['_EVALSRCREQ']._serialized_end=593
-  _globals['_EVALRES']._serialized_start=595
-  _globals['_EVALRES']._serialized_end=685
-  _globals['_VERIFYSRCREQ']._serialized_start=687
-  _globals['_VERIFYSRCREQ']._serialized_end=788
-  _globals['_VERIFYNAMEREQ']._serialized_start=790
-  _globals['_VERIFYNAMEREQ']._serialized_end=893
-  _globals['_INSTANCESRCREQ']._serialized_start=895
-  _globals['_INSTANCESRCREQ']._serialized_end=998
-  _globals['_INSTANCENAMEREQ']._serialized_start=1000
-  _globals['_INSTANCENAMEREQ']._serialized_end=1105
-  _globals['_PROVED']._serialized_start=1107
-  _globals['_PROVED']._serialized_end=1151
-  _globals['_UNSAT']._serialized_start=1153
-  _globals['_UNSAT']._serialized_end=1196
-  _globals['_MODEL']._serialized_start=1198
-  _globals['_MODEL']._serialized_end=1304
-  _globals['_REFUTED']._serialized_start=1306
-  _globals['_REFUTED']._serialized_end=1369
-  _globals['_SAT']._serialized_start=1371
-  _globals['_SAT']._serialized_end=1430
-  _globals['_VERIFYRES']._serialized_start=1433
-  _globals['_VERIFYRES']._serialized_end=1638
-  _globals['_INSTANCERES']._serialized_start=1641
-  _globals['_INSTANCERES']._serialized_end=1838
-  _globals['_SIMPLE']._serialized_start=1961
-  _globals['_SIMPLE']._serialized_end=2557
+  _globals['_DECOMPOSEREQ']._serialized_end=431
+  _globals['_DECOMPOSERES']._serialized_start=434
+  _globals['_DECOMPOSERES']._serialized_end=598
+  _globals['_REGIONSTR']._serialized_start=600
+  _globals['_REGIONSTR']._serialized_end=697
+  _globals['_EVALSRCREQ']._serialized_start=699
+  _globals['_EVALSRCREQ']._serialized_end=768
+  _globals['_EVALRES']._serialized_start=770
+  _globals['_EVALRES']._serialized_end=860
+  _globals['_VERIFYSRCREQ']._serialized_start=862
+  _globals['_VERIFYSRCREQ']._serialized_end=963
+  _globals['_VERIFYNAMEREQ']._serialized_start=965
+  _globals['_VERIFYNAMEREQ']._serialized_end=1068
+  _globals['_INSTANCESRCREQ']._serialized_start=1070
+  _globals['_INSTANCESRCREQ']._serialized_end=1173
+  _globals['_INSTANCENAMEREQ']._serialized_start=1175
+  _globals['_INSTANCENAMEREQ']._serialized_end=1280
+  _globals['_PROVED']._serialized_start=1282
+  _globals['_PROVED']._serialized_end=1326
+  _globals['_UNSAT']._serialized_start=1328
+  _globals['_UNSAT']._serialized_end=1371
+  _globals['_MODEL']._serialized_start=1373
+  _globals['_MODEL']._serialized_end=1479
+  _globals['_REFUTED']._serialized_start=1481
+  _globals['_REFUTED']._serialized_end=1544
+  _globals['_SAT']._serialized_start=1546
+  _globals['_SAT']._serialized_end=1605
+  _globals['_VERIFYRES']._serialized_start=1608
+  _globals['_VERIFYRES']._serialized_end=1813
+  _globals['_INSTANCERES']._serialized_start=1816
+  _globals['_INSTANCERES']._serialized_end=2013
+  _globals['_SIMPLE']._serialized_start=2136
+  _globals['_SIMPLE']._serialized_end=2732
 # @@protoc_insertion_point(module_scope)
