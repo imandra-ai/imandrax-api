@@ -22,10 +22,15 @@ type decompose_req = {
   str : bool option;
 }
 
+type string_kv = {
+  k : string;
+  v : string;
+}
+
 type region_str = {
   constraints_str : string list;
   invariant_str : string;
-  model_str : string option;
+  model_str : string_kv list;
 }
 
 type decompose_res_res =
@@ -155,10 +160,18 @@ let rec default_decompose_req
   str;
 }
 
+let rec default_string_kv 
+  ?k:((k:string) = "")
+  ?v:((v:string) = "")
+  () : string_kv  = {
+  k;
+  v;
+}
+
 let rec default_region_str 
   ?constraints_str:((constraints_str:string list) = [])
   ?invariant_str:((invariant_str:string) = "")
-  ?model_str:((model_str:string option) = None)
+  ?model_str:((model_str:string_kv list) = [])
   () : region_str  = {
   constraints_str;
   invariant_str;
@@ -331,16 +344,26 @@ let default_decompose_req_mutable () : decompose_req_mutable = {
   str = None;
 }
 
+type string_kv_mutable = {
+  mutable k : string;
+  mutable v : string;
+}
+
+let default_string_kv_mutable () : string_kv_mutable = {
+  k = "";
+  v = "";
+}
+
 type region_str_mutable = {
   mutable constraints_str : string list;
   mutable invariant_str : string;
-  mutable model_str : string option;
+  mutable model_str : string_kv list;
 }
 
 let default_region_str_mutable () : region_str_mutable = {
   constraints_str = [];
   invariant_str = "";
-  model_str = None;
+  model_str = [];
 }
 
 type decompose_res_mutable = {
@@ -529,10 +552,18 @@ let rec make_decompose_req
   str;
 }
 
+let rec make_string_kv 
+  ~(k:string)
+  ~(v:string)
+  () : string_kv  = {
+  k;
+  v;
+}
+
 let rec make_region_str 
   ~(constraints_str:string list)
   ~(invariant_str:string)
-  ?model_str:((model_str:string option) = None)
+  ~(model_str:string_kv list)
   () : region_str  = {
   constraints_str;
   invariant_str;
@@ -700,11 +731,18 @@ let rec pp_decompose_req fmt (v:decompose_req) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
+let rec pp_string_kv fmt (v:string_kv) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "k" Pbrt.Pp.pp_string fmt v.k;
+    Pbrt.Pp.pp_record_field ~first:false "v" Pbrt.Pp.pp_string fmt v.v;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
 let rec pp_region_str fmt (v:region_str) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "constraints_str" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.constraints_str;
     Pbrt.Pp.pp_record_field ~first:false "invariant_str" Pbrt.Pp.pp_string fmt v.invariant_str;
-    Pbrt.Pp.pp_record_field ~first:false "model_str" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.model_str;
+    Pbrt.Pp.pp_record_field ~first:false "model_str" (Pbrt.Pp.pp_list pp_string_kv) fmt v.model_str;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -898,6 +936,13 @@ let rec encode_pb_decompose_req (v:decompose_req) encoder =
   end;
   ()
 
+let rec encode_pb_string_kv (v:string_kv) encoder = 
+  Pbrt.Encoder.string v.k encoder;
+  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  Pbrt.Encoder.string v.v encoder;
+  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  ()
+
 let rec encode_pb_region_str (v:region_str) encoder = 
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
     Pbrt.Encoder.string x encoder;
@@ -905,12 +950,10 @@ let rec encode_pb_region_str (v:region_str) encoder =
   ) v.constraints_str encoder;
   Pbrt.Encoder.string v.invariant_str encoder;
   Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  begin match v.model_str with
-  | Some x -> 
-    Pbrt.Encoder.string x encoder;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested encode_pb_string_kv x encoder;
     Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
+  ) v.model_str encoder;
   ()
 
 let rec encode_pb_decompose_res_res (v:decompose_res_res) encoder = 
@@ -1282,12 +1325,37 @@ let rec decode_pb_decompose_req d =
     str = v.str;
   } : decompose_req)
 
+let rec decode_pb_string_kv d =
+  let v = default_string_kv_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.k <- Pbrt.Decoder.string d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(string_kv), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.v <- Pbrt.Decoder.string d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(string_kv), field(2)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    k = v.k;
+    v = v.v;
+  } : string_kv)
+
 let rec decode_pb_region_str d =
   let v = default_region_str_mutable () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
+      v.model_str <- List.rev v.model_str;
       v.constraints_str <- List.rev v.constraints_str;
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
@@ -1301,7 +1369,7 @@ let rec decode_pb_region_str d =
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(region_str), field(2)" pk
     | Some (3, Pbrt.Bytes) -> begin
-      v.model_str <- Some (Pbrt.Decoder.string d);
+      v.model_str <- (decode_pb_string_kv (Pbrt.Decoder.nested d)) :: v.model_str;
     end
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(region_str), field(3)" pk
@@ -1850,6 +1918,12 @@ let rec encode_json_decompose_req (v:decompose_req) =
   in
   `Assoc assoc
 
+let rec encode_json_string_kv (v:string_kv) = 
+  let assoc = [] in 
+  let assoc = ("k", Pbrt_yojson.make_string v.k) :: assoc in
+  let assoc = ("v", Pbrt_yojson.make_string v.v) :: assoc in
+  `Assoc assoc
+
 let rec encode_json_region_str (v:region_str) = 
   let assoc = [] in 
   let assoc =
@@ -1857,9 +1931,9 @@ let rec encode_json_region_str (v:region_str) =
     ("constraintsStr", `List l) :: assoc 
   in
   let assoc = ("invariantStr", Pbrt_yojson.make_string v.invariant_str) :: assoc in
-  let assoc = match v.model_str with
-    | None -> assoc
-    | Some v -> ("modelStr", Pbrt_yojson.make_string v) :: assoc
+  let assoc =
+    let l = v.model_str |> List.map encode_json_string_kv in
+    ("modelStr", `List l) :: assoc 
   in
   `Assoc assoc
 
@@ -2140,6 +2214,25 @@ let rec decode_json_decompose_req d =
     str = v.str;
   } : decompose_req)
 
+let rec decode_json_string_kv d =
+  let v = default_string_kv_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("k", json_value) -> 
+      v.k <- Pbrt_yojson.string json_value "string_kv" "k"
+    | ("v", json_value) -> 
+      v.v <- Pbrt_yojson.string json_value "string_kv" "v"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    k = v.k;
+    v = v.v;
+  } : string_kv)
+
 let rec decode_json_region_str d =
   let v = default_region_str_mutable () in
   let assoc = match d with
@@ -2154,8 +2247,11 @@ let rec decode_json_region_str d =
     end
     | ("invariantStr", json_value) -> 
       v.invariant_str <- Pbrt_yojson.string json_value "region_str" "invariant_str"
-    | ("modelStr", json_value) -> 
-      v.model_str <- Some (Pbrt_yojson.string json_value "region_str" "model_str")
+    | ("modelStr", `List l) -> begin
+      v.model_str <- List.map (function
+        | json_value -> (decode_json_string_kv json_value)
+      ) l;
+    end
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;

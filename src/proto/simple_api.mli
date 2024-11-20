@@ -29,10 +29,15 @@ type decompose_req = {
   str : bool option;
 }
 
+type string_kv = {
+  k : string;
+  v : string;
+}
+
 type region_str = {
   constraints_str : string list;
   invariant_str : string;
-  model_str : string option;
+  model_str : string_kv list;
 }
 
 type decompose_res_res =
@@ -158,10 +163,17 @@ val default_decompose_req :
   decompose_req
 (** [default_decompose_req ()] is the default value for type [decompose_req] *)
 
+val default_string_kv : 
+  ?k:string ->
+  ?v:string ->
+  unit ->
+  string_kv
+(** [default_string_kv ()] is the default value for type [string_kv] *)
+
 val default_region_str : 
   ?constraints_str:string list ->
   ?invariant_str:string ->
-  ?model_str:string option ->
+  ?model_str:string_kv list ->
   unit ->
   region_str
 (** [default_region_str ()] is the default value for type [region_str] *)
@@ -307,10 +319,17 @@ val make_decompose_req :
   decompose_req
 (** [make_decompose_req … ()] is a builder for type [decompose_req] *)
 
+val make_string_kv : 
+  k:string ->
+  v:string ->
+  unit ->
+  string_kv
+(** [make_string_kv … ()] is a builder for type [string_kv] *)
+
 val make_region_str : 
   constraints_str:string list ->
   invariant_str:string ->
-  ?model_str:string option ->
+  model_str:string_kv list ->
   unit ->
   region_str
 (** [make_region_str … ()] is a builder for type [region_str] *)
@@ -436,6 +455,9 @@ val pp_lift_bool : Format.formatter -> lift_bool -> unit
 val pp_decompose_req : Format.formatter -> decompose_req -> unit 
 (** [pp_decompose_req v] formats v *)
 
+val pp_string_kv : Format.formatter -> string_kv -> unit 
+(** [pp_string_kv v] formats v *)
+
 val pp_region_str : Format.formatter -> region_str -> unit 
 (** [pp_region_str v] formats v *)
 
@@ -504,6 +526,9 @@ val encode_pb_lift_bool : lift_bool -> Pbrt.Encoder.t -> unit
 
 val encode_pb_decompose_req : decompose_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_string_kv : string_kv -> Pbrt.Encoder.t -> unit
+(** [encode_pb_string_kv v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_region_str : region_str -> Pbrt.Encoder.t -> unit
 (** [encode_pb_region_str v encoder] encodes [v] with the given [encoder] *)
@@ -574,6 +599,9 @@ val decode_pb_lift_bool : Pbrt.Decoder.t -> lift_bool
 val decode_pb_decompose_req : Pbrt.Decoder.t -> decompose_req
 (** [decode_pb_decompose_req decoder] decodes a [decompose_req] binary value from [decoder] *)
 
+val decode_pb_string_kv : Pbrt.Decoder.t -> string_kv
+(** [decode_pb_string_kv decoder] decodes a [string_kv] binary value from [decoder] *)
+
 val decode_pb_region_str : Pbrt.Decoder.t -> region_str
 (** [decode_pb_region_str decoder] decodes a [region_str] binary value from [decoder] *)
 
@@ -643,6 +671,9 @@ val encode_json_lift_bool : lift_bool -> Yojson.Basic.t
 val encode_json_decompose_req : decompose_req -> Yojson.Basic.t
 (** [encode_json_decompose_req v encoder] encodes [v] to to json *)
 
+val encode_json_string_kv : string_kv -> Yojson.Basic.t
+(** [encode_json_string_kv v encoder] encodes [v] to to json *)
+
 val encode_json_region_str : region_str -> Yojson.Basic.t
 (** [encode_json_region_str v encoder] encodes [v] to to json *)
 
@@ -711,6 +742,9 @@ val decode_json_lift_bool : Yojson.Basic.t -> lift_bool
 
 val decode_json_decompose_req : Yojson.Basic.t -> decompose_req
 (** [decode_json_decompose_req decoder] decodes a [decompose_req] value from [decoder] *)
+
+val decode_json_string_kv : Yojson.Basic.t -> string_kv
+(** [decode_json_string_kv decoder] decodes a [string_kv] value from [decoder] *)
 
 val decode_json_region_str : Yojson.Basic.t -> region_str
 (** [decode_json_region_str decoder] decodes a [region_str] value from [decoder] *)
