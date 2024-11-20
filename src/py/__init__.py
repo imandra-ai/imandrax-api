@@ -75,6 +75,7 @@ class Client:
         ctx_simp: Optional[bool] = None,
         lift_bool: Optional[simple_api_pb2.LiftBool] = None,
         timeout: Optional[float] = None,
+        str: Optional[bool] = True
     ) -> simple_api_pb2.DecomposeRes:
         timeout = timeout or self._timeout
         return self._client.decompose(
@@ -86,6 +87,7 @@ class Client:
                                                 prune=prune,
                                                 ctx_simp=ctx_simp,
                                                 lift_bool=lift_bool,
+                                                str=str,
                                                 session=self._sesh),
             timeout=timeout,
         )
