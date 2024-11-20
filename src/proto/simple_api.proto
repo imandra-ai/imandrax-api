@@ -62,6 +62,8 @@ message DecomposeReq {
   optional bool ctx_simp = 7;
 
   optional LiftBool lift_bool = 8;
+
+  optional bool str = 9;
 }
 
 // Result of a decomposition
@@ -71,10 +73,23 @@ message DecomposeRes {
     Empty err = 2;
   }
 
+  repeated RegionStr regions_str = 5;
+
   repeated Error errors = 10;
 
   // the ID of the task
   Task task = 11;
+}
+
+message string_kv {
+  string k = 1;
+  string v = 2;
+}
+
+message RegionStr {
+  repeated string constraints_str = 1;
+  string invariant_str = 2;
+  repeated string_kv model_str = 3;
 }
 
 message EvalSrcReq {
