@@ -81,10 +81,15 @@ message DecomposeRes {
   Task task = 11;
 }
 
+message string_kv {
+  string k = 1;
+  string v = 2;
+}
+
 message RegionStr {
   repeated string constraints_str = 1;
   string invariant_str = 2;
-  optional string model_str = 3;
+  repeated string_kv model_str = 3;
 }
 
 message EvalSrcReq {
