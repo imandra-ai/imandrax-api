@@ -11,7 +11,7 @@
 
 ;; keep in sync with imandrax
 
-(version 0.6)
+(version 0.7)
 
 (authors "the imandrax team")
 
