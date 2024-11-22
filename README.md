@@ -99,6 +99,8 @@ See library `imandrax-api-client`.
 
 ### Python API
 
+Requires: python >= 3.12
+
 Install dependencies to be able to fetch the package, and login to google cloud:
 
 ```sh
@@ -110,6 +112,19 @@ then install via:
 
 ```sh
 $ pip install --index-url https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/simple/ imandrax-api
+```
+
+#### Building Python API package locally
+
+```
+$ python --version
+3.12.X
+
+$ python -m venv venv
+$ . venv/bin/activate
+$ pip install build
+$ make build-python
+$ pip install src/py/dist/imandrax_api-0.7-py3-none-any.whl
 ```
 
 ### JS/TS
