@@ -38,6 +38,8 @@ let[@inline] cname ~ty cname : t =
 let[@inline] task ~kind hash : t =
   of_str_ @@ spf "task:%s:%s" kind (Chash.slugify hash)
 
+let[@inline] custom ~ns str : t = of_str_ @@ spf "custom:%s:%s" ns str
+
 let as_ty_chash_ ~pre (self : t) : _ option =
   match
     let s = self |> to_str_ |> CCString.chop_prefix ~pre |> Option.get in

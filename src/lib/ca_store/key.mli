@@ -34,6 +34,9 @@ val task : kind:string -> Chash.t -> t
     hash of the task definition.
     @param kind the kind of task. This should be a slugified task kind. *)
 
+val custom : ns:string -> string -> t
+(** Custom keys, in their own namespace. Use with caution. *)
+
 val as_chash : t -> (string * Chash.t) option
 val as_cname : t -> (string * Cname.t) option
 val as_task : t -> (string * Chash.t) option
