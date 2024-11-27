@@ -1,1 +1,1 @@
-api_types_version = 'v7'
+api_types_version = 'v8'
