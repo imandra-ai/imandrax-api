@@ -73,5 +73,6 @@ let all : t list =
   make "DecompError" "Error during decomposition";
   make "VersionMismatchError" "Versions do not match";
   make "OhNoError" "Oh no 😰";
+  make "Debounced" "Task has been cancelled due to debouncing";
   ]
   [@ocamlformat "disable"]
