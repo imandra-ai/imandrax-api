@@ -20,15 +20,15 @@ class Client:
         self,
         url: str,
         server_path_prefix="/api/v1",
-        auth_token: str | None = None,
+        api_key: str | None = None,
         timeout: float = 30.0,
         session_id: str | None = None,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session = requests.Session()
-        self._auth_token = auth_token
-        if auth_token:
-            self._session.headers["Authorization"] = f"Bearer {auth_token}"
+        self._api_key = api_key
+        if api_key:
+            self._session.headers["Authorization"] = f"Bearer {api_key}"
         self._url = url
         self._server_path_prefix = server_path_prefix
         self._client = simple_api_twirp.SimpleClient(
