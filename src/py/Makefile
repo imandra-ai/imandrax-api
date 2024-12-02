@@ -1,5 +1,5 @@
 
-VERSION=$(shell grep VERSION= setup.py | sed 's/VERSION=//' | tr -d '"')
+VERSION=$(shell grep 'VERSION =' setup.py | sed 's/VERSION =//' | tr -d '"')
 echo-version:
 	@echo version: $(VERSION)
 
@@ -24,6 +24,14 @@ list-artifacts:
 publish: build
 	@echo "uploading to $(PYTHON_REPO_URL)"
 	python -m twine upload --non-interactive --repository-url $(PYTHON_REPO_URL) dist/*
+
+publish-pypi-test: build
+	@echo "publish to test PyPI"
+	python -m twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-test-imandrax-api-api-token latest) -r testpypi dist/*
+
+publish-pypi: # build
+	@echo "publish to test PyPI"
+	python -m twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-imandrax-api-api-token latest) -r testpypi dist/*
 
 GOBIN?=~/.local/bin
 install-go-protobuf-plugin:
