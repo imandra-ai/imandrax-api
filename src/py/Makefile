@@ -31,7 +31,7 @@ publish-pypi-test: build
 
 publish-pypi: # build
 	@echo "publish to test PyPI"
-	python -m twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-imandrax-api-api-token latest) -r testpypi dist/*
+	python -m twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-imandrax-api-api-token latest) dist/*
 
 GOBIN?=~/.local/bin
 install-go-protobuf-plugin:
