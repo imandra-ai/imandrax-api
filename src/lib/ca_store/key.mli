@@ -42,6 +42,9 @@ val as_cname : t -> (string * Cname.t) option
 val as_task : t -> (string * Chash.t) option
 val is_task : t -> bool
 
+val iter_in_twine : string -> t Iter.t
+(** Iterate over keys stored in this twine value *)
+
 (**/**)
 
 module Private_ : sig

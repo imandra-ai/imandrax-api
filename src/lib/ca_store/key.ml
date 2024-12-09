@@ -65,3 +65,34 @@ let as_cname (self : t) : _ option =
   with
   | exception (Not_found | Invalid_argument _) -> None
   | pair -> Some pair
+
+let iter_in_twine (s : string) : t Iter.t =
+ fun yield ->
+  let module V = Imandrakit_twine.Decode.Value in
+  let dec = Imandrakit_twine.Decode.of_string s in
+  let off_entrypoint = Imandrakit_twine.Decode.get_entrypoint dec in
+
+  let seen = Int_tbl.create 16 in
+  let rec loop off : unit =
+    let off = Imandrakit_twine.Decode.deref_rec dec off in
+    match Imandrakit_twine.Decode.read ~auto_deref:false dec off with
+    | V.Null | V.True | V.False | V.Int _ | V.Float _ | V.String _ | V.Blob _
+    | V.Cstor0 _ ->
+      ()
+    | V.Pointer _ -> assert false
+    | _ when Int_tbl.mem seen off -> ()
+    | V.CstorN (_, a) | V.Array a ->
+      Int_tbl.add seen off ();
+      Imandrakit_twine.Decode.Array_cursor.to_iter_of a Fun.id |> Iter.iter loop
+    | V.Tag (7, v) ->
+      (* found a key *)
+      let key = Imandrakit_twine.Decode.string dec v in
+      yield key
+    | V.Dict d ->
+      Int_tbl.add seen off ();
+      Imandrakit_twine.Decode.Dict_cursor.to_iter_of d (fun k v -> k, v)
+      |> Iter.iter (fun (k, v) ->
+             loop k;
+             loop v)
+  in
+  loop off_entrypoint
