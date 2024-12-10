@@ -1,11 +1,11 @@
 import imandrax_api, os, sys
 
-url = "https://imandrax.dev.imandracapital.com"
+url = "https://api.dev.imandracapital.com/internal/imandrax"
 
-auth_path = os.path.expanduser('~/.cache/imandrax/auth_token_dev')
+auth_path = os.path.expanduser('~/.config/imandrax/api_key')
 try:
     with open(auth_path, 'r') as f:
-        auth_token = f.read()
+        auth_token = f.read().strip()
 except e:
     print(f"could not read auth token in {auth_path}")
     sys.exit(1)
