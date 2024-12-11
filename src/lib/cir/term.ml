@@ -4,7 +4,7 @@
     They're also serializable (using cbor-pack).
 *)
 
-type 't binding = Var.t * 't [@@deriving twine, typereg, show]
+type 't binding = Var.t * 't [@@deriving map, iter, twine, typereg, show]
 (** simple variable binding *)
 
 module ID : sig
@@ -20,73 +20,74 @@ end = struct
   let[@inline] gen () = Atomic.fetch_and_add id_gen_ 1
 end
 
-type t = {
-  view: view;
-  ty: Type.t;
-  id: ID.t;  (** Generative ID *)
-}
-
-and view =
+type 't view =
   | Const of Imandrax_api.Const.t
-  | If of t * t * t
+  | If of 't * 't * 't
   | Let of {
       flg: Imandrax_api.Misc_types.rec_flag;
-      bs: t binding list;
-      body: t;
+      bs: 't binding list;
+      body: 't;
     }
   | Apply of {
-      f: t;
-      l: t list;
+      f: 't;
+      l: 't list;
     }
   | Fun of {
       v: Var.t;
-      body: t; (* type of function, var, body *)
+      body: 't; (* type of function, var, body *)
     }
   | Var of Var.t
   | Sym of Applied_symbol.t
   | Construct of {
       c: Applied_symbol.t;
-      args: t list;
+      args: 't list;
       labels: Imandrax_api.Uid.t list option;
     }
   | Destruct of {
       c: Applied_symbol.t;
       i: int;
-      t: t;
+      t: 't;
     }
   | Is_a of {
       c: Applied_symbol.t;
-      t: t;
+      t: 't;
     }
-  | Tuple of { l: t list }
+  | Tuple of { l: 't list }
   | Field of {
       f: Applied_symbol.t;
-      t: t;
+      t: 't;
     }
   | Tuple_field of {
       i: int;
-      t: t;
+      t: 't;
     }
   | Record of {
-      rows: (Applied_symbol.t * t) list;
-      rest: t option;
+      rows: (Applied_symbol.t * 't) list;
+      rest: 't option;
     }
   | Case of {
-      u: t;
-      cases: t Case.t list;
-      default: t option;
+      u: 't;
+      cases: 't Case.t list;
+      default: 't option;
     }
   | Let_tuple of {
       vars: Var.t list;
-      rhs: t;
-      body: t;
+      rhs: 't;
+      body: 't;
     }
+[@@deriving map, iter, twine, typereg, show { with_path = false }]
+
+type t = {
+  view: t view;
+  ty: Type.t;
+  id: ID.t;  (** Generative ID *)
+}
 [@@deriving twine, typereg, show { with_path = false }]
 
 let pp_ = ref pp
 let pp_view_ = ref pp_view
 let pp out x = !pp_ out x
-let pp_view out v = !pp_view_ out v
+let pp_view out v = !pp_view_ pp out v
 let show = Fmt.to_string pp
 
 type term = t [@@deriving twine, typereg, show]
@@ -98,7 +99,7 @@ open Imandrax_api
 
 open struct
   type ser = {
-    view: view;
+    view: t view;
     ty: Type.t;
   }
   [@@deriving twine]
@@ -108,6 +109,7 @@ open struct
 end
 
 let () =
+  (* conversion skips [id] entirely by converting to [ser] on the fly *)
   (to_twine_ref := fun enc t -> ser_to_twine enc @@ ser_of_term t);
   (of_twine_ref := fun dec t -> ser_of_twine dec t |> ser_to_term);
 
@@ -119,7 +121,7 @@ let () =
     to_twine_ref;
   ()
 
-let[@inline] view (self : t) : view = self.view
+let[@inline] view (self : t) : t view = self.view
 
 (** Syntactic equality on terms. This is not modulo alpha. *)
 let rec equal (t1 : t) (t2 : t) =
