@@ -1,6 +1,10 @@
 (** Variables *)
 
-type t = Imandrax_api.Uid.t With_ty.t [@@deriving twine, typereg, show]
+type t = {
+  view: Imandrax_api.Uid.t;
+  ty: Type.t;
+}
+[@@deriving twine, typereg, show]
 
 open Imandrax_api
 
