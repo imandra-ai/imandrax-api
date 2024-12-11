@@ -310,10 +310,10 @@ pub struct CirTypeDef<'a> {
 }
 
 
-// clique Imandrax_api_cir.With_ty.t
+// clique Imandrax_api_cir.Var.t
 #[derive(Debug, Clone)]
-pub struct CirWith_ty<'a,V_tyreg_poly_a:'a> {
-  pub view: V_tyreg_poly_a,
+pub struct CirVar<'a> {
+  pub view: &'a Uid<'a>,
   pub ty: &'a CirType<'a>,
 }
 
@@ -349,7 +349,7 @@ pub enum CirFo_patternView<'a,V_tyreg_poly_t:'a> {
   FO_any,
   FO_bool(bool),
   FO_const(&'a Const<'a>),
-  FO_var(&'a CirWith_ty<'a,&'a Uid<'a>>),
+  FO_var(&'a CirVar<'a>),
   FO_app(&'a CirApplied_symbol<'a>,&'a [V_tyreg_poly_t]),
   FO_cstor(Option<&'a CirApplied_symbol<'a>>,&'a [V_tyreg_poly_t]),
   FO_destruct {
@@ -392,7 +392,7 @@ pub struct CirTrigger<'a> {
 #[derive(Debug, Clone)]
 pub struct CirCase<'a,V_tyreg_poly_t:'a> {
   pub case_cstor: &'a CirApplied_symbol<'a>,
-  pub case_vars: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
+  pub case_vars: &'a [&'a CirVar<'a>],
   pub case_rhs: V_tyreg_poly_t,
   pub case_labels: Option<&'a [&'a Uid<'a>]>,
 }
@@ -400,70 +400,79 @@ pub struct CirCase<'a,V_tyreg_poly_t:'a> {
 
 // clique Imandrax_api_cir.Term.view
 #[derive(Debug, Clone)]
-pub enum CirTermView<'a> {
+pub enum CirTermView<'a,V_tyreg_poly_t:'a> {
   Const(&'a Const<'a>),
-  If(&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirWith_ty<'a,&'a CirTermView<'a>>),
+  If(V_tyreg_poly_t,V_tyreg_poly_t,V_tyreg_poly_t),
   Let {
     flg: Misc_typesRec_flag,
-    bs: &'a [(&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirWith_ty<'a,&'a CirTermView<'a>>)],
-    body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    bs: &'a [(&'a CirVar<'a>,V_tyreg_poly_t)],
+    body: V_tyreg_poly_t,
   },
   Apply {
-    f: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-    l: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+    f: V_tyreg_poly_t,
+    l: &'a [V_tyreg_poly_t],
   },
   Fun {
-    v: &'a CirWith_ty<'a,&'a Uid<'a>>,
-    body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    v: &'a CirVar<'a>,
+    body: V_tyreg_poly_t,
   },
-  Var(&'a CirWith_ty<'a,&'a Uid<'a>>),
+  Var(&'a CirVar<'a>),
   Sym(&'a CirApplied_symbol<'a>),
   Construct {
     c: &'a CirApplied_symbol<'a>,
-    args: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+    args: &'a [V_tyreg_poly_t],
     labels: Option<&'a [&'a Uid<'a>]>,
   },
   Destruct {
     c: &'a CirApplied_symbol<'a>,
     i: BigInt,
-    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    t: V_tyreg_poly_t,
   },
   Is_a {
     c: &'a CirApplied_symbol<'a>,
-    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    t: V_tyreg_poly_t,
   },
   Tuple {
-    l: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+    l: &'a [V_tyreg_poly_t],
   },
   Field {
     f: &'a CirApplied_symbol<'a>,
-    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    t: V_tyreg_poly_t,
   },
   Tuple_field {
     i: BigInt,
-    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    t: V_tyreg_poly_t,
   },
   Record {
-    rows: &'a [(&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a CirTermView<'a>>)],
-    rest: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
+    rows: &'a [(&'a CirApplied_symbol<'a>,V_tyreg_poly_t)],
+    rest: Option<V_tyreg_poly_t>,
   },
   Case {
-    u: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-    cases: &'a [&'a CirCase<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>>],
-    default: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
+    u: V_tyreg_poly_t,
+    cases: &'a [&'a CirCase<'a,V_tyreg_poly_t>],
+    default: Option<V_tyreg_poly_t>,
   },
   Let_tuple {
-    vars: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
-    rhs: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-    body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+    vars: &'a [&'a CirVar<'a>],
+    rhs: V_tyreg_poly_t,
+    body: V_tyreg_poly_t,
   },
 }
+
+// clique Imandrax_api_cir.Term.t
+#[derive(Debug, Clone)]
+pub struct CirTerm<'a> {
+  pub view: &'a CirTermView<'a,&'a CirTerm<'a>>,
+  pub ty: &'a CirType<'a>,
+  pub id: &'a Cir__TermID<'a>,
+}
+
 
 // clique Imandrax_api_cir.Hints.validation_strategy
 #[derive(Debug, Clone)]
 pub enum CirHintsValidation_strategy<'a> {
   VS_validate {
-    tactic: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
+    tactic: Option<&'a CirTerm<'a>>,
   },
   VS_no_validate,
 }
@@ -496,8 +505,8 @@ pub enum CirFun_defFun_kind<'a> {
 pub struct CirFun_def<'a> {
   pub f_name: &'a Uid<'a>,
   pub f_ty: &'a CirType_schema<'a>,
-  pub f_args: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
-  pub f_body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub f_args: &'a [&'a CirVar<'a>],
+  pub f_body: &'a CirTerm<'a>,
   pub f_clique: Option<&'a UidSet<'a>>,
   pub f_kind: &'a CirFun_defFun_kind<'a>,
   pub f_hints: &'a CirHints<'a>,
@@ -513,9 +522,9 @@ pub struct CirTheorem<'a> {
   pub thm_fc: bool,
   pub thm_elim: bool,
   pub thm_gen: bool,
-  pub thm_triggers: &'a [(&'a CirWith_ty<'a,&'a CirTermView<'a>>,As_trigger)],
+  pub thm_triggers: &'a [(&'a CirTerm<'a>,As_trigger)],
   pub thm_is_axiom: bool,
-  pub thm_by: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub thm_by: &'a CirTerm<'a>,
 }
 
 
@@ -526,7 +535,7 @@ pub enum CirTactic<'a> {
     basis: &'a UidSet<'a>,
   },
   Default_thm,
-  Term(&'a CirWith_ty<'a,&'a CirTermView<'a>>),
+  Term(&'a CirTerm<'a>),
 }
 
 // clique Imandrax_api_cir.Rewrite_rule.t
@@ -535,8 +544,8 @@ pub struct CirRewrite_rule<'a> {
   pub rw_name: &'a Uid<'a>,
   pub rw_head: &'a CirPattern_head<'a>,
   pub rw_lhs: &'a CirFo_pattern<'a>,
-  pub rw_rhs: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  pub rw_guard: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+  pub rw_rhs: &'a CirTerm<'a>,
+  pub rw_guard: &'a [&'a CirTerm<'a>],
   pub rw_vars: &'a Var_set<'a>,
   pub rw_triggers: &'a [&'a CirFo_pattern<'a>],
   pub rw_perm_restrict: bool,
@@ -548,7 +557,7 @@ pub struct CirRewrite_rule<'a> {
 #[derive(Debug, Clone)]
 pub struct CirProof_obligation<'a> {
   pub descr: &'a str,
-  pub goal: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub goal: &'a CirTerm<'a>,
   pub tactic: &'a CirTactic<'a>,
   pub is_instance: bool,
   pub anchor: &'a Anchor<'a>,
@@ -577,14 +586,14 @@ pub struct CirInstantiation_rule<'a> {
 #[derive(Debug, Clone)]
 pub enum CirFun_decompStatus<'a> {
   Unknown,
-  Feasible(&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>),
+  Feasible(&'a Model<'a,&'a CirTerm<'a>,&'a CirApplied_symbol<'a>,&'a CirVar<'a>,&'a CirType<'a>>),
 }
 
 // clique Imandrax_api_cir.Fun_decomp.Region.t
 #[derive(Debug, Clone)]
 pub struct CirFun_decompRegion<'a> {
-  pub constraints: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
-  pub invariant: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub constraints: &'a [&'a CirTerm<'a>],
+  pub invariant: &'a CirTerm<'a>,
   pub status: &'a CirFun_decompStatus<'a>,
 }
 
@@ -593,7 +602,7 @@ pub struct CirFun_decompRegion<'a> {
 #[derive(Debug, Clone)]
 pub struct CirFun_decomp<'a> {
   pub f_id: &'a Uid<'a>,
-  pub f_args: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
+  pub f_args: &'a [&'a CirVar<'a>],
   pub regions: &'a [&'a CirFun_decompRegion<'a>],
 }
 
@@ -602,11 +611,11 @@ pub struct CirFun_decomp<'a> {
 #[derive(Debug, Clone)]
 pub struct CirElimination_rule<'a> {
   pub er_name: &'a Uid<'a>,
-  pub er_guard: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
-  pub er_lhs: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  pub er_rhs: &'a CirWith_ty<'a,&'a Uid<'a>>,
+  pub er_guard: &'a [&'a CirTerm<'a>],
+  pub er_lhs: &'a CirTerm<'a>,
+  pub er_rhs: &'a CirVar<'a>,
   pub er_dests: &'a [&'a CirFo_pattern<'a>],
-  pub er_dest_tms: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+  pub er_dest_tms: &'a [&'a CirTerm<'a>],
 }
 
 
@@ -688,7 +697,7 @@ pub enum EvalValueView<'a,V_tyreg_poly_v:'a,V_tyreg_poly_closure:'a> {
   V_cstor(&'a EvalValueCstor_descriptor<'a>,&'a [V_tyreg_poly_v]),
   V_tuple(&'a [V_tyreg_poly_v]),
   V_record(&'a EvalValueRecord_descriptor<'a>,&'a [V_tyreg_poly_v]),
-  V_quoted_term(&'a CirWith_ty<'a,&'a CirTermView<'a>>),
+  V_quoted_term(&'a CirTerm<'a>),
   V_uid(&'a Uid<'a>),
   V_closure(V_tyreg_poly_closure),
   V_custom(Ignored /* custom value */),
@@ -807,7 +816,7 @@ pub enum ReportEventT_tree<V_tyreg_poly_atomic_ev,V_tyreg_poly_sub> {
 // clique Imandrax_api_report.Report.t
 #[derive(Debug, Clone)]
 pub struct ReportReport<'a> {
-  pub events: &'a [&'a ReportEventT_linear<&'a ReportAtomic_eventPoly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>>],
+  pub events: &'a [&'a ReportEventT_linear<&'a ReportAtomic_eventPoly<'a,&'a CirTerm<'a>,&'a CirApplied_symbol<'a>,&'a CirVar<'a>,&'a CirType<'a>>>],
 }
 
 
@@ -853,7 +862,7 @@ pub struct ProofProof_term_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyr
 // clique Imandrax_api_proof.Cir_proof_term.t
 #[derive(Debug, Clone)]
 pub struct ProofCir_proof_term<'a> {
-  pub p: &'a ProofProof_term_poly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirType<'a>,&'a ProofCir_proof_term<'a>>,
+  pub p: &'a ProofProof_term_poly<'a,&'a CirTerm<'a>,&'a CirType<'a>,&'a ProofCir_proof_term<'a>>,
 }
 
 
@@ -879,7 +888,7 @@ pub struct TasksPO_resProof_found<'a> {
 #[derive(Debug, Clone)]
 pub struct TasksPO_resInstance<'a> {
   pub anchor: &'a Anchor<'a>,
-  pub model: &'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>,
+  pub model: &'a Model<'a,&'a CirTerm<'a>,&'a CirApplied_symbol<'a>,&'a CirVar<'a>,&'a CirType<'a>>,
 }
 
 
@@ -887,8 +896,8 @@ pub struct TasksPO_resInstance<'a> {
 #[derive(Debug, Clone)]
 pub struct TasksPO_resNo_proof<'a> {
   pub err: &'a ErrorError_core<'a>,
-  pub counter_model: Option<&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>>,
-  pub subgoals: &'a [&'a Sequent_poly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>>],
+  pub counter_model: Option<&'a Model<'a,&'a CirTerm<'a>,&'a CirApplied_symbol<'a>,&'a CirVar<'a>,&'a CirType<'a>>>,
+  pub subgoals: &'a [&'a Sequent_poly<'a,&'a CirTerm<'a>>],
 }
 
 
@@ -913,7 +922,7 @@ pub enum TasksPO_resSuccess<'a> {
 pub enum TasksPO_resError<'a> {
   No_proof(&'a TasksPO_resNo_proof<'a>),
   Unsat(&'a TasksPO_resUnsat<'a>),
-  Invalid_model(&'a ErrorError_core<'a>,&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>),
+  Invalid_model(&'a ErrorError_core<'a>,&'a Model<'a,&'a CirTerm<'a>,&'a CirApplied_symbol<'a>,&'a CirVar<'a>,&'a CirType<'a>>),
   Error(&'a ErrorError_core<'a>),
 }
 
@@ -931,7 +940,7 @@ pub struct TasksPO_res<'a> {
 #[derive(Debug, Clone)]
 pub struct TasksEval_task<'a> {
   pub db: &'a CirDb_ser<'a>,
-  pub term: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub term: &'a CirTerm<'a>,
   pub anchor: &'a Anchor<'a>,
   pub timeout: Option<BigInt>,
 }

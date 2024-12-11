@@ -936,26 +936,18 @@ def Cir_Type_def_of_twine(d: twine.Decoder, off: int) -> Cir_Type_def:
     timeout = twine.optional(d=d, off=fields[4], d0=lambda d, off: d.get_int(off=off))
     return Cir_Type_def(name=name,params=params,decl=decl,clique=clique,timeout=timeout)
 
-# clique Imandrax_api_cir.With_ty.t
-# def Imandrax_api_cir.With_ty.t (mangled name: "Cir_With_ty")
-@dataclass(slots=True, frozen=True)
-class Cir_With_ty[_V_tyreg_poly_a]:
-    view: "_V_tyreg_poly_a"
-    ty: Cir_Type
-
-def Cir_With_ty_of_twine[_V_tyreg_poly_a](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Cir_With_ty:
-    decode__tyreg_poly_a = d0
-    fields = list(d.get_array(off=off))
-    view = decode__tyreg_poly_a(d=d,off=fields[0])
-    ty = Cir_Type_of_twine(d=d, off=fields[1])
-    return Cir_With_ty(view=view,ty=ty)
-
 # clique Imandrax_api_cir.Var.t
 # def Imandrax_api_cir.Var.t (mangled name: "Cir_Var")
-type Cir_Var = Cir_With_ty[Uid]
+@dataclass(slots=True, frozen=True)
+class Cir_Var:
+    view: Uid
+    ty: Cir_Type
 
 def Cir_Var_of_twine(d: twine.Decoder, off: int) -> Cir_Var:
-    return Cir_With_ty_of_twine(d=d,off=off,d0=(lambda d, off: Uid_of_twine(d=d, off=off)))
+    fields = list(d.get_array(off=off))
+    view = Uid_of_twine(d=d, off=fields[0])
+    ty = Cir_Type_of_twine(d=d, off=fields[1])
+    return Cir_Var(view=view,ty=ty)
 
 # clique Imandrax_api_cir.Type_schema.t
 # def Imandrax_api_cir.Type_schema.t (mangled name: "Cir_Type_schema")
@@ -1205,251 +1197,277 @@ def Cir_Term_binding_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t
     decode__tyreg_poly_t = d0
     return (lambda tup: (Cir_Var_of_twine(d=d, off=tup[0]),decode__tyreg_poly_t(d=d,off=tup[1])))(tuple(d.get_array(off=off)))
 
-# clique Imandrax_api_cir.Term.t,Imandrax_api_cir.Term.view
-# def Imandrax_api_cir.Term.t (mangled name: "Cir_Term")
-type Cir_Term = Cir_With_ty[Cir_Term_view]
-
-def Cir_Term_of_twine(d: twine.Decoder, off: int) -> Cir_Term:
-    return Cir_With_ty_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Term_view_of_twine(d=d, off=off)))
+# clique Imandrax_api_cir.Term.view
 # def Imandrax_api_cir.Term.view (mangled name: "Cir_Term_view")
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Const:
+class Cir_Term_view_Const[_V_tyreg_poly_t]:
     arg: Const
 
-def Cir_Term_view_Const_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Const:
+def Cir_Term_view_Const_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Const[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     arg = Const_of_twine(d=d, off=args[0])
     return Cir_Term_view_Const(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_If:
-    args: tuple[Cir_Term,Cir_Term,Cir_Term]
+class Cir_Term_view_If[_V_tyreg_poly_t]:
+    args: tuple["_V_tyreg_poly_t","_V_tyreg_poly_t","_V_tyreg_poly_t"]
 
-def Cir_Term_view_If_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_If:
-    cargs = (Cir_Term_of_twine(d=d, off=args[0]),Cir_Term_of_twine(d=d, off=args[1]),Cir_Term_of_twine(d=d, off=args[2]))
+def Cir_Term_view_If_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_If[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
+    cargs = (decode__tyreg_poly_t(d=d,off=args[0]),decode__tyreg_poly_t(d=d,off=args[1]),decode__tyreg_poly_t(d=d,off=args[2]))
     return Cir_Term_view_If(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Let:
+class Cir_Term_view_Let[_V_tyreg_poly_t]:
     flg: Misc_types_rec_flag
-    bs: list[Cir_Term_binding[Cir_Term]]
-    body: Cir_Term
+    bs: list[Cir_Term_binding["_V_tyreg_poly_t"]]
+    body: "_V_tyreg_poly_t"
 
 
-def Cir_Term_view_Let_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Let:
+def Cir_Term_view_Let_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Let[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     flg = Misc_types_rec_flag_of_twine(d=d, off=args[0])
-    bs = [Cir_Term_binding_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off))) for x in d.get_array(off=args[1])]
-    body = Cir_Term_of_twine(d=d, off=args[2])
+    bs = [Cir_Term_binding_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_t(d=d,off=off))) for x in d.get_array(off=args[1])]
+    body = decode__tyreg_poly_t(d=d,off=args[2])
     return Cir_Term_view_Let(flg=flg,bs=bs,body=body)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Apply:
-    f: Cir_Term
-    l: list[Cir_Term]
+class Cir_Term_view_Apply[_V_tyreg_poly_t]:
+    f: "_V_tyreg_poly_t"
+    l: list["_V_tyreg_poly_t"]
 
 
-def Cir_Term_view_Apply_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Apply:
-    f = Cir_Term_of_twine(d=d, off=args[0])
-    l = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=args[1])]
+def Cir_Term_view_Apply_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Apply[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
+    f = decode__tyreg_poly_t(d=d,off=args[0])
+    l = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])]
     return Cir_Term_view_Apply(f=f,l=l)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Fun:
+class Cir_Term_view_Fun[_V_tyreg_poly_t]:
     v: Cir_Var
-    body: Cir_Term
+    body: "_V_tyreg_poly_t"
 
 
-def Cir_Term_view_Fun_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Fun:
+def Cir_Term_view_Fun_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Fun[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     v = Cir_Var_of_twine(d=d, off=args[0])
-    body = Cir_Term_of_twine(d=d, off=args[1])
+    body = decode__tyreg_poly_t(d=d,off=args[1])
     return Cir_Term_view_Fun(v=v,body=body)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Var:
+class Cir_Term_view_Var[_V_tyreg_poly_t]:
     arg: Cir_Var
 
-def Cir_Term_view_Var_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Var:
+def Cir_Term_view_Var_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Var[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     arg = Cir_Var_of_twine(d=d, off=args[0])
     return Cir_Term_view_Var(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Sym:
+class Cir_Term_view_Sym[_V_tyreg_poly_t]:
     arg: Cir_Applied_symbol
 
-def Cir_Term_view_Sym_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Sym:
+def Cir_Term_view_Sym_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Sym[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     arg = Cir_Applied_symbol_of_twine(d=d, off=args[0])
     return Cir_Term_view_Sym(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Construct:
+class Cir_Term_view_Construct[_V_tyreg_poly_t]:
     c: Cir_Applied_symbol
-    args: list[Cir_Term]
+    args: list["_V_tyreg_poly_t"]
     labels: None | list[Uid]
 
 
-def Cir_Term_view_Construct_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Construct:
+def Cir_Term_view_Construct_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Construct[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     c = Cir_Applied_symbol_of_twine(d=d, off=args[0])
-    args = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=args[1])]
+    args = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])]
     labels = twine.optional(d=d, off=args[2], d0=lambda d, off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
     return Cir_Term_view_Construct(c=c,args=args,labels=labels)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Destruct:
+class Cir_Term_view_Destruct[_V_tyreg_poly_t]:
     c: Cir_Applied_symbol
     i: int
-    t: Cir_Term
+    t: "_V_tyreg_poly_t"
 
 
-def Cir_Term_view_Destruct_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Destruct:
+def Cir_Term_view_Destruct_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Destruct[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     c = Cir_Applied_symbol_of_twine(d=d, off=args[0])
     i = d.get_int(off=args[1])
-    t = Cir_Term_of_twine(d=d, off=args[2])
+    t = decode__tyreg_poly_t(d=d,off=args[2])
     return Cir_Term_view_Destruct(c=c,i=i,t=t)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Is_a:
+class Cir_Term_view_Is_a[_V_tyreg_poly_t]:
     c: Cir_Applied_symbol
-    t: Cir_Term
+    t: "_V_tyreg_poly_t"
 
 
-def Cir_Term_view_Is_a_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Is_a:
+def Cir_Term_view_Is_a_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Is_a[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     c = Cir_Applied_symbol_of_twine(d=d, off=args[0])
-    t = Cir_Term_of_twine(d=d, off=args[1])
+    t = decode__tyreg_poly_t(d=d,off=args[1])
     return Cir_Term_view_Is_a(c=c,t=t)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Tuple:
-    l: list[Cir_Term]
+class Cir_Term_view_Tuple[_V_tyreg_poly_t]:
+    l: list["_V_tyreg_poly_t"]
 
 
-def Cir_Term_view_Tuple_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Tuple:
-    l = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=args[0])]
+def Cir_Term_view_Tuple_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Tuple[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
+    l = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[0])]
     return Cir_Term_view_Tuple(l=l)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Field:
+class Cir_Term_view_Field[_V_tyreg_poly_t]:
     f: Cir_Applied_symbol
-    t: Cir_Term
+    t: "_V_tyreg_poly_t"
 
 
-def Cir_Term_view_Field_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Field:
+def Cir_Term_view_Field_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Field[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     f = Cir_Applied_symbol_of_twine(d=d, off=args[0])
-    t = Cir_Term_of_twine(d=d, off=args[1])
+    t = decode__tyreg_poly_t(d=d,off=args[1])
     return Cir_Term_view_Field(f=f,t=t)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Tuple_field:
+class Cir_Term_view_Tuple_field[_V_tyreg_poly_t]:
     i: int
-    t: Cir_Term
+    t: "_V_tyreg_poly_t"
 
 
-def Cir_Term_view_Tuple_field_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Tuple_field:
+def Cir_Term_view_Tuple_field_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Tuple_field[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     i = d.get_int(off=args[0])
-    t = Cir_Term_of_twine(d=d, off=args[1])
+    t = decode__tyreg_poly_t(d=d,off=args[1])
     return Cir_Term_view_Tuple_field(i=i,t=t)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Record:
-    rows: list[tuple[Cir_Applied_symbol,Cir_Term]]
-    rest: None | Cir_Term
+class Cir_Term_view_Record[_V_tyreg_poly_t]:
+    rows: list[tuple[Cir_Applied_symbol,"_V_tyreg_poly_t"]]
+    rest: None | "_V_tyreg_poly_t"
 
 
-def Cir_Term_view_Record_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Record:
-    rows = [(lambda tup: (Cir_Applied_symbol_of_twine(d=d, off=tup[0]),Cir_Term_of_twine(d=d, off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[0])]
-    rest = twine.optional(d=d, off=args[1], d0=lambda d, off: Cir_Term_of_twine(d=d, off=off))
+def Cir_Term_view_Record_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Record[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
+    rows = [(lambda tup: (Cir_Applied_symbol_of_twine(d=d, off=tup[0]),decode__tyreg_poly_t(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[0])]
+    rest = twine.optional(d=d, off=args[1], d0=lambda d, off: decode__tyreg_poly_t(d=d,off=off))
     return Cir_Term_view_Record(rows=rows,rest=rest)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Case:
-    u: Cir_Term
-    cases: list[Cir_Case[Cir_Term]]
-    default: None | Cir_Term
+class Cir_Term_view_Case[_V_tyreg_poly_t]:
+    u: "_V_tyreg_poly_t"
+    cases: list[Cir_Case["_V_tyreg_poly_t"]]
+    default: None | "_V_tyreg_poly_t"
 
 
-def Cir_Term_view_Case_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Case:
-    u = Cir_Term_of_twine(d=d, off=args[0])
-    cases = [Cir_Case_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off))) for x in d.get_array(off=args[1])]
-    default = twine.optional(d=d, off=args[2], d0=lambda d, off: Cir_Term_of_twine(d=d, off=off))
+def Cir_Term_view_Case_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Case[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
+    u = decode__tyreg_poly_t(d=d,off=args[0])
+    cases = [Cir_Case_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_t(d=d,off=off))) for x in d.get_array(off=args[1])]
+    default = twine.optional(d=d, off=args[2], d0=lambda d, off: decode__tyreg_poly_t(d=d,off=off))
     return Cir_Term_view_Case(u=u,cases=cases,default=default)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Let_tuple:
+class Cir_Term_view_Let_tuple[_V_tyreg_poly_t]:
     vars: list[Cir_Var]
-    rhs: Cir_Term
-    body: Cir_Term
+    rhs: "_V_tyreg_poly_t"
+    body: "_V_tyreg_poly_t"
 
 
-def Cir_Term_view_Let_tuple_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Let_tuple:
+def Cir_Term_view_Let_tuple_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Term_view_Let_tuple[_V_tyreg_poly_t]:
+    decode__tyreg_poly_t = d0
     vars = [Cir_Var_of_twine(d=d, off=x) for x in d.get_array(off=args[0])]
-    rhs = Cir_Term_of_twine(d=d, off=args[1])
-    body = Cir_Term_of_twine(d=d, off=args[2])
+    rhs = decode__tyreg_poly_t(d=d,off=args[1])
+    body = decode__tyreg_poly_t(d=d,off=args[2])
     return Cir_Term_view_Let_tuple(vars=vars,rhs=rhs,body=body)
 
 
-type Cir_Term_view = Cir_Term_view_Const| Cir_Term_view_If| Cir_Term_view_Let| Cir_Term_view_Apply| Cir_Term_view_Fun| Cir_Term_view_Var| Cir_Term_view_Sym| Cir_Term_view_Construct| Cir_Term_view_Destruct| Cir_Term_view_Is_a| Cir_Term_view_Tuple| Cir_Term_view_Field| Cir_Term_view_Tuple_field| Cir_Term_view_Record| Cir_Term_view_Case| Cir_Term_view_Let_tuple
+type Cir_Term_view[_V_tyreg_poly_t] = Cir_Term_view_Const[_V_tyreg_poly_t]| Cir_Term_view_If[_V_tyreg_poly_t]| Cir_Term_view_Let[_V_tyreg_poly_t]| Cir_Term_view_Apply[_V_tyreg_poly_t]| Cir_Term_view_Fun[_V_tyreg_poly_t]| Cir_Term_view_Var[_V_tyreg_poly_t]| Cir_Term_view_Sym[_V_tyreg_poly_t]| Cir_Term_view_Construct[_V_tyreg_poly_t]| Cir_Term_view_Destruct[_V_tyreg_poly_t]| Cir_Term_view_Is_a[_V_tyreg_poly_t]| Cir_Term_view_Tuple[_V_tyreg_poly_t]| Cir_Term_view_Field[_V_tyreg_poly_t]| Cir_Term_view_Tuple_field[_V_tyreg_poly_t]| Cir_Term_view_Record[_V_tyreg_poly_t]| Cir_Term_view_Case[_V_tyreg_poly_t]| Cir_Term_view_Let_tuple[_V_tyreg_poly_t]
 
-def Cir_Term_view_of_twine(d: twine.Decoder, off: int) -> Cir_Term_view:
+def Cir_Term_view_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],off: int) -> Cir_Term_view:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
              args = tuple(args)
-             return Cir_Term_view_Const_of_twine(d=d, args=args, )
+             return Cir_Term_view_Const_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=1, args=args):
              args = tuple(args)
-             return Cir_Term_view_If_of_twine(d=d, args=args, )
+             return Cir_Term_view_If_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=2, args=args):
              args = tuple(args)
-             return Cir_Term_view_Let_of_twine(d=d, args=args, )
+             return Cir_Term_view_Let_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=3, args=args):
              args = tuple(args)
-             return Cir_Term_view_Apply_of_twine(d=d, args=args, )
+             return Cir_Term_view_Apply_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=4, args=args):
              args = tuple(args)
-             return Cir_Term_view_Fun_of_twine(d=d, args=args, )
+             return Cir_Term_view_Fun_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=5, args=args):
              args = tuple(args)
-             return Cir_Term_view_Var_of_twine(d=d, args=args, )
+             return Cir_Term_view_Var_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=6, args=args):
              args = tuple(args)
-             return Cir_Term_view_Sym_of_twine(d=d, args=args, )
+             return Cir_Term_view_Sym_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=7, args=args):
              args = tuple(args)
-             return Cir_Term_view_Construct_of_twine(d=d, args=args, )
+             return Cir_Term_view_Construct_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=8, args=args):
              args = tuple(args)
-             return Cir_Term_view_Destruct_of_twine(d=d, args=args, )
+             return Cir_Term_view_Destruct_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=9, args=args):
              args = tuple(args)
-             return Cir_Term_view_Is_a_of_twine(d=d, args=args, )
+             return Cir_Term_view_Is_a_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=10, args=args):
              args = tuple(args)
-             return Cir_Term_view_Tuple_of_twine(d=d, args=args, )
+             return Cir_Term_view_Tuple_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=11, args=args):
              args = tuple(args)
-             return Cir_Term_view_Field_of_twine(d=d, args=args, )
+             return Cir_Term_view_Field_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=12, args=args):
              args = tuple(args)
-             return Cir_Term_view_Tuple_field_of_twine(d=d, args=args, )
+             return Cir_Term_view_Tuple_field_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=13, args=args):
              args = tuple(args)
-             return Cir_Term_view_Record_of_twine(d=d, args=args, )
+             return Cir_Term_view_Record_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=14, args=args):
              args = tuple(args)
-             return Cir_Term_view_Case_of_twine(d=d, args=args, )
+             return Cir_Term_view_Case_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=15, args=args):
              args = tuple(args)
-             return Cir_Term_view_Let_tuple_of_twine(d=d, args=args, )
+             return Cir_Term_view_Let_tuple_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Cir_Term_view, got invalid constructor {idx}')
+
+# clique Imandrax_api_cir.Term.t
+# def Imandrax_api_cir.Term.t (mangled name: "Cir_Term")
+@dataclass(slots=True, frozen=True)
+class Cir_Term:
+    view: Cir_Term_view[Cir_Term]
+    ty: Cir_Type
+    id: Cir__Term_ID
+
+def Cir_Term_of_twine(d: twine.Decoder, off: int) -> Cir_Term:
+    fields = list(d.get_array(off=off))
+    view = Cir_Term_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off)))
+    ty = Cir_Type_of_twine(d=d, off=fields[1])
+    id = Cir__Term_ID_of_twine(d=d, off=fields[2])
+    return Cir_Term(view=view,ty=ty,id=id)
 
 # clique Imandrax_api_cir.Term.term
 # def Imandrax_api_cir.Term.term (mangled name: "Cir_Term_term")
