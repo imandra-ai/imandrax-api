@@ -80,7 +80,7 @@ type 't view =
 type t = {
   view: t view;
   ty: Type.t;
-  id: ID.t;  (** Generative ID *)
+  mutable id: ID.t;  (** Generative ID *)
 }
 [@@deriving twine, typereg, show { with_path = false }]
 
