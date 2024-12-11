@@ -12,12 +12,14 @@ module ID : sig
 
   val hash : t -> int
   val gen : unit -> t [@@alert expert "please use Term.make"]
+  val of_int : int -> t [@@alert expert "Please use Term.make"]
 end = struct
   type t = int [@@deriving twine, eq, ord, show]
 
   let hash = CCHash.int
   let id_gen_ = Atomic.make 0
   let[@inline] gen () = Atomic.fetch_and_add id_gen_ 1
+  let of_int = Fun.id
 end
 
 type 't view =
