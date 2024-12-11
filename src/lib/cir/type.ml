@@ -42,6 +42,8 @@ let hash (t : t) : int =
   aux t
 
 let () =
+  (* it's worth paying for sharing, types are normally small and there's
+     many copies of the same type. *)
   Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref;
   Imandrakit_twine.Decode.add_cache of_twine_ref
 

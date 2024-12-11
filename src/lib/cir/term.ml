@@ -7,7 +7,24 @@
 type 't binding = Var.t * 't [@@deriving twine, typereg, show]
 (** simple variable binding *)
 
-type t = view With_ty.t
+module ID : sig
+  type t = private int [@@deriving twine, eq, ord, show]
+
+  val hash : t -> int
+  val gen : unit -> t [@@alert expert "please use Term.make"]
+end = struct
+  type t = int [@@deriving twine, eq, ord, show]
+
+  let hash = CCHash.int
+  let id_gen_ = Atomic.make 0
+  let[@inline] gen () = Atomic.fetch_and_add id_gen_ 1
+end
+
+type t = {
+  view: view;
+  ty: Type.t;
+  id: ID.t;  (** Generative ID *)
+}
 
 and view =
   | Const of Imandrax_api.Const.t
@@ -74,13 +91,33 @@ let show = Fmt.to_string pp
 
 type term = t [@@deriving twine, typereg, show]
 
+let[@inline] make view ty : t =
+  { view; ty; id = (ID.gen [@alert "-expert"]) () }
+
 open Imandrax_api
 
+open struct
+  type ser = {
+    view: view;
+    ty: Type.t;
+  }
+  [@@deriving twine]
+
+  let[@inline] ser_of_term (t : term) : ser = { view = t.view; ty = t.ty }
+  let[@inline] ser_to_term ser : term = make ser.view ser.ty
+end
+
 let () =
+  (to_twine_ref := fun enc t -> ser_to_twine enc @@ ser_of_term t);
+  (of_twine_ref := fun dec t -> ser_of_twine dec t |> ser_to_term);
+
   (* we can cache on the decoding end, but during encoding
-     it would amount to full on-the-fly hashconsing of
-     values because we have no explicit sharing of [Term.t]. *)
-  Imandrakit_twine.Decode.add_cache of_twine_ref
+     we only approximately cache based on the ID *)
+  Imandrakit_twine.Decode.add_cache of_twine_ref;
+  Imandrakit_twine.Encode.add_cache_with ~eq:( == )
+    ~hash:(fun t -> ID.hash t.id)
+    to_twine_ref;
+  ()
 
 let[@inline] view (self : t) : view = self.view
 
