@@ -1,0 +1,1526 @@
+module M_Main_region_Controller = struct
+  type t =
+    | L___Inactive__
+    | L_Operating
+end
+
+module M_Operating_Controller = struct
+  type t =
+    | L___Inactive__
+    | L_Init
+    | L_SecondaryPrepares
+    | L_PriorityPrepares
+    | L_Priority
+    | L_Secondary
+    | L_Init_Inactive_
+    | L_SecondaryPrepares_Inactive_
+    | L_PriorityPrepares_Inactive_
+    | L_Priority_Inactive_
+    | L_Secondary_Inactive_
+end
+
+module M_R_Controller = struct
+  type t =
+    | L___Inactive__
+    | L_G_
+end
+
+module M_Main_region_TrafficLightCtrl = struct
+  type t =
+    | L___Inactive__
+    | L_Interrupted
+    | L_Normal
+end
+
+module M_Interrupted_TrafficLightCtrl = struct
+  type t =
+    | L___Inactive__
+    | L_Black
+    | L_BlinkingYellow
+end
+
+module M_Normal_TrafficLightCtrl = struct
+  type t =
+    | L___Inactive__
+    | L_Yellow
+    | L_Red
+    | L_Green
+    | L_Yellow_Inactive_
+    | L_Red_Inactive_
+    | L_Green_Inactive_
+end
+
+module M_EventIdTypeOfmaster_messageQueueOfcontroller = struct
+  type t =
+    | L_EMPTY
+    | L__1
+    | L__2
+end
+
+module M_EventIdTypeOfmaster_messageQueueOfprior = struct
+  type t =
+    | L_EMPTY
+    | L__1
+    | L__2
+end
+
+module M_EventIdTypeOfmaster_messageQueueOfsecond = struct
+  type t =
+    | L_EMPTY
+    | L__1
+    | L__2
+end
+
+type nonrec t = {
+  _PriorityControl_toggle_Out_controller_control: bool;
+  _SecondaryControl_toggle_Out_controller_control: bool;
+  _SecondaryPolice_police_Out_controller_control: bool;
+  _PriorityPolice_police_Out_controller_control: bool;
+  _PoliceInterrupt_police_In_controller_control: bool;
+  _main_region_controller_control: M_Main_region_Controller.t;
+  _operating_controller_control: M_Operating_Controller.t;
+  _r_controller_control: M_R_Controller.t;
+  _SecondaryPreparesTimeout3_controller_control: int;
+  _PoliceInterrupt_police_In_prior_trafficLightCtrl: bool;
+  _LightCommands_displayYellow_Out_prior_trafficLightCtrl: bool;
+  _Control_toggle_In_prior_trafficLightCtrl: bool;
+  _LightCommands_displayGreen_Out_prior_trafficLightCtrl: bool;
+  _LightCommands_displayRed_Out_prior_trafficLightCtrl: bool;
+  _LightCommands_displayNone_Out_prior_trafficLightCtrl: bool;
+  _main_region_prior_trafficLightCtrl: M_Main_region_TrafficLightCtrl.t;
+  _interrupted_prior_trafficLightCtrl: M_Interrupted_TrafficLightCtrl.t;
+  _normal_prior_trafficLightCtrl: M_Normal_TrafficLightCtrl.t;
+  _b_prior_trafficLightCtrl: int;
+  _a_prior_trafficLightCtrl: bool;
+  _c_prior_trafficLightCtrl: int;
+  _BlinkingYellowTimeout3_prior_trafficLightCtrl: int;
+  _Control_toggle_In_second_trafficLightCtrl: bool;
+  _LightCommands_displayGreen_Out_second_trafficLightCtrl: bool;
+  _LightCommands_displayRed_Out_second_trafficLightCtrl: bool;
+  _PoliceInterrupt_police_In_second_trafficLightCtrl: bool;
+  _LightCommands_displayYellow_Out_second_trafficLightCtrl: bool;
+  _LightCommands_displayNone_Out_second_trafficLightCtrl: bool;
+  _main_region_second_trafficLightCtrl: M_Main_region_TrafficLightCtrl.t;
+  _interrupted_second_trafficLightCtrl: M_Interrupted_TrafficLightCtrl.t;
+  _normal_second_trafficLightCtrl: M_Normal_TrafficLightCtrl.t;
+  _b_second_trafficLightCtrl: int;
+  _c_second_trafficLightCtrl: int;
+  _a_second_trafficLightCtrl: bool;
+  _BlinkingYellowTimeout3_second_trafficLightCtrl: int;
+  _master_messageQueueOfcontroller:
+    M_EventIdTypeOfmaster_messageQueueOfcontroller.t;
+  _master_messageQueueOfprior: M_EventIdTypeOfmaster_messageQueueOfprior.t list;
+  _master_messageQueueOfsecond:
+    M_EventIdTypeOfmaster_messageQueueOfsecond.t list;
+}
+
+type nonrec l = {
+  _eventId_master_messageQueueOfcontroller:
+    M_EventIdTypeOfmaster_messageQueueOfcontroller.t;
+  _eventId_master_messageQueueOfprior_1433172681:
+    M_EventIdTypeOfmaster_messageQueueOfprior.t;
+  _eventId_master_messageQueueOfsecond_1893750552:
+    M_EventIdTypeOfmaster_messageQueueOfsecond.t;
+}
+
+type nonrec el = {
+  _eventId_master_messageQueueOfcontroller_1221148342:
+    M_EventIdTypeOfmaster_messageQueueOfcontroller.t;
+}
+
+type nonrec e = {
+  _eventId_master_messageQueueOfcontroller_1221148342_424401626:
+    M_EventIdTypeOfmaster_messageQueueOfcontroller.t;
+}
+
+let init =
+  let r =
+    {
+      _PriorityControl_toggle_Out_controller_control = false;
+      _SecondaryControl_toggle_Out_controller_control = false;
+      _SecondaryPolice_police_Out_controller_control = false;
+      _PriorityPolice_police_Out_controller_control = false;
+      _PoliceInterrupt_police_In_controller_control = false;
+      _main_region_controller_control = M_Main_region_Controller.L___Inactive__;
+      _operating_controller_control = M_Operating_Controller.L___Inactive__;
+      _r_controller_control = M_R_Controller.L___Inactive__;
+      _SecondaryPreparesTimeout3_controller_control = 0;
+      _PoliceInterrupt_police_In_prior_trafficLightCtrl = false;
+      _LightCommands_displayYellow_Out_prior_trafficLightCtrl = false;
+      _Control_toggle_In_prior_trafficLightCtrl = false;
+      _LightCommands_displayGreen_Out_prior_trafficLightCtrl = false;
+      _LightCommands_displayRed_Out_prior_trafficLightCtrl = false;
+      _LightCommands_displayNone_Out_prior_trafficLightCtrl = false;
+      _main_region_prior_trafficLightCtrl =
+        M_Main_region_TrafficLightCtrl.L___Inactive__;
+      _interrupted_prior_trafficLightCtrl =
+        M_Interrupted_TrafficLightCtrl.L___Inactive__;
+      _normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L___Inactive__;
+      _b_prior_trafficLightCtrl = 0;
+      _a_prior_trafficLightCtrl = false;
+      _c_prior_trafficLightCtrl = 0;
+      _BlinkingYellowTimeout3_prior_trafficLightCtrl = 0;
+      _Control_toggle_In_second_trafficLightCtrl = false;
+      _LightCommands_displayGreen_Out_second_trafficLightCtrl = false;
+      _LightCommands_displayRed_Out_second_trafficLightCtrl = false;
+      _PoliceInterrupt_police_In_second_trafficLightCtrl = false;
+      _LightCommands_displayYellow_Out_second_trafficLightCtrl = false;
+      _LightCommands_displayNone_Out_second_trafficLightCtrl = false;
+      _main_region_second_trafficLightCtrl =
+        M_Main_region_TrafficLightCtrl.L___Inactive__;
+      _interrupted_second_trafficLightCtrl =
+        M_Interrupted_TrafficLightCtrl.L___Inactive__;
+      _normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L___Inactive__;
+      _b_second_trafficLightCtrl = 0;
+      _c_second_trafficLightCtrl = 0;
+      _a_second_trafficLightCtrl = false;
+      _BlinkingYellowTimeout3_second_trafficLightCtrl = 0;
+      _master_messageQueueOfcontroller =
+        M_EventIdTypeOfmaster_messageQueueOfcontroller.L_EMPTY;
+      _master_messageQueueOfprior = [];
+      _master_messageQueueOfsecond = [];
+    }
+  in
+  let l = false in
+  (* Placeholder *)
+  let r =
+    {
+      r with
+      _PoliceInterrupt_police_In_controller_control = false;
+      _SecondaryControl_toggle_Out_controller_control = false;
+      _SecondaryPolice_police_Out_controller_control = false;
+      _PriorityPolice_police_Out_controller_control = false;
+      _c_prior_trafficLightCtrl = 0;
+      _a_prior_trafficLightCtrl = false;
+      _b_prior_trafficLightCtrl = 0;
+      _BlinkingYellowTimeout3_prior_trafficLightCtrl = 500;
+      _interrupted_prior_trafficLightCtrl =
+        M_Interrupted_TrafficLightCtrl.L___Inactive__;
+      _PoliceInterrupt_police_In_prior_trafficLightCtrl = false;
+      _Control_toggle_In_prior_trafficLightCtrl = false;
+      _LightCommands_displayYellow_Out_prior_trafficLightCtrl = false;
+      _LightCommands_displayGreen_Out_prior_trafficLightCtrl = false;
+      _LightCommands_displayNone_Out_prior_trafficLightCtrl = false;
+      _c_second_trafficLightCtrl = 0;
+      _a_second_trafficLightCtrl = false;
+      _b_second_trafficLightCtrl = 0;
+      _BlinkingYellowTimeout3_second_trafficLightCtrl = 500;
+      _interrupted_second_trafficLightCtrl =
+        M_Interrupted_TrafficLightCtrl.L___Inactive__;
+      _Control_toggle_In_second_trafficLightCtrl = false;
+      _PoliceInterrupt_police_In_second_trafficLightCtrl = false;
+      _LightCommands_displayGreen_Out_second_trafficLightCtrl = false;
+      _LightCommands_displayYellow_Out_second_trafficLightCtrl = false;
+      _LightCommands_displayNone_Out_second_trafficLightCtrl = false;
+      _master_messageQueueOfprior = [];
+      _master_messageQueueOfcontroller =
+        M_EventIdTypeOfmaster_messageQueueOfcontroller.L_EMPTY;
+      _master_messageQueueOfsecond = [];
+      _main_region_controller_control = M_Main_region_Controller.L_Operating;
+      _operating_controller_control = M_Operating_Controller.L_Init;
+      _r_controller_control = M_R_Controller.L_G_;
+      _main_region_prior_trafficLightCtrl =
+        M_Main_region_TrafficLightCtrl.L_Normal;
+      _normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red;
+      _main_region_second_trafficLightCtrl =
+        M_Main_region_TrafficLightCtrl.L_Normal;
+      _normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red;
+      _SecondaryPreparesTimeout3_controller_control = 0;
+      _LightCommands_displayRed_Out_prior_trafficLightCtrl = true;
+      _LightCommands_displayRed_Out_second_trafficLightCtrl = true;
+    }
+  in
+  let r =
+    {
+      r with
+      _master_messageQueueOfprior =
+        r._master_messageQueueOfprior
+        @ [ M_EventIdTypeOfmaster_messageQueueOfprior.L__1 ];
+      _PriorityControl_toggle_Out_controller_control = false;
+    }
+  in
+  r
+
+let h_831882206 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_Secondary
+    && 2 * 1000 <= r._SecondaryPreparesTimeout3_controller_control
+  then (
+    let r =
+      {
+        r with
+        _operating_controller_control =
+          M_Operating_Controller.L_SecondaryPrepares;
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _SecondaryControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_825477808 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_Priority
+    && 2 * 1000 <= r._SecondaryPreparesTimeout3_controller_control
+  then (
+    let r =
+      {
+        r with
+        _operating_controller_control =
+          M_Operating_Controller.L_PriorityPrepares;
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_831882206 r l in
+    r, l
+  )
+
+let h_897249910 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_PriorityPrepares
+    && 1 * 1000 <= r._SecondaryPreparesTimeout3_controller_control
+  then (
+    let r =
+      {
+        r with
+        _operating_controller_control = M_Operating_Controller.L_Secondary;
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+        _SecondaryControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_825477808 r l in
+    r, l
+  )
+
+let h_64912213 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_SecondaryPrepares
+    && 1 * 1000 <= r._SecondaryPreparesTimeout3_controller_control
+  then (
+    let r =
+      {
+        r with
+        _operating_controller_control = M_Operating_Controller.L_Priority;
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+        _SecondaryControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_897249910 r l in
+    r, l
+  )
+
+let h_508068739 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_Init
+    && 2 * 1000 <= r._SecondaryPreparesTimeout3_controller_control
+  then (
+    let r =
+      {
+        r with
+        _r_controller_control = M_R_Controller.L___Inactive__;
+        _operating_controller_control =
+          M_Operating_Controller.L_PriorityPrepares;
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_64912213 r l in
+    r, l
+  )
+
+let h_830581936 (r : t) (l : l) =
+  if r._operating_controller_control = M_Operating_Controller.L___Inactive__
+  then (
+    let r =
+      { r with _operating_controller_control = M_Operating_Controller.L_Init }
+    in
+    r, l
+  ) else (
+    let r =
+      {
+        r with
+        _operating_controller_control =
+          (if
+             r._operating_controller_control
+             = M_Operating_Controller.L_Init_Inactive_
+           then
+             M_Operating_Controller.L_Init
+           else if
+             r._operating_controller_control
+             = M_Operating_Controller.L_SecondaryPrepares_Inactive_
+           then
+             M_Operating_Controller.L_SecondaryPrepares
+           else if
+             r._operating_controller_control
+             = M_Operating_Controller.L_PriorityPrepares_Inactive_
+           then
+             M_Operating_Controller.L_PriorityPrepares
+           else if
+             r._operating_controller_control
+             = M_Operating_Controller.L_Priority_Inactive_
+           then
+             M_Operating_Controller.L_Priority
+           else
+             M_Operating_Controller.L_Secondary);
+      }
+    in
+    r, l
+  )
+
+let h_1401557428 (r : t) (l : l) =
+  if r._operating_controller_control = M_Operating_Controller.L_Init then (
+    let r = { r with _r_controller_control = M_R_Controller.L_G_ } in
+    r, l
+  ) else
+    r, l
+
+let h_595512387 (r : t) (l : l) =
+  if r._operating_controller_control = M_Operating_Controller.L_Secondary then (
+    let r =
+      {
+        r with
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+        _SecondaryControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_2037389108 (r : t) (l : l) =
+  if r._operating_controller_control = M_Operating_Controller.L_Priority then (
+    let r =
+      {
+        r with
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+        _SecondaryControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_595512387 r l in
+    r, l
+  )
+
+let h_1160298630 (r : t) (l : l) =
+  if r._operating_controller_control = M_Operating_Controller.L_PriorityPrepares
+  then (
+    let r =
+      {
+        r with
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_2037389108 r l in
+    r, l
+  )
+
+let h_1177320998 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_SecondaryPrepares
+  then (
+    let r =
+      {
+        r with
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _SecondaryControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1160298630 r l in
+    r, l
+  )
+
+let h_325434996 (r : t) (l : l) =
+  if r._operating_controller_control = M_Operating_Controller.L_Init then (
+    let r =
+      {
+        r with
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1177320998 r l in
+    r, l
+  )
+
+let h_1792393883 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_Secondary
+    && 2 * 1000 <= r._SecondaryPreparesTimeout3_controller_control
+  then (
+    let r =
+      {
+        r with
+        _operating_controller_control =
+          M_Operating_Controller.L_SecondaryPrepares;
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _SecondaryControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_1777996727 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_Priority
+    && 2 * 1000 <= r._SecondaryPreparesTimeout3_controller_control
+  then (
+    let r =
+      {
+        r with
+        _operating_controller_control =
+          M_Operating_Controller.L_PriorityPrepares;
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1792393883 r l in
+    r, l
+  )
+
+let h_1275235808 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_PriorityPrepares
+    && 1 * 1000 <= r._SecondaryPreparesTimeout3_controller_control
+  then (
+    let r =
+      {
+        r with
+        _operating_controller_control = M_Operating_Controller.L_Secondary;
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+        _SecondaryControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1777996727 r l in
+    r, l
+  )
+
+let h_1923746826 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_SecondaryPrepares
+    && 1 * 1000 <= r._SecondaryPreparesTimeout3_controller_control
+  then (
+    let r =
+      {
+        r with
+        _operating_controller_control = M_Operating_Controller.L_Priority;
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+        _SecondaryControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1275235808 r l in
+    r, l
+  )
+
+let h_917494238 (r : t) (l : l) =
+  if
+    r._operating_controller_control = M_Operating_Controller.L_Init
+    && 2 * 1000 <= r._SecondaryPreparesTimeout3_controller_control
+  then (
+    let r =
+      {
+        r with
+        _r_controller_control = M_R_Controller.L___Inactive__;
+        _operating_controller_control =
+          M_Operating_Controller.L_PriorityPrepares;
+        _SecondaryPreparesTimeout3_controller_control = 0;
+        _PriorityControl_toggle_Out_controller_control = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1923746826 r l in
+    r, l
+  )
+
+let h_259064599 (r : t) (l : l) =
+  if r._main_region_controller_control = M_Main_region_Controller.L_Operating
+  then (
+    let r =
+      {
+        r with
+        _operating_controller_control =
+          (if r._operating_controller_control = M_Operating_Controller.L_Init
+           then
+             M_Operating_Controller.L_Init_Inactive_
+           else if
+             r._operating_controller_control
+             = M_Operating_Controller.L_SecondaryPrepares
+           then
+             M_Operating_Controller.L_SecondaryPrepares_Inactive_
+           else if
+             r._operating_controller_control
+             = M_Operating_Controller.L_PriorityPrepares
+           then
+             M_Operating_Controller.L_PriorityPrepares_Inactive_
+           else if
+             r._operating_controller_control = M_Operating_Controller.L_Priority
+           then
+             M_Operating_Controller.L_Priority_Inactive_
+           else
+             M_Operating_Controller.L_Secondary_Inactive_);
+        _r_controller_control = M_R_Controller.L___Inactive__;
+        _PriorityPolice_police_Out_controller_control = true;
+        _SecondaryPolice_police_Out_controller_control = true;
+        _main_region_controller_control = M_Main_region_Controller.L_Operating;
+      }
+    in
+    let r, l = h_830581936 r l in
+    let r, l = h_1401557428 r l in
+    let r, l = h_325434996 r l in
+    r, l
+  ) else (
+    let r, l = h_917494238 r l in
+    r, l
+  )
+
+let h_1464132244 (r : t) (l : l) =
+  if
+    l._eventId_master_messageQueueOfcontroller
+    = M_EventIdTypeOfmaster_messageQueueOfcontroller.L__1
+  then (
+    let r =
+      {
+        r with
+        _SecondaryControl_toggle_Out_controller_control = false;
+        _PriorityPolice_police_Out_controller_control = false;
+        _PriorityControl_toggle_Out_controller_control = false;
+        _SecondaryPolice_police_Out_controller_control = false;
+      }
+    in
+    let r, l = h_508068739 r l in
+    let r = { r with _PoliceInterrupt_police_In_controller_control = false } in
+    r, l
+  ) else (
+    let r =
+      {
+        r with
+        _SecondaryControl_toggle_Out_controller_control = false;
+        _PriorityPolice_police_Out_controller_control = false;
+        _PriorityControl_toggle_Out_controller_control = false;
+        _SecondaryPolice_police_Out_controller_control = false;
+      }
+    in
+    let r, l = h_259064599 r l in
+    let r = { r with _PoliceInterrupt_police_In_controller_control = false } in
+    r, l
+  )
+
+let h_1974238762 (r : t) (l : l) =
+  if
+    r._master_messageQueueOfcontroller
+    <> M_EventIdTypeOfmaster_messageQueueOfcontroller.L_EMPTY
+  then (
+    let l =
+      {
+        l with
+        _eventId_master_messageQueueOfcontroller =
+          r._master_messageQueueOfcontroller;
+      }
+    in
+    let r =
+      {
+        r with
+        _master_messageQueueOfcontroller =
+          M_EventIdTypeOfmaster_messageQueueOfcontroller.L_EMPTY;
+      }
+    in
+    let r, l = h_1464132244 r l in
+    r, l
+  ) else
+    r, l
+
+let h_1023752296 (r : t) (l : l) =
+  if List.length r._master_messageQueueOfprior < 4 then (
+    let r =
+      {
+        r with
+        _master_messageQueueOfprior =
+          r._master_messageQueueOfprior
+          @ [ M_EventIdTypeOfmaster_messageQueueOfprior.L__1 ];
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_988544356 (r : t) (l : l) =
+  if r._PriorityControl_toggle_Out_controller_control then (
+    let r, l = h_1023752296 r l in
+    let r = { r with _PriorityControl_toggle_Out_controller_control = false } in
+    r, l
+  ) else
+    r, l
+
+let h_1254877423 (r : t) (l : l) =
+  if List.length r._master_messageQueueOfsecond < 4 then (
+    let r =
+      {
+        r with
+        _master_messageQueueOfsecond =
+          r._master_messageQueueOfsecond
+          @ [ M_EventIdTypeOfmaster_messageQueueOfsecond.L__1 ];
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_1551930034 (r : t) (l : l) =
+  if r._SecondaryControl_toggle_Out_controller_control then (
+    let r, l = h_1254877423 r l in
+    let r =
+      { r with _SecondaryControl_toggle_Out_controller_control = false }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_1221732146 (r : t) (l : l) =
+  if List.length r._master_messageQueueOfsecond < 4 then (
+    let r =
+      {
+        r with
+        _master_messageQueueOfsecond =
+          r._master_messageQueueOfsecond
+          @ [ M_EventIdTypeOfmaster_messageQueueOfsecond.L__2 ];
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_767026065 (r : t) (l : l) =
+  if r._SecondaryPolice_police_Out_controller_control then (
+    let r, l = h_1221732146 r l in
+    let r = { r with _SecondaryPolice_police_Out_controller_control = false } in
+    r, l
+  ) else
+    r, l
+
+let h_942598744 (r : t) (l : l) =
+  if List.length r._master_messageQueueOfprior < 4 then (
+    let r =
+      {
+        r with
+        _master_messageQueueOfprior =
+          r._master_messageQueueOfprior
+          @ [ M_EventIdTypeOfmaster_messageQueueOfprior.L__2 ];
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_1617160941 (r : t) (l : l) =
+  if r._PriorityPolice_police_Out_controller_control then (
+    let r, l = h_942598744 r l in
+    let r = { r with _PriorityPolice_police_Out_controller_control = false } in
+    r, l
+  ) else
+    r, l
+
+let h_970041956 (r : t) (l : l) =
+  if r._normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red then (
+    let r = { r with _a_prior_trafficLightCtrl = true } in
+    r, l
+  ) else
+    r, l
+
+let h_728268196 (r : t) (l : l) =
+  if r._normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Green then (
+    let r =
+      {
+        r with
+        _b_prior_trafficLightCtrl = 4;
+        _normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Yellow;
+        _LightCommands_displayYellow_Out_prior_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_1692090043 (r : t) (l : l) =
+  if r._normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red then (
+    let r, l = h_970041956 r l in
+    let r =
+      {
+        r with
+        _normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Green;
+        _LightCommands_displayGreen_Out_prior_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_728268196 r l in
+    r, l
+  )
+
+let h_454067279 (r : t) (l : l) =
+  if r._normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Yellow then (
+    let r =
+      {
+        r with
+        _normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red;
+        _LightCommands_displayRed_Out_prior_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1692090043 r l in
+    r, l
+  )
+
+let h_799449027 (r : t) (l : l) =
+  if
+    r._interrupted_prior_trafficLightCtrl
+    = M_Interrupted_TrafficLightCtrl.L_BlinkingYellow
+    && 500 <= r._BlinkingYellowTimeout3_prior_trafficLightCtrl
+  then (
+    let r =
+      {
+        r with
+        _interrupted_prior_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L_Black;
+        _BlinkingYellowTimeout3_prior_trafficLightCtrl = 0;
+        _LightCommands_displayNone_Out_prior_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_454067279 r l in
+    r, l
+  )
+
+let h_1204507342 (r : t) (l : l) =
+  if
+    r._interrupted_prior_trafficLightCtrl
+    = M_Interrupted_TrafficLightCtrl.L_Black
+    && 500 <= r._BlinkingYellowTimeout3_prior_trafficLightCtrl
+  then (
+    let r =
+      {
+        r with
+        _interrupted_prior_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L_BlinkingYellow;
+        _BlinkingYellowTimeout3_prior_trafficLightCtrl = 0;
+        _LightCommands_displayYellow_Out_prior_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_799449027 r l in
+    r, l
+  )
+
+let h_2052625002 (r : t) (l : l) =
+  if r._normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L___Inactive__
+  then (
+    let r =
+      {
+        r with
+        _normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red;
+      }
+    in
+    r, l
+  ) else (
+    let r =
+      {
+        r with
+        _normal_prior_trafficLightCtrl =
+          (if
+             r._normal_prior_trafficLightCtrl
+             = M_Normal_TrafficLightCtrl.L_Yellow_Inactive_
+           then
+             M_Normal_TrafficLightCtrl.L_Yellow
+           else if
+             r._normal_prior_trafficLightCtrl
+             = M_Normal_TrafficLightCtrl.L_Red_Inactive_
+           then
+             M_Normal_TrafficLightCtrl.L_Red
+           else
+             M_Normal_TrafficLightCtrl.L_Green);
+      }
+    in
+    r, l
+  )
+
+let h_1702183826 (r : t) (l : l) =
+  if r._normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Green then (
+    let r =
+      { r with _LightCommands_displayGreen_Out_prior_trafficLightCtrl = true }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_2125889656 (r : t) (l : l) =
+  if r._normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red then (
+    let r =
+      { r with _LightCommands_displayRed_Out_prior_trafficLightCtrl = true }
+    in
+    r, l
+  ) else (
+    let r, l = h_1702183826 r l in
+    r, l
+  )
+
+let h_1677127746 (r : t) (l : l) =
+  if r._normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Yellow then (
+    let r =
+      { r with _LightCommands_displayYellow_Out_prior_trafficLightCtrl = true }
+    in
+    r, l
+  ) else (
+    let r, l = h_2125889656 r l in
+    r, l
+  )
+
+let h_1560540564 (r : t) (l : l) =
+  if r._normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red then (
+    let r = { r with _a_prior_trafficLightCtrl = true } in
+    r, l
+  ) else
+    r, l
+
+let h_304432245 (r : t) (l : l) =
+  if
+    r._main_region_prior_trafficLightCtrl
+    = M_Main_region_TrafficLightCtrl.L_Normal
+  then (
+    let r, l = h_1560540564 r l in
+    let r = { r with _c_prior_trafficLightCtrl = 736 } in
+    r, l
+  ) else
+    r, l
+
+let h_1482339081 (r : t) (l : l) =
+  if
+    r._interrupted_prior_trafficLightCtrl
+    = M_Interrupted_TrafficLightCtrl.L_BlinkingYellow
+    && 500 <= r._BlinkingYellowTimeout3_prior_trafficLightCtrl
+  then (
+    let r =
+      {
+        r with
+        _interrupted_prior_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L_Black;
+        _BlinkingYellowTimeout3_prior_trafficLightCtrl = 0;
+        _LightCommands_displayNone_Out_prior_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_217726112 (r : t) (l : l) =
+  if
+    r._interrupted_prior_trafficLightCtrl
+    = M_Interrupted_TrafficLightCtrl.L_Black
+    && 500 <= r._BlinkingYellowTimeout3_prior_trafficLightCtrl
+  then (
+    let r =
+      {
+        r with
+        _interrupted_prior_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L_BlinkingYellow;
+        _BlinkingYellowTimeout3_prior_trafficLightCtrl = 0;
+        _LightCommands_displayYellow_Out_prior_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1482339081 r l in
+    r, l
+  )
+
+let h_1310181374 (r : t) (l : l) =
+  if
+    r._main_region_prior_trafficLightCtrl
+    = M_Main_region_TrafficLightCtrl.L_Normal
+  then (
+    let r, l = h_304432245 r l in
+    let r =
+      {
+        r with
+        _normal_prior_trafficLightCtrl =
+          (if
+             r._normal_prior_trafficLightCtrl
+             = M_Normal_TrafficLightCtrl.L_Yellow
+           then
+             M_Normal_TrafficLightCtrl.L_Yellow_Inactive_
+           else if
+             r._normal_prior_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red
+           then
+             M_Normal_TrafficLightCtrl.L_Red_Inactive_
+           else
+             M_Normal_TrafficLightCtrl.L_Green_Inactive_);
+        _main_region_prior_trafficLightCtrl =
+          M_Main_region_TrafficLightCtrl.L_Interrupted;
+        _interrupted_prior_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L_BlinkingYellow;
+        _BlinkingYellowTimeout3_prior_trafficLightCtrl = 0;
+        _LightCommands_displayYellow_Out_prior_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_217726112 r l in
+    r, l
+  )
+
+let h_1982407845 (r : t) (l : l) =
+  if
+    r._main_region_prior_trafficLightCtrl
+    = M_Main_region_TrafficLightCtrl.L_Interrupted
+  then (
+    let r =
+      {
+        r with
+        _interrupted_prior_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L___Inactive__;
+        _main_region_prior_trafficLightCtrl =
+          M_Main_region_TrafficLightCtrl.L_Normal;
+      }
+    in
+    let r, l = h_2052625002 r l in
+    let r, l = h_1677127746 r l in
+    r, l
+  ) else (
+    let r, l = h_1310181374 r l in
+    r, l
+  )
+
+let h_2078675858 (r : t) (l : l) =
+  if
+    l._eventId_master_messageQueueOfprior_1433172681
+    = M_EventIdTypeOfmaster_messageQueueOfprior.L__1
+  then (
+    let r =
+      {
+        r with
+        _LightCommands_displayRed_Out_prior_trafficLightCtrl = false;
+        _LightCommands_displayGreen_Out_prior_trafficLightCtrl = false;
+        _LightCommands_displayNone_Out_prior_trafficLightCtrl = false;
+        _LightCommands_displayYellow_Out_prior_trafficLightCtrl = false;
+      }
+    in
+    let r, l = h_1204507342 r l in
+    let r =
+      {
+        r with
+        _PoliceInterrupt_police_In_prior_trafficLightCtrl = false;
+        _Control_toggle_In_prior_trafficLightCtrl = false;
+      }
+    in
+    r, l
+  ) else (
+    let r =
+      {
+        r with
+        _LightCommands_displayRed_Out_prior_trafficLightCtrl = false;
+        _LightCommands_displayGreen_Out_prior_trafficLightCtrl = false;
+        _LightCommands_displayNone_Out_prior_trafficLightCtrl = false;
+        _LightCommands_displayYellow_Out_prior_trafficLightCtrl = false;
+      }
+    in
+    let r, l = h_1982407845 r l in
+    let r =
+      {
+        r with
+        _PoliceInterrupt_police_In_prior_trafficLightCtrl = false;
+        _Control_toggle_In_prior_trafficLightCtrl = false;
+      }
+    in
+    r, l
+  )
+
+let h_639909746 (r : t) (l : l) =
+  if r._master_messageQueueOfprior <> [] then (
+    let l =
+      {
+        l with
+        _eventId_master_messageQueueOfprior_1433172681 =
+          (match r._master_messageQueueOfprior with
+          | hd :: tl -> hd
+          | [] -> M_EventIdTypeOfmaster_messageQueueOfprior.L_EMPTY);
+      }
+    in
+    let r =
+      {
+        r with
+        _master_messageQueueOfprior =
+          (match r._master_messageQueueOfprior with
+          | hd :: tl -> tl
+          | [] -> []);
+      }
+    in
+    let r, l = h_2078675858 r l in
+    r, l
+  ) else
+    r, l
+
+let h_1459369087 (r : t) (l : l) =
+  if r._normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red then (
+    let r = { r with _a_second_trafficLightCtrl = true } in
+    r, l
+  ) else
+    r, l
+
+let h_1775189513 (r : t) (l : l) =
+  if r._normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Green then (
+    let r =
+      {
+        r with
+        _b_second_trafficLightCtrl = 4;
+        _normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Yellow;
+        _LightCommands_displayYellow_Out_second_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_587123233 (r : t) (l : l) =
+  if r._normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red then (
+    let r, l = h_1459369087 r l in
+    let r =
+      {
+        r with
+        _normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Green;
+        _LightCommands_displayGreen_Out_second_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1775189513 r l in
+    r, l
+  )
+
+let h_631684771 (r : t) (l : l) =
+  if r._normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Yellow then (
+    let r =
+      {
+        r with
+        _normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red;
+        _LightCommands_displayRed_Out_second_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_587123233 r l in
+    r, l
+  )
+
+let h_307116452 (r : t) (l : l) =
+  if
+    r._interrupted_second_trafficLightCtrl
+    = M_Interrupted_TrafficLightCtrl.L_BlinkingYellow
+    && 500 <= r._BlinkingYellowTimeout3_second_trafficLightCtrl
+  then (
+    let r =
+      {
+        r with
+        _interrupted_second_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L_Black;
+        _BlinkingYellowTimeout3_second_trafficLightCtrl = 0;
+        _LightCommands_displayNone_Out_second_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_631684771 r l in
+    r, l
+  )
+
+let h_39940754 (r : t) (l : l) =
+  if
+    r._interrupted_second_trafficLightCtrl
+    = M_Interrupted_TrafficLightCtrl.L_Black
+    && 500 <= r._BlinkingYellowTimeout3_second_trafficLightCtrl
+  then (
+    let r =
+      {
+        r with
+        _interrupted_second_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L_BlinkingYellow;
+        _BlinkingYellowTimeout3_second_trafficLightCtrl = 0;
+        _LightCommands_displayYellow_Out_second_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_307116452 r l in
+    r, l
+  )
+
+let h_1444552509 (r : t) (l : l) =
+  if
+    r._normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L___Inactive__
+  then (
+    let r =
+      {
+        r with
+        _normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red;
+      }
+    in
+    r, l
+  ) else (
+    let r =
+      {
+        r with
+        _normal_second_trafficLightCtrl =
+          (if
+             r._normal_second_trafficLightCtrl
+             = M_Normal_TrafficLightCtrl.L_Yellow_Inactive_
+           then
+             M_Normal_TrafficLightCtrl.L_Yellow
+           else if
+             r._normal_second_trafficLightCtrl
+             = M_Normal_TrafficLightCtrl.L_Red_Inactive_
+           then
+             M_Normal_TrafficLightCtrl.L_Red
+           else
+             M_Normal_TrafficLightCtrl.L_Green);
+      }
+    in
+    r, l
+  )
+
+let h_1188688123 (r : t) (l : l) =
+  if r._normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Green then (
+    let r =
+      { r with _LightCommands_displayGreen_Out_second_trafficLightCtrl = true }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_624517789 (r : t) (l : l) =
+  if r._normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red then (
+    let r =
+      { r with _LightCommands_displayRed_Out_second_trafficLightCtrl = true }
+    in
+    r, l
+  ) else (
+    let r, l = h_1188688123 r l in
+    r, l
+  )
+
+let h_751137098 (r : t) (l : l) =
+  if r._normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Yellow then (
+    let r =
+      { r with _LightCommands_displayYellow_Out_second_trafficLightCtrl = true }
+    in
+    r, l
+  ) else (
+    let r, l = h_624517789 r l in
+    r, l
+  )
+
+let h_706764824 (r : t) (l : l) =
+  if r._normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red then (
+    let r = { r with _a_second_trafficLightCtrl = true } in
+    r, l
+  ) else
+    r, l
+
+let h_603394959 (r : t) (l : l) =
+  if
+    r._main_region_second_trafficLightCtrl
+    = M_Main_region_TrafficLightCtrl.L_Normal
+  then (
+    let r, l = h_706764824 r l in
+    let r = { r with _c_second_trafficLightCtrl = 736 } in
+    r, l
+  ) else
+    r, l
+
+let h_1295294694 (r : t) (l : l) =
+  if
+    r._interrupted_second_trafficLightCtrl
+    = M_Interrupted_TrafficLightCtrl.L_BlinkingYellow
+    && 500 <= r._BlinkingYellowTimeout3_second_trafficLightCtrl
+  then (
+    let r =
+      {
+        r with
+        _interrupted_second_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L_Black;
+        _BlinkingYellowTimeout3_second_trafficLightCtrl = 0;
+        _LightCommands_displayNone_Out_second_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else
+    r, l
+
+let h_1249691435 (r : t) (l : l) =
+  if
+    r._interrupted_second_trafficLightCtrl
+    = M_Interrupted_TrafficLightCtrl.L_Black
+    && 500 <= r._BlinkingYellowTimeout3_second_trafficLightCtrl
+  then (
+    let r =
+      {
+        r with
+        _interrupted_second_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L_BlinkingYellow;
+        _BlinkingYellowTimeout3_second_trafficLightCtrl = 0;
+        _LightCommands_displayYellow_Out_second_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1295294694 r l in
+    r, l
+  )
+
+let h_1668632284 (r : t) (l : l) =
+  if
+    r._main_region_second_trafficLightCtrl
+    = M_Main_region_TrafficLightCtrl.L_Normal
+  then (
+    let r, l = h_603394959 r l in
+    let r =
+      {
+        r with
+        _normal_second_trafficLightCtrl =
+          (if
+             r._normal_second_trafficLightCtrl
+             = M_Normal_TrafficLightCtrl.L_Yellow
+           then
+             M_Normal_TrafficLightCtrl.L_Yellow_Inactive_
+           else if
+             r._normal_second_trafficLightCtrl = M_Normal_TrafficLightCtrl.L_Red
+           then
+             M_Normal_TrafficLightCtrl.L_Red_Inactive_
+           else
+             M_Normal_TrafficLightCtrl.L_Green_Inactive_);
+        _main_region_second_trafficLightCtrl =
+          M_Main_region_TrafficLightCtrl.L_Interrupted;
+        _interrupted_second_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L_BlinkingYellow;
+        _BlinkingYellowTimeout3_second_trafficLightCtrl = 0;
+        _LightCommands_displayYellow_Out_second_trafficLightCtrl = true;
+      }
+    in
+    r, l
+  ) else (
+    let r, l = h_1249691435 r l in
+    r, l
+  )
+
+let h_2013610582 (r : t) (l : l) =
+  if
+    r._main_region_second_trafficLightCtrl
+    = M_Main_region_TrafficLightCtrl.L_Interrupted
+  then (
+    let r =
+      {
+        r with
+        _interrupted_second_trafficLightCtrl =
+          M_Interrupted_TrafficLightCtrl.L___Inactive__;
+        _main_region_second_trafficLightCtrl =
+          M_Main_region_TrafficLightCtrl.L_Normal;
+      }
+    in
+    let r, l = h_1444552509 r l in
+    let r, l = h_751137098 r l in
+    r, l
+  ) else (
+    let r, l = h_1668632284 r l in
+    r, l
+  )
+
+let h_283045408 (r : t) (l : l) =
+  if
+    l._eventId_master_messageQueueOfsecond_1893750552
+    = M_EventIdTypeOfmaster_messageQueueOfsecond.L__1
+  then (
+    let r =
+      {
+        r with
+        _LightCommands_displayNone_Out_second_trafficLightCtrl = false;
+        _LightCommands_displayYellow_Out_second_trafficLightCtrl = false;
+        _LightCommands_displayRed_Out_second_trafficLightCtrl = false;
+        _LightCommands_displayGreen_Out_second_trafficLightCtrl = false;
+      }
+    in
+    let r, l = h_39940754 r l in
+    let r =
+      {
+        r with
+        _Control_toggle_In_second_trafficLightCtrl = false;
+        _PoliceInterrupt_police_In_second_trafficLightCtrl = false;
+      }
+    in
+    r, l
+  ) else (
+    let r =
+      {
+        r with
+        _LightCommands_displayNone_Out_second_trafficLightCtrl = false;
+        _LightCommands_displayYellow_Out_second_trafficLightCtrl = false;
+        _LightCommands_displayRed_Out_second_trafficLightCtrl = false;
+        _LightCommands_displayGreen_Out_second_trafficLightCtrl = false;
+      }
+    in
+    let r, l = h_2013610582 r l in
+    let r =
+      {
+        r with
+        _Control_toggle_In_second_trafficLightCtrl = false;
+        _PoliceInterrupt_police_In_second_trafficLightCtrl = false;
+      }
+    in
+    r, l
+  )
+
+let h_1010247311 (r : t) (l : l) =
+  if r._master_messageQueueOfsecond <> [] then (
+    let l =
+      {
+        l with
+        _eventId_master_messageQueueOfsecond_1893750552 =
+          (match r._master_messageQueueOfsecond with
+          | hd :: tl -> hd
+          | [] -> M_EventIdTypeOfmaster_messageQueueOfsecond.L_EMPTY);
+      }
+    in
+    let r =
+      {
+        r with
+        _master_messageQueueOfsecond =
+          (match r._master_messageQueueOfsecond with
+          | hd :: tl -> tl
+          | [] -> []);
+      }
+    in
+    let r, l = h_283045408 r l in
+    r, l
+  ) else
+    r, l
+
+let trans (r : t) =
+  let l =
+    {
+      _eventId_master_messageQueueOfcontroller =
+        M_EventIdTypeOfmaster_messageQueueOfcontroller.L_EMPTY;
+      _eventId_master_messageQueueOfprior_1433172681 =
+        M_EventIdTypeOfmaster_messageQueueOfprior.L_EMPTY;
+      _eventId_master_messageQueueOfsecond_1893750552 =
+        M_EventIdTypeOfmaster_messageQueueOfsecond.L_EMPTY;
+    }
+  in
+  let r =
+    {
+      r with
+      _SecondaryPreparesTimeout3_controller_control =
+        (if r._SecondaryPreparesTimeout3_controller_control < 2000 then
+           r._SecondaryPreparesTimeout3_controller_control + 2000
+         else
+           r._SecondaryPreparesTimeout3_controller_control);
+      _BlinkingYellowTimeout3_prior_trafficLightCtrl =
+        (if r._BlinkingYellowTimeout3_prior_trafficLightCtrl < 500 then
+           r._BlinkingYellowTimeout3_prior_trafficLightCtrl + 2000
+         else
+           r._BlinkingYellowTimeout3_prior_trafficLightCtrl);
+      _BlinkingYellowTimeout3_second_trafficLightCtrl =
+        (if r._BlinkingYellowTimeout3_second_trafficLightCtrl < 500 then
+           r._BlinkingYellowTimeout3_second_trafficLightCtrl + 2000
+         else
+           r._BlinkingYellowTimeout3_second_trafficLightCtrl);
+    }
+  in
+  let r, l = h_1974238762 r l in
+  let r, l = h_988544356 r l in
+  let r, l = h_1551930034 r l in
+  let r, l = h_767026065 r l in
+  let r, l = h_1617160941 r l in
+  let r, l = h_639909746 r l in
+  let r, l = h_1010247311 r l in
+  r
+
+let env (r : t) (e : e) =
+  let l =
+    {
+      _eventId_master_messageQueueOfcontroller_1221148342 =
+        M_EventIdTypeOfmaster_messageQueueOfcontroller.L_EMPTY;
+    }
+  in
+  let r, l =
+    if
+      r._master_messageQueueOfcontroller
+      = M_EventIdTypeOfmaster_messageQueueOfcontroller.L_EMPTY
+    then (
+      let l =
+        {
+          _eventId_master_messageQueueOfcontroller_1221148342 =
+            M_EventIdTypeOfmaster_messageQueueOfcontroller.L_EMPTY;
+        }
+      in
+      let l =
+        {
+          _eventId_master_messageQueueOfcontroller_1221148342 =
+            e._eventId_master_messageQueueOfcontroller_1221148342_424401626;
+        }
+      in
+
+      let r, l =
+        if
+          l._eventId_master_messageQueueOfcontroller_1221148342
+          <> M_EventIdTypeOfmaster_messageQueueOfcontroller.L_EMPTY
+        then (
+          let r =
+            {
+              r with
+              _master_messageQueueOfcontroller =
+                l._eventId_master_messageQueueOfcontroller_1221148342;
+            }
+          in
+          r, l
+        ) else
+          r, l
+      in
+      r, l
+    ) else
+      r, l
+  in
+  r
+
+let run_cycle (r : t) (e : e) =
+  let r = env r e in
+  let r = trans r in
+  r
