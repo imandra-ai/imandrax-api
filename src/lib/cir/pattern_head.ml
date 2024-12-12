@@ -1,13 +1,8 @@
-type t =
-  | PH_id of Imandrax_api.Uid.t  (** starts with function symbol *)
-  | PH_ty of Type.t  (** is just a variable *)
-  | PH_datatype_op  (** starts with destruct/is-a *)
-[@@deriving show, eq, ord, twine, typereg]
+include Imandrax_api.Pattern_head_view
 
-let hash = function
-  | PH_id id -> CCHash.combine2 10 (Imandrax_api.Uid.hash id)
-  | PH_datatype_op -> CCHash.int 20
-  | PH_ty ty -> CCHash.combine2 20 (Type.hash ty)
+type t = Type.t view [@@deriving show, eq, ord, twine, typereg]
+
+let hash = hash_view Type.hash
 
 let () =
   Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref;
@@ -21,3 +16,4 @@ end
 
 module Map = CCMap.Make (As_key)
 module Set = CCSet.Make (As_key)
+

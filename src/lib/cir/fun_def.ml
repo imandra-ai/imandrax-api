@@ -13,7 +13,7 @@ type t = {
   f_ty: Type_schema.t;
   f_args: Var.t list;
   f_body: Term.t;
-  f_clique: Clique.t option;
+  f_clique: Imandrax_api.Clique.t option;
       (** If the function is recursive, this is the set of functions in the
           same block of mutual defs, this one included. It's [None]
           for non-recursive functions. *)
