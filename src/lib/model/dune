@@ -1,8 +1,0 @@
-(library
- (name imandrax_api_model)
- (public_name imandrax-api.model)
- (synopsis "General notion of models for ImandraX")
- (preprocess
-  (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
- (flags :standard -open Imandrakit -open Imandrax_api)
- (libraries imandrakit imandrax-api))

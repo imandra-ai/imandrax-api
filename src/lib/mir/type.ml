@@ -157,6 +157,7 @@ end
 
 module Tbl = CCHashtbl.Make (As_key)
 module Map = CCMap.Make (As_key)
+module Set = CCSet.Make (As_key)
 
 let[@inline] belongs (st : State.t) (ty : t) : bool =
   equal_generation (State.generation st) ty.generation

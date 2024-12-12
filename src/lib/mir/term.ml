@@ -25,18 +25,9 @@ end
 type 't view =
   | Const of Imandrax_api.Const.t
   | If of 't * 't * 't
-  | Let of {
-      flg: Imandrax_api.Misc_types.rec_flag;
-      bs: 't binding list;
-      body: 't;
-    }
   | Apply of {
       f: 't;
       l: 't list;
-    }
-  | Fun of {
-      v: Var.t;
-      body: 't; (* type of function, var, body *)
     }
   | Var of Var.t
   | Sym of Applied_symbol.t
@@ -69,13 +60,8 @@ type 't view =
     }
   | Case of {
       u: 't;
-      cases: 't Case.t list;
+      cases: (Applied_symbol.t * 't) list;
       default: 't option;
-    }
-  | Let_tuple of {
-      vars: Var.t list;
-      rhs: 't;
-      body: 't;
     }
 [@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
 
@@ -87,9 +73,7 @@ let hash_view hasht (v : _ view) : int =
   match v with
   | Const c -> CCHash.(combine2 1 (Const.hash c))
   | If (a, b, c) -> CCHash.(combine4 2 (hasht a) (hasht b) (hasht c))
-  | Let _ -> 3
   | Apply { f; l = args } -> CCHash.(combine3 4 (hasht f) (list hasht args))
-  | Fun { v; body } -> CCHash.(combine3 8 (Var.hash v) (hasht body))
   | Var v -> CCHash.(combine2 10 (Var.hash v))
   | Sym f -> CCHash.(combine2 11 (Applied_symbol.hash f))
   | Construct { c; args; labels = _ } ->
@@ -105,9 +89,9 @@ let hash_view hasht (v : _ view) : int =
       combine3 40 (list (pair Applied_symbol.hash hasht) rows) (opt hasht rest))
   | Case { u; cases; default } ->
     CCHash.(
-      combine4 50 (hasht u) (list (Case.hash hasht) cases) (opt hasht default))
-  | Let_tuple { vars; rhs; body } ->
-    CCHash.(combine4 60 (list Var.hash vars) (hasht rhs) (hasht body))
+      combine4 50 (hasht u)
+        (list (pair Applied_symbol.hash hasht) cases)
+        (opt hasht default))
 
 module Build_ : sig
   type generation [@@deriving show, eq, twine]
@@ -235,19 +219,37 @@ open Imandrax_api
 
 let[@inline] view (self : t) : t view = self.view
 
+module As_key = struct
+  type nonrec t = t
+
+  let equal = equal
+  let hash = hash
+  let compare = compare
+end
+
+module Tbl = CCHashtbl.Make (As_key)
+module Map = CCMap.Make (As_key)
+module Set = CCSet.Make (As_key)
+
 let[@inline] belongs (st : State.t) (t : t) : bool =
   equal_generation (State.generation st) t.generation
 
 (** [transfer st t] tranfers [t] from its current state to [st] *)
 let transfer (st : State.t) (t : t) : t =
+  let tbl = Tbl.create 16 in
   let rec loop t =
     if belongs st t then (
       assert (Type.belongs (State.ty_st st) t.ty);
       t
     ) else (
-      let ty = Type.transfer (State.ty_st st) t.ty in
-      let view = map_view loop t.view in
-      make st view ty
+      match Tbl.find tbl t with
+      | u -> u
+      | exception Not_found ->
+        let ty = Type.transfer (State.ty_st st) t.ty in
+        let view = map_view loop t.view in
+        let u = make st view ty in
+        Tbl.add tbl t u;
+        u
     )
   in
   loop t

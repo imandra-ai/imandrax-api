@@ -1,22 +1,8 @@
-open Imandrax_api
-
-type status =
-  | Unknown
-  | Feasible of Model.t
-[@@deriving show, twine, typereg]
+include Imandrax_api.Fun_decomp_poly
 
 module Region = struct
-  type t = {
-    constraints: Term.t list;
-    invariant: Term.t;
-    status: status;
-  }
+  type t = (Term.t, Type.t) Region_poly.t
   [@@deriving show, twine, typereg] [@@typereg.name "Region.t"]
 end
 
-type t = {
-  f_id: Imandrax_api.Uid.t;
-  f_args: Var.t list;
-  regions: Region.t list;
-}
-[@@deriving show, twine, typereg]
+type t = (Term.t, Type.t) t_poly [@@deriving show, twine, typereg]

@@ -3,11 +3,11 @@ open struct
 end
 
 (** An atomic event, happening at a given point in time *)
-type ('term, 'fn, 'var, 'ty) poly =
+type ('term, 'ty) poly =
   | E_message of 'term Rtext.t  (** Regular message *)
   | E_title of string [@printer pp_msg]  (** More heavy message *)
   | E_enter_waterfall of {
-      vars: 'var list;
+      vars: 'ty Var_poly.t_poly list;
       goal: 'term;
     }
   | E_enter_tactic of string  (** Running the given tactic *)
@@ -25,15 +25,24 @@ type ('term, 'fn, 'var, 'ty) poly =
   | E_simplify_clause of 'term * 'term list
   | E_proved_by_smt of 'term * 'term Smt_proof.t
   | E_refuted_by_smt of
-      'term * ('term, 'fn, 'var, 'ty) Imandrax_api_model.t option
+      'term
+      * ( 'term,
+          'ty Applied_symbol_poly.t_poly,
+          'ty Var_poly.t_poly,
+          'ty )
+        Imandrax_api.Model.t
+        option
   | E_fun_expansion of 'term * 'term (* TODO: generalize, elim, etc. *)
 [@@deriving show { with_path = false }, twine, typereg, map]
 
-type t =
-  ( Imandrax_api_cir.Term.t,
-    Imandrax_api_cir.Applied_symbol.t,
-    Imandrax_api_cir.Var.t,
-    Imandrax_api_cir.Type.t )
-  poly
-[@@deriving show { with_path = false }, twine, typereg]
-(** An atomic event, happening at a given point in time *)
+module Cir = struct
+  type t = (Imandrax_api_cir.Term.t, Imandrax_api_cir.Type.t) poly
+  [@@deriving show { with_path = false }, twine, typereg]
+  (** An atomic event, happening at a given point in time *)
+end
+
+module Mir = struct
+  type t = (Imandrax_api_mir.Term.t, Imandrax_api_mir.Type.t) poly
+  [@@deriving show { with_path = false }, twine, typereg]
+  (** An atomic event, happening at a given point in time *)
+end

@@ -1,8 +1,6 @@
-type t = {
-  id: Imandrax_api.Uid.t;
-  ty: Type_schema.t;
-}
-[@@deriving twine, typereg, eq, ord, show { with_path = false }]
+include Imandrax_api.Typed_symbol_poly
+
+type t = Type.t t_poly [@@deriving twine, typereg, eq, ord, show]
 (** A value with its type schema *)
 
 let pp_ = ref pp

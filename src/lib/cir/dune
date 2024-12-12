@@ -5,7 +5,6 @@
   imandrakit
   imandrakit.typereg
   imandrax-api
-  imandrax-api.model
   imandrax-api.ca-store
   zarith)
  (flags :standard -open Imandrakit)

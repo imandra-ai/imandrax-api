@@ -1,16 +1,14 @@
 (** Variables *)
 
-type t = {
-  view: Imandrax_api.Uid.t;
-  ty: Type.t;
-}
-[@@deriving twine, typereg, show]
+include Imandrax_api.Var_poly
+
+type t = Type.t t_poly [@@deriving twine, typereg, show]
 
 open Imandrax_api
 
-let[@inline] equal (a : t) (b : t) : bool = Uid.equal a.view b.view
-let[@inline] compare (a : t) (b : t) = Uid.compare a.view b.view
-let[@inline] hash (v : t) = Uid.hash v.view
+let[@inline] equal (a : t) (b : t) : bool = Uid.equal a.id b.id
+let[@inline] compare (a : t) (b : t) = Uid.compare a.id b.id
+let[@inline] hash (v : t) = Uid.hash v.id
 
 module As_key = struct
   type nonrec t = t
