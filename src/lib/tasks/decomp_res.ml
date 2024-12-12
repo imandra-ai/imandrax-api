@@ -17,7 +17,7 @@ type t = {
   res: success result;
   stats: Imandrax_api.Stat_time.t;
   report:
-    (Imandrax_api_report.Report.t Imandrax_api.In_mem_archive.t
+    (Imandrax_api_report.Report.Mir.t Imandrax_api.In_mem_archive.t
     [@twine.encode In_mem_archive.to_twine]
     [@twine.decode In_mem_archive.of_twine]
     [@printer In_mem_archive.pp ()]);

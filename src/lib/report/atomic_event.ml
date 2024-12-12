@@ -37,12 +37,14 @@ type ('term, 'ty) poly =
 
 module Cir = struct
   type t = (Imandrax_api_cir.Term.t, Imandrax_api_cir.Type.t) poly
+  [@@typereg.name "Cir.t"]
   [@@deriving show { with_path = false }, twine, typereg]
   (** An atomic event, happening at a given point in time *)
 end
 
 module Mir = struct
   type t = (Imandrax_api_mir.Term.t, Imandrax_api_mir.Type.t) poly
+  [@@typereg.name "Mir.t"]
   [@@deriving show { with_path = false }, twine, typereg]
   (** An atomic event, happening at a given point in time *)
 end

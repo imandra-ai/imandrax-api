@@ -11,7 +11,7 @@
   pbrt
   pbrt_yojson
   imandrax-api
-  imandrax-api.cir
+  imandrax-api.mir
   imandrax-api.report
   imandrax-api.proto
   imandrax-api.tasks))
