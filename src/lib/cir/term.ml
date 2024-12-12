@@ -4,7 +4,7 @@
     They're also serializable (using cbor-pack).
 *)
 
-type 't binding = Var.t * 't [@@deriving map, iter, twine, typereg, show]
+type 't binding = Var.t * 't [@@deriving map, iter, eq, twine, typereg, show]
 (** simple variable binding *)
 
 module ID : sig
@@ -77,7 +77,7 @@ type 't view =
       rhs: 't;
       body: 't;
     }
-[@@deriving map, iter, twine, typereg, show { with_path = false }]
+[@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
 
 type t = {
   view: t view;
