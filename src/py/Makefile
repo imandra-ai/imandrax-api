@@ -7,11 +7,11 @@ API_TYPES_VERSION=$(shell cat ../core/API_TYPES_VERSION)
 api_types_version.py:
 	@echo "api_types_version = 'v$(API_TYPES_VERSION)'" > $@
 
-build: api_types_version.py
+build: clean api_types_version.py
 	python -m build --wheel
 
 clean:
-	rm -rf dist
+	rm -rf build dist
 
 PYTHON_REPO_URL = https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/
 
@@ -29,8 +29,8 @@ publish-pypi-test: build
 	@echo "publish to test PyPI"
 	python -m twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-test-imandrax-api-api-token latest) -r testpypi dist/*
 
-publish-pypi: # build
-	@echo "publish to test PyPI"
+publish-pypi: build
+	@echo "publish to PyPI"
 	python -m twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-imandrax-api-api-token latest) dist/*
 
 GOBIN?=~/.local/bin
