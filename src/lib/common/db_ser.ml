@@ -1,7 +1,7 @@
 (** A serializable logic database. It contains all relevant context for
     proof obligations. *)
 
-module PH = Pattern_head_poly
+module PH = Pattern_head
 
 type 'a uid_map = (Imandrax_api.Uid.t * 'a) list
 [@@deriving show, twine, typereg]
