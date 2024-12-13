@@ -2,6 +2,14 @@ open struct
   let pp_msg out s = Fmt.fprintf out {|"@[%a@]"|} Util.pp_text_newlines s
 end
 
+type ('term, 'ty) model =
+  ( 'term,
+    'ty Applied_symbol_poly.t_poly,
+    'ty Var_poly.t_poly,
+    'ty )
+  Imandrax_api.Model.t
+[@@deriving show, typereg, map, twine]
+
 (** An atomic event, happening at a given point in time *)
 type ('term, 'ty) poly =
   | E_message of 'term Rtext.t  (** Regular message *)
@@ -24,14 +32,7 @@ type ('term, 'ty) poly =
   | E_simplify_t of 'term * 'term
   | E_simplify_clause of 'term * 'term list
   | E_proved_by_smt of 'term * 'term Smt_proof.t
-  | E_refuted_by_smt of
-      'term
-      * ( 'term,
-          'ty Applied_symbol_poly.t_poly,
-          'ty Var_poly.t_poly,
-          'ty )
-        Imandrax_api.Model.t
-        option
+  | E_refuted_by_smt of 'term * ('term, 'ty) model option
   | E_fun_expansion of 'term * 'term (* TODO: generalize, elim, etc. *)
 [@@deriving show { with_path = false }, twine, typereg, map]
 
