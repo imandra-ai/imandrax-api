@@ -1,8 +1,8 @@
-include Imandrax_api.Pattern_head_view
+include Imandrax_api_common.Pattern_head
 
-type t = Type.t view [@@deriving show, eq, ord, twine, typereg]
+type t = Type.t t_poly [@@deriving show, eq, ord, twine, typereg]
 
-let hash = hash_view Type.hash
+let hash = hash_t_poly Type.hash
 
 let () =
   Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref;

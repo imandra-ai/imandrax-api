@@ -39,11 +39,11 @@ let all : kind list =
   [
     mk "Term" "Imandrax_api_mir.Term.t" ~tag:"term" ~docstring:"A MIR term";
     mk "Type" "Imandrax_api_mir.Type.t" ~tag:"ty" ~docstring:"A MIR type";
-    mk "PO_task" "Imandrax_api_tasks.PO_task.t" ~tag:"po_task"
+    mk "PO_task" "Imandrax_api_tasks.PO_task.Mir.t" ~tag:"po_task"
       ~docstring:"Task to verify a Proof Obligation";
     mk "PO_res" "Imandrax_api_tasks.PO_res.t" ~tag:"po_res"
       ~docstring:"Result of verifying a PO";
-    mk "Eval_task" "Imandrax_api_tasks.Eval_task.t" ~tag:"eval_task"
+    mk "Eval_task" "Imandrax_api_tasks.Eval_task.Mir.t" ~tag:"eval_task"
       ~docstring:"Task to evaluate a term";
     mk "Eval_res" "Imandrax_api_tasks.Eval_res.t" ~tag:"eval_res"
       ~docstring:"Result of evaluating a term";
@@ -56,7 +56,7 @@ let all : kind list =
       ~docstring:"A human readable description";
     mk "Fun_decomp" "Imandrax_api_mir.Fun_decomp.t" ~tag:"mir.fun_decomp"
       ~docstring:"A MIR-level function decomposition";
-    mk "Decomp_task" "Imandrax_api_tasks.Decomp_task.t" ~tag:"decomp_task"
+    mk "Decomp_task" "Imandrax_api_tasks.Decomp_task.Mir.t" ~tag:"decomp_task"
       ~docstring:"Task to decompose a function";
     mk "Decomp_res" "Imandrax_api_tasks.Decomp_res.t" ~tag:"decomp_res"
       ~docstring:"Result of decomposing a function";

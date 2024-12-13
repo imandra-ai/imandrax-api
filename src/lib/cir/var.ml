@@ -1,6 +1,6 @@
 (** Variables *)
 
-include Imandrax_api.Var_poly
+include Imandrax_api_common.Var
 
 type t = Type.t t_poly [@@deriving twine, typereg, show]
 

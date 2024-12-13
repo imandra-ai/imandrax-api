@@ -17,6 +17,7 @@
  (libraries
   imandrakit
   imandrax-api
+  imandrax-api.cir
   imandrax-api.mir
   imandrax-api.ca-store
   imandrax-api.eval

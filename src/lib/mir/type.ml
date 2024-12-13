@@ -74,7 +74,7 @@ end = struct
       { hcons = H.create ?size (); generation }
 
     let[@inline] generation self = self.generation
-    let k_state = Hmap.Key.create ()
+    let k_state : t Hmap.key = Hmap.Key.create ()
 
     let add_to_dec dec (self : t) : unit =
       Imandrakit_twine.Decode.hmap_set dec k_state self

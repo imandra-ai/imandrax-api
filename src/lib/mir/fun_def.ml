@@ -1,4 +1,4 @@
-include Imandrax_api.Fun_def_poly
+include Imandrax_api_common.Fun_def
 
 type t = (Term.t, Type.t) t_poly [@@deriving twine, typereg, eq, show]
 (** A function definition. *)

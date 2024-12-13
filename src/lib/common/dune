@@ -1,15 +1,14 @@
 (library
- (name imandrax_api_cir)
- (public_name imandrax-api.cir)
+ (name imandrax_api_common)
+ (public_name imandrax-api.common)
  (libraries
   imandrakit
   imandrakit.typereg
+  zarith
+  cryptokit
   imandrax-api
-  imandrax-api.common
-  imandrax-api.ca-store
-  zarith)
+  imandrax-api.ca-store)
  (flags :standard -open Imandrakit)
- (modes native byte)
  (preprocess
   (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
- (synopsis "Public API types for Imandrax"))
+ (synopsis "Common types for Imandrax"))

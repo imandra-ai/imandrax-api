@@ -1,4 +1,4 @@
-include Imandrax_api.Typed_symbol_poly
+include Imandrax_api_common.Typed_symbol
 
 type t = Type.t t_poly [@@deriving twine, typereg, eq, ord, show]
 (** A value with its type schema *)

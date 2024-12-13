@@ -1,4 +1,4 @@
-include Imandrax_api.Type_schema_poly
+include Imandrax_api_common.Type_schema
 
 type t = Type.t t_poly [@@deriving twine, typereg, eq, ord, show]
 

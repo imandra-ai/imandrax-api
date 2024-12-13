@@ -1,6 +1,3 @@
-type t = {
-  ir_from: Fun_def.t;
-  ir_triggers: Trigger.t list;
-  ir_kind: Instantiation_rule_kind.t;
-}
-[@@deriving twine, typereg, show { with_path = false }]
+include Imandrax_api_common.Instantiation_rule
+
+type t = (Term.t, Type.t) t_poly [@@deriving twine, typereg, show]
