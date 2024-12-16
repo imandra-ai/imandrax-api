@@ -45,14 +45,7 @@ let () =
   Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref;
   Imandrakit_twine.Decode.add_cache of_twine_ref
 
-type def = {
-  name: Imandrax_api.Uid.t;
-  params: var list;
-  decl: (Imandrax_api.Uid.t, t, Void.t) Imandrax_api.Ty_view.decl;
-  clique: clique option;
-  timeout: int option;
-}
-[@@deriving twine, typereg]
+type def = t Ty_view.def_poly [@@deriving twine, typereg]
 
 let () =
   Imandrakit_twine.Encode.add_cache_with

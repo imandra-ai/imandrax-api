@@ -131,14 +131,7 @@ let compare (a : t) (b : t) : int =
 
 let[@inline] hash (t : t) : int = CCHash.int t.id
 
-type def = {
-  name: Imandrax_api.Uid.t;
-  params: var list;
-  decl: (Imandrax_api.Uid.t, t, Void.t) Imandrax_api.Ty_view.decl;
-  clique: clique option;
-  timeout: int option;
-}
-[@@deriving twine, typereg]
+type def = t Ty_view.def_poly [@@deriving twine, typereg]
 
 let () =
   Imandrakit_twine.Encode.add_cache_with
