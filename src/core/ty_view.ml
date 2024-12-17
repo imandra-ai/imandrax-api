@@ -55,3 +55,5 @@ type 'ty def_poly = {
   timeout: int option;
 }
 [@@deriving twine, map, iter, show { with_path = false }, typereg]
+
+let name def = def.name

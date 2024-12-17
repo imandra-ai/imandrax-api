@@ -12,3 +12,5 @@ type ('term, 'ty) t_poly = {
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 (** A theorem, entered with [theorem foo x y = <formula using x,y>] *)
+
+let name (self : _ t_poly) : Imandrax_api.Uid.t = self.thm_link.f_name
