@@ -22,3 +22,5 @@ type ('term, 'ty) t_poly = {
 }
 [@@deriving twine, typereg, eq, map, iter, show { with_path = false }]
 (** A function definition. *)
+
+let name f = f.f_name
