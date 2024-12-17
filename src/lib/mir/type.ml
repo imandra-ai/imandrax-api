@@ -125,7 +125,7 @@ let[@inline] equal a b =
   assert (equal_generation a.generation b.generation);
   a == b
 
-let compare (a : t) (b : t) : int =
+let[@inline] compare (a : t) (b : t) : int =
   assert (equal_generation a.generation b.generation);
   CCInt.compare a.id b.id
 

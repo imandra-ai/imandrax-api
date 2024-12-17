@@ -34,7 +34,6 @@ type 't view =
   | Construct of {
       c: Applied_symbol.t;
       args: 't list;
-      labels: Imandrax_api.Uid.t list option;
     }
   | Destruct of {
       c: Applied_symbol.t;
@@ -76,7 +75,7 @@ let hash_view hasht (v : _ view) : int =
   | Apply { f; l = args } -> CCHash.(combine3 4 (hasht f) (list hasht args))
   | Var v -> CCHash.(combine2 10 (Var.hash v))
   | Sym f -> CCHash.(combine2 11 (Applied_symbol.hash f))
-  | Construct { c; args; labels = _ } ->
+  | Construct { c; args } ->
     CCHash.(combine3 15 (Applied_symbol.hash c) (list hasht args))
   | Destruct { c; i; t } ->
     CCHash.(combine4 16 (Applied_symbol.hash c) (int i) (hasht t))
