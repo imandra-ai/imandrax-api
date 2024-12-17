@@ -4,9 +4,6 @@
     They're also serializable (using cbor-pack).
 *)
 
-type 't binding = Var.t * 't [@@deriving map, iter, eq, twine, typereg, show]
-(** simple variable binding *)
-
 module ID : sig
   type t = private int [@@deriving twine, eq, ord, show]
 
