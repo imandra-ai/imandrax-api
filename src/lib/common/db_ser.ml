@@ -1,10 +1,6 @@
 (** A serializable logic database. It contains all relevant context for
     proof obligations. *)
 
-open struct
-  module PH = Pattern_head
-end
-
 type 'a uid_map = (Imandrax_api.Uid.t * 'a) list
 [@@deriving show, twine, typereg]
 
