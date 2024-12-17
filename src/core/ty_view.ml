@@ -54,4 +54,4 @@ type 'ty def_poly = {
   clique: Clique.t option;
   timeout: int option;
 }
-[@@deriving twine, show { with_path = false }, typereg]
+[@@deriving twine, map, iter, show { with_path = false }, typereg]
