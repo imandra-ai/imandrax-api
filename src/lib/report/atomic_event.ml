@@ -14,9 +14,12 @@ type ('term, 'ty) poly =
       goal: 'term;
     }
   | E_enter_tactic of string  (** Running the given tactic *)
-  | E_rw_success of Imandrax_api_cir.Rewrite_rule.t * 'term * 'term
-  | E_rw_fail of Imandrax_api_cir.Rewrite_rule.t * 'term * string
-  | E_inst_success of Imandrax_api_cir.Instantiation_rule.t * 'term
+  | E_rw_success of
+      ('term, 'ty) Imandrax_api_common.Rewrite_rule.t_poly * 'term * 'term
+  | E_rw_fail of
+      ('term, 'ty) Imandrax_api_common.Rewrite_rule.t_poly * 'term * string
+  | E_inst_success of
+      ('term, 'ty) Imandrax_api_common.Instantiation_rule.t_poly * 'term
   | E_waterfall_checkpoint of 'term Imandrax_api_common.Sequent.t_poly list
   | E_induction_scheme of 'term
   | E_attack_subgoal of {
