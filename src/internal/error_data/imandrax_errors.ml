@@ -22,7 +22,8 @@ let all : t list =
   make "InvalidCname" "Not a valid Cname";
   make "LevalError" "Error in lightweight evaluation";
   make "LowerCirError" "Error in lowering typingtree to CIR";
-  make "LowerRirError" "Error in lowering CIR to RIR";
+  make "LowerMirError" "Error in lowering CIR to MIR";
+  make "LowerRirError" "Error in lowering MIR to RIR";
   make "ParserNotRegistered" "Parser for this syntax was not registered";
   make "PatmatchError" "Error in pattern matching compilation";
   make "SynTermCreateError" "Error when creating a Syn_term";
