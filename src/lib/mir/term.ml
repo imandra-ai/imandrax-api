@@ -161,6 +161,7 @@ end = struct
     let[@inline] generation self = self.generation
 
     let add_to_dec dec (self : t) : unit =
+      Type.State.add_to_dec dec self.ty_st;
       Imandrakit_twine.Decode.hmap_set dec k_state self
 
     let get_from_dec_exn dec : t =
