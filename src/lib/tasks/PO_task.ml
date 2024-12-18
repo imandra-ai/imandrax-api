@@ -4,7 +4,7 @@ type ('term, 'ty) t_poly = {
   from_sym: string;
   count: int;
   db: ('term, 'ty) Imandrax_api_common.Db_ser.t_poly;
-  po: Imandrax_api_cir.Proof_obligation.t;
+  po: 'term Imandrax_api_common.Proof_obligation.t_poly;
 }
 [@@deriving show { with_path = false }, twine, typereg]
 (** Serializable version of the task *)
