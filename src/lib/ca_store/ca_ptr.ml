@@ -59,10 +59,12 @@ let store_l (wr : #Writer.t) (codec : _ Codec.t) l : 'a t list =
   Writer.store_l wr entries;
   cptrs
 
-let decode_value (codec : _ Codec.t) (self : _ t) (v : string option) :
+let decode_value ?init (codec : _ Codec.t) (self : _ t) (v : string option) :
     _ Error.result =
   let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "cptr.decode-value" in
-  match Option.map (Imandrakit_twine.Decode.decode_string codec.dec) v with
+  match
+    Option.map (Imandrakit_twine.Decode.decode_string ?init codec.dec) v
+  with
   | Some v -> Ok v
   | None ->
     let err =
@@ -79,9 +81,9 @@ let decode_value (codec : _ Codec.t) (self : _ t) (v : string option) :
     in
     Error err
 
-let decode_value_exn (codec : 'a Codec.t) (self : 'a t) (v : string option) : 'a
-    =
-  match decode_value codec self v with
+let decode_value_exn ?init (codec : 'a Codec.t) (self : 'a t)
+    (v : string option) : 'a =
+  match decode_value ?init codec self v with
   | Ok x -> x
   | Error err -> Error.raise_err err
 
@@ -91,26 +93,26 @@ open struct
 end
 
 (** Get value *)
-let get (rd : #Reader.t) (codec : 'a Codec.t) (self : 'a t) : _ result =
+let get ?init (rd : #Reader.t) (codec : 'a Codec.t) (self : 'a t) : _ result =
   let key = key_of_cptr self in
   let v = Reader.find_opt rd key in
-  decode_value codec self v
+  decode_value ?init codec self v
 
-let try_get (rd : #Reader.t) (codec : 'a Codec.t) (self : 'a t) :
+let try_get ?init (rd : #Reader.t) (codec : 'a Codec.t) (self : 'a t) :
     _ result option =
   let key = key_of_cptr self in
   let v = Reader.find_opt rd key in
   match v with
   | None -> None
-  | Some _ as v -> Some (decode_value codec self v)
+  | Some _ as v -> Some (decode_value ?init codec self v)
 
-let get_exn store codec self =
-  let x = get store codec self in
+let get_exn ?init store codec self =
+  let x = get ?init store codec self in
   match x with
   | Ok x -> x
   | Error e -> Error.raise_err e
 
-let get_l_exn (rd : #Reader.t) codec (ptr_l : 'a t list) : 'a list =
+let get_l_exn ?init (rd : #Reader.t) codec (ptr_l : 'a t list) : 'a list =
   if ptr_l = [] then
     []
   else
@@ -123,7 +125,7 @@ let get_l_exn (rd : #Reader.t) codec (ptr_l : 'a t list) : 'a list =
     let values_l = Reader.find_l_in_order rd keys in
 
     match ptr_l, values_l with
-    | [ ptr ], [ v ] -> [ decode_value_exn codec ptr v ]
+    | [ ptr ], [ v ] -> [ decode_value_exn ?init codec ptr v ]
     | _ ->
       assert (List.length ptr_l = List.length values_l);
-      List.map2 (fun ptr v -> decode_value_exn codec ptr v) ptr_l values_l
+      List.map2 (fun ptr v -> decode_value_exn ?init codec ptr v) ptr_l values_l

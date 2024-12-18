@@ -42,17 +42,37 @@ end
 val store : #Writer.t -> 'a Codec.t -> 'a -> 'a t
 val store_l : #Writer.t -> 'a Codec.t -> 'a list -> 'a t list
 
-val get : #Reader.t -> 'a Codec.t -> 'a t -> 'a Error.result
+val get :
+  ?init:(Imandrakit_twine.Decode.t -> unit) ->
+  #Reader.t ->
+  'a Codec.t ->
+  'a t ->
+  'a Error.result
 (** [get reader codec ptr] returns the value stored in [storage]
     under pointer [ptr]. *)
 
-val try_get : #Reader.t -> 'a Codec.t -> 'a t -> 'a Error.result option
+val try_get :
+  ?init:(Imandrakit_twine.Decode.t -> unit) ->
+  #Reader.t ->
+  'a Codec.t ->
+  'a t ->
+  'a Error.result option
 (** [try_get reader codec ptr] returns [None] if [ptr] is not present,
     or else it behaves like [get reader codec ptr] *)
 
-val get_exn : #Reader.t -> 'a Codec.t -> 'a t -> 'a
+val get_exn :
+  ?init:(Imandrakit_twine.Decode.t -> unit) ->
+  #Reader.t ->
+  'a Codec.t ->
+  'a t ->
+  'a
 
-val get_l_exn : #Reader.t -> 'a Codec.t -> 'a t list -> 'a list
+val get_l_exn :
+  ?init:(Imandrakit_twine.Decode.t -> unit) ->
+  #Reader.t ->
+  'a Codec.t ->
+  'a t list ->
+  'a list
 (** Retrieve a bunch of pointers at once *)
 
 val show : _ t -> string
