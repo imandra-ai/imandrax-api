@@ -6,7 +6,7 @@ type ('term, 'ty) model = ('term, 'ty) Imandrax_api_common.Model.t_poly
 [@@deriving show, typereg, map, twine]
 
 (** An atomic event, happening at a given point in time *)
-type ('term, 'ty) poly =
+type ('term, 'ty, 'term2, 'ty2) poly =
   | E_message of 'term Rtext.t  (** Regular message *)
   | E_title of string [@printer pp_msg]  (** More heavy message *)
   | E_enter_waterfall of {
@@ -15,11 +15,11 @@ type ('term, 'ty) poly =
     }
   | E_enter_tactic of string  (** Running the given tactic *)
   | E_rw_success of
-      ('term, 'ty) Imandrax_api_common.Rewrite_rule.t_poly * 'term * 'term
+      ('term2, 'ty2) Imandrax_api_common.Rewrite_rule.t_poly * 'term * 'term
   | E_rw_fail of
-      ('term, 'ty) Imandrax_api_common.Rewrite_rule.t_poly * 'term * string
+      ('term2, 'ty2) Imandrax_api_common.Rewrite_rule.t_poly * 'term * string
   | E_inst_success of
-      ('term, 'ty) Imandrax_api_common.Instantiation_rule.t_poly * 'term
+      ('term2, 'ty2) Imandrax_api_common.Instantiation_rule.t_poly * 'term
   | E_waterfall_checkpoint of 'term Imandrax_api_common.Sequent.t_poly list
   | E_induction_scheme of 'term
   | E_attack_subgoal of {
@@ -36,14 +36,24 @@ type ('term, 'ty) poly =
 [@@deriving show { with_path = false }, twine, typereg, map]
 
 module Cir = struct
-  type t = (Imandrax_api_cir.Term.t, Imandrax_api_cir.Type.t) poly
+  type t =
+    ( Imandrax_api_cir.Term.t,
+      Imandrax_api_cir.Type.t,
+      Imandrax_api_cir.Term.t,
+      Imandrax_api_cir.Type.t )
+    poly
   [@@typereg.name "Cir.t"]
   [@@deriving show { with_path = false }, twine, typereg]
   (** An atomic event, happening at a given point in time *)
 end
 
 module Mir = struct
-  type t = (Imandrax_api_mir.Term.t, Imandrax_api_mir.Type.t) poly
+  type t =
+    ( Imandrax_api_mir.Term.t,
+      Imandrax_api_mir.Type.t,
+      Imandrax_api_mir.Term.t,
+      Imandrax_api_mir.Type.t )
+    poly
   [@@typereg.name "Mir.t"]
   [@@deriving show { with_path = false }, twine, typereg]
   (** An atomic event, happening at a given point in time *)
