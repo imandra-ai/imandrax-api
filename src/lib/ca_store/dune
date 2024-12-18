@@ -10,7 +10,9 @@
   -open
   Imandrax_api
   -open
-  Imandrakit_log)
+  Imandrakit_log
+  -open
+  Imandrakit_thread)
  (preprocess
   (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
  (libraries
@@ -19,5 +21,6 @@
   cryptokit
   imandrax-api
   imandrakit
+  imandrakit-thread
   imandrakit-io
   imandrakit-log))
