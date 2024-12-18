@@ -93,7 +93,13 @@ module Build_ : sig
   type generation [@@deriving show, eq, twine]
 
   module State : sig
-    type t
+    type hcons
+
+    type t = private {
+      ty_st: Type.State.t;
+      hcons: hcons;
+      generation: generation;
+    }
 
     val create : ?size:int -> unit -> t
     val generation : t -> generation
@@ -144,9 +150,11 @@ end = struct
   end)
 
   module State = struct
+    type hcons = H.t
+
     type t = {
       ty_st: Type.State.t;
-      hcons: H.t;
+      hcons: hcons;
       generation: generation;
     }
 
