@@ -58,7 +58,7 @@ let all : kind list =
       ~docstring:"A MIR-level function decomposition";
     mk "Decomp_task" "Imandrax_api_tasks.Decomp_task.Mir.t" ~tag:"decomp_task"
       ~docstring:"Task to decompose a function";
-    mk "Decomp_res" "Imandrax_api_tasks.Decomp_res.t" ~tag:"decomp_res"
+    mk "Decomp_res" "Imandrax_api_tasks.Decomp_res.Shallow.t" ~tag:"decomp_res"
       ~docstring:"Result of decomposing a function";
     mk "Report" "Imandrax_api_report.Report.Mir.t" ~tag:"report"
       ~docstring:"Report from some task";
