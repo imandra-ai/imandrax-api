@@ -20,6 +20,10 @@ module Build_ : sig
 
     val get_from_dec_exn : Imandrakit_twine.Decode.t -> t
     (** @raise Failwith if not present *)
+
+    val non_hashconsing : t
+    [@@alert expert "only use for printing"]
+    (** Only use for printing and similar *)
   end
 
   type t = private {
@@ -63,7 +67,7 @@ end = struct
 
   module State = struct
     type t = {
-      hcons: H.t;
+      hcons: H.t option;
       generation: generation;
     }
 
@@ -71,8 +75,9 @@ end = struct
 
     let create ?size () : t =
       let generation = Atomic.fetch_and_add gen_counter 1 in
-      { hcons = H.create ?size (); generation }
+      { hcons = Some (H.create ?size ()); generation }
 
+    let non_hashconsing : t = { generation = -42; hcons = None }
     let[@inline] generation self = self.generation
     let k_state : t Hmap.key = Hmap.Key.create ()
 
@@ -87,7 +92,9 @@ end = struct
 
   let make (st : State.t) view : t =
     let t = { view; generation = st.generation; id = -1 } in
-    H.hashcons st.hcons t
+    match st.hcons with
+    | None -> t
+    | Some h -> H.hashcons h t
 
   type ty = t
 
