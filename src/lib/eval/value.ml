@@ -1,6 +1,6 @@
 (** A view of computation values. *)
 
-open Imandrax_api_cir
+open Imandrax_api_mir
 
 type cstor_descriptor = {
   cd_idx: int;  (** Index in the list of cstors of its type *)
@@ -25,7 +25,7 @@ type ('v, 'closure) view =
   | V_cstor of cstor_descriptor * 'v array
   | V_tuple of 'v array
   | V_record of record_descriptor * 'v array
-  | V_quoted_term of Imandrax_api_cir.Term.t  (** A quoted term *)
+  | V_quoted_term of Imandrax_api_mir.Term.t  (** A quoted term *)
   | V_uid of Imandrax_api.Uid.t
   | V_closure of 'closure
   | V_custom of Custom_value.t
