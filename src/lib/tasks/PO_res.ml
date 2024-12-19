@@ -92,5 +92,5 @@ module Full = struct
   [@@typereg.name "full.t_poly"]
 
   type t = (Mir.Term.t, Mir.Type.t) t_poly
-  [@@deriving twine, typereg] [@@typereg.name "full.t"]
+  [@@deriving twine, typereg, show] [@@typereg.name "full.t"]
 end
