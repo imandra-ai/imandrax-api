@@ -1,6 +1,7 @@
-type 'term t_poly = {
+type ('term, 'ty) t_poly = {
   descr: string;  (** description *)
-  goal: 'term;  (** Initial goal *)
+  goal: 'ty Var.t_poly list * 'term;
+      (** Initial goal as a [fun vars -> body] *)
   tactic: 'term Tactic.t_poly;
       (** Tactic term. It will be evaluated while trying to solve this obligation *)
   is_instance: bool;

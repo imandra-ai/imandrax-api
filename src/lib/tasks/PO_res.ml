@@ -78,7 +78,7 @@ end
 (** All included *)
 module Full = struct
   type ('term, 'ty) t_poly = {
-    from: 'term Imandrax_api_common.Proof_obligation.t_poly;
+    from: ('term, 'ty) Imandrax_api_common.Proof_obligation.t_poly;
     res: (('term, 'ty) success, 'term, 'ty) result;
     stats: stats;
     report:
