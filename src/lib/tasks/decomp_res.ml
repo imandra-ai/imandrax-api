@@ -10,7 +10,7 @@ type error = Error of Imandrakit_error.Error_core.t
 [@@deriving twine, typereg, show { with_path = false }]
 
 type 'a result = ('a, error) Util_twine.Result.t
-[@@deriving twine, typereg, show]
+[@@deriving twine, typereg, map, iter, show]
 
 module Shallow = struct
   type ('term, 'ty) t_poly = {
@@ -26,7 +26,7 @@ module Shallow = struct
       [@printer In_mem_archive.pp ()]);
         (** The report, when it's not serialized it's stored compressed in memory. *)
   }
-  [@@deriving twine, typereg, show { with_path = false }]
+  [@@deriving twine, typereg, map, iter, show { with_path = false }]
   [@@typereg.name "shallow.t_poly"]
 
   type t = (Mir.Term.t, Mir.Type.t) t_poly
@@ -45,7 +45,7 @@ module Full = struct
       [@printer In_mem_archive.pp ()]);
         (** The report, when it's not serialized it's stored compressed in memory. *)
   }
-  [@@deriving twine, typereg, show { with_path = false }]
+  [@@deriving twine, typereg, map, iter, show { with_path = false }]
   [@@typereg.name "full.t_poly"]
 
   type t = (Mir.Term.t, Mir.Type.t) t_poly
