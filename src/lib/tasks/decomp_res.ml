@@ -12,24 +12,28 @@ type error = Error of Imandrakit_error.Error_core.t
 type 'a result = ('a, error) Util_twine.Result.t
 [@@deriving twine, typereg, show]
 
-type ('term, 'ty) t_poly = {
-  from:
-    (Imandrax_api_mir.Decomp.t Imandrax_api_ca_store.Ca_ptr.t
-    [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
-  res: ('term, 'ty) success result;
-  stats: Imandrax_api.Stat_time.t;
-  report:
-    (Imandrax_api_report.Report.Mir.t Imandrax_api.In_mem_archive.t
-    [@twine.encode In_mem_archive.to_twine]
-    [@twine.decode In_mem_archive.of_twine]
-    [@printer In_mem_archive.pp ()]);
-      (** The report, when it's not serialized it's stored compressed in memory. *)
-}
-[@@deriving twine, typereg, show { with_path = false }]
+module Shallow = struct
+  type ('term, 'ty) t_poly = {
+    from:
+      (Imandrax_api_mir.Decomp.t Imandrax_api_ca_store.Ca_ptr.t
+      [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
+    res: ('term, 'ty) success result;
+    stats: Imandrax_api.Stat_time.t;
+    report:
+      (Imandrax_api_report.Report.Mir.t Imandrax_api.In_mem_archive.t
+      [@twine.encode In_mem_archive.to_twine]
+      [@twine.decode In_mem_archive.of_twine]
+      [@printer In_mem_archive.pp ()]);
+        (** The report, when it's not serialized it's stored compressed in memory. *)
+  }
+  [@@deriving twine, typereg, show { with_path = false }]
+  [@@typereg.name "shallow.t_poly"]
 
-type t = (Mir.Term.t, Mir.Type.t) t_poly [@@deriving twine, typereg, show]
+  type t = (Mir.Term.t, Mir.Type.t) t_poly
+  [@@deriving twine, typereg, show] [@@typereg.name "shallow.t"]
+end
 
-module Full_ = struct
+module Full = struct
   type ('term, 'ty) t_poly = {
     from: Imandrax_api_common.Decomp.t;
     res: ('term, 'ty) success result;

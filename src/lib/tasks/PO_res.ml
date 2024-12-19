@@ -69,8 +69,10 @@ module Shallow = struct
         (** The report, when it's not serialized it's stored compressed in memory. *)
   }
   [@@deriving twine, typereg, map, iter, show { with_path = false }]
+  [@@typereg.name "shallow.t_poly"]
 
-  type t = (Mir.Term.t, Mir.Type.t) t_poly [@@deriving twine, typereg, show]
+  type t = (Mir.Term.t, Mir.Type.t) t_poly
+  [@@deriving twine, typereg, show] [@@typereg.name "shallow.t"]
 end
 
 (** All included *)
