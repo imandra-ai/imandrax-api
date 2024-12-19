@@ -41,7 +41,7 @@ let all : kind list =
     mk "Type" "Imandrax_api_mir.Type.t" ~tag:"ty" ~docstring:"A MIR type";
     mk "PO_task" "Imandrax_api_tasks.PO_task.Mir.t" ~tag:"po_task"
       ~docstring:"Task to verify a Proof Obligation";
-    mk "PO_res" "Imandrax_api_tasks.PO_res.t" ~tag:"po_res"
+    mk "PO_res" "Imandrax_api_tasks.PO_res.Shallow.t" ~tag:"po_res"
       ~docstring:"Result of verifying a PO";
     mk "Eval_task" "Imandrax_api_tasks.Eval_task.Mir.t" ~tag:"eval_task"
       ~docstring:"Task to evaluate a term";
