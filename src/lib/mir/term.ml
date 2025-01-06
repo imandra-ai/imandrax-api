@@ -1,23 +1,8 @@
 (** Surface terms.
 
     These terms use content-addressed names for functions, constructors, etc.
-    They're also serializable (using cbor-pack).
+    They have optional hashconsing and can be serialized efficiently using twine.
 *)
-
-module ID : sig
-  type t = private int [@@deriving twine, eq, ord, show]
-
-  val hash : t -> int
-  val gen : unit -> t [@@alert expert "please use Term.make"]
-  val of_int : int -> t [@@alert expert "Please use Term.make"]
-end = struct
-  type t = int [@@deriving twine, eq, ord, show]
-
-  let hash = CCHash.int
-  let id_gen_ = Atomic.make 0
-  let[@inline] gen () = Atomic.fetch_and_add id_gen_ 1
-  let of_int = Fun.id
-end
 
 type 't view =
   | Const of Imandrax_api.Const.t
@@ -92,6 +77,8 @@ let hash_view hasht (v : _ view) : int =
 module Build_ : sig
   type generation [@@deriving show, eq, twine]
 
+  val non_hashconsed_generation : generation
+
   module State : sig
     type hcons
 
@@ -111,8 +98,7 @@ module Build_ : sig
     (** @raise Failwith if not present *)
 
     val non_hashconsing : t
-    [@@alert expert "only use for printing"]
-    (** Only use for printing and similar *)
+    (** A special state that doesn't hashcons *)
   end
 
   type t = private {
@@ -128,6 +114,8 @@ module Build_ : sig
 end = struct
   type generation = int [@@deriving show, eq, twine]
 
+  let non_hashconsed_generation = -42
+
   type t = {
     view: t view;
     ty: Type.t;
@@ -136,17 +124,37 @@ end = struct
   }
   [@@deriving twine, typereg, show { with_path = false }]
 
-  let[@inline] equal t1 t2 : bool =
-    assert (t1.generation = t2.generation);
-    t1 == t2
+  (** Recursive equality check *)
+  let rec equal_rec t1 t2 : bool =
+    let hashconsed_same_gen =
+      t1.generation == t2.generation
+      && t1.generation != non_hashconsed_generation
+    in
 
-  let[@inline] hash t = CCHash.int t.id
+    if hashconsed_same_gen then
+      t1 == t2
+    else
+      Type.equal t1.ty t2.ty && equal_view equal_rec t1.view t2.view
+
+  (** Hash. We cannot use [t.id] because it doesn't work across
+      generations or on non hashconsed terms. *)
+  let hash (t : t) : int =
+    let rec hash_rec_ depth t =
+      if depth = 0 then
+        hash_view (fun _ -> 1) t.view
+      else
+        CCHash.combine2 (Type.hash t.ty)
+          (hash_view (hash_rec_ (depth - 1)) t.view)
+    in
+    hash_rec_ 2 t
+
+  let[@inline] equal t1 t2 : bool = t1 == t2 || equal_rec t1 t2
 
   module H = Hashcons.Make (struct
     type nonrec t = t
 
     let equal t1 t2 = Type.equal t1.ty t2.ty && equal_view equal t1.view t2.view
-    let hash t = CCHash.combine2 (Type.hash t.ty) (hash_view hash t.view)
+    let hash = hash
 
     let set_id t id =
       assert (t.id = -1);
@@ -174,9 +182,9 @@ end = struct
 
     let non_hashconsing =
       {
-        generation = -42;
+        generation = non_hashconsed_generation;
         hcons = None;
-        ty_st = Type.State.non_hashconsing [@alert "-expert"];
+        ty_st = Type.State.non_hashconsing;
       }
 
     let k_state = Hmap.Key.create ()

@@ -22,8 +22,7 @@ module Build_ : sig
     (** @raise Failwith if not present *)
 
     val non_hashconsing : t
-    [@@alert expert "only use for printing"]
-    (** Only use for printing and similar *)
+    (** A special state that doesn't hashcons *)
   end
 
   type t = private {
@@ -31,12 +30,15 @@ module Build_ : sig
     mutable id: int;
     generation: generation;
   }
-  [@@deriving twine, show]
+  [@@deriving twine, show, eq]
   (** A type expression *)
 
+  val hash : t -> int
   val make : State.t -> (unit, var, t) view -> t
 end = struct
   type generation = int [@@deriving show, eq, twine]
+
+  let non_hashconsed_generation = -42
 
   type t = {
     view: (unit, var, t) Imandrax_api.Ty_view.view;
@@ -45,20 +47,37 @@ end = struct
   }
   [@@deriving twine, typereg, show { with_path = false }]
 
+  let rec equal_rec_ t1 t2 : bool =
+    let hashconsed_same_gen =
+      t1.generation == t2.generation
+      && t1.generation != non_hashconsed_generation
+    in
+
+    if hashconsed_same_gen then
+      t1 == t2
+    else
+      equal_view (fun () () -> true) Uid.equal equal_rec_ t1.view t2.view
+
+  let[@inline] equal a b = a == b || equal_rec_ a b
+
+  let rec hash_rec_ depth (t : t) : int =
+    if depth = 0 then
+      hash_view (fun () -> 0) Uid.hash (fun _ -> 0) t.view
+    else
+      hash_view (fun () -> 0) Uid.hash (hash_rec_ (depth - 1)) t.view
+
+  let[@inline] hash (t : t) : int = hash_rec_ 2 t
+
   module H = Hashcons.Make (struct
     type nonrec t = t
 
     let equal (t1 : t) (t2 : t) =
-      Imandrax_api.Ty_view.equal_view
-        (fun _ _ -> true)
-        equal_var ( == ) t1.view t2.view
+      equal_view (fun () () -> true) equal_var equal t1.view t2.view
 
     let hash t =
       Imandrax_api.Ty_view.hash_view
         (fun _ -> 0)
-        Imandrax_api.Uid.hash
-        (fun t -> CCHash.int t.id)
-        t.view
+        Imandrax_api.Uid.hash hash t.view
 
     let set_id t id =
       assert (t.id = -1);
@@ -77,7 +96,9 @@ end = struct
       let generation = Atomic.fetch_and_add gen_counter 1 in
       { hcons = Some (H.create ?size ()); generation }
 
-    let non_hashconsing : t = { generation = -42; hcons = None }
+    let non_hashconsing : t =
+      { generation = non_hashconsed_generation; hcons = None }
+
     let[@inline] generation self = self.generation
     let k_state : t Hmap.key = Hmap.Key.create ()
 
@@ -128,15 +149,11 @@ let pp out x = !pp_ out x
 let show = Fmt.to_string pp
 let[@inline] view (self : t) = self.view
 
-let[@inline] equal a b =
-  assert (equal_generation a.generation b.generation);
-  a == b
-
-let[@inline] compare (a : t) (b : t) : int =
-  assert (equal_generation a.generation b.generation);
-  CCInt.compare a.id b.id
-
-let[@inline] hash (t : t) : int = CCHash.int t.id
+let rec compare t1 t2 : int =
+  if t1 == t2 then
+    0
+  else
+    compare_view (fun () () -> 0) Uid.compare compare t1.view t2.view
 
 type def = t Ty_view.def_poly [@@deriving twine, typereg]
 
