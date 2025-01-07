@@ -104,7 +104,6 @@ module Build_ : sig
   type t = private {
     view: t view;
     ty: Type.t;
-    mutable id: int;
     generation: generation;
   }
   [@@deriving twine, show, eq]
@@ -119,7 +118,6 @@ end = struct
   type t = {
     view: t view;
     ty: Type.t;
-    mutable id: int;  (** Generative ID *)
     generation: generation;
   }
   [@@deriving twine, typereg, show { with_path = false }]
@@ -155,10 +153,7 @@ end = struct
 
     let equal t1 t2 = Type.equal t1.ty t2.ty && equal_view equal t1.view t2.view
     let hash = hash
-
-    let set_id t id =
-      assert (t.id = -1);
-      t.id <- id
+    let set_id _t _id = ()
   end)
 
   module State = struct
@@ -202,7 +197,7 @@ end = struct
   end
 
   let[@inline] make (st : State.t) view ty : t =
-    let t = { view; ty; generation = st.generation; id = -1 } in
+    let t = { view; ty; generation = st.generation } in
     match st.hcons with
     | None -> t
     | Some h -> H.hashcons h t
@@ -230,9 +225,7 @@ end = struct
          ser_of_twine dec t |> ser_to_term st);
 
     Imandrakit_twine.Decode.add_cache of_twine_ref;
-    Imandrakit_twine.Encode.add_cache_with ~eq:( == )
-      ~hash:(fun t -> CCHash.int t.id)
-      to_twine_ref;
+    Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref;
     ()
 end
 
