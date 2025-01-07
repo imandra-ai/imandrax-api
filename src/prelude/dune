@@ -1,0 +1,8 @@
+(library
+ (name imandrax_api_prelude)
+ (public_name imandrax-api-prelude)
+ (synopsis "Prelude for ImandraX")
+ (flags :standard)
+ (preprocess
+  (pps imandrax-api-ppx.cir imandrax-api-ppx.to-iml))
+ (libraries containers zarith))

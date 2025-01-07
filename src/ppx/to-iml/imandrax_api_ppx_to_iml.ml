@@ -42,6 +42,9 @@ let rec expr_to_iml (ty : core_type) (e : expression) : expression =
   let loc = ty.ptyp_loc in
   match ty with
   | [%type: int] | [%type: Z.t] | [%type: Int.t] -> [%expr Z.to_string [%e e]]
+  | [%type: real] | [%type: Q.t] | [%type: Real.t] ->
+    [%expr Printf.sprintf "(Real.mk_of_string \"%a\")" Q.sprint [%e e]]
+  | [%type: float] -> [%expr Printf.sprintf "%sp" (string_of_float [%e e])]
   | [%type: bool] -> [%expr string_of_bool [%e e]]
   | [%type: unit] -> [%expr "()"]
   | [%type: string] -> [%expr Printf.sprintf "%S" [%e e]]
@@ -63,7 +66,6 @@ let rec expr_to_iml (ty : core_type) (e : expression) : expression =
   | [%type: nativeint]
   | [%type: bytes]
   | [%type: char]
-  | [%type: float]
   | [%type: _ array] ->
     [%expr [%error "This type is not supported by imandrax-api-ppx.to-iml"]]
   | { ptyp_desc = Ptyp_var v; ptyp_loc = loc; _ } ->
@@ -71,16 +73,14 @@ let rec expr_to_iml (ty : core_type) (e : expression) : expression =
     let s : string = name_poly_var_ v in
     [%expr [%e A.Exp.ident { loc; txt = Longident.Lident s }] [%e e]]
   | { ptyp_desc = Ptyp_constr (lid, args); ptyp_loc = loc; _ } ->
-    [%expr
-      [%e
-        let args =
-          List.map
-            (fun a ->
-              Nolabel, [%expr fun self -> [%e expr_to_iml a [%expr self]]])
-            args
-        in
-        A.Exp.apply (A.Exp.ident { loc; txt = to_iml_name_of_lid lid.txt }) args]
-        [%e e]]
+    let args =
+      List.map
+        (fun a -> Nolabel, [%expr fun self -> [%e expr_to_iml a [%expr self]]])
+        args
+    in
+    A.Exp.apply
+      (A.Exp.ident { loc; txt = to_iml_name_of_lid lid.txt })
+      (args @ [ Nolabel, e ])
   | { ptyp_desc = Ptyp_tuple args; ptyp_loc = loc; _ } ->
     let pat_args =
       List.mapi (fun i _a -> A.Pat.var { loc; txt = spf "x_%d" i }) args

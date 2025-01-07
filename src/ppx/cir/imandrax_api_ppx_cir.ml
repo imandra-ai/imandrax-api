@@ -13,21 +13,10 @@ open struct
   let name_poly_var_ v = spf "_cir_%s" v
   let mkstrlit s = A.Exp.constant (A.Const.string s)
 
-  let rec lid_to_str (lid : Longident.t) : string =
-    match lid with
-    | Longident.Lident s -> s
-    | Longident.Ldot (x, s) -> spf "%s.%s" (lid_to_str x) s
-    | Longident.Lapply (a, b) -> spf "%s.%s" (lid_to_str a) (lid_to_str b)
-
   let mk_lambda ~loc args body =
     List.fold_right
       (fun arg bod -> [%expr fun [%p A.Pat.var { loc; txt = arg }] -> [%e bod]])
       args body
-
-  (** list literal *)
-  let rec mk_list ~loc = function
-    | [] -> [%expr []]
-    | x :: tl -> [%expr [%e x] :: [%e mk_list ~loc tl]]
 
   let rec mk_plist ~loc = function
     | [] -> [%pat? []]
@@ -56,6 +45,11 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
       match Imandrax_api_cir.Term.view [%e e] with
       | Const (Const_z x) -> x
       | _ -> failwith "of-cir: expected int"]
+  | [%type: real] | [%type: Q.t] | [%type: Real.t] ->
+    [%expr
+      match Imandrax_api_cir.Term.view [%e e] with
+      | Const (Const_q x) -> x
+      | _ -> failwith "of-cir: expected real"]
   | [%type: bool] ->
     [%expr
       match Imandrax_api_cir.Term.view [%e e] with
@@ -71,6 +65,11 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
       match Imandrax_api_cir.Term.view [%e e] with
       | Const (Const_string s) -> s
       | _ -> failwith "of-cir: expected string"]
+  | [%type: float] ->
+    [%expr
+      match Imandrax_api_cir.Term.view [%e e] with
+      | Const (Const_float f) -> f
+      | _ -> failwith "of-cir: expected float"]
   | [%type: Imandrax_api.Uid.t] | [%type: Uid.t] ->
     [%expr
       match Imandrax_api_cir.Term.view [%e e] with
@@ -90,16 +89,14 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
         | Construct { c; args = []; _ } when c.sym.id.name = "[]" -> []
         | Construct { c; args = [ x; tl ]; _ } when c.sym.id.name = "::" ->
           [%e expr_of_cir ty_arg0 [%expr x]] :: get_list tl
-        | _ -> failwith "of-cir: expected option"
+        | _ -> failwith "of-cir: expected list"
       in
       get_list [%e e]]
   | [%type: int32]
   | [%type: int64]
   | [%type: nativeint]
-  | [%type: string]
   | [%type: bytes]
   | [%type: char]
-  | [%type: float]
   | [%type: _ array] ->
     [%expr [%error "This type is not supported by imandrax-api-ppx.cir"]]
   | { ptyp_desc = Ptyp_var v; ptyp_loc = loc; _ } ->
@@ -107,16 +104,14 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
     let s : string = name_poly_var_ v in
     [%expr [%e A.Exp.ident { loc; txt = Longident.Lident s }] [%e e]]
   | { ptyp_desc = Ptyp_constr (lid, args); ptyp_loc = loc; _ } ->
-    [%expr
-      [%e
-        let args =
-          List.map
-            (fun a ->
-              Nolabel, [%expr fun self -> [%e expr_of_cir a [%expr self]]])
-            args
-        in
-        A.Exp.apply (A.Exp.ident { loc; txt = of_cir_name_of_lid lid.txt }) args]
-        [%e e]]
+    let args =
+      List.map
+        (fun a -> Nolabel, [%expr fun self -> [%e expr_of_cir a [%expr self]]])
+        args
+    in
+    A.Exp.apply
+      (A.Exp.ident { loc; txt = of_cir_name_of_lid lid.txt })
+      (args @ [ Nolabel, e ])
   | { ptyp_desc = Ptyp_tuple args; ptyp_loc = loc; _ } ->
     let pat_args =
       List.mapi (fun i _a -> A.Pat.var { loc; txt = spf "x_%d" i }) args
@@ -272,7 +267,7 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
                let e =
                  [%expr
                    match
-                     List.find_map
+                     CCList.find_map
                        (fun ((sym, v) : Imandrax_api_cir.Applied_symbol.t * _) ->
                          if sym.sym.id.name = [%e mkstrlit f.pld_name.txt] then
                            Some v
