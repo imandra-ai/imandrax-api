@@ -45,6 +45,11 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
       match Imandrax_api_cir.Term.view [%e e] with
       | Const (Const_z x) -> x
       | _ -> failwith "of-cir: expected int"]
+  | [%type: real] | [%type: Q.t] | [%type: Real.t] ->
+    [%expr
+      match Imandrax_api_cir.Term.view [%e e] with
+      | Const (Const_q x) -> x
+      | _ -> failwith "of-cir: expected real"]
   | [%type: bool] ->
     [%expr
       match Imandrax_api_cir.Term.view [%e e] with

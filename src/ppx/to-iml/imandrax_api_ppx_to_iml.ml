@@ -42,6 +42,8 @@ let rec expr_to_iml (ty : core_type) (e : expression) : expression =
   let loc = ty.ptyp_loc in
   match ty with
   | [%type: int] | [%type: Z.t] | [%type: Int.t] -> [%expr Z.to_string [%e e]]
+  | [%type: real] | [%type: Q.t] | [%type: Real.t] ->
+    [%expr Printf.sprintf "(Real.mk_of_string \"%a\")" Q.sprint [%e e]]
   | [%type: float] -> [%expr Printf.sprintf "%sp" (string_of_float [%e e])]
   | [%type: bool] -> [%expr string_of_bool [%e e]]
   | [%type: unit] -> [%expr "()"]
