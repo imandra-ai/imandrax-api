@@ -267,7 +267,7 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
                let e =
                  [%expr
                    match
-                     List.find_map
+                     CCList.find_map
                        (fun ((sym, v) : Imandrax_api_cir.Applied_symbol.t * _) ->
                          if sym.sym.id.name = [%e mkstrlit f.pld_name.txt] then
                            Some v
