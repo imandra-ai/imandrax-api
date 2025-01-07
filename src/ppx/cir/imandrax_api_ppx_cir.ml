@@ -104,16 +104,14 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
     let s : string = name_poly_var_ v in
     [%expr [%e A.Exp.ident { loc; txt = Longident.Lident s }] [%e e]]
   | { ptyp_desc = Ptyp_constr (lid, args); ptyp_loc = loc; _ } ->
-    [%expr
-      [%e
-        let args =
-          List.map
-            (fun a ->
-              Nolabel, [%expr fun self -> [%e expr_of_cir a [%expr self]]])
-            args
-        in
-        A.Exp.apply (A.Exp.ident { loc; txt = of_cir_name_of_lid lid.txt }) args]
-        [%e e]]
+    let args =
+      List.map
+        (fun a -> Nolabel, [%expr fun self -> [%e expr_of_cir a [%expr self]]])
+        args
+    in
+    A.Exp.apply
+      (A.Exp.ident { loc; txt = of_cir_name_of_lid lid.txt })
+      (args @ [ Nolabel, e ])
   | { ptyp_desc = Ptyp_tuple args; ptyp_loc = loc; _ } ->
     let pat_args =
       List.mapi (fun i _a -> A.Pat.var { loc; txt = spf "x_%d" i }) args
