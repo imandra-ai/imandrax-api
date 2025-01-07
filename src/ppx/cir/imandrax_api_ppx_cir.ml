@@ -13,21 +13,10 @@ open struct
   let name_poly_var_ v = spf "_cir_%s" v
   let mkstrlit s = A.Exp.constant (A.Const.string s)
 
-  let rec lid_to_str (lid : Longident.t) : string =
-    match lid with
-    | Longident.Lident s -> s
-    | Longident.Ldot (x, s) -> spf "%s.%s" (lid_to_str x) s
-    | Longident.Lapply (a, b) -> spf "%s.%s" (lid_to_str a) (lid_to_str b)
-
   let mk_lambda ~loc args body =
     List.fold_right
       (fun arg bod -> [%expr fun [%p A.Pat.var { loc; txt = arg }] -> [%e bod]])
       args body
-
-  (** list literal *)
-  let rec mk_list ~loc = function
-    | [] -> [%expr []]
-    | x :: tl -> [%expr [%e x] :: [%e mk_list ~loc tl]]
 
   let rec mk_plist ~loc = function
     | [] -> [%pat? []]
@@ -96,7 +85,6 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
   | [%type: int32]
   | [%type: int64]
   | [%type: nativeint]
-  | [%type: string]
   | [%type: bytes]
   | [%type: char]
   | [%type: float]
