@@ -60,6 +60,11 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
       match Imandrax_api_cir.Term.view [%e e] with
       | Const (Const_string s) -> s
       | _ -> failwith "of-cir: expected string"]
+  | [%type: float] ->
+    [%expr
+      match Imandrax_api_cir.Term.view [%e e] with
+      | Const (Const_float f) -> f
+      | _ -> failwith "of-cir: expected float"]
   | [%type: Imandrax_api.Uid.t] | [%type: Uid.t] ->
     [%expr
       match Imandrax_api_cir.Term.view [%e e] with
@@ -87,7 +92,6 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
   | [%type: nativeint]
   | [%type: bytes]
   | [%type: char]
-  | [%type: float]
   | [%type: _ array] ->
     [%expr [%error "This type is not supported by imandrax-api-ppx.cir"]]
   | { ptyp_desc = Ptyp_var v; ptyp_loc = loc; _ } ->

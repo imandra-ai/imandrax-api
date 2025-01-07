@@ -42,6 +42,7 @@ let rec expr_to_iml (ty : core_type) (e : expression) : expression =
   let loc = ty.ptyp_loc in
   match ty with
   | [%type: int] | [%type: Z.t] | [%type: Int.t] -> [%expr Z.to_string [%e e]]
+  | [%type: float] -> [%expr Printf.sprintf "%sp" (string_of_float [%e e])]
   | [%type: bool] -> [%expr string_of_bool [%e e]]
   | [%type: unit] -> [%expr "()"]
   | [%type: string] -> [%expr Printf.sprintf "%S" [%e e]]
@@ -63,7 +64,6 @@ let rec expr_to_iml (ty : core_type) (e : expression) : expression =
   | [%type: nativeint]
   | [%type: bytes]
   | [%type: char]
-  | [%type: float]
   | [%type: _ array] ->
     [%expr [%error "This type is not supported by imandrax-api-ppx.to-iml"]]
   | { ptyp_desc = Ptyp_var v; ptyp_loc = loc; _ } ->
