@@ -18,7 +18,7 @@ type ('term, 'ty) t_poly = {
           same block of mutual defs, this one included. It's [None]
           for non-recursive functions. *)
   f_kind: fun_kind;
-  f_hints: 'term Hints.t_poly;
+  f_hints: ('term, 'ty) Hints.t_poly;
 }
 [@@deriving twine, typereg, eq, map, iter, show { with_path = false }]
 (** A function definition. *)

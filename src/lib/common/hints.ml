@@ -1,12 +1,12 @@
 (** How to validate a function *)
-type 'term validation_strategy =
-  | VS_validate of { tactic: 'term option }
+type ('term, 'ty) validation_strategy =
+  | VS_validate of { tactic: ('ty Var.t_poly list * 'term) option }
       (** Validate using this tactic for POs *)
   | VS_no_validate  (** Admitted, or builtin. *)
 [@@deriving show { with_path = false }, map, iter, eq, twine, typereg]
 
-type 'term t_poly = {
-  f_validate_strat: 'term validation_strategy;
+type ('term, 'ty) t_poly = {
+  f_validate_strat: ('term, 'ty) validation_strategy;
   f_unroll_def: int option;
   f_enable: Imandrax_api.Uid.t list;  (** local enables *)
   f_disable: Imandrax_api.Uid.t list;  (** local disables *)
