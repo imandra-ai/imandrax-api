@@ -79,7 +79,7 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
         | Construct { c; args = []; _ } when c.sym.id.name = "[]" -> []
         | Construct { c; args = [ x; tl ]; _ } when c.sym.id.name = "::" ->
           [%e expr_of_cir ty_arg0 [%expr x]] :: get_list tl
-        | _ -> failwith "of-cir: expected option"
+        | _ -> failwith "of-cir: expected list"
       in
       get_list [%e e]]
   | [%type: int32]
