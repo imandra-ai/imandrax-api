@@ -2,32 +2,12 @@
 
 module Program_prelude_ =
   struct
-    module Int :
-      sig
-        type t = int[@@deriving (to_iml, of_cir)]
-        val (+) : t -> t -> t
-        val (-) : t -> t -> t
-        val (~-) : t -> t
-        val ( * ) : t -> t -> t
-        val (/) : t -> t -> t
-        val \#mod : t -> t -> t
-        val (<) : t -> t -> bool
-        val (<=) : t -> t -> bool
-        val (>) : t -> t -> bool
-        val (>=) : t -> t -> bool
-        val min : t -> t -> t
-        val max : t -> t -> t
-        val incr : t ref -> unit
-        val decr : t ref -> unit
-        val succ : t -> t
-        val pred : t -> t
-        val of_int : int -> t
-      end =
+    module Int =
       struct
         type t = int[@@deriving (to_iml, of_cir)]
         include Stdlib
         let of_int i = i
-      end 
+      end
     module List =
       struct
         type 'a t = 'a list =
