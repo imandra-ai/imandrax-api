@@ -191,3 +191,15 @@
   (containers
    (>= 3.0))
   (cbor :with-test)))
+
+(package
+ (name imandrax-api-prelude)
+ (synopsis "ImandraX Prelude")
+ (depends
+  (ocaml
+   (>= 4.12))
+  ppx_deriving
+  (containers
+   (>= 3.0))
+  zarith
+  imandrax-api-ppx))
