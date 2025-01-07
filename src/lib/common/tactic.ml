@@ -1,5 +1,5 @@
 (** Tactic used to solve a PO *)
-type ('ty, 'term) t_poly =
+type ('term, 'ty) t_poly =
   | Default_termination of { basis: Imandrax_api.Uid_set.t }
   | Default_thm
   | Term of ('ty Var.t_poly list * 'term)
