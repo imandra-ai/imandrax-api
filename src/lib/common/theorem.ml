@@ -8,7 +8,7 @@ type ('term, 'ty) t_poly = {
   thm_gen: bool;  (** generalization rule? *)
   thm_triggers: 'term Pre_trigger.t_poly list;
   thm_is_axiom: bool;
-  thm_by: 'term;
+  thm_by: 'ty Var.t_poly list * 'term;
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 (** A theorem, entered with [theorem foo x y = <formula using x,y>] *)
