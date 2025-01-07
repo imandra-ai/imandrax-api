@@ -2,7 +2,7 @@ type ('term, 'ty) t_poly = {
   descr: string;  (** description *)
   goal: 'ty Var.t_poly list * 'term;
       (** Initial goal as a [fun vars -> body] *)
-  tactic: 'term Tactic.t_poly;
+  tactic: ('term, 'ty) Tactic.t_poly;
       (** Tactic term. It will be evaluated while trying to solve this obligation *)
   is_instance: bool;
       (** If true, we're trying to find an instance of the goal, not a proof.
