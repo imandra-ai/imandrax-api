@@ -98,7 +98,7 @@ let rec expr_to_iml (ty : core_type) (e : expression) : expression =
       Printf.sprintf "(%s)" (String.concat ", " items)]
   | { ptyp_desc = Ptyp_alias (ty, _); _ } -> expr_to_iml ty e
   | { ptyp_desc = Ptyp_variant _; ptyp_loc = loc; _ } ->
-    [%expr [%error "Cannot turn to iml polymorphic variants yet"]]
+    [%expr [%error "Cannot turn to iml polymorphic variants"]]
   | { ptyp_desc = Ptyp_arrow _; ptyp_loc = loc; _ } ->
     [%expr [%error "Cannot turn to iml functions"]]
   | { ptyp_desc = Ptyp_class _ | Ptyp_object _; ptyp_loc = loc; _ } ->
