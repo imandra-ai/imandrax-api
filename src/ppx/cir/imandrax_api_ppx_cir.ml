@@ -130,7 +130,7 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
       | _ -> failwith "of-cir: expected tuple"]
   | { ptyp_desc = Ptyp_alias (ty, _); _ } -> expr_of_cir ty e
   | { ptyp_desc = Ptyp_variant _; ptyp_loc = loc; _ } ->
-    [%expr [%error "Cannot register polymorphic variants yet"]]
+    [%expr [%error "Cannot register polymorphic variants"]]
   | { ptyp_desc = Ptyp_arrow _; ptyp_loc = loc; _ } ->
     [%expr [%error "Cannot register functions"]]
   | { ptyp_desc = Ptyp_class _ | Ptyp_object _; ptyp_loc = loc; _ } ->

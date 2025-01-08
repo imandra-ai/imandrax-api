@@ -51,7 +51,7 @@ let rec expr_to_iml (ty : core_type) (e : expression) : expression =
   | [%type: Imandrax_api.Uid.t] | [%type: Uid.t] ->
     [%expr
       let name = Uid.name [%e e] in
-      Printf.sprintf "[%%id %S]" name]
+      Printf.sprintf "[%%id %s]" name]
   | [%type: [%t? ty_arg0] option] ->
     [%expr
       match [%e e] with
@@ -98,7 +98,7 @@ let rec expr_to_iml (ty : core_type) (e : expression) : expression =
       Printf.sprintf "(%s)" (String.concat ", " items)]
   | { ptyp_desc = Ptyp_alias (ty, _); _ } -> expr_to_iml ty e
   | { ptyp_desc = Ptyp_variant _; ptyp_loc = loc; _ } ->
-    [%expr [%error "Cannot turn to iml polymorphic variants yet"]]
+    [%expr [%error "Cannot turn to iml polymorphic variants"]]
   | { ptyp_desc = Ptyp_arrow _; ptyp_loc = loc; _ } ->
     [%expr [%error "Cannot turn to iml functions"]]
   | { ptyp_desc = Ptyp_class _ | Ptyp_object _; ptyp_loc = loc; _ } ->
@@ -150,7 +150,7 @@ let to_iml_vb_of_tydecl (d : type_declaration) : value_binding =
             ( A.Pat.construct c_lid @@ Some [%pat? x],
               [%expr
                 Printf.sprintf
-                  [%e mkstrlit @@ spf "{|(%s %%s)|}" c.pcd_name.txt]
+                  [%e mkstrlit @@ spf "(%s %%s)" c.pcd_name.txt]
                   [%e expr_to_iml ty0 [%expr x]]] )
           | Pcstr_tuple l ->
             let pat =
@@ -171,11 +171,17 @@ let to_iml_vb_of_tydecl (d : type_declaration) : value_binding =
                 l
             in
             let spf_exp =
+              let n =
+                if c.pcd_name.txt = "::" then
+                  "(::)"
+                else
+                  c.pcd_name.txt
+              in
               [%expr
                 Printf.sprintf
                   [%e
                     mkstrlit
-                    @@ spf "{|(%s (%s))|}" c.pcd_name.txt
+                    @@ spf "(%s (%s))" n
                          (String.concat "," @@ List.map (fun _ -> "%s") l)]]
             in
             let rhs = A.Exp.apply spf_exp args in
