@@ -51,7 +51,7 @@ let rec expr_to_iml (ty : core_type) (e : expression) : expression =
   | [%type: Imandrax_api.Uid.t] | [%type: Uid.t] ->
     [%expr
       let name = Uid.name [%e e] in
-      Printf.sprintf "[%%id %S]" name]
+      Printf.sprintf "[%%id %s]" name]
   | [%type: [%t? ty_arg0] option] ->
     [%expr
       match [%e e] with
