@@ -150,7 +150,7 @@ let to_iml_vb_of_tydecl (d : type_declaration) : value_binding =
             ( A.Pat.construct c_lid @@ Some [%pat? x],
               [%expr
                 Printf.sprintf
-                  [%e mkstrlit @@ spf "{|(%s %%s)|}" c.pcd_name.txt]
+                  [%e mkstrlit @@ spf "(%s %%s)" c.pcd_name.txt]
                   [%e expr_to_iml ty0 [%expr x]]] )
           | Pcstr_tuple l ->
             let pat =
@@ -171,11 +171,17 @@ let to_iml_vb_of_tydecl (d : type_declaration) : value_binding =
                 l
             in
             let spf_exp =
+              let n =
+                if c.pcd_name.txt = "::" then
+                  "(::)"
+                else
+                  c.pcd_name.txt
+              in
               [%expr
                 Printf.sprintf
                   [%e
                     mkstrlit
-                    @@ spf "{|(%s (%s))|}" c.pcd_name.txt
+                    @@ spf "(%s (%s))" n
                          (String.concat "," @@ List.map (fun _ -> "%s") l)]]
             in
             let rhs = A.Exp.apply spf_exp args in
