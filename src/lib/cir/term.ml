@@ -4,15 +4,16 @@
     They're also serializable (using cbor-pack).
 *)
 
-type 't binding = Var.t * 't [@@deriving map, iter, eq, twine, typereg, show]
+type ('t, 'ty) binding = 'ty Var.t_poly * 't
+[@@deriving map, iter, eq, twine, typereg, show]
 (** simple variable binding *)
 
-type 't view =
+type ('t, 'ty) view =
   | Const of Imandrax_api.Const.t
   | If of 't * 't * 't
   | Let of {
       flg: Imandrax_api.Misc_types.rec_flag;
-      bs: 't binding list;
+      bs: ('t, 'ty) binding list;
       body: 't;
     }
   | Apply of {
@@ -20,28 +21,28 @@ type 't view =
       l: 't list;
     }
   | Fun of {
-      v: Var.t;
+      v: 'ty Var.t_poly;
       body: 't; (* type of function, var, body *)
     }
-  | Var of Var.t
-  | Sym of Applied_symbol.t
+  | Var of 'ty Var.t_poly
+  | Sym of 'ty Applied_symbol.t_poly
   | Construct of {
-      c: Applied_symbol.t;
+      c: 'ty Applied_symbol.t_poly;
       args: 't list;
       labels: Imandrax_api.Uid.t list option;
     }
   | Destruct of {
-      c: Applied_symbol.t;
+      c: 'ty Applied_symbol.t_poly;
       i: int;
       t: 't;
     }
   | Is_a of {
-      c: Applied_symbol.t;
+      c: 'ty Applied_symbol.t_poly;
       t: 't;
     }
   | Tuple of { l: 't list }
   | Field of {
-      f: Applied_symbol.t;
+      f: 'ty Applied_symbol.t_poly;
       t: 't;
     }
   | Tuple_field of {
@@ -49,23 +50,23 @@ type 't view =
       t: 't;
     }
   | Record of {
-      rows: (Applied_symbol.t * 't) list;
+      rows: ('ty Applied_symbol.t_poly * 't) list;
       rest: 't option;
     }
   | Case of {
       u: 't;
-      cases: 't Case.t list;
+      cases: ('t, 'ty Var.t_poly, 'ty Applied_symbol.t_poly) Case.t_poly list;
       default: 't option;
     }
   | Let_tuple of {
-      vars: Var.t list;
+      vars: 'ty Var.t_poly list;
       rhs: 't;
       body: 't;
     }
 [@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
 
 type t = {
-  view: t view;
+  view: (t, Type.t) view;
   ty: Type.t;
 }
 [@@deriving twine, typereg, show { with_path = false }]
@@ -73,7 +74,7 @@ type t = {
 let pp_ = ref pp
 let pp_view_ = ref pp_view
 let pp out x = !pp_ out x
-let pp_view out v = !pp_view_ pp out v
+let pp_view out v = !pp_view_ pp Type.pp out v
 let show = Fmt.to_string pp
 
 type term = t [@@deriving twine, typereg, show]
@@ -86,7 +87,7 @@ let () =
      values because we have no explicit sharing of [Term.t]. *)
   Imandrakit_twine.Decode.add_cache of_twine_ref
 
-let[@inline] view (self : t) : t view = self.view
+let[@inline] view (self : t) : (t, Type.t) view = self.view
 
 (** Syntactic equality on terms. This is not modulo alpha. *)
 let rec equal (t1 : t) (t2 : t) =

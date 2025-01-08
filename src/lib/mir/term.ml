@@ -4,31 +4,31 @@
     They have optional hashconsing and can be serialized efficiently using twine.
 *)
 
-type 't view =
+type ('t, 'ty) view =
   | Const of Imandrax_api.Const.t
   | If of 't * 't * 't
   | Apply of {
       f: 't;
       l: 't list;
     }
-  | Var of Var.t
-  | Sym of Applied_symbol.t
+  | Var of 'ty Var.t_poly
+  | Sym of 'ty Applied_symbol.t_poly
   | Construct of {
-      c: Applied_symbol.t;
+      c: 'ty Applied_symbol.t_poly;
       args: 't list;
     }
   | Destruct of {
-      c: Applied_symbol.t;
+      c: 'ty Applied_symbol.t_poly;
       i: int;
       t: 't;
     }
   | Is_a of {
-      c: Applied_symbol.t;
+      c: 'ty Applied_symbol.t_poly;
       t: 't;
     }
   | Tuple of { l: 't list }
   | Field of {
-      f: Applied_symbol.t;
+      f: 'ty Applied_symbol.t_poly;
       t: 't;
     }
   | Tuple_field of {
@@ -36,12 +36,12 @@ type 't view =
       t: 't;
     }
   | Record of {
-      rows: (Applied_symbol.t * 't) list;
+      rows: ('ty Applied_symbol.t_poly * 't) list;
       rest: 't option;
     }
   | Case of {
       u: 't;
-      cases: (Applied_symbol.t * 't) list;
+      cases: ('ty Applied_symbol.t_poly * 't) list;
       default: 't option;
     }
 [@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
@@ -102,21 +102,21 @@ module Build_ : sig
   end
 
   type t = private {
-    view: t view;
+    view: (t, Type.t) view;
     ty: Type.t;
     generation: generation;
   }
   [@@deriving twine, show, eq]
 
   val hash : t -> int
-  val make : State.t -> t view -> Type.t -> t
+  val make : State.t -> (t, Type.t) view -> Type.t -> t
 end = struct
   type generation = int [@@deriving show, eq, twine]
 
   let non_hashconsed_generation = -42
 
   type t = {
-    view: t view;
+    view: (t, Type.t) view;
     ty: Type.t;
     generation: generation;
   }
@@ -132,7 +132,7 @@ end = struct
     if hashconsed_same_gen then
       t1 == t2
     else
-      Type.equal t1.ty t2.ty && equal_view equal_rec t1.view t2.view
+      Type.equal t1.ty t2.ty && equal_view equal_rec Type.equal t1.view t2.view
 
   (** Hash. We cannot use [t.id] because it doesn't work across
       generations or on non hashconsed terms. *)
@@ -151,7 +151,9 @@ end = struct
   module H = Hashcons.Make (struct
     type nonrec t = t
 
-    let equal t1 t2 = Type.equal t1.ty t2.ty && equal_view equal t1.view t2.view
+    let equal t1 t2 =
+      Type.equal t1.ty t2.ty && equal_view equal Type.equal t1.view t2.view
+
     let hash = hash
     let set_id _t _id = ()
   end)
@@ -206,7 +208,7 @@ end = struct
 
   open struct
     type ser = {
-      view: t view;
+      view: (t, Type.t) view;
       ty: Type.t;
     }
     [@@deriving twine]
@@ -232,7 +234,7 @@ end
 include Build_
 
 let pp_ = ref pp
-let pp_view_ = ref pp_view
+let pp_view_ : (_ -> _ -> (t, Type.t) view Fmt.printer) ref = ref pp_view
 let pp out x = !pp_ out x
 let pp_view out v = !pp_view_ pp out v
 let show = Fmt.to_string pp
@@ -241,7 +243,7 @@ type term = t [@@deriving twine, typereg, show]
 
 open Imandrax_api
 
-let[@inline] view (self : t) : t view = self.view
+let[@inline] view (self : t) : (t, Type.t) view = self.view
 
 module As_key = struct
   type nonrec t = t
@@ -269,8 +271,8 @@ let transfer (st : State.t) (t : t) : t =
       match Tbl.find tbl t with
       | u -> u
       | exception Not_found ->
-        let ty = Type.transfer (State.ty_st st) t.ty in
-        let view = map_view loop t.view in
+        let ty = Type.transfer st.ty_st t.ty in
+        let view = map_view loop (Type.transfer st.ty_st) t.view in
         let u = make st view ty in
         Tbl.add tbl t u;
         u
