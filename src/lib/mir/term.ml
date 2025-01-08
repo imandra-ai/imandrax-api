@@ -128,7 +128,6 @@ end = struct
       t1.generation == t2.generation
       && t1.generation != non_hashconsed_generation
     in
-
     if hashconsed_same_gen then
       t1 == t2
     else
