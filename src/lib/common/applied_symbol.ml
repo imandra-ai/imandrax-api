@@ -3,7 +3,11 @@ type 'ty t_poly = {
   args: 'ty list;
   ty: 'ty;  (** computed *)
 }
-[@@deriving twine, typereg, ord, eq, map, iter, show { with_path = false }]
+[@@deriving twine, typereg, ord, eq, map, iter]
 (** A value with its type schema *)
+
+let pp_t_poly pp_ty out (self : _ t_poly) =
+  Fmt.fprintf out "(@[%a : %a@])" Imandrax_api.Uid.pp_name self.sym.id pp_ty
+    self.ty
 
 let pp_name out (self : _ t_poly) = Imandrax_api.Uid.pp_name out self.sym.id
