@@ -12,4 +12,5 @@
   camlzip
   imandrakit.zip
   imandrax-api
+  imandrax-api.mir
   imandrax-api.artifact))

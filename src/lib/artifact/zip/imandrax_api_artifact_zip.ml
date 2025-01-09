@@ -2,6 +2,7 @@
 
 open Imandrax_api_artifact
 open Imandrakit_zip
+module Mir = Imandrax_api_mir
 module Json = Yojson.Safe
 
 module Manifest = struct
@@ -95,7 +96,11 @@ let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
       let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "read-zip-entry" in
       Util_zip.read_entry zip entry
     in
-    Imandrakit_twine.Decode.decode_string (Artifact.of_twine kind) data
+
+    let mt = Mir.Term.State.create () in
+    Imandrakit_twine.Decode.decode_string
+      ~init:(fun dec -> Mir.Term.State.add_to_dec dec mt)
+      (Artifact.of_twine kind) data
   in
 
   let a : Artifact.t = Artifact.Artifact (kind, res) in
