@@ -32,11 +32,19 @@ type ('v, 'closure) view =
   | V_ordinal of Ordinal.t
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
-type t = { v: (t, unit) view } [@@unboxed] [@@deriving twine, typereg]
+type erased_closure = { missing: int }
+[@@deriving show { with_path = false }, twine, typereg]
+
+type t = { v: (t, erased_closure) view } [@@unboxed] [@@deriving twine, typereg]
 (** A value obtained by evaluation or as a model. Closures are erased. *)
 
-let[@inline] make (v : (t, unit) view) : t = { v }
-let rec pp out (self : t) = pp_view pp (Fmt.return "<closure>") out self.v
+let[@inline] make (v : (t, erased_closure) view) : t = { v }
+
+let rec pp out (self : t) =
+  pp_view pp
+    (fun out { missing = n } -> Fmt.fprintf out "<closure missing=%d>" n)
+    out self.v
+
 let show = Fmt.to_string pp
 
 (** A bit of a hack, used for pretty printing *)
