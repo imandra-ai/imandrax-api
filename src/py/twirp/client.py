@@ -32,7 +32,11 @@ class TwirpClient(object):
                 response.ParseFromString(resp.content)
                 return response
             try:
-                raise exceptions.TwirpServerException.from_json(resp.json())
+                raise exceptions.TwirpServerException(
+                    code=resp.status_code, 
+                    message=resp.reason,
+                    meta={"body": resp.json()}
+                )
             except requests.JSONDecodeError:
                 raise exceptions.twirp_error_from_intermediary(
                     resp.status_code, resp.reason, resp.headers, resp.text
