@@ -4,7 +4,7 @@ open Common_tasks_
 
 type ('term, 'ty) t_poly = {
   db: ('term, 'ty) Imandrax_api_common.Db_ser.t_poly;
-  term: 'term;
+  term: 'ty Var.t_poly list * 'term;
   anchor: Imandrax_api.Anchor.t;
   timeout: int option;
 }
