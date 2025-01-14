@@ -1,1 +1,3 @@
-type t = Term.t Imandrax_api.Sequent_poly.t [@@deriving show, twine, typereg]
+include Imandrax_api_common.Sequent
+
+type t = Term.t t_poly [@@deriving show, twine, typereg, eq]

@@ -21,5 +21,11 @@ let show = function
   | Const_uid uid -> Uid.show uid
   | Const_bool b -> string_of_bool b
 
-(* print in Iml *)
+(** print in Iml *)
 let pp out self = Fmt.string out (show self)
+
+let hash : t -> int = Hashtbl.hash (* TODO: better *)
+
+let () =
+  Imandrakit_twine.Decode.add_cache of_twine_ref;
+  Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref

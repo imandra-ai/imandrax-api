@@ -37,30 +37,30 @@ let mk ~tag ~docstring ?pp ?to_twine ?of_twine name ty : kind =
 
 let all : kind list =
   [
-    mk "Term" "Imandrax_api_cir.Term.t" ~tag:"term" ~docstring:"A CIR term";
-    mk "Type" "Imandrax_api_cir.Type.t" ~tag:"ty" ~docstring:"A CIR type";
-    mk "PO_task" "Imandrax_api_tasks.PO_task.t" ~tag:"po_task"
+    mk "Term" "Imandrax_api_mir.Term.t" ~tag:"term" ~docstring:"A MIR term";
+    mk "Type" "Imandrax_api_mir.Type.t" ~tag:"ty" ~docstring:"A MIR type";
+    mk "PO_task" "Imandrax_api_tasks.PO_task.Mir.t" ~tag:"po_task"
       ~docstring:"Task to verify a Proof Obligation";
-    mk "PO_res" "Imandrax_api_tasks.PO_res.t" ~tag:"po_res"
+    mk "PO_res" "Imandrax_api_tasks.PO_res.Shallow.t" ~tag:"po_res"
       ~docstring:"Result of verifying a PO";
-    mk "Eval_task" "Imandrax_api_tasks.Eval_task.t" ~tag:"eval_task"
+    mk "Eval_task" "Imandrax_api_tasks.Eval_task.Mir.t" ~tag:"eval_task"
       ~docstring:"Task to evaluate a term";
     mk "Eval_res" "Imandrax_api_tasks.Eval_res.t" ~tag:"eval_res"
       ~docstring:"Result of evaluating a term";
-    mk "Model" "Imandrax_api_cir.Model.t" ~tag:"cir.model"
-      ~docstring:"A CIR-level model";
+    mk "Model" "Imandrax_api_mir.Model.t" ~tag:"mir.model"
+      ~docstring:"A MIR-level model";
     mk "Show" "string" ~tag:"show" ~pp:"CCFormat.Dump.string"
       ~to_twine:"(fun _enc s -> Imandrakit_twine.Immediate.string s)"
       ~of_twine:
         "(fun d i -> Imandrakit_twine.Decode.(string d @@ deref_rec d i))"
       ~docstring:"A human readable description";
-    mk "Fun_decomp" "Imandrax_api_cir.Fun_decomp.t" ~tag:"cir.fun_decomp"
-      ~docstring:"A CIR-level function decomposition";
-    mk "Decomp_task" "Imandrax_api_tasks.Decomp_task.t" ~tag:"decomp_task"
+    mk "Fun_decomp" "Imandrax_api_mir.Fun_decomp.t" ~tag:"mir.fun_decomp"
+      ~docstring:"A MIR-level function decomposition";
+    mk "Decomp_task" "Imandrax_api_tasks.Decomp_task.Mir.t" ~tag:"decomp_task"
       ~docstring:"Task to decompose a function";
-    mk "Decomp_res" "Imandrax_api_tasks.Decomp_res.t" ~tag:"decomp_res"
+    mk "Decomp_res" "Imandrax_api_tasks.Decomp_res.Shallow.t" ~tag:"decomp_res"
       ~docstring:"Result of decomposing a function";
-    mk "Report" "Imandrax_api_report.Report.t" ~tag:"report"
+    mk "Report" "Imandrax_api_report.Report.Mir.t" ~tag:"report"
       ~docstring:"Report from some task";
   ]
 
@@ -72,7 +72,7 @@ open struct
   let spf = Printf.sprintf
 end
 
-module Cir = Imandrax_api_cir
+module Mir = Imandrax_api_mir
 module Task = Imandrax_api_tasks
 |}
 

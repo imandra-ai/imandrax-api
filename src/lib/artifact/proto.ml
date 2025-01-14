@@ -1,6 +1,7 @@
 (** Storing artifacts in Protobuf *)
 
 module Proto = Imandrax_api_proto
+module Mir = Imandrax_api_mir
 
 type msg = Proto.art [@@deriving show]
 
@@ -41,7 +42,10 @@ let of_msg (msg : msg) : Artifact.t Error.result =
 
   let res =
     let@ () = Error.guards "Reading data from protobuf" in
-    Imandrakit_twine.Decode.decode_string (Artifact.of_twine kind)
+    let mt = Mir.Term.State.create () in
+    Imandrakit_twine.Decode.decode_string
+      ~init:(fun dec -> Mir.Term.State.add_to_dec dec mt)
+      (Artifact.of_twine kind)
       (Bytes.unsafe_to_string msg.data)
   in
   Artifact.make ~kind res

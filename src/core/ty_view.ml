@@ -38,3 +38,22 @@ type ('lbl, 'var, +'t) view =
   | Tuple of 't list
   | Constr of Uid.t * 't list
 [@@deriving twine, typereg, eq, ord, map, iter, show { with_path = false }]
+
+let hash_view h_lbl h_var h_sub view : int =
+  let module H = CCHash in
+  match view with
+  | Var v -> H.combine2 10 (h_var v)
+  | Arrow (lbl, a, b) -> H.combine4 20 (h_lbl lbl) (h_sub a) (h_sub b)
+  | Tuple l -> H.combine2 30 (H.list h_sub l)
+  | Constr (p, l) -> H.combine3 40 (Uid.hash p) (H.list h_sub l)
+
+type 'ty def_poly = {
+  name: Uid.t;
+  params: Uid.t list;
+  decl: (Uid.t, 'ty, Void.t) decl;
+  clique: Clique.t option;
+  timeout: int option;
+}
+[@@deriving twine, map, iter, show { with_path = false }, typereg]
+
+let name def = def.name

@@ -11,6 +11,7 @@
     based on its cname.
 *)
 
+module Ca_codec = Ca_codec
 module Ca_ptr = Ca_ptr
 module In_memory = In_memory
 module Key = Key

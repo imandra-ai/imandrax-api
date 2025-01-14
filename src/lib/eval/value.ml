@@ -1,6 +1,6 @@
 (** A view of computation values. *)
 
-open Imandrax_api_cir
+open Imandrax_api_mir
 
 type cstor_descriptor = {
   cd_idx: int;  (** Index in the list of cstors of its type *)
@@ -25,18 +25,26 @@ type ('v, 'closure) view =
   | V_cstor of cstor_descriptor * 'v array
   | V_tuple of 'v array
   | V_record of record_descriptor * 'v array
-  | V_quoted_term of Imandrax_api_cir.Term.t  (** A quoted term *)
+  | V_quoted_term of Imandrax_api_mir.Top_fun.t  (** A quoted term *)
   | V_uid of Imandrax_api.Uid.t
   | V_closure of 'closure
   | V_custom of Custom_value.t
   | V_ordinal of Ordinal.t
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
-type t = { v: (t, unit) view } [@@unboxed] [@@deriving twine, typereg]
+type erased_closure = { missing: int }
+[@@deriving show { with_path = false }, twine, typereg]
+
+type t = { v: (t, erased_closure) view } [@@unboxed] [@@deriving twine, typereg]
 (** A value obtained by evaluation or as a model. Closures are erased. *)
 
-let[@inline] make (v : (t, unit) view) : t = { v }
-let rec pp out (self : t) = pp_view pp (Fmt.return "<closure>") out self.v
+let[@inline] make (v : (t, erased_closure) view) : t = { v }
+
+let rec pp out (self : t) =
+  pp_view pp
+    (fun out { missing = n } -> Fmt.fprintf out "<closure missing=%d>" n)
+    out self.v
+
 let show = Fmt.to_string pp
 
 (** A bit of a hack, used for pretty printing *)

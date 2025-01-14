@@ -82,4 +82,4 @@ bump-api-version:
     echo "api_types_version = 'v$$v'" > src/py/api_types_version.py; \
     sed "s/VERSION = \"0.[0-9]*\"/VERSION = \"0.$$v\"/" -i src/py/setup.py; \
 	sed "s/(version 0.[0-9]*/(version 0.$$v/" -i dune-project; \
-	sed "s/version: \"0.[0-9]*/version: \"0.$$v/" -i *opam
+	sed "s/version: \"0.[0-9]*/version: \"0.$$v/" -i *.opam
