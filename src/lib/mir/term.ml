@@ -147,18 +147,17 @@ end = struct
 
   let[@inline] equal t1 t2 : bool = t1 == t2 || equal_rec t1 t2
 
-  module H = Hashcons.Make (struct
+  module H = Hashtbl.Make (struct
     type nonrec t = t
 
     let equal t1 t2 =
       Type.equal t1.ty t2.ty && equal_view equal Type.equal t1.view t2.view
 
     let hash = hash
-    let set_id _t _id = ()
   end)
 
   module State = struct
-    type hcons = H.t option
+    type hcons = t H.t option
 
     type t = {
       ty_st: Type.State.t;
@@ -170,11 +169,8 @@ end = struct
 
     let create ?size () : t =
       let generation = Atomic.fetch_and_add gen_counter 1 in
-      {
-        ty_st = Type.State.create ();
-        hcons = Some (H.create ?size ());
-        generation;
-      }
+      let size = Option.value ~default:16 size in
+      { ty_st = Type.State.create (); hcons = Some (H.create size); generation }
 
     let non_hashconsing =
       {
@@ -197,11 +193,18 @@ end = struct
       | None -> failwith "MIR term: no state in the decoder"
   end
 
+  let hashcons_ (tbl : _ H.t) t : t =
+    match H.find tbl t with
+    | u -> u
+    | exception Not_found ->
+      H.add tbl t t;
+      t
+
   let[@inline] make (st : State.t) view ty : t =
     let t = { view; ty; generation = st.generation } in
     match st.hcons with
     | None -> t
-    | Some h -> H.hashcons h t
+    | Some h -> hashcons_ h t
 
   type term = t
 
