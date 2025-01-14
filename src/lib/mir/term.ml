@@ -222,11 +222,15 @@ end = struct
     (to_twine_ref := fun enc t -> ser_to_twine enc @@ ser_of_term t);
     (of_twine_ref :=
        fun dec t ->
+         (* NOTE: maybe we could handle [None] by using non hashconsing state? *)
          let st = State.get_from_dec_exn dec in
          ser_of_twine dec t |> ser_to_term st);
 
     Imandrakit_twine.Decode.add_cache of_twine_ref;
-    Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref;
+    Imandrakit_twine.Encode.add_cache_with to_twine_ref ~eq:equal ~hash
+      ~skip:(fun t ->
+        (* comparison on non hashconsed terms might be very costly, just skip *)
+        t.generation = non_hashconsed_generation);
     ()
 end
 
