@@ -143,7 +143,7 @@ end = struct
         CCHash.combine2 (Type.hash t.ty)
           (hash_view (hash_rec_ (depth - 1)) t.view)
     in
-    hash_rec_ 2 t
+    hash_rec_ 1 t
 
   let[@inline] equal t1 t2 : bool = t1 == t2 || equal_rec t1 t2
 
