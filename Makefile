@@ -30,8 +30,8 @@ genlib:
 	#make genpython -C src/py/lib/ --debug
 	@make -s genpython -C src/py/lib/
 	@make -s genpython -C src/py/bindings/
-	@make -s genrust -C src/rust/lib/ --debug
-	#make genrust -C src/rust/
+	@make -s genrust -C src/rust/lib
+	# @make -s genrust -C src/rust/lib/ --debug
 
 test-docker-4.14:
 	docker build . -f dep/Dockerfile.4.14 --network=host
