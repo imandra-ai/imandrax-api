@@ -4,5 +4,5 @@
  (synopsis "Prelude for ImandraX")
  (flags :standard)
  (preprocess
-  (pps imandrax-api-ppx.cir imandrax-api-ppx.to-iml))
+  (pps imandrax-api-ppx.mir imandrax-api-ppx.to-iml))
  (libraries containers zarith))

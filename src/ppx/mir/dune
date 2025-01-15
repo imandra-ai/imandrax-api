@@ -1,0 +1,9 @@
+(library
+ (kind ppx_deriver)
+ (name imandrax_api_ppx_mir)
+ (public_name imandrax-api-ppx.mir)
+ (ppx_runtime_libraries imandrax-api imandrax-api.mir)
+ (libraries ppxlib ppxlib.astlib)
+ (preprocess
+  (pps ppxlib.metaquot))
+ (synopsis "ppx to convert from MIR terms to OCaml values"))

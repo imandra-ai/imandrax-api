@@ -10,7 +10,7 @@ let spf = Printf.sprintf
 (* utils *)
 open struct
   (* name for variables *)
-  let name_poly_var_ v = spf "_cir_%s" v
+  let name_poly_var_ v = spf "_mir_%s" v
   let mkstrlit s = A.Exp.constant (A.Const.string s)
 
   let mk_lambda ~loc args body =
@@ -29,66 +29,66 @@ open struct
     | Longident.Ldot (m, a) -> Longident.Ldot (m, f a)
 end
 
-let of_cir_name_of_ty_name (ty_name : string) : string =
+let of_mir_name_of_ty_name (ty_name : string) : string =
   if ty_name = "t" then
-    "of_cir"
+    "of_mir"
   else
-    ty_name ^ "_of_cir"
+    ty_name ^ "_of_mir"
 
-let of_cir_name_of_lid = map_lid ~f:of_cir_name_of_ty_name
+let of_mir_name_of_lid = map_lid ~f:of_mir_name_of_ty_name
 
-let rec expr_of_cir (ty : core_type) (e : expression) : expression =
+let rec expr_of_mir (ty : core_type) (e : expression) : expression =
   let loc = ty.ptyp_loc in
   match ty with
   | [%type: int] | [%type: Z.t] | [%type: Int.t] ->
     [%expr
-      match Imandrax_api_cir.Term.view [%e e] with
+      match Imandrax_api_mir.Term.view [%e e] with
       | Const (Const_z x) -> x
       | _ -> failwith "of-cir: expected int"]
   | [%type: real] | [%type: Q.t] | [%type: Real.t] ->
     [%expr
-      match Imandrax_api_cir.Term.view [%e e] with
+      match Imandrax_api_mir.Term.view [%e e] with
       | Const (Const_q x) -> x
       | _ -> failwith "of-cir: expected real"]
   | [%type: bool] ->
     [%expr
-      match Imandrax_api_cir.Term.view [%e e] with
+      match Imandrax_api_mir.Term.view [%e e] with
       | Const (Const_bool b) -> b
       | _ -> failwith "of-cir: expected bool"]
   | [%type: unit] ->
     [%expr
-      match Imandrax_api_cir.Term.view [%e e] with
+      match Imandrax_api_mir.Term.view [%e e] with
       | Construct { c; args = []; _ } when c.sym.id.name = "()" -> ()
       | _ -> failwith "of-cir: expected unit"]
   | [%type: string] ->
     [%expr
-      match Imandrax_api_cir.Term.view [%e e] with
+      match Imandrax_api_mir.Term.view [%e e] with
       | Const (Const_string s) -> s
       | _ -> failwith "of-cir: expected string"]
   | [%type: float] ->
     [%expr
-      match Imandrax_api_cir.Term.view [%e e] with
+      match Imandrax_api_mir.Term.view [%e e] with
       | Const (Const_float f) -> f
       | _ -> failwith "of-cir: expected float"]
   | [%type: Imandrax_api.Uid.t] | [%type: Uid.t] ->
     [%expr
-      match Imandrax_api_cir.Term.view [%e e] with
+      match Imandrax_api_mir.Term.view [%e e] with
       | Const (Const_uid id) -> id
       | _ -> failwith "of-cir: expected id"]
   | [%type: [%t? ty_arg0] option] ->
     [%expr
-      match Imandrax_api_cir.Term.view [%e e] with
+      match Imandrax_api_mir.Term.view [%e e] with
       | Construct { c; args = []; _ } when c.sym.id.name = "None" -> None
       | Construct { c; args = [ x ]; _ } when c.sym.id.name = "Some" ->
-        Some [%e expr_of_cir ty_arg0 [%expr x]]
+        Some [%e expr_of_mir ty_arg0 [%expr x]]
       | _ -> failwith "of-cir: expected option"]
   | [%type: [%t? ty_arg0] list] ->
     [%expr
       let rec get_list t =
-        match Imandrax_api_cir.Term.view t with
+        match Imandrax_api_mir.Term.view t with
         | Construct { c; args = []; _ } when c.sym.id.name = "[]" -> []
         | Construct { c; args = [ x; tl ]; _ } when c.sym.id.name = "::" ->
-          [%e expr_of_cir ty_arg0 [%expr x]] :: get_list tl
+          [%e expr_of_mir ty_arg0 [%expr x]] :: get_list tl
         | _ -> failwith "of-cir: expected list"
       in
       get_list [%e e]]
@@ -106,11 +106,11 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
   | { ptyp_desc = Ptyp_constr (lid, args); ptyp_loc = loc; _ } ->
     let args =
       List.map
-        (fun a -> Nolabel, [%expr fun self -> [%e expr_of_cir a [%expr self]]])
+        (fun a -> Nolabel, [%expr fun self -> [%e expr_of_mir a [%expr self]]])
         args
     in
     A.Exp.apply
-      (A.Exp.ident { loc; txt = of_cir_name_of_lid lid.txt })
+      (A.Exp.ident { loc; txt = of_mir_name_of_lid lid.txt })
       (args @ [ Nolabel, e ])
   | { ptyp_desc = Ptyp_tuple args; ptyp_loc = loc; _ } ->
     let pat_args =
@@ -119,16 +119,16 @@ let rec expr_of_cir (ty : core_type) (e : expression) : expression =
     let result_args =
       List.mapi
         (fun i (a : core_type) ->
-          expr_of_cir a
+          expr_of_mir a
             (A.Exp.ident { loc; txt = Longident.Lident (spf "x_%d" i) }))
         args
     in
     [%expr
-      match Imandrax_api_cir.Term.view [%e e] with
+      match Imandrax_api_mir.Term.view [%e e] with
       | Tuple { l = [%p mk_plist ~loc pat_args]; _ } ->
         [%e A.Exp.tuple result_args]
       | _ -> failwith "of-cir: expected tuple"]
-  | { ptyp_desc = Ptyp_alias (ty, _); _ } -> expr_of_cir ty e
+  | { ptyp_desc = Ptyp_alias (ty, _); _ } -> expr_of_mir ty e
   | { ptyp_desc = Ptyp_variant _; ptyp_loc = loc; _ } ->
     [%expr [%error "Cannot register polymorphic variants"]]
   | { ptyp_desc = Ptyp_arrow _; ptyp_loc = loc; _ } ->
@@ -154,10 +154,10 @@ let param_names ty =
          let loc = ty.ptyp_loc in
          match ty.ptyp_desc with
          | Ptyp_var a -> a
-         | Ptyp_any -> error_gen ~loc "Cannot derive of_cir for implicit param"
-         | _ -> error_gen ~loc "Cannot derive of_cir for non-variable type")
+         | Ptyp_any -> error_gen ~loc "Cannot derive of_mir for implicit param"
+         | _ -> error_gen ~loc "Cannot derive of_mir for non-variable type")
 
-let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
+let of_mir_vb_of_tydecl (d : type_declaration) : value_binding =
   let loc = d.ptype_loc in
 
   let body : expression =
@@ -166,9 +166,9 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
       (match d.ptype_manifest with
       | Some ty_alias ->
         (* alias, just forward to it *)
-        expr_of_cir ty_alias [%expr self]
-      | None -> [%expr [%error "cannot derive of_cir for abstract type"]])
-    | Ptype_open -> [%expr [%error "cannot derive of_cir for open type"]]
+        expr_of_mir ty_alias [%expr self]
+      | None -> [%expr [%error "cannot derive of_mir for abstract type"]])
+    | Ptype_open -> [%expr [%error "cannot derive of_mir for open type"]]
     | Ptype_variant cstors ->
       let case_of_cstor (c : constructor_declaration) : case =
         let loc = c.pcd_loc in
@@ -177,15 +177,15 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
         let pat, rhs =
           match c.pcd_args with
           | Pcstr_tuple [] ->
-            ( [%pat? Imandrax_api_cir.Term.Construct { c; args = []; _ }],
+            ( [%pat? Imandrax_api_mir.Term.Construct { c; args = []; _ }],
               A.Exp.construct c_lid None )
           | Pcstr_tuple [ ty0 ] ->
-            ( [%pat? Imandrax_api_cir.Term.Construct { c; args = [ x ]; _ }],
-              A.Exp.construct c_lid @@ Some (expr_of_cir ty0 [%expr x]) )
+            ( [%pat? Imandrax_api_mir.Term.Construct { c; args = [ x ]; _ }],
+              A.Exp.construct c_lid @@ Some (expr_of_mir ty0 [%expr x]) )
           | Pcstr_tuple l ->
             let pat =
               [%pat?
-                Imandrax_api_cir.Term.Construct
+                Imandrax_api_mir.Term.Construct
                   {
                     c;
                     args =
@@ -203,7 +203,7 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
                    (A.Exp.tuple
                    @@ List.mapi
                         (fun i a ->
-                          expr_of_cir a
+                          expr_of_mir a
                             (A.Exp.ident
                                { loc; txt = Longident.Lident (spf "x_%d" i) }))
                         l)
@@ -216,14 +216,14 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
             in
             let pat =
               [%pat?
-                Imandrax_api_cir.Term.Construct { c; args = [%p pat_fields]; _ }]
+                Imandrax_api_mir.Term.Construct { c; args = [%p pat_fields]; _ }]
             in
             let rhs_fields =
               List.mapi
                 (fun i (r : label_declaration) ->
                   let e =
-                    (* [foo_of_cir self.foo] *)
-                    expr_of_cir r.pld_type
+                    (* [foo_of_mir self.foo] *)
+                    expr_of_mir r.pld_type
                       (A.Exp.ident
                          { loc; txt = Longident.Lident (spf "x_%d" i) })
                   in
@@ -255,7 +255,7 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
       in
 
       A.Exp.match_
-        [%expr Imandrax_api_cir.Term.view self]
+        [%expr Imandrax_api_mir.Term.view self]
         (List.map case_of_cstor cstors @ [ last_case ])
     | Ptype_record labels ->
       let fields =
@@ -268,7 +268,7 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
                  [%expr
                    match
                      CCList.find_map
-                       (fun ((sym, v) : Imandrax_api_cir.Applied_symbol.t * _) ->
+                       (fun ((sym, v) : Imandrax_api_mir.Applied_symbol.t * _) ->
                          if sym.sym.id.name = [%e mkstrlit f.pld_name.txt] then
                            Some v
                          else
@@ -281,12 +281,12 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
                          mkstrlit
                            (spf "of-cir: record: missing field: %S"
                               f.pld_name.txt)]
-                   | Some v -> [%e expr_of_cir f.pld_type [%expr v]]]
+                   | Some v -> [%e expr_of_mir f.pld_type [%expr v]]]
                in
                lid, e)
       in
       [%expr
-        match Imandrax_api_cir.Term.view self with
+        match Imandrax_api_mir.Term.view self with
         | Record { rows; rest = None } -> [%e A.Exp.record fields None]
         | Record { rows; rest = Some _rest } ->
           (* TODO: recurse in [rest] *)
@@ -296,11 +296,11 @@ let of_cir_vb_of_tydecl (d : type_declaration) : value_binding =
 
   let params = param_names d |> List.map name_poly_var_ in
 
-  let name = of_cir_name_of_ty_name d.ptype_name.txt in
+  let name = of_mir_name_of_ty_name d.ptype_name.txt in
   A.Vb.mk
     (A.Pat.var { loc = d.ptype_loc; txt = name })
     (mk_lambda ~loc params
-    @@ [%expr fun (self : Imandrax_api_cir.Term.t) -> [%e body]])
+    @@ [%expr fun (self : Imandrax_api_mir.Term.t) -> [%e body]])
 
 let bracket_warn type_declarations stri =
   let loc =
@@ -314,7 +314,7 @@ let bracket_warn type_declarations stri =
 
 let generate_impl_ (_rec_flag, type_declarations) : structure_item list =
   let add (tys : type_declaration list) : structure_item =
-    let vbs = List.map of_cir_vb_of_tydecl tys in
+    let vbs = List.map of_mir_vb_of_tydecl tys in
     let loc = Location.none in
     A.Str.value ~loc Recursive vbs
   in
@@ -331,4 +331,4 @@ let generate_impl ~ctxt:_ (rec_flag, type_declarations) =
     [ str0 ]
 
 let impl_generator = Deriving.Generator.V2.make_noarg generate_impl
-let myderiver = Deriving.add "of_cir" ~str_type_decl:impl_generator
+let myderiver = Deriving.add "of_mir" ~str_type_decl:impl_generator
