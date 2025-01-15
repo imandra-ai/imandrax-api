@@ -124,7 +124,7 @@ end = struct
   type t = {
     view: (t, Type.t) view;
     ty: Type.t;
-    generation: generation;
+    generation: (generation[@ocaml_only]);
   }
   [@@deriving twine, typereg, show { with_path = false }]
 

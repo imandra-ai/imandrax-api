@@ -43,7 +43,7 @@ end = struct
 
   type t = {
     view: (unit, var, t) Imandrax_api.Ty_view.view;
-    generation: generation;
+    generation: (generation[@ocaml_only]);
   }
   [@@deriving twine, typereg, show { with_path = false }]
 
