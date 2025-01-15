@@ -1587,10 +1587,10 @@ def Common_Decomp_lift_bool_of_twine(d: twine.Decoder, off: int) -> Common_Decom
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Common_Decomp_lift_bool, got invalid constructor {idx}')
 
-# clique Imandrax_api_common.Decomp.t
-# def Imandrax_api_common.Decomp.t (mangled name: "Common_Decomp")
+# clique Imandrax_api_common.Decomp.t_
+# def Imandrax_api_common.Decomp.t_ (mangled name: "Common_Decomp_t_")
 @dataclass(slots=True, frozen=True)
-class Common_Decomp:
+class Common_Decomp_t_:
     f_id: Uid
     assuming: None | Uid
     basis: Uid_set
@@ -1599,7 +1599,7 @@ class Common_Decomp:
     lift_bool: Common_Decomp_lift_bool
     prune: bool
 
-def Common_Decomp_of_twine(d: twine.Decoder, off: int) -> Common_Decomp:
+def Common_Decomp_t__of_twine(d: twine.Decoder, off: int) -> Common_Decomp_t_:
     fields = list(d.get_array(off=off))
     f_id = Uid_of_twine(d=d, off=fields[0])
     assuming = twine.optional(d=d, off=fields[1], d0=lambda d, off: Uid_of_twine(d=d, off=off))
@@ -1608,7 +1608,7 @@ def Common_Decomp_of_twine(d: twine.Decoder, off: int) -> Common_Decomp:
     ctx_simp = d.get_bool(off=fields[4])
     lift_bool = Common_Decomp_lift_bool_of_twine(d=d, off=fields[5])
     prune = d.get_bool(off=fields[6])
-    return Common_Decomp(f_id=f_id,assuming=assuming,basis=basis,rule_specs=rule_specs,ctx_simp=ctx_simp,lift_bool=lift_bool,prune=prune)
+    return Common_Decomp_t_(f_id=f_id,assuming=assuming,basis=basis,rule_specs=rule_specs,ctx_simp=ctx_simp,lift_bool=lift_bool,prune=prune)
 
 # clique Imandrax_api_common.Db_ser.uid_map
 # def Imandrax_api_common.Db_ser.uid_map (mangled name: "Common_Db_ser_uid_map")
@@ -2130,10 +2130,26 @@ def Mir_Elimination_rule_of_twine(d: twine.Decoder, off: int) -> Mir_Elimination
 
 # clique Imandrax_api_mir.Decomp.t
 # def Imandrax_api_mir.Decomp.t (mangled name: "Mir_Decomp")
-type Mir_Decomp = Common_Decomp
+@dataclass(slots=True, frozen=True)
+class Mir_Decomp:
+    f_id: Uid
+    assuming: None | Uid
+    basis: Uid_set
+    rule_specs: Uid_set
+    ctx_simp: bool
+    lift_bool: Mir_Decomp_lift_bool
+    prune: bool
 
 def Mir_Decomp_of_twine(d: twine.Decoder, off: int) -> Mir_Decomp:
-    return Common_Decomp_of_twine(d=d, off=off)
+    fields = list(d.get_array(off=off))
+    f_id = Uid_of_twine(d=d, off=fields[0])
+    assuming = twine.optional(d=d, off=fields[1], d0=lambda d, off: Uid_of_twine(d=d, off=off))
+    basis = Uid_set_of_twine(d=d, off=fields[2])
+    rule_specs = Uid_set_of_twine(d=d, off=fields[3])
+    ctx_simp = d.get_bool(off=fields[4])
+    lift_bool = Mir_Decomp_lift_bool_of_twine(d=d, off=fields[5])
+    prune = d.get_bool(off=fields[6])
+    return Mir_Decomp(f_id=f_id,assuming=assuming,basis=basis,rule_specs=rule_specs,ctx_simp=ctx_simp,lift_bool=lift_bool,prune=prune)
 
 # clique Imandrax_api_mir.Db_ser.t
 # def Imandrax_api_mir.Db_ser.t (mangled name: "Mir_Db_ser")
@@ -3463,7 +3479,7 @@ def Tasks_Eval_res_of_twine(d: twine.Decoder, off: int) -> Tasks_Eval_res:
 @dataclass(slots=True, frozen=True)
 class Tasks_Decomp_task_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     db: Common_Db_ser_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
-    decomp: Common_Decomp
+    decomp: Common_Decomp_t_
     anchor: Anchor
 
 def Tasks_Decomp_task_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_Decomp_task_t_poly:
@@ -3471,7 +3487,7 @@ def Tasks_Decomp_task_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: tw
     decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     db = Common_Db_ser_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
-    decomp = Common_Decomp_of_twine(d=d, off=fields[1])
+    decomp = Common_Decomp_t__of_twine(d=d, off=fields[1])
     anchor = Anchor_of_twine(d=d, off=fields[2])
     return Tasks_Decomp_task_t_poly(db=db,decomp=decomp,anchor=anchor)
 
@@ -3548,7 +3564,7 @@ def Tasks_Decomp_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](
 # def Imandrax_api_tasks.Decomp_res.full_poly (mangled name: "Tasks_Decomp_res_full_poly")
 @dataclass(slots=True, frozen=True)
 class Tasks_Decomp_res_full_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    from_: Common_Decomp
+    from_: Common_Decomp_t_
     res: Tasks_Decomp_res_result[Tasks_Decomp_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
     stats: Stat_time
     report: In_mem_archive[Report_Report]
@@ -3557,7 +3573,7 @@ def Tasks_Decomp_res_full_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: 
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    from_ = Common_Decomp_of_twine(d=d, off=fields[0])
+    from_ = Common_Decomp_t__of_twine(d=d, off=fields[0])
     res = Tasks_Decomp_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_Decomp_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     stats = Stat_time_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))

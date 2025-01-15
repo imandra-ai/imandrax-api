@@ -25,14 +25,14 @@ module Build_ : sig
     (** A special state that doesn't hashcons *)
   end
 
-  type t = private {
+  type ser = { view: (unit, var, t) view } [@@unboxed]
+
+  and t = private {
     view: (unit, var, t) Imandrax_api.Ty_view.view;
     generation: generation;
   }
   [@@deriving twine, show, eq]
   (** A type expression *)
-
-  type ser = { view: (unit, var, t) view } [@@unboxed] [@@deriving twine]
 
   val hash : t -> int
   val make : State.t -> (unit, var, t) view -> t
@@ -117,7 +117,7 @@ end = struct
   type ty = t
 
   type ser = { view: (unit, var, t) Imandrax_api.Ty_view.view }
-  [@@unboxed] [@@deriving twine, typereg]
+  [@@unboxed] [@@deriving twine, show, eq, typereg]
 
   open struct
     let[@inline] ser_of_ty (t : ty) : ser = { view = t.view }

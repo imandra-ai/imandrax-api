@@ -552,9 +552,9 @@ pub enum CommonDecompLift_bool {
   All,
 }
 
-// clique Imandrax_api_common.Decomp.t
+// clique Imandrax_api_common.Decomp.t_
 #[derive(Debug, Clone)]
-pub struct CommonDecomp<'a> {
+pub struct CommonDecompT_<'a> {
   pub f_id: &'a Uid<'a>,
   pub assuming: Option<&'a Uid<'a>>,
   pub basis: &'a UidSet<'a>,
@@ -659,6 +659,19 @@ pub struct MirTerm<'a> {
 pub struct MirTermSer<'a> {
   pub view: &'a MirTermView<'a,&'a MirTerm<'a>,&'a MirType<'a>>,
   pub ty: &'a MirType<'a>,
+}
+
+
+// clique Imandrax_api_mir.Decomp.t
+#[derive(Debug, Clone)]
+pub struct MirDecomp<'a> {
+  pub f_id: &'a Uid<'a>,
+  pub assuming: Option<&'a Uid<'a>>,
+  pub basis: &'a UidSet<'a>,
+  pub rule_specs: &'a UidSet<'a>,
+  pub ctx_simp: bool,
+  pub lift_bool: &'a MirDecompLift_bool<'a>,
+  pub prune: bool,
 }
 
 
@@ -984,7 +997,7 @@ pub struct TasksEval_res<'a> {
 #[derive(Debug, Clone)]
 pub struct TasksDecomp_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub db: &'a CommonDb_serT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
-  pub decomp: &'a CommonDecomp<'a>,
+  pub decomp: &'a CommonDecompT_<'a>,
   pub anchor: &'a Anchor<'a>,
 }
 
@@ -1016,7 +1029,7 @@ pub struct TasksDecomp_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'
 // clique Imandrax_api_tasks.Decomp_res.full_poly
 #[derive(Debug, Clone)]
 pub struct TasksDecomp_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
-  pub from_: &'a CommonDecomp<'a>,
+  pub from_: &'a CommonDecompT_<'a>,
   pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksDecomp_resError<'a>>,
   pub stats: Stat_time,
   pub report: &'a In_mem_archiveRaw<'a>,

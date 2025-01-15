@@ -101,18 +101,17 @@ module Build_ : sig
     (** A special state that doesn't hashcons *)
   end
 
-  type t = private {
+  type ser = {
+    view: (t, Type.t) view;
+    ty: Type.t;
+  }
+
+  and t = private {
     view: (t, Type.t) view;
     ty: Type.t;
     generation: generation;
   }
   [@@deriving twine, show, eq]
-
-  type ser = {
-    view: (t, Type.t) view;
-    ty: Type.t;
-  }
-  [@@deriving twine, show]
 
   val hash : t -> int
   val make : State.t -> (t, Type.t) view -> Type.t -> t
@@ -218,7 +217,7 @@ end = struct
     view: (t, Type.t) view;
     ty: Type.t;
   }
-  [@@deriving twine, typereg, show]
+  [@@deriving twine, typereg, show, eq]
 
   open struct
     let[@inline] ser_of_term (t : term) : ser = { view = t.view; ty = t.ty }
