@@ -102,7 +102,10 @@ let rec gen_type_expr (ty : tyexpr) : string =
   | Attrs (Cstor ("string", []), attrs)
     when List.mem_assoc "twine.use_bytes" attrs ->
     "bytes"
-  | Attrs (ty, _) -> gen_type_expr ty
+  | Attrs (ty, _attrs) ->
+    if List.mem_assoc "ocaml_only" _attrs then
+      Printf.eprintf "warning: remaining `ocaml_only` attr\n%!";
+    gen_type_expr ty
   | Cstor (s, args) ->
     (match s, args with
     | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] -> "int"

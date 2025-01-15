@@ -173,5 +173,8 @@ let parse_typereg () : TR.Ty_def.clique list =
         failwith @@ spf "JSON parse error: %s\nin `%s`" msg (J.to_string j)
       | Ok cl -> cliques := cl :: !cliques)
     l;
-  let cl = qualify_types_in_cliques @@ List.rev !cliques in
+  let cl =
+    List.rev !cliques |> qualify_types_in_cliques
+    |> Remove_ocaml_only_fields.process
+  in
   cl
