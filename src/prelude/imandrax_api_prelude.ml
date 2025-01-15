@@ -4,7 +4,7 @@ module Program_prelude_ =
   struct
     module Int =
       struct
-        type t = int[@@deriving (to_iml, of_cir)]
+        type t = int[@@deriving (to_iml, of_mir)]
         include Stdlib
         let of_int i = i
       end
@@ -12,7 +12,7 @@ module Program_prelude_ =
       struct
         type 'a t = 'a list =
           | [] 
-          | (::) of 'a * 'a t [@@deriving (to_iml, of_cir)]
+          | (::) of 'a * 'a t [@@deriving (to_iml, of_mir)]
       end
     module String =
       struct
@@ -28,16 +28,16 @@ module Program_prelude_ =
     let implies x y = (not x) || y[@@inline ]
   end[@@program ]
 [@@@ocaml.text " {2 Bare minimum needed for ordinals and validation} "]
-type int = Z.t[@@deriving (to_iml, of_cir)][@@builtin.logic_core "mk_s_int"]
+type int = Z.t[@@deriving (to_iml, of_mir)][@@builtin.logic_core "mk_s_int"]
 [@@ocaml.doc
   " Builtin integer type, using arbitrary precision integers.\n\n    This type is an alias to {!Z.t}\n    (using {{: https://github.com/ocaml/Zarith} Zarith}).\n\n    {b NOTE}: here Imandra diverges from normal OCaml, where integers width\n    is bounded by native machine integers.\n    \"Normal\" OCaml integers have type {!Caml.Int.t} and can be entered\n    using the 'i' suffix: [0i]\n"]
-type nonrec bool = bool[@@deriving (to_iml, of_cir)][@@builtin.logic_core
+type nonrec bool = bool[@@deriving (to_iml, of_mir)][@@builtin.logic_core
                                                       "mk_s_bool"][@@ocaml.doc
                                                                     " Builtin boolean type. "]
 (* skip *)
 (* skip *)
 type nonrec unit = unit =
-  | () [@@deriving (to_iml, of_cir)][@@builtin.special "ty.unit"][@@noalias ]
+  | () [@@deriving (to_iml, of_mir)][@@builtin.special "ty.unit"][@@noalias ]
 let (=) : 'a -> 'a -> bool = Stdlib.(=)[@@ocaml.doc
                                          " Equality. Must be applied to non-function types. "]
   [@@builtin.logic_core "mk_eq"]
@@ -58,18 +58,18 @@ let mk_nat (x : int) : int=
   [@@builtin.special "fn.mk_nat"]
 type nonrec 'a option = 'a option =
   | None 
-  | Some of 'a [@@deriving (to_iml, of_cir)][@@builtin.special "ty.option"]
+  | Some of 'a [@@deriving (to_iml, of_mir)][@@builtin.special "ty.option"]
 [@@noalias ]
 type 'a list = 'a Program_prelude_.List.t =
   | [] 
-  | (::) of 'a * 'a list [@@deriving (to_iml, of_cir)][@@builtin.special
+  | (::) of 'a * 'a list [@@deriving (to_iml, of_mir)][@@builtin.special
                                                         "ty.list"][@@noalias
                                                                     ]
-type nonrec float = float[@@deriving (to_iml, of_cir)][@@builtin.logic_core
+type nonrec float = float[@@deriving (to_iml, of_mir)][@@builtin.logic_core
                                                         "mk_s_float"]
-type nonrec real = Q.t[@@deriving (to_iml, of_cir)][@@builtin.logic_core
+type nonrec real = Q.t[@@deriving (to_iml, of_mir)][@@builtin.logic_core
                                                      "mk_s_real"]
-type nonrec string = string[@@deriving (to_iml, of_cir)][@@builtin.logic_core
+type nonrec string = string[@@deriving (to_iml, of_mir)][@@builtin.logic_core
                                                           "mk_s_str"]
 let (<) : int -> int -> bool = (<)[@@builtin.logic_core "mk_i_lt"]
 let (<=) : int -> int -> bool = (<=)[@@builtin.logic_core "mk_i_le"]
@@ -101,7 +101,7 @@ let compare (x : int) (y : int) : int=
                                                                   " Total order "]
 type ('a, 'b) result = ('a, 'b) Stdlib.result =
   | Ok of 'a 
-  | Error of 'b [@@deriving (to_iml, of_cir)][@@ocaml.doc
+  | Error of 'b [@@deriving (to_iml, of_mir)][@@ocaml.doc
                                                " Result type, representing either a successul result [Ok x]\n    or an error [Error x]. "]
 [@@noalias ][@@builtin.special "ty.result"]
 (* skip *)
@@ -113,7 +113,7 @@ module Ordinal =
       | Cons of t * int * t
       [@ocaml.doc
         " [cons a x tl] is [x\194\183(\207\137^a) + tl], where [tl < \207\137\194\183a], [a\226\137\1600], [x\226\137\1600] "]
-    [@@deriving (to_iml, of_cir)][@@ocaml.doc
+    [@@deriving (to_iml, of_mir)][@@ocaml.doc
                                    " Ordinals, up to \206\181\226\130\128, in Cantor Normal Form "]
     [@@builtin.special "ty.ordinal"][@@no_validate ]
     let pp out (x : t) : unit=
@@ -232,7 +232,7 @@ module Peano_nat =
   struct
     type t =
       | Z 
-      | S of t [@@deriving (to_iml, of_cir)][@@builtin.special
+      | S of t [@@deriving (to_iml, of_mir)][@@builtin.special
                                               "ty.peano.nat"]
     let zero = Z[@@builtin.special "fn.peano.zero"][@@macro ]
     let succ x = S x[@@builtin.special "fn.peano.succ"][@@macro ]
@@ -263,7 +263,7 @@ module Peano_nat =
 [@@@ocaml.text " {2 Other builtin types} "]
 module Result =
   struct
-    type ('a, 'b) t = ('a, 'b) result[@@deriving (to_iml, of_cir)]
+    type ('a, 'b) t = ('a, 'b) result[@@deriving (to_iml, of_mir)]
     let return x = Ok x[@@macro ]
     let fail s = Error s[@@macro ]
     let map f e = match e with | Ok x -> Ok (f x) | Error s -> Error s
@@ -294,7 +294,7 @@ module Result =
   end
 type ('a, 'b) either =
   | Left of 'a 
-  | Right of 'b [@@deriving (to_iml, of_cir)][@@ocaml.doc
+  | Right of 'b [@@deriving (to_iml, of_mir)][@@ocaml.doc
                                                " A familiar type for Haskellers "]
 let (|>) x f = f x[@@ocaml.doc
                     " Pipeline operator.\n\n    [x |> f] is the same as [f x], but it composes nicely:\n    [ x |> f |> g |> h] can be more readable than [h(g(f x))].\n"]
@@ -316,7 +316,7 @@ let ( *. ) : real -> real -> real = Q.( * )[@@builtin.logic_core "mk_r_mul"]
 let (/.) : real -> real -> real = Q.(/)[@@builtin.logic_core "mk_r_div"]
 module List =
   struct
-    type 'a t = 'a list[@@deriving (to_iml, of_cir)]
+    type 'a t = 'a list[@@deriving (to_iml, of_mir)]
     let empty = [][@@macro ]
     let is_empty = function | [] -> true | _::_ -> false[@@ocaml.doc
                                                           " Test whether a list is empty "]
@@ -497,7 +497,7 @@ let (@) = List.append[@@ocaml.doc " Infix alias to {!List.append} "][@@macro
 let (--) = List.(--)[@@ocaml.doc " Alias to {!List.(--)} "][@@macro ]
 module Int =
   struct
-    type t = int[@@deriving (to_iml, of_cir)]
+    type t = int[@@deriving (to_iml, of_mir)]
     let (+) = (+)[@@macro ]
     let (-) = (-)[@@macro ]
     let (~-) = (~-)[@@macro ]
@@ -548,7 +548,7 @@ module Int =
         (((n + ((Z.of_nativeint (-1n)) * m)) mod m) = (n mod m))[@@imandra_axiom
                                                                   ][@@rw ]
   end
-module Bool = struct type t = bool[@@deriving (to_iml, of_cir)] end
+module Bool = struct type t = bool[@@deriving (to_iml, of_mir)] end
 module Array =
   struct
     include Stdlib.Array[@@ocaml.doc
@@ -567,7 +567,7 @@ module Array =
   end[@@ocaml.doc " {2 Arrays}\n\n   Program mode only "][@@program ]
 module Option =
   struct
-    type 'a t = 'a option[@@deriving (to_iml, of_cir)]
+    type 'a t = 'a option[@@deriving (to_iml, of_mir)]
     let map f = function | None -> None | Some x -> Some (f x)[@@ocaml.doc
                                                                 " Map over the option.\n\n      - [map f None = None]\n      - [map f (Some x) = Some (f x)]\n  "]
     let map_or ~default f = function | None -> default | Some x -> f x
@@ -605,7 +605,7 @@ module Option =
        " {2 Option module}\n\n    The option type [type 'a option = None | Some of 'a] is useful for\n    representing partial functions and optional values.\n    "]
 module Real =
   struct
-    type t = real[@@deriving (to_iml, of_cir)]
+    type t = real[@@deriving (to_iml, of_mir)]
     let of_int : int -> t = Q.of_bigint[@@builtin.logic_core "mk_r_of_i"]
     let _to_int_round_down : t -> int = Q.to_bigint[@@builtin.logic_core
                                                      "mk_i_of_r"]
@@ -650,7 +650,7 @@ module Map =
   struct
     type (+'a, 'b) t = {
       l: ('a * 'b) list ;
-      default: 'b }[@@deriving (to_iml, of_cir)][@@builtin.logic_core
+      default: 'b }[@@deriving (to_iml, of_mir)][@@builtin.logic_core
                                                   "mk_s_array"]
     let const_ x = { default = x; l = [] }[@@program ]
     let const : 'b -> ('a, 'b) t = const_[@@builtin.logic_core
@@ -743,7 +743,7 @@ module Map =
   end
 module Multiset =
   struct
-    type +'a t = ('a, int) Map.t[@@deriving (to_iml, of_cir)]
+    type +'a t = ('a, int) Map.t[@@deriving (to_iml, of_mir)]
     let empty = Map.const (Z.of_nativeint 0n)[@@macro ]
     let add (x : 'a) (m : 'a t) : 'a t=
       Map.add x ((Map.get x m) + (Z.of_nativeint 1n)) m
@@ -759,7 +759,7 @@ module Multiset =
 [@@@ocaml.text " {2 Sets} "]
 module Set =
   struct
-    type +'a t = ('a, bool) Map.t[@@deriving (to_iml, of_cir)]
+    type +'a t = ('a, bool) Map.t[@@deriving (to_iml, of_mir)]
     let empty : 'a t = Map.const false[@@macro ]
     let full : 'a t = Map.const true[@@macro ]
     let is_empty s : bool= s = empty
@@ -820,7 +820,7 @@ module Set =
   end
 module String =
   struct
-    type t = string[@@deriving (to_iml, of_cir)]
+    type t = string[@@deriving (to_iml, of_mir)]
     let empty = ""
     let length_ (s : t) : int= Z.of_int (Stdlib.String.length s)[@@program ]
     let length : t -> int = length_[@@ocaml.doc
@@ -899,7 +899,7 @@ let fst (x, _) = x[@@macro ]
 let snd (_, y) = y[@@macro ]
 module Float =
   struct
-    type t = float[@@deriving (to_iml, of_cir)]
+    type t = float[@@deriving (to_iml, of_mir)]
     module Round =
       struct
         type t =
@@ -907,7 +907,7 @@ module Float =
           | Nearest_ties_to_away 
           | Towards_positive 
           | Towards_negative 
-          | Towards_zero [@@deriving (to_iml, of_cir)][@@builtin.logic_core
+          | Towards_zero [@@deriving (to_iml, of_mir)][@@builtin.logic_core
                                                         "mk_s_float_rounding"]
         let _ = fun (x : t) -> x = x[@@imandra_verify ]
       end
@@ -966,7 +966,7 @@ module LChar =
   struct
     type t =
       | Char of bool * bool * bool * bool * bool * bool * bool * bool 
-    [@@deriving (to_iml, of_cir)]
+    [@@deriving (to_iml, of_mir)]
     let zero : t =
       Char (false, false, false, false, false, false, false, false)
     let to_int (c : t) : Program_prelude_.Int.t=
@@ -1007,7 +1007,7 @@ module LChar =
 [@@@ocaml.text " {2 Logic-mode strings}\n\n    Strings purely in Imandra. "]
 module LString =
   struct
-    type t = LChar.t list[@@deriving (to_iml, of_cir)]
+    type t = LChar.t list[@@deriving (to_iml, of_mir)]
     let empty : t = []
     let of_list l = l
     let to_string (s : t) = (CCList.map LChar.to_char s) |> CCString.of_list
