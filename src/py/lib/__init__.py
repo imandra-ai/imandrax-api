@@ -304,6 +304,13 @@ def Builtin_Ty_of_twine(d: twine.Decoder, off: int) -> Builtin_Ty:
     kind = Builtin_data_kind_of_twine(d=d, off=fields[1])
     return Builtin_Ty(id=id,kind=kind)
 
+# clique Imandrax_api.Clique.t
+# def Imandrax_api.Clique.t (mangled name: "Clique")
+type Clique = Uid_set
+
+def Clique_of_twine(d: twine.Decoder, off: int) -> Clique:
+    return Uid_set_of_twine(d=d, off=off)
+
 # clique Imandrax_api.Ty_view.adt_row
 # def Imandrax_api.Ty_view.adt_row (mangled name: "Ty_view_adt_row")
 @dataclass(slots=True, frozen=True)
@@ -486,6 +493,26 @@ def Ty_view_view_of_twine[_V_tyreg_poly_lbl,_V_tyreg_poly_var,_V_tyreg_poly_t](d
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Ty_view_view, got invalid constructor {idx}')
 
+# clique Imandrax_api.Ty_view.def_poly
+# def Imandrax_api.Ty_view.def_poly (mangled name: "Ty_view_def_poly")
+@dataclass(slots=True, frozen=True)
+class Ty_view_def_poly[_V_tyreg_poly_ty]:
+    name: Uid
+    params: list[Uid]
+    decl: Ty_view_decl[Uid,"_V_tyreg_poly_ty",Void]
+    clique: None | Clique
+    timeout: None | int
+
+def Ty_view_def_poly_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],off: int) -> Ty_view_def_poly:
+    decode__tyreg_poly_ty = d0
+    fields = list(d.get_array(off=off))
+    name = Uid_of_twine(d=d, off=fields[0])
+    params = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=fields[1])]
+    decl = Ty_view_decl_of_twine(d=d,off=fields[2],d0=(lambda d, off: Uid_of_twine(d=d, off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d2=(lambda d, off: Void_of_twine(d=d, off=off)))
+    clique = twine.optional(d=d, off=fields[3], d0=lambda d, off: Clique_of_twine(d=d, off=off))
+    timeout = twine.optional(d=d, off=fields[4], d0=lambda d, off: d.get_int(off=off))
+    return Ty_view_def_poly(name=name,params=params,decl=decl,clique=clique,timeout=timeout)
+
 # clique Imandrax_api.Stat_time.t
 # def Imandrax_api.Stat_time.t (mangled name: "Stat_time")
 @dataclass(slots=True, frozen=True)
@@ -495,20 +522,6 @@ class Stat_time:
 def Stat_time_of_twine(d: twine.Decoder, off: int) -> Stat_time:
     x = d.get_float(off=off) # single unboxed field
     return Stat_time(time_s=x)
-
-# clique Imandrax_api.Sequent_poly.t
-# def Imandrax_api.Sequent_poly.t (mangled name: "Sequent_poly")
-@dataclass(slots=True, frozen=True)
-class Sequent_poly[_V_tyreg_poly_term]:
-    hyps: list["_V_tyreg_poly_term"]
-    concls: list["_V_tyreg_poly_term"]
-
-def Sequent_poly_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],off: int) -> Sequent_poly:
-    decode__tyreg_poly_term = d0
-    fields = list(d.get_array(off=off))
-    hyps = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[0])]
-    concls = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[1])]
-    return Sequent_poly(hyps=hyps,concls=concls)
 
 # clique Imandrax_api.Misc_types.rec_flag
 # def Imandrax_api.Misc_types.rec_flag (mangled name: "Misc_types_rec_flag")
@@ -684,6 +697,26 @@ def Const_of_twine(d: twine.Decoder, off: int) -> Const:
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Const, got invalid constructor {idx}')
 
+# clique Imandrax_api.Case_poly.t_poly
+# def Imandrax_api.Case_poly.t_poly (mangled name: "Case_poly_t_poly")
+@dataclass(slots=True, frozen=True)
+class Case_poly_t_poly[_V_tyreg_poly_t,_V_tyreg_poly_var,_V_tyreg_poly_sym]:
+    case_cstor: "_V_tyreg_poly_sym"
+    case_vars: list["_V_tyreg_poly_var"]
+    case_rhs: "_V_tyreg_poly_t"
+    case_labels: None | list[Uid]
+
+def Case_poly_t_poly_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_var,_V_tyreg_poly_sym](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_var],d2: Callable[...,_V_tyreg_poly_sym],off: int) -> Case_poly_t_poly:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_var = d1
+    decode__tyreg_poly_sym = d2
+    fields = list(d.get_array(off=off))
+    case_cstor = decode__tyreg_poly_sym(d=d,off=fields[0])
+    case_vars = [decode__tyreg_poly_var(d=d,off=x) for x in d.get_array(off=fields[1])]
+    case_rhs = decode__tyreg_poly_t(d=d,off=fields[2])
+    case_labels = twine.optional(d=d, off=fields[3], d0=lambda d, off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
+    return Case_poly_t_poly(case_cstor=case_cstor,case_vars=case_vars,case_rhs=case_rhs,case_labels=case_labels)
+
 # clique Imandrax_api.As_trigger.t
 # def Imandrax_api.As_trigger.t (mangled name: "As_trigger")
 @dataclass(slots=True, frozen=True)
@@ -775,99 +808,6 @@ def Anchor_of_twine(d: twine.Decoder, off: int) -> Anchor:
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Anchor, got invalid constructor {idx}')
 
-# clique Imandrax_api.Admission.t
-# def Imandrax_api.Admission.t (mangled name: "Admission")
-@dataclass(slots=True, frozen=True)
-class Admission:
-    measured_subset: list[str]
-    measure_fun: None | Uid
-
-def Admission_of_twine(d: twine.Decoder, off: int) -> Admission:
-    fields = list(d.get_array(off=off))
-    measured_subset = [d.get_str(off=x) for x in d.get_array(off=fields[0])]
-    measure_fun = twine.optional(d=d, off=fields[1], d0=lambda d, off: Uid_of_twine(d=d, off=off))
-    return Admission(measured_subset=measured_subset,measure_fun=measure_fun)
-
-# clique Imandrax_api_model.ty_def
-# def Imandrax_api_model.ty_def (mangled name: "Model_ty_def")
-@dataclass(slots=True, frozen=True)
-class Model_ty_def_Ty_finite[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    arg: list["_V_tyreg_poly_term"]
-
-def Model_ty_def_Ty_finite_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Model_ty_def_Ty_finite[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    arg = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=args[0])]
-    return Model_ty_def_Ty_finite(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Model_ty_def_Ty_alias_unit[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    arg: "_V_tyreg_poly_ty"
-
-def Model_ty_def_Ty_alias_unit_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Model_ty_def_Ty_alias_unit[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    arg = decode__tyreg_poly_ty(d=d,off=args[0])
-    return Model_ty_def_Ty_alias_unit(arg=arg)
-
-type Model_ty_def[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Model_ty_def_Ty_finite[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Model_ty_def_Ty_alias_unit[_V_tyreg_poly_term,_V_tyreg_poly_ty]
-
-def Model_ty_def_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Model_ty_def:
-    match d.get_cstor(off=off):
-         case twine.Constructor(idx=0, args=args):
-             args = tuple(args)
-             return Model_ty_def_Ty_finite_of_twine(d=d, args=args, d0=d0,d1=d1,)
-         case twine.Constructor(idx=1, args=args):
-             args = tuple(args)
-             return Model_ty_def_Ty_alias_unit_of_twine(d=d, args=args, d0=d0,d1=d1,)
-         case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Model_ty_def, got invalid constructor {idx}')
-
-# clique Imandrax_api_model.fi
-# def Imandrax_api_model.fi (mangled name: "Model_fi")
-@dataclass(slots=True, frozen=True)
-class Model_fi[_V_tyreg_poly_term,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
-    fi_args: list["_V_tyreg_poly_var"]
-    fi_ty_ret: "_V_tyreg_poly_ty"
-    fi_cases: list[tuple[list["_V_tyreg_poly_term"],"_V_tyreg_poly_term"]]
-    fi_else: "_V_tyreg_poly_term"
-
-def Model_fi_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_var],d2: Callable[...,_V_tyreg_poly_ty],off: int) -> Model_fi:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_var = d1
-    decode__tyreg_poly_ty = d2
-    fields = list(d.get_array(off=off))
-    fi_args = [decode__tyreg_poly_var(d=d,off=x) for x in d.get_array(off=fields[0])]
-    fi_ty_ret = decode__tyreg_poly_ty(d=d,off=fields[1])
-    fi_cases = [(lambda tup: ([decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[2])]
-    fi_else = decode__tyreg_poly_term(d=d,off=fields[3])
-    return Model_fi(fi_args=fi_args,fi_ty_ret=fi_ty_ret,fi_cases=fi_cases,fi_else=fi_else)
-
-# clique Imandrax_api_model.t
-# def Imandrax_api_model.t (mangled name: "Model")
-@dataclass(slots=True, frozen=True)
-class Model[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
-    tys: list[tuple["_V_tyreg_poly_ty",Model_ty_def["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]
-    consts: list[tuple["_V_tyreg_poly_fn","_V_tyreg_poly_term"]]
-    funs: list[tuple["_V_tyreg_poly_fn",Model_fi["_V_tyreg_poly_term","_V_tyreg_poly_var","_V_tyreg_poly_ty"]]]
-    representable: bool
-    completed: bool
-    ty_subst: list[tuple[Uid,"_V_tyreg_poly_ty"]]
-
-def Model_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],off: int) -> Model:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
-    fields = list(d.get_array(off=off))
-    tys = [(lambda tup: (decode__tyreg_poly_ty(d=d,off=tup[0]),Model_ty_def_of_twine(d=d,off=tup[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[0])]
-    consts = [(lambda tup: (decode__tyreg_poly_fn(d=d,off=tup[0]),decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[1])]
-    funs = [(lambda tup: (decode__tyreg_poly_fn(d=d,off=tup[0]),Model_fi_of_twine(d=d,off=tup[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_var(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[2])]
-    representable = d.get_bool(off=fields[3])
-    completed = d.get_bool(off=fields[4])
-    ty_subst = [(lambda tup: (Uid_of_twine(d=d, off=tup[0]),decode__tyreg_poly_ty(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[5])]
-    return Model(tys=tys,consts=consts,funs=funs,representable=representable,completed=completed,ty_subst=ty_subst)
-
 # clique Imandrax_api_ca_store.Key.t
 # def Imandrax_api_ca_store.Key.t (mangled name: "Ca_store_Key")
 type Ca_store_Key = WithTag7[str]
@@ -893,1064 +833,1318 @@ def Ca_store_Ca_ptr_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a]
     decode__tyreg_poly_a = d0
     return Ca_store_Ca_ptr_Raw_of_twine(d=d, off=off)
 
-# clique Imandrax_api_cir.Type.var
-# def Imandrax_api_cir.Type.var (mangled name: "Cir_Type_var")
-type Cir_Type_var = Uid
-
-def Cir_Type_var_of_twine(d: twine.Decoder, off: int) -> Cir_Type_var:
-    return Uid_of_twine(d=d, off=off)
-
-# clique Imandrax_api_cir.Type.clique
-# def Imandrax_api_cir.Type.clique (mangled name: "Cir_Type_clique")
-type Cir_Type_clique = Uid_set
-
-def Cir_Type_clique_of_twine(d: twine.Decoder, off: int) -> Cir_Type_clique:
-    return Uid_set_of_twine(d=d, off=off)
-
-# clique Imandrax_api_cir.Type.t
-# def Imandrax_api_cir.Type.t (mangled name: "Cir_Type")
+# clique Imandrax_api_common.Var.t_poly
+# def Imandrax_api_common.Var.t_poly (mangled name: "Common_Var_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Type:
-    view: Ty_view_view[None,Cir_Type_var,Cir_Type]
-
-def Cir_Type_of_twine(d: twine.Decoder, off: int) -> Cir_Type:
-    x = Ty_view_view_of_twine(d=d,off=off,d0=(lambda d, off: d.get_null(off=off)),d1=(lambda d, off: Cir_Type_var_of_twine(d=d, off=off)),d2=(lambda d, off: Cir_Type_of_twine(d=d, off=off))) # single unboxed field
-    return Cir_Type(view=x)
-
-# clique Imandrax_api_cir.Type.def
-# def Imandrax_api_cir.Type.def (mangled name: "Cir_Type_def")
-@dataclass(slots=True, frozen=True)
-class Cir_Type_def:
-    name: Uid
-    params: list[Cir_Type_var]
-    decl: Ty_view_decl[Uid,Cir_Type,Void]
-    clique: None | Cir_Type_clique
-    timeout: None | int
-
-def Cir_Type_def_of_twine(d: twine.Decoder, off: int) -> Cir_Type_def:
-    fields = list(d.get_array(off=off))
-    name = Uid_of_twine(d=d, off=fields[0])
-    params = [Cir_Type_var_of_twine(d=d, off=x) for x in d.get_array(off=fields[1])]
-    decl = Ty_view_decl_of_twine(d=d,off=fields[2],d0=(lambda d, off: Uid_of_twine(d=d, off=off)),d1=(lambda d, off: Cir_Type_of_twine(d=d, off=off)),d2=(lambda d, off: Void_of_twine(d=d, off=off)))
-    clique = twine.optional(d=d, off=fields[3], d0=lambda d, off: Cir_Type_clique_of_twine(d=d, off=off))
-    timeout = twine.optional(d=d, off=fields[4], d0=lambda d, off: d.get_int(off=off))
-    return Cir_Type_def(name=name,params=params,decl=decl,clique=clique,timeout=timeout)
-
-# clique Imandrax_api_cir.With_ty.t
-# def Imandrax_api_cir.With_ty.t (mangled name: "Cir_With_ty")
-@dataclass(slots=True, frozen=True)
-class Cir_With_ty[_V_tyreg_poly_a]:
-    view: "_V_tyreg_poly_a"
-    ty: Cir_Type
-
-def Cir_With_ty_of_twine[_V_tyreg_poly_a](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Cir_With_ty:
-    decode__tyreg_poly_a = d0
-    fields = list(d.get_array(off=off))
-    view = decode__tyreg_poly_a(d=d,off=fields[0])
-    ty = Cir_Type_of_twine(d=d, off=fields[1])
-    return Cir_With_ty(view=view,ty=ty)
-
-# clique Imandrax_api_cir.Var.t
-# def Imandrax_api_cir.Var.t (mangled name: "Cir_Var")
-type Cir_Var = Cir_With_ty[Uid]
-
-def Cir_Var_of_twine(d: twine.Decoder, off: int) -> Cir_Var:
-    return Cir_With_ty_of_twine(d=d,off=off,d0=(lambda d, off: Uid_of_twine(d=d, off=off)))
-
-# clique Imandrax_api_cir.Type_schema.t
-# def Imandrax_api_cir.Type_schema.t (mangled name: "Cir_Type_schema")
-@dataclass(slots=True, frozen=True)
-class Cir_Type_schema:
-    params: list[Cir_Type_var]
-    ty: Cir_Type
-
-def Cir_Type_schema_of_twine(d: twine.Decoder, off: int) -> Cir_Type_schema:
-    fields = list(d.get_array(off=off))
-    params = [Cir_Type_var_of_twine(d=d, off=x) for x in d.get_array(off=fields[0])]
-    ty = Cir_Type_of_twine(d=d, off=fields[1])
-    return Cir_Type_schema(params=params,ty=ty)
-
-# clique Imandrax_api_cir.Typed_symbol.t
-# def Imandrax_api_cir.Typed_symbol.t (mangled name: "Cir_Typed_symbol")
-@dataclass(slots=True, frozen=True)
-class Cir_Typed_symbol:
+class Common_Var_t_poly[_V_tyreg_poly_ty]:
     id: Uid
-    ty: Cir_Type_schema
+    ty: "_V_tyreg_poly_ty"
 
-def Cir_Typed_symbol_of_twine(d: twine.Decoder, off: int) -> Cir_Typed_symbol:
+def Common_Var_t_poly_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Var_t_poly:
+    decode__tyreg_poly_ty = d0
     fields = list(d.get_array(off=off))
     id = Uid_of_twine(d=d, off=fields[0])
-    ty = Cir_Type_schema_of_twine(d=d, off=fields[1])
-    return Cir_Typed_symbol(id=id,ty=ty)
+    ty = decode__tyreg_poly_ty(d=d,off=fields[1])
+    return Common_Var_t_poly(id=id,ty=ty)
 
-# clique Imandrax_api_cir.Applied_symbol.t
-# def Imandrax_api_cir.Applied_symbol.t (mangled name: "Cir_Applied_symbol")
+# clique Imandrax_api_common.Type_schema.t_poly
+# def Imandrax_api_common.Type_schema.t_poly (mangled name: "Common_Type_schema_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Applied_symbol:
-    sym: Cir_Typed_symbol
-    args: list[Cir_Type]
-    ty: Cir_Type
+class Common_Type_schema_t_poly[_V_tyreg_poly_ty]:
+    params: list[Uid]
+    ty: "_V_tyreg_poly_ty"
 
-def Cir_Applied_symbol_of_twine(d: twine.Decoder, off: int) -> Cir_Applied_symbol:
+def Common_Type_schema_t_poly_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Type_schema_t_poly:
+    decode__tyreg_poly_ty = d0
     fields = list(d.get_array(off=off))
-    sym = Cir_Typed_symbol_of_twine(d=d, off=fields[0])
-    args = [Cir_Type_of_twine(d=d, off=x) for x in d.get_array(off=fields[1])]
-    ty = Cir_Type_of_twine(d=d, off=fields[2])
-    return Cir_Applied_symbol(sym=sym,args=args,ty=ty)
+    params = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=fields[0])]
+    ty = decode__tyreg_poly_ty(d=d,off=fields[1])
+    return Common_Type_schema_t_poly(params=params,ty=ty)
 
-# clique Imandrax_api_cir.Fo_pattern.view
-# def Imandrax_api_cir.Fo_pattern.view (mangled name: "Cir_Fo_pattern_view")
+# clique Imandrax_api_common.Typed_symbol.t_poly
+# def Imandrax_api_common.Typed_symbol.t_poly (mangled name: "Common_Typed_symbol_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Fo_pattern_view_FO_any[_V_tyreg_poly_t]:
+class Common_Typed_symbol_t_poly[_V_tyreg_poly_ty]:
+    id: Uid
+    ty: Common_Type_schema_t_poly["_V_tyreg_poly_ty"]
+
+def Common_Typed_symbol_t_poly_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Typed_symbol_t_poly:
+    decode__tyreg_poly_ty = d0
+    fields = list(d.get_array(off=off))
+    id = Uid_of_twine(d=d, off=fields[0])
+    ty = Common_Type_schema_t_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Common_Typed_symbol_t_poly(id=id,ty=ty)
+
+# clique Imandrax_api_common.Applied_symbol.t_poly
+# def Imandrax_api_common.Applied_symbol.t_poly (mangled name: "Common_Applied_symbol_t_poly")
+@dataclass(slots=True, frozen=True)
+class Common_Applied_symbol_t_poly[_V_tyreg_poly_ty]:
+    sym: Common_Typed_symbol_t_poly["_V_tyreg_poly_ty"]
+    args: list["_V_tyreg_poly_ty"]
+    ty: "_V_tyreg_poly_ty"
+
+def Common_Applied_symbol_t_poly_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Applied_symbol_t_poly:
+    decode__tyreg_poly_ty = d0
+    fields = list(d.get_array(off=off))
+    sym = Common_Typed_symbol_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    args = [decode__tyreg_poly_ty(d=d,off=x) for x in d.get_array(off=fields[1])]
+    ty = decode__tyreg_poly_ty(d=d,off=fields[2])
+    return Common_Applied_symbol_t_poly(sym=sym,args=args,ty=ty)
+
+# clique Imandrax_api_common.Fo_pattern.view
+# def Imandrax_api_common.Fo_pattern.view (mangled name: "Common_Fo_pattern_view")
+@dataclass(slots=True, frozen=True)
+class Common_Fo_pattern_view_FO_any[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     pass
 
 @dataclass(slots=True, frozen=True)
-class Cir_Fo_pattern_view_FO_bool[_V_tyreg_poly_t]:
+class Common_Fo_pattern_view_FO_bool[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     arg: bool
 
-def Cir_Fo_pattern_view_FO_bool_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Fo_pattern_view_FO_bool[_V_tyreg_poly_t]:
+def Common_Fo_pattern_view_FO_bool_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Fo_pattern_view_FO_bool[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
     arg = d.get_bool(off=args[0])
-    return Cir_Fo_pattern_view_FO_bool(arg=arg)
+    return Common_Fo_pattern_view_FO_bool(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Fo_pattern_view_FO_const[_V_tyreg_poly_t]:
+class Common_Fo_pattern_view_FO_const[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     arg: Const
 
-def Cir_Fo_pattern_view_FO_const_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Fo_pattern_view_FO_const[_V_tyreg_poly_t]:
+def Common_Fo_pattern_view_FO_const_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Fo_pattern_view_FO_const[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
     arg = Const_of_twine(d=d, off=args[0])
-    return Cir_Fo_pattern_view_FO_const(arg=arg)
+    return Common_Fo_pattern_view_FO_const(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Fo_pattern_view_FO_var[_V_tyreg_poly_t]:
-    arg: Cir_Var
+class Common_Fo_pattern_view_FO_var[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    arg: Common_Var_t_poly["_V_tyreg_poly_ty"]
 
-def Cir_Fo_pattern_view_FO_var_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Fo_pattern_view_FO_var[_V_tyreg_poly_t]:
+def Common_Fo_pattern_view_FO_var_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Fo_pattern_view_FO_var[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     decode__tyreg_poly_t = d0
-    arg = Cir_Var_of_twine(d=d, off=args[0])
-    return Cir_Fo_pattern_view_FO_var(arg=arg)
+    decode__tyreg_poly_ty = d1
+    arg = Common_Var_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Common_Fo_pattern_view_FO_var(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Fo_pattern_view_FO_app[_V_tyreg_poly_t]:
-    args: tuple[Cir_Applied_symbol,list["_V_tyreg_poly_t"]]
+class Common_Fo_pattern_view_FO_app[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    args: tuple[Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"],list["_V_tyreg_poly_t"]]
 
-def Cir_Fo_pattern_view_FO_app_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Fo_pattern_view_FO_app[_V_tyreg_poly_t]:
+def Common_Fo_pattern_view_FO_app_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Fo_pattern_view_FO_app[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     decode__tyreg_poly_t = d0
-    cargs = (Cir_Applied_symbol_of_twine(d=d, off=args[0]),[decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])])
-    return Cir_Fo_pattern_view_FO_app(args=cargs)
+    decode__tyreg_poly_ty = d1
+    cargs = (Common_Applied_symbol_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),[decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])])
+    return Common_Fo_pattern_view_FO_app(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Fo_pattern_view_FO_cstor[_V_tyreg_poly_t]:
-    args: tuple[None | Cir_Applied_symbol,list["_V_tyreg_poly_t"]]
+class Common_Fo_pattern_view_FO_cstor[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    args: tuple[None | Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"],list["_V_tyreg_poly_t"]]
 
-def Cir_Fo_pattern_view_FO_cstor_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Fo_pattern_view_FO_cstor[_V_tyreg_poly_t]:
+def Common_Fo_pattern_view_FO_cstor_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Fo_pattern_view_FO_cstor[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     decode__tyreg_poly_t = d0
-    cargs = (twine.optional(d=d, off=args[0], d0=lambda d, off: Cir_Applied_symbol_of_twine(d=d, off=off)),[decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])])
-    return Cir_Fo_pattern_view_FO_cstor(args=cargs)
+    decode__tyreg_poly_ty = d1
+    cargs = (twine.optional(d=d, off=args[0], d0=lambda d, off: Common_Applied_symbol_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))),[decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])])
+    return Common_Fo_pattern_view_FO_cstor(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Fo_pattern_view_FO_destruct[_V_tyreg_poly_t]:
-    c: None | Cir_Applied_symbol
+class Common_Fo_pattern_view_FO_destruct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    c: None | Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"]
     i: int
     u: "_V_tyreg_poly_t"
 
 
-def Cir_Fo_pattern_view_FO_destruct_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Fo_pattern_view_FO_destruct[_V_tyreg_poly_t]:
+def Common_Fo_pattern_view_FO_destruct_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Fo_pattern_view_FO_destruct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     decode__tyreg_poly_t = d0
-    c = twine.optional(d=d, off=args[0], d0=lambda d, off: Cir_Applied_symbol_of_twine(d=d, off=off))
+    decode__tyreg_poly_ty = d1
+    c = twine.optional(d=d, off=args[0], d0=lambda d, off: Common_Applied_symbol_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))
     i = d.get_int(off=args[1])
     u = decode__tyreg_poly_t(d=d,off=args[2])
-    return Cir_Fo_pattern_view_FO_destruct(c=c,i=i,u=u)
+    return Common_Fo_pattern_view_FO_destruct(c=c,i=i,u=u)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Fo_pattern_view_FO_is_a[_V_tyreg_poly_t]:
-    c: Cir_Applied_symbol
+class Common_Fo_pattern_view_FO_is_a[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    c: Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"]
     u: "_V_tyreg_poly_t"
 
 
-def Cir_Fo_pattern_view_FO_is_a_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],args: tuple[int, ...]) -> Cir_Fo_pattern_view_FO_is_a[_V_tyreg_poly_t]:
+def Common_Fo_pattern_view_FO_is_a_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Fo_pattern_view_FO_is_a[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     decode__tyreg_poly_t = d0
-    c = Cir_Applied_symbol_of_twine(d=d, off=args[0])
+    decode__tyreg_poly_ty = d1
+    c = Common_Applied_symbol_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     u = decode__tyreg_poly_t(d=d,off=args[1])
-    return Cir_Fo_pattern_view_FO_is_a(c=c,u=u)
+    return Common_Fo_pattern_view_FO_is_a(c=c,u=u)
 
 
-type Cir_Fo_pattern_view[_V_tyreg_poly_t] = Cir_Fo_pattern_view_FO_any[_V_tyreg_poly_t]| Cir_Fo_pattern_view_FO_bool[_V_tyreg_poly_t]| Cir_Fo_pattern_view_FO_const[_V_tyreg_poly_t]| Cir_Fo_pattern_view_FO_var[_V_tyreg_poly_t]| Cir_Fo_pattern_view_FO_app[_V_tyreg_poly_t]| Cir_Fo_pattern_view_FO_cstor[_V_tyreg_poly_t]| Cir_Fo_pattern_view_FO_destruct[_V_tyreg_poly_t]| Cir_Fo_pattern_view_FO_is_a[_V_tyreg_poly_t]
+type Common_Fo_pattern_view[_V_tyreg_poly_t,_V_tyreg_poly_ty] = Common_Fo_pattern_view_FO_any[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Common_Fo_pattern_view_FO_bool[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Common_Fo_pattern_view_FO_const[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Common_Fo_pattern_view_FO_var[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Common_Fo_pattern_view_FO_app[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Common_Fo_pattern_view_FO_cstor[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Common_Fo_pattern_view_FO_destruct[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Common_Fo_pattern_view_FO_is_a[_V_tyreg_poly_t,_V_tyreg_poly_ty]
 
-def Cir_Fo_pattern_view_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],off: int) -> Cir_Fo_pattern_view:
+def Common_Fo_pattern_view_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Fo_pattern_view:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
-             return Cir_Fo_pattern_view_FO_any[_V_tyreg_poly_t]()
+             return Common_Fo_pattern_view_FO_any[_V_tyreg_poly_t,_V_tyreg_poly_ty]()
          case twine.Constructor(idx=1, args=args):
              args = tuple(args)
-             return Cir_Fo_pattern_view_FO_bool_of_twine(d=d, args=args, d0=d0,)
+             return Common_Fo_pattern_view_FO_bool_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=2, args=args):
              args = tuple(args)
-             return Cir_Fo_pattern_view_FO_const_of_twine(d=d, args=args, d0=d0,)
+             return Common_Fo_pattern_view_FO_const_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=3, args=args):
              args = tuple(args)
-             return Cir_Fo_pattern_view_FO_var_of_twine(d=d, args=args, d0=d0,)
+             return Common_Fo_pattern_view_FO_var_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=4, args=args):
              args = tuple(args)
-             return Cir_Fo_pattern_view_FO_app_of_twine(d=d, args=args, d0=d0,)
+             return Common_Fo_pattern_view_FO_app_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=5, args=args):
              args = tuple(args)
-             return Cir_Fo_pattern_view_FO_cstor_of_twine(d=d, args=args, d0=d0,)
+             return Common_Fo_pattern_view_FO_cstor_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=6, args=args):
              args = tuple(args)
-             return Cir_Fo_pattern_view_FO_destruct_of_twine(d=d, args=args, d0=d0,)
+             return Common_Fo_pattern_view_FO_destruct_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=7, args=args):
              args = tuple(args)
-             return Cir_Fo_pattern_view_FO_is_a_of_twine(d=d, args=args, d0=d0,)
+             return Common_Fo_pattern_view_FO_is_a_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Fo_pattern_view, got invalid constructor {idx}')
+             raise twine.Error(f'expected Common_Fo_pattern_view, got invalid constructor {idx}')
 
-# clique Imandrax_api_cir.Fo_pattern.t
-# def Imandrax_api_cir.Fo_pattern.t (mangled name: "Cir_Fo_pattern")
+# clique Imandrax_api_common.Fo_pattern.t_poly
+# def Imandrax_api_common.Fo_pattern.t_poly (mangled name: "Common_Fo_pattern_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Fo_pattern:
-    view: Cir_Fo_pattern_view[Cir_Fo_pattern]
-    ty: Cir_Type
+class Common_Fo_pattern_t_poly[_V_tyreg_poly_ty]:
+    view: Common_Fo_pattern_view[Common_Fo_pattern_t_poly["_V_tyreg_poly_ty"],"_V_tyreg_poly_ty"]
+    ty: "_V_tyreg_poly_ty"
 
-def Cir_Fo_pattern_of_twine(d: twine.Decoder, off: int) -> Cir_Fo_pattern:
+def Common_Fo_pattern_t_poly_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Fo_pattern_t_poly:
+    decode__tyreg_poly_ty = d0
     fields = list(d.get_array(off=off))
-    view = Cir_Fo_pattern_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: Cir_Fo_pattern_of_twine(d=d, off=off)))
-    ty = Cir_Type_of_twine(d=d, off=fields[1])
-    return Cir_Fo_pattern(view=view,ty=ty)
+    view = Common_Fo_pattern_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: Common_Fo_pattern_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    ty = decode__tyreg_poly_ty(d=d,off=fields[1])
+    return Common_Fo_pattern_t_poly(view=view,ty=ty)
 
-# clique Imandrax_api_cir.Pattern_head.t
-# def Imandrax_api_cir.Pattern_head.t (mangled name: "Cir_Pattern_head")
+# clique Imandrax_api_common.Pattern_head.t_poly
+# def Imandrax_api_common.Pattern_head.t_poly (mangled name: "Common_Pattern_head_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Pattern_head_PH_id:
+class Common_Pattern_head_t_poly_PH_id[_V_tyreg_poly_ty]:
     arg: Uid
 
-def Cir_Pattern_head_PH_id_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Pattern_head_PH_id:
+def Common_Pattern_head_t_poly_PH_id_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Pattern_head_t_poly_PH_id[_V_tyreg_poly_ty]:
+    decode__tyreg_poly_ty = d0
     arg = Uid_of_twine(d=d, off=args[0])
-    return Cir_Pattern_head_PH_id(arg=arg)
+    return Common_Pattern_head_t_poly_PH_id(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Pattern_head_PH_ty:
-    arg: Cir_Type
+class Common_Pattern_head_t_poly_PH_ty[_V_tyreg_poly_ty]:
+    arg: "_V_tyreg_poly_ty"
 
-def Cir_Pattern_head_PH_ty_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Pattern_head_PH_ty:
-    arg = Cir_Type_of_twine(d=d, off=args[0])
-    return Cir_Pattern_head_PH_ty(arg=arg)
+def Common_Pattern_head_t_poly_PH_ty_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Pattern_head_t_poly_PH_ty[_V_tyreg_poly_ty]:
+    decode__tyreg_poly_ty = d0
+    arg = decode__tyreg_poly_ty(d=d,off=args[0])
+    return Common_Pattern_head_t_poly_PH_ty(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Pattern_head_PH_datatype_op:
+class Common_Pattern_head_t_poly_PH_datatype_op[_V_tyreg_poly_ty]:
     pass
 
-type Cir_Pattern_head = Cir_Pattern_head_PH_id| Cir_Pattern_head_PH_ty| Cir_Pattern_head_PH_datatype_op
+type Common_Pattern_head_t_poly[_V_tyreg_poly_ty] = Common_Pattern_head_t_poly_PH_id[_V_tyreg_poly_ty]| Common_Pattern_head_t_poly_PH_ty[_V_tyreg_poly_ty]| Common_Pattern_head_t_poly_PH_datatype_op[_V_tyreg_poly_ty]
 
-def Cir_Pattern_head_of_twine(d: twine.Decoder, off: int) -> Cir_Pattern_head:
+def Common_Pattern_head_t_poly_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Pattern_head_t_poly:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
              args = tuple(args)
-             return Cir_Pattern_head_PH_id_of_twine(d=d, args=args, )
+             return Common_Pattern_head_t_poly_PH_id_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=1, args=args):
              args = tuple(args)
-             return Cir_Pattern_head_PH_ty_of_twine(d=d, args=args, )
+             return Common_Pattern_head_t_poly_PH_ty_of_twine(d=d, args=args, d0=d0,)
          case twine.Constructor(idx=2, args=args):
-             return Cir_Pattern_head_PH_datatype_op()
+             return Common_Pattern_head_t_poly_PH_datatype_op[_V_tyreg_poly_ty]()
          case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Pattern_head, got invalid constructor {idx}')
+             raise twine.Error(f'expected Common_Pattern_head_t_poly, got invalid constructor {idx}')
 
-# clique Imandrax_api_cir.Trigger.t
-# def Imandrax_api_cir.Trigger.t (mangled name: "Cir_Trigger")
+# clique Imandrax_api_common.Trigger.t_poly
+# def Imandrax_api_common.Trigger.t_poly (mangled name: "Common_Trigger_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Trigger:
-    trigger_head: Cir_Pattern_head
-    trigger_patterns: list[Cir_Fo_pattern]
+class Common_Trigger_t_poly[_V_tyreg_poly_ty]:
+    trigger_head: Common_Pattern_head_t_poly["_V_tyreg_poly_ty"]
+    trigger_patterns: list[Common_Fo_pattern_t_poly["_V_tyreg_poly_ty"]]
     trigger_instantiation_rule_name: Uid
 
-def Cir_Trigger_of_twine(d: twine.Decoder, off: int) -> Cir_Trigger:
+def Common_Trigger_t_poly_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Trigger_t_poly:
+    decode__tyreg_poly_ty = d0
     fields = list(d.get_array(off=off))
-    trigger_head = Cir_Pattern_head_of_twine(d=d, off=fields[0])
-    trigger_patterns = [Cir_Fo_pattern_of_twine(d=d, off=x) for x in d.get_array(off=fields[1])]
+    trigger_head = Common_Pattern_head_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    trigger_patterns = [Common_Fo_pattern_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[1])]
     trigger_instantiation_rule_name = Uid_of_twine(d=d, off=fields[2])
-    return Cir_Trigger(trigger_head=trigger_head,trigger_patterns=trigger_patterns,trigger_instantiation_rule_name=trigger_instantiation_rule_name)
+    return Common_Trigger_t_poly(trigger_head=trigger_head,trigger_patterns=trigger_patterns,trigger_instantiation_rule_name=trigger_instantiation_rule_name)
 
-# clique Imandrax_api_cir.Case.t
-# def Imandrax_api_cir.Case.t (mangled name: "Cir_Case")
+# clique Imandrax_api_common.Admission.t
+# def Imandrax_api_common.Admission.t (mangled name: "Common_Admission")
 @dataclass(slots=True, frozen=True)
-class Cir_Case[_V_tyreg_poly_t]:
-    case_cstor: Cir_Applied_symbol
-    case_vars: list[Cir_Var]
-    case_rhs: "_V_tyreg_poly_t"
-    case_labels: None | list[Uid]
+class Common_Admission:
+    measured_subset: list[str]
+    measure_fun: None | Uid
 
-def Cir_Case_of_twine[_V_tyreg_poly_t](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],off: int) -> Cir_Case:
-    decode__tyreg_poly_t = d0
+def Common_Admission_of_twine(d: twine.Decoder, off: int) -> Common_Admission:
     fields = list(d.get_array(off=off))
-    case_cstor = Cir_Applied_symbol_of_twine(d=d, off=fields[0])
-    case_vars = [Cir_Var_of_twine(d=d, off=x) for x in d.get_array(off=fields[1])]
-    case_rhs = decode__tyreg_poly_t(d=d,off=fields[2])
-    case_labels = twine.optional(d=d, off=fields[3], d0=lambda d, off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
-    return Cir_Case(case_cstor=case_cstor,case_vars=case_vars,case_rhs=case_rhs,case_labels=case_labels)
+    measured_subset = [d.get_str(off=x) for x in d.get_array(off=fields[0])]
+    measure_fun = twine.optional(d=d, off=fields[1], d0=lambda d, off: Uid_of_twine(d=d, off=off))
+    return Common_Admission(measured_subset=measured_subset,measure_fun=measure_fun)
 
-# clique Imandrax_api_cir.Clique.t
-# def Imandrax_api_cir.Clique.t (mangled name: "Cir_Clique")
-type Cir_Clique = Uid_set
-
-def Cir_Clique_of_twine(d: twine.Decoder, off: int) -> Cir_Clique:
-    return Uid_set_of_twine(d=d, off=off)
-
-# clique Imandrax_api_cir.Term.binding
-# def Imandrax_api_cir.Term.binding (mangled name: "Cir_Term_binding")
-type Cir_Term_binding[_V_tyreg_poly_t] = tuple[Cir_Var,"_V_tyreg_poly_t"]
-
-def Cir_Term_binding_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],off: int) -> Cir_Term_binding:
-    decode__tyreg_poly_t = d0
-    return (lambda tup: (Cir_Var_of_twine(d=d, off=tup[0]),decode__tyreg_poly_t(d=d,off=tup[1])))(tuple(d.get_array(off=off)))
-
-# clique Imandrax_api_cir.Term.t,Imandrax_api_cir.Term.view
-# def Imandrax_api_cir.Term.t (mangled name: "Cir_Term")
-type Cir_Term = Cir_With_ty[Cir_Term_view]
-
-def Cir_Term_of_twine(d: twine.Decoder, off: int) -> Cir_Term:
-    return Cir_With_ty_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Term_view_of_twine(d=d, off=off)))
-# def Imandrax_api_cir.Term.view (mangled name: "Cir_Term_view")
+# clique Imandrax_api_common.Hints.validation_strategy
+# def Imandrax_api_common.Hints.validation_strategy (mangled name: "Common_Hints_validation_strategy")
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Const:
-    arg: Const
-
-def Cir_Term_view_Const_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Const:
-    arg = Const_of_twine(d=d, off=args[0])
-    return Cir_Term_view_Const(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_If:
-    args: tuple[Cir_Term,Cir_Term,Cir_Term]
-
-def Cir_Term_view_If_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_If:
-    cargs = (Cir_Term_of_twine(d=d, off=args[0]),Cir_Term_of_twine(d=d, off=args[1]),Cir_Term_of_twine(d=d, off=args[2]))
-    return Cir_Term_view_If(args=cargs)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Let:
-    flg: Misc_types_rec_flag
-    bs: list[Cir_Term_binding[Cir_Term]]
-    body: Cir_Term
+class Common_Hints_validation_strategy_VS_validate[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    tactic: None | tuple[list[Common_Var_t_poly["_V_tyreg_poly_ty"]],"_V_tyreg_poly_term"]
 
 
-def Cir_Term_view_Let_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Let:
-    flg = Misc_types_rec_flag_of_twine(d=d, off=args[0])
-    bs = [Cir_Term_binding_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off))) for x in d.get_array(off=args[1])]
-    body = Cir_Term_of_twine(d=d, off=args[2])
-    return Cir_Term_view_Let(flg=flg,bs=bs,body=body)
+def Common_Hints_validation_strategy_VS_validate_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Hints_validation_strategy_VS_validate[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    tactic = twine.optional(d=d, off=args[0], d0=lambda d, off: (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=off))))
+    return Common_Hints_validation_strategy_VS_validate(tactic=tactic)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Term_view_Apply:
-    f: Cir_Term
-    l: list[Cir_Term]
-
-
-def Cir_Term_view_Apply_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Apply:
-    f = Cir_Term_of_twine(d=d, off=args[0])
-    l = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=args[1])]
-    return Cir_Term_view_Apply(f=f,l=l)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Fun:
-    v: Cir_Var
-    body: Cir_Term
-
-
-def Cir_Term_view_Fun_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Fun:
-    v = Cir_Var_of_twine(d=d, off=args[0])
-    body = Cir_Term_of_twine(d=d, off=args[1])
-    return Cir_Term_view_Fun(v=v,body=body)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Var:
-    arg: Cir_Var
-
-def Cir_Term_view_Var_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Var:
-    arg = Cir_Var_of_twine(d=d, off=args[0])
-    return Cir_Term_view_Var(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Sym:
-    arg: Cir_Applied_symbol
-
-def Cir_Term_view_Sym_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Sym:
-    arg = Cir_Applied_symbol_of_twine(d=d, off=args[0])
-    return Cir_Term_view_Sym(arg=arg)
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Construct:
-    c: Cir_Applied_symbol
-    args: list[Cir_Term]
-    labels: None | list[Uid]
-
-
-def Cir_Term_view_Construct_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Construct:
-    c = Cir_Applied_symbol_of_twine(d=d, off=args[0])
-    args = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=args[1])]
-    labels = twine.optional(d=d, off=args[2], d0=lambda d, off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
-    return Cir_Term_view_Construct(c=c,args=args,labels=labels)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Destruct:
-    c: Cir_Applied_symbol
-    i: int
-    t: Cir_Term
-
-
-def Cir_Term_view_Destruct_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Destruct:
-    c = Cir_Applied_symbol_of_twine(d=d, off=args[0])
-    i = d.get_int(off=args[1])
-    t = Cir_Term_of_twine(d=d, off=args[2])
-    return Cir_Term_view_Destruct(c=c,i=i,t=t)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Is_a:
-    c: Cir_Applied_symbol
-    t: Cir_Term
-
-
-def Cir_Term_view_Is_a_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Is_a:
-    c = Cir_Applied_symbol_of_twine(d=d, off=args[0])
-    t = Cir_Term_of_twine(d=d, off=args[1])
-    return Cir_Term_view_Is_a(c=c,t=t)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Tuple:
-    l: list[Cir_Term]
-
-
-def Cir_Term_view_Tuple_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Tuple:
-    l = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=args[0])]
-    return Cir_Term_view_Tuple(l=l)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Field:
-    f: Cir_Applied_symbol
-    t: Cir_Term
-
-
-def Cir_Term_view_Field_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Field:
-    f = Cir_Applied_symbol_of_twine(d=d, off=args[0])
-    t = Cir_Term_of_twine(d=d, off=args[1])
-    return Cir_Term_view_Field(f=f,t=t)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Tuple_field:
-    i: int
-    t: Cir_Term
-
-
-def Cir_Term_view_Tuple_field_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Tuple_field:
-    i = d.get_int(off=args[0])
-    t = Cir_Term_of_twine(d=d, off=args[1])
-    return Cir_Term_view_Tuple_field(i=i,t=t)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Record:
-    rows: list[tuple[Cir_Applied_symbol,Cir_Term]]
-    rest: None | Cir_Term
-
-
-def Cir_Term_view_Record_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Record:
-    rows = [(lambda tup: (Cir_Applied_symbol_of_twine(d=d, off=tup[0]),Cir_Term_of_twine(d=d, off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[0])]
-    rest = twine.optional(d=d, off=args[1], d0=lambda d, off: Cir_Term_of_twine(d=d, off=off))
-    return Cir_Term_view_Record(rows=rows,rest=rest)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Case:
-    u: Cir_Term
-    cases: list[Cir_Case[Cir_Term]]
-    default: None | Cir_Term
-
-
-def Cir_Term_view_Case_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Case:
-    u = Cir_Term_of_twine(d=d, off=args[0])
-    cases = [Cir_Case_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off))) for x in d.get_array(off=args[1])]
-    default = twine.optional(d=d, off=args[2], d0=lambda d, off: Cir_Term_of_twine(d=d, off=off))
-    return Cir_Term_view_Case(u=u,cases=cases,default=default)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Term_view_Let_tuple:
-    vars: list[Cir_Var]
-    rhs: Cir_Term
-    body: Cir_Term
-
-
-def Cir_Term_view_Let_tuple_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Term_view_Let_tuple:
-    vars = [Cir_Var_of_twine(d=d, off=x) for x in d.get_array(off=args[0])]
-    rhs = Cir_Term_of_twine(d=d, off=args[1])
-    body = Cir_Term_of_twine(d=d, off=args[2])
-    return Cir_Term_view_Let_tuple(vars=vars,rhs=rhs,body=body)
-
-
-type Cir_Term_view = Cir_Term_view_Const| Cir_Term_view_If| Cir_Term_view_Let| Cir_Term_view_Apply| Cir_Term_view_Fun| Cir_Term_view_Var| Cir_Term_view_Sym| Cir_Term_view_Construct| Cir_Term_view_Destruct| Cir_Term_view_Is_a| Cir_Term_view_Tuple| Cir_Term_view_Field| Cir_Term_view_Tuple_field| Cir_Term_view_Record| Cir_Term_view_Case| Cir_Term_view_Let_tuple
-
-def Cir_Term_view_of_twine(d: twine.Decoder, off: int) -> Cir_Term_view:
-    match d.get_cstor(off=off):
-         case twine.Constructor(idx=0, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Const_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=1, args=args):
-             args = tuple(args)
-             return Cir_Term_view_If_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=2, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Let_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=3, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Apply_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=4, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Fun_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=5, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Var_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=6, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Sym_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=7, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Construct_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=8, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Destruct_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=9, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Is_a_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=10, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Tuple_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=11, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Field_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=12, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Tuple_field_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=13, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Record_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=14, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Case_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=15, args=args):
-             args = tuple(args)
-             return Cir_Term_view_Let_tuple_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Term_view, got invalid constructor {idx}')
-
-# clique Imandrax_api_cir.Term.term
-# def Imandrax_api_cir.Term.term (mangled name: "Cir_Term_term")
-type Cir_Term_term = Cir_Term
-
-def Cir_Term_term_of_twine(d: twine.Decoder, off: int) -> Cir_Term_term:
-    return Cir_Term_of_twine(d=d, off=off)
-
-# clique Imandrax_api_cir.Hints.validation_strategy
-# def Imandrax_api_cir.Hints.validation_strategy (mangled name: "Cir_Hints_validation_strategy")
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_validation_strategy_VS_validate:
-    tactic: None | Cir_Term
-
-
-def Cir_Hints_validation_strategy_VS_validate_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Hints_validation_strategy_VS_validate:
-    tactic = twine.optional(d=d, off=args[0], d0=lambda d, off: Cir_Term_of_twine(d=d, off=off))
-    return Cir_Hints_validation_strategy_VS_validate(tactic=tactic)
-
-
-@dataclass(slots=True, frozen=True)
-class Cir_Hints_validation_strategy_VS_no_validate:
+class Common_Hints_validation_strategy_VS_no_validate[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     pass
 
-type Cir_Hints_validation_strategy = Cir_Hints_validation_strategy_VS_validate| Cir_Hints_validation_strategy_VS_no_validate
+type Common_Hints_validation_strategy[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Hints_validation_strategy_VS_validate[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Hints_validation_strategy_VS_no_validate[_V_tyreg_poly_term,_V_tyreg_poly_ty]
 
-def Cir_Hints_validation_strategy_of_twine(d: twine.Decoder, off: int) -> Cir_Hints_validation_strategy:
+def Common_Hints_validation_strategy_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Hints_validation_strategy:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
              args = tuple(args)
-             return Cir_Hints_validation_strategy_VS_validate_of_twine(d=d, args=args, )
+             return Common_Hints_validation_strategy_VS_validate_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=1, args=args):
-             return Cir_Hints_validation_strategy_VS_no_validate()
+             return Common_Hints_validation_strategy_VS_no_validate[_V_tyreg_poly_term,_V_tyreg_poly_ty]()
          case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Hints_validation_strategy, got invalid constructor {idx}')
+             raise twine.Error(f'expected Common_Hints_validation_strategy, got invalid constructor {idx}')
 
-# clique Imandrax_api_cir.Hints.t
-# def Imandrax_api_cir.Hints.t (mangled name: "Cir_Hints")
+# clique Imandrax_api_common.Hints.t_poly
+# def Imandrax_api_common.Hints.t_poly (mangled name: "Common_Hints_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Hints:
-    f_validate_strat: Cir_Hints_validation_strategy
+class Common_Hints_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    f_validate_strat: Common_Hints_validation_strategy["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     f_unroll_def: None | int
     f_enable: list[Uid]
     f_disable: list[Uid]
     f_timeout: None | int
-    f_admission: None | Admission
+    f_admission: None | Common_Admission
 
-def Cir_Hints_of_twine(d: twine.Decoder, off: int) -> Cir_Hints:
+def Common_Hints_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Hints_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    f_validate_strat = Cir_Hints_validation_strategy_of_twine(d=d, off=fields[0])
+    f_validate_strat = Common_Hints_validation_strategy_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     f_unroll_def = twine.optional(d=d, off=fields[1], d0=lambda d, off: d.get_int(off=off))
     f_enable = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=fields[2])]
     f_disable = [Uid_of_twine(d=d, off=x) for x in d.get_array(off=fields[3])]
     f_timeout = twine.optional(d=d, off=fields[4], d0=lambda d, off: d.get_int(off=off))
-    f_admission = twine.optional(d=d, off=fields[5], d0=lambda d, off: Admission_of_twine(d=d, off=off))
-    return Cir_Hints(f_validate_strat=f_validate_strat,f_unroll_def=f_unroll_def,f_enable=f_enable,f_disable=f_disable,f_timeout=f_timeout,f_admission=f_admission)
+    f_admission = twine.optional(d=d, off=fields[5], d0=lambda d, off: Common_Admission_of_twine(d=d, off=off))
+    return Common_Hints_t_poly(f_validate_strat=f_validate_strat,f_unroll_def=f_unroll_def,f_enable=f_enable,f_disable=f_disable,f_timeout=f_timeout,f_admission=f_admission)
 
-# clique Imandrax_api_cir.Fun_def.fun_kind
-# def Imandrax_api_cir.Fun_def.fun_kind (mangled name: "Cir_Fun_def_fun_kind")
+# clique Imandrax_api_common.Fun_def.fun_kind
+# def Imandrax_api_common.Fun_def.fun_kind (mangled name: "Common_Fun_def_fun_kind")
 @dataclass(slots=True, frozen=True)
-class Cir_Fun_def_fun_kind_Fun_defined:
+class Common_Fun_def_fun_kind_Fun_defined:
     is_macro: bool
     from_lambda: bool
 
 
-def Cir_Fun_def_fun_kind_Fun_defined_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Fun_def_fun_kind_Fun_defined:
+def Common_Fun_def_fun_kind_Fun_defined_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Common_Fun_def_fun_kind_Fun_defined:
     is_macro = d.get_bool(off=args[0])
     from_lambda = d.get_bool(off=args[1])
-    return Cir_Fun_def_fun_kind_Fun_defined(is_macro=is_macro,from_lambda=from_lambda)
+    return Common_Fun_def_fun_kind_Fun_defined(is_macro=is_macro,from_lambda=from_lambda)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Fun_def_fun_kind_Fun_builtin:
+class Common_Fun_def_fun_kind_Fun_builtin:
     arg: Builtin_Fun
 
-def Cir_Fun_def_fun_kind_Fun_builtin_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Fun_def_fun_kind_Fun_builtin:
+def Common_Fun_def_fun_kind_Fun_builtin_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Common_Fun_def_fun_kind_Fun_builtin:
     arg = Builtin_Fun_of_twine(d=d, off=args[0])
-    return Cir_Fun_def_fun_kind_Fun_builtin(arg=arg)
+    return Common_Fun_def_fun_kind_Fun_builtin(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Cir_Fun_def_fun_kind_Fun_opaque:
+class Common_Fun_def_fun_kind_Fun_opaque:
     pass
 
-type Cir_Fun_def_fun_kind = Cir_Fun_def_fun_kind_Fun_defined| Cir_Fun_def_fun_kind_Fun_builtin| Cir_Fun_def_fun_kind_Fun_opaque
+type Common_Fun_def_fun_kind = Common_Fun_def_fun_kind_Fun_defined| Common_Fun_def_fun_kind_Fun_builtin| Common_Fun_def_fun_kind_Fun_opaque
 
-def Cir_Fun_def_fun_kind_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_def_fun_kind:
+def Common_Fun_def_fun_kind_of_twine(d: twine.Decoder, off: int) -> Common_Fun_def_fun_kind:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
              args = tuple(args)
-             return Cir_Fun_def_fun_kind_Fun_defined_of_twine(d=d, args=args, )
+             return Common_Fun_def_fun_kind_Fun_defined_of_twine(d=d, args=args, )
          case twine.Constructor(idx=1, args=args):
              args = tuple(args)
-             return Cir_Fun_def_fun_kind_Fun_builtin_of_twine(d=d, args=args, )
+             return Common_Fun_def_fun_kind_Fun_builtin_of_twine(d=d, args=args, )
          case twine.Constructor(idx=2, args=args):
-             return Cir_Fun_def_fun_kind_Fun_opaque()
+             return Common_Fun_def_fun_kind_Fun_opaque()
          case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Fun_def_fun_kind, got invalid constructor {idx}')
+             raise twine.Error(f'expected Common_Fun_def_fun_kind, got invalid constructor {idx}')
 
-# clique Imandrax_api_cir.Fun_def.t
-# def Imandrax_api_cir.Fun_def.t (mangled name: "Cir_Fun_def")
+# clique Imandrax_api_common.Fun_def.t_poly
+# def Imandrax_api_common.Fun_def.t_poly (mangled name: "Common_Fun_def_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Fun_def:
+class Common_Fun_def_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     f_name: Uid
-    f_ty: Cir_Type_schema
-    f_args: list[Cir_Var]
-    f_body: Cir_Term
-    f_clique: None | Cir_Clique
-    f_kind: Cir_Fun_def_fun_kind
-    f_hints: Cir_Hints
+    f_ty: Common_Type_schema_t_poly["_V_tyreg_poly_ty"]
+    f_args: list[Common_Var_t_poly["_V_tyreg_poly_ty"]]
+    f_body: "_V_tyreg_poly_term"
+    f_clique: None | Clique
+    f_kind: Common_Fun_def_fun_kind
+    f_hints: Common_Hints_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Cir_Fun_def_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_def:
+def Common_Fun_def_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Fun_def_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     f_name = Uid_of_twine(d=d, off=fields[0])
-    f_ty = Cir_Type_schema_of_twine(d=d, off=fields[1])
-    f_args = [Cir_Var_of_twine(d=d, off=x) for x in d.get_array(off=fields[2])]
-    f_body = Cir_Term_of_twine(d=d, off=fields[3])
-    f_clique = twine.optional(d=d, off=fields[4], d0=lambda d, off: Cir_Clique_of_twine(d=d, off=off))
-    f_kind = Cir_Fun_def_fun_kind_of_twine(d=d, off=fields[5])
-    f_hints = Cir_Hints_of_twine(d=d, off=fields[6])
-    return Cir_Fun_def(f_name=f_name,f_ty=f_ty,f_args=f_args,f_body=f_body,f_clique=f_clique,f_kind=f_kind,f_hints=f_hints)
+    f_ty = Common_Type_schema_t_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    f_args = [Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[2])]
+    f_body = decode__tyreg_poly_term(d=d,off=fields[3])
+    f_clique = twine.optional(d=d, off=fields[4], d0=lambda d, off: Clique_of_twine(d=d, off=off))
+    f_kind = Common_Fun_def_fun_kind_of_twine(d=d, off=fields[5])
+    f_hints = Common_Hints_t_poly_of_twine(d=d,off=fields[6],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Common_Fun_def_t_poly(f_name=f_name,f_ty=f_ty,f_args=f_args,f_body=f_body,f_clique=f_clique,f_kind=f_kind,f_hints=f_hints)
 
-# clique Imandrax_api_cir.Pre_trigger.t
-# def Imandrax_api_cir.Pre_trigger.t (mangled name: "Cir_Pre_trigger")
-type Cir_Pre_trigger = tuple[Cir_Term,As_trigger]
+# clique Imandrax_api_common.Pre_trigger.t_poly
+# def Imandrax_api_common.Pre_trigger.t_poly (mangled name: "Common_Pre_trigger_t_poly")
+type Common_Pre_trigger_t_poly[_V_tyreg_poly_term] = tuple["_V_tyreg_poly_term",As_trigger]
 
-def Cir_Pre_trigger_of_twine(d: twine.Decoder, off: int) -> Cir_Pre_trigger:
-    return (lambda tup: (Cir_Term_of_twine(d=d, off=tup[0]),As_trigger_of_twine(d=d, off=tup[1])))(tuple(d.get_array(off=off)))
+def Common_Pre_trigger_t_poly_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],off: int) -> Common_Pre_trigger_t_poly:
+    decode__tyreg_poly_term = d0
+    return (lambda tup: (decode__tyreg_poly_term(d=d,off=tup[0]),As_trigger_of_twine(d=d, off=tup[1])))(tuple(d.get_array(off=off)))
 
-# clique Imandrax_api_cir.Theorem.t
-# def Imandrax_api_cir.Theorem.t (mangled name: "Cir_Theorem")
+# clique Imandrax_api_common.Theorem.t_poly
+# def Imandrax_api_common.Theorem.t_poly (mangled name: "Common_Theorem_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Theorem:
-    thm_link: Cir_Fun_def
+class Common_Theorem_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    thm_link: Common_Fun_def_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     thm_rewriting: bool
     thm_perm_restrict: bool
     thm_fc: bool
     thm_elim: bool
     thm_gen: bool
-    thm_triggers: list[Cir_Pre_trigger]
+    thm_triggers: list[Common_Pre_trigger_t_poly["_V_tyreg_poly_term"]]
     thm_is_axiom: bool
-    thm_by: Cir_Term
+    thm_by: tuple[list[Common_Var_t_poly["_V_tyreg_poly_ty"]],"_V_tyreg_poly_term"]
 
-def Cir_Theorem_of_twine(d: twine.Decoder, off: int) -> Cir_Theorem:
+def Common_Theorem_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Theorem_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    thm_link = Cir_Fun_def_of_twine(d=d, off=fields[0])
+    thm_link = Common_Fun_def_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     thm_rewriting = d.get_bool(off=fields[1])
     thm_perm_restrict = d.get_bool(off=fields[2])
     thm_fc = d.get_bool(off=fields[3])
     thm_elim = d.get_bool(off=fields[4])
     thm_gen = d.get_bool(off=fields[5])
-    thm_triggers = [Cir_Pre_trigger_of_twine(d=d, off=x) for x in d.get_array(off=fields[6])]
+    thm_triggers = [Common_Pre_trigger_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))) for x in d.get_array(off=fields[6])]
     thm_is_axiom = d.get_bool(off=fields[7])
-    thm_by = Cir_Term_of_twine(d=d, off=fields[8])
-    return Cir_Theorem(thm_link=thm_link,thm_rewriting=thm_rewriting,thm_perm_restrict=thm_perm_restrict,thm_fc=thm_fc,thm_elim=thm_elim,thm_gen=thm_gen,thm_triggers=thm_triggers,thm_is_axiom=thm_is_axiom,thm_by=thm_by)
+    thm_by = (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=fields[8])))
+    return Common_Theorem_t_poly(thm_link=thm_link,thm_rewriting=thm_rewriting,thm_perm_restrict=thm_perm_restrict,thm_fc=thm_fc,thm_elim=thm_elim,thm_gen=thm_gen,thm_triggers=thm_triggers,thm_is_axiom=thm_is_axiom,thm_by=thm_by)
 
-# clique Imandrax_api_cir.Tactic.t
-# def Imandrax_api_cir.Tactic.t (mangled name: "Cir_Tactic")
+# clique Imandrax_api_common.Tactic.t_poly
+# def Imandrax_api_common.Tactic.t_poly (mangled name: "Common_Tactic_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Tactic_Default_termination:
+class Common_Tactic_t_poly_Default_termination[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     basis: Uid_set
 
 
-def Cir_Tactic_Default_termination_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Tactic_Default_termination:
+def Common_Tactic_t_poly_Default_termination_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Tactic_t_poly_Default_termination[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     basis = Uid_set_of_twine(d=d, off=args[0])
-    return Cir_Tactic_Default_termination(basis=basis)
+    return Common_Tactic_t_poly_Default_termination(basis=basis)
 
 
 @dataclass(slots=True, frozen=True)
-class Cir_Tactic_Default_thm:
+class Common_Tactic_t_poly_Default_thm[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     pass
 
 @dataclass(slots=True, frozen=True)
-class Cir_Tactic_Term:
-    arg: Cir_Term
+class Common_Tactic_t_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: tuple[list[Common_Var_t_poly["_V_tyreg_poly_ty"]],"_V_tyreg_poly_term"]
 
-def Cir_Tactic_Term_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Tactic_Term:
-    arg = Cir_Term_of_twine(d=d, off=args[0])
-    return Cir_Tactic_Term(arg=arg)
+def Common_Tactic_t_poly_Term_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Tactic_t_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=args[0])))
+    return Common_Tactic_t_poly_Term(arg=arg)
 
-type Cir_Tactic = Cir_Tactic_Default_termination| Cir_Tactic_Default_thm| Cir_Tactic_Term
+type Common_Tactic_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Tactic_t_poly_Default_termination[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Default_thm[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]
 
-def Cir_Tactic_of_twine(d: twine.Decoder, off: int) -> Cir_Tactic:
+def Common_Tactic_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Tactic_t_poly:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
              args = tuple(args)
-             return Cir_Tactic_Default_termination_of_twine(d=d, args=args, )
+             return Common_Tactic_t_poly_Default_termination_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=1, args=args):
-             return Cir_Tactic_Default_thm()
+             return Common_Tactic_t_poly_Default_thm[_V_tyreg_poly_term,_V_tyreg_poly_ty]()
          case twine.Constructor(idx=2, args=args):
              args = tuple(args)
-             return Cir_Tactic_Term_of_twine(d=d, args=args, )
+             return Common_Tactic_t_poly_Term_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Tactic, got invalid constructor {idx}')
+             raise twine.Error(f'expected Common_Tactic_t_poly, got invalid constructor {idx}')
 
-# clique Imandrax_api_cir.Sequent.t
-# def Imandrax_api_cir.Sequent.t (mangled name: "Cir_Sequent")
-type Cir_Sequent = Sequent_poly[Cir_Term]
-
-def Cir_Sequent_of_twine(d: twine.Decoder, off: int) -> Cir_Sequent:
-    return Sequent_poly_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off)))
-
-# clique Imandrax_api_cir.Rewrite_rule.t
-# def Imandrax_api_cir.Rewrite_rule.t (mangled name: "Cir_Rewrite_rule")
+# clique Imandrax_api_common.Sequent.t_poly
+# def Imandrax_api_common.Sequent.t_poly (mangled name: "Common_Sequent_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Rewrite_rule:
-    rw_name: Uid
-    rw_head: Cir_Pattern_head
-    rw_lhs: Cir_Fo_pattern
-    rw_rhs: Cir_Term
-    rw_guard: list[Cir_Term]
-    rw_vars: Var_set
-    rw_triggers: list[Cir_Fo_pattern]
-    rw_perm_restrict: bool
-    rw_loop_break: None | Cir_Fo_pattern
+class Common_Sequent_t_poly[_V_tyreg_poly_term]:
+    hyps: list["_V_tyreg_poly_term"]
+    concls: list["_V_tyreg_poly_term"]
 
-def Cir_Rewrite_rule_of_twine(d: twine.Decoder, off: int) -> Cir_Rewrite_rule:
+def Common_Sequent_t_poly_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],off: int) -> Common_Sequent_t_poly:
+    decode__tyreg_poly_term = d0
+    fields = list(d.get_array(off=off))
+    hyps = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[0])]
+    concls = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[1])]
+    return Common_Sequent_t_poly(hyps=hyps,concls=concls)
+
+# clique Imandrax_api_common.Rewrite_rule.t_poly
+# def Imandrax_api_common.Rewrite_rule.t_poly (mangled name: "Common_Rewrite_rule_t_poly")
+@dataclass(slots=True, frozen=True)
+class Common_Rewrite_rule_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    rw_name: Uid
+    rw_head: Common_Pattern_head_t_poly["_V_tyreg_poly_ty"]
+    rw_lhs: Common_Fo_pattern_t_poly["_V_tyreg_poly_ty"]
+    rw_rhs: "_V_tyreg_poly_term"
+    rw_guard: list["_V_tyreg_poly_term"]
+    rw_vars: list[Common_Var_t_poly["_V_tyreg_poly_ty"]]
+    rw_triggers: list[Common_Fo_pattern_t_poly["_V_tyreg_poly_ty"]]
+    rw_perm_restrict: bool
+    rw_loop_break: None | Common_Fo_pattern_t_poly["_V_tyreg_poly_ty"]
+
+def Common_Rewrite_rule_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Rewrite_rule_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     rw_name = Uid_of_twine(d=d, off=fields[0])
-    rw_head = Cir_Pattern_head_of_twine(d=d, off=fields[1])
-    rw_lhs = Cir_Fo_pattern_of_twine(d=d, off=fields[2])
-    rw_rhs = Cir_Term_of_twine(d=d, off=fields[3])
-    rw_guard = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=fields[4])]
-    rw_vars = Var_set_of_twine(d=d, off=fields[5])
-    rw_triggers = [Cir_Fo_pattern_of_twine(d=d, off=x) for x in d.get_array(off=fields[6])]
+    rw_head = Common_Pattern_head_t_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    rw_lhs = Common_Fo_pattern_t_poly_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    rw_rhs = decode__tyreg_poly_term(d=d,off=fields[3])
+    rw_guard = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[4])]
+    rw_vars = [Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[5])]
+    rw_triggers = [Common_Fo_pattern_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[6])]
     rw_perm_restrict = d.get_bool(off=fields[7])
-    rw_loop_break = twine.optional(d=d, off=fields[8], d0=lambda d, off: Cir_Fo_pattern_of_twine(d=d, off=off))
-    return Cir_Rewrite_rule(rw_name=rw_name,rw_head=rw_head,rw_lhs=rw_lhs,rw_rhs=rw_rhs,rw_guard=rw_guard,rw_vars=rw_vars,rw_triggers=rw_triggers,rw_perm_restrict=rw_perm_restrict,rw_loop_break=rw_loop_break)
+    rw_loop_break = twine.optional(d=d, off=fields[8], d0=lambda d, off: Common_Fo_pattern_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))
+    return Common_Rewrite_rule_t_poly(rw_name=rw_name,rw_head=rw_head,rw_lhs=rw_lhs,rw_rhs=rw_rhs,rw_guard=rw_guard,rw_vars=rw_vars,rw_triggers=rw_triggers,rw_perm_restrict=rw_perm_restrict,rw_loop_break=rw_loop_break)
 
-# clique Imandrax_api_cir.Proof_obligation.t
-# def Imandrax_api_cir.Proof_obligation.t (mangled name: "Cir_Proof_obligation")
+# clique Imandrax_api_common.Model.ty_def
+# def Imandrax_api_common.Model.ty_def (mangled name: "Common_Model_ty_def")
 @dataclass(slots=True, frozen=True)
-class Cir_Proof_obligation:
+class Common_Model_ty_def_Ty_finite[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: list["_V_tyreg_poly_term"]
+
+def Common_Model_ty_def_Ty_finite_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Model_ty_def_Ty_finite[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=args[0])]
+    return Common_Model_ty_def_Ty_finite(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Common_Model_ty_def_Ty_alias_unit[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: "_V_tyreg_poly_ty"
+
+def Common_Model_ty_def_Ty_alias_unit_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Model_ty_def_Ty_alias_unit[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = decode__tyreg_poly_ty(d=d,off=args[0])
+    return Common_Model_ty_def_Ty_alias_unit(arg=arg)
+
+type Common_Model_ty_def[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Model_ty_def_Ty_finite[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Model_ty_def_Ty_alias_unit[_V_tyreg_poly_term,_V_tyreg_poly_ty]
+
+def Common_Model_ty_def_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Model_ty_def:
+    match d.get_cstor(off=off):
+         case twine.Constructor(idx=0, args=args):
+             args = tuple(args)
+             return Common_Model_ty_def_Ty_finite_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=1, args=args):
+             args = tuple(args)
+             return Common_Model_ty_def_Ty_alias_unit_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=idx):
+             raise twine.Error(f'expected Common_Model_ty_def, got invalid constructor {idx}')
+
+# clique Imandrax_api_common.Model.fi
+# def Imandrax_api_common.Model.fi (mangled name: "Common_Model_fi")
+@dataclass(slots=True, frozen=True)
+class Common_Model_fi[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    fi_args: list[Common_Var_t_poly["_V_tyreg_poly_ty"]]
+    fi_ty_ret: "_V_tyreg_poly_ty"
+    fi_cases: list[tuple[list["_V_tyreg_poly_term"],"_V_tyreg_poly_term"]]
+    fi_else: "_V_tyreg_poly_term"
+
+def Common_Model_fi_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Model_fi:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    fields = list(d.get_array(off=off))
+    fi_args = [Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[0])]
+    fi_ty_ret = decode__tyreg_poly_ty(d=d,off=fields[1])
+    fi_cases = [(lambda tup: ([decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[2])]
+    fi_else = decode__tyreg_poly_term(d=d,off=fields[3])
+    return Common_Model_fi(fi_args=fi_args,fi_ty_ret=fi_ty_ret,fi_cases=fi_cases,fi_else=fi_else)
+
+# clique Imandrax_api_common.Model.t_poly
+# def Imandrax_api_common.Model.t_poly (mangled name: "Common_Model_t_poly")
+@dataclass(slots=True, frozen=True)
+class Common_Model_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    tys: list[tuple["_V_tyreg_poly_ty",Common_Model_ty_def["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]
+    consts: list[tuple[Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"],"_V_tyreg_poly_term"]]
+    funs: list[tuple[Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"],Common_Model_fi["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]
+    representable: bool
+    completed: bool
+    ty_subst: list[tuple[Uid,"_V_tyreg_poly_ty"]]
+
+def Common_Model_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Model_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    fields = list(d.get_array(off=off))
+    tys = [(lambda tup: (decode__tyreg_poly_ty(d=d,off=tup[0]),Common_Model_ty_def_of_twine(d=d,off=tup[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[0])]
+    consts = [(lambda tup: (Common_Applied_symbol_t_poly_of_twine(d=d,off=tup[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[1])]
+    funs = [(lambda tup: (Common_Applied_symbol_t_poly_of_twine(d=d,off=tup[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),Common_Model_fi_of_twine(d=d,off=tup[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[2])]
+    representable = d.get_bool(off=fields[3])
+    completed = d.get_bool(off=fields[4])
+    ty_subst = [(lambda tup: (Uid_of_twine(d=d, off=tup[0]),decode__tyreg_poly_ty(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[5])]
+    return Common_Model_t_poly(tys=tys,consts=consts,funs=funs,representable=representable,completed=completed,ty_subst=ty_subst)
+
+# clique Imandrax_api_common.Region.status
+# def Imandrax_api_common.Region.status (mangled name: "Common_Region_status")
+@dataclass(slots=True, frozen=True)
+class Common_Region_status_Unknown[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    pass
+
+@dataclass(slots=True, frozen=True)
+class Common_Region_status_Feasible[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: Common_Model_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+
+def Common_Region_status_Feasible_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Region_status_Feasible[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = Common_Model_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Common_Region_status_Feasible(arg=arg)
+
+type Common_Region_status[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Region_status_Unknown[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Region_status_Feasible[_V_tyreg_poly_term,_V_tyreg_poly_ty]
+
+def Common_Region_status_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Region_status:
+    match d.get_cstor(off=off):
+         case twine.Constructor(idx=0, args=args):
+             return Common_Region_status_Unknown[_V_tyreg_poly_term,_V_tyreg_poly_ty]()
+         case twine.Constructor(idx=1, args=args):
+             args = tuple(args)
+             return Common_Region_status_Feasible_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=idx):
+             raise twine.Error(f'expected Common_Region_status, got invalid constructor {idx}')
+
+# clique Imandrax_api_common.Region.t_poly
+# def Imandrax_api_common.Region.t_poly (mangled name: "Common_Region_t_poly")
+@dataclass(slots=True, frozen=True)
+class Common_Region_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    constraints: list["_V_tyreg_poly_term"]
+    invariant: "_V_tyreg_poly_term"
+    status: Common_Region_status["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+
+def Common_Region_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Region_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    fields = list(d.get_array(off=off))
+    constraints = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[0])]
+    invariant = decode__tyreg_poly_term(d=d,off=fields[1])
+    status = Common_Region_status_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Common_Region_t_poly(constraints=constraints,invariant=invariant,status=status)
+
+# clique Imandrax_api_common.Proof_obligation.t_poly
+# def Imandrax_api_common.Proof_obligation.t_poly (mangled name: "Common_Proof_obligation_t_poly")
+@dataclass(slots=True, frozen=True)
+class Common_Proof_obligation_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     descr: str
-    goal: Cir_Term
-    tactic: Cir_Tactic
+    goal: tuple[list[Common_Var_t_poly["_V_tyreg_poly_ty"]],"_V_tyreg_poly_term"]
+    tactic: Common_Tactic_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     is_instance: bool
     anchor: Anchor
     timeout: None | int
 
-def Cir_Proof_obligation_of_twine(d: twine.Decoder, off: int) -> Cir_Proof_obligation:
+def Common_Proof_obligation_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Proof_obligation_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     descr = d.get_str(off=fields[0])
-    goal = Cir_Term_of_twine(d=d, off=fields[1])
-    tactic = Cir_Tactic_of_twine(d=d, off=fields[2])
+    goal = (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=fields[1])))
+    tactic = Common_Tactic_t_poly_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     is_instance = d.get_bool(off=fields[3])
     anchor = Anchor_of_twine(d=d, off=fields[4])
     timeout = twine.optional(d=d, off=fields[5], d0=lambda d, off: d.get_int(off=off))
-    return Cir_Proof_obligation(descr=descr,goal=goal,tactic=tactic,is_instance=is_instance,anchor=anchor,timeout=timeout)
+    return Common_Proof_obligation_t_poly(descr=descr,goal=goal,tactic=tactic,is_instance=is_instance,anchor=anchor,timeout=timeout)
 
-# clique Imandrax_api_cir.Model.ty_def
-# def Imandrax_api_cir.Model.ty_def (mangled name: "Cir_Model_ty_def")
-type Cir_Model_ty_def = Model_ty_def[Cir_Term,Cir_Type]
-
-def Cir_Model_ty_def_of_twine(d: twine.Decoder, off: int) -> Cir_Model_ty_def:
-    return Model_ty_def_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Cir_Type_of_twine(d=d, off=off)))
-
-# clique Imandrax_api_cir.Model.fi
-# def Imandrax_api_cir.Model.fi (mangled name: "Cir_Model_fi")
-type Cir_Model_fi = Model_fi[Cir_Term,Cir_Var,Cir_Type]
-
-def Cir_Model_fi_of_twine(d: twine.Decoder, off: int) -> Cir_Model_fi:
-    return Model_fi_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Cir_Var_of_twine(d=d, off=off)),d2=(lambda d, off: Cir_Type_of_twine(d=d, off=off)))
-
-# clique Imandrax_api_cir.Model.t
-# def Imandrax_api_cir.Model.t (mangled name: "Cir_Model")
-type Cir_Model = Model[Cir_Term,Cir_Applied_symbol,Cir_Var,Cir_Type]
-
-def Cir_Model_of_twine(d: twine.Decoder, off: int) -> Cir_Model:
-    return Model_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Cir_Applied_symbol_of_twine(d=d, off=off)),d2=(lambda d, off: Cir_Var_of_twine(d=d, off=off)),d3=(lambda d, off: Cir_Type_of_twine(d=d, off=off)))
-
-# clique Imandrax_api_cir.Instantiation_rule_kind.t
-# def Imandrax_api_cir.Instantiation_rule_kind.t (mangled name: "Cir_Instantiation_rule_kind")
+# clique Imandrax_api_common.Instantiation_rule_kind.t
+# def Imandrax_api_common.Instantiation_rule_kind.t (mangled name: "Common_Instantiation_rule_kind")
 @dataclass(slots=True, frozen=True)
-class Cir_Instantiation_rule_kind_IR_forward_chaining:
+class Common_Instantiation_rule_kind_IR_forward_chaining:
     pass
 
 @dataclass(slots=True, frozen=True)
-class Cir_Instantiation_rule_kind_IR_generalization:
+class Common_Instantiation_rule_kind_IR_generalization:
     pass
 
-type Cir_Instantiation_rule_kind = Cir_Instantiation_rule_kind_IR_forward_chaining| Cir_Instantiation_rule_kind_IR_generalization
+type Common_Instantiation_rule_kind = Common_Instantiation_rule_kind_IR_forward_chaining| Common_Instantiation_rule_kind_IR_generalization
 
-def Cir_Instantiation_rule_kind_of_twine(d: twine.Decoder, off: int) -> Cir_Instantiation_rule_kind:
+def Common_Instantiation_rule_kind_of_twine(d: twine.Decoder, off: int) -> Common_Instantiation_rule_kind:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
-             return Cir_Instantiation_rule_kind_IR_forward_chaining()
+             return Common_Instantiation_rule_kind_IR_forward_chaining()
          case twine.Constructor(idx=1, args=args):
-             return Cir_Instantiation_rule_kind_IR_generalization()
+             return Common_Instantiation_rule_kind_IR_generalization()
          case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Instantiation_rule_kind, got invalid constructor {idx}')
+             raise twine.Error(f'expected Common_Instantiation_rule_kind, got invalid constructor {idx}')
 
-# clique Imandrax_api_cir.Instantiation_rule.t
-# def Imandrax_api_cir.Instantiation_rule.t (mangled name: "Cir_Instantiation_rule")
+# clique Imandrax_api_common.Instantiation_rule.t_poly
+# def Imandrax_api_common.Instantiation_rule.t_poly (mangled name: "Common_Instantiation_rule_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Instantiation_rule:
-    ir_from: Cir_Fun_def
-    ir_triggers: list[Cir_Trigger]
-    ir_kind: Cir_Instantiation_rule_kind
+class Common_Instantiation_rule_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    ir_from: Common_Fun_def_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+    ir_triggers: list[Common_Trigger_t_poly["_V_tyreg_poly_ty"]]
+    ir_kind: Common_Instantiation_rule_kind
 
-def Cir_Instantiation_rule_of_twine(d: twine.Decoder, off: int) -> Cir_Instantiation_rule:
+def Common_Instantiation_rule_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Instantiation_rule_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    ir_from = Cir_Fun_def_of_twine(d=d, off=fields[0])
-    ir_triggers = [Cir_Trigger_of_twine(d=d, off=x) for x in d.get_array(off=fields[1])]
-    ir_kind = Cir_Instantiation_rule_kind_of_twine(d=d, off=fields[2])
-    return Cir_Instantiation_rule(ir_from=ir_from,ir_triggers=ir_triggers,ir_kind=ir_kind)
+    ir_from = Common_Fun_def_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    ir_triggers = [Common_Trigger_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[1])]
+    ir_kind = Common_Instantiation_rule_kind_of_twine(d=d, off=fields[2])
+    return Common_Instantiation_rule_t_poly(ir_from=ir_from,ir_triggers=ir_triggers,ir_kind=ir_kind)
 
-# clique Imandrax_api_cir.Fun_decomp.status
-# def Imandrax_api_cir.Fun_decomp.status (mangled name: "Cir_Fun_decomp_status")
+# clique Imandrax_api_common.Fun_decomp.t_poly
+# def Imandrax_api_common.Fun_decomp.t_poly (mangled name: "Common_Fun_decomp_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Fun_decomp_status_Unknown:
-    pass
-
-@dataclass(slots=True, frozen=True)
-class Cir_Fun_decomp_status_Feasible:
-    arg: Cir_Model
-
-def Cir_Fun_decomp_status_Feasible_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Cir_Fun_decomp_status_Feasible:
-    arg = Cir_Model_of_twine(d=d, off=args[0])
-    return Cir_Fun_decomp_status_Feasible(arg=arg)
-
-type Cir_Fun_decomp_status = Cir_Fun_decomp_status_Unknown| Cir_Fun_decomp_status_Feasible
-
-def Cir_Fun_decomp_status_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_decomp_status:
-    match d.get_cstor(off=off):
-         case twine.Constructor(idx=0, args=args):
-             return Cir_Fun_decomp_status_Unknown()
-         case twine.Constructor(idx=1, args=args):
-             args = tuple(args)
-             return Cir_Fun_decomp_status_Feasible_of_twine(d=d, args=args, )
-         case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Fun_decomp_status, got invalid constructor {idx}')
-
-# clique Imandrax_api_cir.Fun_decomp.Region.t
-# def Imandrax_api_cir.Fun_decomp.Region.t (mangled name: "Cir_Fun_decomp_Region")
-@dataclass(slots=True, frozen=True)
-class Cir_Fun_decomp_Region:
-    constraints: list[Cir_Term]
-    invariant: Cir_Term
-    status: Cir_Fun_decomp_status
-
-def Cir_Fun_decomp_Region_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_decomp_Region:
-    fields = list(d.get_array(off=off))
-    constraints = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=fields[0])]
-    invariant = Cir_Term_of_twine(d=d, off=fields[1])
-    status = Cir_Fun_decomp_status_of_twine(d=d, off=fields[2])
-    return Cir_Fun_decomp_Region(constraints=constraints,invariant=invariant,status=status)
-
-# clique Imandrax_api_cir.Fun_decomp.t
-# def Imandrax_api_cir.Fun_decomp.t (mangled name: "Cir_Fun_decomp")
-@dataclass(slots=True, frozen=True)
-class Cir_Fun_decomp:
+class Common_Fun_decomp_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     f_id: Uid
-    f_args: list[Cir_Var]
-    regions: list[Cir_Fun_decomp_Region]
+    f_args: list[Common_Var_t_poly["_V_tyreg_poly_ty"]]
+    regions: list[Common_Region_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
 
-def Cir_Fun_decomp_of_twine(d: twine.Decoder, off: int) -> Cir_Fun_decomp:
+def Common_Fun_decomp_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Fun_decomp_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     f_id = Uid_of_twine(d=d, off=fields[0])
-    f_args = [Cir_Var_of_twine(d=d, off=x) for x in d.get_array(off=fields[1])]
-    regions = [Cir_Fun_decomp_Region_of_twine(d=d, off=x) for x in d.get_array(off=fields[2])]
-    return Cir_Fun_decomp(f_id=f_id,f_args=f_args,regions=regions)
+    f_args = [Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[1])]
+    regions = [Common_Region_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[2])]
+    return Common_Fun_decomp_t_poly(f_id=f_id,f_args=f_args,regions=regions)
 
-# clique Imandrax_api_cir.Elimination_rule.t
-# def Imandrax_api_cir.Elimination_rule.t (mangled name: "Cir_Elimination_rule")
+# clique Imandrax_api_common.Elimination_rule.t_poly
+# def Imandrax_api_common.Elimination_rule.t_poly (mangled name: "Common_Elimination_rule_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Elimination_rule:
+class Common_Elimination_rule_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     er_name: Uid
-    er_guard: list[Cir_Term]
-    er_lhs: Cir_Term
-    er_rhs: Cir_Var
-    er_dests: list[Cir_Fo_pattern]
-    er_dest_tms: list[Cir_Term]
+    er_guard: list["_V_tyreg_poly_term"]
+    er_lhs: "_V_tyreg_poly_term"
+    er_rhs: Common_Var_t_poly["_V_tyreg_poly_ty"]
+    er_dests: list[Common_Fo_pattern_t_poly["_V_tyreg_poly_ty"]]
+    er_dest_tms: list["_V_tyreg_poly_term"]
 
-def Cir_Elimination_rule_of_twine(d: twine.Decoder, off: int) -> Cir_Elimination_rule:
+def Common_Elimination_rule_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Elimination_rule_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     er_name = Uid_of_twine(d=d, off=fields[0])
-    er_guard = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=fields[1])]
-    er_lhs = Cir_Term_of_twine(d=d, off=fields[2])
-    er_rhs = Cir_Var_of_twine(d=d, off=fields[3])
-    er_dests = [Cir_Fo_pattern_of_twine(d=d, off=x) for x in d.get_array(off=fields[4])]
-    er_dest_tms = [Cir_Term_of_twine(d=d, off=x) for x in d.get_array(off=fields[5])]
-    return Cir_Elimination_rule(er_name=er_name,er_guard=er_guard,er_lhs=er_lhs,er_rhs=er_rhs,er_dests=er_dests,er_dest_tms=er_dest_tms)
+    er_guard = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[1])]
+    er_lhs = decode__tyreg_poly_term(d=d,off=fields[2])
+    er_rhs = Common_Var_t_poly_of_twine(d=d,off=fields[3],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    er_dests = [Common_Fo_pattern_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[4])]
+    er_dest_tms = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[5])]
+    return Common_Elimination_rule_t_poly(er_name=er_name,er_guard=er_guard,er_lhs=er_lhs,er_rhs=er_rhs,er_dests=er_dests,er_dest_tms=er_dest_tms)
 
-# clique Imandrax_api_cir.Decomp.lift_bool
-# def Imandrax_api_cir.Decomp.lift_bool (mangled name: "Cir_Decomp_lift_bool")
+# clique Imandrax_api_common.Decomp.lift_bool
+# def Imandrax_api_common.Decomp.lift_bool (mangled name: "Common_Decomp_lift_bool")
 @dataclass(slots=True, frozen=True)
-class Cir_Decomp_lift_bool_Default:
+class Common_Decomp_lift_bool_Default:
     pass
 
 @dataclass(slots=True, frozen=True)
-class Cir_Decomp_lift_bool_Nested_equalities:
+class Common_Decomp_lift_bool_Nested_equalities:
     pass
 
 @dataclass(slots=True, frozen=True)
-class Cir_Decomp_lift_bool_Equalities:
+class Common_Decomp_lift_bool_Equalities:
     pass
 
 @dataclass(slots=True, frozen=True)
-class Cir_Decomp_lift_bool_All:
+class Common_Decomp_lift_bool_All:
     pass
 
-type Cir_Decomp_lift_bool = Cir_Decomp_lift_bool_Default| Cir_Decomp_lift_bool_Nested_equalities| Cir_Decomp_lift_bool_Equalities| Cir_Decomp_lift_bool_All
+type Common_Decomp_lift_bool = Common_Decomp_lift_bool_Default| Common_Decomp_lift_bool_Nested_equalities| Common_Decomp_lift_bool_Equalities| Common_Decomp_lift_bool_All
 
-def Cir_Decomp_lift_bool_of_twine(d: twine.Decoder, off: int) -> Cir_Decomp_lift_bool:
+def Common_Decomp_lift_bool_of_twine(d: twine.Decoder, off: int) -> Common_Decomp_lift_bool:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
-             return Cir_Decomp_lift_bool_Default()
+             return Common_Decomp_lift_bool_Default()
          case twine.Constructor(idx=1, args=args):
-             return Cir_Decomp_lift_bool_Nested_equalities()
+             return Common_Decomp_lift_bool_Nested_equalities()
          case twine.Constructor(idx=2, args=args):
-             return Cir_Decomp_lift_bool_Equalities()
+             return Common_Decomp_lift_bool_Equalities()
          case twine.Constructor(idx=3, args=args):
-             return Cir_Decomp_lift_bool_All()
+             return Common_Decomp_lift_bool_All()
          case twine.Constructor(idx=idx):
-             raise twine.Error(f'expected Cir_Decomp_lift_bool, got invalid constructor {idx}')
+             raise twine.Error(f'expected Common_Decomp_lift_bool, got invalid constructor {idx}')
 
-# clique Imandrax_api_cir.Decomp.t
-# def Imandrax_api_cir.Decomp.t (mangled name: "Cir_Decomp")
+# clique Imandrax_api_common.Decomp.t
+# def Imandrax_api_common.Decomp.t (mangled name: "Common_Decomp")
 @dataclass(slots=True, frozen=True)
-class Cir_Decomp:
+class Common_Decomp:
     f_id: Uid
     assuming: None | Uid
     basis: Uid_set
     rule_specs: Uid_set
     ctx_simp: bool
-    lift_bool: Cir_Decomp_lift_bool
+    lift_bool: Common_Decomp_lift_bool
     prune: bool
 
-def Cir_Decomp_of_twine(d: twine.Decoder, off: int) -> Cir_Decomp:
+def Common_Decomp_of_twine(d: twine.Decoder, off: int) -> Common_Decomp:
     fields = list(d.get_array(off=off))
     f_id = Uid_of_twine(d=d, off=fields[0])
     assuming = twine.optional(d=d, off=fields[1], d0=lambda d, off: Uid_of_twine(d=d, off=off))
     basis = Uid_set_of_twine(d=d, off=fields[2])
     rule_specs = Uid_set_of_twine(d=d, off=fields[3])
     ctx_simp = d.get_bool(off=fields[4])
-    lift_bool = Cir_Decomp_lift_bool_of_twine(d=d, off=fields[5])
+    lift_bool = Common_Decomp_lift_bool_of_twine(d=d, off=fields[5])
     prune = d.get_bool(off=fields[6])
-    return Cir_Decomp(f_id=f_id,assuming=assuming,basis=basis,rule_specs=rule_specs,ctx_simp=ctx_simp,lift_bool=lift_bool,prune=prune)
+    return Common_Decomp(f_id=f_id,assuming=assuming,basis=basis,rule_specs=rule_specs,ctx_simp=ctx_simp,lift_bool=lift_bool,prune=prune)
 
-# clique Imandrax_api_cir.Db_ser.uid_map
-# def Imandrax_api_cir.Db_ser.uid_map (mangled name: "Cir_Db_ser_uid_map")
-type Cir_Db_ser_uid_map[_V_tyreg_poly_a] = list[tuple[Uid,"_V_tyreg_poly_a"]]
+# clique Imandrax_api_common.Db_ser.uid_map
+# def Imandrax_api_common.Db_ser.uid_map (mangled name: "Common_Db_ser_uid_map")
+type Common_Db_ser_uid_map[_V_tyreg_poly_a] = list[tuple[Uid,"_V_tyreg_poly_a"]]
 
-def Cir_Db_ser_uid_map_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Cir_Db_ser_uid_map:
+def Common_Db_ser_uid_map_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Common_Db_ser_uid_map:
     decode__tyreg_poly_a = d0
     return [(lambda tup: (Uid_of_twine(d=d, off=tup[0]),decode__tyreg_poly_a(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=off)]
 
-# clique Imandrax_api_cir.Db_ser.ph_map
-# def Imandrax_api_cir.Db_ser.ph_map (mangled name: "Cir_Db_ser_ph_map")
-type Cir_Db_ser_ph_map[_V_tyreg_poly_a] = list[tuple[Cir_Pattern_head,"_V_tyreg_poly_a"]]
+# clique Imandrax_api_common.Db_ser.ph_map
+# def Imandrax_api_common.Db_ser.ph_map (mangled name: "Common_Db_ser_ph_map")
+type Common_Db_ser_ph_map[_V_tyreg_poly_ty,_V_tyreg_poly_a] = list[tuple[Common_Pattern_head_t_poly["_V_tyreg_poly_ty"],"_V_tyreg_poly_a"]]
 
-def Cir_Db_ser_ph_map_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Cir_Db_ser_ph_map:
-    decode__tyreg_poly_a = d0
-    return [(lambda tup: (Cir_Pattern_head_of_twine(d=d, off=tup[0]),decode__tyreg_poly_a(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=off)]
+def Common_Db_ser_ph_map_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_ty],d1: Callable[...,_V_tyreg_poly_a],off: int) -> Common_Db_ser_ph_map:
+    decode__tyreg_poly_ty = d0
+    decode__tyreg_poly_a = d1
+    return [(lambda tup: (Common_Pattern_head_t_poly_of_twine(d=d,off=tup[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),decode__tyreg_poly_a(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=off)]
 
-# clique Imandrax_api_cir.Db_ser.ca_ptr
-# def Imandrax_api_cir.Db_ser.ca_ptr (mangled name: "Cir_Db_ser_ca_ptr")
-type Cir_Db_ser_ca_ptr[_V_tyreg_poly_a] = Ca_store_Ca_ptr["_V_tyreg_poly_a"]
+# clique Imandrax_api_common.Db_ser.ca_ptr
+# def Imandrax_api_common.Db_ser.ca_ptr (mangled name: "Common_Db_ser_ca_ptr")
+type Common_Db_ser_ca_ptr[_V_tyreg_poly_a] = Ca_store_Ca_ptr["_V_tyreg_poly_a"]
 
-def Cir_Db_ser_ca_ptr_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Cir_Db_ser_ca_ptr:
+def Common_Db_ser_ca_ptr_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Common_Db_ser_ca_ptr:
     decode__tyreg_poly_a = d0
     return Ca_store_Ca_ptr_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_a(d=d,off=off)))
 
-# clique Imandrax_api_cir.Db_ser.t
-# def Imandrax_api_cir.Db_ser.t (mangled name: "Cir_Db_ser")
+# clique Imandrax_api_common.Db_ser.t_poly
+# def Imandrax_api_common.Db_ser.t_poly (mangled name: "Common_Db_ser_t_poly")
 @dataclass(slots=True, frozen=True)
-class Cir_Db_ser:
+class Common_Db_ser_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     decls: Uid_set
-    rw_rules: Cir_Db_ser_ph_map[list[Cir_Db_ser_ca_ptr[Cir_Rewrite_rule]]]
-    inst_rules: Cir_Db_ser_uid_map[Cir_Db_ser_ca_ptr[Cir_Instantiation_rule]]
-    rule_spec_fc: Cir_Db_ser_uid_map[list[Cir_Db_ser_ca_ptr[Cir_Trigger]]]
-    rule_spec_rw_rules: Cir_Db_ser_uid_map[list[Cir_Db_ser_ca_ptr[Cir_Rewrite_rule]]]
-    fc: Cir_Db_ser_ph_map[list[Cir_Db_ser_ca_ptr[Cir_Trigger]]]
-    elim: Cir_Db_ser_ph_map[list[Cir_Db_ser_ca_ptr[Cir_Elimination_rule]]]
-    gen: Cir_Db_ser_ph_map[list[Cir_Db_ser_ca_ptr[Cir_Trigger]]]
-    thm_as_rw: Cir_Db_ser_uid_map[list[Cir_Db_ser_ca_ptr[Cir_Rewrite_rule]]]
-    thm_as_fc: Cir_Db_ser_uid_map[list[Cir_Db_ser_ca_ptr[Cir_Instantiation_rule]]]
-    thm_as_elim: Cir_Db_ser_uid_map[list[Cir_Db_ser_ca_ptr[Cir_Elimination_rule]]]
-    thm_as_gen: Cir_Db_ser_uid_map[list[Cir_Db_ser_ca_ptr[Cir_Instantiation_rule]]]
-    admission: Cir_Db_ser_uid_map[Cir_Db_ser_ca_ptr[Admission]]
-    count_funs_of_ty: Cir_Db_ser_uid_map[Uid]
+    rw_rules: Common_Db_ser_ph_map["_V_tyreg_poly_ty",list[Common_Db_ser_ca_ptr[Common_Rewrite_rule_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]]
+    inst_rules: Common_Db_ser_uid_map[Common_Db_ser_ca_ptr[Common_Instantiation_rule_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]
+    rule_spec_fc: Common_Db_ser_uid_map[list[Common_Db_ser_ca_ptr[Common_Trigger_t_poly["_V_tyreg_poly_ty"]]]]
+    rule_spec_rw_rules: Common_Db_ser_uid_map[list[Common_Db_ser_ca_ptr[Common_Rewrite_rule_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]]
+    fc: Common_Db_ser_ph_map["_V_tyreg_poly_ty",list[Common_Db_ser_ca_ptr[Common_Trigger_t_poly["_V_tyreg_poly_ty"]]]]
+    elim: Common_Db_ser_ph_map["_V_tyreg_poly_ty",list[Common_Db_ser_ca_ptr[Common_Elimination_rule_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]]
+    gen: Common_Db_ser_ph_map["_V_tyreg_poly_ty",list[Common_Db_ser_ca_ptr[Common_Trigger_t_poly["_V_tyreg_poly_ty"]]]]
+    thm_as_rw: Common_Db_ser_uid_map[list[Common_Db_ser_ca_ptr[Common_Rewrite_rule_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]]
+    thm_as_fc: Common_Db_ser_uid_map[list[Common_Db_ser_ca_ptr[Common_Instantiation_rule_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]]
+    thm_as_elim: Common_Db_ser_uid_map[list[Common_Db_ser_ca_ptr[Common_Elimination_rule_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]]
+    thm_as_gen: Common_Db_ser_uid_map[list[Common_Db_ser_ca_ptr[Common_Instantiation_rule_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]]
+    admission: Common_Db_ser_uid_map[Common_Db_ser_ca_ptr[Common_Admission]]
+    count_funs_of_ty: Common_Db_ser_uid_map[Uid]
     disabled: Uid_set
 
-def Cir_Db_ser_of_twine(d: twine.Decoder, off: int) -> Cir_Db_ser:
+def Common_Db_ser_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Db_ser_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     decls = Uid_set_of_twine(d=d, off=fields[0])
-    rw_rules = Cir_Db_ser_ph_map_of_twine(d=d,off=fields[1],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Rewrite_rule_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
-    inst_rules = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[2],d0=(lambda d, off: Cir_Db_ser_ca_ptr_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Instantiation_rule_of_twine(d=d, off=off)))))
-    rule_spec_fc = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[3],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Trigger_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
-    rule_spec_rw_rules = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[4],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Rewrite_rule_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
-    fc = Cir_Db_ser_ph_map_of_twine(d=d,off=fields[5],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Trigger_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
-    elim = Cir_Db_ser_ph_map_of_twine(d=d,off=fields[6],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Elimination_rule_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
-    gen = Cir_Db_ser_ph_map_of_twine(d=d,off=fields[7],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Trigger_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
-    thm_as_rw = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[8],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Rewrite_rule_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
-    thm_as_fc = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[9],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Instantiation_rule_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
-    thm_as_elim = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[10],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Elimination_rule_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
-    thm_as_gen = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[11],d0=(lambda d, off: [Cir_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Cir_Instantiation_rule_of_twine(d=d, off=off))) for x in d.get_array(off=off)]))
-    admission = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[12],d0=(lambda d, off: Cir_Db_ser_ca_ptr_of_twine(d=d,off=off,d0=(lambda d, off: Admission_of_twine(d=d, off=off)))))
-    count_funs_of_ty = Cir_Db_ser_uid_map_of_twine(d=d,off=fields[13],d0=(lambda d, off: Uid_of_twine(d=d, off=off)))
+    rw_rules = Common_Db_ser_ph_map_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Rewrite_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    inst_rules = Common_Db_ser_uid_map_of_twine(d=d,off=fields[2],d0=(lambda d, off: Common_Db_ser_ca_ptr_of_twine(d=d,off=off,d0=(lambda d, off: Common_Instantiation_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))))
+    rule_spec_fc = Common_Db_ser_uid_map_of_twine(d=d,off=fields[3],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Trigger_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    rule_spec_rw_rules = Common_Db_ser_uid_map_of_twine(d=d,off=fields[4],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Rewrite_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    fc = Common_Db_ser_ph_map_of_twine(d=d,off=fields[5],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Trigger_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    elim = Common_Db_ser_ph_map_of_twine(d=d,off=fields[6],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Elimination_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    gen = Common_Db_ser_ph_map_of_twine(d=d,off=fields[7],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Trigger_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    thm_as_rw = Common_Db_ser_uid_map_of_twine(d=d,off=fields[8],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Rewrite_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    thm_as_fc = Common_Db_ser_uid_map_of_twine(d=d,off=fields[9],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Instantiation_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    thm_as_elim = Common_Db_ser_uid_map_of_twine(d=d,off=fields[10],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Elimination_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    thm_as_gen = Common_Db_ser_uid_map_of_twine(d=d,off=fields[11],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Instantiation_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    admission = Common_Db_ser_uid_map_of_twine(d=d,off=fields[12],d0=(lambda d, off: Common_Db_ser_ca_ptr_of_twine(d=d,off=off,d0=(lambda d, off: Common_Admission_of_twine(d=d, off=off)))))
+    count_funs_of_ty = Common_Db_ser_uid_map_of_twine(d=d,off=fields[13],d0=(lambda d, off: Uid_of_twine(d=d, off=off)))
     disabled = Uid_set_of_twine(d=d, off=fields[14])
-    return Cir_Db_ser(decls=decls,rw_rules=rw_rules,inst_rules=inst_rules,rule_spec_fc=rule_spec_fc,rule_spec_rw_rules=rule_spec_rw_rules,fc=fc,elim=elim,gen=gen,thm_as_rw=thm_as_rw,thm_as_fc=thm_as_fc,thm_as_elim=thm_as_elim,thm_as_gen=thm_as_gen,admission=admission,count_funs_of_ty=count_funs_of_ty,disabled=disabled)
+    return Common_Db_ser_t_poly(decls=decls,rw_rules=rw_rules,inst_rules=inst_rules,rule_spec_fc=rule_spec_fc,rule_spec_rw_rules=rule_spec_rw_rules,fc=fc,elim=elim,gen=gen,thm_as_rw=thm_as_rw,thm_as_fc=thm_as_fc,thm_as_elim=thm_as_elim,thm_as_gen=thm_as_gen,admission=admission,count_funs_of_ty=count_funs_of_ty,disabled=disabled)
+
+# clique Imandrax_api_mir.Type.var
+# def Imandrax_api_mir.Type.var (mangled name: "Mir_Type_var")
+type Mir_Type_var = Uid
+
+def Mir_Type_var_of_twine(d: twine.Decoder, off: int) -> Mir_Type_var:
+    return Uid_of_twine(d=d, off=off)
+
+# clique Imandrax_api_mir.Type.clique
+# def Imandrax_api_mir.Type.clique (mangled name: "Mir_Type_clique")
+type Mir_Type_clique = Uid_set
+
+def Mir_Type_clique_of_twine(d: twine.Decoder, off: int) -> Mir_Type_clique:
+    return Uid_set_of_twine(d=d, off=off)
+
+# clique Imandrax_api_mir.Type.generation
+# def Imandrax_api_mir.Type.generation (mangled name: "Mir_Type_generation")
+type Mir_Type_generation = int
+
+def Mir_Type_generation_of_twine(d: twine.Decoder, off: int) -> Mir_Type_generation:
+    return d.get_int(off=off)
+
+# clique Imandrax_api_mir.Type.t
+# def Imandrax_api_mir.Type.t (mangled name: "Mir_Type")
+@dataclass(slots=True, frozen=True)
+class Mir_Type:
+    view: Ty_view_view[None,Mir_Type_var,Mir_Type]
+    generation: Mir_Type_generation
+
+def Mir_Type_of_twine(d: twine.Decoder, off: int) -> Mir_Type:
+    fields = list(d.get_array(off=off))
+    view = Ty_view_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: d.get_null(off=off)),d1=(lambda d, off: Mir_Type_var_of_twine(d=d, off=off)),d2=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+    generation = Mir_Type_generation_of_twine(d=d, off=fields[1])
+    return Mir_Type(view=view,generation=generation)
+
+# clique Imandrax_api_mir.Type.ser
+# def Imandrax_api_mir.Type.ser (mangled name: "Mir_Type_ser")
+@dataclass(slots=True, frozen=True)
+class Mir_Type_ser:
+    view: Ty_view_view[None,Mir_Type_var,Mir_Type]
+
+def Mir_Type_ser_of_twine(d: twine.Decoder, off: int) -> Mir_Type_ser:
+    x = Ty_view_view_of_twine(d=d,off=off,d0=(lambda d, off: d.get_null(off=off)),d1=(lambda d, off: Mir_Type_var_of_twine(d=d, off=off)),d2=(lambda d, off: Mir_Type_of_twine(d=d, off=off))) # single unboxed field
+    return Mir_Type_ser(view=x)
+
+# clique Imandrax_api_mir.Type.def
+# def Imandrax_api_mir.Type.def (mangled name: "Mir_Type_def")
+type Mir_Type_def = Ty_view_def_poly[Mir_Type]
+
+def Mir_Type_def_of_twine(d: twine.Decoder, off: int) -> Mir_Type_def:
+    return Ty_view_def_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Var.t
+# def Imandrax_api_mir.Var.t (mangled name: "Mir_Var")
+type Mir_Var = Common_Var_t_poly[Mir_Type]
+
+def Mir_Var_of_twine(d: twine.Decoder, off: int) -> Mir_Var:
+    return Common_Var_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Typed_symbol.t
+# def Imandrax_api_mir.Typed_symbol.t (mangled name: "Mir_Typed_symbol")
+type Mir_Typed_symbol = Common_Typed_symbol_t_poly[Mir_Type]
+
+def Mir_Typed_symbol_of_twine(d: twine.Decoder, off: int) -> Mir_Typed_symbol:
+    return Common_Typed_symbol_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Type_schema.t
+# def Imandrax_api_mir.Type_schema.t (mangled name: "Mir_Type_schema")
+type Mir_Type_schema = Common_Type_schema_t_poly[Mir_Type]
+
+def Mir_Type_schema_of_twine(d: twine.Decoder, off: int) -> Mir_Type_schema:
+    return Common_Type_schema_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Trigger.t
+# def Imandrax_api_mir.Trigger.t (mangled name: "Mir_Trigger")
+type Mir_Trigger = Common_Trigger_t_poly[Mir_Type]
+
+def Mir_Trigger_of_twine(d: twine.Decoder, off: int) -> Mir_Trigger:
+    return Common_Trigger_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Applied_symbol.t
+# def Imandrax_api_mir.Applied_symbol.t (mangled name: "Mir_Applied_symbol")
+type Mir_Applied_symbol = Common_Applied_symbol_t_poly[Mir_Type]
+
+def Mir_Applied_symbol_of_twine(d: twine.Decoder, off: int) -> Mir_Applied_symbol:
+    return Common_Applied_symbol_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Term.view
+# def Imandrax_api_mir.Term.view (mangled name: "Mir_Term_view")
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Const[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    arg: Const
+
+def Mir_Term_view_Const_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Const[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    arg = Const_of_twine(d=d, off=args[0])
+    return Mir_Term_view_Const(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_If[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    args: tuple["_V_tyreg_poly_t","_V_tyreg_poly_t","_V_tyreg_poly_t"]
+
+def Mir_Term_view_If_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_If[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    cargs = (decode__tyreg_poly_t(d=d,off=args[0]),decode__tyreg_poly_t(d=d,off=args[1]),decode__tyreg_poly_t(d=d,off=args[2]))
+    return Mir_Term_view_If(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Apply[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    f: "_V_tyreg_poly_t"
+    l: list["_V_tyreg_poly_t"]
+
+
+def Mir_Term_view_Apply_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Apply[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    f = decode__tyreg_poly_t(d=d,off=args[0])
+    l = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])]
+    return Mir_Term_view_Apply(f=f,l=l)
+
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Var[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    arg: Common_Var_t_poly["_V_tyreg_poly_ty"]
+
+def Mir_Term_view_Var_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Var[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    arg = Common_Var_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Mir_Term_view_Var(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Sym[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    arg: Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"]
+
+def Mir_Term_view_Sym_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Sym[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    arg = Common_Applied_symbol_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Mir_Term_view_Sym(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Construct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    c: Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"]
+    args: list["_V_tyreg_poly_t"]
+
+
+def Mir_Term_view_Construct_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Construct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    c = Common_Applied_symbol_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    args = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])]
+    return Mir_Term_view_Construct(c=c,args=args)
+
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Destruct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    c: Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"]
+    i: int
+    t: "_V_tyreg_poly_t"
+
+
+def Mir_Term_view_Destruct_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Destruct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    c = Common_Applied_symbol_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    i = d.get_int(off=args[1])
+    t = decode__tyreg_poly_t(d=d,off=args[2])
+    return Mir_Term_view_Destruct(c=c,i=i,t=t)
+
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Is_a[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    c: Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"]
+    t: "_V_tyreg_poly_t"
+
+
+def Mir_Term_view_Is_a_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Is_a[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    c = Common_Applied_symbol_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    t = decode__tyreg_poly_t(d=d,off=args[1])
+    return Mir_Term_view_Is_a(c=c,t=t)
+
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Tuple[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    l: list["_V_tyreg_poly_t"]
+
+
+def Mir_Term_view_Tuple_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Tuple[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    l = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[0])]
+    return Mir_Term_view_Tuple(l=l)
+
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Field[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    f: Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"]
+    t: "_V_tyreg_poly_t"
+
+
+def Mir_Term_view_Field_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Field[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    f = Common_Applied_symbol_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    t = decode__tyreg_poly_t(d=d,off=args[1])
+    return Mir_Term_view_Field(f=f,t=t)
+
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Tuple_field[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    i: int
+    t: "_V_tyreg_poly_t"
+
+
+def Mir_Term_view_Tuple_field_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Tuple_field[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    i = d.get_int(off=args[0])
+    t = decode__tyreg_poly_t(d=d,off=args[1])
+    return Mir_Term_view_Tuple_field(i=i,t=t)
+
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Record[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    rows: list[tuple[Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"],"_V_tyreg_poly_t"]]
+    rest: None | "_V_tyreg_poly_t"
+
+
+def Mir_Term_view_Record_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Record[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    rows = [(lambda tup: (Common_Applied_symbol_t_poly_of_twine(d=d,off=tup[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),decode__tyreg_poly_t(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[0])]
+    rest = twine.optional(d=d, off=args[1], d0=lambda d, off: decode__tyreg_poly_t(d=d,off=off))
+    return Mir_Term_view_Record(rows=rows,rest=rest)
+
+
+@dataclass(slots=True, frozen=True)
+class Mir_Term_view_Case[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    u: "_V_tyreg_poly_t"
+    cases: list[tuple[Common_Applied_symbol_t_poly["_V_tyreg_poly_ty"],"_V_tyreg_poly_t"]]
+    default: None | "_V_tyreg_poly_t"
+
+
+def Mir_Term_view_Case_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Case[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_t = d0
+    decode__tyreg_poly_ty = d1
+    u = decode__tyreg_poly_t(d=d,off=args[0])
+    cases = [(lambda tup: (Common_Applied_symbol_t_poly_of_twine(d=d,off=tup[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),decode__tyreg_poly_t(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[1])]
+    default = twine.optional(d=d, off=args[2], d0=lambda d, off: decode__tyreg_poly_t(d=d,off=off))
+    return Mir_Term_view_Case(u=u,cases=cases,default=default)
+
+
+type Mir_Term_view[_V_tyreg_poly_t,_V_tyreg_poly_ty] = Mir_Term_view_Const[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_If[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Apply[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Var[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Sym[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Construct[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Destruct[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Is_a[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Tuple[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Field[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Tuple_field[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Record[_V_tyreg_poly_t,_V_tyreg_poly_ty]| Mir_Term_view_Case[_V_tyreg_poly_t,_V_tyreg_poly_ty]
+
+def Mir_Term_view_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Mir_Term_view:
+    match d.get_cstor(off=off):
+         case twine.Constructor(idx=0, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Const_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=1, args=args):
+             args = tuple(args)
+             return Mir_Term_view_If_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=2, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Apply_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=3, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Var_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=4, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Sym_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=5, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Construct_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=6, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Destruct_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=7, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Is_a_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=8, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Tuple_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=9, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Field_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=10, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Tuple_field_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=11, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Record_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=12, args=args):
+             args = tuple(args)
+             return Mir_Term_view_Case_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=idx):
+             raise twine.Error(f'expected Mir_Term_view, got invalid constructor {idx}')
+
+# clique Imandrax_api_mir.Term.generation
+# def Imandrax_api_mir.Term.generation (mangled name: "Mir_Term_generation")
+type Mir_Term_generation = int
+
+def Mir_Term_generation_of_twine(d: twine.Decoder, off: int) -> Mir_Term_generation:
+    return d.get_int(off=off)
+
+# clique Imandrax_api_mir.Term.t
+# def Imandrax_api_mir.Term.t (mangled name: "Mir_Term")
+@dataclass(slots=True, frozen=True)
+class Mir_Term:
+    view: Mir_Term_view[Mir_Term,Mir_Type]
+    ty: Mir_Type
+    generation: Mir_Term_generation
+
+def Mir_Term_of_twine(d: twine.Decoder, off: int) -> Mir_Term:
+    fields = list(d.get_array(off=off))
+    view = Mir_Term_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+    ty = Mir_Type_of_twine(d=d, off=fields[1])
+    generation = Mir_Term_generation_of_twine(d=d, off=fields[2])
+    return Mir_Term(view=view,ty=ty,generation=generation)
+
+# clique Imandrax_api_mir.Term.ser
+# def Imandrax_api_mir.Term.ser (mangled name: "Mir_Term_ser")
+@dataclass(slots=True, frozen=True)
+class Mir_Term_ser:
+    view: Mir_Term_view[Mir_Term,Mir_Type]
+    ty: Mir_Type
+
+def Mir_Term_ser_of_twine(d: twine.Decoder, off: int) -> Mir_Term_ser:
+    fields = list(d.get_array(off=off))
+    view = Mir_Term_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+    ty = Mir_Type_of_twine(d=d, off=fields[1])
+    return Mir_Term_ser(view=view,ty=ty)
+
+# clique Imandrax_api_mir.Term.term
+# def Imandrax_api_mir.Term.term (mangled name: "Mir_Term_term")
+type Mir_Term_term = Mir_Term
+
+def Mir_Term_term_of_twine(d: twine.Decoder, off: int) -> Mir_Term_term:
+    return Mir_Term_of_twine(d=d, off=off)
+
+# clique Imandrax_api_mir.Top_fun.t
+# def Imandrax_api_mir.Top_fun.t (mangled name: "Mir_Top_fun")
+type Mir_Top_fun = tuple[list[Mir_Var],Mir_Term]
+
+def Mir_Top_fun_of_twine(d: twine.Decoder, off: int) -> Mir_Top_fun:
+    return (lambda tup: ([Mir_Var_of_twine(d=d, off=x) for x in d.get_array(off=tup[0])],Mir_Term_of_twine(d=d, off=tup[1])))(tuple(d.get_array(off=off)))
+
+# clique Imandrax_api_mir.Theorem.t
+# def Imandrax_api_mir.Theorem.t (mangled name: "Mir_Theorem")
+type Mir_Theorem = Common_Theorem_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Theorem_of_twine(d: twine.Decoder, off: int) -> Mir_Theorem:
+    return Common_Theorem_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Tactic.t
+# def Imandrax_api_mir.Tactic.t (mangled name: "Mir_Tactic")
+type Mir_Tactic = Common_Tactic_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Tactic_of_twine(d: twine.Decoder, off: int) -> Mir_Tactic:
+    return Common_Tactic_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Sequent.t
+# def Imandrax_api_mir.Sequent.t (mangled name: "Mir_Sequent")
+type Mir_Sequent = Common_Sequent_t_poly[Mir_Term]
+
+def Mir_Sequent_of_twine(d: twine.Decoder, off: int) -> Mir_Sequent:
+    return Common_Sequent_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Rewrite_rule.t
+# def Imandrax_api_mir.Rewrite_rule.t (mangled name: "Mir_Rewrite_rule")
+type Mir_Rewrite_rule = Common_Rewrite_rule_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Rewrite_rule_of_twine(d: twine.Decoder, off: int) -> Mir_Rewrite_rule:
+    return Common_Rewrite_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Region.Region.t
+# def Imandrax_api_mir.Region.Region.t (mangled name: "Mir_Region_Region")
+type Mir_Region_Region = Common_Region_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Region_Region_of_twine(d: twine.Decoder, off: int) -> Mir_Region_Region:
+    return Common_Region_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Proof_obligation.t
+# def Imandrax_api_mir.Proof_obligation.t (mangled name: "Mir_Proof_obligation")
+type Mir_Proof_obligation = Common_Proof_obligation_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Proof_obligation_of_twine(d: twine.Decoder, off: int) -> Mir_Proof_obligation:
+    return Common_Proof_obligation_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Pre_trigger.t
+# def Imandrax_api_mir.Pre_trigger.t (mangled name: "Mir_Pre_trigger")
+type Mir_Pre_trigger = tuple[Mir_Term,As_trigger]
+
+def Mir_Pre_trigger_of_twine(d: twine.Decoder, off: int) -> Mir_Pre_trigger:
+    return (lambda tup: (Mir_Term_of_twine(d=d, off=tup[0]),As_trigger_of_twine(d=d, off=tup[1])))(tuple(d.get_array(off=off)))
+
+# clique Imandrax_api_mir.Pattern_head.t
+# def Imandrax_api_mir.Pattern_head.t (mangled name: "Mir_Pattern_head")
+type Mir_Pattern_head = Common_Pattern_head_t_poly[Mir_Type]
+
+def Mir_Pattern_head_of_twine(d: twine.Decoder, off: int) -> Mir_Pattern_head:
+    return Common_Pattern_head_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Model.t
+# def Imandrax_api_mir.Model.t (mangled name: "Mir_Model")
+type Mir_Model = Common_Model_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Model_of_twine(d: twine.Decoder, off: int) -> Mir_Model:
+    return Common_Model_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Instantiation_rule.t
+# def Imandrax_api_mir.Instantiation_rule.t (mangled name: "Mir_Instantiation_rule")
+type Mir_Instantiation_rule = Common_Instantiation_rule_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Instantiation_rule_of_twine(d: twine.Decoder, off: int) -> Mir_Instantiation_rule:
+    return Common_Instantiation_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Hints.t
+# def Imandrax_api_mir.Hints.t (mangled name: "Mir_Hints")
+type Mir_Hints = Common_Hints_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Hints_of_twine(d: twine.Decoder, off: int) -> Mir_Hints:
+    return Common_Hints_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Fun_def.t
+# def Imandrax_api_mir.Fun_def.t (mangled name: "Mir_Fun_def")
+type Mir_Fun_def = Common_Fun_def_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Fun_def_of_twine(d: twine.Decoder, off: int) -> Mir_Fun_def:
+    return Common_Fun_def_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Fun_decomp.t
+# def Imandrax_api_mir.Fun_decomp.t (mangled name: "Mir_Fun_decomp")
+type Mir_Fun_decomp = Common_Fun_decomp_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Fun_decomp_of_twine(d: twine.Decoder, off: int) -> Mir_Fun_decomp:
+    return Common_Fun_decomp_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Fo_pattern.t
+# def Imandrax_api_mir.Fo_pattern.t (mangled name: "Mir_Fo_pattern")
+type Mir_Fo_pattern = Common_Fo_pattern_t_poly[Mir_Type]
+
+def Mir_Fo_pattern_of_twine(d: twine.Decoder, off: int) -> Mir_Fo_pattern:
+    return Common_Fo_pattern_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Elimination_rule.t
+# def Imandrax_api_mir.Elimination_rule.t (mangled name: "Mir_Elimination_rule")
+type Mir_Elimination_rule = Common_Elimination_rule_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Elimination_rule_of_twine(d: twine.Decoder, off: int) -> Mir_Elimination_rule:
+    return Common_Elimination_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_mir.Decomp.t
+# def Imandrax_api_mir.Decomp.t (mangled name: "Mir_Decomp")
+type Mir_Decomp = Common_Decomp
+
+def Mir_Decomp_of_twine(d: twine.Decoder, off: int) -> Mir_Decomp:
+    return Common_Decomp_of_twine(d=d, off=off)
+
+# clique Imandrax_api_mir.Db_ser.t
+# def Imandrax_api_mir.Db_ser.t (mangled name: "Mir_Db_ser")
+type Mir_Db_ser = Common_Db_ser_t_poly[Mir_Term,Mir_Type]
+
+def Mir_Db_ser_of_twine(d: twine.Decoder, off: int) -> Mir_Db_ser:
+    return Common_Db_ser_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
 
 # clique Imandrax_api_eval.Ordinal.t
 # def Imandrax_api_eval.Ordinal.t (mangled name: "Eval_Ordinal")
@@ -2081,12 +2275,12 @@ def Eval_Value_view_V_record_of_twine[_V_tyreg_poly_v,_V_tyreg_poly_closure](d: 
 
 @dataclass(slots=True, frozen=True)
 class Eval_Value_view_V_quoted_term[_V_tyreg_poly_v,_V_tyreg_poly_closure]:
-    arg: Cir_Term
+    arg: Mir_Top_fun
 
 def Eval_Value_view_V_quoted_term_of_twine[_V_tyreg_poly_v,_V_tyreg_poly_closure](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_v],d1: Callable[...,_V_tyreg_poly_closure],args: tuple[int, ...]) -> Eval_Value_view_V_quoted_term[_V_tyreg_poly_v,_V_tyreg_poly_closure]:
     decode__tyreg_poly_v = d0
     decode__tyreg_poly_closure = d1
-    arg = Cir_Term_of_twine(d=d, off=args[0])
+    arg = Mir_Top_fun_of_twine(d=d, off=args[0])
     return Eval_Value_view_V_quoted_term(arg=arg)
 
 @dataclass(slots=True, frozen=True)
@@ -2173,14 +2367,25 @@ def Eval_Value_view_of_twine[_V_tyreg_poly_v,_V_tyreg_poly_closure](d: twine.Dec
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Eval_Value_view, got invalid constructor {idx}')
 
+# clique Imandrax_api_eval.Value.erased_closure
+# def Imandrax_api_eval.Value.erased_closure (mangled name: "Eval_Value_erased_closure")
+@dataclass(slots=True, frozen=True)
+class Eval_Value_erased_closure:
+    missing: int
+
+def Eval_Value_erased_closure_of_twine(d: twine.Decoder, off: int) -> Eval_Value_erased_closure:
+    fields = list(d.get_array(off=off))
+    missing = d.get_int(off=fields[0])
+    return Eval_Value_erased_closure(missing=missing)
+
 # clique Imandrax_api_eval.Value.t
 # def Imandrax_api_eval.Value.t (mangled name: "Eval_Value")
 @dataclass(slots=True, frozen=True)
 class Eval_Value:
-    v: Eval_Value_view[Eval_Value,None]
+    v: Eval_Value_view[Eval_Value,Eval_Value_erased_closure]
 
 def Eval_Value_of_twine(d: twine.Decoder, off: int) -> Eval_Value:
-    x = Eval_Value_view_of_twine(d=d,off=off,d0=(lambda d, off: Eval_Value_of_twine(d=d, off=off)),d1=(lambda d, off: d.get_null(off=off))) # single unboxed field
+    x = Eval_Value_view_of_twine(d=d,off=off,d0=(lambda d, off: Eval_Value_of_twine(d=d, off=off)),d1=(lambda d, off: Eval_Value_erased_closure_of_twine(d=d, off=off))) # single unboxed field
     return Eval_Value(v=x)
 
 # clique Imandrax_api_report.Expansion.t
@@ -2308,11 +2513,11 @@ def Report_Rtext_item_Term_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Ca
 
 @dataclass(slots=True, frozen=True)
 class Report_Rtext_item_Sequent[_V_tyreg_poly_term]:
-    arg: Sequent_poly["_V_tyreg_poly_term"]
+    arg: Common_Sequent_t_poly["_V_tyreg_poly_term"]
 
 def Report_Rtext_item_Sequent_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],args: tuple[int, ...]) -> Report_Rtext_item_Sequent[_V_tyreg_poly_term]:
     decode__tyreg_poly_term = d0
-    arg = Sequent_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
+    arg = Common_Sequent_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
     return Report_Rtext_item_Sequent(arg=arg)
 
 @dataclass(slots=True, frozen=True)
@@ -2360,201 +2565,210 @@ def Report_Rtext_item_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callabl
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Report_Rtext_item, got invalid constructor {idx}')
 
+# clique Imandrax_api_report.Atomic_event.model
+# def Imandrax_api_report.Atomic_event.model (mangled name: "Report_Atomic_event_model")
+type Report_Atomic_event_model[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Model_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+
+def Report_Atomic_event_model_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Report_Atomic_event_model:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    return Common_Model_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+
 # clique Imandrax_api_report.Atomic_event.poly
 # def Imandrax_api_report.Atomic_event.poly (mangled name: "Report_Atomic_event_poly")
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_message[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+class Report_Atomic_event_poly_E_message[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     arg: Report_Rtext["_V_tyreg_poly_term"]
 
-def Report_Atomic_event_poly_E_message_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_message[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_message_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_message[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
     arg = Report_Rtext_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
     return Report_Atomic_event_poly_E_message(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_title[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+class Report_Atomic_event_poly_E_title[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     arg: str
 
-def Report_Atomic_event_poly_E_title_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_title[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_title_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_title[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
     arg = d.get_str(off=args[0])
     return Report_Atomic_event_poly_E_title(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_enter_waterfall[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
-    vars: list["_V_tyreg_poly_var"]
+class Report_Atomic_event_poly_E_enter_waterfall[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
+    vars: list[Common_Var_t_poly["_V_tyreg_poly_ty"]]
     goal: "_V_tyreg_poly_term"
 
 
-def Report_Atomic_event_poly_E_enter_waterfall_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_enter_waterfall[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_enter_waterfall_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_enter_waterfall[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
-    vars = [decode__tyreg_poly_var(d=d,off=x) for x in d.get_array(off=args[0])]
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
+    vars = [Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=args[0])]
     goal = decode__tyreg_poly_term(d=d,off=args[1])
     return Report_Atomic_event_poly_E_enter_waterfall(vars=vars,goal=goal)
 
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_enter_tactic[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+class Report_Atomic_event_poly_E_enter_tactic[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     arg: str
 
-def Report_Atomic_event_poly_E_enter_tactic_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_enter_tactic[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_enter_tactic_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_enter_tactic[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
     arg = d.get_str(off=args[0])
     return Report_Atomic_event_poly_E_enter_tactic(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_rw_success[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
-    args: tuple[Cir_Rewrite_rule,"_V_tyreg_poly_term","_V_tyreg_poly_term"]
+class Report_Atomic_event_poly_E_rw_success[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
+    args: tuple[Common_Rewrite_rule_t_poly["_V_tyreg_poly_term2","_V_tyreg_poly_ty2"],"_V_tyreg_poly_term","_V_tyreg_poly_term"]
 
-def Report_Atomic_event_poly_E_rw_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_rw_success[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_rw_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_rw_success[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
-    cargs = (Cir_Rewrite_rule_of_twine(d=d, off=args[0]),decode__tyreg_poly_term(d=d,off=args[1]),decode__tyreg_poly_term(d=d,off=args[2]))
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
+    cargs = (Common_Rewrite_rule_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term2(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty2(d=d,off=off))),decode__tyreg_poly_term(d=d,off=args[1]),decode__tyreg_poly_term(d=d,off=args[2]))
     return Report_Atomic_event_poly_E_rw_success(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_rw_fail[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
-    args: tuple[Cir_Rewrite_rule,"_V_tyreg_poly_term",str]
+class Report_Atomic_event_poly_E_rw_fail[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
+    args: tuple[Common_Rewrite_rule_t_poly["_V_tyreg_poly_term2","_V_tyreg_poly_ty2"],"_V_tyreg_poly_term",str]
 
-def Report_Atomic_event_poly_E_rw_fail_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_rw_fail[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_rw_fail_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_rw_fail[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
-    cargs = (Cir_Rewrite_rule_of_twine(d=d, off=args[0]),decode__tyreg_poly_term(d=d,off=args[1]),d.get_str(off=args[2]))
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
+    cargs = (Common_Rewrite_rule_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term2(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty2(d=d,off=off))),decode__tyreg_poly_term(d=d,off=args[1]),d.get_str(off=args[2]))
     return Report_Atomic_event_poly_E_rw_fail(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_inst_success[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
-    args: tuple[Cir_Instantiation_rule,"_V_tyreg_poly_term"]
+class Report_Atomic_event_poly_E_inst_success[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
+    args: tuple[Common_Instantiation_rule_t_poly["_V_tyreg_poly_term2","_V_tyreg_poly_ty2"],"_V_tyreg_poly_term"]
 
-def Report_Atomic_event_poly_E_inst_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_inst_success[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_inst_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_inst_success[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
-    cargs = (Cir_Instantiation_rule_of_twine(d=d, off=args[0]),decode__tyreg_poly_term(d=d,off=args[1]))
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
+    cargs = (Common_Instantiation_rule_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term2(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty2(d=d,off=off))),decode__tyreg_poly_term(d=d,off=args[1]))
     return Report_Atomic_event_poly_E_inst_success(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_waterfall_checkpoint[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
-    arg: list[Sequent_poly["_V_tyreg_poly_term"]]
+class Report_Atomic_event_poly_E_waterfall_checkpoint[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
+    arg: list[Common_Sequent_t_poly["_V_tyreg_poly_term"]]
 
-def Report_Atomic_event_poly_E_waterfall_checkpoint_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_waterfall_checkpoint[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_waterfall_checkpoint_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_waterfall_checkpoint[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
-    arg = [Sequent_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))) for x in d.get_array(off=args[0])]
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
+    arg = [Common_Sequent_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))) for x in d.get_array(off=args[0])]
     return Report_Atomic_event_poly_E_waterfall_checkpoint(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_induction_scheme[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+class Report_Atomic_event_poly_E_induction_scheme[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     arg: "_V_tyreg_poly_term"
 
-def Report_Atomic_event_poly_E_induction_scheme_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_induction_scheme[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_induction_scheme_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_induction_scheme[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
     arg = decode__tyreg_poly_term(d=d,off=args[0])
     return Report_Atomic_event_poly_E_induction_scheme(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_attack_subgoal[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+class Report_Atomic_event_poly_E_attack_subgoal[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     name: str
-    goal: Sequent_poly["_V_tyreg_poly_term"]
+    goal: Common_Sequent_t_poly["_V_tyreg_poly_term"]
     depth: int
 
 
-def Report_Atomic_event_poly_E_attack_subgoal_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_attack_subgoal[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_attack_subgoal_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_attack_subgoal[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
     name = d.get_str(off=args[0])
-    goal = Sequent_poly_of_twine(d=d,off=args[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
+    goal = Common_Sequent_t_poly_of_twine(d=d,off=args[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
     depth = d.get_int(off=args[2])
     return Report_Atomic_event_poly_E_attack_subgoal(name=name,goal=goal,depth=depth)
 
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_simplify_t[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+class Report_Atomic_event_poly_E_simplify_t[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     args: tuple["_V_tyreg_poly_term","_V_tyreg_poly_term"]
 
-def Report_Atomic_event_poly_E_simplify_t_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_simplify_t[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_simplify_t_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_simplify_t[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
     cargs = (decode__tyreg_poly_term(d=d,off=args[0]),decode__tyreg_poly_term(d=d,off=args[1]))
     return Report_Atomic_event_poly_E_simplify_t(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_simplify_clause[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+class Report_Atomic_event_poly_E_simplify_clause[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     args: tuple["_V_tyreg_poly_term",list["_V_tyreg_poly_term"]]
 
-def Report_Atomic_event_poly_E_simplify_clause_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_simplify_clause[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_simplify_clause_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_simplify_clause[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
     cargs = (decode__tyreg_poly_term(d=d,off=args[0]),[decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=args[1])])
     return Report_Atomic_event_poly_E_simplify_clause(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_proved_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+class Report_Atomic_event_poly_E_proved_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     args: tuple["_V_tyreg_poly_term",Report_Smt_proof["_V_tyreg_poly_term"]]
 
-def Report_Atomic_event_poly_E_proved_by_smt_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_proved_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_proved_by_smt_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_proved_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
     cargs = (decode__tyreg_poly_term(d=d,off=args[0]),Report_Smt_proof_of_twine(d=d,off=args[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))))
     return Report_Atomic_event_poly_E_proved_by_smt(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_refuted_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
-    args: tuple["_V_tyreg_poly_term",None | Model["_V_tyreg_poly_term","_V_tyreg_poly_fn","_V_tyreg_poly_var","_V_tyreg_poly_ty"]]
+class Report_Atomic_event_poly_E_refuted_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
+    args: tuple["_V_tyreg_poly_term",None | Common_Model_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
 
-def Report_Atomic_event_poly_E_refuted_by_smt_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_refuted_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_refuted_by_smt_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_refuted_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
-    cargs = (decode__tyreg_poly_term(d=d,off=args[0]),twine.optional(d=d, off=args[1], d0=lambda d, off: Model_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_fn(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_var(d=d,off=off)),d3=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
+    cargs = (decode__tyreg_poly_term(d=d,off=args[0]),twine.optional(d=d, off=args[1], d0=lambda d, off: Common_Model_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     return Report_Atomic_event_poly_E_refuted_by_smt(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Report_Atomic_event_poly_E_fun_expansion[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+class Report_Atomic_event_poly_E_fun_expansion[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     args: tuple["_V_tyreg_poly_term","_V_tyreg_poly_term"]
 
-def Report_Atomic_event_poly_E_fun_expansion_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_fun_expansion[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]:
+def Report_Atomic_event_poly_E_fun_expansion_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],args: tuple[int, ...]) -> Report_Atomic_event_poly_E_fun_expansion[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]:
     decode__tyreg_poly_term = d0
-    decode__tyreg_poly_fn = d1
-    decode__tyreg_poly_var = d2
-    decode__tyreg_poly_ty = d3
+    decode__tyreg_poly_ty = d1
+    decode__tyreg_poly_term2 = d2
+    decode__tyreg_poly_ty2 = d3
     cargs = (decode__tyreg_poly_term(d=d,off=args[0]),decode__tyreg_poly_term(d=d,off=args[1]))
     return Report_Atomic_event_poly_E_fun_expansion(args=cargs)
 
-type Report_Atomic_event_poly[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty] = Report_Atomic_event_poly_E_message[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_title[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_enter_waterfall[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_enter_tactic[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_rw_success[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_rw_fail[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_inst_success[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_waterfall_checkpoint[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_induction_scheme[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_attack_subgoal[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_simplify_t[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_simplify_clause[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_proved_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_refuted_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]| Report_Atomic_event_poly_E_fun_expansion[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty]
+type Report_Atomic_event_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2] = Report_Atomic_event_poly_E_message[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_title[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_enter_waterfall[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_enter_tactic[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_rw_success[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_rw_fail[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_inst_success[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_waterfall_checkpoint[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_induction_scheme[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_attack_subgoal[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_simplify_t[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_simplify_clause[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_proved_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_refuted_by_smt[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]| Report_Atomic_event_poly_E_fun_expansion[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2]
 
-def Report_Atomic_event_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyreg_poly_var,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_fn],d2: Callable[...,_V_tyreg_poly_var],d3: Callable[...,_V_tyreg_poly_ty],off: int) -> Report_Atomic_event_poly:
+def Report_Atomic_event_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_term2],d3: Callable[...,_V_tyreg_poly_ty2],off: int) -> Report_Atomic_event_poly:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
              args = tuple(args)
@@ -2604,12 +2818,12 @@ def Report_Atomic_event_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_fn,_V_tyr
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Report_Atomic_event_poly, got invalid constructor {idx}')
 
-# clique Imandrax_api_report.Atomic_event.t
-# def Imandrax_api_report.Atomic_event.t (mangled name: "Report_Atomic_event")
-type Report_Atomic_event = Report_Atomic_event_poly[Cir_Term,Cir_Applied_symbol,Cir_Var,Cir_Type]
+# clique Imandrax_api_report.Atomic_event.Mir.t
+# def Imandrax_api_report.Atomic_event.Mir.t (mangled name: "Report_Atomic_event_Mir")
+type Report_Atomic_event_Mir = Report_Atomic_event_poly[Mir_Term,Mir_Type,Mir_Term,Mir_Type]
 
-def Report_Atomic_event_of_twine(d: twine.Decoder, off: int) -> Report_Atomic_event:
-    return Report_Atomic_event_poly_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Cir_Applied_symbol_of_twine(d=d, off=off)),d2=(lambda d, off: Cir_Var_of_twine(d=d, off=off)),d3=(lambda d, off: Cir_Type_of_twine(d=d, off=off)))
+def Report_Atomic_event_Mir_of_twine(d: twine.Decoder, off: int) -> Report_Atomic_event_Mir:
+    return Report_Atomic_event_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)),d2=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d3=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
 
 # clique Imandrax_api_report.Event.t_linear
 # def Imandrax_api_report.Event.t_linear (mangled name: "Report_Event_t_linear")
@@ -2715,10 +2929,10 @@ def Report_Event_t_tree_of_twine[_V_tyreg_poly_atomic_ev,_V_tyreg_poly_sub](d: t
 
 # clique Imandrax_api_report.Report.event
 # def Imandrax_api_report.Report.event (mangled name: "Report_Report_event")
-type Report_Report_event = Report_Event_t_linear[Report_Atomic_event]
+type Report_Report_event = Report_Event_t_linear[Report_Atomic_event_Mir]
 
 def Report_Report_event_of_twine(d: twine.Decoder, off: int) -> Report_Report_event:
-    return Report_Event_t_linear_of_twine(d=d,off=off,d0=(lambda d, off: Report_Atomic_event_of_twine(d=d, off=off)))
+    return Report_Event_t_linear_of_twine(d=d,off=off,d0=(lambda d, off: Report_Atomic_event_Mir_of_twine(d=d, off=off)))
 
 # clique Imandrax_api_report.Report.t
 # def Imandrax_api_report.Report.t (mangled name: "Report_Report")
@@ -2794,12 +3008,12 @@ def Proof_Arg_A_dict_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Deco
 
 @dataclass(slots=True, frozen=True)
 class Proof_Arg_A_seq[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    arg: Sequent_poly["_V_tyreg_poly_term"]
+    arg: Common_Sequent_t_poly["_V_tyreg_poly_term"]
 
 def Proof_Arg_A_seq_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Proof_Arg_A_seq[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
-    arg = Sequent_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
+    arg = Common_Sequent_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
     return Proof_Arg_A_seq(arg=arg)
 
 type Proof_Arg[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Proof_Arg_A_term[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_ty[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_int[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_string[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_list[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_dict[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Proof_Arg_A_seq[_V_tyreg_poly_term,_V_tyreg_poly_ty]
@@ -2907,55 +3121,48 @@ def Proof_View_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Proof_View, got invalid constructor {idx}')
 
-# clique Imandrax_api_proof.Proof_term_poly.t
-# def Imandrax_api_proof.Proof_term_poly.t (mangled name: "Proof_Proof_term_poly")
+# clique Imandrax_api_proof.Proof_term.t_poly
+# def Imandrax_api_proof.Proof_term.t_poly (mangled name: "Proof_Proof_term_t_poly")
 @dataclass(slots=True, frozen=True)
-class Proof_Proof_term_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof]:
+class Proof_Proof_term_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     id: int
-    concl: Sequent_poly["_V_tyreg_poly_term"]
-    view: Proof_View["_V_tyreg_poly_term","_V_tyreg_poly_ty","_V_tyreg_poly_proof"]
+    concl: Common_Sequent_t_poly["_V_tyreg_poly_term"]
+    view: Proof_View["_V_tyreg_poly_term","_V_tyreg_poly_ty",Proof_Proof_term_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
 
-def Proof_Proof_term_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],d2: Callable[...,_V_tyreg_poly_proof],off: int) -> Proof_Proof_term_poly:
+def Proof_Proof_term_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Proof_Proof_term_t_poly:
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
-    decode__tyreg_poly_proof = d2
     fields = list(d.get_array(off=off))
     id = d.get_int(off=fields[0])
-    concl = Sequent_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
-    view = Proof_View_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_proof(d=d,off=off)))
-    return Proof_Proof_term_poly(id=id,concl=concl,view=view)
+    concl = Common_Sequent_t_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
+    view = Proof_View_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d2=(lambda d, off: Proof_Proof_term_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
+    return Proof_Proof_term_t_poly(id=id,concl=concl,view=view)
 
-# clique Imandrax_api_proof.Cir_proof_term.t,Imandrax_api_proof.Cir_proof_term.t_inner
-# def Imandrax_api_proof.Cir_proof_term.t (mangled name: "Proof_Cir_proof_term")
+# clique Imandrax_api_tasks.PO_task.t_poly
+# def Imandrax_api_tasks.PO_task.t_poly (mangled name: "Tasks_PO_task_t_poly")
 @dataclass(slots=True, frozen=True)
-class Proof_Cir_proof_term:
-    p: Proof_Cir_proof_term_t_inner
-
-def Proof_Cir_proof_term_of_twine(d: twine.Decoder, off: int) -> Proof_Cir_proof_term:
-    x = Proof_Cir_proof_term_t_inner_of_twine(d=d, off=off) # single unboxed field
-    return Proof_Cir_proof_term(p=x)
-# def Imandrax_api_proof.Cir_proof_term.t_inner (mangled name: "Proof_Cir_proof_term_t_inner")
-type Proof_Cir_proof_term_t_inner = Proof_Proof_term_poly[Cir_Term,Cir_Type,Proof_Cir_proof_term]
-
-def Proof_Cir_proof_term_t_inner_of_twine(d: twine.Decoder, off: int) -> Proof_Cir_proof_term_t_inner:
-    return Proof_Proof_term_poly_of_twine(d=d,off=off,d0=(lambda d, off: Cir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Cir_Type_of_twine(d=d, off=off)),d2=(lambda d, off: Proof_Cir_proof_term_of_twine(d=d, off=off)))
-
-# clique Imandrax_api_tasks.PO_task.t
-# def Imandrax_api_tasks.PO_task.t (mangled name: "Tasks_PO_task")
-@dataclass(slots=True, frozen=True)
-class Tasks_PO_task:
+class Tasks_PO_task_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     from_sym: str
     count: int
-    db: Cir_Db_ser
-    po: Cir_Proof_obligation
+    db: Common_Db_ser_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+    po: Common_Proof_obligation_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_PO_task_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_task:
+def Tasks_PO_task_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_task_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     from_sym = d.get_str(off=fields[0])
     count = d.get_int(off=fields[1])
-    db = Cir_Db_ser_of_twine(d=d, off=fields[2])
-    po = Cir_Proof_obligation_of_twine(d=d, off=fields[3])
-    return Tasks_PO_task(from_sym=from_sym,count=count,db=db,po=po)
+    db = Common_Db_ser_t_poly_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    po = Common_Proof_obligation_t_poly_of_twine(d=d,off=fields[3],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Tasks_PO_task_t_poly(from_sym=from_sym,count=count,db=db,po=po)
+
+# clique Imandrax_api_tasks.PO_task.Imandrax_api_mir.t
+# def Imandrax_api_tasks.PO_task.Imandrax_api_mir.t (mangled name: "Tasks_PO_task_Imandrax_api_mir")
+type Tasks_PO_task_Imandrax_api_mir = Tasks_PO_task_t_poly[Mir_Term,Mir_Type]
+
+def Tasks_PO_task_Imandrax_api_mir_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_task_Imandrax_api_mir:
+    return Tasks_PO_task_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
 
 # clique Imandrax_api_tasks.PO_res.stats
 # def Imandrax_api_tasks.PO_res.stats (mangled name: "Tasks_PO_res_stats")
@@ -2967,184 +3174,250 @@ def Tasks_PO_res_stats_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_stat
 # clique Imandrax_api_tasks.PO_res.proof_found
 # def Imandrax_api_tasks.PO_res.proof_found (mangled name: "Tasks_PO_res_proof_found")
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_proof_found:
+class Tasks_PO_res_proof_found[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     anchor: Anchor
-    proof: Proof_Cir_proof_term
+    proof: Proof_Proof_term_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_PO_res_proof_found_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_proof_found:
+def Tasks_PO_res_proof_found_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_proof_found:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     anchor = Anchor_of_twine(d=d, off=fields[0])
-    proof = Proof_Cir_proof_term_of_twine(d=d, off=fields[1])
+    proof = Proof_Proof_term_t_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Tasks_PO_res_proof_found(anchor=anchor,proof=proof)
 
 # clique Imandrax_api_tasks.PO_res.instance
 # def Imandrax_api_tasks.PO_res.instance (mangled name: "Tasks_PO_res_instance")
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_instance:
+class Tasks_PO_res_instance[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     anchor: Anchor
-    model: Cir_Model
+    model: Common_Model_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_PO_res_instance_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_instance:
+def Tasks_PO_res_instance_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_instance:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     anchor = Anchor_of_twine(d=d, off=fields[0])
-    model = Cir_Model_of_twine(d=d, off=fields[1])
+    model = Common_Model_t_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Tasks_PO_res_instance(anchor=anchor,model=model)
 
 # clique Imandrax_api_tasks.PO_res.no_proof
 # def Imandrax_api_tasks.PO_res.no_proof (mangled name: "Tasks_PO_res_no_proof")
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_no_proof:
+class Tasks_PO_res_no_proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     err: Error_Error_core
-    counter_model: None | Cir_Model
-    subgoals: list[Cir_Sequent]
+    counter_model: None | Common_Model_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+    subgoals: list[Mir_Sequent]
 
-def Tasks_PO_res_no_proof_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_no_proof:
+def Tasks_PO_res_no_proof_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_no_proof:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     err = Error_Error_core_of_twine(d=d, off=fields[0])
-    counter_model = twine.optional(d=d, off=fields[1], d0=lambda d, off: Cir_Model_of_twine(d=d, off=off))
-    subgoals = [Cir_Sequent_of_twine(d=d, off=x) for x in d.get_array(off=fields[2])]
+    counter_model = twine.optional(d=d, off=fields[1], d0=lambda d, off: Common_Model_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))
+    subgoals = [Mir_Sequent_of_twine(d=d, off=x) for x in d.get_array(off=fields[2])]
     return Tasks_PO_res_no_proof(err=err,counter_model=counter_model,subgoals=subgoals)
 
 # clique Imandrax_api_tasks.PO_res.unsat
 # def Imandrax_api_tasks.PO_res.unsat (mangled name: "Tasks_PO_res_unsat")
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_unsat:
+class Tasks_PO_res_unsat[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     anchor: Anchor
     err: Error_Error_core
-    proof: Proof_Cir_proof_term
+    proof: Proof_Proof_term_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_PO_res_unsat_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_unsat:
+def Tasks_PO_res_unsat_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_unsat:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     anchor = Anchor_of_twine(d=d, off=fields[0])
     err = Error_Error_core_of_twine(d=d, off=fields[1])
-    proof = Proof_Cir_proof_term_of_twine(d=d, off=fields[2])
+    proof = Proof_Proof_term_t_poly_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Tasks_PO_res_unsat(anchor=anchor,err=err,proof=proof)
 
 # clique Imandrax_api_tasks.PO_res.success
 # def Imandrax_api_tasks.PO_res.success (mangled name: "Tasks_PO_res_success")
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_success_Proof:
-    arg: Tasks_PO_res_proof_found
+class Tasks_PO_res_success_Proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: Tasks_PO_res_proof_found["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_PO_res_success_Proof_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Tasks_PO_res_success_Proof:
-    arg = Tasks_PO_res_proof_found_of_twine(d=d, off=args[0])
+def Tasks_PO_res_success_Proof_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_PO_res_success_Proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = Tasks_PO_res_proof_found_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Tasks_PO_res_success_Proof(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_success_Instance:
-    arg: Tasks_PO_res_instance
+class Tasks_PO_res_success_Instance[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: Tasks_PO_res_instance["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_PO_res_success_Instance_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Tasks_PO_res_success_Instance:
-    arg = Tasks_PO_res_instance_of_twine(d=d, off=args[0])
+def Tasks_PO_res_success_Instance_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_PO_res_success_Instance[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = Tasks_PO_res_instance_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Tasks_PO_res_success_Instance(arg=arg)
 
-type Tasks_PO_res_success = Tasks_PO_res_success_Proof| Tasks_PO_res_success_Instance
+type Tasks_PO_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Tasks_PO_res_success_Proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Instance[_V_tyreg_poly_term,_V_tyreg_poly_ty]
 
-def Tasks_PO_res_success_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_success:
+def Tasks_PO_res_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_success:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
              args = tuple(args)
-             return Tasks_PO_res_success_Proof_of_twine(d=d, args=args, )
+             return Tasks_PO_res_success_Proof_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=1, args=args):
              args = tuple(args)
-             return Tasks_PO_res_success_Instance_of_twine(d=d, args=args, )
+             return Tasks_PO_res_success_Instance_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Tasks_PO_res_success, got invalid constructor {idx}')
 
 # clique Imandrax_api_tasks.PO_res.error
 # def Imandrax_api_tasks.PO_res.error (mangled name: "Tasks_PO_res_error")
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_error_No_proof:
-    arg: Tasks_PO_res_no_proof
+class Tasks_PO_res_error_No_proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: Tasks_PO_res_no_proof["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_PO_res_error_No_proof_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Tasks_PO_res_error_No_proof:
-    arg = Tasks_PO_res_no_proof_of_twine(d=d, off=args[0])
+def Tasks_PO_res_error_No_proof_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_PO_res_error_No_proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = Tasks_PO_res_no_proof_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Tasks_PO_res_error_No_proof(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_error_Unsat:
-    arg: Tasks_PO_res_unsat
+class Tasks_PO_res_error_Unsat[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: Tasks_PO_res_unsat["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_PO_res_error_Unsat_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Tasks_PO_res_error_Unsat:
-    arg = Tasks_PO_res_unsat_of_twine(d=d, off=args[0])
+def Tasks_PO_res_error_Unsat_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_PO_res_error_Unsat[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = Tasks_PO_res_unsat_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Tasks_PO_res_error_Unsat(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_error_Invalid_model:
-    args: tuple[Error_Error_core,Cir_Model]
+class Tasks_PO_res_error_Invalid_model[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    args: tuple[Error_Error_core,Common_Model_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
 
-def Tasks_PO_res_error_Invalid_model_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Tasks_PO_res_error_Invalid_model:
-    cargs = (Error_Error_core_of_twine(d=d, off=args[0]),Cir_Model_of_twine(d=d, off=args[1]))
+def Tasks_PO_res_error_Invalid_model_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_PO_res_error_Invalid_model[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    cargs = (Error_Error_core_of_twine(d=d, off=args[0]),Common_Model_t_poly_of_twine(d=d,off=args[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))
     return Tasks_PO_res_error_Invalid_model(args=cargs)
 
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_error_Error:
+class Tasks_PO_res_error_Error[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     arg: Error_Error_core
 
-def Tasks_PO_res_error_Error_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Tasks_PO_res_error_Error:
+def Tasks_PO_res_error_Error_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_PO_res_error_Error[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     arg = Error_Error_core_of_twine(d=d, off=args[0])
     return Tasks_PO_res_error_Error(arg=arg)
 
-type Tasks_PO_res_error = Tasks_PO_res_error_No_proof| Tasks_PO_res_error_Unsat| Tasks_PO_res_error_Invalid_model| Tasks_PO_res_error_Error
+type Tasks_PO_res_error[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Tasks_PO_res_error_No_proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_error_Unsat[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_error_Invalid_model[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_error_Error[_V_tyreg_poly_term,_V_tyreg_poly_ty]
 
-def Tasks_PO_res_error_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_error:
+def Tasks_PO_res_error_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_error:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
              args = tuple(args)
-             return Tasks_PO_res_error_No_proof_of_twine(d=d, args=args, )
+             return Tasks_PO_res_error_No_proof_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=1, args=args):
              args = tuple(args)
-             return Tasks_PO_res_error_Unsat_of_twine(d=d, args=args, )
+             return Tasks_PO_res_error_Unsat_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=2, args=args):
              args = tuple(args)
-             return Tasks_PO_res_error_Invalid_model_of_twine(d=d, args=args, )
+             return Tasks_PO_res_error_Invalid_model_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=3, args=args):
              args = tuple(args)
-             return Tasks_PO_res_error_Error_of_twine(d=d, args=args, )
+             return Tasks_PO_res_error_Error_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Tasks_PO_res_error, got invalid constructor {idx}')
 
 # clique Imandrax_api_tasks.PO_res.result
 # def Imandrax_api_tasks.PO_res.result (mangled name: "Tasks_PO_res_result")
-type Tasks_PO_res_result[_V_tyreg_poly_a] = "_V_tyreg_poly_a" | Tasks_PO_res_error
+type Tasks_PO_res_result[_V_tyreg_poly_a,_V_tyreg_poly_term,_V_tyreg_poly_ty] = "_V_tyreg_poly_a" | Tasks_PO_res_error["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_PO_res_result_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Tasks_PO_res_result:
+def Tasks_PO_res_result_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],d1: Callable[...,_V_tyreg_poly_term],d2: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_result:
     decode__tyreg_poly_a = d0
-    return twine_result(d=d, off=off, d0=lambda d, off: decode__tyreg_poly_a(d=d,off=off), d1=lambda d, off: Tasks_PO_res_error_of_twine(d=d, off=off))
+    decode__tyreg_poly_term = d1
+    decode__tyreg_poly_ty = d2
+    return twine_result(d=d, off=off, d0=lambda d, off: decode__tyreg_poly_a(d=d,off=off), d1=lambda d, off: Tasks_PO_res_error_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))
 
-# clique Imandrax_api_tasks.PO_res.t
-# def Imandrax_api_tasks.PO_res.t (mangled name: "Tasks_PO_res")
+# clique Imandrax_api_tasks.PO_res.shallow_poly
+# def Imandrax_api_tasks.PO_res.shallow_poly (mangled name: "Tasks_PO_res_shallow_poly")
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res:
-    from_: Ca_store_Ca_ptr[Cir_Proof_obligation]
-    res: Tasks_PO_res_result[Tasks_PO_res_success]
+class Tasks_PO_res_shallow_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    from_: Ca_store_Ca_ptr[Mir_Proof_obligation]
+    res: Tasks_PO_res_result[Tasks_PO_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"],"_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     stats: Tasks_PO_res_stats
     report: In_mem_archive[Report_Report]
 
-def Tasks_PO_res_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res:
+def Tasks_PO_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_shallow_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Cir_Proof_obligation_of_twine(d=d, off=off)))
-    res = Tasks_PO_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_PO_res_success_of_twine(d=d, off=off)))
+    from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Mir_Proof_obligation_of_twine(d=d, off=off)))
+    res = Tasks_PO_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_PO_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))),d1=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     stats = Tasks_PO_res_stats_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
-    return Tasks_PO_res(from_=from_,res=res,stats=stats,report=report)
+    return Tasks_PO_res_shallow_poly(from_=from_,res=res,stats=stats,report=report)
 
-# clique Imandrax_api_tasks.Eval_task.t
-# def Imandrax_api_tasks.Eval_task.t (mangled name: "Tasks_Eval_task")
+# clique Imandrax_api_tasks.PO_res.full_poly
+# def Imandrax_api_tasks.PO_res.full_poly (mangled name: "Tasks_PO_res_full_poly")
 @dataclass(slots=True, frozen=True)
-class Tasks_Eval_task:
-    db: Cir_Db_ser
-    term: Cir_Term
+class Tasks_PO_res_full_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    from_: Common_Proof_obligation_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+    res: Tasks_PO_res_result[Tasks_PO_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"],"_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+    stats: Tasks_PO_res_stats
+    report: In_mem_archive[Report_Report]
+
+def Tasks_PO_res_full_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_full_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    fields = list(d.get_array(off=off))
+    from_ = Common_Proof_obligation_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    res = Tasks_PO_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_PO_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))),d1=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    stats = Tasks_PO_res_stats_of_twine(d=d, off=fields[2])
+    report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
+    return Tasks_PO_res_full_poly(from_=from_,res=res,stats=stats,report=report)
+
+# clique Imandrax_api_tasks.PO_res.t
+# def Imandrax_api_tasks.PO_res.t (mangled name: "Tasks_PO_res")
+type Tasks_PO_res = Tasks_PO_res_shallow_poly[Mir_Term,Mir_Type]
+
+def Tasks_PO_res_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res:
+    return Tasks_PO_res_shallow_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_tasks.PO_res.full.t
+# def Imandrax_api_tasks.PO_res.full.t (mangled name: "Tasks_PO_res_full")
+type Tasks_PO_res_full = Tasks_PO_res_full_poly[Mir_Term,Mir_Type]
+
+def Tasks_PO_res_full_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_full:
+    return Tasks_PO_res_full_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_tasks.Eval_task.t_poly
+# def Imandrax_api_tasks.Eval_task.t_poly (mangled name: "Tasks_Eval_task_t_poly")
+@dataclass(slots=True, frozen=True)
+class Tasks_Eval_task_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    db: Common_Db_ser_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+    term: tuple[list[Common_Var_t_poly["_V_tyreg_poly_ty"]],"_V_tyreg_poly_term"]
     anchor: Anchor
     timeout: None | int
 
-def Tasks_Eval_task_of_twine(d: twine.Decoder, off: int) -> Tasks_Eval_task:
+def Tasks_Eval_task_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_Eval_task_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    db = Cir_Db_ser_of_twine(d=d, off=fields[0])
-    term = Cir_Term_of_twine(d=d, off=fields[1])
+    db = Common_Db_ser_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    term = (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=fields[1])))
     anchor = Anchor_of_twine(d=d, off=fields[2])
     timeout = twine.optional(d=d, off=fields[3], d0=lambda d, off: d.get_int(off=off))
-    return Tasks_Eval_task(db=db,term=term,anchor=anchor,timeout=timeout)
+    return Tasks_Eval_task_t_poly(db=db,term=term,anchor=anchor,timeout=timeout)
+
+# clique Imandrax_api_tasks.Eval_task.Imandrax_api_mir.t
+# def Imandrax_api_tasks.Eval_task.Imandrax_api_mir.t (mangled name: "Tasks_Eval_task_Imandrax_api_mir")
+type Tasks_Eval_task_Imandrax_api_mir = Tasks_Eval_task_t_poly[Mir_Term,Mir_Type]
+
+def Tasks_Eval_task_Imandrax_api_mir_of_twine(d: twine.Decoder, off: int) -> Tasks_Eval_task_Imandrax_api_mir:
+    return Tasks_Eval_task_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
 
 # clique Imandrax_api_tasks.Eval_res.value
 # def Imandrax_api_tasks.Eval_res.value (mangled name: "Tasks_Eval_res_value")
@@ -3189,32 +3462,43 @@ def Tasks_Eval_res_of_twine(d: twine.Decoder, off: int) -> Tasks_Eval_res:
     stats = Tasks_Eval_res_stats_of_twine(d=d, off=fields[1])
     return Tasks_Eval_res(res=res,stats=stats)
 
-# clique Imandrax_api_tasks.Decomp_task.t
-# def Imandrax_api_tasks.Decomp_task.t (mangled name: "Tasks_Decomp_task")
+# clique Imandrax_api_tasks.Decomp_task.t_poly
+# def Imandrax_api_tasks.Decomp_task.t_poly (mangled name: "Tasks_Decomp_task_t_poly")
 @dataclass(slots=True, frozen=True)
-class Tasks_Decomp_task:
-    db: Cir_Db_ser
-    decomp: Cir_Decomp
+class Tasks_Decomp_task_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    db: Common_Db_ser_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+    decomp: Common_Decomp
     anchor: Anchor
 
-def Tasks_Decomp_task_of_twine(d: twine.Decoder, off: int) -> Tasks_Decomp_task:
+def Tasks_Decomp_task_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_Decomp_task_t_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    db = Cir_Db_ser_of_twine(d=d, off=fields[0])
-    decomp = Cir_Decomp_of_twine(d=d, off=fields[1])
+    db = Common_Db_ser_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    decomp = Common_Decomp_of_twine(d=d, off=fields[1])
     anchor = Anchor_of_twine(d=d, off=fields[2])
-    return Tasks_Decomp_task(db=db,decomp=decomp,anchor=anchor)
+    return Tasks_Decomp_task_t_poly(db=db,decomp=decomp,anchor=anchor)
+
+# clique Imandrax_api_tasks.Decomp_task.Imandrax_api_mir.t
+# def Imandrax_api_tasks.Decomp_task.Imandrax_api_mir.t (mangled name: "Tasks_Decomp_task_Imandrax_api_mir")
+type Tasks_Decomp_task_Imandrax_api_mir = Tasks_Decomp_task_t_poly[Mir_Term,Mir_Type]
+
+def Tasks_Decomp_task_Imandrax_api_mir_of_twine(d: twine.Decoder, off: int) -> Tasks_Decomp_task_Imandrax_api_mir:
+    return Tasks_Decomp_task_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
 
 # clique Imandrax_api_tasks.Decomp_res.success
 # def Imandrax_api_tasks.Decomp_res.success (mangled name: "Tasks_Decomp_res_success")
 @dataclass(slots=True, frozen=True)
-class Tasks_Decomp_res_success:
+class Tasks_Decomp_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     anchor: Anchor
-    decomp: Cir_Fun_decomp
+    decomp: Common_Fun_decomp_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_Decomp_res_success_of_twine(d: twine.Decoder, off: int) -> Tasks_Decomp_res_success:
+def Tasks_Decomp_res_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_Decomp_res_success:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     anchor = Anchor_of_twine(d=d, off=fields[0])
-    decomp = Cir_Fun_decomp_of_twine(d=d, off=fields[1])
+    decomp = Common_Fun_decomp_t_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Tasks_Decomp_res_success(anchor=anchor,decomp=decomp)
 
 # clique Imandrax_api_tasks.Decomp_res.error
@@ -3245,40 +3529,75 @@ def Tasks_Decomp_res_result_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg
     decode__tyreg_poly_a = d0
     return twine_result(d=d, off=off, d0=lambda d, off: decode__tyreg_poly_a(d=d,off=off), d1=lambda d, off: Tasks_Decomp_res_error_of_twine(d=d, off=off))
 
-# clique Imandrax_api_tasks.Decomp_res.t
-# def Imandrax_api_tasks.Decomp_res.t (mangled name: "Tasks_Decomp_res")
+# clique Imandrax_api_tasks.Decomp_res.shallow_poly
+# def Imandrax_api_tasks.Decomp_res.shallow_poly (mangled name: "Tasks_Decomp_res_shallow_poly")
 @dataclass(slots=True, frozen=True)
-class Tasks_Decomp_res:
-    from_: Ca_store_Ca_ptr[Cir_Decomp]
-    res: Tasks_Decomp_res_result[Tasks_Decomp_res_success]
+class Tasks_Decomp_res_shallow_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    from_: Ca_store_Ca_ptr[Mir_Decomp]
+    res: Tasks_Decomp_res_result[Tasks_Decomp_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
     stats: Stat_time
     report: In_mem_archive[Report_Report]
 
-def Tasks_Decomp_res_of_twine(d: twine.Decoder, off: int) -> Tasks_Decomp_res:
+def Tasks_Decomp_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_Decomp_res_shallow_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Cir_Decomp_of_twine(d=d, off=off)))
-    res = Tasks_Decomp_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_Decomp_res_success_of_twine(d=d, off=off)))
+    from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Mir_Decomp_of_twine(d=d, off=off)))
+    res = Tasks_Decomp_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_Decomp_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     stats = Stat_time_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
-    return Tasks_Decomp_res(from_=from_,res=res,stats=stats,report=report)
+    return Tasks_Decomp_res_shallow_poly(from_=from_,res=res,stats=stats,report=report)
+
+# clique Imandrax_api_tasks.Decomp_res.full_poly
+# def Imandrax_api_tasks.Decomp_res.full_poly (mangled name: "Tasks_Decomp_res_full_poly")
+@dataclass(slots=True, frozen=True)
+class Tasks_Decomp_res_full_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    from_: Common_Decomp
+    res: Tasks_Decomp_res_result[Tasks_Decomp_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
+    stats: Stat_time
+    report: In_mem_archive[Report_Report]
+
+def Tasks_Decomp_res_full_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_Decomp_res_full_poly:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    fields = list(d.get_array(off=off))
+    from_ = Common_Decomp_of_twine(d=d, off=fields[0])
+    res = Tasks_Decomp_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_Decomp_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
+    stats = Stat_time_of_twine(d=d, off=fields[2])
+    report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
+    return Tasks_Decomp_res_full_poly(from_=from_,res=res,stats=stats,report=report)
+
+# clique Imandrax_api_tasks.Decomp_res.Shallow.t
+# def Imandrax_api_tasks.Decomp_res.Shallow.t (mangled name: "Tasks_Decomp_res_Shallow")
+type Tasks_Decomp_res_Shallow = Tasks_Decomp_res_shallow_poly[Mir_Term,Mir_Type]
+
+def Tasks_Decomp_res_Shallow_of_twine(d: twine.Decoder, off: int) -> Tasks_Decomp_res_Shallow:
+    return Tasks_Decomp_res_shallow_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
+
+# clique Imandrax_api_tasks.Decomp_res.Full.t
+# def Imandrax_api_tasks.Decomp_res.Full.t (mangled name: "Tasks_Decomp_res_Full")
+type Tasks_Decomp_res_Full = Tasks_Decomp_res_full_poly[Mir_Term,Mir_Type]
+
+def Tasks_Decomp_res_Full_of_twine(d: twine.Decoder, off: int) -> Tasks_Decomp_res_Full:
+    return Tasks_Decomp_res_full_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
 
 
 # Artifacts
 
-type Artifact = Cir_Term|Cir_Type|Tasks_PO_task|Tasks_PO_res|Tasks_Eval_task|Tasks_Eval_res|Cir_Model|str|Cir_Fun_decomp|Tasks_Decomp_task|Tasks_Decomp_res|Report_Report
+type Artifact = Mir_Term|Mir_Type|Tasks_PO_task_Mir|Tasks_PO_res_Shallow|Tasks_Eval_task_Mir|Tasks_Eval_res|Mir_Model|str|Mir_Fun_decomp|Tasks_Decomp_task_Mir|Tasks_Decomp_res_Shallow|Report_Report
 
 artifact_decoders = {\
-  'term': (lambda d, off: Cir_Term_of_twine(d=d, off=off)),
-  'ty': (lambda d, off: Cir_Type_of_twine(d=d, off=off)),
-  'po_task': (lambda d, off: Tasks_PO_task_of_twine(d=d, off=off)),
-  'po_res': (lambda d, off: Tasks_PO_res_of_twine(d=d, off=off)),
-  'eval_task': (lambda d, off: Tasks_Eval_task_of_twine(d=d, off=off)),
+  'term': (lambda d, off: Mir_Term_of_twine(d=d, off=off)),
+  'ty': (lambda d, off: Mir_Type_of_twine(d=d, off=off)),
+  'po_task': (lambda d, off: Tasks_PO_task_Mir_of_twine(d=d, off=off)),
+  'po_res': (lambda d, off: Tasks_PO_res_Shallow_of_twine(d=d, off=off)),
+  'eval_task': (lambda d, off: Tasks_Eval_task_Mir_of_twine(d=d, off=off)),
   'eval_res': (lambda d, off: Tasks_Eval_res_of_twine(d=d, off=off)),
-  'cir.model': (lambda d, off: Cir_Model_of_twine(d=d, off=off)),
+  'mir.model': (lambda d, off: Mir_Model_of_twine(d=d, off=off)),
   'show': (lambda d, off: d.get_str(off=off)),
-  'cir.fun_decomp': (lambda d, off: Cir_Fun_decomp_of_twine(d=d, off=off)),
-  'decomp_task': (lambda d, off: Tasks_Decomp_task_of_twine(d=d, off=off)),
-  'decomp_res': (lambda d, off: Tasks_Decomp_res_of_twine(d=d, off=off)),
+  'mir.fun_decomp': (lambda d, off: Mir_Fun_decomp_of_twine(d=d, off=off)),
+  'decomp_task': (lambda d, off: Tasks_Decomp_task_Mir_of_twine(d=d, off=off)),
+  'decomp_res': (lambda d, off: Tasks_Decomp_res_Shallow_of_twine(d=d, off=off)),
   'report': (lambda d, off: Report_Report_of_twine(d=d, off=off)),
 }
 
