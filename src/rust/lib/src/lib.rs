@@ -3,14 +3,14 @@
 
 #![allow(non_camel_case_types)]
 
+// do not format
+#![cfg_attr(any(), rustfmt::skip)]
+
+
 pub mod deser;
 pub use deser::FromTwine;
 pub mod utils;
   use utils::*;
-
-
-// do not format
-#![cfg_attr(any(), rustfmt::skip)]
 
 //use bumpalo::Bump;
 use num_bigint::BigInt;
@@ -176,19 +176,22 @@ pub enum Ty_viewView<'a,V_tyreg_poly_lbl:'a,V_tyreg_poly_var:'a,V_tyreg_poly_t:'
   Constr(&'a Uid<'a>,&'a [V_tyreg_poly_t]),
 }
 
+// clique Imandrax_api.Ty_view.def_poly
+#[derive(Debug, Clone)]
+pub struct Ty_viewDef_poly<'a,V_tyreg_poly_ty:'a> {
+  pub name: &'a Uid<'a>,
+  pub params: &'a [&'a Uid<'a>],
+  pub decl: &'a Ty_viewDecl<'a,&'a Uid<'a>,V_tyreg_poly_ty,Void>,
+  pub clique: Option<&'a UidSet<'a>>,
+  pub timeout: Option<BigInt>,
+}
+
+
 // clique Imandrax_api.Stat_time.t
 // immediate
 #[derive(Debug, Clone)]
 pub struct Stat_time {
   pub time_s: f64,
-}
-
-
-// clique Imandrax_api.Sequent_poly.t
-#[derive(Debug, Clone)]
-pub struct Sequent_poly<'a,V_tyreg_poly_term:'a> {
-  pub hyps: &'a [V_tyreg_poly_term],
-  pub concls: &'a [V_tyreg_poly_term],
 }
 
 
@@ -229,6 +232,16 @@ pub enum Const<'a> {
   Const_bool(bool),
 }
 
+// clique Imandrax_api.Case_poly.t_poly
+#[derive(Debug, Clone)]
+pub struct Case_polyT_poly<'a,V_tyreg_poly_t:'a,V_tyreg_poly_var:'a,V_tyreg_poly_sym:'a> {
+  pub case_cstor: V_tyreg_poly_sym,
+  pub case_vars: &'a [V_tyreg_poly_var],
+  pub case_rhs: V_tyreg_poly_t,
+  pub case_labels: Option<&'a [&'a Uid<'a>]>,
+}
+
+
 // clique Imandrax_api.As_trigger.t
 // immediate
 #[derive(Debug, Clone)]
@@ -248,43 +261,6 @@ pub enum Anchor<'a> {
   Decomp(&'a Anchor<'a>),
 }
 
-// clique Imandrax_api.Admission.t
-#[derive(Debug, Clone)]
-pub struct Admission<'a> {
-  pub measured_subset: &'a [&'a str],
-  pub measure_fun: Option<&'a Uid<'a>>,
-}
-
-
-// clique Imandrax_api_model.ty_def
-#[derive(Debug, Clone)]
-pub enum ModelTy_def<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
-  Ty_finite(&'a [V_tyreg_poly_term]),
-  Ty_alias_unit(V_tyreg_poly_ty),
-}
-
-// clique Imandrax_api_model.fi
-#[derive(Debug, Clone)]
-pub struct ModelFi<'a,V_tyreg_poly_term:'a,V_tyreg_poly_var:'a,V_tyreg_poly_ty:'a> {
-  pub fi_args: &'a [V_tyreg_poly_var],
-  pub fi_ty_ret: V_tyreg_poly_ty,
-  pub fi_cases: &'a [(&'a [V_tyreg_poly_term],V_tyreg_poly_term)],
-  pub fi_else: V_tyreg_poly_term,
-}
-
-
-// clique Imandrax_api_model.t
-#[derive(Debug, Clone)]
-pub struct Model<'a,V_tyreg_poly_term:'a,V_tyreg_poly_fn:'a,V_tyreg_poly_var:'a,V_tyreg_poly_ty:'a> {
-  pub tys: &'a [(V_tyreg_poly_ty,&'a ModelTy_def<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)],
-  pub consts: &'a [(V_tyreg_poly_fn,V_tyreg_poly_term)],
-  pub funs: &'a [(V_tyreg_poly_fn,&'a ModelFi<'a,V_tyreg_poly_term,V_tyreg_poly_var,V_tyreg_poly_ty>)],
-  pub representable: bool,
-  pub completed: bool,
-  pub ty_subst: &'a [(&'a Uid<'a>,V_tyreg_poly_ty)],
-}
-
-
 // clique Imandrax_api_ca_store.Ca_ptr.Raw.t
 #[derive(Debug, Clone)]
 pub struct Ca_storeCa_ptrRaw<'a> {
@@ -292,197 +268,116 @@ pub struct Ca_storeCa_ptrRaw<'a> {
 }
 
 
-// clique Imandrax_api_cir.Type.t
+// clique Imandrax_api_common.Var.t_poly
 #[derive(Debug, Clone)]
-pub struct CirType<'a> {
-  pub view: &'a Ty_viewView<'a,(),&'a Uid<'a>,&'a CirType<'a>>,
-}
-
-
-// clique Imandrax_api_cir.Type.def
-#[derive(Debug, Clone)]
-pub struct CirTypeDef<'a> {
-  pub name: &'a Uid<'a>,
-  pub params: &'a [&'a Uid<'a>],
-  pub decl: &'a Ty_viewDecl<'a,&'a Uid<'a>,&'a CirType<'a>,Void>,
-  pub clique: Option<&'a UidSet<'a>>,
-  pub timeout: Option<BigInt>,
-}
-
-
-// clique Imandrax_api_cir.With_ty.t
-#[derive(Debug, Clone)]
-pub struct CirWith_ty<'a,V_tyreg_poly_a:'a> {
-  pub view: V_tyreg_poly_a,
-  pub ty: &'a CirType<'a>,
-}
-
-
-// clique Imandrax_api_cir.Type_schema.t
-#[derive(Debug, Clone)]
-pub struct CirType_schema<'a> {
-  pub params: &'a [&'a Uid<'a>],
-  pub ty: &'a CirType<'a>,
-}
-
-
-// clique Imandrax_api_cir.Typed_symbol.t
-#[derive(Debug, Clone)]
-pub struct CirTyped_symbol<'a> {
+pub struct CommonVarT_poly<'a,V_tyreg_poly_ty:'a> {
   pub id: &'a Uid<'a>,
-  pub ty: &'a CirType_schema<'a>,
+  pub ty: V_tyreg_poly_ty,
 }
 
 
-// clique Imandrax_api_cir.Applied_symbol.t
+// clique Imandrax_api_common.Type_schema.t_poly
 #[derive(Debug, Clone)]
-pub struct CirApplied_symbol<'a> {
-  pub sym: &'a CirTyped_symbol<'a>,
-  pub args: &'a [&'a CirType<'a>],
-  pub ty: &'a CirType<'a>,
+pub struct CommonType_schemaT_poly<'a,V_tyreg_poly_ty:'a> {
+  pub params: &'a [&'a Uid<'a>],
+  pub ty: V_tyreg_poly_ty,
 }
 
 
-// clique Imandrax_api_cir.Fo_pattern.view
+// clique Imandrax_api_common.Typed_symbol.t_poly
 #[derive(Debug, Clone)]
-pub enum CirFo_patternView<'a,V_tyreg_poly_t:'a> {
+pub struct CommonTyped_symbolT_poly<'a,V_tyreg_poly_ty:'a> {
+  pub id: &'a Uid<'a>,
+  pub ty: &'a CommonType_schemaT_poly<'a,V_tyreg_poly_ty>,
+}
+
+
+// clique Imandrax_api_common.Applied_symbol.t_poly
+#[derive(Debug, Clone)]
+pub struct CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty:'a> {
+  pub sym: &'a CommonTyped_symbolT_poly<'a,V_tyreg_poly_ty>,
+  pub args: &'a [V_tyreg_poly_ty],
+  pub ty: V_tyreg_poly_ty,
+}
+
+
+// clique Imandrax_api_common.Fo_pattern.view
+#[derive(Debug, Clone)]
+pub enum CommonFo_patternView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
   FO_any,
   FO_bool(bool),
   FO_const(&'a Const<'a>),
-  FO_var(&'a CirWith_ty<'a,&'a Uid<'a>>),
-  FO_app(&'a CirApplied_symbol<'a>,&'a [V_tyreg_poly_t]),
-  FO_cstor(Option<&'a CirApplied_symbol<'a>>,&'a [V_tyreg_poly_t]),
+  FO_var(&'a CommonVarT_poly<'a,V_tyreg_poly_ty>),
+  FO_app(&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,&'a [V_tyreg_poly_t]),
+  FO_cstor(Option<&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>>,&'a [V_tyreg_poly_t]),
   FO_destruct {
-    c: Option<&'a CirApplied_symbol<'a>>,
+    c: Option<&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>>,
     i: BigInt,
     u: V_tyreg_poly_t,
   },
   FO_is_a {
-    c: &'a CirApplied_symbol<'a>,
+    c: &'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,
     u: V_tyreg_poly_t,
   },
 }
 
-// clique Imandrax_api_cir.Fo_pattern.t
+// clique Imandrax_api_common.Fo_pattern.t_poly
 #[derive(Debug, Clone)]
-pub struct CirFo_pattern<'a> {
-  pub view: &'a CirFo_patternView<'a,&'a CirFo_pattern<'a>>,
-  pub ty: &'a CirType<'a>,
+pub struct CommonFo_patternT_poly<'a,V_tyreg_poly_ty:'a> {
+  pub view: &'a CommonFo_patternView<'a,&'a CommonFo_patternT_poly<'a,V_tyreg_poly_ty>,V_tyreg_poly_ty>,
+  pub ty: V_tyreg_poly_ty,
 }
 
 
-// clique Imandrax_api_cir.Pattern_head.t
+// clique Imandrax_api_common.Pattern_head.t_poly
 #[derive(Debug, Clone)]
-pub enum CirPattern_head<'a> {
+pub enum CommonPattern_headT_poly<'a,V_tyreg_poly_ty:'a> {
   PH_id(&'a Uid<'a>),
-  PH_ty(&'a CirType<'a>),
+  PH_ty(V_tyreg_poly_ty),
   PH_datatype_op,
 }
 
-// clique Imandrax_api_cir.Trigger.t
+// clique Imandrax_api_common.Trigger.t_poly
 #[derive(Debug, Clone)]
-pub struct CirTrigger<'a> {
-  pub trigger_head: &'a CirPattern_head<'a>,
-  pub trigger_patterns: &'a [&'a CirFo_pattern<'a>],
+pub struct CommonTriggerT_poly<'a,V_tyreg_poly_ty:'a> {
+  pub trigger_head: &'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,
+  pub trigger_patterns: &'a [&'a CommonFo_patternT_poly<'a,V_tyreg_poly_ty>],
   pub trigger_instantiation_rule_name: &'a Uid<'a>,
 }
 
 
-// clique Imandrax_api_cir.Case.t
+// clique Imandrax_api_common.Admission.t
 #[derive(Debug, Clone)]
-pub struct CirCase<'a,V_tyreg_poly_t:'a> {
-  pub case_cstor: &'a CirApplied_symbol<'a>,
-  pub case_vars: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
-  pub case_rhs: V_tyreg_poly_t,
-  pub case_labels: Option<&'a [&'a Uid<'a>]>,
+pub struct CommonAdmission<'a> {
+  pub measured_subset: &'a [&'a str],
+  pub measure_fun: Option<&'a Uid<'a>>,
 }
 
 
-// clique Imandrax_api_cir.Term.view
+// clique Imandrax_api_common.Hints.validation_strategy
 #[derive(Debug, Clone)]
-pub enum CirTermView<'a> {
-  Const(&'a Const<'a>),
-  If(&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirWith_ty<'a,&'a CirTermView<'a>>),
-  Let {
-    flg: Misc_typesRec_flag,
-    bs: &'a [(&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirWith_ty<'a,&'a CirTermView<'a>>)],
-    body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  },
-  Apply {
-    f: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-    l: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
-  },
-  Fun {
-    v: &'a CirWith_ty<'a,&'a Uid<'a>>,
-    body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  },
-  Var(&'a CirWith_ty<'a,&'a Uid<'a>>),
-  Sym(&'a CirApplied_symbol<'a>),
-  Construct {
-    c: &'a CirApplied_symbol<'a>,
-    args: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
-    labels: Option<&'a [&'a Uid<'a>]>,
-  },
-  Destruct {
-    c: &'a CirApplied_symbol<'a>,
-    i: BigInt,
-    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  },
-  Is_a {
-    c: &'a CirApplied_symbol<'a>,
-    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  },
-  Tuple {
-    l: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
-  },
-  Field {
-    f: &'a CirApplied_symbol<'a>,
-    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  },
-  Tuple_field {
-    i: BigInt,
-    t: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  },
-  Record {
-    rows: &'a [(&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a CirTermView<'a>>)],
-    rest: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
-  },
-  Case {
-    u: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-    cases: &'a [&'a CirCase<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>>],
-    default: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
-  },
-  Let_tuple {
-    vars: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
-    rhs: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-    body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  },
-}
-
-// clique Imandrax_api_cir.Hints.validation_strategy
-#[derive(Debug, Clone)]
-pub enum CirHintsValidation_strategy<'a> {
+pub enum CommonHintsValidation_strategy<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   VS_validate {
-    tactic: Option<&'a CirWith_ty<'a,&'a CirTermView<'a>>>,
+    tactic: Option<(&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term)>,
   },
   VS_no_validate,
 }
 
-// clique Imandrax_api_cir.Hints.t
+// clique Imandrax_api_common.Hints.t_poly
 #[derive(Debug, Clone)]
-pub struct CirHints<'a> {
-  pub f_validate_strat: &'a CirHintsValidation_strategy<'a>,
+pub struct CommonHintsT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub f_validate_strat: &'a CommonHintsValidation_strategy<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub f_unroll_def: Option<BigInt>,
   pub f_enable: &'a [&'a Uid<'a>],
   pub f_disable: &'a [&'a Uid<'a>],
   pub f_timeout: Option<BigInt>,
-  pub f_admission: Option<&'a Admission<'a>>,
+  pub f_admission: Option<&'a CommonAdmission<'a>>,
 }
 
 
-// clique Imandrax_api_cir.Fun_def.fun_kind
+// clique Imandrax_api_common.Fun_def.fun_kind
 #[derive(Debug, Clone)]
-pub enum CirFun_defFun_kind<'a> {
+pub enum CommonFun_defFun_kind<'a> {
   Fun_defined {
     is_macro: bool,
     from_lambda: bool,
@@ -491,159 +386,196 @@ pub enum CirFun_defFun_kind<'a> {
   Fun_opaque,
 }
 
-// clique Imandrax_api_cir.Fun_def.t
+// clique Imandrax_api_common.Fun_def.t_poly
 #[derive(Debug, Clone)]
-pub struct CirFun_def<'a> {
+pub struct CommonFun_defT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub f_name: &'a Uid<'a>,
-  pub f_ty: &'a CirType_schema<'a>,
-  pub f_args: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
-  pub f_body: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub f_ty: &'a CommonType_schemaT_poly<'a,V_tyreg_poly_ty>,
+  pub f_args: &'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],
+  pub f_body: V_tyreg_poly_term,
   pub f_clique: Option<&'a UidSet<'a>>,
-  pub f_kind: &'a CirFun_defFun_kind<'a>,
-  pub f_hints: &'a CirHints<'a>,
+  pub f_kind: &'a CommonFun_defFun_kind<'a>,
+  pub f_hints: &'a CommonHintsT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
 }
 
 
-// clique Imandrax_api_cir.Theorem.t
+// clique Imandrax_api_common.Theorem.t_poly
 #[derive(Debug, Clone)]
-pub struct CirTheorem<'a> {
-  pub thm_link: &'a CirFun_def<'a>,
+pub struct CommonTheoremT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub thm_link: &'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub thm_rewriting: bool,
   pub thm_perm_restrict: bool,
   pub thm_fc: bool,
   pub thm_elim: bool,
   pub thm_gen: bool,
-  pub thm_triggers: &'a [(&'a CirWith_ty<'a,&'a CirTermView<'a>>,As_trigger)],
+  pub thm_triggers: &'a [(V_tyreg_poly_term,As_trigger)],
   pub thm_is_axiom: bool,
-  pub thm_by: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+  pub thm_by: (&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term),
 }
 
 
-// clique Imandrax_api_cir.Tactic.t
+// clique Imandrax_api_common.Tactic.t_poly
 #[derive(Debug, Clone)]
-pub enum CirTactic<'a> {
+pub enum CommonTacticT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Default_termination {
     basis: &'a UidSet<'a>,
   },
   Default_thm,
-  Term(&'a CirWith_ty<'a,&'a CirTermView<'a>>),
+  Term((&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term)),
 }
 
-// clique Imandrax_api_cir.Rewrite_rule.t
+// clique Imandrax_api_common.Sequent.t_poly
 #[derive(Debug, Clone)]
-pub struct CirRewrite_rule<'a> {
+pub struct CommonSequentT_poly<'a,V_tyreg_poly_term:'a> {
+  pub hyps: &'a [V_tyreg_poly_term],
+  pub concls: &'a [V_tyreg_poly_term],
+}
+
+
+// clique Imandrax_api_common.Rewrite_rule.t_poly
+#[derive(Debug, Clone)]
+pub struct CommonRewrite_ruleT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub rw_name: &'a Uid<'a>,
-  pub rw_head: &'a CirPattern_head<'a>,
-  pub rw_lhs: &'a CirFo_pattern<'a>,
-  pub rw_rhs: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  pub rw_guard: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
-  pub rw_vars: &'a Var_set<'a>,
-  pub rw_triggers: &'a [&'a CirFo_pattern<'a>],
+  pub rw_head: &'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,
+  pub rw_lhs: &'a CommonFo_patternT_poly<'a,V_tyreg_poly_ty>,
+  pub rw_rhs: V_tyreg_poly_term,
+  pub rw_guard: &'a [V_tyreg_poly_term],
+  pub rw_vars: &'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],
+  pub rw_triggers: &'a [&'a CommonFo_patternT_poly<'a,V_tyreg_poly_ty>],
   pub rw_perm_restrict: bool,
-  pub rw_loop_break: Option<&'a CirFo_pattern<'a>>,
+  pub rw_loop_break: Option<&'a CommonFo_patternT_poly<'a,V_tyreg_poly_ty>>,
 }
 
 
-// clique Imandrax_api_cir.Proof_obligation.t
+// clique Imandrax_api_common.Model.ty_def
 #[derive(Debug, Clone)]
-pub struct CirProof_obligation<'a> {
+pub enum CommonModelTy_def<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  Ty_finite(&'a [V_tyreg_poly_term]),
+  Ty_alias_unit(V_tyreg_poly_ty),
+}
+
+// clique Imandrax_api_common.Model.fi
+#[derive(Debug, Clone)]
+pub struct CommonModelFi<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub fi_args: &'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],
+  pub fi_ty_ret: V_tyreg_poly_ty,
+  pub fi_cases: &'a [(&'a [V_tyreg_poly_term],V_tyreg_poly_term)],
+  pub fi_else: V_tyreg_poly_term,
+}
+
+
+// clique Imandrax_api_common.Model.t_poly
+#[derive(Debug, Clone)]
+pub struct CommonModelT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub tys: &'a [(V_tyreg_poly_ty,&'a CommonModelTy_def<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)],
+  pub consts: &'a [(&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,V_tyreg_poly_term)],
+  pub funs: &'a [(&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,&'a CommonModelFi<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)],
+  pub representable: bool,
+  pub completed: bool,
+  pub ty_subst: &'a [(&'a Uid<'a>,V_tyreg_poly_ty)],
+}
+
+
+// clique Imandrax_api_common.Region.status
+#[derive(Debug, Clone)]
+pub enum CommonRegionStatus<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  Unknown,
+  Feasible(&'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+}
+
+// clique Imandrax_api_common.Region.t_poly
+#[derive(Debug, Clone)]
+pub struct CommonRegionT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub constraints: &'a [V_tyreg_poly_term],
+  pub invariant: V_tyreg_poly_term,
+  pub status: &'a CommonRegionStatus<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+}
+
+
+// clique Imandrax_api_common.Proof_obligation.t_poly
+#[derive(Debug, Clone)]
+pub struct CommonProof_obligationT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub descr: &'a str,
-  pub goal: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  pub tactic: &'a CirTactic<'a>,
+  pub goal: (&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term),
+  pub tactic: &'a CommonTacticT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub is_instance: bool,
   pub anchor: &'a Anchor<'a>,
   pub timeout: Option<BigInt>,
 }
 
 
-// clique Imandrax_api_cir.Instantiation_rule_kind.t
+// clique Imandrax_api_common.Instantiation_rule_kind.t
 // immediate
 #[derive(Debug, Clone)]
-pub enum CirInstantiation_rule_kind {
+pub enum CommonInstantiation_rule_kind {
   IR_forward_chaining,
   IR_generalization,
 }
 
-// clique Imandrax_api_cir.Instantiation_rule.t
+// clique Imandrax_api_common.Instantiation_rule.t_poly
 #[derive(Debug, Clone)]
-pub struct CirInstantiation_rule<'a> {
-  pub ir_from: &'a CirFun_def<'a>,
-  pub ir_triggers: &'a [&'a CirTrigger<'a>],
-  pub ir_kind: CirInstantiation_rule_kind,
+pub struct CommonInstantiation_ruleT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub ir_from: &'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  pub ir_triggers: &'a [&'a CommonTriggerT_poly<'a,V_tyreg_poly_ty>],
+  pub ir_kind: CommonInstantiation_rule_kind,
 }
 
 
-// clique Imandrax_api_cir.Fun_decomp.status
+// clique Imandrax_api_common.Fun_decomp.t_poly
 #[derive(Debug, Clone)]
-pub enum CirFun_decompStatus<'a> {
-  Unknown,
-  Feasible(&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>),
-}
-
-// clique Imandrax_api_cir.Fun_decomp.Region.t
-#[derive(Debug, Clone)]
-pub struct CirFun_decompRegion<'a> {
-  pub constraints: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
-  pub invariant: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  pub status: &'a CirFun_decompStatus<'a>,
-}
-
-
-// clique Imandrax_api_cir.Fun_decomp.t
-#[derive(Debug, Clone)]
-pub struct CirFun_decomp<'a> {
+pub struct CommonFun_decompT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub f_id: &'a Uid<'a>,
-  pub f_args: &'a [&'a CirWith_ty<'a,&'a Uid<'a>>],
-  pub regions: &'a [&'a CirFun_decompRegion<'a>],
+  pub f_args: &'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],
+  pub regions: &'a [&'a CommonRegionT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>],
 }
 
 
-// clique Imandrax_api_cir.Elimination_rule.t
+// clique Imandrax_api_common.Elimination_rule.t_poly
 #[derive(Debug, Clone)]
-pub struct CirElimination_rule<'a> {
+pub struct CommonElimination_ruleT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub er_name: &'a Uid<'a>,
-  pub er_guard: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
-  pub er_lhs: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
-  pub er_rhs: &'a CirWith_ty<'a,&'a Uid<'a>>,
-  pub er_dests: &'a [&'a CirFo_pattern<'a>],
-  pub er_dest_tms: &'a [&'a CirWith_ty<'a,&'a CirTermView<'a>>],
+  pub er_guard: &'a [V_tyreg_poly_term],
+  pub er_lhs: V_tyreg_poly_term,
+  pub er_rhs: &'a CommonVarT_poly<'a,V_tyreg_poly_ty>,
+  pub er_dests: &'a [&'a CommonFo_patternT_poly<'a,V_tyreg_poly_ty>],
+  pub er_dest_tms: &'a [V_tyreg_poly_term],
 }
 
 
-// clique Imandrax_api_cir.Decomp.lift_bool
+// clique Imandrax_api_common.Decomp.lift_bool
 // immediate
 #[derive(Debug, Clone)]
-pub enum CirDecompLift_bool {
+pub enum CommonDecompLift_bool {
   Default,
   Nested_equalities,
   Equalities,
   All,
 }
 
-// clique Imandrax_api_cir.Decomp.t
+// clique Imandrax_api_common.Decomp.t
 #[derive(Debug, Clone)]
-pub struct CirDecomp<'a> {
+pub struct CommonDecomp<'a> {
   pub f_id: &'a Uid<'a>,
   pub assuming: Option<&'a Uid<'a>>,
   pub basis: &'a UidSet<'a>,
   pub rule_specs: &'a UidSet<'a>,
   pub ctx_simp: bool,
-  pub lift_bool: CirDecompLift_bool,
+  pub lift_bool: CommonDecompLift_bool,
   pub prune: bool,
 }
 
 
-// clique Imandrax_api_cir.Db_ser.t
+// clique Imandrax_api_common.Db_ser.t_poly
 #[derive(Debug, Clone)]
-pub struct CirDb_ser<'a> {
+pub struct CommonDb_serT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub decls: &'a UidSet<'a>,
-  pub rw_rules: &'a [(&'a CirPattern_head<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub rw_rules: &'a [(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
   pub inst_rules: &'a [(&'a Uid<'a>,&'a Ca_storeCa_ptrRaw<'a>)],
   pub rule_spec_fc: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
   pub rule_spec_rw_rules: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub fc: &'a [(&'a CirPattern_head<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub elim: &'a [(&'a CirPattern_head<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub gen: &'a [(&'a CirPattern_head<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub fc: &'a [(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub elim: &'a [(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
+  pub gen: &'a [(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
   pub thm_as_rw: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
   pub thm_as_fc: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
   pub thm_as_elim: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
@@ -651,6 +583,84 @@ pub struct CirDb_ser<'a> {
   pub admission: &'a [(&'a Uid<'a>,&'a Ca_storeCa_ptrRaw<'a>)],
   pub count_funs_of_ty: &'a [(&'a Uid<'a>,&'a Uid<'a>)],
   pub disabled: &'a UidSet<'a>,
+}
+
+
+// clique Imandrax_api_mir.Type.t
+#[derive(Debug, Clone)]
+pub struct MirType<'a> {
+  pub view: &'a Ty_viewView<'a,(),&'a Uid<'a>,&'a MirType<'a>>,
+  pub generation: BigInt,
+}
+
+
+// clique Imandrax_api_mir.Type.ser
+#[derive(Debug, Clone)]
+pub struct MirTypeSer<'a> {
+  pub view: &'a Ty_viewView<'a,(),&'a Uid<'a>,&'a MirType<'a>>,
+}
+
+
+// clique Imandrax_api_mir.Term.view
+#[derive(Debug, Clone)]
+pub enum MirTermView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
+  Const(&'a Const<'a>),
+  If(V_tyreg_poly_t,V_tyreg_poly_t,V_tyreg_poly_t),
+  Apply {
+    f: V_tyreg_poly_t,
+    l: &'a [V_tyreg_poly_t],
+  },
+  Var(&'a CommonVarT_poly<'a,V_tyreg_poly_ty>),
+  Sym(&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>),
+  Construct {
+    c: &'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,
+    args: &'a [V_tyreg_poly_t],
+  },
+  Destruct {
+    c: &'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,
+    i: BigInt,
+    t: V_tyreg_poly_t,
+  },
+  Is_a {
+    c: &'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,
+    t: V_tyreg_poly_t,
+  },
+  Tuple {
+    l: &'a [V_tyreg_poly_t],
+  },
+  Field {
+    f: &'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,
+    t: V_tyreg_poly_t,
+  },
+  Tuple_field {
+    i: BigInt,
+    t: V_tyreg_poly_t,
+  },
+  Record {
+    rows: &'a [(&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,V_tyreg_poly_t)],
+    rest: Option<V_tyreg_poly_t>,
+  },
+  Case {
+    u: V_tyreg_poly_t,
+    cases: &'a [(&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,V_tyreg_poly_t)],
+    default: Option<V_tyreg_poly_t>,
+  },
+}
+
+// clique Imandrax_api_mir.Term.t
+#[derive(Debug, Clone)]
+pub struct MirTerm<'a> {
+  pub view: &'a MirTermView<'a,&'a MirTerm<'a>,&'a MirType<'a>>,
+  pub ty: &'a MirType<'a>,
+  pub generation: BigInt,
+}
+
+
+// clique Imandrax_api_mir.Term.ser
+#[derive(Debug, Clone)]
+pub struct MirTermSer<'a> {
+  pub view: &'a MirTermView<'a,&'a MirTerm<'a>,&'a MirType<'a>>,
+  pub ty: &'a MirType<'a>,
 }
 
 
@@ -688,17 +698,25 @@ pub enum EvalValueView<'a,V_tyreg_poly_v:'a,V_tyreg_poly_closure:'a> {
   V_cstor(&'a EvalValueCstor_descriptor<'a>,&'a [V_tyreg_poly_v]),
   V_tuple(&'a [V_tyreg_poly_v]),
   V_record(&'a EvalValueRecord_descriptor<'a>,&'a [V_tyreg_poly_v]),
-  V_quoted_term(&'a CirWith_ty<'a,&'a CirTermView<'a>>),
+  V_quoted_term((&'a [&'a CommonVarT_poly<'a,&'a MirType<'a>>],&'a MirTerm<'a>)),
   V_uid(&'a Uid<'a>),
   V_closure(V_tyreg_poly_closure),
   V_custom(Ignored /* custom value */),
   V_ordinal(&'a EvalOrdinal<'a>),
 }
 
+// clique Imandrax_api_eval.Value.erased_closure
+// immediate
+#[derive(Debug, Clone)]
+pub struct EvalValueErased_closure {
+  pub missing: BigInt,
+}
+
+
 // clique Imandrax_api_eval.Value.t
 #[derive(Debug, Clone)]
 pub struct EvalValue<'a> {
-  pub v: &'a EvalValueView<'a,&'a EvalValue<'a>,()>,
+  pub v: &'a EvalValueView<'a,&'a EvalValue<'a>,EvalValueErased_closure>,
 }
 
 
@@ -740,34 +758,34 @@ pub enum ReportRtextItem<'a,V_tyreg_poly_term:'a> {
   L(&'a [&'a [&'a ReportRtextItem<'a,V_tyreg_poly_term>]]),
   Uid(&'a Uid<'a>),
   Term(V_tyreg_poly_term),
-  Sequent(&'a Sequent_poly<'a,V_tyreg_poly_term>),
+  Sequent(&'a CommonSequentT_poly<'a,V_tyreg_poly_term>),
   Subst(&'a [(V_tyreg_poly_term,V_tyreg_poly_term)]),
 }
 
 // clique Imandrax_api_report.Atomic_event.poly
 #[derive(Debug, Clone)]
-pub enum ReportAtomic_eventPoly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_fn:'a,V_tyreg_poly_var:'a,V_tyreg_poly_ty:'a> {
+pub enum ReportAtomic_eventPoly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_term2:'a,V_tyreg_poly_ty2:'a> {
   E_message(&'a [&'a ReportRtextItem<'a,V_tyreg_poly_term>]),
   E_title(&'a str),
   E_enter_waterfall {
-    vars: &'a [V_tyreg_poly_var],
+    vars: &'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],
     goal: V_tyreg_poly_term,
   },
   E_enter_tactic(&'a str),
-  E_rw_success(&'a CirRewrite_rule<'a>,V_tyreg_poly_term,V_tyreg_poly_term),
-  E_rw_fail(&'a CirRewrite_rule<'a>,V_tyreg_poly_term,&'a str),
-  E_inst_success(&'a CirInstantiation_rule<'a>,V_tyreg_poly_term),
-  E_waterfall_checkpoint(&'a [&'a Sequent_poly<'a,V_tyreg_poly_term>]),
+  E_rw_success(&'a CommonRewrite_ruleT_poly<'a,V_tyreg_poly_term2,V_tyreg_poly_ty2>,V_tyreg_poly_term,V_tyreg_poly_term),
+  E_rw_fail(&'a CommonRewrite_ruleT_poly<'a,V_tyreg_poly_term2,V_tyreg_poly_ty2>,V_tyreg_poly_term,&'a str),
+  E_inst_success(&'a CommonInstantiation_ruleT_poly<'a,V_tyreg_poly_term2,V_tyreg_poly_ty2>,V_tyreg_poly_term),
+  E_waterfall_checkpoint(&'a [&'a CommonSequentT_poly<'a,V_tyreg_poly_term>]),
   E_induction_scheme(V_tyreg_poly_term),
   E_attack_subgoal {
     name: &'a str,
-    goal: &'a Sequent_poly<'a,V_tyreg_poly_term>,
+    goal: &'a CommonSequentT_poly<'a,V_tyreg_poly_term>,
     depth: BigInt,
   },
   E_simplify_t(V_tyreg_poly_term,V_tyreg_poly_term),
   E_simplify_clause(V_tyreg_poly_term,&'a [V_tyreg_poly_term]),
   E_proved_by_smt(V_tyreg_poly_term,&'a ReportSmt_proof<'a,V_tyreg_poly_term>),
-  E_refuted_by_smt(V_tyreg_poly_term,Option<&'a Model<'a,V_tyreg_poly_term,V_tyreg_poly_fn,V_tyreg_poly_var,V_tyreg_poly_ty>>),
+  E_refuted_by_smt(V_tyreg_poly_term,Option<&'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>),
   E_fun_expansion(V_tyreg_poly_term,V_tyreg_poly_term),
 }
 
@@ -807,7 +825,7 @@ pub enum ReportEventT_tree<V_tyreg_poly_atomic_ev,V_tyreg_poly_sub> {
 // clique Imandrax_api_report.Report.t
 #[derive(Debug, Clone)]
 pub struct ReportReport<'a> {
-  pub events: &'a [&'a ReportEventT_linear<&'a ReportAtomic_eventPoly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>>],
+  pub events: &'a [&'a ReportEventT_linear<&'a ReportAtomic_eventPoly<'a,&'a MirTerm<'a>,&'a MirType<'a>,&'a MirTerm<'a>,&'a MirType<'a>>>],
 }
 
 
@@ -820,7 +838,7 @@ pub enum ProofArg<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   A_string(&'a str),
   A_list(&'a [&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>]),
   A_dict(&'a [(&'a str,&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)]),
-  A_seq(&'a Sequent_poly<'a,V_tyreg_poly_term>),
+  A_seq(&'a CommonSequentT_poly<'a,V_tyreg_poly_term>),
 }
 
 // clique Imandrax_api_proof.View.t
@@ -841,97 +859,100 @@ pub enum ProofView<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_proof
   },
 }
 
-// clique Imandrax_api_proof.Proof_term_poly.t
+// clique Imandrax_api_proof.Proof_term.t_poly
 #[derive(Debug, Clone)]
-pub struct ProofProof_term_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_proof:'a> {
+pub struct ProofProof_termT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub id: BigInt,
-  pub concl: &'a Sequent_poly<'a,V_tyreg_poly_term>,
-  pub view: &'a ProofView<'a,V_tyreg_poly_term,V_tyreg_poly_ty,V_tyreg_poly_proof>,
+  pub concl: &'a CommonSequentT_poly<'a,V_tyreg_poly_term>,
+  pub view: &'a ProofView<'a,V_tyreg_poly_term,V_tyreg_poly_ty,&'a ProofProof_termT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
 }
 
 
-// clique Imandrax_api_proof.Cir_proof_term.t
+// clique Imandrax_api_tasks.PO_task.t_poly
 #[derive(Debug, Clone)]
-pub struct ProofCir_proof_term<'a> {
-  pub p: &'a ProofProof_term_poly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirType<'a>,&'a ProofCir_proof_term<'a>>,
-}
-
-
-// clique Imandrax_api_tasks.PO_task.t
-#[derive(Debug, Clone)]
-pub struct TasksPO_task<'a> {
+pub struct TasksPO_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_sym: &'a str,
   pub count: BigInt,
-  pub db: &'a CirDb_ser<'a>,
-  pub po: &'a CirProof_obligation<'a>,
+  pub db: &'a CommonDb_serT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  pub po: &'a CommonProof_obligationT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
 }
 
 
 // clique Imandrax_api_tasks.PO_res.proof_found
 #[derive(Debug, Clone)]
-pub struct TasksPO_resProof_found<'a> {
+pub struct TasksPO_resProof_found<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub anchor: &'a Anchor<'a>,
-  pub proof: &'a ProofCir_proof_term<'a>,
+  pub proof: &'a ProofProof_termT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
 }
 
 
 // clique Imandrax_api_tasks.PO_res.instance
 #[derive(Debug, Clone)]
-pub struct TasksPO_resInstance<'a> {
+pub struct TasksPO_resInstance<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub anchor: &'a Anchor<'a>,
-  pub model: &'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>,
+  pub model: &'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
 }
 
 
 // clique Imandrax_api_tasks.PO_res.no_proof
 #[derive(Debug, Clone)]
-pub struct TasksPO_resNo_proof<'a> {
+pub struct TasksPO_resNo_proof<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub err: &'a ErrorError_core<'a>,
-  pub counter_model: Option<&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>>,
-  pub subgoals: &'a [&'a Sequent_poly<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>>],
+  pub counter_model: Option<&'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
+  pub subgoals: &'a [&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>],
 }
 
 
 // clique Imandrax_api_tasks.PO_res.unsat
 #[derive(Debug, Clone)]
-pub struct TasksPO_resUnsat<'a> {
+pub struct TasksPO_resUnsat<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub anchor: &'a Anchor<'a>,
   pub err: &'a ErrorError_core<'a>,
-  pub proof: &'a ProofCir_proof_term<'a>,
+  pub proof: &'a ProofProof_termT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
 }
 
 
 // clique Imandrax_api_tasks.PO_res.success
 #[derive(Debug, Clone)]
-pub enum TasksPO_resSuccess<'a> {
-  Proof(&'a TasksPO_resProof_found<'a>),
-  Instance(&'a TasksPO_resInstance<'a>),
+pub enum TasksPO_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  Proof(&'a TasksPO_resProof_found<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Instance(&'a TasksPO_resInstance<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
 }
 
 // clique Imandrax_api_tasks.PO_res.error
 #[derive(Debug, Clone)]
-pub enum TasksPO_resError<'a> {
-  No_proof(&'a TasksPO_resNo_proof<'a>),
-  Unsat(&'a TasksPO_resUnsat<'a>),
-  Invalid_model(&'a ErrorError_core<'a>,&'a Model<'a,&'a CirWith_ty<'a,&'a CirTermView<'a>>,&'a CirApplied_symbol<'a>,&'a CirWith_ty<'a,&'a Uid<'a>>,&'a CirType<'a>>),
+pub enum TasksPO_resError<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  No_proof(&'a TasksPO_resNo_proof<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Unsat(&'a TasksPO_resUnsat<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Invalid_model(&'a ErrorError_core<'a>,&'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Error(&'a ErrorError_core<'a>),
 }
 
-// clique Imandrax_api_tasks.PO_res.t
+// clique Imandrax_api_tasks.PO_res.shallow_poly
 #[derive(Debug, Clone)]
-pub struct TasksPO_res<'a> {
+pub struct TasksPO_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_: &'a Ca_storeCa_ptrRaw<'a>,
-  pub res: &'a core::result::Result<&'a TasksPO_resSuccess<'a>, &'a TasksPO_resError<'a>>,
+  pub res: &'a core::result::Result<&'a TasksPO_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksPO_resError<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
   pub stats: Stat_time,
   pub report: &'a In_mem_archiveRaw<'a>,
 }
 
 
-// clique Imandrax_api_tasks.Eval_task.t
+// clique Imandrax_api_tasks.PO_res.full_poly
 #[derive(Debug, Clone)]
-pub struct TasksEval_task<'a> {
-  pub db: &'a CirDb_ser<'a>,
-  pub term: &'a CirWith_ty<'a,&'a CirTermView<'a>>,
+pub struct TasksPO_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub from_: &'a CommonProof_obligationT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  pub res: &'a core::result::Result<&'a TasksPO_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksPO_resError<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
+  pub stats: Stat_time,
+  pub report: &'a In_mem_archiveRaw<'a>,
+}
+
+
+// clique Imandrax_api_tasks.Eval_task.t_poly
+#[derive(Debug, Clone)]
+pub struct TasksEval_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub db: &'a CommonDb_serT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  pub term: (&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term),
   pub anchor: &'a Anchor<'a>,
   pub timeout: Option<BigInt>,
 }
@@ -961,20 +982,20 @@ pub struct TasksEval_res<'a> {
 }
 
 
-// clique Imandrax_api_tasks.Decomp_task.t
+// clique Imandrax_api_tasks.Decomp_task.t_poly
 #[derive(Debug, Clone)]
-pub struct TasksDecomp_task<'a> {
-  pub db: &'a CirDb_ser<'a>,
-  pub decomp: &'a CirDecomp<'a>,
+pub struct TasksDecomp_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub db: &'a CommonDb_serT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  pub decomp: &'a CommonDecomp<'a>,
   pub anchor: &'a Anchor<'a>,
 }
 
 
 // clique Imandrax_api_tasks.Decomp_res.success
 #[derive(Debug, Clone)]
-pub struct TasksDecomp_resSuccess<'a> {
+pub struct TasksDecomp_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub anchor: &'a Anchor<'a>,
-  pub decomp: &'a CirFun_decomp<'a>,
+  pub decomp: &'a CommonFun_decompT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
 }
 
 
@@ -984,11 +1005,21 @@ pub enum TasksDecomp_resError<'a> {
   Error(&'a ErrorError_core<'a>),
 }
 
-// clique Imandrax_api_tasks.Decomp_res.t
+// clique Imandrax_api_tasks.Decomp_res.shallow_poly
 #[derive(Debug, Clone)]
-pub struct TasksDecomp_res<'a> {
+pub struct TasksDecomp_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_: &'a Ca_storeCa_ptrRaw<'a>,
-  pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a>, &'a TasksDecomp_resError<'a>>,
+  pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksDecomp_resError<'a>>,
+  pub stats: Stat_time,
+  pub report: &'a In_mem_archiveRaw<'a>,
+}
+
+
+// clique Imandrax_api_tasks.Decomp_res.full_poly
+#[derive(Debug, Clone)]
+pub struct TasksDecomp_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub from_: &'a CommonDecomp<'a>,
+  pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksDecomp_resError<'a>>,
   pub stats: Stat_time,
   pub report: &'a In_mem_archiveRaw<'a>,
 }
