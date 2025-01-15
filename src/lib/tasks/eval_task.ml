@@ -12,11 +12,6 @@ type ('term, 'ty) t_poly = {
 (** A task associated to an expression the user asked to evaluate.
     These tasks' results are to be displayed in the LSP, among other places. *)
 
-module Cir = struct
-  type t = (Cir.Term.t, Cir.Type.t) t_poly
-  [@@deriving show, twine, typereg] [@@typereg.name "Cir.t"]
-end
-
 module Mir = struct
   type t = (Mir.Term.t, Mir.Type.t) t_poly
   [@@deriving show, twine, typereg] [@@typereg.name "Mir.t"]
