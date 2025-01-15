@@ -11,24 +11,24 @@ type ('t, 'ty) view =
       f: 't;
       l: 't list;
     }
-  | Var of 'ty Var.t_poly
-  | Sym of 'ty Applied_symbol.t_poly
+  | Var of 'ty Imandrax_api_common.Var.t_poly
+  | Sym of 'ty Imandrax_api_common.Applied_symbol.t_poly
   | Construct of {
-      c: 'ty Applied_symbol.t_poly;
+      c: 'ty Imandrax_api_common.Applied_symbol.t_poly;
       args: 't list;
     }
   | Destruct of {
-      c: 'ty Applied_symbol.t_poly;
+      c: 'ty Imandrax_api_common.Applied_symbol.t_poly;
       i: int;
       t: 't;
     }
   | Is_a of {
-      c: 'ty Applied_symbol.t_poly;
+      c: 'ty Imandrax_api_common.Applied_symbol.t_poly;
       t: 't;
     }
   | Tuple of { l: 't list }
   | Field of {
-      f: 'ty Applied_symbol.t_poly;
+      f: 'ty Imandrax_api_common.Applied_symbol.t_poly;
       t: 't;
     }
   | Tuple_field of {
@@ -36,12 +36,12 @@ type ('t, 'ty) view =
       t: 't;
     }
   | Record of {
-      rows: ('ty Applied_symbol.t_poly * 't) list;
+      rows: ('ty Imandrax_api_common.Applied_symbol.t_poly * 't) list;
       rest: 't option;
     }
   | Case of {
       u: 't;
-      cases: ('ty Applied_symbol.t_poly * 't) list;
+      cases: ('ty Imandrax_api_common.Applied_symbol.t_poly * 't) list;
       default: 't option;
     }
 [@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
@@ -108,10 +108,16 @@ module Build_ : sig
   }
   [@@deriving twine, show, eq]
 
+  type ser = {
+    view: (t, Type.t) view;
+    ty: Type.t;
+  }
+  [@@deriving twine, show]
+
   val hash : t -> int
   val make : State.t -> (t, Type.t) view -> Type.t -> t
 end = struct
-  type generation = int [@@deriving show, eq, twine]
+  type generation = int [@@deriving show, eq, twine, typereg]
 
   let non_hashconsed_generation = -42
 
@@ -208,13 +214,13 @@ end = struct
 
   type term = t
 
-  open struct
-    type ser = {
-      view: (t, Type.t) view;
-      ty: Type.t;
-    }
-    [@@deriving twine]
+  type ser = {
+    view: (t, Type.t) view;
+    ty: Type.t;
+  }
+  [@@deriving twine, typereg, show]
 
+  open struct
     let[@inline] ser_of_term (t : term) : ser = { view = t.view; ty = t.ty }
     let[@inline] ser_to_term st ser : term = make st ser.view ser.ty
   end

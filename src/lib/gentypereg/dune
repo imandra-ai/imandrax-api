@@ -7,7 +7,7 @@
   imandrakit.typereg
   imandrax-api
   imandrax-api.common
-  imandrax-api.cir
+  ;imandrax-api.cir
   imandrax-api.mir
   imandrax-api.eval
   imandrax-api.report

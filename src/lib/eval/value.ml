@@ -1,7 +1,5 @@
 (** A view of computation values. *)
 
-open Imandrax_api_mir
-
 type cstor_descriptor = {
   cd_idx: int;  (** Index in the list of cstors of its type *)
   cd_name: Imandrax_api.Uid.t;

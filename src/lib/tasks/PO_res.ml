@@ -1,7 +1,5 @@
 (** Result of evaluating the PO *)
 
-open Common_tasks_
-
 type stats = Imandrax_api.Stat_time.t [@@deriving show, twine, typereg]
 
 type ('term, 'ty) proof_found = {
@@ -53,44 +51,47 @@ type ('term, 'ty) error =
 type ('a, 'term, 'ty) result = ('a, ('term, 'ty) error) Util_twine.Result.t
 [@@deriving twine, typereg, show, map, iter]
 
+type ('term, 'ty) shallow_poly = {
+  from:
+    (Imandrax_api_mir.Proof_obligation.t Imandrax_api_ca_store.Ca_ptr.t
+    [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
+  res: (('term, 'ty) success, 'term, 'ty) result;
+  stats: stats;
+  report:
+    (Imandrax_api_report.Report.t Imandrax_api.In_mem_archive.t
+    [@twine.encode In_mem_archive.to_twine]
+    [@twine.decode In_mem_archive.of_twine]
+    [@printer In_mem_archive.pp ()]);
+      (** The report, when it's not serialized it's stored compressed in memory. *)
+}
+[@@deriving twine, typereg, map, iter, show { with_path = false }]
+
+type ('term, 'ty) full_poly = {
+  from: ('term, 'ty) Imandrax_api_common.Proof_obligation.t_poly;
+  res: (('term, 'ty) success, 'term, 'ty) result;
+  stats: stats;
+  report:
+    (Imandrax_api_report.Report.t Imandrax_api.In_mem_archive.t
+    [@twine.encode In_mem_archive.to_twine]
+    [@twine.decode In_mem_archive.of_twine]
+    [@printer In_mem_archive.pp ()]);
+      (** The report, when it's not serialized it's stored compressed in memory. *)
+}
+[@@deriving twine, typereg, map, iter, show { with_path = false }]
+
 (** Parts are referenced via a cptr *)
 module Shallow = struct
-  type ('term, 'ty) t_poly = {
-    from:
-      (Imandrax_api_mir.Proof_obligation.t Imandrax_api_ca_store.Ca_ptr.t
-      [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
-    res: (('term, 'ty) success, 'term, 'ty) result;
-    stats: stats;
-    report:
-      (Imandrax_api_report.Report.Mir.t Imandrax_api.In_mem_archive.t
-      [@twine.encode In_mem_archive.to_twine]
-      [@twine.decode In_mem_archive.of_twine]
-      [@printer In_mem_archive.pp ()]);
-        (** The report, when it's not serialized it's stored compressed in memory. *)
-  }
-  [@@deriving twine, typereg, map, iter, show { with_path = false }]
-  [@@typereg.name "shallow.t_poly"]
+  type ('term, 'ty) t_poly = ('term, 'ty) shallow_poly [@@deriving twine, show]
 
-  type t = (Mir.Term.t, Mir.Type.t) t_poly
-  [@@deriving twine, typereg, show] [@@typereg.name "shallow.t"]
+  type t = (Imandrax_api_mir.Term.t, Imandrax_api_mir.Type.t) shallow_poly
+  [@@deriving twine, typereg, show]
 end
 
 (** All included *)
 module Full = struct
-  type ('term, 'ty) t_poly = {
-    from: ('term, 'ty) Imandrax_api_common.Proof_obligation.t_poly;
-    res: (('term, 'ty) success, 'term, 'ty) result;
-    stats: stats;
-    report:
-      (Imandrax_api_report.Report.Mir.t Imandrax_api.In_mem_archive.t
-      [@twine.encode In_mem_archive.to_twine]
-      [@twine.decode In_mem_archive.of_twine]
-      [@printer In_mem_archive.pp ()]);
-        (** The report, when it's not serialized it's stored compressed in memory. *)
-  }
-  [@@deriving twine, typereg, map, iter, show { with_path = false }]
-  [@@typereg.name "full.t_poly"]
+  type ('term, 'ty) t_poly = ('term, 'ty) full_poly
+  [@@deriving twine, map, iter, show { with_path = false }]
 
-  type t = (Mir.Term.t, Mir.Type.t) t_poly
+  type t = (Imandrax_api_mir.Term.t, Imandrax_api_mir.Type.t) full_poly
   [@@deriving twine, typereg, show] [@@typereg.name "full.t"]
 end

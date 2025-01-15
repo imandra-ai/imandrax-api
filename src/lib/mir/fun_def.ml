@@ -1,6 +1,7 @@
 include Imandrax_api_common.Fun_def
 
-type t = (Term.t, Type.t) t_poly [@@deriving twine, typereg, eq, show]
+type t = (Term.t, Type.t) Imandrax_api_common.Fun_def.t_poly
+[@@deriving twine, typereg, eq, show]
 (** A function definition. *)
 
 let pp_ = ref pp

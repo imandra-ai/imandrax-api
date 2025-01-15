@@ -1,6 +1,7 @@
 include Imandrax_api_common.Pattern_head
 
-type t = Type.t t_poly [@@deriving show, eq, ord, twine, typereg]
+type t = Type.t Imandrax_api_common.Pattern_head.t_poly
+[@@deriving show, eq, ord, twine, typereg]
 
 let hash = hash_t_poly Type.hash
 

@@ -2,7 +2,7 @@
 
 include Imandrax_api_common.Var
 
-type t = Type.t t_poly [@@deriving twine, typereg, show]
+type t = Type.t Imandrax_api_common.Var.t_poly [@@deriving twine, typereg, show]
 
 open Imandrax_api
 

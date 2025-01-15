@@ -32,10 +32,12 @@ module Build_ : sig
   [@@deriving twine, show, eq]
   (** A type expression *)
 
+  type ser = { view: (unit, var, t) view } [@@unboxed] [@@deriving twine]
+
   val hash : t -> int
   val make : State.t -> (unit, var, t) view -> t
 end = struct
-  type generation = int [@@deriving show, eq, twine]
+  type generation = int [@@deriving show, eq, twine, typereg]
 
   let non_hashconsed_generation = -42
 
@@ -114,11 +116,12 @@ end = struct
 
   type ty = t
 
-  open struct
-    type ser = { view: (unit, var, t) view } [@@unboxed] [@@deriving twine]
+  type ser = { view: (unit, var, t) Imandrax_api.Ty_view.view }
+  [@@unboxed] [@@deriving twine, typereg]
 
+  open struct
     let[@inline] ser_of_ty (t : ty) : ser = { view = t.view }
-    let[@inline] ser_to_ty st ser : ty = make st ser.view
+    let[@inline] ser_to_ty st (ser : ser) : ty = make st ser.view
   end
 
   let () =
@@ -142,13 +145,13 @@ let pp out x = !pp_ out x
 let show = Fmt.to_string pp
 let[@inline] view (self : t) = self.view
 
-let rec compare t1 t2 : int =
+let rec compare (t1 : t) t2 : int =
   if t1 == t2 then
     0
   else
     compare_view (fun () () -> 0) Uid.compare compare t1.view t2.view
 
-type def = t Ty_view.def_poly [@@deriving twine, typereg]
+type def = t Imandrax_api.Ty_view.def_poly [@@deriving twine, typereg]
 
 let () =
   Imandrakit_twine.Encode.add_cache_with

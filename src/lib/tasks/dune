@@ -11,13 +11,10 @@
   -open
   Imandrax_api
   -open
-  Imandrax_api_cir
-  -open
   Imandrax_api_ca_store)
  (libraries
   imandrakit
   imandrax-api
-  imandrax-api.cir
   imandrax-api.mir
   imandrax-api.ca-store
   imandrax-api.eval

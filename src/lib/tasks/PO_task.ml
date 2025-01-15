@@ -1,5 +1,3 @@
-open Common_tasks_
-
 type ('term, 'ty) t_poly = {
   from_sym: string;
   count: int;
@@ -10,6 +8,6 @@ type ('term, 'ty) t_poly = {
 (** Serializable version of the task *)
 
 module Mir = struct
-  type t = (Mir.Term.t, Mir.Type.t) t_poly
-  [@@deriving show, twine, typereg] [@@typereg.name "Mir.t"]
+  type t = (Imandrax_api_mir.Term.t, Imandrax_api_mir.Type.t) t_poly
+  [@@deriving show, twine, typereg] [@@typereg.name "Imandrax_api_mir.t"]
 end

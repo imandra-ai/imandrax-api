@@ -14,14 +14,14 @@ let prelude =
 
 #![allow(non_camel_case_types)]
 
+// do not format
+#![cfg_attr(any(), rustfmt::skip)]
+
+
 pub mod deser;
 pub use deser::FromTwine;
 pub mod utils;
-  use utils::*;
-
-
-// do not format
-#![cfg_attr(any(), rustfmt::skip)]
+use utils::*;
 
 //use bumpalo::Bump;
 use num_bigint::BigInt;

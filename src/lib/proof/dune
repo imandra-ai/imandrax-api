@@ -5,4 +5,4 @@
  (flags :standard -open Imandrakit -open Imandrax_api)
  (preprocess
   (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
- (libraries imandrakit imandrax-api imandrax-api.mir imandrax-api.cir))
+ (libraries imandrakit imandrax-api imandrax-api.mir))
