@@ -1702,13 +1702,11 @@ def Mir_Type_generation_of_twine(d: twine.Decoder, off: int) -> Mir_Type_generat
 @dataclass(slots=True, frozen=True)
 class Mir_Type:
     view: Ty_view_view[None,Mir_Type_var,Mir_Type]
-    generation: Mir_Type_generation
 
 def Mir_Type_of_twine(d: twine.Decoder, off: int) -> Mir_Type:
     fields = list(d.get_array(off=off))
     view = Ty_view_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: d.get_null(off=off)),d1=(lambda d, off: Mir_Type_var_of_twine(d=d, off=off)),d2=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
-    generation = Mir_Type_generation_of_twine(d=d, off=fields[1])
-    return Mir_Type(view=view,generation=generation)
+    return Mir_Type(view=view)
 
 # clique Imandrax_api_mir.Type.ser
 # def Imandrax_api_mir.Type.ser (mangled name: "Mir_Type_ser")
@@ -1991,14 +1989,12 @@ def Mir_Term_generation_of_twine(d: twine.Decoder, off: int) -> Mir_Term_generat
 class Mir_Term:
     view: Mir_Term_view[Mir_Term,Mir_Type]
     ty: Mir_Type
-    generation: Mir_Term_generation
 
 def Mir_Term_of_twine(d: twine.Decoder, off: int) -> Mir_Term:
     fields = list(d.get_array(off=off))
     view = Mir_Term_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
     ty = Mir_Type_of_twine(d=d, off=fields[1])
-    generation = Mir_Term_generation_of_twine(d=d, off=fields[2])
-    return Mir_Term(view=view,ty=ty,generation=generation)
+    return Mir_Term(view=view,ty=ty)
 
 # clique Imandrax_api_mir.Term.ser
 # def Imandrax_api_mir.Term.ser (mangled name: "Mir_Term_ser")

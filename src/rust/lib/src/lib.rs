@@ -10,7 +10,7 @@
 pub mod deser;
 pub use deser::FromTwine;
 pub mod utils;
-  use utils::*;
+use utils::*;
 
 //use bumpalo::Bump;
 use num_bigint::BigInt;
@@ -590,7 +590,6 @@ pub struct CommonDb_serT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 #[derive(Debug, Clone)]
 pub struct MirType<'a> {
   pub view: &'a Ty_viewView<'a,(),&'a Uid<'a>,&'a MirType<'a>>,
-  pub generation: BigInt,
 }
 
 
@@ -652,7 +651,6 @@ pub enum MirTermView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
 pub struct MirTerm<'a> {
   pub view: &'a MirTermView<'a,&'a MirTerm<'a>,&'a MirType<'a>>,
   pub ty: &'a MirType<'a>,
-  pub generation: BigInt,
 }
 
 
