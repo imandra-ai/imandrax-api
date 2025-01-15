@@ -16,7 +16,7 @@ type lift_bool =
           [(t : bool)] --> [if t then true else false] *)
 [@@deriving show, twine, typereg]
 
-type t = {
+type t_ = {
   f_id: Imandrax_api.Uid.t;
   assuming: Imandrax_api.Uid.t option;
   basis: Imandrax_api.Uid_set.t;

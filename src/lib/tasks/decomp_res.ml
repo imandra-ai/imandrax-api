@@ -26,7 +26,7 @@ type ('term, 'ty) shallow_poly = {
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
 type ('term, 'ty) full_poly = {
-  from: Imandrax_api_common.Decomp.t;
+  from: Imandrax_api_common.Decomp.t_;
   res: ('term, 'ty) success result;
   stats: Imandrax_api.Stat_time.t;
   report:
