@@ -30,7 +30,7 @@ module Program_prelude_ =
 [@@@ocaml.text " {2 Bare minimum needed for ordinals and validation} "]
 type int = Z.t[@@deriving (to_iml, of_mir)][@@builtin.logic_core "mk_s_int"]
 [@@ocaml.doc
-  " Builtin integer type, using arbitrary precision integers.\n\n    This type is an alias to {!Z.t}\n    (using {{: https://github.com/ocaml/Zarith} Zarith}).\n\n    {b NOTE}: here Imandra diverges from normal OCaml, where integers width\n    is bounded by native machine integers.\n    \"Normal\" OCaml integers have type {!Caml.Int.t} and can be entered\n    using the 'i' suffix: [0i]\n"]
+  " Builtin integer type, using arbitrary precision integers.\n\n    This type is an alias to {!Z.t} (using\n    {{:https://github.com/ocaml/Zarith} Zarith}).\n\n    {b NOTE}: here Imandra diverges from normal OCaml, where integers width is\n    bounded by native machine integers. \"Normal\" OCaml integers have type\n    {!Caml.Int.t} and can be entered using the 'i' suffix: [0i] "]
 type nonrec bool = bool[@@deriving (to_iml, of_mir)][@@builtin.logic_core
                                                       "mk_s_bool"][@@ocaml.doc
                                                                     " Builtin boolean type. "]
@@ -50,7 +50,7 @@ let explies x y = implies y x[@@macro ]
 let iff : bool -> bool -> bool = Stdlib.(=)[@@builtin.logic_core "mk_iff"]
 let (+) : int -> int -> int = Z.(+)[@@builtin.logic_core "mk_i_add"]
 let const x _ = x[@@ocaml.doc
-                   " [const x y] returns [x]. In other words, [const x] is\n    the constant function that always returns [x]. "]
+                   " [const x y] returns [x]. In other words, [const x] is the constant function\n    that always returns [x]. "]
   [@@builtin.special "fn.const"][@@macro ]
 let (>=) : int -> int -> bool = Stdlib.(>=)[@@builtin.logic_core "mk_i_ge"]
 let mk_nat (x : int) : int=
@@ -89,7 +89,7 @@ let (-) : int -> int -> int = Z.(-)[@@builtin.logic_core "mk_i_sub"]
 let (~+) (x : int) : int= x[@@macro ]
 let ( * ) : int -> int -> int = Z.( * )[@@builtin.logic_core "mk_i_mul"]
 let (/) : int -> int -> int = Z.ediv[@@ocaml.doc
-                                      " Euclidian division on integers,\n    see {{: http://smtlib.cs.uiowa.edu/theories-Ints.shtml} http://smtlib.cs.uiowa.edu/theories-Ints.shtml} "]
+                                      " Euclidian division on integers, see\n    {{:http://smtlib.cs.uiowa.edu/theories-Ints.shtml}\n     http://smtlib.cs.uiowa.edu/theories-Ints.shtml} "]
   [@@builtin.logic_core "mk_i_div"]
 let \#mod : int -> int -> int = Z.erem[@@ocaml.doc
                                         " Euclidian remainder on integers "]
@@ -102,7 +102,7 @@ let compare (x : int) (y : int) : int=
 type ('a, 'b) result = ('a, 'b) Stdlib.result =
   | Ok of 'a 
   | Error of 'b [@@deriving (to_iml, of_mir)][@@ocaml.doc
-                                               " Result type, representing either a successul result [Ok x]\n    or an error [Error x]. "]
+                                               " Result type, representing either a successul result [Ok x] or an error\n    [Error x]. "]
 [@@noalias ][@@builtin.special "ty.result"]
 (* skip *)
 [@@@ocaml.text " {2 Ordinals} "]
@@ -156,7 +156,7 @@ module Ordinal =
           (a1 << a2) ||
             ((a1 = a2) && ((x1 < x2) || ((x1 = x2) && (tl1 << tl2))))
       [@@ocaml.doc
-        " special axiom: the original well founded relation we use\n      for proving all the other functions terminating. "]
+        " special axiom: the original well founded relation we use for proving all\n      the other functions terminating. "]
       [@@builtin.special "ordinal.cmp"][@@no_validate ][@@adm (x, y)]
     let rec plus (x : t) (y : t) : t=
       match (x, y) with
@@ -227,7 +227,7 @@ module Ordinal =
     let omega = of_list [one; zero]
     let omega_omega = shift omega omega
   end[@@ocaml.doc
-       " We need to define ordinals before any recursive function is defined,\n    because ordinals are used for termination proofs.\n"]
+       " We need to define ordinals before any recursive function is defined, because\n    ordinals are used for termination proofs. "]
 module Peano_nat =
   struct
     type t =
@@ -297,10 +297,10 @@ type ('a, 'b) either =
   | Right of 'b [@@deriving (to_iml, of_mir)][@@ocaml.doc
                                                " A familiar type for Haskellers "]
 let (|>) x f = f x[@@ocaml.doc
-                    " Pipeline operator.\n\n    [x |> f] is the same as [f x], but it composes nicely:\n    [ x |> f |> g |> h] can be more readable than [h(g(f x))].\n"]
+                    " Pipeline operator.\n\n    [x |> f] is the same as [f x], but it composes nicely: [ x |> f |> g |> h]\n    can be more readable than [h(g(f x))]. "]
   [@@builtin.special "fn.revapply"][@@macro ]
 let (@@) f x = f x[@@ocaml.doc
-                    " Right-associative application operator.\n\n    [f @@ x] is the same as [f x], but it binds to the right:\n    [f @@ g @@ h @@ x] is the same as [f (g (h x))] but with fewer parentheses.\n"]
+                    " Right-associative application operator.\n\n    [f @@ x] is the same as [f x], but it binds to the right: [f @@ g @@ h @@ x]\n    is the same as [f (g (h x))] but with fewer parentheses. "]
   [@@builtin.special "fn.atapply"][@@macro ]
 let id x = x[@@ocaml.doc " Identity function. [id x = x] always holds. "]
   [@@builtin.special "fn.id"][@@macro ]
@@ -325,15 +325,15 @@ module List =
       [@@macro ]
     let return x = [x][@@ocaml.doc " Singleton list "][@@macro ]
     let hd : 'a list -> 'a = List.hd[@@ocaml.doc
-                                      " Partial function to access the head of the list.\n      This function will fail when applied to the empty list.\n      {b NOTE} it is recommended to rely on pattern matching instead "]
+                                      " Partial function to access the head of the list. This function will fail\n      when applied to the empty list. {b NOTE} it is recommended to rely on\n      pattern matching instead "]
       [@@builtin.logic_core "mk_list_hd"]
     let tl : 'a list -> 'a list = List.tl[@@ocaml.doc
-                                           " Partial function to access the tail of the list.\n      This function will fail when applied to the empty list\n      {b NOTE} it is recommended to rely on pattern matching instead "]
+                                           " Partial function to access the tail of the list. This function will fail\n      when applied to the empty list {b NOTE} it is recommended to rely on\n      pattern matching instead "]
       [@@builtin.logic_core "mk_list_tl"]
     let head_opt l = match l with | [] -> None | x::_ -> Some x
     let rec append l1 l2 =
       match l1 with | [] -> l2 | x::l1' -> x :: (append l1' l2)[@@ocaml.doc
-                                                                 " List append / concatenation. [append l1 l2] returns a list\n      composed of all elements of [l1], followed by all elements of [l2] "]
+                                                                 " List append / concatenation. [append l1 l2] returns a list composed of all\n      elements of [l1], followed by all elements of [l2] "]
       [@@adm l1]
     let append_to_nil x = (append x []) = x[@@imandra_theorem ][@@by
                                                                  induct
@@ -352,15 +352,15 @@ module List =
       [@@adm l]
     let len_nonnegative l = ((length l)[@trigger ]) >= (Z.of_nativeint 0n)
       [@@ocaml.doc
-        " Length of a list is non-negative. This useful theorem is installed\n      as a forward-chaining rule. "]
+        " Length of a list is non-negative. This useful theorem is installed as a\n      forward-chaining rule. "]
       [@@imandra_theorem ][@@fc ][@@by induct ~on_vars:["l"] ()]
     let len_zero_is_empty x = ((length x) = (Z.of_nativeint 0n)) = (x = [])
       [@@ocaml.doc
-        " A list has length zero iff it is empty.\n      This is a useful rewrite rule for obtaining empty lists. "]
+        " A list has length zero iff it is empty. This is a useful rewrite rule for\n      obtaining empty lists. "]
       [@@imandra_theorem ][@@rewrite ][@@by induct ~on_vars:["x"] ()]
     let len_append x y = (length (append x y)) = ((length x) + (length y))
       [@@ocaml.doc
-        " The length of (x @ y) is the sum of the lengths of x and y "]
+        " The length of [(x @ y)] is the sum of the lengths of [x] and [y] "]
       [@@imandra_theorem ][@@by auto][@@rw ]
     let rec split l =
       match l with
@@ -370,7 +370,7 @@ module List =
       [@@ocaml.doc " Split a list of pairs into a pair of lists "][@@adm l]
     let rec map f l = match l with | [] -> [] | x::l2 -> (f x) :: (map f l2)
       [@@ocaml.doc
-        " Map a function over a list.\n\n      - [map f [] = []]\n      - [map f [x] = [f x]]\n      - [map f (x :: tail) = f x :: map f tail]\n  "]
+        " Map a function over a list.\n\n      - [map f [] = []]\n      - [map f [x] = [f x]]\n      - [map f (x :: tail) = f x :: map f tail] "]
       [@@adm l]
     let rec map2 f l1 l2 =
       let open Result in
@@ -381,11 +381,11 @@ module List =
                                                                     (l1, l2)]
     let rec for_all (f : 'a -> bool) (l : 'a list) =
       match l with | [] -> true | x::l2 -> (f x) && (for_all f l2)[@@ocaml.doc
-                                                                    " [for_all f l] tests whether all elements of [l] satisfy the predicate [f] "]
+                                                                    " [for_all f l] tests whether all elements of [l] satisfy the predicate [f]\n  "]
       [@@adm l]
     let rec exists (f : 'a -> bool) (l : 'a list) =
       match l with | [] -> false | x::l2 -> (f x) || (exists f l2)[@@ocaml.doc
-                                                                    " [exists f l] tests whether there is an element of [l]\n      that satisfies the predicate [f] "]
+                                                                    " [exists f l] tests whether there is an element of [l] that satisfies the\n      predicate [f] "]
       [@@adm l]
     let rec fold_left f acc =
       function | [] -> acc | x::tail -> fold_left f (f acc x) tail[@@ocaml.doc
@@ -419,7 +419,7 @@ module List =
     let rec find f l =
       match l with | [] -> None | x::tl -> if f x then Some x else find f tl
       [@@ocaml.doc
-        " [find f l] returns [Some x] if [x] is the first element of\n      [l] such that [f x] is true. Otherwise it returns [None] "]
+        " [find f l] returns [Some x] if [x] is the first element of [l] such that\n      [f x] is true. Otherwise it returns [None] "]
     let rec mem x =
       function | [] -> false | y::tail -> (x = y) || (mem x tail)[@@ocaml.doc
                                                                    " [mem x l] returns [true] iff [x] is an element of [l] "]
@@ -452,19 +452,19 @@ module List =
       | [] -> []
       | _ when n <= (Z.of_nativeint 0n) -> []
       | x::tl -> x :: (take (n - (Z.of_nativeint 1n)) tl)[@@ocaml.doc
-                                                           " [take n l] returns a list composed of the first (at most) [n] elements\n      of [l]. If [length l <= n] then it returns [l] "]
+                                                           " [take n l] returns a list composed of the first (at most) [n] elements of\n      [l]. If [length l <= n] then it returns [l] "]
       [@@adm 1n]
     let rec drop n =
       function
       | [] -> []
       | l when n <= (Z.of_nativeint 0n) -> l
       | _::tl -> drop (n - (Z.of_nativeint 1n)) tl[@@ocaml.doc
-                                                    " [drop n l] returns [l] where the first (at most) [n] elements\n      have been removed. If [length l <= n] then it returns [[]] "]
+                                                    " [drop n l] returns [l] where the first (at most) [n] elements have been\n      removed. If [length l <= n] then it returns [[]] "]
       [@@adm 0n]
     let rec range i j =
       if i >= j then [] else i :: (range (i + (Z.of_nativeint 1n)) j)
       [@@ocaml.doc
-        " Integer range. [i -- j] is the list [[i; i+1; i+2; \226\128\166; j-1]].\n      Returns the empty list if [i >= j]. "]
+        " Integer range. [i -- j] is the list [[i; i+1; i+2; \226\128\166; j-1]]. Returns the\n      empty list if [i >= j]. "]
       [@@measure Ordinal.of_int (j - i)]
     let (--) = range[@@macro ]
     let rec insert_sorted ~leq x l =
@@ -481,7 +481,7 @@ module List =
       function
       | [] | _::[] -> true
       | x::(y::_ as tail) -> (leq x y) && (is_sorted ~leq tail)[@@ocaml.doc
-                                                                 " Check whether a list is sorted, using the [leq] less-than-or-equal predicate "]
+                                                                 " Check whether a list is sorted, using the [leq] less-than-or-equal\n      predicate "]
     let monoid_product l1 l2 =
       flat_map (fun x -> map (fun y -> (x, y)) l2) l1
     let (>|=) o f = map f o[@@macro ]
@@ -491,7 +491,7 @@ module List =
     let ( let* ) = (>>=)[@@macro ]
     let ( and* ) = monoid_product[@@macro ]
   end[@@ocaml.doc
-       " {2 List module}\n\n    This module contains many safe functions for manipulating lists.\n"]
+       " {2 List module}\n\n    This module contains many safe functions for manipulating lists. "]
 let (@) = List.append[@@ocaml.doc " Infix alias to {!List.append} "][@@macro
                                                                     ]
 let (--) = List.(--)[@@ocaml.doc " Alias to {!List.(--)} "][@@macro ]
@@ -512,7 +512,7 @@ module Int =
     let max = max[@@macro ]
     let abs = abs[@@macro ]
     let to_string : t -> string = Z.to_string[@@ocaml.doc
-                                               " Conversion to a string.\n      Only works for nonnegative numbers "]
+                                               " Conversion to a string. Only works for nonnegative numbers "]
       [@@builtin.logic_core "mk_int_to_str"]
     let compare (x : t) (y : t) =
       if x = y
@@ -564,12 +564,12 @@ module Array =
     let fill a i len x = Stdlib.Array.fill a (Z.to_int i) (Z.to_int len) x
     let blit a i b j len =
       Stdlib.Array.blit a (Z.to_int i) b (Z.to_int j) (Z.to_int len)
-  end[@@ocaml.doc " {2 Arrays}\n\n   Program mode only "][@@program ]
+  end[@@ocaml.doc " {2 Arrays}\n\n    Program mode only "][@@program ]
 module Option =
   struct
     type 'a t = 'a option[@@deriving (to_iml, of_mir)]
     let map f = function | None -> None | Some x -> Some (f x)[@@ocaml.doc
-                                                                " Map over the option.\n\n      - [map f None = None]\n      - [map f (Some x) = Some (f x)]\n  "]
+                                                                " Map over the option.\n\n      - [map f None = None]\n      - [map f (Some x) = Some (f x)] "]
     let map_or ~default f = function | None -> default | Some x -> f x
     let is_some = function | None -> false | Some _ -> true[@@ocaml.doc
                                                              " Returns [true] iff the argument is of the form [Some x] "]
@@ -584,10 +584,10 @@ module Option =
     let flat_map f o = match o with | None -> None | Some x -> f x[@@ocaml.doc
                                                                     " Monadic operator, useful for chaining multiple optional computations "]
     let (>>=) o f = flat_map f o[@@ocaml.doc
-                                  " Infix monadic operator, useful for chaining multiple optional computations\n      together.\n      It holds that [(return x >>= f) = f x] "]
+                                  " Infix monadic operator, useful for chaining multiple optional computations\n      together. It holds that [(return x >>= f) = f x] "]
       [@@macro ]
     let or_ a b = match a with | None -> b | Some _ -> a[@@ocaml.doc
-                                                          " Choice of a value\n\n      - [or_ None x = x]\n      - [or_ (Some y) x = Some y]\n  "]
+                                                          " Choice of a value\n\n      - [or_ None x = x]\n      - [or_ (Some y) x = Some y] "]
       [@@macro ]
     let (<+>) a b = or_ a b[@@macro ]
     let exists p = function | None -> false | Some x -> p x
@@ -602,7 +602,7 @@ module Option =
     let ( let* ) = (>>=)[@@macro ]
     let ( and* ) = monoid_product[@@macro ]
   end[@@ocaml.doc
-       " {2 Option module}\n\n    The option type [type 'a option = None | Some of 'a] is useful for\n    representing partial functions and optional values.\n    "]
+       " {2 Option module}\n\n    The option type [type 'a option = None | Some of 'a] is useful for\n    representing partial functions and optional values. "]
 module Real =
   struct
     type t = real[@@deriving (to_iml, of_mir)]
@@ -755,7 +755,7 @@ module Multiset =
     let rec of_list =
       function | [] -> empty | x::tail -> (add x) @@ (of_list tail)
   end[@@ocaml.doc
-       " {2 Multiset}\n\n    A multiset is a collection of elements that don't have any particular\n    order, but can occur several times (unlike a regular set). "]
+       " {2 Multiset}\n\n    A multiset is a collection of elements that don't have any particular order,\n    but can occur several times (unlike a regular set). "]
 [@@@ocaml.text " {2 Sets} "]
 module Set =
   struct
@@ -838,13 +838,13 @@ module String =
       | [] -> ""
       | x::[] -> x
       | x::tail -> append x (append sep (concat sep tail))[@@ocaml.doc
-                                                            " [concat sep l] concatenates strings in [l] with [sep] inserted between\n    each element.\n\n    - [concat sep [] = \"\"]\n    - [concat sep [x] = x]\n    - [concat sep [x;y] = x ^ sep ^ y]\n    - [concat sep (x :: tail) = x ^ sep ^ concat sep tail]\n    "]
+                                                            " [concat sep l] concatenates strings in [l] with [sep] inserted between\n      each element.\n\n      - [concat sep [] = \"\"]\n      - [concat sep [x] = x]\n      - [concat sep [x;y] = x ^ sep ^ y]\n      - [concat sep (x :: tail) = x ^ sep ^ concat sep tail] "]
       [@@adm l]
     let prefix : t -> t -> bool = Program_prelude_.String.prefix[@@ocaml.doc
-                                                                  " [prefix a b] returns [true] iff [a] is a prefix of [b]\n      (or if [a=b] "]
+                                                                  " [prefix a b] returns [true] iff [a] is a prefix of [b] (or if [a=b] "]
       [@@builtin.logic_core "mk_str_prefix"]
     let suffix : t -> t -> bool = Program_prelude_.String.suffix[@@ocaml.doc
-                                                                  " [suffix a b] returns [true] iff [a] is a suffix of [b]\n      (or if [a=b] "]
+                                                                  " [suffix a b] returns [true] iff [a] is a suffix of [b] (or if [a=b] "]
       [@@builtin.logic_core "mk_str_suffix"]
     let contains : t -> t -> bool = Program_prelude_.String.contains[@@builtin.logic_core
                                                                     "mk_str_contains"]
@@ -858,7 +858,7 @@ module String =
           ((len >= (Z.of_nativeint 0n)) && ((i + len) <= (length a)))
       then Some (unsafe_sub a i len)
       else None[@@ocaml.doc
-                 " Substring. [sub s i len] returns the string [s[i], s[i+1],\226\128\166,s[i+len-1]]. "]
+                 " Substring. [sub s i len] returns the string [s[i], s[i+1],\226\128\166,s[i+len-1]].\n  "]
     let of_int (i : int) : t=
       if i >= (Z.of_nativeint 0n)
       then Int.to_string i
@@ -890,7 +890,7 @@ module String =
     let to_int (s : t) : int option=
       if is_int s then Some (unsafe_to_int s) else None
   end[@@ocaml.doc
-       " {2 Byte strings}\n\n    These strings correspond to OCaml native strings, and do not have\n    a particular unicode encoding.\n\n    Rather, they should be seen as sequences of bytes, and it is also\n    this way that Imandra considers them.\n"]
+       " {2 Byte strings}\n\n    These strings correspond to OCaml native strings, and do not have a\n    particular unicode encoding.\n\n    Rather, they should be seen as sequences of bytes, and it is also this way\n    that Imandra considers them. "]
 let (^) = String.append[@@ocaml.doc " Alias to {!String.append} "][@@macro ]
 let succ x = x + (Z.of_nativeint 1n)[@@ocaml.doc " Next integer "][@@macro ]
 let pred x = x - (Z.of_nativeint 1n)[@@ocaml.doc " Previous integer "]
