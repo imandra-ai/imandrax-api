@@ -31,14 +31,8 @@ Once the CLI is installed (and, in the case of linux, in path),
 you can login using:
 
 ```sh
-$ imandrax-cli login
+$ ./configure-imandrax.auth.sh
 ```
-
-(or, for the development version of the server:
-```sh
-$ imandrax-cli login --dev
-```
-)
 
 and configure imandrax to talk to the relevant cloud server:
 ```sh
