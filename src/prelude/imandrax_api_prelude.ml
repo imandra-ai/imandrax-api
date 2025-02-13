@@ -105,6 +105,8 @@ type ('a, 'b) result = ('a, 'b) Stdlib.result =
                                                " Result type, representing either a successul result [Ok x] or an error\n    [Error x]. "]
 [@@noalias ][@@builtin.special "ty.result"]
 (* skip *)
+(* skip *)
+(* skip *)
 [@@@ocaml.text " {2 Ordinals} "]
 module Ordinal =
   struct
