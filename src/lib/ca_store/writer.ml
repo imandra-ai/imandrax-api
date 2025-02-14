@@ -6,9 +6,9 @@ class type t = object
   inherit Core_classes.with_stats
 
   method store : (Key.t * (unit -> string)) Iter.t -> unit
-  (** Store a batch of key/value pairs. Values are lazy
-          so that, if a key is found to be present, we don't need
-          to compute the exact serialization for the key's value. *)
+  (** Store a batch of key/value pairs. Values are lazy so that, if a key is
+      found to be present, we don't need to compute the exact serialization for
+      the key's value. *)
 
   method store1 : Key.t -> (unit -> string) -> unit
   (** Store a single k/v pair *)

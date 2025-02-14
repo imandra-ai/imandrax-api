@@ -1,5 +1,5 @@
-(** A serializable logic database. It contains all relevant context for
-    proof obligations. *)
+(** A serializable logic database. It contains all relevant context for proof
+    obligations. *)
 
 type 'a uid_map = (Imandrax_api.Uid.t * 'a) list
 [@@deriving show, twine, typereg]

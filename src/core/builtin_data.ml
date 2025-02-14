@@ -9,4 +9,4 @@ let hash_kind = function
   | Logic_core { logic_core_name } -> Hashtbl.hash (30, logic_core_name)
   | Special { tag } -> Hashtbl.hash (40, tag)
   | Tactic { tac_name } -> Hashtbl.hash (50, tac_name)
-  | Decomp { decomp_name: string } -> Hashtbl.hash (60, decomp_name)
+  | Decomp { decomp_name : string } -> Hashtbl.hash (60, decomp_name)

@@ -1,11 +1,9 @@
 (** Content-addressed pointer.
 
-    A [ca_ptr] is a unique (cryptographic) name for data stored in
-    the {!Storage.t}.
-    Data [d] is stored under key [chash(serialize(d))].
-*)
+    A [ca_ptr] is a unique (cryptographic) name for data stored in the
+    {!Storage.t}. Data [d] is stored under key [chash(serialize(d))]. *)
 
-(** Raw untyped pointer.  *)
+(** Raw untyped pointer. *)
 module Raw : sig
   type t [@@deriving show, eq, ord, twine]
   (** Raw ca_ptr, without typing. *)
@@ -43,13 +41,13 @@ val store : #Writer.t -> (_, 'a) Ca_codec.t -> 'a -> 'a t
 val store_l : #Writer.t -> (_, 'a) Ca_codec.t -> 'a list -> 'a t list
 
 val get : #Reader.t -> ('st, 'a) Ca_codec.t -> 'st -> 'a t -> 'a Error.result
-(** [get reader codec ptr] returns the value stored in [storage]
-    under pointer [ptr]. *)
+(** [get reader codec ptr] returns the value stored in [storage] under pointer
+    [ptr]. *)
 
 val try_get :
   #Reader.t -> ('st, 'a) Ca_codec.t -> 'st -> 'a t -> 'a Error.result option
-(** [try_get reader codec ptr] returns [None] if [ptr] is not present,
-    or else it behaves like [get reader codec ptr] *)
+(** [try_get reader codec ptr] returns [None] if [ptr] is not present, or else
+    it behaves like [get reader codec ptr] *)
 
 val get_exn : #Reader.t -> ('st, 'a) Ca_codec.t -> 'st -> 'a t -> 'a
 

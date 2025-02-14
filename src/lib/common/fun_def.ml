@@ -14,9 +14,9 @@ type ('term, 'ty) t_poly = {
   f_args: 'ty Var.t_poly list;
   f_body: 'term;
   f_clique: Imandrax_api.Clique.t option;
-      (** If the function is recursive, this is the set of functions in the
-          same block of mutual defs, this one included. It's [None]
-          for non-recursive functions. *)
+      (** If the function is recursive, this is the set of functions in the same
+          block of mutual defs, this one included. It's [None] for non-recursive
+          functions. *)
   f_kind: fun_kind;
   f_hints: ('term, 'ty) Hints.t_poly;
 }

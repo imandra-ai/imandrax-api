@@ -268,7 +268,8 @@ let of_mir_vb_of_tydecl (d : type_declaration) : value_binding =
                  [%expr
                    match
                      CCList.find_map
-                       (fun ((sym, v) : Imandrax_api_mir.Applied_symbol.t * _) ->
+                       (fun ((sym, v) : Imandrax_api_mir.Applied_symbol.t * _)
+                          ->
                          if sym.sym.id.name = [%e mkstrlit f.pld_name.txt] then
                            Some v
                          else

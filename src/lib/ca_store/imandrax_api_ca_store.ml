@@ -1,15 +1,12 @@
 (** Storage based on cryptographic content-addressing.
 
-    This library provides several ways to store data
-    in a content-addressed way.
+    This library provides several ways to store data in a content-addressed way.
 
-    One way, {!Ca_ptr}, is to serialize the data and hash its serialized
-    version (classic content addressing). Another way is to use
-    a {!Cname.t} for data that has already been content-addressed
-    {i before} serialization — that can be more efficient because we don't
-    always need to serialize a value if it's found to be stored already
-    based on its cname.
-*)
+    One way, {!Ca_ptr}, is to serialize the data and hash its serialized version
+    (classic content addressing). Another way is to use a {!Cname.t} for data
+    that has already been content-addressed {i before} serialization — that can
+    be more efficient because we don't always need to serialize a value if it's
+    found to be stored already based on its cname. *)
 
 module Ca_codec = Ca_codec
 module Ca_ptr = Ca_ptr

@@ -1,7 +1,7 @@
 (** API versioning.
 
-    This version number (in [API_TYPES_VERSION])
-    {b MUST} be changed every time we modify the types. *)
+    This version number (in [API_TYPES_VERSION]) {b MUST} be changed every time
+    we modify the types. *)
 
 (* for now we are conservative and use over-specific versions. *)
 

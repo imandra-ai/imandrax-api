@@ -66,16 +66,16 @@ module Conn = struct
       method disconnect () = disconnect self
       method active () = Atomic.get self.active
 
-      method rpc_call
-          : 'req 'res.
-            timeout_s:float ->
-            ( 'req,
-              Pbrt_services.Value_mode.unary,
-              'res,
-              Pbrt_services.Value_mode.unary )
-            Pbrt_services.Client.rpc ->
-            'req ->
-            'res Lwt.t =
+      method rpc_call :
+          'req 'res.
+          timeout_s:float ->
+          ( 'req,
+            Pbrt_services.Value_mode.unary,
+            'res,
+            Pbrt_services.Value_mode.unary )
+          Pbrt_services.Client.rpc ->
+          'req ->
+          'res Lwt.t =
         fun ~timeout_s rpc req ->
           let* r = rpc_call self ~timeout_s rpc req in
           match r with

@@ -62,7 +62,8 @@ type ('term, 'ty) shallow_poly = {
     [@twine.encode In_mem_archive.to_twine]
     [@twine.decode In_mem_archive.of_twine]
     [@printer In_mem_archive.pp ()]);
-      (** The report, when it's not serialized it's stored compressed in memory. *)
+      (** The report, when it's not serialized it's stored compressed in memory.
+      *)
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
@@ -75,7 +76,8 @@ type ('term, 'ty) full_poly = {
     [@twine.encode In_mem_archive.to_twine]
     [@twine.decode In_mem_archive.of_twine]
     [@printer In_mem_archive.pp ()]);
-      (** The report, when it's not serialized it's stored compressed in memory. *)
+      (** The report, when it's not serialized it's stored compressed in memory.
+      *)
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 

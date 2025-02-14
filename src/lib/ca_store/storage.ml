@@ -1,7 +1,7 @@
 (** A store keyed by cryptographic hashes.
 
-     Here data can be keyed  by {{!Imandrax_util.Cname}Cname} (for defined, name items)
-     or by {!Cptr} (for arbitrary content-addressed data) *)
+    Here data can be keyed by {{!Imandrax_util.Cname}Cname} (for defined, name
+    items) or by {!Cptr} (for arbitrary content-addressed data) *)
 
 (** Storage with both reader and writer end *)
 class type t = object

@@ -1,13 +1,10 @@
 (** Cryptographic name.
 
-    Most logic objects in ImandraX are content-addressed.
-    Their identity is
-    tied to the cryptographic hash ({!Chash.t}) of their
-    {b definition}.
+    Most logic objects in ImandraX are content-addressed. Their identity is tied
+    to the cryptographic hash ({!Chash.t}) of their {b definition}.
 
-    This means they can be shared freely and independently, and do not depend
-    on incidental or generative state.
-*)
+    This means they can be shared freely and independently, and do not depend on
+    incidental or generative state. *)
 
 type t = {
   name: string;
