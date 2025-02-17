@@ -3,7 +3,7 @@
 type 'term decomp_poly =
   | Decomp of Imandrax_api_common.Decomp.t_
   | Term of 'term
-[@@deriving show, twine, typereg]
+[@@deriving show, twine, typereg, map, iter]
 
 type ('term, 'ty) t_poly = {
   db: ('term, 'ty) Imandrax_api_common.Db_ser.t_poly;
