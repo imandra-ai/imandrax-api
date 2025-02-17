@@ -3372,7 +3372,7 @@ def Tasks_PO_res_result_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_pol
 # def Imandrax_api_tasks.PO_res.shallow_poly (mangled name: "Tasks_PO_res_shallow_poly")
 @dataclass(slots=True, frozen=True)
 class Tasks_PO_res_shallow_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    from_: Ca_store_Ca_ptr[Mir_Proof_obligation]
+    from_: Ca_store_Ca_ptr[Common_Proof_obligation_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
     res: Tasks_PO_res_result[Tasks_PO_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"],"_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     stats: Tasks_PO_res_stats
     report: In_mem_archive[Report_Report]
@@ -3381,7 +3381,7 @@ def Tasks_PO_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: t
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Mir_Proof_obligation_of_twine(d=d, off=off)))
+    from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Common_Proof_obligation_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     res = Tasks_PO_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_PO_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))),d1=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     stats = Tasks_PO_res_stats_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
@@ -3600,7 +3600,7 @@ def Tasks_Decomp_res_result_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg
 # def Imandrax_api_tasks.Decomp_res.shallow_poly (mangled name: "Tasks_Decomp_res_shallow_poly")
 @dataclass(slots=True, frozen=True)
 class Tasks_Decomp_res_shallow_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    from_: Ca_store_Ca_ptr[Tasks_Decomp_task_decomp_poly[Mir_Term]]
+    from_: Ca_store_Ca_ptr[Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term"]]
     res: Tasks_Decomp_res_result[Tasks_Decomp_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
     stats: Stat_time
     report: In_mem_archive[Report_Report]
@@ -3609,7 +3609,7 @@ def Tasks_Decomp_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)))))
+    from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))))
     res = Tasks_Decomp_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_Decomp_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     stats = Stat_time_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))

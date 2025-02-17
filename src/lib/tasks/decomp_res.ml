@@ -12,8 +12,7 @@ type 'a result = ('a, error) Util_twine.Result.t
 
 type ('term, 'ty) shallow_poly = {
   from:
-    (Imandrax_api_mir.Term.t Decomp_task.decomp_poly
-     Imandrax_api_ca_store.Ca_ptr.t
+    ('term Decomp_task.decomp_poly Imandrax_api_ca_store.Ca_ptr.t
     [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
   res: ('term, 'ty) success result;
   stats: Imandrax_api.Stat_time.t;

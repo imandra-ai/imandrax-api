@@ -53,7 +53,8 @@ type ('a, 'term, 'ty) result = ('a, ('term, 'ty) error) Util_twine.Result.t
 
 type ('term, 'ty) shallow_poly = {
   from:
-    (Imandrax_api_mir.Proof_obligation.t Imandrax_api_ca_store.Ca_ptr.t
+    (('term, 'ty) Imandrax_api_common.Proof_obligation.t_poly
+     Imandrax_api_ca_store.Ca_ptr.t
     [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
   res: (('term, 'ty) success, 'term, 'ty) result;
   stats: stats;

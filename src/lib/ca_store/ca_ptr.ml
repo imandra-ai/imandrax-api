@@ -17,7 +17,7 @@ module Raw = struct
   let[@inline] unslugify_exn s : t = { key = Key.unslugify_exn s }
 end
 
-type 'a t = Raw.t [@@deriving typereg]
+type 'a t = Raw.t [@@deriving typereg, map, iter]
 
 let[@inline] raw self = self
 let show (self : _ t) = Raw.show self

@@ -13,7 +13,7 @@ module Raw : sig
   val unslugify_exn : string -> t
 end
 
-type 'a t [@@deriving twine]
+type 'a t [@@deriving twine, map, iter]
 (** Content-addressed pointer for type ['a] *)
 
 val raw : _ t -> Raw.t
