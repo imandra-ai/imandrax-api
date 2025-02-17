@@ -1,19 +1,18 @@
 type lift_bool =
   | Default
-      (** Includes the rules
-          [x1 && x2] --> [if x1 then x2 else false]
-          [x1 || x2] --> [if x1 then true else x2]
-          [x1 ==> x2] --> [if x1 then x2 else true] *)
+      (** Includes the rules [x1 && x2] --> [if x1 then x2 else false]
+          [x1 || x2] --> [if x1 then true else x2] [x1 ==> x2] -->
+          [if x1 then x2 else true] *)
   | Nested_equalities
-      (** Extends [Default] with the rules
-          [(x = y) = z] --> [if x = y then z else not z]
-          [z = (x = y)] --> [if z then (x = y) else not (x = y)] *)
+      (** Extends [Default] with the rules [(x = y) = z] -->
+          [if x = y then z else not z] [z = (x = y)] -->
+          [if z then (x = y) else not (x = y)] *)
   | Equalities
-      (** Extends [Default] with the rule
-          [x = y] --> [if x = y then true else false] *)
+      (** Extends [Default] with the rule [x = y] -->
+          [if x = y then true else false] *)
   | All
-      (** Extends [Default] with the rule
-          [(t : bool)] --> [if t then true else false] *)
+      (** Extends [Default] with the rule [(t : bool)] -->
+          [if t then true else false] *)
 [@@deriving show, twine, typereg]
 
 type t_ = {

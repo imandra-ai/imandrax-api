@@ -3,7 +3,8 @@ type ('term, 'ty) t_poly = {
   goal: 'ty Var.t_poly list * 'term;
       (** Initial goal as a [fun vars -> body] *)
   tactic: ('term, 'ty) Tactic.t_poly;
-      (** Tactic term. It will be evaluated while trying to solve this obligation *)
+      (** Tactic term. It will be evaluated while trying to solve this
+          obligation *)
   is_instance: bool;
       (** If true, we're trying to find an instance of the goal, not a proof.
           This means we won't negate the goal. *)
@@ -14,10 +15,10 @@ type ('term, 'ty) t_poly = {
 [@@deriving show { with_path = false }, twine, typereg, map, iter]
 (** Proof obligation.
 
-  A proof obligation ("PO") is the pair of a {b statement} (a formula to prove)
-  and a {b tactic} (a potential mean to prove it).
+    A proof obligation ("PO") is the pair of a {b statement} (a formula to
+    prove) and a {b tactic} (a potential mean to prove it).
 
-  Proof obligations are generated in several places:
-  - for each defined recursive function, there's a termination PO for each of its recursive call;
-  - for each theorem, there's a PO for proving its validity.
- *)
+    Proof obligations are generated in several places:
+    - for each defined recursive function, there's a termination PO for each of
+      its recursive call;
+    - for each theorem, there's a PO for proving its validity. *)

@@ -12,5 +12,6 @@ type ('term, 'ty) t_poly = {
   f_disable: Imandrax_api.Uid.t list;  (** local disables *)
   f_timeout: int option;  (** timeout for POs *)
   f_admission: Admission.t option;
+  f_decomp: 'term option;
 }
 [@@deriving show { with_path = false }, map, iter, eq, twine, typereg]

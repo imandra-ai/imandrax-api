@@ -73,6 +73,9 @@ pub enum Builtin_dataKind<'a> {
   Tactic {
     tac_name: &'a str,
   },
+  Decomp {
+    decomp_name: &'a str,
+  },
 }
 
 // clique Imandrax_api.Cname.t
@@ -372,6 +375,7 @@ pub struct CommonHintsT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub f_disable: &'a [&'a Uid<'a>],
   pub f_timeout: Option<BigInt>,
   pub f_admission: Option<&'a CommonAdmission<'a>>,
+  pub f_decomp: Option<V_tyreg_poly_term>,
 }
 
 
@@ -670,7 +674,7 @@ pub struct MirDecomp<'a> {
   pub basis: &'a UidSet<'a>,
   pub rule_specs: &'a UidSet<'a>,
   pub ctx_simp: bool,
-  pub lift_bool: &'a MirDecompLift_bool<'a>,
+  pub lift_bool: CommonDecompLift_bool,
   pub prune: bool,
 }
 
@@ -993,11 +997,18 @@ pub struct TasksEval_res<'a> {
 }
 
 
+// clique Imandrax_api_tasks.Decomp_task.decomp_poly
+#[derive(Debug, Clone)]
+pub enum TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term:'a> {
+  Decomp(&'a CommonDecompT_<'a>),
+  Term(V_tyreg_poly_term),
+}
+
 // clique Imandrax_api_tasks.Decomp_task.t_poly
 #[derive(Debug, Clone)]
 pub struct TasksDecomp_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub db: &'a CommonDb_serT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
-  pub decomp: &'a CommonDecompT_<'a>,
+  pub decomp: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term>,
   pub anchor: &'a Anchor<'a>,
 }
 
@@ -1029,7 +1040,7 @@ pub struct TasksDecomp_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'
 // clique Imandrax_api_tasks.Decomp_res.full_poly
 #[derive(Debug, Clone)]
 pub struct TasksDecomp_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
-  pub from_: &'a CommonDecompT_<'a>,
+  pub from_: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term>,
   pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksDecomp_resError<'a>>,
   pub stats: Stat_time,
   pub report: &'a In_mem_archiveRaw<'a>,

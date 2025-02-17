@@ -1,8 +1,8 @@
 (** View of a proof *)
 type ('term, 'ty, 'proof) t =
   | T_assume
-      (** The rest of the proof is elsewhere.
-          This can be replaced with the actual proof of this proof's goal. *)
+      (** The rest of the proof is elsewhere. This can be replaced with the
+          actual proof of this proof's goal. *)
   | T_subst of {
       t_subst: ('ty Var_poly.t * 'term) list;
       ty_subst: (Imandrax_api.Uid.t * 'ty) list;
@@ -10,9 +10,8 @@ type ('term, 'ty, 'proof) t =
     }  (** Instantiation of a previous step *)
   | T_deduction of {
       premises: (string * 'proof list) list;
-          (** Groups of premises.
-              The conclusion should be provable
-              via QF_UF reasoning from the conjunction of all premises. *)
+          (** Groups of premises. The conclusion should be provable via QF_UF
+              reasoning from the conjunction of all premises. *)
     }
   | T_rule of {
       rule: string;

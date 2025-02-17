@@ -1,7 +1,7 @@
-(** A simple HTTP client based on {{: https://github.com/c-cube/ezcurl/} ezcurl}.
+(** A simple HTTP client based on {{:https://github.com/c-cube/ezcurl/} ezcurl}.
 
-    All calls in this clients are blocking. The client is not thread safe and must be
-    protected adequately if shared between threads. *)
+    All calls in this clients are blocking. The client is not thread safe and
+    must be protected adequately if shared between threads. *)
 
 (* TODO: instantiate core client with
    our Fut, our way of connecting, and our way of making a request/reply
@@ -88,16 +88,16 @@ module Conn = struct
       method disconnect () = disconnect self
       method active () = Atomic.get self.active
 
-      method rpc_call
-          : 'req 'res.
-            timeout_s:float ->
-            ( 'req,
-              Pbrt_services.Value_mode.unary,
-              'res,
-              Pbrt_services.Value_mode.unary )
-            Pbrt_services.Client.rpc ->
-            'req ->
-            'res =
+      method rpc_call :
+          'req 'res.
+          timeout_s:float ->
+          ( 'req,
+            Pbrt_services.Value_mode.unary,
+            'res,
+            Pbrt_services.Value_mode.unary )
+          Pbrt_services.Client.rpc ->
+          'req ->
+          'res =
         fun ~timeout_s rpc req -> rpc_call self ~timeout_s rpc req
     end
 end

@@ -1,8 +1,7 @@
 (** Surface terms.
 
     These terms use content-addressed names for functions, constructors, etc.
-    They're also serializable (using cbor-pack).
-*)
+    They're also serializable (using cbor-pack). *)
 
 type ('t, 'ty) binding = 'ty Var.t_poly * 't
 [@@deriving map, iter, eq, twine, typereg, show]

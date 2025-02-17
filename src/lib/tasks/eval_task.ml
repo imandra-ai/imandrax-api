@@ -7,8 +7,8 @@ type ('term, 'ty) t_poly = {
   timeout: int option;
 }
 [@@deriving show { with_path = false }, twine, typereg]
-(** A task associated to an expression the user asked to evaluate.
-    These tasks' results are to be displayed in the LSP, among other places. *)
+(** A task associated to an expression the user asked to evaluate. These tasks'
+    results are to be displayed in the LSP, among other places. *)
 
 module Mir = struct
   type t = (Imandrax_api_mir.Term.t, Imandrax_api_mir.Type.t) t_poly

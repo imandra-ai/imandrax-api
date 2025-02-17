@@ -18,4 +18,4 @@ jobs:
     - id: 'dune-fmt'
       name: 'dune build @fmt'
       run: |-
-        nix-shell -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/ff926785c5b4cae2e9f388d0b1a41183f7be496f.tar.gz  dep/format.nix --command "make check-format DUNE=dune"
+        nix-shell -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/bffc22eb12172e6db3c5dde9e3e5628f8e3e7912.tar.gz  dep/format.nix --command "make check-format DUNE=dune"

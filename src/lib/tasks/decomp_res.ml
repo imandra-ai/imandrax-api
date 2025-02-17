@@ -12,7 +12,8 @@ type 'a result = ('a, error) Util_twine.Result.t
 
 type ('term, 'ty) shallow_poly = {
   from:
-    (Imandrax_api_mir.Decomp.t Imandrax_api_ca_store.Ca_ptr.t
+    (Imandrax_api_mir.Term.t Decomp_task.decomp_poly
+     Imandrax_api_ca_store.Ca_ptr.t
     [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
   res: ('term, 'ty) success result;
   stats: Imandrax_api.Stat_time.t;
@@ -21,12 +22,13 @@ type ('term, 'ty) shallow_poly = {
     [@twine.encode In_mem_archive.to_twine]
     [@twine.decode In_mem_archive.of_twine]
     [@printer In_mem_archive.pp ()]);
-      (** The report, when it's not serialized it's stored compressed in memory. *)
+      (** The report, when it's not serialized it's stored compressed in memory.
+      *)
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
 type ('term, 'ty) full_poly = {
-  from: Imandrax_api_common.Decomp.t_;
+  from: 'term Decomp_task.decomp_poly;
   res: ('term, 'ty) success result;
   stats: Imandrax_api.Stat_time.t;
   report:
@@ -34,7 +36,8 @@ type ('term, 'ty) full_poly = {
     [@twine.encode In_mem_archive.to_twine]
     [@twine.decode In_mem_archive.of_twine]
     [@printer In_mem_archive.pp ()]);
-      (** The report, when it's not serialized it's stored compressed in memory. *)
+      (** The report, when it's not serialized it's stored compressed in memory.
+      *)
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 

@@ -1,5 +1,5 @@
-(** A serializable logic database. It contains all relevant context for
-    proof obligations. *)
+(** A serializable logic database. It contains all relevant context for proof
+    obligations. *)
 
 include Imandrax_api_common.Db_ser
 module PH = Pattern_head

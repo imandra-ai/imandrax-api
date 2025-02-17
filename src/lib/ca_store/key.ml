@@ -1,9 +1,8 @@
 type t = string Util_twine_.With_tag7.t [@@deriving eq, ord, typereg, twine]
 (** A CA store key.
 
-      We wrap the string in tag(7,...)
-      so we can statically find keys in stored blobs, potentially
-      enabling things like GC in the future *)
+    We wrap the string in tag(7,...) so we can statically find keys in stored
+    blobs, potentially enabling things like GC in the future *)
 
 let show self = spf "(cstore.key %s)" self
 let pp = Fmt.of_to_string show
@@ -25,8 +24,8 @@ module Private_ = struct
   let of_string = Fun.id
 end
 
-let to_str_ = (Private_.to_string [@alert "-expert"])
-let of_str_ = (Private_.of_string [@alert "-expert"])
+let to_str_ = Private_.to_string [@alert "-expert"]
+let of_str_ = Private_.of_string [@alert "-expert"]
 let[@inline] chasher ctx (self : t) = Chash.string ctx (to_str_ self)
 
 let[@inline] chash ~ty hash : t =

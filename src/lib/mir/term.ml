@@ -1,8 +1,8 @@
 (** Surface terms.
 
     These terms use content-addressed names for functions, constructors, etc.
-    They have optional hashconsing and can be serialized efficiently using twine.
-*)
+    They have optional hashconsing and can be serialized efficiently using
+    twine. *)
 
 type ('t, 'ty) view =
   | Const of Imandrax_api.Const.t
@@ -138,8 +138,8 @@ end = struct
     else
       Type.equal t1.ty t2.ty && equal_view equal_rec Type.equal t1.view t2.view
 
-  (** Hash. We cannot use [t.id] because it doesn't work across
-      generations or on non hashconsed terms. *)
+  (** Hash. We cannot use [t.id] because it doesn't work across generations or
+      on non hashconsed terms. *)
   let hash (t : t) : int =
     let rec hash_rec_ depth t =
       if depth = 0 then

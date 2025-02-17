@@ -1,4 +1,5 @@
-(** All the hints for a function coming from explicit attributes (`[@@..]` annotations)*)
+(** All the hints for a function coming from explicit attributes (`[@@..]`
+    annotations)*)
 
 include Imandrax_api_common.Hints
 
