@@ -1,5 +1,7 @@
 (** Single proof steps *)
 
+  open Common_
+
 type arg =
   | Term
   | Seq
