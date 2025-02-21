@@ -22,7 +22,7 @@ let rec ty_of_arg = function
   | Seq -> "Imandrax_api_mir.Sequent.t"
   | Int -> "int"
   (* | String -> "string" *)
-  | Step -> spf "Proof_step.t Offset_of.t"
+  | Step -> spf "Proof_step.t Imandrakit_twine.offset_for"
   | List l -> spf "%s list" (ty_of_arg l)
 
 let caml_name_of_name s =
@@ -125,6 +125,13 @@ let prelude =
 |}
 
 let mk_special = [ "weaken", "if x0 = [] && x1=[] then x2 else " ]
+
+(* TODO:
+- generate a ['proof_step t] sum type for rules, using ['proof_step offset_for]
+- derive twine
+- generate builders for each one
+- use it in [Proof_step.t]
+*)
 
 let main () =
   pf "%s" prelude;
