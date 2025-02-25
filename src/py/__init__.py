@@ -153,3 +153,11 @@ class Client:
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
             timeout=timeout,
         )
+
+    def typecheck( self, src: str, timeout: Optional[float] = None) -> simple_api_pb2.TypecheckRes:
+        timeout = timeout or self._timeout
+        return self._client.typecheck(
+            ctx=Context(),
+            request=simple_api_pb2.TypecheckReq(src=src, session=self._sesh),
+            timeout=timeout,
+        )

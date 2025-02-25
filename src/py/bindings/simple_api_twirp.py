@@ -92,3 +92,12 @@ class SimpleClient(TwirpClient):
 			response_obj=_sym_db.GetSymbol("imandrax.simple.DecomposeRes"),
 			**kwargs,
 		)
+
+	def typecheck(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/typecheck",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("imandrax.simple.TypecheckRes"),
+			**kwargs,
+		)

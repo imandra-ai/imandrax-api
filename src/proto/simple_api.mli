@@ -137,6 +137,17 @@ and instance_res = {
   task : Task.task option;
 }
 
+type typecheck_req = {
+  session : Session.session option;
+  src : string;
+}
+
+type typecheck_res = {
+  success : bool;
+  types : string;
+  errors : Error.error list;
+}
+
 
 (** {2 Basic values} *)
 
@@ -295,6 +306,21 @@ val default_instance_res :
   instance_res
 (** [default_instance_res ()] is the default value for type [instance_res] *)
 
+val default_typecheck_req : 
+  ?session:Session.session option ->
+  ?src:string ->
+  unit ->
+  typecheck_req
+(** [default_typecheck_req ()] is the default value for type [typecheck_req] *)
+
+val default_typecheck_res : 
+  ?success:bool ->
+  ?types:string ->
+  ?errors:Error.error list ->
+  unit ->
+  typecheck_res
+(** [default_typecheck_res ()] is the default value for type [typecheck_res] *)
+
 
 (** {2 Make functions} *)
 
@@ -443,6 +469,21 @@ val make_instance_res :
   instance_res
 (** [make_instance_res … ()] is a builder for type [instance_res] *)
 
+val make_typecheck_req : 
+  ?session:Session.session option ->
+  src:string ->
+  unit ->
+  typecheck_req
+(** [make_typecheck_req … ()] is a builder for type [typecheck_req] *)
+
+val make_typecheck_res : 
+  success:bool ->
+  types:string ->
+  errors:Error.error list ->
+  unit ->
+  typecheck_res
+(** [make_typecheck_res … ()] is a builder for type [typecheck_res] *)
+
 
 (** {2 Formatters} *)
 
@@ -514,6 +555,12 @@ val pp_instance_res_res : Format.formatter -> instance_res_res -> unit
 
 val pp_instance_res : Format.formatter -> instance_res -> unit 
 (** [pp_instance_res v] formats v *)
+
+val pp_typecheck_req : Format.formatter -> typecheck_req -> unit 
+(** [pp_typecheck_req v] formats v *)
+
+val pp_typecheck_res : Format.formatter -> typecheck_res -> unit 
+(** [pp_typecheck_res v] formats v *)
 
 
 (** {2 Protobuf Encoding} *)
@@ -587,6 +634,12 @@ val encode_pb_instance_res_res : instance_res_res -> Pbrt.Encoder.t -> unit
 val encode_pb_instance_res : instance_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_instance_res v encoder] encodes [v] with the given [encoder] *)
 
+val encode_pb_typecheck_req : typecheck_req -> Pbrt.Encoder.t -> unit
+(** [encode_pb_typecheck_req v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_typecheck_res : typecheck_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_typecheck_res v encoder] encodes [v] with the given [encoder] *)
+
 
 (** {2 Protobuf Decoding} *)
 
@@ -658,6 +711,12 @@ val decode_pb_instance_res_res : Pbrt.Decoder.t -> instance_res_res
 
 val decode_pb_instance_res : Pbrt.Decoder.t -> instance_res
 (** [decode_pb_instance_res decoder] decodes a [instance_res] binary value from [decoder] *)
+
+val decode_pb_typecheck_req : Pbrt.Decoder.t -> typecheck_req
+(** [decode_pb_typecheck_req decoder] decodes a [typecheck_req] binary value from [decoder] *)
+
+val decode_pb_typecheck_res : Pbrt.Decoder.t -> typecheck_res
+(** [decode_pb_typecheck_res decoder] decodes a [typecheck_res] binary value from [decoder] *)
 
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -731,6 +790,12 @@ val encode_json_instance_res_res : instance_res_res -> Yojson.Basic.t
 val encode_json_instance_res : instance_res -> Yojson.Basic.t
 (** [encode_json_instance_res v encoder] encodes [v] to to json *)
 
+val encode_json_typecheck_req : typecheck_req -> Yojson.Basic.t
+(** [encode_json_typecheck_req v encoder] encodes [v] to to json *)
+
+val encode_json_typecheck_res : typecheck_res -> Yojson.Basic.t
+(** [encode_json_typecheck_res v encoder] encodes [v] to to json *)
+
 
 (** {2 JSON Decoding} *)
 
@@ -803,6 +868,12 @@ val decode_json_instance_res_res : Yojson.Basic.t -> instance_res_res
 val decode_json_instance_res : Yojson.Basic.t -> instance_res
 (** [decode_json_instance_res decoder] decodes a [instance_res] value from [decoder] *)
 
+val decode_json_typecheck_req : Yojson.Basic.t -> typecheck_req
+(** [decode_json_typecheck_req decoder] decodes a [typecheck_req] value from [decoder] *)
+
+val decode_json_typecheck_res : Yojson.Basic.t -> typecheck_res
+(** [decode_json_typecheck_res decoder] decodes a [typecheck_res] value from [decoder] *)
+
 
 (** {2 Services} *)
 
@@ -830,6 +901,8 @@ module Simple : sig
     val instance_name : (instance_name_req, unary, instance_res, unary) Client.rpc
     
     val decompose : (decompose_req, unary, decompose_res, unary) Client.rpc
+    
+    val typecheck : (typecheck_req, unary, typecheck_res, unary) Client.rpc
   end
   
   module Server : sig
@@ -844,6 +917,7 @@ module Simple : sig
       instance_src:((instance_src_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       instance_name:((instance_name_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
+      typecheck:((typecheck_req, unary, typecheck_res, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
     
     (** The individual server stubs are only exposed for advanced users. Casual users should prefer accessing them through {!make}. *)
@@ -865,5 +939,7 @@ module Simple : sig
     val instance_name : (instance_name_req,unary,instance_res,unary) Server.rpc
     
     val decompose : (decompose_req,unary,decompose_res,unary) Server.rpc
+    
+    val typecheck : (typecheck_req,unary,typecheck_res,unary) Server.rpc
   end
 end

@@ -27,6 +27,7 @@ genproto:
 	FORCE_GENPROTO=true $(DUNE) build @genproto --auto-promote
 
 genlib:
+	@make -s	install-go-protobuf-plugin -C src/py
 	#make genpython -C src/py/lib/ --debug
 	@make -s genpython -C src/py/lib/
 	@make -s genpython -C src/py/bindings/
