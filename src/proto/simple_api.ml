@@ -130,6 +130,17 @@ and instance_res = {
   task : Task.task option;
 }
 
+type typecheck_req = {
+  session : Session.session option;
+  src : string;
+}
+
+type typecheck_res = {
+  success : bool;
+  types : string;
+  errors : Error.error list;
+}
+
 let rec default_session_create_req 
   ?api_version:((api_version:string) = "")
   () : session_create_req  = {
@@ -310,6 +321,24 @@ and default_instance_res
   res;
   errors;
   task;
+}
+
+let rec default_typecheck_req 
+  ?session:((session:Session.session option) = None)
+  ?src:((src:string) = "")
+  () : typecheck_req  = {
+  session;
+  src;
+}
+
+let rec default_typecheck_res 
+  ?success:((success:bool) = false)
+  ?types:((types:string) = "")
+  ?errors:((errors:Error.error list) = [])
+  () : typecheck_res  = {
+  success;
+  types;
+  errors;
 }
 
 type session_create_req_mutable = {
@@ -520,6 +549,28 @@ let default_instance_res_mutable () : instance_res_mutable = {
   task = None;
 }
 
+type typecheck_req_mutable = {
+  mutable session : Session.session option;
+  mutable src : string;
+}
+
+let default_typecheck_req_mutable () : typecheck_req_mutable = {
+  session = None;
+  src = "";
+}
+
+type typecheck_res_mutable = {
+  mutable success : bool;
+  mutable types : string;
+  mutable errors : Error.error list;
+}
+
+let default_typecheck_res_mutable () : typecheck_res_mutable = {
+  success = false;
+  types = "";
+  errors = [];
+}
+
 
 (** {2 Make functions} *)
 
@@ -700,6 +751,24 @@ let rec make_instance_res
   task;
 }
 
+let rec make_typecheck_req 
+  ?session:((session:Session.session option) = None)
+  ~(src:string)
+  () : typecheck_req  = {
+  session;
+  src;
+}
+
+let rec make_typecheck_res 
+  ~(success:bool)
+  ~(types:string)
+  ~(errors:Error.error list)
+  () : typecheck_res  = {
+  success;
+  types;
+  errors;
+}
+
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Formatters} *)
@@ -872,6 +941,21 @@ and pp_instance_res fmt (v:instance_res) =
     Pbrt.Pp.pp_record_field ~first:true "res" pp_instance_res_res fmt v.res;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
     Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_typecheck_req fmt (v:typecheck_req) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
+    Pbrt.Pp.pp_record_field ~first:false "src" Pbrt.Pp.pp_string fmt v.src;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_typecheck_res fmt (v:typecheck_res) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "success" Pbrt.Pp.pp_bool fmt v.success;
+    Pbrt.Pp.pp_record_field ~first:false "types" Pbrt.Pp.pp_string fmt v.types;
+    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1225,6 +1309,28 @@ and encode_pb_instance_res (v:instance_res) encoder =
     Pbrt.Encoder.key 11 Pbrt.Bytes encoder; 
   | None -> ();
   end;
+  ()
+
+let rec encode_pb_typecheck_req (v:typecheck_req) encoder = 
+  begin match v.session with
+  | Some x -> 
+    Pbrt.Encoder.nested Session.encode_pb_session x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  Pbrt.Encoder.string v.src encoder;
+  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  ()
+
+let rec encode_pb_typecheck_res (v:typecheck_res) encoder = 
+  Pbrt.Encoder.bool v.success encoder;
+  Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
+  Pbrt.Encoder.string v.types encoder;
+  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  ) v.errors encoder;
   ()
 
 [@@@ocaml.warning "-27-30-39"]
@@ -1868,6 +1974,61 @@ and decode_pb_instance_res d =
     task = v.task;
   } : instance_res)
 
+let rec decode_pb_typecheck_req d =
+  let v = default_typecheck_req_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.session <- Some (Session.decode_pb_session (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(typecheck_req), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.src <- Pbrt.Decoder.string d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(typecheck_req), field(2)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    session = v.session;
+    src = v.src;
+  } : typecheck_req)
+
+let rec decode_pb_typecheck_res d =
+  let v = default_typecheck_res_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      v.errors <- List.rev v.errors;
+    ); continue__ := false
+    | Some (1, Pbrt.Varint) -> begin
+      v.success <- Pbrt.Decoder.bool d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(typecheck_res), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.types <- Pbrt.Decoder.string d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(typecheck_res), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(typecheck_res), field(3)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    success = v.success;
+    types = v.types;
+    errors = v.errors;
+  } : typecheck_res)
+
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -2137,6 +2298,25 @@ and encode_json_instance_res (v:instance_res) =
   let assoc = match v.task with
     | None -> assoc
     | Some v -> ("task", Task.encode_json_task v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_typecheck_req (v:typecheck_req) = 
+  let assoc = [] in 
+  let assoc = match v.session with
+    | None -> assoc
+    | Some v -> ("session", Session.encode_json_session v) :: assoc
+  in
+  let assoc = ("src", Pbrt_yojson.make_string v.src) :: assoc in
+  `Assoc assoc
+
+let rec encode_json_typecheck_res (v:typecheck_res) = 
+  let assoc = [] in 
+  let assoc = ("success", Pbrt_yojson.make_bool v.success) :: assoc in
+  let assoc = ("types", Pbrt_yojson.make_string v.types) :: assoc in
+  let assoc =
+    let l = v.errors |> List.map Error.encode_json_error in
+    ("errors", `List l) :: assoc 
   in
   `Assoc assoc
 
@@ -2639,6 +2819,50 @@ and decode_json_instance_res d =
     task = v.task;
   } : instance_res)
 
+let rec decode_json_typecheck_req d =
+  let v = default_typecheck_req_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("session", json_value) -> 
+      v.session <- Some ((Session.decode_json_session json_value))
+    | ("src", json_value) -> 
+      v.src <- Pbrt_yojson.string json_value "typecheck_req" "src"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    session = v.session;
+    src = v.src;
+  } : typecheck_req)
+
+let rec decode_json_typecheck_res d =
+  let v = default_typecheck_res_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("success", json_value) -> 
+      v.success <- Pbrt_yojson.bool json_value "typecheck_res" "success"
+    | ("types", json_value) -> 
+      v.types <- Pbrt_yojson.string json_value "typecheck_res" "types"
+    | ("errors", `List l) -> begin
+      v.errors <- List.map (function
+        | json_value -> (Error.decode_json_error json_value)
+      ) l;
+    end
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    success = v.success;
+    types = v.types;
+    errors = v.errors;
+  } : typecheck_res)
+
 module Simple = struct
   open Pbrt_services.Value_mode
   module Client = struct
@@ -2759,6 +2983,19 @@ module Simple = struct
         ~decode_json_res:decode_json_decompose_res
         ~decode_pb_res:decode_pb_decompose_res
         () : (decompose_req, unary, decompose_res, unary) Client.rpc)
+    open Pbrt_services
+    
+    let typecheck : (typecheck_req, unary, typecheck_res, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"simple"]
+        ~service_name:"Simple" ~rpc_name:"typecheck"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_typecheck_req
+        ~encode_pb_req:encode_pb_typecheck_req
+        ~decode_json_res:decode_json_typecheck_res
+        ~decode_pb_res:decode_pb_typecheck_res
+        () : (typecheck_req, unary, typecheck_res, unary) Client.rpc)
   end
   
   module Server = struct
@@ -2854,6 +3091,16 @@ module Simple = struct
         ~decode_pb_req:decode_pb_decompose_req
         () : _ Server.rpc)
     
+    let typecheck : (typecheck_req,unary,typecheck_res,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"typecheck"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_typecheck_res
+        ~encode_pb_res:encode_pb_typecheck_res
+        ~decode_json_req:decode_json_typecheck_req
+        ~decode_pb_req:decode_pb_typecheck_req
+        () : _ Server.rpc)
+    
     let make
       ~status:__handler__status
       ~shutdown:__handler__shutdown
@@ -2864,6 +3111,7 @@ module Simple = struct
       ~instance_src:__handler__instance_src
       ~instance_name:__handler__instance_name
       ~decompose:__handler__decompose
+      ~typecheck:__handler__typecheck
       () : _ Server.t =
       { Server.
         service_name="Simple";
@@ -2878,6 +3126,7 @@ module Simple = struct
            (__handler__instance_src instance_src);
            (__handler__instance_name instance_name);
            (__handler__decompose decompose);
+           (__handler__typecheck typecheck);
         ];
       }
   end

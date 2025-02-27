@@ -30,6 +30,8 @@ service Simple {
   rpc instance_name(InstanceNameReq) returns (InstanceRes);
 
   rpc decompose(DecomposeReq) returns (DecomposeRes);
+
+  rpc typecheck(TypecheckReq) returns (TypecheckRes);
 }
 
 message SessionCreateReq {
@@ -209,3 +211,20 @@ message InstanceRes {
 
 // compat notes: no history, not reset
 // vim:foldmethod=indent:
+
+message TypecheckReq {
+  imandrax.session.Session session = 1;
+
+  // source code to evaluate
+  string src = 2;
+}
+
+message TypecheckRes {
+  bool success = 1;
+
+  // JSON dictionary of inferred types.
+  string types = 2;
+
+  // akin to stderr
+  repeated Error errors = 3;
+}
