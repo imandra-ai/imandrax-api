@@ -1,6 +1,6 @@
 (executable
  (name mk_rules)
- (modules mk_rules)
+ (modules mk_rules parse_spec spec_)
  (flags :standard)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std))
@@ -9,7 +9,7 @@
 (rule
  (targets spec_.ml)
  (deps
-  (:file spec.json))
+  (:file proof_spec.json))
  (action
   (with-stdout-to
    %{targets}
