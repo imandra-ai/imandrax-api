@@ -1,12 +1,23 @@
-
 (library
  (name imandrax_api_proof3)
  (public_name imandrax-api.proof3)
  (synopsis "Proof terms for ImandraX.")
- (flags :standard -open Imandrakit -open Imandrax_api)
+ (flags
+  :standard
+  -open
+  Imandrakit
+  -open
+  Imandrax_api
+  -open
+  Imandrax_api_common)
  (preprocess
   (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
- (libraries imandrakit imandrax-api imandrax-api.mir imandrax-api.cir))
+ (libraries
+  imandrakit
+  imandrax-api
+  imandrax-api.common
+  imandrax-api.mir
+  imandrax-api.cir))
 
 (rule
  (targets proof_rules.ml)
