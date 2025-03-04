@@ -1,0 +1,598 @@
+{
+  "wire_types": [
+    {
+      "name": "Int",
+      "doc": "An integer",
+      "ml": "int"
+    },
+    {
+      "name": "Bool",
+      "doc": "A boolean",
+      "ml": "bool"
+    },
+    {
+      "name": "Ref",
+      "doc": "A reference to a previous identifier.",
+      "ml": "Imandrakit_twine.offset_for"
+    },
+    {
+      "name": "String",
+      "doc": "A UTF8 string",
+      "ml": "string"
+    },
+    {
+      "name": "Bytes",
+      "doc": "A binary blob",
+      "ml": "bytes"
+    },
+    {
+      "name": "List",
+      "doc": "A list",
+      "ml": "list"
+    },
+    {
+      "name": "Option",
+      "doc": "An optional.",
+      "ml": "option"
+    },
+    {
+      "name": "Tuple",
+      "doc": "A tuple of arguments",
+      "ml": ""
+    }
+  ],
+  "types": [
+    {
+      "name": "Const",
+      "doc": "A literal constant (integer, float, etc.).",
+      "ml": "Imandrax_api.Const.t"
+    },
+    {
+      "name": "Var",
+      "doc": "A term variable.",
+      "ml": "Imandrax_api_mir.Var.t"
+    },
+    {
+      "name": "FunDef",
+      "doc": "A reference to a function or constant symbol.",
+      "ml": "Imandrax_api_mir.Fun_def.t"
+    },
+    {
+      "name": "TypeDef",
+      "doc": "A reference to a type definition.",
+      "ml": "Imandrax_api_mir.Type.def"
+    },
+    {
+      "name": "Term",
+      "doc": "A term.",
+      "ml": "Imandrax_api_mir.Term.t"
+    },
+    {
+      "name": "Type",
+      "doc": "A type.",
+      "ml": "Imandrax_api_mir.Type.t"
+    },
+    {
+      "name": "Clause",
+      "doc": "A classical clause made of terms.",
+      "ml": "Imandrax_api_mir.Sequent.t"
+    },
+    {
+      "name": "Scope",
+      "doc": "A scope for assumptions, used for natural deduction.",
+      "ml": "Scope.t"
+    },
+    {
+      "name": "DeepSeq",
+      "doc": "A deep sequent (sequent-of-sequents), with one conclusion and a list of premises.",
+      "ml": "Deep_seq.t"
+    }
+  ],
+  "defined_types": [
+    {
+      "name": "ProofStep",
+      "doc": "A proof step, proving a clause using logical rules.",
+      "ml_name": "proof_step"
+    },
+    {
+      "name": "DeepProofStep",
+      "doc": "A proof step at the level of deep sequents.",
+      "ml_name": "deep_proof_step"
+    },
+    {
+      "name": "DeepProofTreeNode",
+      "doc": "A node in the proof tree, annotated with a deep sequent, used to encode the structure of the proof.",
+      "ml_name": "deep_proof_tree"
+    }
+  ],
+  "cstors": [
+    {
+      "name": "scope.enter",
+      "doc": "Enter a new scope, child of a previous scope (or `0` for the root scope).",
+      "args": [
+        "Scope"
+      ],
+      "ret": "Scope"
+    },
+    {
+      "name": "assume",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "Takes `t` and returns `|- t`, adding it to assumptions in the given scope."
+    },
+    {
+      "name": "by_def",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term",
+        "Term"
+      ],
+      "doc": "Takes `f(t1…tn)` and `body_f[t1…tn]` and asserts `|- f(t1…tn) = body_f[t1…tn]` when `f = λx1…xn. body_f[x1…xn]`."
+    },
+    {
+      "name": "lemma",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term",
+        "Clause"
+      ],
+      "doc": "Takes `p(t1…tn)` and `body_p`, where `p(x1…xn) := body_p[x1…xn]` is a previously proved theorem, and asserts `|- body_p[t1…tn]`"
+    },
+    {
+      "name": "sorry",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Clause"
+      ],
+      "doc": "Takes `G ?- t` and returns `G |- t`. This is a hole in the proof, only useful as a temporary placeholder while looking for a real proof."
+    },
+    {
+      "name": "cc",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Clause"
+      ],
+      "doc": "Takes `hyps ?- t=u` and proves `hyps |- t=u` by congruence closure."
+    },
+    {
+      "name": "intros",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Clause"
+      ],
+      "doc": "Takes `hyps ?- (t1…tn => u)`,\n returns `box (hyps, t1…tn |- u) |- box (hyps |- (t1…tn => u))`."
+    },
+    {
+      "name": "unintros",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        [
+          "List",
+          "Term"
+        ],
+        "Clause"
+      ],
+      "doc": "Takes `{i1…in}, (H_{i1…in} U other_hyps ?- u)` and returns `box (other_hyps ?- (hyps_{i1} / … / H_n) ==> u)) |- box (H_{i1…in} |- u)`."
+    },
+    {
+      "name": "if_true",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`if+ (if a b c)` is `a=true |- (if a b c) = b`."
+    },
+    {
+      "name": "if_false",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`if- (if a b c)` is `a=false |- (if a b c) = c`."
+    },
+    {
+      "name": "if_trivial",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`b=true, c=false |- (if a b c) = a`."
+    },
+    {
+      "name": "if_trivial_neg",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`b=false, c=true |- (if a b c) = not a`."
+    },
+    {
+      "name": "trivial",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Clause"
+      ],
+      "doc": "`trivial (G,t |- t, _)` proves `box (G,t|-t, …)`"
+    },
+    {
+      "name": "and_elim",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Clause",
+        "Clause"
+      ],
+      "doc": "Takes `G1 ?- a` and `G2 ?- b`,\n   produces a proof of `box (G1 |- a), box (G2 |- b) |- box (G1, G2 |- a && b)`."
+    },
+    {
+      "name": "or_left",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Clause",
+        "Term"
+      ],
+      "doc": "Takes `G ?- a` and `b`, produces a proof of `box (G |- a) |- box (G |- a || b)`."
+    },
+    {
+      "name": "or_right",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Clause",
+        "Term"
+      ],
+      "doc": "Takes `G ?- b` and `a`, produces a proof of `box (G |- b) |- box (G |- a || b)`."
+    },
+    {
+      "name": "cstor_inj",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term",
+        "Term",
+        "Int"
+      ],
+      "doc": "Given terms `t := C(t1…tn)` and `u := C(u1…un)` with same constructors, and index `i`,\nreturns `t = u |- ti = ui`."
+    },
+    {
+      "name": "cstor_disj",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term",
+        "Term"
+      ],
+      "doc": "Given terms `t1 := C1(…)` and `t2 := C2(…)` with distinct constructors,\n    returns `|- (t1 = t2) = false`."
+    },
+    {
+      "name": "cstor_is_a_true",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term",
+        "Term"
+      ],
+      "doc": "Given terms `is(C) t` and `v := C(…)`, prove `t = v |- is(C) t = true`."
+    },
+    {
+      "name": "cstor_is_a_false",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term",
+        "Term"
+      ],
+      "doc": "Given terms `is(C) t` and `v := C2(…)` with `C2` a distinct constructor,\n    prove `t = v |- is(C) t = false`."
+    },
+    {
+      "name": "cstor_is_a_project",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "Given term `is-a(C,t)`, return `is-a(C,t) = true |- t = C(select(C,0,t), …)`"
+    },
+    {
+      "name": "cstor_select",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term",
+        "Term"
+      ],
+      "doc": "Given `t1 := select(C,i,u)` and `t2 := C(v1…vn)`, returns `u=t2 |- t1=v_i`"
+    },
+    {
+      "name": "destruct",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term",
+        "Term"
+      ],
+      "doc": "Given terms `t := destruct (C, i, sub_t)` and `u := C (v1…vn)`,\n    return `sub_t = u |- t = v_i`."
+    },
+    {
+      "name": "and_true_left",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`true && x --> x`"
+    },
+    {
+      "name": "and_true_right",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`x && true --> x`"
+    },
+    {
+      "name": "and_false_left",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`false && _ --> false`"
+    },
+    {
+      "name": "and_false_right",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`_  && false --> false`"
+    },
+    {
+      "name": "and_refl",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`x && x  --> x`"
+    },
+    {
+      "name": "or_false_left",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`false || x --> x`"
+    },
+    {
+      "name": "or_false_right",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`x || false --> x`"
+    },
+    {
+      "name": "or_true_left",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`true && _ --> true`"
+    },
+    {
+      "name": "or_true_right",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`_ || true  --> true`"
+    },
+    {
+      "name": "or_refl",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`x || x  --> x`"
+    },
+    {
+      "name": "imply_true_right",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`_ ==> true  --> true`"
+    },
+    {
+      "name": "imply_true_left",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`true ==> b  --> b`"
+    },
+    {
+      "name": "imply_false_left",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`false ==> _  --> true`"
+    },
+    {
+      "name": "imply_false_right",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`true ==> false  --> false`"
+    },
+    {
+      "name": "imply_refl",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`a ==> a  --> true`"
+    },
+    {
+      "name": "neq",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`|- (a <> b) = not (a=b)`"
+    },
+    {
+      "name": "eq_const",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term",
+        "Term"
+      ],
+      "doc": "Decides equality of constants: `|- (c1 = c2) = true/false`"
+    },
+    {
+      "name": "double_neg_elim",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "`not (not a)  --> a`"
+    },
+    {
+      "name": "eq_true_elim",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "a = true  --> a"
+    },
+    {
+      "name": "eq_false_not",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "Term"
+      ],
+      "doc": "a = false --> not a"
+    },
+    {
+      "name": "cut",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "ProofStep",
+        [
+          "List",
+          "ProofStep"
+        ]
+      ],
+      "doc": "Takes `A1…An,B |- G` and `C_i |- A_i` and returns `B, ,(C_i)_i |- G`."
+    },
+    {
+      "name": "subst",
+      "ret": "ProofStep",
+      "args": [
+        "Scope",
+        "ProofStep",
+        [
+          "List",
+          [
+            "Tuple",
+            "Var",
+            "Term"
+          ]
+        ]
+      ],
+      "doc": "`C` and `σ` --> `Cσ`."
+    },
+    {
+      "name": "cut",
+      "ret": "DeepProofStep",
+      "args": [
+        "Scope",
+        "DeepProofStep",
+        [
+          "List",
+          "DeepProofStep"
+        ]
+      ],
+      "doc": "Takes `A1…An,B ||- G` and `C_i ||- A_i` and returns `B, ,(C_i)_i ||- G`."
+    },
+    {
+      "name": "intro",
+      "ret": "DeepProofStep",
+      "args": [
+        "Scope",
+        "ProofStep"
+      ],
+      "doc": "Takes `A |- B` and returns `C1, C2 …, Cn ||- (A|-B)`, where `C_i` are the assumptions
+      in the given scope. The returned DeepSeq lives in the parent scope."
+    },
+    {
+      "name": "subst",
+      "ret": "DeepProofStep",
+      "args": [
+        "Scope",
+        "DeepProofStep",
+        [
+          "List",
+          [
+            "Tuple",
+            "Var",
+            "Term"
+          ]
+        ]
+      ],
+      "doc": "`A1… An ||- C` and `σ` --> `A1…An ||- Cσ`."
+    },
+    {
+      "name": "root",
+      "ret": "DeepProofTreeNode",
+      "args": [],
+      "doc": "The root of the proof tree. Each node in the proof tree has a parent, except this one."
+    },
+    {
+      "name": "node",
+      "ret": "DeepProofTreeNode",
+      "args": [
+        "DeepProofTreeNode",
+        "DeepProofStep"
+      ],
+      "doc": "A node in the proof tree. The arguments are the node's parent, and the node's corresponding proof step."
+    }
+  ]
+}
