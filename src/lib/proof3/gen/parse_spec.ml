@@ -14,7 +14,7 @@ end
 type wire_type = {
   name: string;
   doc: string;
-  ml: string;  (** ocaml name *)
+  ml: string option; [@default None]
 }
 [@@deriving show { with_path = false }, of_yojson]
 
@@ -36,10 +36,10 @@ let meta_type_of_yojson j =
   in
   try Ok (loop j) with Failure err -> Error err
 
-type dag_type = {
+type type_ = {
   name: string;
   doc: string;
-  ml: string;
+  ml: string;  (** ocaml name *)
 }
 [@@deriving show { with_path = false }, of_yojson]
 
@@ -59,17 +59,9 @@ type cstor = {
 }
 [@@deriving show { with_path = false }, of_yojson]
 
-type builtin_symbol = {
-  name: string;
-  params: string list; [@default []]
-  args: meta_type list;
-  ret: meta_type;
-}
-[@@deriving show { with_path = false }, of_yojson]
-
 type t = {
   wire_types: wire_type list;
-  types: dag_type list;
+  types: type_ list;
   defined_types: defined_type list;
   cstors: cstor list;
 }

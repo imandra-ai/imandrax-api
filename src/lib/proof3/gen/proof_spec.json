@@ -27,18 +27,15 @@
     },
     {
       "name": "List",
-      "doc": "A list",
-      "ml": "list"
+      "doc": "A list"
     },
     {
       "name": "Option",
-      "doc": "An optional.",
-      "ml": "option"
+      "doc": "An optional."
     },
     {
       "name": "Tuple",
-      "doc": "A tuple of arguments",
-      "ml": ""
+      "doc": "A tuple of arguments"
     }
   ],
   "types": [
@@ -540,7 +537,7 @@
       "doc": "`C` and `σ` --> `Cσ`."
     },
     {
-      "name": "cut",
+      "name": "deep_cut",
       "ret": "DeepProofStep",
       "args": [
         "Scope",
@@ -553,17 +550,18 @@
       "doc": "Takes `A1…An,B ||- G` and `C_i ||- A_i` and returns `B, ,(C_i)_i ||- G`."
     },
     {
-      "name": "intro",
+      "name": "deep_intro",
       "ret": "DeepProofStep",
       "args": [
         "Scope",
+        "Scope",
         "ProofStep"
       ],
-      "doc": "Takes `A |- B` and returns `C1, C2 …, Cn ||- (A|-B)`, where `C_i` are the assumptions
-      in the given scope. The returned DeepSeq lives in the parent scope."
+      "doc": "Takes scope s1, scope s2, and `A |- B` in s2, and returns `C1, C2 …, Cn ||- (A|-B)`, where `C_i` are the assumptions
+      in scope s2. The returned DeepSeq lives in the parent scope s1."
     },
     {
-      "name": "subst",
+      "name": "deep_subst",
       "ret": "DeepProofStep",
       "args": [
         "Scope",
@@ -580,13 +578,13 @@
       "doc": "`A1… An ||- C` and `σ` --> `A1…An ||- Cσ`."
     },
     {
-      "name": "root",
+      "name": "pt_root",
       "ret": "DeepProofTreeNode",
       "args": [],
       "doc": "The root of the proof tree. Each node in the proof tree has a parent, except this one."
     },
     {
-      "name": "node",
+      "name": "pt_node",
       "ret": "DeepProofTreeNode",
       "args": [
         "DeepProofTreeNode",
