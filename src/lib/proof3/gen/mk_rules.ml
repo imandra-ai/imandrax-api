@@ -1,14 +1,8 @@
-module Parse_spec = Parse_spec
+module P = Parse_spec
+module Str_map = CCMap.Make (String)
 
 let spf = Printf.sprintf
 let pf = Printf.printf
-
-let caml_name_of_name s =
-  CCString.map
-    (function
-      | '-' -> '_'
-      | c -> c)
-    s
 
 let prelude =
   {|
@@ -18,16 +12,8 @@ let prelude =
 
 (* auto-generated in [gen/mk_rules.ml], do not modify *)
 
+type 'a ref_ = 'a Imandrakit_twine.offset_for [@@deriving eq, show, twine, typereg]
 |}
-
-let mk_special = [ "weaken", "if x0 = [] && x1=[] then x2 else " ]
-
-(* TODO:
-- generate a ['proof_step t] sum type for rules, using ['proof_step offset_for]
-- derive twine
-- generate builders for each one
-- use it in [Proof_step.t]
-*)
 
 let main () =
   pf "%s" prelude;
@@ -35,73 +21,73 @@ let main () =
 
   let spec = Parse_spec.spec in
 
-  (*
-  (* builders *)
-  let gen_mk_rule (r : rule) : unit =
-    pf "(** %s *)\n" r.descr;
-    let special = try List.assoc r.name mk_special with _ -> "" in
-    pf
-      "let %s ~concl:c_ %s : Proof_step.t = %sProof_step.(apply_rule ~concl:c_ \
-       %S [%s])\n"
-      (caml_name_of_name r.name)
-      (String.concat " "
-      @@ List.mapi (fun i a -> spf "(x%d : %s)" i (ty_of_arg a)) r.args)
-      special r.name
-      (String.concat "; "
-      @@ List.mapi (fun i a -> pt_arg_of_arg a (spf "x%d" i)) r.args);
-    pf "\n"
+  let map_types =
+    [
+      spec.wire_types
+      |> CCList.filter_map (fun (ty : P.wire_type) ->
+             ty.ml |> Option.map (fun ml -> ty.name, ml));
+      spec.types |> List.map (fun (ty : P.type_) -> ty.name, ty.ml);
+      spec.defined_types
+      |> List.map (fun (ty : P.defined_type) ->
+             ty.name, spf "%s ref_" ty.ml_name);
+    ]
+    |> List.flatten |> Str_map.of_list
   in
 
-  List.iter gen_mk_rule rules;
+  let caml_name_of_name s =
+    match Str_map.find_opt s map_types with
+    | Some ty -> ty
+    | None ->
+      CCString.map
+        (function
+          | '-' -> '_'
+          | c -> c)
+        s
+      |> String.uncapitalize_ascii
+  in
 
-  pf "let deduction ~concl prems : PT.t =\n";
-  pf "  PT.deduction ~concl prems\n\n";
+  let rec str_of_mt (ty : P.meta_type) : string =
+    match ty with
+    | M_ty s -> caml_name_of_name s
+    | M_list l -> spf "%s list" (str_of_mt l)
+    | M_option o -> spf "%s option" (str_of_mt o)
+    | M_tuple l -> spf "(%s)" @@ String.concat " * " @@ List.map str_of_mt l
+  in
 
-  (* view *)
-  pf "(** View of a proof term. *)\n";
-  pf "type view =\n";
-  List.iter
-    (fun r ->
-      let args =
-        match r.args with
-        | [] -> ""
-        | _ -> spf " of %s" @@ String.concat " * " @@ List.map ty_of_arg r.args
-      in
-      pf "  | R_%s%s\n" (caml_name_of_name r.name) args;
-      pf "  (** %s *)\n" r.descr;
-      pf "\n")
-    rules;
-  pf "[@@deriving show {with_path=false}]\n";
-  pf "\n";
+  pf "(* map: {%s} *)\n"
+    (Str_map.to_list map_types
+    |> List.map (fun (name, ty) -> spf "%S=%s" name ty)
+    |> String.concat ",\n");
 
-  pf "exception Bad_arg of PT.t * PT.arg\n";
-  pf "exception Bad_rule of PT.t\n";
-  pf "\n";
+  (* the types to define *)
+  let types =
+    List.map
+      (fun (ty : P.defined_type) ->
+        ( ty,
+          List.filter (fun (c : P.cstor) -> c.ret = P.M_ty ty.name) spec.cstors
+        ))
+      spec.defined_types
+  in
 
-  pf
-    "let view (pt:PT.t) (rule:string) (args:PT.arg list) : view = match rule, \
-     args with\n";
-  List.iter
-    (fun r ->
-      pf "  | %S, [%s] ->\n" r.name
-        (String.concat ";" @@ List.mapi (fun i _ -> spf "x%d" i) r.args);
-
-      List.iteri
-        (fun i arg ->
-          pf "    let x%d = %s in\n" i (get_arg "pt" arg (spf "x%d" i)))
-        r.args;
-      pf "    R_%s (%s)\n" (caml_name_of_name r.name)
-        (String.concat ", " @@ List.mapi (fun i _ -> spf "x%d" i) r.args))
-    rules;
-  pf "  | _ -> raise (Bad_rule pt)\n";
-  pf "\n";
-
-  (* find doc by name *)
-  pf "let doc_by_name (name:string) : string option = match name with\n";
-  List.iter (fun (r : rule) -> pf "  | %S -> Some %S\n" r.name r.descr) rules;
-  pf "  | _ -> None\n";
-  pf "\n";
-*)
+  List.iteri
+    (fun i ((ty, cstors) : P.defined_type * P.cstor list) ->
+      pf "\n(** %s *)\n" ty.doc;
+      if i > 0 then
+        pf "and "
+      else
+        pf "type ";
+      pf "%s =\n" ty.ml_name;
+      List.iter
+        (fun (c : P.cstor) ->
+          pf "  | %s" (String.capitalize_ascii @@ caml_name_of_name c.name);
+          (match c.args with
+          | [] -> ()
+          | [ ty ] -> pf " of %s" (str_of_mt ty)
+          | tys -> pf " of %s" (String.concat " * " @@ List.map str_of_mt tys));
+          pf "\n")
+        cstors)
+    types;
+  pf "[@@deriving eq, twine, show, typereg]\n";
   ()
 
 let () = main ()
