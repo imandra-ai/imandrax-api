@@ -54,10 +54,10 @@ let main () =
     | M_tuple l -> spf "(%s)" @@ String.concat " * " @@ List.map str_of_mt l
   in
 
-  pf "(* map: {%s} *)\n"
+  (* pf "(* map: {%s} *)\n"
     (Str_map.to_list map_types
     |> List.map (fun (name, ty) -> spf "%S=%s" name ty)
-    |> String.concat ",\n");
+    |> String.concat ",\n");*)
 
   (* the types to define *)
   let types =
