@@ -14,6 +14,7 @@ end
 type wire_type = {
   name: string;
   doc: string;
+  ml: string;  (** ocaml name *)
 }
 [@@deriving show { with_path = false }, of_yojson]
 
@@ -38,28 +39,18 @@ let meta_type_of_yojson j =
 type dag_type = {
   name: string;
   doc: string;
+  ml: string;
 }
 [@@deriving show { with_path = false }, of_yojson]
 
-type dag_type_field = {
-  field_name: string; [@key "field"]
-  ty: meta_type; [@key "type"]
-}
-[@@deriving show { with_path = false }, of_yojson]
-
-type dag_type_def_def = {
-  struct_: dag_type_field list option; [@key "struct"] [@default None]
-}
-[@@deriving show { with_path = false }, of_yojson]
-
-type dag_type_def = {
+type defined_type = {
   name: string;
   doc: string;
-  def: dag_type_def_def option; [@default None]
+  ml_name: string;
 }
 [@@deriving show { with_path = false }, of_yojson]
 
-type dag_term = {
+type cstor = {
   name: string;
   full_name: string option; [@default None]
   ret: meta_type;
@@ -78,10 +69,9 @@ type builtin_symbol = {
 
 type t = {
   wire_types: wire_type list;
-  dag_types: dag_type list;
-  dag_type_defs: dag_type_def list;
-  dag_terms: dag_term list;
-  builtin_symbols: builtin_symbol list;
+  types: dag_type list;
+  defined_types: defined_type list;
+  cstors: cstor list;
 }
 [@@deriving show { with_path = false }, of_yojson]
 
