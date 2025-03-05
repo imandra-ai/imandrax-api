@@ -12,7 +12,7 @@ let prelude =
 
 (* auto-generated in [gen/mk_rules.ml], do not modify *)
 
-type 'a ref_ = 'a Imandrakit_twine.offset_for [@@deriving eq, show, twine, typereg]
+type 'a offset_for = 'a Imandrakit_twine.offset_for [@@deriving eq, show, twine, typereg]
 |}
 
 let main () =
@@ -29,7 +29,7 @@ let main () =
       spec.types |> List.map (fun (ty : P.type_) -> ty.name, ty.ml);
       spec.defined_types
       |> List.map (fun (ty : P.defined_type) ->
-             ty.name, spf "%s ref_" ty.ml_name);
+             ty.name, spf "%s offset_for" ty.ml_name);
     ]
     |> List.flatten |> Str_map.of_list
   in

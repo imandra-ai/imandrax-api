@@ -20,7 +20,7 @@
   imandrax-api.cir))
 
 (rule
- (targets proof_rules.ml)
+ (targets types.ml)
  (action
   (with-stdout-to
    %{targets}
