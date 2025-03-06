@@ -106,7 +106,6 @@ type ('a, 'b) result = ('a, 'b) Stdlib.result =
 [@@noalias ][@@builtin.special "ty.result"]
 (* skip *)
 (* skip *)
-(* skip *)
 [@@@ocaml.text " {2 Ordinals} "]
 module Ordinal =
   struct
@@ -294,6 +293,7 @@ module Result =
     let ( let* ) = (>>=)[@@macro ]
     let ( and* ) = monoid_product[@@macro ]
   end
+(* skip *)
 type ('a, 'b) either =
   | Left of 'a 
   | Right of 'b [@@deriving (to_iml, of_mir)][@@ocaml.doc
