@@ -41,7 +41,7 @@ class dummy : t =
     method write_entrypoint (_ : Entrypoint.t) = ()
   end
 
-class twine (out : #Iostream.Out.t) : t =
+class twine (out : #Imandrakit_twine.Encode.out) : t =
   let enc = Imandrakit_twine.Encode.create () in
   let wrote_entrypoint = ref false in
 
@@ -81,6 +81,6 @@ class twine (out : #Iostream.Out.t) : t =
       check_entrypoint_not_written ();
       wrote_entrypoint := true;
       let off = Entrypoint.to_twine enc e in
-      let data = Imandrakit_twine.Encode.finalize_copy enc ~entrypoint:off in
-      Iostream.Out.output_string out data
+      let slice = Imandrakit_twine.Encode.finalize enc ~entrypoint:off in
+      out#output slice.bs 0 slice.len
   end
