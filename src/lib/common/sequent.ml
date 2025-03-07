@@ -14,16 +14,10 @@ let pp_seq ppt ppf lhs rhs =
     x := !x + 1;
     i
   in
-  let f ppf x =
-    ppt ppf x
-  in
-  let pp_hyp ppf h =
-    Fmt.fprintf ppf "@[H%d. @[<hov 1>%a@]@]" (next h_i) f h
-  in
+  let f ppf x = ppt ppf x in
+  let pp_hyp ppf h = Fmt.fprintf ppf "@[H%d. @[<hov 1>%a@]@]" (next h_i) f h in
   let pp_hyps ppf hs = Fmt.list ~sep:Fmt.(return "@\n") pp_hyp ppf hs in
-  let pp_conc ppf c =
-    Fmt.fprintf ppf "@[C%d. @[<hov 1>%a@]@]" (next c_i) f c
-  in
+  let pp_conc ppf c = Fmt.fprintf ppf "@[C%d. @[<hov 1>%a@]@]" (next c_i) f c in
   let pp_concs ppf cs =
     match cs with
     | [] -> Fmt.fprintf ppf "false"
@@ -31,7 +25,9 @@ let pp_seq ppt ppf lhs rhs =
     | cs -> Fmt.list ~sep:Fmt.(return "@\n") pp_conc ppf cs
   in
   Fmt.fprintf ppf
-    "@\n@\n@[%a@[<hov \
+    "@\n\
+     @\n\
+     @[%a@[<hov \
      1>@[%a@]@]%a@[|----------------------------------------------------------------------@]@\n\
      @[<hov 1> %a@]@]@\n"
     (fun ppf () ->
@@ -48,8 +44,5 @@ let pp_seq ppt ppf lhs rhs =
     () pp_concs rhs
 
 let pp ppt ppf g = pp_seq ppt ppf g.hyps g.concls
-
-let pp_t_poly ppt out (self : _ t_poly) : unit =
-  pp ppt out self
-
+let pp_t_poly ppt out (self : _ t_poly) : unit = pp ppt out self
 let show ppt = Fmt.to_string @@ pp_t_poly ppt
