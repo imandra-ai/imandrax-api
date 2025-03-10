@@ -75,11 +75,6 @@
       "ml": "Imandrax_api_mir.Sequent.t"
     },
     {
-      "name": "Scope",
-      "doc": "A scope for assumptions, used for natural deduction.",
-      "ml": "Scope.t"
-    },
-    {
       "name": "DeepSeq",
       "doc": "A deep sequent (sequent-of-sequents), with one conclusion and a list of premises.",
       "ml": "Deep_seq.t"
@@ -90,6 +85,11 @@
       "name": "ProofStep",
       "doc": "A proof step, proving a clause using logical rules.",
       "ml_name": "proof_step"
+    },
+    {
+      "name": "Scope",
+      "doc": "A scope for assumptions, used for natural deduction.",
+      "ml_name": "scope"
     },
     {
       "name": "DeepProofStep",
@@ -104,8 +104,14 @@
   ],
   "cstors": [
     {
-      "name": "scope.enter",
-      "doc": "Enter a new scope, child of a previous scope (or `0` for the root scope).",
+      "name": "scope_root",
+      "doc": "The root scope. The whole proof belongs in this scope.",
+      "args": [],
+      "ret": "Scope"
+    },
+    {
+      "name": "scope_enter",
+      "doc": "Enter a new scope, child of a previous scope.",
       "args": [
         "Scope"
       ],
