@@ -11,7 +11,7 @@ class type t = object
   method write_deep_step :
     Types.deep_proof_step -> Types.deep_proof_step offset_for
 
-  method write_tree : Types.deep_proof_tree -> Types.deep_proof_tree offset_for
+  method write_tree : Tree_node.t -> Tree_node.t offset_for
 
   method write_entrypoint : Entrypoint.t -> unit
   (** To close a proof blob, provide the entrypoint *)
@@ -22,7 +22,7 @@ let[@inline] write_step (self : #t) p : _ offset_for = self#write_step p
 let[@inline] write_deep_step (self : #t) p : Types.deep_proof_step offset_for =
   self#write_deep_step p
 
-let[@inline] write_tree (self : #t) p : Types.deep_proof_tree offset_for =
+let[@inline] write_tree (self : #t) p : Tree_node.t offset_for =
   self#write_tree p
 
 let[@inline] write_entrypoint (self : #t) e : unit = self#write_entrypoint e
@@ -35,9 +35,7 @@ class dummy : t =
     method write_deep_step (_ : Types.deep_proof_step) =
       Imandrakit_twine.Offset_for 0
 
-    method write_tree (_ : Types.deep_proof_tree) =
-      Imandrakit_twine.Offset_for 0
-
+    method write_tree (_ : Tree_node.t) = Imandrakit_twine.Offset_for 0
     method write_entrypoint (_ : Entrypoint.t) = ()
   end
 
@@ -68,11 +66,10 @@ class twine (out : #Imandrakit_twine.Encode.out) : t =
       Imandrakit_twine.Encode.write_internal_data enc out;
       off
 
-    method write_tree (p : Types.deep_proof_tree) =
+    method write_tree (p : Tree_node.t) =
       check_entrypoint_not_written ();
       let off =
-        Imandrakit_twine.Encode.write_offset_for enc
-          Types.deep_proof_tree_to_twine p
+        Imandrakit_twine.Encode.write_offset_for enc Tree_node.to_twine p
       in
       Imandrakit_twine.Encode.write_internal_data enc out;
       off
