@@ -16,9 +16,6 @@ type t = {
 and view =
   | Success of {
       local_proof: deep_proof_step offset_for;  (** [children ||- goal] *)
-      full_proof: deep_proof_step offset_for;
-          (** unconditional proof of [||- goal]. This is obtained from the
-              proofs of childen nodes and from [local_proof]. *)
     }
   | Failed of {
       msg: string;
@@ -32,9 +29,7 @@ let iter_deep_proof_tree ~yield_proofstep:_ ~yield_deepproofstep ~yield_treenode
     x =
   List.iter yield_treenode x.children;
   match x.view with
-  | Success x ->
-    yield_deepproofstep x.local_proof;
-    yield_deepproofstep x.full_proof
+  | Success x -> yield_deepproofstep x.local_proof
   | Failed x -> yield_deepproofstep x.local_proof
   | Tried l -> List.iter yield_treenode l
   | Unexplored _ -> ()

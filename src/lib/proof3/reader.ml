@@ -11,7 +11,7 @@ class type t = object
   method read_deep_step :
     Types.deep_proof_step offset_for -> Types.deep_proof_step
 
-  method read_tree : Types.deep_proof_tree offset_for -> Types.deep_proof_tree
+  method read_tree : Tree_node.t offset_for -> Tree_node.t
 
   method read_entrypoint : unit -> Entrypoint.t
   (** Access the entrypoint *)
@@ -22,7 +22,7 @@ let[@inline] read_step (self : #t) p : Types.proof_step = self#read_step p
 let[@inline] read_deep_step (self : #t) p : Types.deep_proof_step =
   self#read_deep_step p
 
-let[@inline] read_tree (self : #t) p : Types.deep_proof_tree = self#read_tree p
+let[@inline] read_tree (self : #t) p : Tree_node.t = self#read_tree p
 
 let[@inline] read_entrypoint (self : #t) : Entrypoint.t =
   self#read_entrypoint ()
@@ -38,8 +38,7 @@ class dummy : t =
         Types.deep_proof_step =
       Error.fail ~kind:Error_kinds.proofDeserError "dummy reader"
 
-    method read_tree (_ : Types.deep_proof_tree offset_for) :
-        Types.deep_proof_tree =
+    method read_tree (_ : Tree_node.t offset_for) : Tree_node.t =
       Error.fail ~kind:Error_kinds.proofDeserError "dummy reader"
 
     method read_entrypoint () : Entrypoint.t =
@@ -59,8 +58,8 @@ class twine ~(mt : Mir.Term.State.t) (str : string) : t =
     method read_deep_step (p : Types.deep_proof_step offset_for) =
       Imandrakit_twine.Decode.read_ref dec Types.deep_proof_step_of_twine p
 
-    method read_tree (p : Types.deep_proof_tree offset_for) =
-      Imandrakit_twine.Decode.read_ref dec Types.deep_proof_tree_of_twine p
+    method read_tree (p : Tree_node.t offset_for) =
+      Imandrakit_twine.Decode.read_ref dec Tree_node.of_twine p
 
     method read_entrypoint () : Entrypoint.t =
       let off = Imandrakit_twine.Decode.get_entrypoint dec in
