@@ -93,7 +93,7 @@ let main () =
           pf "\n")
         cstors)
     types;
-  pf "[@@deriving eq, twine, show, typereg]\n";
+  pf "[@@deriving eq, twine, show {with_path=false}, typereg]\n";
   ()
 
 let () = main ()
