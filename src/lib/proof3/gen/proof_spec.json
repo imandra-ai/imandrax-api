@@ -114,7 +114,8 @@
       "name": "scope_enter",
       "doc": "Enter a new scope, child of a previous scope.",
       "args": [
-        "Scope"
+        "Scope",
+        "Int"
       ],
       "ret": "Scope"
     },
