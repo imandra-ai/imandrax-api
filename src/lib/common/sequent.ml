@@ -25,11 +25,12 @@ let pp_seq ppt ppf lhs rhs =
     | cs -> Fmt.list ~sep:Fmt.(return "@\n") pp_conc ppf cs
   in
   Fmt.fprintf ppf
-    "@\n\
-     @\n\
-     @[%a@[<hov \
-     1>@[%a@]@]%a@[|----------------------------------------------------------------------@]@\n\
-     @[<hov 1> %a@]@]@\n"
+    "@[<v>@,\
+     @,\
+     @[<v>%a@[<hov \
+     1>@[%a@]@]%a|----------------------------------------------------------------------@,\
+     @[<hov 1> %a@]@]@,\
+     @]"
     (fun ppf () ->
       if lhs <> [] then
         Fmt.(fprintf ppf "@ ")
@@ -38,7 +39,7 @@ let pp_seq ppt ppf lhs rhs =
     () pp_hyps lhs
     (fun ppf () ->
       if lhs <> [] then
-        Fmt.(fprintf ppf "@\n")
+        Fmt.(fprintf ppf "@,")
       else
         Fmt.(fprintf ppf ""))
     () pp_concs rhs
