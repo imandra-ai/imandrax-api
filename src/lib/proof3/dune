@@ -16,8 +16,7 @@
   imandrakit
   imandrax-api
   imandrax-api.common
-  imandrax-api.mir
-  imandrax-api.cir))
+  imandrax-api.mir))
 
 (rule
  (targets types.ml)
