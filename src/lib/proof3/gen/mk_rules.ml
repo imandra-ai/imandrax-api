@@ -15,7 +15,7 @@ let prelude =
 [@@@ocaml.warning "-27-39"]
 
 type 'a offset_for = 'a Imandrakit_twine.offset_for [@@deriving eq, twine, typereg]
-let pp_offset_for _ out (Offset_for x:_ offset_for) = Fmt.fprintf out "ref(0x%d)" x
+let pp_offset_for _ out (Offset_for x:_ offset_for) = Fmt.fprintf out "ref(0x%x)" x
 |}
 
 let main () =
