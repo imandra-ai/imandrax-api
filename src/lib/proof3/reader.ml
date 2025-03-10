@@ -47,8 +47,9 @@ class dummy : t =
   end
 
 (* TODO: eventually, a way to read from a bigstring *)
-class twine (str : string) : t =
+class twine ~(mt : Mir.Term.State.t) (str : string) : t =
   let dec = Imandrakit_twine.Decode.of_string str in
+  let () = Mir.Term.State.add_to_dec dec mt in
   object
     method descr = "<twine reader>"
 
