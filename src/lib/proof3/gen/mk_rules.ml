@@ -12,6 +12,8 @@ let prelude =
 
 (* auto-generated in [gen/mk_rules.ml], do not modify *)
 
+[@@@ocaml.warning "-27-39"]
+
 type 'a offset_for = 'a Imandrakit_twine.offset_for [@@deriving eq, show, twine, typereg]
 |}
 
@@ -94,6 +96,77 @@ let main () =
         cstors)
     types;
   pf "[@@deriving eq, twine, show {with_path=false}, typereg]\n";
+
+  (* generate [iter] functions *)
+  let iter_args, mutual_types =
+    List.map
+      (fun ((ty, _) : P.defined_type * _) ->
+        spf "yield_%s" (String.lowercase_ascii ty.name), ty.name)
+      types
+    |> List.split
+  in
+
+  let rec iter_ty ty expr : string list =
+    match ty with
+    | P.M_ty ty when List.mem ty mutual_types ->
+      [ spf "yield_%s %s" (String.lowercase_ascii ty) expr ]
+    | P.M_ty _ -> []
+    | P.M_tuple l ->
+      (match
+         List.mapi (fun i ty -> iter_ty ty (spf "x%d" i)) l |> List.flatten
+       with
+      | [] -> []
+      | seq ->
+        [
+          spf "(match %s with %s -> %s)" expr
+            (List.mapi (fun i _ -> spf "x%d" i) l |> String.concat ",")
+            (String.concat "; " seq);
+        ])
+    | P.M_option ty ->
+      (match iter_ty ty "x" with
+      | [] -> []
+      | seq ->
+        [ spf "Option.iter (fun x -> %s) %s" (String.concat "; " seq) expr ])
+    | P.M_list ty ->
+      (match iter_ty ty "x" with
+      | [] -> []
+      | seq ->
+        [ spf "List.iter (fun x -> %s) %s" (String.concat "; " seq) expr ])
+  in
+
+  List.iteri
+    (fun i ((ty, cstors) : P.defined_type * P.cstor list) ->
+      pf "\n(** iterate on %s *)\n" ty.name;
+      if i > 0 then
+        pf "and "
+      else
+        pf "let rec ";
+      pf "iter_%s %s x = match x with\n" ty.ml_name
+        (iter_args |> List.map (spf "~%s") |> String.concat " ");
+      List.iter
+        (fun (c : P.cstor) ->
+          pf "  | %s" (String.capitalize_ascii @@ caml_name_of_name c.name);
+          (match c.args with
+          | [] -> pf " -> ()"
+          | [ ty ] ->
+            pf " x0 -> %s"
+              (match iter_ty ty "x0" with
+              | [] -> "()"
+              | seq -> String.concat "; " seq)
+          | tys ->
+            pf " (%s) -> %s"
+              (String.concat "," @@ List.mapi (fun i _ty -> spf "x%d" i) tys)
+              (match
+                 List.flatten
+                   (List.mapi (fun i ty -> iter_ty ty (spf "x%d" i)) tys)
+               with
+              | [] -> "()"
+              | seq -> String.concat "; " seq));
+          pf "\n")
+        cstors)
+    types;
+  pf "[@@deriving eq, twine, show {with_path=false}, typereg]\n";
+
   ()
 
 let () = main ()
