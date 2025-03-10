@@ -84,3 +84,21 @@ class twine (out : #Imandrakit_twine.Encode.out) : t =
       let slice = Imandrakit_twine.Encode.finalize enc ~entrypoint:off in
       out#output slice.bs 0 slice.len
   end
+
+class twine_buf (buf : Buffer.t) : t =
+  object
+    inherit
+      twine
+        (object
+           method output bs i len = Buffer.add_subbytes buf bs i len
+        end)
+  end
+
+class twine_out_channel (oc : out_channel) : t =
+  object
+    inherit
+      twine
+        (object
+           method output bs i len = output oc bs i len
+        end)
+  end
