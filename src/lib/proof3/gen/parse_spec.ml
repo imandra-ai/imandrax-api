@@ -47,6 +47,7 @@ type defined_type = {
   name: string;
   doc: string;
   ml_name: string;
+  direct: bool; [@default false]
 }
 [@@deriving show { with_path = false }, of_yojson]
 

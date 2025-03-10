@@ -89,6 +89,7 @@
     {
       "name": "Scope",
       "doc": "A scope for assumptions, used for natural deduction.",
+      "direct": true,
       "ml_name": "scope"
     },
     {
