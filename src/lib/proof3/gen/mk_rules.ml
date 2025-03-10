@@ -29,7 +29,13 @@ let main () =
       spec.types |> List.map (fun (ty : P.type_) -> ty.name, ty.ml);
       spec.defined_types
       |> List.map (fun (ty : P.defined_type) ->
-             ty.name, spf "%s offset_for" ty.ml_name);
+             let rhs =
+               if ty.direct then
+                 ty.ml_name
+               else
+                 spf "%s offset_for" ty.ml_name
+             in
+             ty.name, rhs);
     ]
     |> List.flatten |> Str_map.of_list
   in
