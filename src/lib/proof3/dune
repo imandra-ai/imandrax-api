@@ -12,11 +12,7 @@
   Imandrax_api_common)
  (preprocess
   (pps ppx_deriving.std imandrakit.twine.ppx imandrakit.typereg.ppx))
- (libraries
-  imandrakit
-  imandrax-api
-  imandrax-api.common
-  imandrax-api.mir))
+ (libraries imandrakit imandrax-api imandrax-api.common imandrax-api.mir))
 
 (rule
  (targets types.ml)
