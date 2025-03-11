@@ -20,7 +20,21 @@
 
 (rule
  (targets types.ml)
+ (mode promote)
  (action
   (with-stdout-to
    %{targets}
    (run ./gen/mk_rules.exe))))
+
+(rule
+ (targets doc.md)
+ (mode promote)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run gen/mk_rules.exe --doc))))
+
+(install
+ (section doc)
+ (package imandrax-api)
+ (files doc.md))

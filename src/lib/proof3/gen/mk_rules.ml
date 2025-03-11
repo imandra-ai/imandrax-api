@@ -18,7 +18,20 @@ type 'a offset_for = 'a Imandrakit_twine.offset_for [@@deriving eq, twine, typer
 let pp_offset_for _ out (Offset_for x:_ offset_for) = Fmt.fprintf out "ref(0x%x)" x
 |}
 
-let main () =
+let bracketify doc =
+  let opening = ref true in
+  String.map
+    (function
+      | '`' when !opening ->
+        opening := false;
+        '['
+      | '`' when not !opening ->
+        opening := true;
+        ']'
+      | c -> c)
+    doc
+
+let gen_ml () =
   pf "%s" prelude;
   pf "\n";
 
@@ -91,9 +104,16 @@ let main () =
           pf "  | %s" (String.capitalize_ascii @@ caml_name_of_name c.name);
           (match c.args with
           | [] -> ()
-          | [ ty ] -> pf " of %s" (str_of_mt ty)
-          | tys -> pf " of %s" (String.concat " * " @@ List.map str_of_mt tys));
-          pf "\n")
+          | [ (f, ty) ] -> pf " of {\n      %s: %s\n    }" f (str_of_mt ty)
+          | tys ->
+            pf " of {\n%s\n    }"
+              (String.concat ";\n"
+              @@ List.map
+                   (fun (s, ty) -> spf "      %s: %s" s @@ str_of_mt ty)
+                   tys));
+          pf "\n";
+          pf "    (** %s *)\n" (bracketify c.doc);
+          ())
         cstors)
     types;
   pf "[@@deriving eq, twine, show {with_path=false}, typereg]\n";
@@ -149,17 +169,18 @@ let main () =
           pf "  | %s" (String.capitalize_ascii @@ caml_name_of_name c.name);
           (match c.args with
           | [] -> pf " -> ()"
-          | [ ty ] ->
-            pf " x0 -> %s"
-              (match iter_ty ty "x0" with
+          | [ (name, ty) ] ->
+            pf " x ->%s"
+              (match iter_ty ty (spf "x.%s" name) with
               | [] -> "()"
               | seq -> String.concat "; " seq)
           | tys ->
-            pf " (%s) -> %s"
-              (String.concat "," @@ List.mapi (fun i _ty -> spf "x%d" i) tys)
+            pf " x -> %s"
               (match
                  List.flatten
-                   (List.mapi (fun i ty -> iter_ty ty (spf "x%d" i)) tys)
+                   (List.map
+                      (fun (name, ty) -> iter_ty ty (spf "x.%s" name))
+                      tys)
                with
               | [] -> "()"
               | seq -> String.concat "; " seq));
@@ -170,4 +191,12 @@ let main () =
 
   ()
 
-let () = main ()
+let gen_doc () = Codegen_md.gen ()
+
+let () =
+  let doc = ref false in
+  Arg.parse [ "--doc", Arg.Set doc, " produce doc" ] ignore "";
+  if !doc then
+    gen_doc ()
+  else
+    gen_ml ()
