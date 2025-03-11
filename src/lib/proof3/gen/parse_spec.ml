@@ -51,11 +51,26 @@ type defined_type = {
 }
 [@@deriving show { with_path = false }, of_yojson]
 
+type args = (string * meta_type) list [@@deriving show]
+
+let unwrap_ = function
+  | Ok x -> x
+  | Error e -> failwith e
+
+let args_of_yojson j =
+  try
+    let res =
+      J.Util.to_assoc j
+      |> List.map (fun (name, j) -> name, meta_type_of_yojson j |> unwrap_)
+    in
+    Ok res
+  with Failure e -> Error e
+
 type cstor = {
   name: string;
   full_name: string option; [@default None]
   ret: meta_type;
-  args: meta_type list;
+  args: args;
   doc: string;
 }
 [@@deriving show { with_path = false }, of_yojson]
