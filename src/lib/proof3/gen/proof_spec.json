@@ -541,6 +541,16 @@
         ]
       },
       "doc": "From `A1…An ||- C` and `subst` to `A1…An ||- subst(C)`."
+    },
+    {
+      "name": "deep_ref",
+      "ret": "DeepProofStep",
+      "args": {
+        "concl": "DeepSequent",
+        "file_ref": "string",
+        "p": "DeepProofStep"
+      },
+      "doc": "Takes some form of reference to another proof file, and an offset `p` within that file. Intended to be used for subtasks."
     }
   ]
 }

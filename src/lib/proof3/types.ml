@@ -261,6 +261,12 @@ and deep_proof_step =
       subst: (Imandrax_api_mir.Var.t * Imandrax_api_mir.Term.t) list
     }
     (** From [A1…An ||- C] and [subst] to [A1…An ||- subst(C)]. *)
+  | Deep_ref of {
+      concl: Deep_sequent.t;
+      file_ref: string;
+      p: deep_proof_step offset_for
+    }
+    (** Takes some form of reference to another proof file, and an offset [p] within that file. Intended to be used for subtasks. *)
 [@@deriving eq, twine, show {with_path=false}, typereg]
 
 (** iterate on ProofStep *)
@@ -314,4 +320,5 @@ and iter_deep_proof_step ~yield_proofstep ~yield_deepproofstep x = match x with
   | Deep_cut x -> yield_deepproofstep x.main; List.iter (fun x -> yield_deepproofstep x) x.sides
   | Deep_intro x -> yield_proofstep x.last_step
   | Deep_subst x -> yield_deepproofstep x.p
+  | Deep_ref x -> yield_deepproofstep x.p
 [@@deriving eq, twine, show {with_path=false}, typereg]
