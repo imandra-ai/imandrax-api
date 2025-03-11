@@ -1,6 +1,6 @@
 (executable
  (name mk_rules)
- (modules mk_rules parse_spec spec_)
+ (modules mk_rules parse_spec spec_ codegen_md)
  (flags :standard)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std))
