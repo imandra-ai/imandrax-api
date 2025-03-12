@@ -5,7 +5,7 @@ set -ue
 
 # see: .github/workflows/main.yml in imandrax to see what the names are
 BUCKET_NAME="imandra-prod-imandrax-releases"
-#DATA_BUCKET="https://storage.cloud.google.com/${BUCKET_NAME}"
+BUCKET_URL="https://storage.googleapis.com/${BUCKET_NAME}"
 
 set +u
 if [ "${INSTALL_PREFIX}" == "" ]; then
@@ -18,7 +18,7 @@ fi
 set -u
 
 function install_linux() {
-  ARCHIVE="gs://${BUCKET_NAME}/imandrax-linux-x86_64-${VERSION}.tar.gz"
+  ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
 
   echo "installing in '${INSTALL_PREFIX}/bin/' …"
 
@@ -28,7 +28,7 @@ function install_linux() {
   mkdir -p "${BIN_DIR}"
 
   echo "downloading from ${ARCHIVE}"
-  gcloud storage cp "${ARCHIVE}" "$TMP_FILE"
+  wget "${ARCHIVE}" -O "$TMP_FILE"
   echo "downloaded to $TMP_FILE"
   cd "${TMPDIR:-/tmp}"
   tar xvf "$TMP_FILE"
@@ -39,12 +39,11 @@ function install_linux() {
 }
 
 function install_macos() {
-  ARCHIVE="gs://${BUCKET_NAME}/imandrax-macos-aarch64-${VERSION}.pkg"
+  ARCHIVE="${BUCKET_URL}/imandrax-macos-aarch64-${VERSION}.pkg"
   TMP_FILE="${TMPDIR:-/tmp}/imandrax-macos-aarch64.pkg"
 
-  #curl "$ARCHIVE" -o "$TMP_FILE"
   echo "downloading from ${ARCHIVE}"
-  gcloud storage cp "${ARCHIVE}" "$TMP_FILE"
+  wget "${ARCHIVE}" -O "$TMP_FILE"
   echo "downloaded installer at $TMP_FILE"
   sudo installer -pkg "$TMP_FILE" -target /
 }
