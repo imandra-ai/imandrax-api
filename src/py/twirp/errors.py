@@ -1,6 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
-class Errors(Enum):
+
+class Errors(StrEnum):
     Canceled = "canceled"
     Unknown = "unknown"
     InvalidArgument = "invalid_argument"
@@ -44,4 +45,3 @@ class Errors(Enum):
             Errors.DataLoss: 500,
             Errors.NoError: 200,
         }.get(code, 500)
-

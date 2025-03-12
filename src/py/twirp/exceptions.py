@@ -21,7 +21,7 @@ class TwirpServerException(httplib.HTTPException):
             self._code = errors.Errors.Unknown
         self._message = message
         self._meta = meta
-        super(TwirpServerException, self).__init__(message)
+        super(TwirpServerException, self).__init__(message, meta)
 
     @property
     def code(self):

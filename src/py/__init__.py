@@ -1,6 +1,8 @@
 import requests
 import requests.cookies
 from typing import Optional
+from .twirp.exceptions import TwirpServerException
+from .twirp.errors import Errors
 from .twirp.context import Context
 from .bindings import (
     task_pb2,
@@ -14,6 +16,7 @@ from .bindings import (
 from . import api_types_version
 
 # TODO: https://requests.readthedocs.io/en/latest/user/advanced/#example-automatic-retries (for calls that are idempotent, maybe we pass `idempotent=True` for them
+
 
 class Client:
     def __init__(
@@ -46,13 +49,21 @@ class Client:
         self._timeout = timeout
 
         if session_id is None:
-            self._sesh = self._client.create_session(
-                ctx=Context(),
-                request=simple_api_pb2.SessionCreateReq(
-                    api_version=api_types_version.api_types_version
-                ),
-                timeout=timeout,
-            )
+            try:
+                self._sesh = self._client.create_session(
+                    ctx=Context(),
+                    request=simple_api_pb2.SessionCreateReq(
+                        api_version=api_types_version.api_types_version
+                    ),
+                    timeout=timeout,
+                )
+            except TwirpServerException as ex:
+                if ex.meta.get("body", {}).get("code") == Errors.InvalidArgument:
+                    raise Exception(
+                        "API version mismatch. Try upgrading the imandrax-api package."
+                    ) from ex
+                else:
+                    raise ex
         else:
             # TODO: actually re-open session via RPC
             self._sesh = session_pb2.Session(
@@ -75,20 +86,22 @@ class Client:
         ctx_simp: Optional[bool] = None,
         lift_bool: Optional[simple_api_pb2.LiftBool] = None,
         timeout: Optional[float] = None,
-        str: Optional[bool] = True
+        str: Optional[bool] = True,
     ) -> simple_api_pb2.DecomposeRes:
         timeout = timeout or self._timeout
         return self._client.decompose(
             ctx=Context(),
-            request=simple_api_pb2.DecomposeReq(name=name,
-                                                assuming=assuming,
-                                                basis=basis,
-                                                rule_specs=rule_specs,
-                                                prune=prune,
-                                                ctx_simp=ctx_simp,
-                                                lift_bool=lift_bool,
-                                                str=str,
-                                                session=self._sesh),
+            request=simple_api_pb2.DecomposeReq(
+                name=name,
+                assuming=assuming,
+                basis=basis,
+                rule_specs=rule_specs,
+                prune=prune,
+                ctx_simp=ctx_simp,
+                lift_bool=lift_bool,
+                str=str,
+                session=self._sesh,
+            ),
             timeout=timeout,
         )
 
