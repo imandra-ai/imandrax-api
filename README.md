@@ -3,9 +3,9 @@
 This is the public facing repository for ImandraX.
 
 This contains:
-- a (very early) programmatic API for ImandraX, based on protobuf
+- a programmatic API for ImandraX, based on protobuf
     and OCaml type definitions
-- an install script
+- an ImandraX installation script
 
 ## Getting started
 
@@ -16,10 +16,6 @@ To install the `imandrax-cli` locally, use:
 ```sh
 $ ./scripts/install-internal.sh
 ```
-
-This requires `gcloud` to be in the path, and to be
-authenticated (`gcloud auth login`) so as to be able to download
-the installer.
 
 To install the development version, export `VERSION=latest-main`:
 
@@ -73,10 +69,6 @@ https://github.com/imandra-ai/imandrax-vscode/releases
 
 Soon we will bundle this with the installer and/or make the plugin available through
 the VS Code extensions marketplace.
-
-## API
-
-WIP
 
 ### Curl
 
