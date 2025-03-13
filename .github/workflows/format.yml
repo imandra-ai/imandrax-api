@@ -8,12 +8,10 @@ on:
 
 jobs:
   format:
-    runs-on: [self-hosted, Linux]
+    runs-on: [ubuntu-latest]
     steps:
     - uses: actions/checkout@v4
 
-      # Commit sha of nixpkgs release-23.11 as of 2024-04-24. Need 23.11 as it still has ocamlformat_0_22_4 available.
-    - uses: imandra-ai/imandra-build-config/actions/self-hosted-linux-runner-setup-ssh@46c4c21f5e783fc4b9bc172cf900a5f62ea285bf
     - uses: cachix/install-nix-action@v20
     - id: 'dune-fmt'
       name: 'dune build @fmt'

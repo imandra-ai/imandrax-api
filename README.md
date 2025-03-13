@@ -14,13 +14,13 @@ ImandraX currently supports Linux on x86_64, and macOS on aarch64 (ie ARM machin
 To install the `imandrax-cli` locally, use:
 
 ```sh
-$ ./scripts/install-internal.sh
+$ ./scripts/install.sh
 ```
 
 To install the development version, export `VERSION=latest-main`:
 
 ```sh
-$ VERSION=latest-main ./scripts/install-internal.sh
+$ VERSION=latest-main ./scripts/install.sh
 ```
 
 Once the CLI is installed (and, in the case of linux, in path),
