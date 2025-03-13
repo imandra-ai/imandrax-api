@@ -1,5 +1,5 @@
 #!/bin/bash
-# (c) Copyright Imandra Inc., 2024.
+# (c) Copyright Imandra Inc., 2024-2025.
 
 set -ue
 
