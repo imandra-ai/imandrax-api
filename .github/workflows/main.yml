@@ -8,7 +8,7 @@ jobs:
   run-4-14:
     name: build 4.14
     timeout-minutes: 10
-    runs-on: [linux]
+    runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@main
       - run: make update-submodules
@@ -16,7 +16,7 @@ jobs:
   run-5-2:
     name: build 5.2
     timeout-minutes: 10
-    runs-on: [linux]
+    runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@main
       - run: make update-submodules
