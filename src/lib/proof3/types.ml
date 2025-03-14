@@ -248,13 +248,13 @@ and deep_proof_step =
       main: deep_proof_step offset_for;
       sides: deep_proof_step offset_for list
     }
-    (** Takes [A1…An,B ||- G] (main) and [C_i ||- A_i] (sides) and returns [B, C1…Cn ||- G]. *)
+    (** Takes [A1…An, B ||- G] (main) and [C_i ||- A_i] (sides) and returns [B, C1…Cn ||- G]. *)
   | Deep_intro of {
       concl: Deep_sequent.t;
       assumptions: Imandrax_api_mir.Sequent.t list;
       last_step: proof_step offset_for
     }
-    (** Takes last step [A |- B], a list of assumptions C1…Cn used to prove that last step, and returns [C1…Cn ||- (A |- B)]. *)
+    (** Takes last step [A |- B], a list of assumptions [C1…Cn] used to prove that last step, and returns [C1…Cn ||- (A |- B)]. *)
   | Deep_subst of {
       concl: Deep_sequent.t;
       p: deep_proof_step offset_for;

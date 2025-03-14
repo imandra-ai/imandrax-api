@@ -513,17 +513,20 @@
           "DeepProofStep"
         ]
       },
-      "doc": "Takes `A1…An,B ||- G` (main) and `C_i ||- A_i` (sides) and returns `B, C1…Cn ||- G`."
+      "doc": "Takes `A1…An, B ||- G` (main) and `C_i ||- A_i` (sides) and returns `B, C1…Cn ||- G`."
     },
     {
       "name": "deep_intro",
       "ret": "DeepProofStep",
       "args": {
         "concl": "DeepSequent",
-        "assumptions": ["List", "Sequent"],
+        "assumptions": [
+          "List",
+          "Sequent"
+        ],
         "last_step": "ProofStep"
       },
-      "doc": "Takes last step `A |- B`, a list of assumptions C1…Cn used to prove that last step, and returns `C1…Cn ||- (A |- B)`."
+      "doc": "Takes last step `A |- B`, a list of assumptions [C1…Cn] used to prove that last step, and returns `C1…Cn ||- (A |- B)`."
     },
     {
       "name": "deep_subst",
