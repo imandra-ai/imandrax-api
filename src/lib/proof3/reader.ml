@@ -65,3 +65,23 @@ class twine ~(mt : Mir.Term.State.t) (str : string) : t =
       let off = Imandrakit_twine.Decode.get_entrypoint dec in
       Entrypoint.of_twine dec off
   end
+
+class twine_in_channel ~(mt : Mir.Term.State.t) (ic : in_channel) : t =
+  let dec = Imandrakit_twine.Decode.of_in_channel ic in
+  let () = Mir.Term.State.add_to_dec dec mt in
+  object
+    method descr = "<twine in_channel reader>"
+
+    method read_step (p : Types.proof_step offset_for) : Types.proof_step =
+      Imandrakit_twine.Decode.read_ref dec Types.proof_step_of_twine p
+
+    method read_deep_step (p : Types.deep_proof_step offset_for) =
+      Imandrakit_twine.Decode.read_ref dec Types.deep_proof_step_of_twine p
+
+    method read_tree (p : Tree_node.t offset_for) =
+      Imandrakit_twine.Decode.read_ref dec Tree_node.of_twine p
+
+    method read_entrypoint () : Entrypoint.t =
+      let off = Imandrakit_twine.Decode.get_entrypoint dec in
+      Entrypoint.of_twine dec off
+  end
