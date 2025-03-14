@@ -23,6 +23,9 @@ from . import twine
 
 __all__ = ['twine']
 
+# offset in file
+type OffsetFor[T] = int
+
 type Error = Error_Error_core
 def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
     match d.get_cstor(off=off):
@@ -122,6 +125,8 @@ let rec gen_type_expr (ty : tyexpr) : string =
       spf "%s | %s" (gen_type_expr x) (gen_type_expr y)
     | "Imandrakit_error__Error_core.Data.t", [] -> spf "unit"
     | "option", [ x ] -> spf "None | %s" (gen_type_expr x)
+    | "Imandrakit_twine.offset_for", [ x ] ->
+      spf "OffsetFor[%s]" (gen_type_expr x)
     | "Util_twine_.With_tag7.t", [ x ] -> spf "WithTag7[%s]" (gen_type_expr x)
     | "Util_twine_.Q.t", [] -> "tuple[int, int]"
     | s, [] -> mangle_ty_name s
