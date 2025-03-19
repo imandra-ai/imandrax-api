@@ -141,6 +141,8 @@ module SessionManager : sig
     
     val open_session : (session_open, unary, Utils.empty, unary) Client.rpc
     
+    val end_session : (session, unary, Utils.empty, unary) Client.rpc
+    
     val keep_session_alive : (session, unary, Utils.empty, unary) Client.rpc
   end
   
@@ -149,6 +151,7 @@ module SessionManager : sig
     val make : 
       create_session:((session_create, unary, session, unary) Server.rpc -> 'handler) ->
       open_session:((session_open, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
+      end_session:((session, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
       keep_session_alive:((session, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
     
@@ -157,6 +160,8 @@ module SessionManager : sig
     val create_session : (session_create,unary,session,unary) Server.rpc
     
     val open_session : (session_open,unary,Utils.empty,unary) Server.rpc
+    
+    val end_session : (session,unary,Utils.empty,unary) Server.rpc
     
     val keep_session_alive : (session,unary,Utils.empty,unary) Server.rpc
   end

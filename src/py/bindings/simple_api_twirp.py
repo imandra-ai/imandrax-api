@@ -39,6 +39,15 @@ class SimpleClient(TwirpClient):
 			**kwargs,
 		)
 
+	def end_session(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/end_session",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("Empty"),
+			**kwargs,
+		)
+
 	def eval_src(self, *args, ctx, request, **kwargs):
 		return self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.simple.Simple/eval_src",

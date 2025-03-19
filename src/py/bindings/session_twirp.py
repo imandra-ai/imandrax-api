@@ -30,6 +30,15 @@ class SessionManagerClient(TwirpClient):
 			**kwargs,
 		)
 
+	def end_session(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.session.SessionManager/end_session",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("Empty"),
+			**kwargs,
+		)
+
 	def keep_session_alive(self, *args, ctx, request, **kwargs):
 		return self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.session.SessionManager/keep_session_alive",

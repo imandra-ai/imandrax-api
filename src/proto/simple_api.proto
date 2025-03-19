@@ -19,6 +19,9 @@ service Simple {
   // create a session easily
   rpc create_session(SessionCreateReq) returns (imandrax.session.Session);
 
+  // Terminate a session, do nothing if it doesn't exist
+  rpc end_session(imandrax.session.Session) returns (Empty);
+
   rpc eval_src(EvalSrcReq) returns (EvalRes);
 
   rpc verify_src(VerifySrcReq) returns (VerifyRes);
