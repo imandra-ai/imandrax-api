@@ -24,7 +24,7 @@ class Client:
         url: str,
         server_path_prefix="/api/v1",
         auth_token: str | None = None,
-        timeout: float = 30.0,
+        timeout: int = 30,
         session_id: str | None = None,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
@@ -69,6 +69,16 @@ class Client:
             self._sesh = session_pb2.Session(
                 session_id=session_id,
             )
+
+    def __enter__(self, *_) -> None:
+        pass
+
+    def __exit__(self, *_) -> None:
+        try:
+            self._client.end_session(ctx=Context(), request=self._sesh, timeout=None)
+        except TwirpServerException as e:
+            raise Exception("Error while ending session") from e
+
 
     def status(self) -> str:
         return self._client.status(
