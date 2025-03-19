@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 import utils_pb2 as utils__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rsession.proto\x12\x10imandrax.session\x1a\x0butils.proto\"\x15\n\x07Session\x12\n\n\x02id\x18\x01 \x01(\t\"H\n\rSessionCreate\x12\x15\n\x08po_check\x18\x01 \x01(\x08H\x00\x88\x01\x01\x12\x13\n\x0b\x61pi_version\x18\x02 \x01(\tB\x0b\n\t_po_check\"I\n\x0bSessionOpen\x12%\n\x02id\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x13\n\x0b\x61pi_version\x18\x02 \x01(\t2\xce\x01\n\x0eSessionManager\x12L\n\x0e\x63reate_session\x12\x1f.imandrax.session.SessionCreate\x1a\x19.imandrax.session.Session\x12\x35\n\x0copen_session\x12\x1d.imandrax.session.SessionOpen\x1a\x06.Empty\x12\x37\n\x12keep_session_alive\x12\x19.imandrax.session.Session\x1a\x06.Emptyb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rsession.proto\x12\x10imandrax.session\x1a\x0butils.proto\"\x15\n\x07Session\x12\n\n\x02id\x18\x01 \x01(\t\"H\n\rSessionCreate\x12\x15\n\x08po_check\x18\x01 \x01(\x08H\x00\x88\x01\x01\x12\x13\n\x0b\x61pi_version\x18\x02 \x01(\tB\x0b\n\t_po_check\"I\n\x0bSessionOpen\x12%\n\x02id\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x13\n\x0b\x61pi_version\x18\x02 \x01(\t2\x80\x02\n\x0eSessionManager\x12L\n\x0e\x63reate_session\x12\x1f.imandrax.session.SessionCreate\x1a\x19.imandrax.session.Session\x12\x35\n\x0copen_session\x12\x1d.imandrax.session.SessionOpen\x1a\x06.Empty\x12\x30\n\x0b\x65nd_session\x12\x19.imandrax.session.Session\x1a\x06.Empty\x12\x37\n\x12keep_session_alive\x12\x19.imandrax.session.Session\x1a\x06.Emptyb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -39,5 +39,5 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SESSIONOPEN']._serialized_start=145
   _globals['_SESSIONOPEN']._serialized_end=218
   _globals['_SESSIONMANAGER']._serialized_start=221
-  _globals['_SESSIONMANAGER']._serialized_end=427
+  _globals['_SESSIONMANAGER']._serialized_end=477
 # @@protoc_insertion_point(module_scope)
