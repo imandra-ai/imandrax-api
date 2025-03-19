@@ -70,8 +70,8 @@ class Client:
                 session_id=session_id,
             )
 
-    def __enter__(self, *_) -> None:
-        pass
+    def __enter__(self, *_):
+        return self
 
     def __exit__(self, *_) -> None:
         try:
