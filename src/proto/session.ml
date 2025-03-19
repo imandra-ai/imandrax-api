@@ -330,6 +330,19 @@ module SessionManager = struct
         () : (session_open, unary, Utils.empty, unary) Client.rpc)
     open Pbrt_services
     
+    let end_session : (session, unary, Utils.empty, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"session"]
+        ~service_name:"SessionManager" ~rpc_name:"end_session"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_session
+        ~encode_pb_req:encode_pb_session
+        ~decode_json_res:Utils.decode_json_empty
+        ~decode_pb_res:Utils.decode_pb_empty
+        () : (session, unary, Utils.empty, unary) Client.rpc)
+    open Pbrt_services
+    
     let keep_session_alive : (session, unary, Utils.empty, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"session"]
@@ -366,6 +379,16 @@ module SessionManager = struct
         ~decode_pb_req:decode_pb_session_open
         () : _ Server.rpc)
     
+    let end_session : (session,unary,Utils.empty,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"end_session"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:Utils.encode_json_empty
+        ~encode_pb_res:Utils.encode_pb_empty
+        ~decode_json_req:decode_json_session
+        ~decode_pb_req:decode_pb_session
+        () : _ Server.rpc)
+    
     let keep_session_alive : (session,unary,Utils.empty,unary) Server.rpc = 
       (Server.mk_rpc ~name:"keep_session_alive"
         ~req_mode:Server.Unary
@@ -379,6 +402,7 @@ module SessionManager = struct
     let make
       ~create_session:__handler__create_session
       ~open_session:__handler__open_session
+      ~end_session:__handler__end_session
       ~keep_session_alive:__handler__keep_session_alive
       () : _ Server.t =
       { Server.
@@ -387,6 +411,7 @@ module SessionManager = struct
         handlers=[
            (__handler__create_session create_session);
            (__handler__open_session open_session);
+           (__handler__end_session end_session);
            (__handler__keep_session_alive keep_session_alive);
         ];
       }
