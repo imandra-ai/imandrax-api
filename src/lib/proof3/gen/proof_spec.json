@@ -180,7 +180,7 @@
       "args": {
         "concl": "Sequent"
       },
-      "doc": "`trivial (G,t ?- t, _)` proves `(G,t|-t, …)`"
+      "doc": "`trivial (G, t ?- t, _)` proves `(G, t |- t, …)`"
     },
     {
       "name": "and_elim",
