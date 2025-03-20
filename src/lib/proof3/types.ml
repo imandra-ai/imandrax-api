@@ -61,7 +61,7 @@ type proof_step =
   | Trivial of {
       concl: Imandrax_api_mir.Sequent.t
     }
-    (** [trivial (G,t ?- t, _)] proves [(G,t|-t, …)] *)
+    (** [trivial (G, t ?- t, _)] proves [(G, t |- t, …)] *)
   | And_elim of {
       concl: Imandrax_api_mir.Sequent.t;
       lhs: proof_step offset_for;
