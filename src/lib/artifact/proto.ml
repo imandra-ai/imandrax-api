@@ -6,17 +6,27 @@ module Mir = Imandrax_api_mir
 type msg = Proto.art [@@deriving show]
 
 let to_msg (self : Artifact.t) : msg =
-  let (Artifact (kind, _)) = self in
+  let (Artifact { kind; storage; _ }) = self in
   let data =
     let@ _sp =
       Trace.with_span ~__FILE__ ~__LINE__ "x.artifact.proto.to-twine"
     in
     Imandrakit_twine.Encode.encode_to_string Artifact.to_twine self
   in
+
+  let storage =
+    List.map
+      (fun (k, v) ->
+        Proto.make_storage_entry
+          ~key:(Imandrax_api_ca_store.Key.slugify k)
+          ~value:(Bytes.unsafe_of_string v) ())
+      storage
+  in
+
   Proto.make_art
     ~kind:(Artifact.kind_to_string kind)
     ~data:(Bytes.unsafe_of_string data)
-    ~api_version:Versioning.api_types_version ()
+    ~storage ~api_version:Versioning.api_types_version ()
 
 let to_msg_str ?(enc = Pbrt.Encoder.create ()) (self : Artifact.t) : string =
   Pbrt.Encoder.clear enc;
@@ -40,6 +50,14 @@ let of_msg (msg : msg) : Artifact.t Error.result =
       "ImandraX API types version is %S, but data has version %S."
       Versioning.api_types_version msg.api_version;
 
+  let storage =
+    List.map
+      (fun (kv : Proto.storage_entry) ->
+        ( Imandrax_api_ca_store.Key.unslugify_exn kv.key,
+          Bytes.unsafe_to_string kv.value ))
+      msg.storage
+  in
+
   let res =
     let@ () = Error.guards "Reading data from protobuf" in
     let mt = Mir.Term.State.create () in
@@ -48,7 +66,7 @@ let of_msg (msg : msg) : Artifact.t Error.result =
       (Artifact.of_twine kind)
       (Bytes.unsafe_to_string msg.data)
   in
-  Artifact.make ~kind res
+  Artifact.make ~storage ~kind res
 
 let of_msg_str (str : string) : Artifact.t Error.result =
   let@ () = Error.guards "Decoding artifact encoded in protobuf form" in

@@ -18,12 +18,17 @@ module Manifest = struct
   [@@deriving show { with_path = false }, yojson, make]
 end
 
-let write_zip ?(metadata = true) (zip : Util_zip.out_file) (self : Artifact.t) :
-    unit =
-  let (Artifact (kind, _)) = self in
+let write_zip ?level ?(metadata = true) (zip : Util_zip.out_file)
+    (self : Artifact.t) : unit =
+  let (Artifact { kind; storage; data = _ }) = self in
   let data = Imandrakit_twine.Encode.encode_to_string Artifact.to_twine self in
 
-  Util_zip.add_entry data zip "data.twine";
+  Util_zip.add_entry ?level data zip "data.twine";
+
+  let storage =
+    Imandrakit_twine.Encode.encode_to_string Artifact.storage_to_twine storage
+  in
+  if storage <> "" then Util_zip.add_entry ?level storage zip "storage.twine";
 
   let manifest : Manifest.t =
     let kind = Artifact.kind_to_string kind in
@@ -38,14 +43,15 @@ let write_zip ?(metadata = true) (zip : Util_zip.out_file) (self : Artifact.t) :
     in
     Manifest.make ?metadata ~kind ~api_version ()
   in
-  Util_zip.add_entry
+  Util_zip.add_entry ?level
     (Json.to_string @@ Manifest.to_yojson manifest)
     zip "manifest.json";
   ()
 
-let write_zip_file ?metadata (filename : string) (self : Artifact.t) : unit =
+let write_zip_file ?level ?metadata (filename : string) (self : Artifact.t) :
+    unit =
   let@ zip = Util_zip.with_open_out filename in
-  write_zip ?metadata zip self
+  write_zip ?level ?metadata zip self
 
 let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
   let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "api.artifact.zip.read" in
@@ -85,6 +91,22 @@ let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
     | Ok k -> k
   in
 
+  let storage =
+    match
+      (* read from .zip *)
+      let entry =
+        let@ () = Error.guards "Finding storage.twine' entry…" in
+        Util_zip.find_entry zip "storage.twine"
+      in
+      let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "read-zip-entry.storage" in
+      Util_zip.read_entry zip entry
+    with
+    | exception _ -> []
+    | str ->
+      let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "decode-storage" in
+      Imandrakit_twine.Decode.decode_string Artifact.storage_of_twine str
+  in
+
   let res =
     let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "read-twine-from-data" in
     let@ () = Error.guards "Reading data from twine" in
@@ -93,7 +115,7 @@ let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
       Util_zip.find_entry zip "data.twine"
     in
     let data =
-      let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "read-zip-entry" in
+      let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "read-zip-entry.data" in
       Util_zip.read_entry zip entry
     in
 
@@ -103,7 +125,7 @@ let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
       (Artifact.of_twine kind) data
   in
 
-  let a : Artifact.t = Artifact.Artifact (kind, res) in
+  let a : Artifact.t = Artifact.Artifact { kind; data = res; storage } in
   manifest, a
 
 let read_zip_file (filename : string) : _ Error.result =
