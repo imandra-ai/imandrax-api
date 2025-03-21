@@ -19,7 +19,7 @@ let to_msg (self : Artifact.t) : msg =
       (fun (k, v) ->
         Proto.make_storage_entry
           ~key:(Imandrax_api_ca_store.Key.slugify k)
-          ~value:v ())
+          ~value:(Bytes.unsafe_of_string v) ())
       storage
   in
 
@@ -53,7 +53,8 @@ let of_msg (msg : msg) : Artifact.t Error.result =
   let storage =
     List.map
       (fun (kv : Proto.storage_entry) ->
-        Imandrax_api_ca_store.Key.unslugify_exn kv.key, kv.value)
+        ( Imandrax_api_ca_store.Key.unslugify_exn kv.key,
+          Bytes.unsafe_to_string kv.value ))
       msg.storage
   in
 
