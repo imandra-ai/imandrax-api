@@ -78,7 +78,8 @@ module Task = Imandrax_api_tasks
 
 let middle =
   {|
-type storage = (Imandrax_api_ca_store.Key.t * (bytes [@use_bytes])) list
+type string_as_bytes = (string[@use_bytes]) [@@deriving twine]
+type storage = (Imandrax_api_ca_store.Key.t * string_as_bytes) list
 [@@deriving twine]
 
 (** An artifact. *)

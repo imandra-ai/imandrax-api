@@ -85,7 +85,8 @@ let is_decomp_task : string -> bool = fun str -> str = "decomp_task"
 let is_decomp_res : string -> bool = fun str -> str = "decomp_res"
 let is_report : string -> bool = fun str -> str = "report"
 
-type storage = (Imandrax_api_ca_store.Key.t * (bytes [@use_bytes])) list
+type string_as_bytes = (string[@use_bytes]) [@@deriving twine]
+type storage = (Imandrax_api_ca_store.Key.t * string_as_bytes) list
 [@@deriving twine]
 
 (** An artifact. *)
