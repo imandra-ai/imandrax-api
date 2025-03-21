@@ -78,11 +78,21 @@ module Task = Imandrax_api_tasks
 
 let middle =
   {|
+type storage = (Imandrax_api_ca_store.Key.t * (bytes [@use_bytes])) list
+[@@deriving twine]
+
 (** An artifact. *)
-type t = Artifact : 'a kind * 'a -> t
+type t = Artifact : {
+  kind: 'a kind;
+    (** Kind of artifact *)
+  data: 'a;
+    (** Main data *)
+  storage: storage;
+    (** Additional storage *)
+} -> t
 
 (** Pack together an artifact *)
-let[@inline] make ~kind x : t = Artifact (kind, x)
+  let[@inline] make ~storage ~kind data : t = Artifact {kind; data; storage}
 |}
 
 let main_ml () =
@@ -123,19 +133,21 @@ let main_ml () =
 
   List.iter
     (fun { name; ty; _ } ->
-      pf "let[@inline] make_%s : %s -> t = fun x -> make ~kind:%s x\n\n"
+      pf
+        "let[@inline] make_%s ?(storage=[]) : %s -> t = fun x -> make ~storage \
+         ~kind:%s x\n\n"
         (String.lowercase_ascii name)
         ty name;
       pf "let as_%s : t -> %s option = function\n"
         (String.lowercase_ascii name)
         ty;
-      pf "  | Artifact (%s, x) -> Some x\n" name;
+      pf "  | Artifact {kind=%s; data=x; _} -> Some x\n" name;
       pf "  | _ -> None\n\n")
     all;
 
   pf
     "let to_twine : t Imandrakit_twine.Encode.encoder = fun enc (Artifact \
-     (tag, x)) -> match tag with\n";
+     {kind; data=x; storage=_}) -> match kind with\n";
   List.iter
     (fun { name; to_twine; _ } -> pf "|  %s -> %s enc x\n" name to_twine)
     all;
@@ -154,7 +166,7 @@ let main_ml () =
   List.iter (fun { name; of_twine; _ } -> pf "| %s -> %s\n" name of_twine) all;
   pf "\n";
 
-  pf "let pp out (Artifact (kind,x)) : unit = match kind with\n";
+  pf "let pp out (Artifact {kind;data=x;storage=_}) : unit = match kind with\n";
   List.iter (fun { name; pp; _ } -> pf "| %s -> %s out x\n" name pp) all;
   pf "\n";
 

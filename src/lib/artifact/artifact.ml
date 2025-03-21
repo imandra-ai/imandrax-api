@@ -85,85 +85,95 @@ let is_decomp_task : string -> bool = fun str -> str = "decomp_task"
 let is_decomp_res : string -> bool = fun str -> str = "decomp_res"
 let is_report : string -> bool = fun str -> str = "report"
 
+type storage = (Imandrax_api_ca_store.Key.t * (bytes [@use_bytes])) list
+[@@deriving twine]
+
 (** An artifact. *)
-type t = Artifact : 'a kind * 'a -> t
+type t = Artifact : {
+  kind: 'a kind;
+    (** Kind of artifact *)
+  data: 'a;
+    (** Main data *)
+  storage: storage;
+    (** Additional storage *)
+} -> t
 
 (** Pack together an artifact *)
-let[@inline] make ~kind x : t = Artifact (kind, x)
+  let[@inline] make ~storage ~kind data : t = Artifact {kind; data; storage}
 
-let[@inline] make_term : Imandrax_api_mir.Term.t -> t = fun x -> make ~kind:Term x
+let[@inline] make_term ?(storage=[]) : Imandrax_api_mir.Term.t -> t = fun x -> make ~storage ~kind:Term x
 
 let as_term : t -> Imandrax_api_mir.Term.t option = function
-  | Artifact (Term, x) -> Some x
+  | Artifact {kind=Term; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_type : Imandrax_api_mir.Type.t -> t = fun x -> make ~kind:Type x
+let[@inline] make_type ?(storage=[]) : Imandrax_api_mir.Type.t -> t = fun x -> make ~storage ~kind:Type x
 
 let as_type : t -> Imandrax_api_mir.Type.t option = function
-  | Artifact (Type, x) -> Some x
+  | Artifact {kind=Type; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_po_task : Imandrax_api_tasks.PO_task.Mir.t -> t = fun x -> make ~kind:PO_task x
+let[@inline] make_po_task ?(storage=[]) : Imandrax_api_tasks.PO_task.Mir.t -> t = fun x -> make ~storage ~kind:PO_task x
 
 let as_po_task : t -> Imandrax_api_tasks.PO_task.Mir.t option = function
-  | Artifact (PO_task, x) -> Some x
+  | Artifact {kind=PO_task; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_po_res : Imandrax_api_tasks.PO_res.Shallow.t -> t = fun x -> make ~kind:PO_res x
+let[@inline] make_po_res ?(storage=[]) : Imandrax_api_tasks.PO_res.Shallow.t -> t = fun x -> make ~storage ~kind:PO_res x
 
 let as_po_res : t -> Imandrax_api_tasks.PO_res.Shallow.t option = function
-  | Artifact (PO_res, x) -> Some x
+  | Artifact {kind=PO_res; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_eval_task : Imandrax_api_tasks.Eval_task.Mir.t -> t = fun x -> make ~kind:Eval_task x
+let[@inline] make_eval_task ?(storage=[]) : Imandrax_api_tasks.Eval_task.Mir.t -> t = fun x -> make ~storage ~kind:Eval_task x
 
 let as_eval_task : t -> Imandrax_api_tasks.Eval_task.Mir.t option = function
-  | Artifact (Eval_task, x) -> Some x
+  | Artifact {kind=Eval_task; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_eval_res : Imandrax_api_tasks.Eval_res.t -> t = fun x -> make ~kind:Eval_res x
+let[@inline] make_eval_res ?(storage=[]) : Imandrax_api_tasks.Eval_res.t -> t = fun x -> make ~storage ~kind:Eval_res x
 
 let as_eval_res : t -> Imandrax_api_tasks.Eval_res.t option = function
-  | Artifact (Eval_res, x) -> Some x
+  | Artifact {kind=Eval_res; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_model : Imandrax_api_mir.Model.t -> t = fun x -> make ~kind:Model x
+let[@inline] make_model ?(storage=[]) : Imandrax_api_mir.Model.t -> t = fun x -> make ~storage ~kind:Model x
 
 let as_model : t -> Imandrax_api_mir.Model.t option = function
-  | Artifact (Model, x) -> Some x
+  | Artifact {kind=Model; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_show : string -> t = fun x -> make ~kind:Show x
+let[@inline] make_show ?(storage=[]) : string -> t = fun x -> make ~storage ~kind:Show x
 
 let as_show : t -> string option = function
-  | Artifact (Show, x) -> Some x
+  | Artifact {kind=Show; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_fun_decomp : Imandrax_api_mir.Fun_decomp.t -> t = fun x -> make ~kind:Fun_decomp x
+let[@inline] make_fun_decomp ?(storage=[]) : Imandrax_api_mir.Fun_decomp.t -> t = fun x -> make ~storage ~kind:Fun_decomp x
 
 let as_fun_decomp : t -> Imandrax_api_mir.Fun_decomp.t option = function
-  | Artifact (Fun_decomp, x) -> Some x
+  | Artifact {kind=Fun_decomp; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_decomp_task : Imandrax_api_tasks.Decomp_task.Mir.t -> t = fun x -> make ~kind:Decomp_task x
+let[@inline] make_decomp_task ?(storage=[]) : Imandrax_api_tasks.Decomp_task.Mir.t -> t = fun x -> make ~storage ~kind:Decomp_task x
 
 let as_decomp_task : t -> Imandrax_api_tasks.Decomp_task.Mir.t option = function
-  | Artifact (Decomp_task, x) -> Some x
+  | Artifact {kind=Decomp_task; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_decomp_res : Imandrax_api_tasks.Decomp_res.Shallow.t -> t = fun x -> make ~kind:Decomp_res x
+let[@inline] make_decomp_res ?(storage=[]) : Imandrax_api_tasks.Decomp_res.Shallow.t -> t = fun x -> make ~storage ~kind:Decomp_res x
 
 let as_decomp_res : t -> Imandrax_api_tasks.Decomp_res.Shallow.t option = function
-  | Artifact (Decomp_res, x) -> Some x
+  | Artifact {kind=Decomp_res; data=x; _} -> Some x
   | _ -> None
 
-let[@inline] make_report : Imandrax_api_report.Report.t -> t = fun x -> make ~kind:Report x
+let[@inline] make_report ?(storage=[]) : Imandrax_api_report.Report.t -> t = fun x -> make ~storage ~kind:Report x
 
 let as_report : t -> Imandrax_api_report.Report.t option = function
-  | Artifact (Report, x) -> Some x
+  | Artifact {kind=Report; data=x; _} -> Some x
   | _ -> None
 
-let to_twine : t Imandrakit_twine.Encode.encoder = fun enc (Artifact (tag, x)) -> match tag with
+let to_twine : t Imandrakit_twine.Encode.encoder = fun enc (Artifact {kind; data=x; storage=_}) -> match kind with
 |  Term -> Imandrax_api_mir.Term.to_twine enc x
 |  Type -> Imandrax_api_mir.Type.to_twine enc x
 |  PO_task -> Imandrax_api_tasks.PO_task.Mir.to_twine enc x
@@ -215,7 +225,7 @@ let of_twine : type a. a kind -> a Imandrakit_twine.Decode.decoder = function
 | Decomp_res -> Imandrax_api_tasks.Decomp_res.Shallow.of_twine
 | Report -> Imandrax_api_report.Report.of_twine
 
-let pp out (Artifact (kind,x)) : unit = match kind with
+let pp out (Artifact {kind;data=x;storage=_}) : unit = match kind with
 | Term -> Imandrax_api_mir.Term.pp out x
 | Type -> Imandrax_api_mir.Type.pp out x
 | PO_task -> Imandrax_api_tasks.PO_task.Mir.pp out x
