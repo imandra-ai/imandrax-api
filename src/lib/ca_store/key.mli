@@ -40,6 +40,26 @@ val as_cname : t -> (string * Cname.t) option
 val as_task : t -> (string * Chash.t) option
 val is_task : t -> bool
 
+type view = private
+  | Chash of {
+      ty: string;
+      h: Chash.t;
+    }
+  | Cname of {
+      ty: string;
+      name: Cname.t;
+    }
+  | Task of {
+      kind: string;
+      h: Chash.t;
+    }
+  | Custom of {
+      ns: string;
+      data: string;
+    }
+
+val view : t -> view
+
 (**/**)
 
 module Private_ : sig

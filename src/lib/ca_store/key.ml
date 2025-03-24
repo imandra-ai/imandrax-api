@@ -29,38 +29,85 @@ let of_str_ = Private_.of_string [@alert "-expert"]
 let[@inline] chasher ctx (self : t) = Chash.string ctx (to_str_ self)
 
 let[@inline] chash ~ty hash : t =
+  if String.contains ty ':' then invalid_arg "chash key: ty cannot contain ':'";
   of_str_ @@ spf "hash:%s:%s" ty (Chash.slugify hash)
 
 let[@inline] cname ~ty cname : t =
+  if String.contains ty ':' then invalid_arg "cname key: ty cannot contain ':'";
   of_str_ @@ spf "cname:%s:%s" ty (Cname.slugify cname)
 
 let[@inline] task ~kind hash : t =
+  if String.contains kind ':' then
+    invalid_arg "task key: kind cannot contain ':'";
   of_str_ @@ spf "task:%s:%s" kind (Chash.slugify hash)
 
-let[@inline] custom ~ns str : t = of_str_ @@ spf "custom:%s:%s" ns str
+let[@inline] custom ~ns str : t =
+  if String.contains ns ':' then
+    invalid_arg "custom key: namespace cannot contain ':'";
+  of_str_ @@ spf "custom:%s:%s" ns str
 
-let as_ty_chash_ ~pre (self : t) : _ option =
-  match
-    let s = self |> to_str_ |> CCString.chop_prefix ~pre |> Option.get in
-    let ty, cname = CCString.Split.left_exn ~by:":" s in
-    let chash = Chash.unslugify cname in
-    ty, chash
-  with
-  | exception (Not_found | Invalid_argument _) -> None
-  | pair -> Some pair
+type view =
+  | Chash of {
+      ty: string;
+      h: Chash.t;
+    }
+  | Cname of {
+      ty: string;
+      name: Cname.t;
+    }
+  | Task of {
+      kind: string;
+      h: Chash.t;
+    }
+  | Custom of {
+      ns: string;
+      data: string;
+    }
 
-let[@inline] as_chash self = as_ty_chash_ ~pre:"hash:" self
-let[@inline] as_task self = as_ty_chash_ ~pre:"task:" self
-let[@inline] is_task self = CCString.prefix ~pre:"task:" @@ to_str_ self
+let split2_ s =
+  try
+    let s1, s2 = CCString.Split.left_exn ~by:":" s in
+    let s2, s3 = CCString.Split.left_exn ~by:":" s2 in
+    s1, s2, s3
+  with _ ->
+    Error.failf ~kind:Error_kinds.deserializationError
+      "Invalid CA Store key: %S" s
+
+let view (self : t) : view =
+  match split2_ self with
+  | "hash", ty, h ->
+    let h = Chash.unslugify h in
+    Chash { ty; h }
+  | "cname", ty, name ->
+    let name =
+      match Cname.unslugify name with
+      | Some c -> c
+      | None ->
+        Error.failf ~kind:Error_kinds.deserializationError "Invalid cname: %S"
+          name
+    in
+    Cname { ty; name }
+  | "task", kind, h ->
+    let h = Chash.unslugify h in
+    Task { kind; h }
+  | "custom", ns, data -> Custom { ns; data }
+  | _ ->
+    Error.failf ~kind:Error_kinds.deserializationError
+      "Invalid CA Store key: %S" self
+
+let[@inline] as_chash self =
+  match view self with
+  | Chash { ty; h } -> Some (ty, h)
+  | _ -> None
+
+let[@inline] as_task self =
+  match view self with
+  | Task { kind; h } -> Some (kind, h)
+  | _ -> None
+
+let[@inline] is_task self = Option.is_some @@ as_task self
 
 let as_cname (self : t) : _ option =
-  match
-    let s =
-      self |> to_str_ |> CCString.chop_prefix ~pre:"cname:" |> Option.get
-    in
-    let ty, cname = CCString.Split.left_exn ~by:":" s in
-    let cname = Cname.unslugify cname |> Option.get in
-    ty, cname
-  with
-  | exception (Not_found | Invalid_argument _) -> None
-  | pair -> Some pair
+  match view self with
+  | Cname { ty; name } -> Some (ty, name)
+  | _ -> None
