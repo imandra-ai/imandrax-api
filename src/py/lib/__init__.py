@@ -1719,9 +1719,8 @@ class Mir_Type:
     view: Ty_view_view[None,Mir_Type_var,Mir_Type]
 
 def Mir_Type_of_twine(d: twine.Decoder, off: int) -> Mir_Type:
-    fields = list(d.get_array(off=off))
-    view = Ty_view_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: d.get_null(off=off)),d1=(lambda d, off: Mir_Type_var_of_twine(d=d, off=off)),d2=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
-    return Mir_Type(view=view)
+    x = Ty_view_view_of_twine(d=d,off=off,d0=(lambda d, off: d.get_null(off=off)),d1=(lambda d, off: Mir_Type_var_of_twine(d=d, off=off)),d2=(lambda d, off: Mir_Type_of_twine(d=d, off=off))) # single unboxed field
+    return Mir_Type(view=x)
 
 # clique Imandrax_api_mir.Type.ser
 # def Imandrax_api_mir.Type.ser (mangled name: "Mir_Type_ser")
@@ -2401,9 +2400,8 @@ class Eval_Value_erased_closure:
     missing: int
 
 def Eval_Value_erased_closure_of_twine(d: twine.Decoder, off: int) -> Eval_Value_erased_closure:
-    fields = list(d.get_array(off=off))
-    missing = d.get_int(off=fields[0])
-    return Eval_Value_erased_closure(missing=missing)
+    x = d.get_int(off=off) # single unboxed field
+    return Eval_Value_erased_closure(missing=x)
 
 # clique Imandrax_api_eval.Value.t
 # def Imandrax_api_eval.Value.t (mangled name: "Eval_Value")
