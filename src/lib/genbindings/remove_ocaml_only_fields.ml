@@ -17,7 +17,9 @@ let process (cliques : TR.Ty_def.clique list) : _ list =
                      | _ -> true)
                    fields
                in
-               { d with decl = TR.Ty_def.Record { fields } }
+
+               let unboxed = d.unboxed || List.length fields = 1 in
+               { d with unboxed; decl = TR.Ty_def.Record { fields } }
              | _ -> d)
            defs)
   |> Iter.to_list
