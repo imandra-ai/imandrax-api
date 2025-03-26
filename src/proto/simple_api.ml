@@ -22,24 +22,12 @@ type decompose_req = {
   str : bool option;
 }
 
-type string_kv = {
-  k : string;
-  v : string;
-}
-
-type region_str = {
-  constraints_str : string list;
-  invariant_str : string;
-  model_str : string_kv list;
-}
-
 type decompose_res_res =
   | Artifact of Artmsg.art
   | Err
 
 and decompose_res = {
   res : decompose_res_res;
-  regions_str : region_str list;
   errors : Error.error list;
   task : Task.task option;
 }
@@ -171,34 +159,14 @@ let rec default_decompose_req
   str;
 }
 
-let rec default_string_kv 
-  ?k:((k:string) = "")
-  ?v:((v:string) = "")
-  () : string_kv  = {
-  k;
-  v;
-}
-
-let rec default_region_str 
-  ?constraints_str:((constraints_str:string list) = [])
-  ?invariant_str:((invariant_str:string) = "")
-  ?model_str:((model_str:string_kv list) = [])
-  () : region_str  = {
-  constraints_str;
-  invariant_str;
-  model_str;
-}
-
 let rec default_decompose_res_res () : decompose_res_res = Artifact (Artmsg.default_art ())
 
 and default_decompose_res 
   ?res:((res:decompose_res_res) = Artifact (Artmsg.default_art ()))
-  ?regions_str:((regions_str:region_str list) = [])
   ?errors:((errors:Error.error list) = [])
   ?task:((task:Task.task option) = None)
   () : decompose_res  = {
   res;
-  regions_str;
   errors;
   task;
 }
@@ -373,38 +341,14 @@ let default_decompose_req_mutable () : decompose_req_mutable = {
   str = None;
 }
 
-type string_kv_mutable = {
-  mutable k : string;
-  mutable v : string;
-}
-
-let default_string_kv_mutable () : string_kv_mutable = {
-  k = "";
-  v = "";
-}
-
-type region_str_mutable = {
-  mutable constraints_str : string list;
-  mutable invariant_str : string;
-  mutable model_str : string_kv list;
-}
-
-let default_region_str_mutable () : region_str_mutable = {
-  constraints_str = [];
-  invariant_str = "";
-  model_str = [];
-}
-
 type decompose_res_mutable = {
   mutable res : decompose_res_res;
-  mutable regions_str : region_str list;
   mutable errors : Error.error list;
   mutable task : Task.task option;
 }
 
 let default_decompose_res_mutable () : decompose_res_mutable = {
   res = Artifact (Artmsg.default_art ());
-  regions_str = [];
   errors = [];
   task = None;
 }
@@ -603,33 +547,13 @@ let rec make_decompose_req
   str;
 }
 
-let rec make_string_kv 
-  ~(k:string)
-  ~(v:string)
-  () : string_kv  = {
-  k;
-  v;
-}
-
-let rec make_region_str 
-  ~(constraints_str:string list)
-  ~(invariant_str:string)
-  ~(model_str:string_kv list)
-  () : region_str  = {
-  constraints_str;
-  invariant_str;
-  model_str;
-}
-
 
 let rec make_decompose_res 
   ~(res:decompose_res_res)
-  ~(regions_str:region_str list)
   ~(errors:Error.error list)
   ?task:((task:Task.task option) = None)
   () : decompose_res  = {
   res;
-  regions_str;
   errors;
   task;
 }
@@ -800,21 +724,6 @@ let rec pp_decompose_req fmt (v:decompose_req) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_string_kv fmt (v:string_kv) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "k" Pbrt.Pp.pp_string fmt v.k;
-    Pbrt.Pp.pp_record_field ~first:false "v" Pbrt.Pp.pp_string fmt v.v;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_region_str fmt (v:region_str) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "constraints_str" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.constraints_str;
-    Pbrt.Pp.pp_record_field ~first:false "invariant_str" Pbrt.Pp.pp_string fmt v.invariant_str;
-    Pbrt.Pp.pp_record_field ~first:false "model_str" (Pbrt.Pp.pp_list pp_string_kv) fmt v.model_str;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
 let rec pp_decompose_res_res fmt (v:decompose_res_res) =
   match v with
   | Artifact x -> Format.fprintf fmt "@[<hv2>Artifact(@,%a)@]" Artmsg.pp_art x
@@ -823,7 +732,6 @@ let rec pp_decompose_res_res fmt (v:decompose_res_res) =
 and pp_decompose_res fmt (v:decompose_res) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "res" pp_decompose_res_res fmt v.res;
-    Pbrt.Pp.pp_record_field ~first:false "regions_str" (Pbrt.Pp.pp_list pp_region_str) fmt v.regions_str;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
     Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
   in
@@ -1020,26 +928,6 @@ let rec encode_pb_decompose_req (v:decompose_req) encoder =
   end;
   ()
 
-let rec encode_pb_string_kv (v:string_kv) encoder = 
-  Pbrt.Encoder.string v.k encoder;
-  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  Pbrt.Encoder.string v.v encoder;
-  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  ()
-
-let rec encode_pb_region_str (v:region_str) encoder = 
-  Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.string x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  ) v.constraints_str encoder;
-  Pbrt.Encoder.string v.invariant_str encoder;
-  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested encode_pb_string_kv x encoder;
-    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  ) v.model_str encoder;
-  ()
-
 let rec encode_pb_decompose_res_res (v:decompose_res_res) encoder = 
   begin match v with
   | Artifact x ->
@@ -1059,10 +947,6 @@ and encode_pb_decompose_res (v:decompose_res) encoder =
     Pbrt.Encoder.empty_nested encoder;
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   end;
-  Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested encode_pb_region_str x encoder;
-    Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
-  ) v.regions_str encoder;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
@@ -1431,62 +1315,6 @@ let rec decode_pb_decompose_req d =
     str = v.str;
   } : decompose_req)
 
-let rec decode_pb_string_kv d =
-  let v = default_string_kv_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.k <- Pbrt.Decoder.string d;
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(string_kv), field(1)" pk
-    | Some (2, Pbrt.Bytes) -> begin
-      v.v <- Pbrt.Decoder.string d;
-    end
-    | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(string_kv), field(2)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    k = v.k;
-    v = v.v;
-  } : string_kv)
-
-let rec decode_pb_region_str d =
-  let v = default_region_str_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-      v.model_str <- List.rev v.model_str;
-      v.constraints_str <- List.rev v.constraints_str;
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.constraints_str <- (Pbrt.Decoder.string d) :: v.constraints_str;
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(region_str), field(1)" pk
-    | Some (2, Pbrt.Bytes) -> begin
-      v.invariant_str <- Pbrt.Decoder.string d;
-    end
-    | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(region_str), field(2)" pk
-    | Some (3, Pbrt.Bytes) -> begin
-      v.model_str <- (decode_pb_string_kv (Pbrt.Decoder.nested d)) :: v.model_str;
-    end
-    | Some (3, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(region_str), field(3)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    constraints_str = v.constraints_str;
-    invariant_str = v.invariant_str;
-    model_str = v.model_str;
-  } : region_str)
-
 let rec decode_pb_decompose_res_res d = 
   let rec loop () = 
     let ret:decompose_res_res = match Pbrt.Decoder.key d with
@@ -1512,7 +1340,6 @@ and decode_pb_decompose_res d =
     match Pbrt.Decoder.key d with
     | None -> (
       v.errors <- List.rev v.errors;
-      v.regions_str <- List.rev v.regions_str;
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
       v.res <- Artifact (Artmsg.decode_pb_art (Pbrt.Decoder.nested d));
@@ -1525,11 +1352,6 @@ and decode_pb_decompose_res d =
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(decompose_res), field(2)" pk
-    | Some (5, Pbrt.Bytes) -> begin
-      v.regions_str <- (decode_pb_region_str (Pbrt.Decoder.nested d)) :: v.regions_str;
-    end
-    | Some (5, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(decompose_res), field(5)" pk
     | Some (10, Pbrt.Bytes) -> begin
       v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
     end
@@ -1544,7 +1366,6 @@ and decode_pb_decompose_res d =
   done;
   ({
     res = v.res;
-    regions_str = v.regions_str;
     errors = v.errors;
     task = v.task;
   } : decompose_res)
@@ -2079,25 +1900,6 @@ let rec encode_json_decompose_req (v:decompose_req) =
   in
   `Assoc assoc
 
-let rec encode_json_string_kv (v:string_kv) = 
-  let assoc = [] in 
-  let assoc = ("k", Pbrt_yojson.make_string v.k) :: assoc in
-  let assoc = ("v", Pbrt_yojson.make_string v.v) :: assoc in
-  `Assoc assoc
-
-let rec encode_json_region_str (v:region_str) = 
-  let assoc = [] in 
-  let assoc =
-    let l = v.constraints_str |> List.map Pbrt_yojson.make_string in
-    ("constraintsStr", `List l) :: assoc 
-  in
-  let assoc = ("invariantStr", Pbrt_yojson.make_string v.invariant_str) :: assoc in
-  let assoc =
-    let l = v.model_str |> List.map encode_json_string_kv in
-    ("modelStr", `List l) :: assoc 
-  in
-  `Assoc assoc
-
 let rec encode_json_decompose_res_res (v:decompose_res_res) = 
   begin match v with
   | Artifact v -> `Assoc [("artifact", Artmsg.encode_json_art v)]
@@ -2110,10 +1912,6 @@ and encode_json_decompose_res (v:decompose_res) =
       | Artifact v -> ("artifact", Artmsg.encode_json_art v) :: assoc
       | Err -> ("err", `Null) :: assoc
   in (* match v.res *)
-  let assoc =
-    let l = v.regions_str |> List.map encode_json_region_str in
-    ("regionsStr", `List l) :: assoc 
-  in
   let assoc =
     let l = v.errors |> List.map Error.encode_json_error in
     ("errors", `List l) :: assoc 
@@ -2394,53 +2192,6 @@ let rec decode_json_decompose_req d =
     str = v.str;
   } : decompose_req)
 
-let rec decode_json_string_kv d =
-  let v = default_string_kv_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("k", json_value) -> 
-      v.k <- Pbrt_yojson.string json_value "string_kv" "k"
-    | ("v", json_value) -> 
-      v.v <- Pbrt_yojson.string json_value "string_kv" "v"
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    k = v.k;
-    v = v.v;
-  } : string_kv)
-
-let rec decode_json_region_str d =
-  let v = default_region_str_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("constraintsStr", `List l) -> begin
-      v.constraints_str <- List.map (function
-        | json_value -> Pbrt_yojson.string json_value "region_str" "constraints_str"
-      ) l;
-    end
-    | ("invariantStr", json_value) -> 
-      v.invariant_str <- Pbrt_yojson.string json_value "region_str" "invariant_str"
-    | ("modelStr", `List l) -> begin
-      v.model_str <- List.map (function
-        | json_value -> (decode_json_string_kv json_value)
-      ) l;
-    end
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    constraints_str = v.constraints_str;
-    invariant_str = v.invariant_str;
-    model_str = v.model_str;
-  } : region_str)
-
 let rec decode_json_decompose_res_res json =
   let assoc = match json with
     | `Assoc assoc -> assoc
@@ -2466,11 +2217,6 @@ and decode_json_decompose_res d =
     | ("artifact", json_value) -> 
       v.res <- Artifact ((Artmsg.decode_json_art json_value))
     | ("err", _) -> v.res <- Err
-    | ("regionsStr", `List l) -> begin
-      v.regions_str <- List.map (function
-        | json_value -> (decode_json_region_str json_value)
-      ) l;
-    end
     | ("errors", `List l) -> begin
       v.errors <- List.map (function
         | json_value -> (Error.decode_json_error json_value)
@@ -2483,7 +2229,6 @@ and decode_json_decompose_res d =
   ) assoc;
   ({
     res = v.res;
-    regions_str = v.regions_str;
     errors = v.errors;
     task = v.task;
   } : decompose_res)
