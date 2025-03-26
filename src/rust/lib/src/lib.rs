@@ -487,11 +487,25 @@ pub enum CommonRegionStatus<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Feasible(&'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
 }
 
+// clique Imandrax_api_common.Region.meta
+#[derive(Debug, Clone)]
+pub enum CommonRegionMeta<'a,V_tyreg_poly_term:'a> {
+  Null,
+  Bool(bool),
+  Int(BigInt),
+  Real(Rational),
+  String(&'a str),
+  Assoc(&'a [(&'a str,&'a CommonRegionMeta<'a,V_tyreg_poly_term>)]),
+  Term(V_tyreg_poly_term),
+  List(&'a [&'a CommonRegionMeta<'a,V_tyreg_poly_term>]),
+}
+
 // clique Imandrax_api_common.Region.t_poly
 #[derive(Debug, Clone)]
 pub struct CommonRegionT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub constraints: &'a [V_tyreg_poly_term],
   pub invariant: V_tyreg_poly_term,
+  pub meta: &'a [(&'a str,&'a CommonRegionMeta<'a,V_tyreg_poly_term>)],
   pub status: &'a CommonRegionStatus<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
 }
 
