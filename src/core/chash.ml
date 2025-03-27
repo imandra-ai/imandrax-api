@@ -16,7 +16,7 @@ let n_bits_ = 256
 let n_bytes = n_bits_ / 8
 
 let _of_bin x : t =
-  if String.length x <> n_bytes then
+  if x <> dummy && String.length x <> n_bytes then
     Imandrakit.Error.failf ~kind:Error_kinds.deserializationError
       "chash: expected %dB, got a blob %dB long." n_bytes (String.length x);
   x
