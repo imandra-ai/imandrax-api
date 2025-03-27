@@ -8,6 +8,7 @@ type t [@@deriving twine, eq, ord, show]
 val hash : t -> int
 val chasher : t Chash.hasher
 val slugify : t -> string
+val unslugify : string -> t option
 
 val unslugify_exn : string -> t
 (** Read from a string. *)

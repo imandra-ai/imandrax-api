@@ -1451,12 +1451,112 @@ def Common_Region_status_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Common_Region_status, got invalid constructor {idx}')
 
+# clique Imandrax_api_common.Region.meta
+# def Imandrax_api_common.Region.meta (mangled name: "Common_Region_meta")
+@dataclass(slots=True, frozen=True)
+class Common_Region_meta_Null[_V_tyreg_poly_term]:
+    pass
+
+@dataclass(slots=True, frozen=True)
+class Common_Region_meta_Bool[_V_tyreg_poly_term]:
+    arg: bool
+
+def Common_Region_meta_Bool_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],args: tuple[int, ...]) -> Common_Region_meta_Bool[_V_tyreg_poly_term]:
+    decode__tyreg_poly_term = d0
+    arg = d.get_bool(off=args[0])
+    return Common_Region_meta_Bool(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Common_Region_meta_Int[_V_tyreg_poly_term]:
+    arg: int
+
+def Common_Region_meta_Int_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],args: tuple[int, ...]) -> Common_Region_meta_Int[_V_tyreg_poly_term]:
+    decode__tyreg_poly_term = d0
+    arg = d.get_int(off=args[0])
+    return Common_Region_meta_Int(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Common_Region_meta_Real[_V_tyreg_poly_term]:
+    arg: tuple[int, int]
+
+def Common_Region_meta_Real_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],args: tuple[int, ...]) -> Common_Region_meta_Real[_V_tyreg_poly_term]:
+    decode__tyreg_poly_term = d0
+    arg = decode_q(d=d,off=args[0])
+    return Common_Region_meta_Real(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Common_Region_meta_String[_V_tyreg_poly_term]:
+    arg: str
+
+def Common_Region_meta_String_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],args: tuple[int, ...]) -> Common_Region_meta_String[_V_tyreg_poly_term]:
+    decode__tyreg_poly_term = d0
+    arg = d.get_str(off=args[0])
+    return Common_Region_meta_String(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Common_Region_meta_Assoc[_V_tyreg_poly_term]:
+    arg: list[tuple[str,Common_Region_meta["_V_tyreg_poly_term"]]]
+
+def Common_Region_meta_Assoc_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],args: tuple[int, ...]) -> Common_Region_meta_Assoc[_V_tyreg_poly_term]:
+    decode__tyreg_poly_term = d0
+    arg = [(lambda tup: (d.get_str(off=tup[0]),Common_Region_meta_of_twine(d=d,off=tup[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[0])]
+    return Common_Region_meta_Assoc(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Common_Region_meta_Term[_V_tyreg_poly_term]:
+    arg: "_V_tyreg_poly_term"
+
+def Common_Region_meta_Term_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],args: tuple[int, ...]) -> Common_Region_meta_Term[_V_tyreg_poly_term]:
+    decode__tyreg_poly_term = d0
+    arg = decode__tyreg_poly_term(d=d,off=args[0])
+    return Common_Region_meta_Term(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Common_Region_meta_List[_V_tyreg_poly_term]:
+    arg: list[Common_Region_meta["_V_tyreg_poly_term"]]
+
+def Common_Region_meta_List_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],args: tuple[int, ...]) -> Common_Region_meta_List[_V_tyreg_poly_term]:
+    decode__tyreg_poly_term = d0
+    arg = [Common_Region_meta_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))) for x in d.get_array(off=args[0])]
+    return Common_Region_meta_List(arg=arg)
+
+type Common_Region_meta[_V_tyreg_poly_term] = Common_Region_meta_Null[_V_tyreg_poly_term]| Common_Region_meta_Bool[_V_tyreg_poly_term]| Common_Region_meta_Int[_V_tyreg_poly_term]| Common_Region_meta_Real[_V_tyreg_poly_term]| Common_Region_meta_String[_V_tyreg_poly_term]| Common_Region_meta_Assoc[_V_tyreg_poly_term]| Common_Region_meta_Term[_V_tyreg_poly_term]| Common_Region_meta_List[_V_tyreg_poly_term]
+
+def Common_Region_meta_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],off: int) -> Common_Region_meta:
+    match d.get_cstor(off=off):
+         case twine.Constructor(idx=0, args=args):
+             return Common_Region_meta_Null[_V_tyreg_poly_term]()
+         case twine.Constructor(idx=1, args=args):
+             args = tuple(args)
+             return Common_Region_meta_Bool_of_twine(d=d, args=args, d0=d0,)
+         case twine.Constructor(idx=2, args=args):
+             args = tuple(args)
+             return Common_Region_meta_Int_of_twine(d=d, args=args, d0=d0,)
+         case twine.Constructor(idx=3, args=args):
+             args = tuple(args)
+             return Common_Region_meta_Real_of_twine(d=d, args=args, d0=d0,)
+         case twine.Constructor(idx=4, args=args):
+             args = tuple(args)
+             return Common_Region_meta_String_of_twine(d=d, args=args, d0=d0,)
+         case twine.Constructor(idx=5, args=args):
+             args = tuple(args)
+             return Common_Region_meta_Assoc_of_twine(d=d, args=args, d0=d0,)
+         case twine.Constructor(idx=6, args=args):
+             args = tuple(args)
+             return Common_Region_meta_Term_of_twine(d=d, args=args, d0=d0,)
+         case twine.Constructor(idx=7, args=args):
+             args = tuple(args)
+             return Common_Region_meta_List_of_twine(d=d, args=args, d0=d0,)
+         case twine.Constructor(idx=idx):
+             raise twine.Error(f'expected Common_Region_meta, got invalid constructor {idx}')
+
 # clique Imandrax_api_common.Region.t_poly
 # def Imandrax_api_common.Region.t_poly (mangled name: "Common_Region_t_poly")
 @dataclass(slots=True, frozen=True)
 class Common_Region_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     constraints: list["_V_tyreg_poly_term"]
     invariant: "_V_tyreg_poly_term"
+    meta: list[tuple[str,Common_Region_meta["_V_tyreg_poly_term"]]]
     status: Common_Region_status["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
 def Common_Region_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Region_t_poly:
@@ -1465,8 +1565,9 @@ def Common_Region_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
     fields = list(d.get_array(off=off))
     constraints = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[0])]
     invariant = decode__tyreg_poly_term(d=d,off=fields[1])
-    status = Common_Region_status_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
-    return Common_Region_t_poly(constraints=constraints,invariant=invariant,status=status)
+    meta = [(lambda tup: (d.get_str(off=tup[0]),Common_Region_meta_of_twine(d=d,off=tup[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[2])]
+    status = Common_Region_status_of_twine(d=d,off=fields[3],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Common_Region_t_poly(constraints=constraints,invariant=invariant,meta=meta,status=status)
 
 # clique Imandrax_api_common.Proof_obligation.t_poly
 # def Imandrax_api_common.Proof_obligation.t_poly (mangled name: "Common_Proof_obligation_t_poly")

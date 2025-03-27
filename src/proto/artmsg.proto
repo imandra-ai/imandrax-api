@@ -1,6 +1,14 @@
 
 syntax = "proto3";
 
+message StorageEntry {
+  // the CA store key
+  string key = 1;
+
+  // the stored value
+  bytes value = 2;
+}
+
 message Art {
   // The kind of artifact.
   string kind = 1;
@@ -11,4 +19,7 @@ message Art {
   // Version of the API. This is mandatory and must match
   // with the imandrax-api library version.
   string api_version = 3;
+
+  // Additional definitions on the side.
+  repeated StorageEntry storage = 4;
 }

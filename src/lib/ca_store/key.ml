@@ -7,7 +7,6 @@ type t = string Util_twine_.With_tag7.t [@@deriving eq, ord, typereg, twine]
 let show self = spf "(cstore.key %s)" self
 let pp = Fmt.of_to_string show
 let slugify : t -> string = Fun.id
-let unslugify_exn : string -> t = Fun.id
 let hash = CCHash.string
 
 module Tbl = Str_tbl
@@ -94,6 +93,16 @@ let view (self : t) : view =
   | _ ->
     Error.failf ~kind:Error_kinds.deserializationError
       "Invalid CA Store key: %S" self
+
+let unslugify (str : string) : t option =
+  try
+    ignore (view str : view);
+    Some str
+  with _ -> None
+
+let unslugify_exn (str : string) : t =
+  ignore (view str : view);
+  str
 
 let[@inline] as_chash self =
   match view self with
