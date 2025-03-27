@@ -21,7 +21,7 @@ format:
 	$(DUNE) build @fmt --auto-promote
 
 check-format:
-	$(DUNE) build $(DUNE_OPTS) @fmt
+	$(DUNE) build $(DUNE_OPTS) @fmt --ignore-promoted-rules
 
 genproto:
 	FORCE_GENPROTO=true $(DUNE) build @genproto --auto-promote
