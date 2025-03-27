@@ -1,6 +1,6 @@
 from setuptools import setup
 
-VERSION = "0.11.1"
+VERSION = "0.12"
 setup(
     name="imandrax_api",
     version=VERSION,
