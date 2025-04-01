@@ -26,13 +26,20 @@ check-format:
 genproto:
 	FORCE_GENPROTO=true $(DUNE) build @genproto --auto-promote
 
-genlib:
+genpython:
 	@make -s	install-go-protobuf-plugin -C src/py
 	#make genpython -C src/py/lib/ --debug
 	@make -s genpython -C src/py/lib/
 	@make -s genpython -C src/py/bindings/
+
+genrust:
 	@make -s genrust -C src/rust/lib
 	# @make -s genrust -C src/rust/lib/ --debug
+
+gents:
+	@make -s gents -C src/ts/lib/
+
+genlib: gents genpython genrust
 
 test-docker-4.14:
 	docker build . -f dep/Dockerfile.4.14 --network=host

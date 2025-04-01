@@ -17,6 +17,7 @@ let main ~out ~lang () : unit =
   match lang with
   | "python" -> Gen_python.gen ~out ~artifacts ~types ()
   | "rust" -> Gen_rust.gen ~out ~artifacts ~types ()
+  | "ts" -> Gen_ts.gen ~out ~artifacts ~types ()
   | _ -> failwith @@ spf "unsupported target language: %S" lang
 
 let () =
