@@ -13,6 +13,51 @@ export class TwineError extends Error {
   }
 }
 
+export type value =
+  | null
+  | boolean
+  | bigint
+  | string
+  | number
+  | Uint8Array
+  | Array<[value, value]>
+  | Array<value>
+  | Cstor<value>
+  | Tag<value>;
+
+export type shallow_value =
+  | null
+  | boolean
+  | bigint
+  | string
+  | number
+  | Uint8Array
+  | Array<[offset, offset]>
+  | Array<offset>
+  | Cstor<offset>
+  | Tag<offset>;
+
+export class Tag<T> {
+  tag: number;
+  value: T;
+
+  constructor(tag: number, value: T) {
+    this.tag = tag;
+    this.value = value;
+  }
+}
+
+/** A constructor */
+export class Cstor<T> {
+  cstor_idx: number;
+  args: Array<T>;
+
+  constructor(cstor_idx: number, args: T[]) {
+    this.cstor_idx = cstor_idx;
+    this.args = args;
+  }
+}
+
 export abstract class Cursor {
   dec: Decoder;
   offset: offset;
@@ -50,6 +95,12 @@ export class ArrayCursor extends Cursor implements Iterator<offset> {
       return { done: this.num_items === 0, value: off };
     }
   }
+
+  toArray(): Array<offset> {
+    const res = [];
+    for (const x of this) res.push(x);
+    return res;
+  }
 }
 
 export class DictCursor extends Cursor implements Iterator<[offset, offset]> {
@@ -67,6 +118,12 @@ export class DictCursor extends Cursor implements Iterator<[offset, offset]> {
       this.num_items -= 1;
       return { done: this.num_items === 0, value: [off, off2] };
     }
+  }
+
+  toArray(): Array<[offset, offset]> {
+    const res = [];
+    for (const x of this) res.push(x);
+    return res;
   }
 }
 
@@ -187,7 +244,7 @@ export class Decoder {
       // negative int
       const [x, _] = this.__getint64(off, low);
       return -x - 1n;
-    } /* TODO:
+    } /* FIXME: how do we parse a bigint from bits...
     else if (high === 5) {
             // bigint
             const bytes = this.get_bytes(off)
@@ -201,6 +258,26 @@ export class Decoder {
         msg: `expected integer, but high=${high} at off=${off}`,
         offset: off,
       });
+    }
+  }
+
+  get_float(off: offset): number {
+    off = this._deref(off);
+    const [high, low] = this.__first_byte(off);
+    if (high != 3) {
+      throw new TwineError({
+        msg: `expected float, but high=${high} at off=${off}`,
+        offset: off,
+      });
+    }
+
+    const isf32 = low == 0;
+    const isLittleEndian = true;
+    const dv = new DataView(this.a.buffer);
+    if (isf32) {
+      return dv.getFloat32(off + 1, isLittleEndian);
+    } else {
+      return dv.getFloat64(off + 1, isLittleEndian);
     }
   }
 
@@ -236,6 +313,22 @@ export class Decoder {
     });
   }
 
+  get_str(off: offset): string {
+    off = this._deref(off);
+    const [high, low] = this.__first_byte(off);
+    if (high != 4) {
+      throw new TwineError({
+        msg: `expected string, but high=${high} at off=${off}`,
+        offset: off,
+      });
+    }
+    const [len, n_bytes] = this.__getint64(off, low);
+    off = off + 1 + n_bytes;
+    const decoder = new TextDecoder("utf-8");
+    const s = decoder.decode(this.a.slice(off, off + Number(len)));
+    return s;
+  }
+
   get_bytes(off: offset): Uint8Array {
     off = this._deref(off);
     const [high, low] = this.__first_byte(off);
@@ -249,269 +342,161 @@ export class Decoder {
     off = off + 1 + n_bytes;
     return this.a.slice(off, off + Number(len));
   }
+
+  get_array(off: offset): ArrayCursor {
+    off = this._deref(off);
+    const [high, low] = this.__first_byte(off);
+    if (high != 6) {
+      throw new TwineError({
+        msg: `expected array, but high=${high} at off=${off}`,
+        offset: off,
+      });
+    }
+    const [len, n_bytes] = this.__getint64(off, low);
+    off = off + 1 + n_bytes;
+    return new ArrayCursor({ dec: this, offset: off, num_items: Number(len) });
+  }
+
+  get_dict(off: offset): DictCursor {
+    off = this._deref(off);
+    const [high, low] = this.__first_byte(off);
+    if (high != 7) {
+      throw new TwineError({
+        msg: `expected dict, but high=${high} at off=${off}`,
+        offset: off,
+      });
+    }
+    const [len, n_bytes] = this.__getint64(off, low);
+    off = off + 1 + n_bytes;
+    return new DictCursor({ dec: this, offset: off, num_items: Number(len) });
+  }
+
+  get_tag(off: offset): Tag<offset> {
+    off = this._deref(off);
+    const [high, low] = this.__first_byte(off);
+    if (high != 8) {
+      throw new TwineError({
+        msg: `expected tag, but high=${high} at off=${off}`,
+        offset: off,
+      });
+    }
+    const [tag, n_bytes] = this.__getint64(off, low);
+    off = off + 1 + n_bytes;
+    return new Tag(Number(tag), off);
+  }
+
+  get_cstor(off: offset): Cstor<offset> {
+    off = this._deref(off);
+    const [high, low] = this.__first_byte(off);
+
+    if (high == 10) {
+      const [idx, _] = this.__getint64(off, low);
+      return new Cstor(
+        Number(idx),
+        [],
+      );
+    } else if (
+      high == 11
+    ) {
+      const [idx, n_bytes] = this.__getint64(off, low);
+      return new Cstor(
+        Number(idx),
+        (new ArrayCursor(
+          { dec: this, offset: off + 1 + n_bytes, num_items: 1 },
+        )).toArray(),
+      );
+    } else if (
+      high == 12
+    ) {
+      const [idx, n_bytes] = this.__getint64(off, low);
+      off = off + 1 + n_bytes;
+      const [num_items, n_bytes2] = this._leb128(off);
+      return new Cstor(
+        Number(idx),
+        (new ArrayCursor(
+          {
+            dec: this,
+            offset: off + n_bytes2,
+            num_items: Number(num_items),
+          },
+        )).toArray(),
+      );
+    } else {
+      throw new TwineError({
+        msg: `expected constructor (high=${high}) at off=${off}`,
+        offset: off,
+      });
+    }
+  }
+
+  /** Read an arbitrary (shallow) value, non-recursively */
+  shallow_value(off: offset): shallow_value {
+    off = this._deref(off);
+    const [high, low] = this.__first_byte(off);
+    switch (high) {
+      case 0: {
+        if (low == 2) {
+          return null;
+        } else if (high == 0) {
+          return false;
+        } else if (high == 1) {
+          return true;
+        } else {
+          throw new TwineError({
+            msg: `expected true/false/None at off=${off}`,
+            offset: off,
+          });
+        }
+      }
+      case 1:
+      case 2:
+        return this.get_int(off);
+      case 3:
+        return this.get_float(off);
+      case 4:
+        return this.get_str(off);
+      case 5:
+        return this.get_bytes(off);
+      case 6:
+        return this.get_array(off).toArray();
+      case 7:
+        return this.get_dict(off).toArray();
+      case 8:
+        return this.get_tag(off);
+      case 10:
+      case 11:
+      case 12:
+        return this.get_cstor(off);
+      default:
+        throw new TwineError({
+          msg: `invalid twine value (high=${high}) at off=${off}`,
+          offset: off,
+        });
+    }
+  }
+
+  entrypoint(): offset {
+    const last = this.a.length - 1;
+    const offset = last - Number(this.a[last]) - 1;
+    // print(f"offset = 0x{offset:x}")
+    return this._deref(offset);
+  }
 }
 
-/*
-
-
-    def get_float(self, off: offset) -> float:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
-        if high != 3:
-            throw new TwineError({msg: `expected float, but high={high} at off=0x{off:x}")
-
-        isf32 = low == 0
-        if isf32:
-            return struct.unpack_from("<f", self.bs, offset=off)[0]
-        else:
-            return struct.unpack_from("<d", self.bs, offset=off)[0]
-
-    def get_str(self, off: offset) -> str:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
-        if high != 4:
-            throw new TwineError({msg: `expected string, but high={high} at off=0x{off:x}")
-        len, n_bytes = self.__getint64(off=off, low=low)
-        off = off + 1 + n_bytes
-        s = self.bs[off : off + len].decode("utf8")
-        return s
-
-    def get_array(self, off: offset) -> ArrayCursor:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
-        if high != 6:
-            throw new TwineError({msg: `expected array, but high={high} at off=0x{off:x}")
-        len, n_bytes = self.__getint64(off=off, low=low)
-        off = off + 1 + n_bytes
-        return ArrayCursor(dec=self, offset=off, num_items=len)
-
-    def get_dict(self, off: offset) -> DictCursor:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
-        if high != 7:
-            throw new TwineError({msg: `expected dict, but high={high} at off=0x{off:x}")
-        len, n_bytes = self.__getint64(off=off, low=low)
-        off = off + 1 + n_bytes
-        return DictCursor(dec=self, offset=off, num_items=len)
-
-    def get_tag(self, off: offset) -> Tag[offset]:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
-        if high != 8:
-            throw new TwineError({msg: `expected tag, but high={high} at off=0x{off:x}")
-        tag, n_bytes = self.__getint64(off=off, low=low)
-        off = off + 1 + n_bytes
-        return Tag[offset](tag=tag, arg=off)
-
-    def get_cstor(self, off: offset) -> Constructor[ArrayCursor]:
-        """
-        dec.get_cstor(off) returns the constructor index, and a cursor over its arguments
-        """
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
-
-        if high == 10:
-            idx, _ = self.__getint64(off=off, low=low)
-            return Constructor[ArrayCursor](
-                idx=idx, args=ArrayCursor(dec=self, offset=off, num_items=0)
-            )
-        elif high == 11:
-            idx, n_bytes = self.__getint64(off=off, low=low)
-            return Constructor[ArrayCursor](
-                idx=idx,
-                args=ArrayCursor(dec=self, offset=off + 1 + n_bytes, num_items=1),
-            )
-        elif high == 12:
-            idx, n_bytes = self.__getint64(off=off, low=low)
-            off = off + 1 + n_bytes
-            num_items, n_bytes = self._leb128(off=off)
-            return Constructor[ArrayCursor](
-                idx=idx,
-                args=ArrayCursor(dec=self, offset=off + n_bytes, num_items=num_items),
-            )
-        else:
-            throw new TwineError({msg: `expected constructor (high={high}) at off=0x{off:x}")
-
-    def shallow_value(self, off: offset) -> shallow_value:
-        """Read an arbitrary (shallow) value, non-recursively"""
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
-        match high:
-            case 0:
-                if low == 2:
-                    return None
-                elif high == 0:
-                    return False
-                elif high == 1:
-                    return True
-                else:
-                    throw new TwineError({msg: `expected true/false/None at off=0x{off:x}")
-            case 1 | 2:
-                return self.get_int(off=off)
-            case 3:
-                return self.get_float(off=off)
-            case 4:
-                return self.get_str(off=off)
-            case 5:
-                return self.get_bytes(off=off)
-            case 6:
-                c = self.get_array(off=off)
-                return tuple(c)
-            case 7:
-                c = self.get_dict(off=off)
-                d = dict(c)
-                return d
-            case 8:
-                return self.get_tag(off=off)
-            case 10 | 11 | 12:
-                c = self.get_cstor(off=off)
-                return Constructor(idx=c.idx, args=tuple(c.args))
-            case 15:
-                assert False
-            case _:
-                throw new TwineError({msg: `invalid twine value (high={high}) at off=0x{off:x}")
-
-    def value(self, off: offset) -> value:
-        """Read an arbitrary value"""
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
-        match high:
-            case 0:
-                if low == 2:
-                    return None
-                elif high == 0:
-                    return False
-                elif high == 1:
-                    return True
-                else:
-                    throw new TwineError({msg: `expected true/false/None at off=0x{off:x}")
-            case 1 | 2:
-                return self.get_int(off=off)
-            case 3:
-                return self.get_float(off=off)
-            case 4:
-                return self.get_str(off=off)
-            case 5:
-                return self.get_bytes(off=off)
-            case 6:
-                c = self.get_array(off=off)
-                return tuple(self.value(off) for off in c)
-            case 7:
-                c = self.get_dict(off=off)
-                d = {self.value(k): self.value(v) for k, v in c}
-                return d
-            case 8:
-                tag = self.get_tag(off=off)
-                return Tag(tag=tag.tag, arg=self.value(tag.arg))
-            case 10 | 11 | 12:
-                c = self.get_cstor(off=off)
-                args: tuple[value, ...] = tuple(self.value(x) for x in c.args)
-                return Constructor(idx=c.idx, args=args)
-            case 15:
-                assert False
-            case _:
-                throw new TwineError({msg: `invalid twine value (high={high}) at off=0x{off:x}")
-
-    def entrypoint(self) -> offset:
-        last = len(self.bs) - 1
-        offset = last - int(self.bs[last]) - 1
-        # print(f"offset = 0x{offset:x}")
-        return self._deref(off=offset)
-
-
-@dataclass(slots=True, frozen=True)
-class Tag[Arg]:
-    """A tagged value"""
-
-    tag: int
-    arg: Arg
-
-
-@dataclass(slots=True, frozen=True)
-class Constructor[Args]:
-    """A constructor for an ADT"""
-
-    idx: int
-    args: Args
-
-
-type value = (
-    None
-    | int
-    | str
-    | float
-    | bytes
-    | dict["value", "value"]
-    | tuple["value", ...]
-    | Constructor[tuple["value", ...]]
-    | Tag["value"]
-)
-
-type shallow_value = (
-    None
-    | int
-    | str
-    | float
-    | bytes
-    | dict[offset, offset]
-    | tuple[offset, ...]
-    | Constructor[tuple[offset, ...]]
-    | Tag[offset]
-)
-
-
-@dataclass(slots=True)
-class Cursor:
-    dec: Decoder
-    offset: offset
-    num_items: int
-
-    def __iter__(self):
-        return self
-
-    def __len__(self) -> int:
-        return self.num_items
-
-
-@dataclass(slots=true)
-class arraycursor(cursor):
-    def __next__(self) -> offset:
-        if self.num_items == 0:
-            raise stopiteration
-        off = self.offset
-        self.offset = self.dec._skip(off=self.offset)
-        self.num_items -= 1
-        return off
-
-
-@dataclass(slots=true)
-class dictcursor(cursor):
-    def __next__(self) -> tuple[offset, offset]:
-        if self.num_items == 0:
-            raise stopiteration
-        off_key = self.offset
-        self.offset = self.dec._skip(off=self.offset)
-        off_value = self.offset
-        self.offset = self.dec._skip(off=self.offset)
-        self.num_items -= 1
-        return off_key, off_value
-
-
-def optional[T](d: Decoder, d0: Callable[..., T], off: offset) -> T | None:
-    match d.shallow_value(off=off):
-        case None:
-            return None
-        case (c,):
-            return d0(d=d, off=c)
-        case v:
-            throw new TwineError({msg: `expected optional, got {v}")
-
-
-def value_to_json(v: value) -> str:
-    j = json.dumps(v)
-    return j
-
-
-*/
+/** Decode an option type */
+export function optional<T>(
+  d: Decoder,
+  d0: (d: Decoder, off: offset) => T,
+  off: offset,
+): T | undefined {
+  const v = d.shallow_value(off);
+  if (v === null) {
+    return undefined;
+  } else if (v instanceof Array && v.length == 1 && typeof (v[0]) == "number") {
+    return d0(d, v[0]);
+  } else {
+    throw new TwineError({ msg: `expected optional, got ${v}`, offset: off });
+  }
+}
 
 // vim:foldmethod=indent:
