@@ -501,9 +501,9 @@ export function optional<T>(
 
 export function result<T, E>(
   d: Decoder,
-  off: number,
   d0: (d: Decoder, o: offset) => T,
   d1: (d: Decoder, o: offset) => E,
+  off: offset,
 ): T | E {
   const c = d.get_cstor(off);
   if (c.cstor_idx == 0) {
