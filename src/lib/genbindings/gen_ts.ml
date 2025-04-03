@@ -28,8 +28,19 @@ function decode_with_tag7<T>(d: twine.Decoder, off: offset, d0: (d: twine.Decode
   return d0(d, tag.value)
 }
 
+export type Void = never;
+export function Void_of_twine(d: twine.Decoder, off:offset): Void {
+  throw new twine.TwineError({ msg: `Cannot decode Void`, offset: off });
+}
+
+export type Eval__Value_Custom_value = any;
+export function Eval__Value_Custom_value_of_twine(d: twine.Decoder, off:offset): Eval__Value_Custom_value {
+  throw new twine.TwineError({ msg: `Cannot decode Eval__Value_Custom_value`, offset: off });
+}
+
+
 export function decode_q(d: twine.Decoder, off: offset) : [bigint, bigint] {
-  let [num, denum] = d.get_array(off)
+  const [num, denum] = d.get_array(off)
   const bnum = d.get_int(num)
   const bdenum = d.get_int(denum)
   return [bnum, bdenum]
@@ -69,6 +80,7 @@ let mangle_ty_name (s : string) : string =
 let mangle_field_name (s : string) : string =
   let s = String.uncapitalize_ascii s in
   match s with
+  | "default" -> "default_"
   | "from" -> "from_"
   | _ -> s
 
@@ -89,7 +101,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
   | Tuple l -> spf "[%s]" (String.concat "," @@ List.map gen_type_expr l)
   | Attrs (Cstor ("string", []), attrs)
     when List.mem_assoc "twine.use_bytes" attrs ->
-    "bytes"
+    "Uint8Array"
   | Attrs (ty, _attrs) ->
     if List.mem_assoc "ocaml_only" _attrs then
       Printf.eprintf "warning: remaining `ocaml_only` attr\n%!";
@@ -153,14 +165,14 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
     | ("Timestamp_s.t" | "Duration_s.t"), [] -> spf "d.get_float(%s)" off
     | "Error.result", [ x ] ->
       spf
-        "twine_result(d, ((d:twine.Decoder,off:offset) =>  %s), ((d: \
+        "twine.result(d, ((d:twine.Decoder,off:offset) =>  %s), ((d: \
          twine.Decoder, off: offset)  => Error_Error_core_of_twine(d, off)), \
          %s)"
         (of_twine_of_type_expr x ~off:"off")
         off
     | "Util_twine.Result.t", [ x; y ] ->
       spf
-        "twine_result(d,  ((d:twine.Decoder,off:offset)=> %s), \
+        "twine.result(d,  ((d:twine.Decoder,off:offset)=> %s), \
          ((d:twine.Decoder,off:offset) => %s), %s)"
         (of_twine_of_type_expr x ~off:"off")
         (of_twine_of_type_expr y ~off:"off")
@@ -297,30 +309,31 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
             bpf buf "  constructor(";
 
             (match c.args, c.labels with
-            | [], _ -> bpf buf "){}\n}\n"
+            | [], _ -> bpf buf "){}\n"
             | [ x ], None ->
               bpf buf "public arg: %s) {}\n}\n" (gen_type_expr x);
               bpf buf
-                "export function %s_of_twine%s(d: twine.Decoder, %sargs: \
+                "export function %s_of_twine%s(d: twine.Decoder, %s_tw_args: \
                  Array<offset>): %s%s {\n"
                 c_tsname tsparams ts_twine_params c_tsname tsparams;
               List.iter (fun s -> bpf buf "  %s; // ignore \n" s) params_decls;
               bpf buf "  const arg = %s\n"
-                (of_twine_of_type_expr ~off:"args[0]" x);
+                (of_twine_of_type_expr ~off:"_tw_args[0]" x);
               bpf buf "  return new %s(arg)\n" c_tsname
             | _, None ->
               bpf buf "public args: [%s]){}\n}\n"
                 (String.concat "," @@ List.map gen_type_expr c.args);
               bpf buf
-                "export function %s_of_twine%s(d: twine.Decoder, %sargs: \
+                "export function %s_of_twine%s(d: twine.Decoder, %s_tw_args: \
                  Array<offset>): %s%s {\n"
                 c_tsname tsparams ts_twine_params c_tsname tsparams;
               List.iter (fun s -> bpf buf "  %s; // ignore\n" s) params_decls;
-              bpf buf "  const cargs = (%s)\n"
+              bpf buf "  const cargs: %s = [%s]\n"
+                (gen_type_expr @@ Tuple c.args)
                 (String.concat ","
                 @@ List.mapi
                      (fun i ty ->
-                       of_twine_of_type_expr ~off:(spf "args[%d]" i) ty)
+                       of_twine_of_type_expr ~off:(spf "_tw_args[%d]" i) ty)
                      c.args);
               bpf buf "  return new %s(cargs)\n" c_tsname
             | _, Some labels ->
@@ -336,14 +349,14 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
                 labels c.args;
               bpf buf "){}\n}\n\n";
               bpf buf
-                "export function %s_of_twine%s(d: twine.Decoder, %sargs: \
+                "export function %s_of_twine%s(d: twine.Decoder, %s_tw_args: \
                  Array<offset>): %s%s {\n"
                 c_tsname tsparams ts_twine_params c_tsname tsparams;
               List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
               CCList.iteri2
                 (fun i lbl ty ->
                   bpf buf "  const %s = %s\n" (mangle_field_name lbl)
-                    (of_twine_of_type_expr ty ~off:(spf "args[%d]" i)))
+                    (of_twine_of_type_expr ty ~off:(spf "_tw_args[%d]" i)))
                 labels c.args;
               bpf buf "  return new %s(%s)\n" c_tsname
                 (String.concat "," @@ List.map mangle_field_name labels));
@@ -406,17 +419,15 @@ let gen_artifacts (artifacts : Artifact.t list) : string =
   @@ List.map (fun (a : Artifact.t) -> gen_type_expr a.ty) artifacts;
 
   bpf buf "/** Artifact decoders */\n";
-  bpf buf
-    "export const artifact_decoders: Map<string, ((d:twine.Decoder, \
-     off:offset) => any)> = new Map();\n";
-  List.iter
-    (fun (a : Artifact.t) ->
-      bpf buf
-        "artifact_decoders.set(%S, ((d:twine.Decoder, off: offset) => %s))\n"
-        a.tag
+  bpf buf "export const artifact_decoders = {";
+  List.iteri
+    (fun i (a : Artifact.t) ->
+      if i > 0 then bpf buf ",";
+      bpf buf "\n  %S: ((d:twine.Decoder, off: offset): %s => %s)" a.tag
+        (gen_type_expr a.ty)
         (of_twine_of_type_expr ~off:"off" a.ty))
     artifacts;
-  bpf buf "}\n\n";
+  bpf buf "\n}\n\n";
 
   bpf buf "%s\n" footer;
 
