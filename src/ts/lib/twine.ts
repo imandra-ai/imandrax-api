@@ -499,4 +499,20 @@ export function optional<T>(
   }
 }
 
+export function result<T, E>(
+  d: Decoder,
+  off: number,
+  d0: (d: Decoder, o: offset) => T,
+  d1: (d: Decoder, o: offset) => E,
+): T | E {
+  const c = d.get_cstor(off);
+  if (c.cstor_idx == 0) {
+    return d0(d, c.args[0]);
+  } else if (c.cstor_idx == 1) {
+    return d1(d, c.args[0]);
+  } else {
+    throw new TwineError({ msg: "expected result", offset: off });
+  }
+}
+
 // vim:foldmethod=indent:
