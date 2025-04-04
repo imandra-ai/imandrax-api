@@ -12,5 +12,5 @@ type ('term, 'ty) t_poly = {
 
 module Mir = struct
   type t = (Imandrax_api_mir.Term.t, Imandrax_api_mir.Type.t) t_poly
-  [@@deriving show, twine, typereg] [@@typereg.name "Imandrax_api_mir.t"]
+  [@@deriving show, twine, typereg] [@@typereg.name "Mir.t"]
 end

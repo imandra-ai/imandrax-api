@@ -87,7 +87,7 @@ module Shallow = struct
   type ('term, 'ty) t_poly = ('term, 'ty) shallow_poly [@@deriving twine, show]
 
   type t = (Imandrax_api_mir.Term.t, Imandrax_api_mir.Type.t) shallow_poly
-  [@@deriving twine, typereg, show]
+  [@@deriving twine, typereg, show] [@@typereg.name "Shallow.t"]
 end
 
 (** All included *)
