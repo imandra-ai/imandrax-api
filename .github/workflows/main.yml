@@ -21,3 +21,18 @@ jobs:
       - uses: actions/checkout@main
       - run: make update-submodules
       - run: docker build . -f dep/Dockerfile.5.2
+  tsc:
+    name: tsc
+    runs-on: [ubuntu-latest]
+    steps:
+    - uses: actions/checkout@main
+    - name: install node
+      uses: actions/setup-node@v1
+      with:
+        node-version: 20
+    - name: yarn install
+      run: yarn install
+    - name: tsc
+      uses: icrawl/action-tsc@v1
+      with:
+        project: src/ts/lib/
