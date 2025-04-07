@@ -89,10 +89,10 @@ export class ArrayCursor extends Cursor implements Iterator<offset> {
     if (this.num_items === 0) {
       return { done: true, value: undefined };
     } else {
-      const off = this.dec._deref(this.offset);
+      const off = this.offset;
       this.offset = this.dec._skip(off);
       this.num_items -= 1;
-      return { done: this.num_items === 0, value: off };
+      return { done: this.num_items === 0, value: this.dec._deref(off) };
     }
   }
 
@@ -112,11 +112,14 @@ export class DictCursor extends Cursor implements Iterator<[offset, offset]> {
     if (this.num_items === 0) {
       return { done: true, value: undefined };
     } else {
-      const off = this.dec._deref(this.offset);
+      const off = this.offset;
       const off2 = this.dec._skip(off);
       this.offset = this.dec._skip(off2);
       this.num_items -= 1;
-      return { done: this.num_items === 0, value: [off, off2] };
+      return {
+        done: this.num_items === 0,
+        value: [this.dec._deref(off), this.dec._deref(off2)],
+      };
     }
   }
 
