@@ -92,7 +92,7 @@ export class ArrayCursor extends Cursor implements Iterator<offset> {
       const off = this.offset;
       this.offset = this.dec._skip(off);
       this.num_items -= 1;
-      return { done: this.num_items === 0, value: this.dec._deref(off) };
+      return { done: false, value: this.dec._deref(off) };
     }
   }
 
@@ -117,7 +117,7 @@ export class DictCursor extends Cursor implements Iterator<[offset, offset]> {
       this.offset = this.dec._skip(off2);
       this.num_items -= 1;
       return {
-        done: this.num_items === 0,
+        done: false,
         value: [this.dec._deref(off), this.dec._deref(off2)],
       };
     }
