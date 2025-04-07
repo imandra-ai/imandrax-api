@@ -12,6 +12,10 @@ export class TwineError extends Error {
     this.offset = params.offset;
   }
 
+  override name: string = "twine error";
+  override get message(): string {
+    return this.toString();
+  }
   override toString(): string {
     return `Twine Error { msg: ${this.msg}, offset: ${this.offset} }`;
   }
