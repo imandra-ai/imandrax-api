@@ -32,4 +32,4 @@ jobs:
         node-version: 20
     - run: npm install tsc
     - name: tsc
-      run: make -C src/ts chec
+      run: make -C src/ts check
