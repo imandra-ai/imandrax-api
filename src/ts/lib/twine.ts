@@ -7,16 +7,30 @@ export class TwineError extends Error {
   offset: number;
   override name: string = "twine error";
 
-  constructor(params: { msg: string; offset: number })  {
+  constructor(params: { msg: string; offset: number }) {
     super();
     this.msg = params.msg;
     this.offset = params.offset;
-    this.message = `{ msg: ${this.msg}, offset: 0x${this.offset.toString(16)} }`;
+    this.message = `{ msg: ${this.msg}, offset: 0x${
+      this.offset.toString(16)
+    } }`;
   }
 
   override toString(): string {
     return `Twine Error ${this.message}`;
   }
+}
+
+// read a LE big int
+function readBigInt(data: Uint8Array): bigint {
+  let shift = 0n;
+  let res = 0n;
+  for (const byte of data) {
+    const u8 = BigInt(byte) >> shift;
+    shift += 8n;
+    res = res | u8;
+  }
+  return res;
 }
 
 export type value =
@@ -253,16 +267,13 @@ export class Decoder {
       // negative int
       const [x, _] = this.__getint64(off, low);
       return -x - 1n;
-    } /* FIXME: how do we parse a bigint from bits...
-    else if (high === 5) {
-            // bigint
-            const bytes = this.get_bytes(off)
-            // const sign = bytes == b''1  or bytes[0] & 0b1 == 0 else -1
-            // absvalue = int.from_bytes(bytes, byteorder='little', signed=False) >> 1
-            // return sign * absvalue
-    }
-    */
-    else {
+    } else if (high === 5) {
+      // bigint
+      const bytes = this.get_bytes(off);
+      const sign = bytes.length === 0 || ((bytes[0] & 1) === 0) ? 1n : -1n;
+      const absvalue = readBigInt(bytes) >> 1n;
+      return sign * absvalue
+    } else {
       throw new TwineError({
         msg: `expected integer, but high=${high} at off=${off}`,
         offset: off,
