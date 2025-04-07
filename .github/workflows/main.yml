@@ -30,9 +30,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 20
-    - name: yarn install
-      run: yarn install
+    - run: npm install tsc
     - name: tsc
-      uses: icrawl/action-tsc@v1
-      with:
-        project: src/ts/lib/
+      run: make -C src/ts chec
