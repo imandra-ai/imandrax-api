@@ -23,14 +23,14 @@ export type WithTag7<T> = T;
 
 function checkArrayLength(off: offset, a: Array<offset>, len: number): void {
   if (a.length < len) {
-    throw new twine.TwineError({msg: `Array is too short at off=${off}`, offset: off})
+    throw new twine.TwineError({msg: `Array is too short (len=${a.length}, expected ${len} elements)`, offset: off})
   }
 }
 
 function decode_with_tag7<T>(d: twine.Decoder, off: offset, d0: (d: twine.Decoder, o: offset) => T) : WithTag7<T> {
   const tag = d.get_tag(off);
   if (tag.tag != 7)
-    throw new twine.TwineError({msg: `Expected tag 7, got tag ${tag.tag} at off=${off}`, offset: off})
+    throw new twine.TwineError({msg: `Expected tag 7, got tag ${tag.tag}`, offset: off})
   return d0(d, tag.value)
 }
 

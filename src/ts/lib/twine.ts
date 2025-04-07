@@ -11,7 +11,7 @@ export class TwineError extends Error {
     super();
     this.msg = params.msg;
     this.offset = params.offset;
-    this.message = `{ msg: ${this.msg}, offset: ${this.offset} }`;
+    this.message = `{ msg: ${this.msg}, offset: 0x${this.offset.toString(16)} }`;
   }
 
   override toString(): string {
