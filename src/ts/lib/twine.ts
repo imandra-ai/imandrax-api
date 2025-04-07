@@ -5,17 +5,15 @@ export type offset = number;
 export class TwineError extends Error {
   msg: string;
   offset: number;
+  override name: string = "twine error";
 
-  constructor(params: { msg: string; offset: number }) {
+  constructor(params: { msg: string; offset: number })  {
     super();
     this.msg = params.msg;
     this.offset = params.offset;
+    this.message = `{ msg: ${this.msg}, offset: ${this.offset} }`;
   }
 
-  override name: string = "twine error";
-  override get message(): string {
-    return `{ msg: ${this.msg}, offset: ${this.offset} }`;
-  }
   override toString(): string {
     return `Twine Error ${this.message}`;
   }
