@@ -324,9 +324,10 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
               bpf buf "public arg: %s) {}\n}\n" (gen_type_expr x);
               bpf buf
                 "export function %s_of_twine%s(d: twine.Decoder, %s_tw_args: \
-                 Array<offset>): %s%s {\n"
+                 Array<offset>, off: offset): %s%s {\n"
                 c_tsname tsparams ts_twine_params c_tsname tsparams;
               List.iter (fun s -> bpf buf "  %s; // ignore \n" s) params_decls;
+              bpf buf "  checkArrayLength(off, _tw_args, 1)\n";
               bpf buf "  const arg = %s\n"
                 (of_twine_of_type_expr ~off:"_tw_args[0]" x);
               bpf buf "  return new %s(arg)\n" c_tsname
@@ -335,9 +336,11 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
                 (String.concat "," @@ List.map gen_type_expr c.args);
               bpf buf
                 "export function %s_of_twine%s(d: twine.Decoder, %s_tw_args: \
-                 Array<offset>): %s%s {\n"
+                 Array<offset>, off: offset): %s%s {\n"
                 c_tsname tsparams ts_twine_params c_tsname tsparams;
               List.iter (fun s -> bpf buf "  %s; // ignore\n" s) params_decls;
+              bpf buf "  checkArrayLength(off, _tw_args, %d)\n"
+                (List.length c.args);
               bpf buf "  const cargs: %s = [%s]\n"
                 (gen_type_expr @@ Tuple c.args)
                 (String.concat ","
@@ -360,9 +363,11 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
               bpf buf "){}\n}\n\n";
               bpf buf
                 "export function %s_of_twine%s(d: twine.Decoder, %s_tw_args: \
-                 Array<offset>): %s%s {\n"
+                 Array<offset>, off: offset): %s%s {\n"
                 c_tsname tsparams ts_twine_params c_tsname tsparams;
-              List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
+              List.iter (fun s -> bpf buf "  %s\n" s) params_decls;
+              bpf buf "  checkArrayLength(off, _tw_args, %d)\n"
+                (List.length labels);
               CCList.iteri2
                 (fun i lbl ty ->
                   bpf buf "  const %s = %s\n" (mangle_field_name lbl)
@@ -394,7 +399,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
             (match c.args with
             | [] -> bpf buf "     return new %s%s()\n" c_tsname tsparams
             | _ ->
-              bpf buf "      return %s_of_twine(d, %s c.args)\n" c_tsname
+              bpf buf "      return %s_of_twine(d, %s c.args, off)\n" c_tsname
                 ts_twine_params_kw);
             ())
           cstors;
