@@ -39,6 +39,12 @@ genrust:
 gents:
 	@make -s gents -C src/ts/lib/
 
+build-ts-dev: gents
+	@make -C src/ts build-dev
+
+build-ts-release: gents
+	@make -C src/ts build-release
+
 genlib: gents genpython genrust
 
 test-docker-4.14:
