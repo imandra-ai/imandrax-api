@@ -35,12 +35,12 @@ function decode_with_tag7<T>(d: twine.Decoder, off: offset, d0: (d: twine.Decode
 }
 
 export type Void = never;
-export function Void_of_twine(d: twine.Decoder, off:offset): Void {
+export function Void_of_twine(_d: twine.Decoder, off:offset): Void {
   throw new twine.TwineError({ msg: `Cannot decode Void`, offset: off });
 }
 
 export type Eval__Value_Custom_value = any;
-export function Eval__Value_Custom_value_of_twine(d: twine.Decoder, off:offset): Eval__Value_Custom_value {
+export function Eval__Value_Custom_value_of_twine(_d: twine.Decoder, off:offset): Eval__Value_Custom_value {
   throw new twine.TwineError({ msg: `Cannot decode Eval__Value_Custom_value`, offset: off });
 }
 

@@ -4,12 +4,16 @@ export type offset = number;
 
 export class TwineError extends Error {
   msg: string;
-  offset?: number;
+  offset: number;
 
-  constructor(params: { msg: string; offset?: number }) {
+  constructor(params: { msg: string; offset: number }) {
     super();
     this.msg = params.msg;
-    if (params.offset !== undefined) this.offset = params.offset;
+    this.offset = params.offset;
+  }
+
+  override toString(): string {
+    return `Twine Error { msg: ${this.msg}, offset: ${this.offset} }`;
   }
 }
 
