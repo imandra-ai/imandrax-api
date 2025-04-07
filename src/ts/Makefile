@@ -14,7 +14,7 @@ build-dev: check
 build-release: check
 	@mkdir -p $(OUTDIR)/release/
 	#esbuild $(wildcard lib/*.ts) --outdir=$(OUTDIR)/release --bundle --minify --sourcemap
-	esbuild lib/types.ts --outfile=$(OUTDIR)/release/lib.js --bundle --minify --sourcemap
+	esbuild lib/types.ts --outfile=$(OUTDIR)/release/imandrax_api.js --bundle --minify --sourcemap
 
 clean:
 	@rm -r $(OUTDIR)
