@@ -62,7 +62,7 @@
   (ocaml
    (>= 4.12.0))
   (imandrax-api :version)
-  ppxlib
+  (ppxlib (and (>= 0.34) (<= 0.35)))
   (odoc :with-doc)))
 
 (package
