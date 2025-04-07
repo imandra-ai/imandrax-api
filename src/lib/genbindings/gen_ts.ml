@@ -11,7 +11,7 @@ type tyexpr = TR.Ty_expr.t
 type tydef = TR.Ty_def.t
 
 let prelude =
-  {|
+  {|'use strict';
 // automatically generated using genbindings.ml, do not edit
 
 import * as  twine from './twine.ts';
@@ -20,6 +20,12 @@ type offset = twine.offset;
 export type Error = Error_Error_core;
 
 export type WithTag7<T> = T;
+
+function checkArrayLength(off: offset, a: Array<offset>, len: number): void {
+  if (a.length < len) {
+    throw new twine.TwineError({msg: `Array is too short at off=${off}`, offset: off})
+  }
+}
 
 function decode_with_tag7<T>(d: twine.Decoder, off: offset, d0: (d: twine.Decoder, o: offset) => T) : WithTag7<T> {
   const tag = d.get_tag(off);
@@ -136,8 +142,11 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
   | Arrow (_, _, _) -> assert false
   | Var s -> spf "%s(d,%s)" (of_twine_of_var s) off
   | Tuple l ->
-    spf "((tup : Array<offset>): %s => [%s])(d.get_array(%s).toArray())"
+    spf
+      "((tup : Array<offset>): %s => { checkArrayLength(%s, tup, %d); return \
+       [%s] })(d.get_array(%s).toArray())"
       (gen_type_expr ty) (* explicit type needed *)
+      off (List.length l)
       (String.concat ", "
       @@ List.mapi
            (fun i ty -> of_twine_of_type_expr ~off:(spf "tup[%d]" i) ty)
@@ -207,8 +216,8 @@ let special_defs =
     ( "Imandrax_api.Uid_set.t",
       {|type Uid_set = Set<Uid>
 
-function Uid_set_of_twine(d: twine.Decoder, off: number): Uid_set {
-      return new Set(d.get_array(off).toArray().map(x => Uid_of_twine(d,x)))
+function Uid_set_of_twine(d: twine.Decoder, off: offset): Uid_set {
+  return new Set(d.get_array(off).toArray().map(x => Uid_of_twine(d,x)))
 }|}
     );
     ( "Imandrax_api.Chash.t",
@@ -291,6 +300,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
         ) else (
           List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
           bpf buf "  const fields = d.get_array(off).toArray()\n";
+          bpf buf "  checkArrayLength(off, fields, %d)\n" (List.length r.fields);
           List.iteri
             (fun i (field, ty) ->
               bpf buf "  const %s = %s\n" (mangle_field_name field)
@@ -372,7 +382,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
         bpf buf "\n\n";
 
         bpf buf
-          "export function %s_of_twine%s(d: twine.Decoder, %soff: number): \
+          "export function %s_of_twine%s(d: twine.Decoder, %soff: offset): \
            %s%s {\n"
           tsname tsparams ts_twine_params tsname tsparams;
         bpf buf "  const c = d.get_cstor(off)\n";
