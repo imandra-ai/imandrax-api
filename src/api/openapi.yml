@@ -29,7 +29,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/session'
+                type: object
+                properties:
+                  session: {$ref: '#/components/schemas/session'}
+                  current: {type: string}
+                required: [session, current]
   /session/{session}:
     delete:
       summary: delete this session
@@ -37,8 +41,7 @@ paths:
         - name: session
           in: path
           required: true
-          schema:
-            $ref: '#/components/schemas/session'
+          schema: {$ref: '#/components/schemas/session'}
       responses:
         "200":
           description: the session was properly deleted.
@@ -49,14 +52,12 @@ paths:
         - name: taskid
           in: path
           required: true
-          schema:
-            $ref: '#/components/schemas/task_id'
+          schema: {$ref: '#/components/schemas/task_id'}
         - name: kind
           in: path
           required: true
           description: the kind of artifact
-          schema:
-            type: string
+          schema: {type: string}
       responses:
         "200":
           description: The artifact was found
@@ -99,6 +100,20 @@ paths:
                     type: array
                     items:
                       type: string
+  /eval/code/:
+    post:
+      summary: submit code to be evaluated in a session
+      requestBody:
+        required: true
+        content:
+          schema:
+            $ref: '#/components/schemas/code_snippet'
+      responses:
+        "200":
+          description: Submitting code was successful (but code might contain errors)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/eval_res'}
 components:
   schemas:
     session:
@@ -112,7 +127,60 @@ components:
       properties:
         session:
           $ref: '#/components/schemas/session'
+        current:
+          description: current state token
+          type: string
         code:
           type: string
-      required: [session, code]
-
+      required: [session, code, current]
+    eval_res_kind:
+      type: string
+      enum: ['ok', 'errors']
+    position:
+      type: object
+      description: Position in a code snippet
+      properties:
+        line: {type: integer}
+        col: {type: integer}
+      required: [line, col]
+    location:
+      type: object
+      properties:
+        file: {type: string}
+        start: {$ref: '#/components/schemas/position'}
+        stop: {$ref: '#/components/schemas/position'}
+    error_message:
+      type: object
+      properties:
+        message: {type: string}
+        locs:
+          type: array
+          items: {$ref: '#/components/schemas/location'}
+        backtrace: {type: string}
+      required: [message]
+    error:
+      type: object
+      properties:
+        msg: {$ref: '#/components/schemas/error_message'}
+        kind: {type: string}
+        context:
+          type: array
+          items: {$ref: '#/components/schemas/error_message'}
+        process: {type: string}
+      required: [msg, kind]
+    eval_res:
+      description: Result for the evaluation endpoints
+      type: object
+      properties:
+        current:
+          description: New current state
+          type: string
+        res: {$ref: '#/components/schemas/eval_res_kind'}
+        duration_s: {type: number}
+        tasks:
+          type: array
+          items: {$ref: '#/components/schemas/task_id'}
+        errors:
+          type: array
+          items: {$ref: '#/components/schemas/error'}
+      required: [current, res, duration_s]
