@@ -26,6 +26,12 @@ check-format:
 genproto:
 	FORCE_GENPROTO=true $(DUNE) build @genproto --auto-promote
 
+genapi-install-tools:
+	make -C src/api install-all
+	
+genapi:
+	make -C src/api gen-all
+
 genpython:
 	@make -s	install-go-protobuf-plugin -C src/py
 	#make genpython -C src/py/lib/ --debug

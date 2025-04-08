@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=openapi-schema.json
+openapi: "3.1.0"
+info:
+  name: 
+  title: Imandrax
+  version: "0.1"
+#servers:
+#security:
+paths:
+  /session/create:
+    post:
+      summary: create a new session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              parameters:
+                po_check:
+                  type: boolean
+                  default: true
+                api_version:
+                  type: string
+              required: [api_version]
+      responses:
+        "200":
+          description: A new session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/session'
+  /session/{session}:
+    delete:
+      summary: delete this session
+      parameters:
+        - name: session
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/session'
+      responses:
+        "200":
+          description: the session was properly deleted.
+  /artifact/{taskid}/{kind}:
+    get:
+      summary: get artifact of given kind
+      parameters:
+        - name: taskid
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/task_id'
+        - name: kind
+          in: path
+          required: true
+          description: the kind of artifact
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The artifact was found
+          content:
+            application/octet-stream:
+              description: The pure twine data
+              schema:
+                type: string
+                format: binary
+                contentMediaType: application/x-twine-data
+            application/zip:
+              schema:
+                description: The artifact .zip file
+                type: string
+                format: binary
+            text/plain:
+              schema:
+                description: The twine data, in base64
+                type: string
+                format: byte
+                contentMediaType: application/x-twine-data
+  /artifact/list/{taskid}/:
+    get:
+      summary: list available artifact kinds for this task
+      parameters:
+        - name: taskid
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/task_id'
+      responses:
+        "200":
+          description: list of artifact kinds
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kinds:
+                    type: array
+                    items:
+                      type: string
+components:
+  schemas:
+    session:
+      type: string
+      description: Session identifier
+    task_id:
+      type: string
+      description: Task identifier
+    code_snippet:
+      type: object
+      properties:
+        session:
+          $ref: '#/components/schemas/session'
+        code:
+          type: string
+      required: [session, code]
+
