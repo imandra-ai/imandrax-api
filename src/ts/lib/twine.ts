@@ -2,6 +2,9 @@
 
 export type offset = number;
 
+/** A cache for decoding some values */
+export type Cache<T> = Map<offset, T>;
+
 export class TwineError extends Error {
   msg: string;
   offset: number;
@@ -154,6 +157,9 @@ export class DictCursor extends Cursor implements Iterator<[offset, offset]> {
 export class Decoder {
   a: Uint8Array;
 
+  // map from type to cache name
+  caches: Map<string, Cache<unknown>> = new Map();
+
   constructor(a: Uint8Array) {
     this.a = a;
   }
@@ -272,7 +278,7 @@ export class Decoder {
       const bytes = this.get_bytes(off);
       const sign = bytes.length === 0 || ((bytes[0] & 1) === 0) ? 1n : -1n;
       const absvalue = readBigInt(bytes) >> 1n;
-      return sign * absvalue
+      return sign * absvalue;
     } else {
       throw new TwineError({
         msg: `expected integer, but high=${high} at off=${off}`,
@@ -500,6 +506,32 @@ export class Decoder {
     const offset = last - Number(this.a[last]) - 1;
     // print(f"offset = 0x{offset:x}")
     return this._deref(offset);
+  }
+}
+
+/** Caching combinator */
+export function withCache<T>(
+  dec: Decoder,
+  off: offset,
+  name: string,
+  f: (dec: Decoder, off: offset) => T,
+): T {
+  let cache: Cache<T> | undefined = dec.caches.get(name) as
+    | Cache<T>
+    | undefined;
+
+  if (cache === undefined) {
+    cache = new Map();
+    dec.caches.set(name, cache);
+  }
+
+  const cached_res = cache.get(off);
+  if (cached_res === undefined) {
+    const res = f(dec, off);
+    cache.set(off, res);
+    return res;
+  } else {
+    return cached_res;
   }
 }
 

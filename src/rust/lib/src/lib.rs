@@ -42,6 +42,8 @@ pub struct ErrorError_coreMessage<'a> {
 }
 
 
+// clique 
+
 // clique Imandrakit_error.Error_core.t
 #[derive(Debug, Clone)]
 pub struct ErrorError_core<'a> {
@@ -61,6 +63,8 @@ pub struct Util_twine_As_pair {
 }
 
 
+// clique 
+
 // clique Imandrax_api.Builtin_data.kind
 #[derive(Debug, Clone)]
 pub enum Builtin_dataKind<'a> {
@@ -77,6 +81,8 @@ pub enum Builtin_dataKind<'a> {
     decomp_name: &'a str,
   },
 }
+
+// clique 
 
 // clique Imandrax_api.Cname.t
 #[derive(Debug, Clone)]
@@ -118,6 +124,8 @@ pub struct Uid<'a> {
 }
 
 
+// clique 
+
 // clique Imandrax_api.Builtin.Fun.t
 #[derive(Debug, Clone)]
 pub struct BuiltinFun<'a> {
@@ -136,6 +144,8 @@ pub struct BuiltinTy<'a> {
   pub kind: &'a Builtin_dataKind<'a>,
 }
 
+
+// clique 
 
 // clique Imandrax_api.Ty_view.adt_row
 #[derive(Debug, Clone)]
@@ -214,6 +224,8 @@ pub enum Misc_typesApply_label<'a> {
   Optional(&'a str),
 }
 
+// clique 
+
 // clique Imandrax_api.In_mem_archive.raw
 #[derive(Debug, Clone)]
 pub struct In_mem_archiveRaw<'a> {
@@ -222,6 +234,8 @@ pub struct In_mem_archiveRaw<'a> {
   pub data: &'a [u8],
 }
 
+
+// clique 
 
 // clique Imandrax_api.Const.t
 #[derive(Debug, Clone)]
@@ -264,12 +278,16 @@ pub enum Anchor<'a> {
   Decomp(&'a Anchor<'a>),
 }
 
+// clique 
+
 // clique Imandrax_api_ca_store.Ca_ptr.Raw.t
 #[derive(Debug, Clone)]
 pub struct Ca_storeCa_ptrRaw<'a> {
   pub key: &'a Util_twine_With_tag7<'a,&'a str>,
 }
 
+
+// clique 
 
 // clique Imandrax_api_common.Var.t_poly
 #[derive(Debug, Clone)]
@@ -402,6 +420,8 @@ pub struct CommonFun_defT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub f_hints: &'a CommonHintsT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
 }
 
+
+// clique 
 
 // clique Imandrax_api_common.Theorem.t_poly
 #[derive(Debug, Clone)]
@@ -583,6 +603,12 @@ pub struct CommonDecompT_<'a> {
 }
 
 
+// clique 
+
+// clique 
+
+// clique 
+
 // clique Imandrax_api_common.Db_ser.t_poly
 #[derive(Debug, Clone)]
 pub struct CommonDb_serT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
@@ -604,6 +630,12 @@ pub struct CommonDb_serT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 }
 
 
+// clique 
+
+// clique 
+
+// clique 
+
 // clique Imandrax_api_mir.Type.t
 #[derive(Debug, Clone)]
 pub struct MirType<'a> {
@@ -617,6 +649,18 @@ pub struct MirTypeSer<'a> {
   pub view: &'a Ty_viewView<'a,(),&'a Uid<'a>,&'a MirType<'a>>,
 }
 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
 
 // clique Imandrax_api_mir.Term.view
 #[derive(Debug, Clone)]
@@ -664,6 +708,8 @@ pub enum MirTermView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
   },
 }
 
+// clique 
+
 // clique Imandrax_api_mir.Term.t
 #[derive(Debug, Clone)]
 pub struct MirTerm<'a> {
@@ -680,6 +726,40 @@ pub struct MirTermSer<'a> {
 }
 
 
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
+// clique 
+
 // clique Imandrax_api_mir.Decomp.t
 #[derive(Debug, Clone)]
 pub struct MirDecomp<'a> {
@@ -692,6 +772,8 @@ pub struct MirDecomp<'a> {
   pub prune: bool,
 }
 
+
+// clique 
 
 // clique Imandrax_api_eval.Ordinal.t
 #[derive(Debug, Clone)]
@@ -791,6 +873,8 @@ pub enum ReportRtextItem<'a,V_tyreg_poly_term:'a> {
   Subst(&'a [(V_tyreg_poly_term,V_tyreg_poly_term)]),
 }
 
+// clique 
+
 // clique Imandrax_api_report.Atomic_event.poly
 #[derive(Debug, Clone)]
 pub enum ReportAtomic_eventPoly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_term2:'a,V_tyreg_poly_ty2:'a> {
@@ -817,6 +901,8 @@ pub enum ReportAtomic_eventPoly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyr
   E_refuted_by_smt(V_tyreg_poly_term,Option<&'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>),
   E_fun_expansion(V_tyreg_poly_term,V_tyreg_poly_term),
 }
+
+// clique 
 
 // clique Imandrax_api_report.Event.t_linear
 // immediate
@@ -851,6 +937,8 @@ pub enum ReportEventT_tree<V_tyreg_poly_atomic_ev,V_tyreg_poly_sub> {
   },
 }
 
+// clique 
+
 // clique Imandrax_api_report.Report.t
 #[derive(Debug, Clone)]
 pub struct ReportReport<'a> {
@@ -869,6 +957,8 @@ pub enum ProofArg<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   A_dict(&'a [(&'a str,&'a ProofArg<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)]),
   A_seq(&'a CommonSequentT_poly<'a,V_tyreg_poly_term>),
 }
+
+// clique 
 
 // clique Imandrax_api_proof.View.t
 #[derive(Debug, Clone)]
@@ -906,6 +996,10 @@ pub struct TasksPO_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub po: &'a CommonProof_obligationT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
 }
 
+
+// clique 
+
+// clique 
 
 // clique Imandrax_api_tasks.PO_res.proof_found
 #[derive(Debug, Clone)]
@@ -957,6 +1051,8 @@ pub enum TasksPO_resError<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Error(&'a ErrorError_core<'a>),
 }
 
+// clique 
+
 // clique Imandrax_api_tasks.PO_res.shallow_poly
 #[derive(Debug, Clone)]
 pub struct TasksPO_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
@@ -977,6 +1073,10 @@ pub struct TasksPO_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 }
 
 
+// clique 
+
+// clique 
+
 // clique Imandrax_api_tasks.Eval_task.t_poly
 #[derive(Debug, Clone)]
 pub struct TasksEval_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
@@ -986,6 +1086,10 @@ pub struct TasksEval_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub timeout: Option<BigInt>,
 }
 
+
+// clique 
+
+// clique 
 
 // clique Imandrax_api_tasks.Eval_res.stats
 // immediate
@@ -1027,6 +1131,10 @@ pub struct TasksDecomp_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 }
 
 
+// clique 
+
+// clique 
+
 // clique Imandrax_api_tasks.Decomp_res.success
 #[derive(Debug, Clone)]
 pub struct TasksDecomp_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
@@ -1040,6 +1148,8 @@ pub struct TasksDecomp_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 pub enum TasksDecomp_resError<'a> {
   Error(&'a ErrorError_core<'a>),
 }
+
+// clique 
 
 // clique Imandrax_api_tasks.Decomp_res.shallow_poly
 #[derive(Debug, Clone)]
@@ -1060,3 +1170,7 @@ pub struct TasksDecomp_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> 
   pub report: &'a In_mem_archiveRaw<'a>,
 }
 
+
+// clique 
+
+// clique 

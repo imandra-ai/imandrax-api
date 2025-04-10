@@ -2,7 +2,7 @@ from __future__ import annotations  # https://peps.python.org/pep-0563/
 from dataclasses import dataclass
 import struct
 import json
-from typing import Callable
+from typing import Callable, Any
 
 offset = int
 
@@ -14,6 +14,9 @@ class Error(Exception):
 
 class Decoder:
     """A twine decoder"""
+
+    # per-type cache
+    caches: dict[str, dict[offset, Any]] = {}
 
     def __init__(self, a: bytearray | bytes):
         a = bytearray(a)
@@ -302,6 +305,19 @@ class Decoder:
         # print(f"offset = 0x{offset:x}")
         return self._deref(off=offset)
 
+def cached(name: str) -> Any:
+    def decorator(f) -> Any:
+        """Decorator for cached functions"""
+        def cached_f(dec: Decoder, off: offset):
+            cache = dec.caches.setdefault(name, {})
+            if off in cache:
+                return cache[off]
+            else:
+                value = f(dec, off)
+                cache[off] = value
+                return value
+        return cached_f
+    return decorator
 
 @dataclass(slots=True, frozen=True)
 class Tag[Arg]:

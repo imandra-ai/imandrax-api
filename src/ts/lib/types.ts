@@ -40,7 +40,7 @@ export function decode_q(d: twine.Decoder, off: offset) : [bigint, bigint] {
 }
   
 
-// clique Imandrakit_error.Kind.t
+// clique Imandrakit_error.Kind.t (cached: false)
 // def Imandrakit_error.Kind.t (mangled name: "Error_Kind")
 export class Error_Kind {
   constructor(
@@ -52,7 +52,7 @@ export function Error_Kind_of_twine(d: twine.Decoder, off: offset): Error_Kind {
   return new Error_Kind(x)
 }
 
-// clique Imandrakit_error.Error_core.message
+// clique Imandrakit_error.Error_core.message (cached: false)
 // def Imandrakit_error.Error_core.message (mangled name: "Error_Error_core_message")
 export class Error_Error_core_message {
   constructor(
@@ -70,7 +70,7 @@ export function Error_Error_core_message_of_twine(d: twine.Decoder, off: offset)
   return new Error_Error_core_message(msg, data, bt)
 }
 
-// clique Imandrakit_error.Error_core.stack
+// clique Imandrakit_error.Error_core.stack (cached: false)
 // def Imandrakit_error.Error_core.stack (mangled name: "Error_Error_core_stack")
 export type Error_Error_core_stack = Array<Error_Error_core_message>;
 
@@ -78,7 +78,7 @@ export function Error_Error_core_stack_of_twine(d: twine.Decoder, off: offset): 
   return d.get_array(off).toArray().map(x => Error_Error_core_message_of_twine(d, x))
 }
 
-// clique Imandrakit_error.Error_core.t
+// clique Imandrakit_error.Error_core.t (cached: false)
 // def Imandrakit_error.Error_core.t (mangled name: "Error_Error_core")
 export class Error_Error_core {
   constructor(
@@ -98,7 +98,7 @@ export function Error_Error_core_of_twine(d: twine.Decoder, off: offset): Error_
   return new Error_Error_core(process, kind, msg, stack)
 }
 
-// clique Imandrax_api.Util_twine_.as_pair
+// clique Imandrax_api.Util_twine_.as_pair (cached: false)
 // def Imandrax_api.Util_twine_.as_pair (mangled name: "Util_twine__as_pair")
 export class Util_twine__as_pair {
   constructor(
@@ -114,7 +114,7 @@ export function Util_twine__as_pair_of_twine(d: twine.Decoder, off: offset): Uti
   return new Util_twine__as_pair(num, denum)
 }
 
-// clique Imandrax_api.Util_twine_.t
+// clique Imandrax_api.Util_twine_.t (cached: false)
 // def Imandrax_api.Util_twine_.t (mangled name: "Util_twine_")
 export type Util_twine_<_V_tyreg_poly_a> = _V_tyreg_poly_a;
 
@@ -123,7 +123,7 @@ export function Util_twine__of_twine<_V_tyreg_poly_a>(d: twine.Decoder, decode__
   return decode__tyreg_poly_a(d,off)
 }
 
-// clique Imandrax_api.Builtin_data.kind
+// clique Imandrax_api.Builtin_data.kind (cached: false)
 // def Imandrax_api.Builtin_data.kind (mangled name: "Builtin_data_kind")
 export class Builtin_data_kind_Logic_core {
   constructor(
@@ -184,7 +184,7 @@ export function Builtin_data_kind_of_twine(d: twine.Decoder, off: offset): Built
   }
 }
 
-// clique Imandrax_api.Chash.t
+// clique Imandrax_api.Chash.t (cached: false)
 // def Imandrax_api.Chash.t (mangled name: "Chash")
 type Chash = Uint8Array;
 
@@ -192,7 +192,7 @@ function Chash_of_twine(d: twine.Decoder, off:number): Chash {
     return d.get_bytes(off)
 }
 
-// clique Imandrax_api.Cname.t
+// clique Imandrax_api.Cname.t (cached: false)
 // def Imandrax_api.Cname.t (mangled name: "Cname")
 export class Cname {
   constructor(
@@ -208,7 +208,7 @@ export function Cname_of_twine(d: twine.Decoder, off: offset): Cname {
   return new Cname(name, chash)
 }
 
-// clique Imandrax_api.Uid.gen_kind
+// clique Imandrax_api.Uid.gen_kind (cached: false)
 // def Imandrax_api.Uid.gen_kind (mangled name: "Uid_gen_kind")
 export class Uid_gen_kind_Local {
   constructor(){}
@@ -231,7 +231,7 @@ export function Uid_gen_kind_of_twine(d: twine.Decoder, off: offset): Uid_gen_ki
   }
 }
 
-// clique Imandrax_api.Uid.view
+// clique Imandrax_api.Uid.view (cached: false)
 // def Imandrax_api.Uid.view (mangled name: "Uid_view")
 export class Uid_view_Generative {
   constructor(
@@ -287,7 +287,7 @@ export function Uid_view_of_twine(d: twine.Decoder, off: offset): Uid_view {
   }
 }
 
-// clique Imandrax_api.Uid.t
+// clique Imandrax_api.Uid.t (cached: false)
 // def Imandrax_api.Uid.t (mangled name: "Uid")
 export class Uid {
   constructor(
@@ -303,7 +303,7 @@ export function Uid_of_twine(d: twine.Decoder, off: offset): Uid {
   return new Uid(name, view)
 }
 
-// clique Imandrax_api.Uid_set.t
+// clique Imandrax_api.Uid_set.t (cached: false)
 // def Imandrax_api.Uid_set.t (mangled name: "Uid_set")
 type Uid_set = Set<Uid>
 
@@ -311,7 +311,7 @@ function Uid_set_of_twine(d: twine.Decoder, off: offset): Uid_set {
   return new Set(d.get_array(off).toArray().map(x => Uid_of_twine(d,x)))
 }
 
-// clique Imandrax_api.Builtin.Fun.t
+// clique Imandrax_api.Builtin.Fun.t (cached: false)
 // def Imandrax_api.Builtin.Fun.t (mangled name: "Builtin_Fun")
 export class Builtin_Fun {
   constructor(
@@ -333,7 +333,7 @@ export function Builtin_Fun_of_twine(d: twine.Decoder, off: offset): Builtin_Fun
   return new Builtin_Fun(id, kind, lassoc, commutative, connective)
 }
 
-// clique Imandrax_api.Builtin.Ty.t
+// clique Imandrax_api.Builtin.Ty.t (cached: false)
 // def Imandrax_api.Builtin.Ty.t (mangled name: "Builtin_Ty")
 export class Builtin_Ty {
   constructor(
@@ -349,7 +349,7 @@ export function Builtin_Ty_of_twine(d: twine.Decoder, off: offset): Builtin_Ty {
   return new Builtin_Ty(id, kind)
 }
 
-// clique Imandrax_api.Clique.t
+// clique Imandrax_api.Clique.t (cached: false)
 // def Imandrax_api.Clique.t (mangled name: "Clique")
 export type Clique = Uid_set;
 
@@ -357,7 +357,7 @@ export function Clique_of_twine(d: twine.Decoder, off: offset): Clique {
   return Uid_set_of_twine(d, off)
 }
 
-// clique Imandrax_api.Ty_view.adt_row
+// clique Imandrax_api.Ty_view.adt_row (cached: false)
 // def Imandrax_api.Ty_view.adt_row (mangled name: "Ty_view_adt_row")
 export class Ty_view_adt_row<_V_tyreg_poly_id,_V_tyreg_poly_t> {
   constructor(
@@ -379,7 +379,7 @@ export function Ty_view_adt_row_of_twine<_V_tyreg_poly_id,_V_tyreg_poly_t>(d: tw
   return new Ty_view_adt_row(c, labels, args, doc)
 }
 
-// clique Imandrax_api.Ty_view.rec_row
+// clique Imandrax_api.Ty_view.rec_row (cached: false)
 // def Imandrax_api.Ty_view.rec_row (mangled name: "Ty_view_rec_row")
 export class Ty_view_rec_row<_V_tyreg_poly_id,_V_tyreg_poly_t> {
   constructor(
@@ -399,7 +399,7 @@ export function Ty_view_rec_row_of_twine<_V_tyreg_poly_id,_V_tyreg_poly_t>(d: tw
   return new Ty_view_rec_row(f, ty, doc)
 }
 
-// clique Imandrax_api.Ty_view.decl
+// clique Imandrax_api.Ty_view.decl (cached: false)
 // def Imandrax_api.Ty_view.decl (mangled name: "Ty_view_decl")
 export class Ty_view_decl_Algebraic<_V_tyreg_poly_id,_V_tyreg_poly_t,_V_tyreg_poly_alias> {
   constructor(public arg: Array<Ty_view_adt_row<_V_tyreg_poly_id,_V_tyreg_poly_t>>) {}
@@ -478,7 +478,7 @@ export function Ty_view_decl_of_twine<_V_tyreg_poly_id,_V_tyreg_poly_t,_V_tyreg_
   }
 }
 
-// clique Imandrax_api.Ty_view.view
+// clique Imandrax_api.Ty_view.view (cached: false)
 // def Imandrax_api.Ty_view.view (mangled name: "Ty_view_view")
 export class Ty_view_view_Var<_V_tyreg_poly_lbl,_V_tyreg_poly_var,_V_tyreg_poly_t> {
   constructor(public arg: _V_tyreg_poly_var) {}
@@ -543,7 +543,7 @@ export function Ty_view_view_of_twine<_V_tyreg_poly_lbl,_V_tyreg_poly_var,_V_tyr
   }
 }
 
-// clique Imandrax_api.Ty_view.def_poly
+// clique Imandrax_api.Ty_view.def_poly (cached: false)
 // def Imandrax_api.Ty_view.def_poly (mangled name: "Ty_view_def_poly")
 export class Ty_view_def_poly<_V_tyreg_poly_ty> {
   constructor(
@@ -566,7 +566,7 @@ export function Ty_view_def_poly_of_twine<_V_tyreg_poly_ty>(d: twine.Decoder, de
   return new Ty_view_def_poly(name, params, decl, clique, timeout)
 }
 
-// clique Imandrax_api.Stat_time.t
+// clique Imandrax_api.Stat_time.t (cached: false)
 // def Imandrax_api.Stat_time.t (mangled name: "Stat_time")
 export class Stat_time {
   constructor(
@@ -578,7 +578,7 @@ export function Stat_time_of_twine(d: twine.Decoder, off: offset): Stat_time {
   return new Stat_time(x)
 }
 
-// clique Imandrax_api.Misc_types.rec_flag
+// clique Imandrax_api.Misc_types.rec_flag (cached: false)
 // def Imandrax_api.Misc_types.rec_flag (mangled name: "Misc_types_rec_flag")
 export class Misc_types_rec_flag_Recursive {
   constructor(){}
@@ -601,7 +601,7 @@ export function Misc_types_rec_flag_of_twine(d: twine.Decoder, off: offset): Mis
   }
 }
 
-// clique Imandrax_api.Misc_types.apply_label
+// clique Imandrax_api.Misc_types.apply_label (cached: false)
 // def Imandrax_api.Misc_types.apply_label (mangled name: "Misc_types_apply_label")
 export class Misc_types_apply_label_Nolabel {
   constructor(){}
@@ -639,7 +639,7 @@ export function Misc_types_apply_label_of_twine(d: twine.Decoder, off: offset): 
   }
 }
 
-// clique Imandrax_api.Logic_fragment.t
+// clique Imandrax_api.Logic_fragment.t (cached: false)
 // def Imandrax_api.Logic_fragment.t (mangled name: "Logic_fragment")
 export type Logic_fragment = bigint;
 
@@ -647,7 +647,7 @@ export function Logic_fragment_of_twine(d: twine.Decoder, off: offset): Logic_fr
   return d.get_int(off)
 }
 
-// clique Imandrax_api.In_mem_archive.raw
+// clique Imandrax_api.In_mem_archive.raw (cached: false)
 // def Imandrax_api.In_mem_archive.raw (mangled name: "In_mem_archive_raw")
 export class In_mem_archive_raw {
   constructor(
@@ -665,7 +665,7 @@ export function In_mem_archive_raw_of_twine(d: twine.Decoder, off: offset): In_m
   return new In_mem_archive_raw(ty, compressed, data)
 }
 
-// clique Imandrax_api.In_mem_archive.t
+// clique Imandrax_api.In_mem_archive.t (cached: false)
 // def Imandrax_api.In_mem_archive.t (mangled name: "In_mem_archive")
 export type In_mem_archive<_V_tyreg_poly_a> = In_mem_archive_raw;
 
@@ -674,7 +674,7 @@ export function In_mem_archive_of_twine<_V_tyreg_poly_a>(d: twine.Decoder, decod
   return In_mem_archive_raw_of_twine(d, off)
 }
 
-// clique Imandrax_api.Const.t
+// clique Imandrax_api.Const.t (cached: false)
 // def Imandrax_api.Const.t (mangled name: "Const")
 export class Const_Const_float {
   constructor(public arg: number) {}
@@ -757,7 +757,7 @@ export function Const_of_twine(d: twine.Decoder, off: offset): Const {
   }
 }
 
-// clique Imandrax_api.Case_poly.t_poly
+// clique Imandrax_api.Case_poly.t_poly (cached: false)
 // def Imandrax_api.Case_poly.t_poly (mangled name: "Case_poly_t_poly")
 export class Case_poly_t_poly<_V_tyreg_poly_t,_V_tyreg_poly_var,_V_tyreg_poly_sym> {
   constructor(
@@ -780,7 +780,7 @@ export function Case_poly_t_poly_of_twine<_V_tyreg_poly_t,_V_tyreg_poly_var,_V_t
   return new Case_poly_t_poly(case_cstor, case_vars, case_rhs, case_labels)
 }
 
-// clique Imandrax_api.As_trigger.t
+// clique Imandrax_api.As_trigger.t (cached: false)
 // def Imandrax_api.As_trigger.t (mangled name: "As_trigger")
 export class As_trigger_Trig_none {
   constructor(){}
@@ -818,7 +818,7 @@ export function As_trigger_of_twine(d: twine.Decoder, off: offset): As_trigger {
   }
 }
 
-// clique Imandrax_api.Anchor.t
+// clique Imandrax_api.Anchor.t (cached: false)
 // def Imandrax_api.Anchor.t (mangled name: "Anchor")
 export class Anchor_Named {
   constructor(public arg: Cname) {}
@@ -871,7 +871,7 @@ export function Anchor_of_twine(d: twine.Decoder, off: offset): Anchor {
   }
 }
 
-// clique Imandrax_api_ca_store.Key.t
+// clique Imandrax_api_ca_store.Key.t (cached: false)
 // def Imandrax_api_ca_store.Key.t (mangled name: "Ca_store_Key")
 export type Ca_store_Key = WithTag7<string>;
 
@@ -879,7 +879,7 @@ export function Ca_store_Key_of_twine(d: twine.Decoder, off: offset): Ca_store_K
   return decode_with_tag7(d, off, ((d:twine.Decoder,off:offset) => d.get_str(off)))
 }
 
-// clique Imandrax_api_ca_store.Ca_ptr.Raw.t
+// clique Imandrax_api_ca_store.Ca_ptr.Raw.t (cached: false)
 // def Imandrax_api_ca_store.Ca_ptr.Raw.t (mangled name: "Ca_store_Ca_ptr_Raw")
 export class Ca_store_Ca_ptr_Raw {
   constructor(
@@ -891,7 +891,7 @@ export function Ca_store_Ca_ptr_Raw_of_twine(d: twine.Decoder, off: offset): Ca_
   return new Ca_store_Ca_ptr_Raw(x)
 }
 
-// clique Imandrax_api_ca_store.Ca_ptr.t
+// clique Imandrax_api_ca_store.Ca_ptr.t (cached: false)
 // def Imandrax_api_ca_store.Ca_ptr.t (mangled name: "Ca_store_Ca_ptr")
 export type Ca_store_Ca_ptr<_V_tyreg_poly_a> = Ca_store_Ca_ptr_Raw;
 
@@ -900,7 +900,7 @@ export function Ca_store_Ca_ptr_of_twine<_V_tyreg_poly_a>(d: twine.Decoder, deco
   return Ca_store_Ca_ptr_Raw_of_twine(d, off)
 }
 
-// clique Imandrax_api_common.Var.t_poly
+// clique Imandrax_api_common.Var.t_poly (cached: false)
 // def Imandrax_api_common.Var.t_poly (mangled name: "Common_Var_t_poly")
 export class Common_Var_t_poly<_V_tyreg_poly_ty> {
   constructor(
@@ -917,7 +917,7 @@ export function Common_Var_t_poly_of_twine<_V_tyreg_poly_ty>(d: twine.Decoder, d
   return new Common_Var_t_poly(id, ty)
 }
 
-// clique Imandrax_api_common.Type_schema.t_poly
+// clique Imandrax_api_common.Type_schema.t_poly (cached: false)
 // def Imandrax_api_common.Type_schema.t_poly (mangled name: "Common_Type_schema_t_poly")
 export class Common_Type_schema_t_poly<_V_tyreg_poly_ty> {
   constructor(
@@ -934,7 +934,7 @@ export function Common_Type_schema_t_poly_of_twine<_V_tyreg_poly_ty>(d: twine.De
   return new Common_Type_schema_t_poly(params, ty)
 }
 
-// clique Imandrax_api_common.Typed_symbol.t_poly
+// clique Imandrax_api_common.Typed_symbol.t_poly (cached: false)
 // def Imandrax_api_common.Typed_symbol.t_poly (mangled name: "Common_Typed_symbol_t_poly")
 export class Common_Typed_symbol_t_poly<_V_tyreg_poly_ty> {
   constructor(
@@ -951,7 +951,7 @@ export function Common_Typed_symbol_t_poly_of_twine<_V_tyreg_poly_ty>(d: twine.D
   return new Common_Typed_symbol_t_poly(id, ty)
 }
 
-// clique Imandrax_api_common.Applied_symbol.t_poly
+// clique Imandrax_api_common.Applied_symbol.t_poly (cached: false)
 // def Imandrax_api_common.Applied_symbol.t_poly (mangled name: "Common_Applied_symbol_t_poly")
 export class Common_Applied_symbol_t_poly<_V_tyreg_poly_ty> {
   constructor(
@@ -970,7 +970,7 @@ export function Common_Applied_symbol_t_poly_of_twine<_V_tyreg_poly_ty>(d: twine
   return new Common_Applied_symbol_t_poly(sym, args, ty)
 }
 
-// clique Imandrax_api_common.Fo_pattern.view
+// clique Imandrax_api_common.Fo_pattern.view (cached: false)
 // def Imandrax_api_common.Fo_pattern.view (mangled name: "Common_Fo_pattern_view")
 export class Common_Fo_pattern_view_FO_any<_V_tyreg_poly_t,_V_tyreg_poly_ty> {
   constructor(){}
@@ -1082,7 +1082,7 @@ export function Common_Fo_pattern_view_of_twine<_V_tyreg_poly_t,_V_tyreg_poly_ty
   }
 }
 
-// clique Imandrax_api_common.Fo_pattern.t_poly
+// clique Imandrax_api_common.Fo_pattern.t_poly (cached: false)
 // def Imandrax_api_common.Fo_pattern.t_poly (mangled name: "Common_Fo_pattern_t_poly")
 export class Common_Fo_pattern_t_poly<_V_tyreg_poly_ty> {
   constructor(
@@ -1099,7 +1099,7 @@ export function Common_Fo_pattern_t_poly_of_twine<_V_tyreg_poly_ty>(d: twine.Dec
   return new Common_Fo_pattern_t_poly(view, ty)
 }
 
-// clique Imandrax_api_common.Pattern_head.t_poly
+// clique Imandrax_api_common.Pattern_head.t_poly (cached: false)
 // def Imandrax_api_common.Pattern_head.t_poly (mangled name: "Common_Pattern_head_t_poly")
 export class Common_Pattern_head_t_poly_PH_id<_V_tyreg_poly_ty> {
   constructor(public arg: Uid) {}
@@ -1139,7 +1139,7 @@ export function Common_Pattern_head_t_poly_of_twine<_V_tyreg_poly_ty>(d: twine.D
   }
 }
 
-// clique Imandrax_api_common.Trigger.t_poly
+// clique Imandrax_api_common.Trigger.t_poly (cached: false)
 // def Imandrax_api_common.Trigger.t_poly (mangled name: "Common_Trigger_t_poly")
 export class Common_Trigger_t_poly<_V_tyreg_poly_ty> {
   constructor(
@@ -1158,7 +1158,7 @@ export function Common_Trigger_t_poly_of_twine<_V_tyreg_poly_ty>(d: twine.Decode
   return new Common_Trigger_t_poly(trigger_head, trigger_patterns, trigger_instantiation_rule_name)
 }
 
-// clique Imandrax_api_common.Admission.t
+// clique Imandrax_api_common.Admission.t (cached: false)
 // def Imandrax_api_common.Admission.t (mangled name: "Common_Admission")
 export class Common_Admission {
   constructor(
@@ -1174,7 +1174,7 @@ export function Common_Admission_of_twine(d: twine.Decoder, off: offset): Common
   return new Common_Admission(measured_subset, measure_fun)
 }
 
-// clique Imandrax_api_common.Hints.validation_strategy
+// clique Imandrax_api_common.Hints.validation_strategy (cached: false)
 // def Imandrax_api_common.Hints.validation_strategy (mangled name: "Common_Hints_validation_strategy")
 export class Common_Hints_validation_strategy_VS_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1206,7 +1206,7 @@ export function Common_Hints_validation_strategy_of_twine<_V_tyreg_poly_term,_V_
   }
 }
 
-// clique Imandrax_api_common.Hints.t_poly
+// clique Imandrax_api_common.Hints.t_poly (cached: false)
 // def Imandrax_api_common.Hints.t_poly (mangled name: "Common_Hints_t_poly")
 export class Common_Hints_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1234,7 +1234,7 @@ export function Common_Hints_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty
   return new Common_Hints_t_poly(f_validate_strat, f_unroll_def, f_enable, f_disable, f_timeout, f_admission, f_decomp)
 }
 
-// clique Imandrax_api_common.Fun_def.fun_kind
+// clique Imandrax_api_common.Fun_def.fun_kind (cached: false)
 // def Imandrax_api_common.Fun_def.fun_kind (mangled name: "Common_Fun_def_fun_kind")
 export class Common_Fun_def_fun_kind_Fun_defined {
   constructor(
@@ -1276,7 +1276,7 @@ export function Common_Fun_def_fun_kind_of_twine(d: twine.Decoder, off: offset):
   }
 }
 
-// clique Imandrax_api_common.Fun_def.t_poly
+// clique Imandrax_api_common.Fun_def.t_poly (cached: false)
 // def Imandrax_api_common.Fun_def.t_poly (mangled name: "Common_Fun_def_t_poly")
 export class Common_Fun_def_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1304,7 +1304,7 @@ export function Common_Fun_def_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_
   return new Common_Fun_def_t_poly(f_name, f_ty, f_args, f_body, f_clique, f_kind, f_hints)
 }
 
-// clique Imandrax_api_common.Pre_trigger.t_poly
+// clique Imandrax_api_common.Pre_trigger.t_poly (cached: false)
 // def Imandrax_api_common.Pre_trigger.t_poly (mangled name: "Common_Pre_trigger_t_poly")
 export type Common_Pre_trigger_t_poly<_V_tyreg_poly_term> = [_V_tyreg_poly_term,As_trigger];
 
@@ -1313,7 +1313,7 @@ export function Common_Pre_trigger_t_poly_of_twine<_V_tyreg_poly_term>(d: twine.
   return ((tup : Array<offset>): [_V_tyreg_poly_term,As_trigger] => { checkArrayLength(off, tup, 2); return [decode__tyreg_poly_term(d,tup[0]), As_trigger_of_twine(d, tup[1])] })(d.get_array(off).toArray())
 }
 
-// clique Imandrax_api_common.Theorem.t_poly
+// clique Imandrax_api_common.Theorem.t_poly (cached: false)
 // def Imandrax_api_common.Theorem.t_poly (mangled name: "Common_Theorem_t_poly")
 export class Common_Theorem_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1345,7 +1345,7 @@ export function Common_Theorem_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_
   return new Common_Theorem_t_poly(thm_link, thm_rewriting, thm_perm_restrict, thm_fc, thm_elim, thm_gen, thm_triggers, thm_is_axiom, thm_by)
 }
 
-// clique Imandrax_api_common.Tactic.t_poly
+// clique Imandrax_api_common.Tactic.t_poly (cached: false)
 // def Imandrax_api_common.Tactic.t_poly (mangled name: "Common_Tactic_t_poly")
 export class Common_Tactic_t_poly_Default_termination<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1389,7 +1389,7 @@ export function Common_Tactic_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_t
   }
 }
 
-// clique Imandrax_api_common.Sequent.t_poly
+// clique Imandrax_api_common.Sequent.t_poly (cached: false)
 // def Imandrax_api_common.Sequent.t_poly (mangled name: "Common_Sequent_t_poly")
 export class Common_Sequent_t_poly<_V_tyreg_poly_term> {
   constructor(
@@ -1406,7 +1406,7 @@ export function Common_Sequent_t_poly_of_twine<_V_tyreg_poly_term>(d: twine.Deco
   return new Common_Sequent_t_poly(hyps, concls)
 }
 
-// clique Imandrax_api_common.Rewrite_rule.t_poly
+// clique Imandrax_api_common.Rewrite_rule.t_poly (cached: false)
 // def Imandrax_api_common.Rewrite_rule.t_poly (mangled name: "Common_Rewrite_rule_t_poly")
 export class Common_Rewrite_rule_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1438,7 +1438,7 @@ export function Common_Rewrite_rule_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_
   return new Common_Rewrite_rule_t_poly(rw_name, rw_head, rw_lhs, rw_rhs, rw_guard, rw_vars, rw_triggers, rw_perm_restrict, rw_loop_break)
 }
 
-// clique Imandrax_api_common.Model.ty_def
+// clique Imandrax_api_common.Model.ty_def (cached: false)
 // def Imandrax_api_common.Model.ty_def (mangled name: "Common_Model_ty_def")
 export class Common_Model_ty_def_Ty_finite<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(public arg: Array<_V_tyreg_poly_term>) {}
@@ -1475,7 +1475,7 @@ export function Common_Model_ty_def_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty
   }
 }
 
-// clique Imandrax_api_common.Model.fi
+// clique Imandrax_api_common.Model.fi (cached: false)
 // def Imandrax_api_common.Model.fi (mangled name: "Common_Model_fi")
 export class Common_Model_fi<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1497,7 +1497,7 @@ export function Common_Model_fi_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d:
   return new Common_Model_fi(fi_args, fi_ty_ret, fi_cases, fi_else)
 }
 
-// clique Imandrax_api_common.Model.t_poly
+// clique Imandrax_api_common.Model.t_poly (cached: false)
 // def Imandrax_api_common.Model.t_poly (mangled name: "Common_Model_t_poly")
 export class Common_Model_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1523,7 +1523,7 @@ export function Common_Model_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty
   return new Common_Model_t_poly(tys, consts, funs, representable, completed, ty_subst)
 }
 
-// clique Imandrax_api_common.Region.status
+// clique Imandrax_api_common.Region.status (cached: false)
 // def Imandrax_api_common.Region.status (mangled name: "Common_Region_status")
 export class Common_Region_status_Unknown<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(){}
@@ -1553,7 +1553,7 @@ export function Common_Region_status_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_t
   }
 }
 
-// clique Imandrax_api_common.Region.meta
+// clique Imandrax_api_common.Region.meta (cached: false)
 // def Imandrax_api_common.Region.meta (mangled name: "Common_Region_meta")
 export class Common_Region_meta_Null<_V_tyreg_poly_term> {
   constructor(){}
@@ -1648,7 +1648,7 @@ export function Common_Region_meta_of_twine<_V_tyreg_poly_term>(d: twine.Decoder
   }
 }
 
-// clique Imandrax_api_common.Region.t_poly
+// clique Imandrax_api_common.Region.t_poly (cached: false)
 // def Imandrax_api_common.Region.t_poly (mangled name: "Common_Region_t_poly")
 export class Common_Region_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1670,7 +1670,7 @@ export function Common_Region_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_t
   return new Common_Region_t_poly(constraints, invariant, meta, status)
 }
 
-// clique Imandrax_api_common.Proof_obligation.t_poly
+// clique Imandrax_api_common.Proof_obligation.t_poly (cached: false)
 // def Imandrax_api_common.Proof_obligation.t_poly (mangled name: "Common_Proof_obligation_t_poly")
 export class Common_Proof_obligation_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1696,7 +1696,7 @@ export function Common_Proof_obligation_t_poly_of_twine<_V_tyreg_poly_term,_V_ty
   return new Common_Proof_obligation_t_poly(descr, goal, tactic, is_instance, anchor, timeout)
 }
 
-// clique Imandrax_api_common.Instantiation_rule_kind.t
+// clique Imandrax_api_common.Instantiation_rule_kind.t (cached: false)
 // def Imandrax_api_common.Instantiation_rule_kind.t (mangled name: "Common_Instantiation_rule_kind")
 export class Common_Instantiation_rule_kind_IR_forward_chaining {
   constructor(){}
@@ -1719,7 +1719,7 @@ export function Common_Instantiation_rule_kind_of_twine(d: twine.Decoder, off: o
   }
 }
 
-// clique Imandrax_api_common.Instantiation_rule.t_poly
+// clique Imandrax_api_common.Instantiation_rule.t_poly (cached: false)
 // def Imandrax_api_common.Instantiation_rule.t_poly (mangled name: "Common_Instantiation_rule_t_poly")
 export class Common_Instantiation_rule_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1739,7 +1739,7 @@ export function Common_Instantiation_rule_t_poly_of_twine<_V_tyreg_poly_term,_V_
   return new Common_Instantiation_rule_t_poly(ir_from, ir_triggers, ir_kind)
 }
 
-// clique Imandrax_api_common.Fun_decomp.t_poly
+// clique Imandrax_api_common.Fun_decomp.t_poly (cached: false)
 // def Imandrax_api_common.Fun_decomp.t_poly (mangled name: "Common_Fun_decomp_t_poly")
 export class Common_Fun_decomp_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1759,7 +1759,7 @@ export function Common_Fun_decomp_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_po
   return new Common_Fun_decomp_t_poly(f_id, f_args, regions)
 }
 
-// clique Imandrax_api_common.Elimination_rule.t_poly
+// clique Imandrax_api_common.Elimination_rule.t_poly (cached: false)
 // def Imandrax_api_common.Elimination_rule.t_poly (mangled name: "Common_Elimination_rule_t_poly")
 export class Common_Elimination_rule_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1785,7 +1785,7 @@ export function Common_Elimination_rule_t_poly_of_twine<_V_tyreg_poly_term,_V_ty
   return new Common_Elimination_rule_t_poly(er_name, er_guard, er_lhs, er_rhs, er_dests, er_dest_tms)
 }
 
-// clique Imandrax_api_common.Decomp.lift_bool
+// clique Imandrax_api_common.Decomp.lift_bool (cached: false)
 // def Imandrax_api_common.Decomp.lift_bool (mangled name: "Common_Decomp_lift_bool")
 export class Common_Decomp_lift_bool_Default {
   constructor(){}
@@ -1818,7 +1818,7 @@ export function Common_Decomp_lift_bool_of_twine(d: twine.Decoder, off: offset):
   }
 }
 
-// clique Imandrax_api_common.Decomp.t_
+// clique Imandrax_api_common.Decomp.t_ (cached: false)
 // def Imandrax_api_common.Decomp.t_ (mangled name: "Common_Decomp_t_")
 export class Common_Decomp_t_ {
   constructor(
@@ -1844,7 +1844,7 @@ export function Common_Decomp_t__of_twine(d: twine.Decoder, off: offset): Common
   return new Common_Decomp_t_(f_id, assuming, basis, rule_specs, ctx_simp, lift_bool, prune)
 }
 
-// clique Imandrax_api_common.Db_ser.uid_map
+// clique Imandrax_api_common.Db_ser.uid_map (cached: false)
 // def Imandrax_api_common.Db_ser.uid_map (mangled name: "Common_Db_ser_uid_map")
 export type Common_Db_ser_uid_map<_V_tyreg_poly_a> = Array<[Uid,_V_tyreg_poly_a]>;
 
@@ -1853,7 +1853,7 @@ export function Common_Db_ser_uid_map_of_twine<_V_tyreg_poly_a>(d: twine.Decoder
   return d.get_array(off).toArray().map(x => ((tup : Array<offset>): [Uid,_V_tyreg_poly_a] => { checkArrayLength(x, tup, 2); return [Uid_of_twine(d, tup[0]), decode__tyreg_poly_a(d,tup[1])] })(d.get_array(x).toArray()))
 }
 
-// clique Imandrax_api_common.Db_ser.ph_map
+// clique Imandrax_api_common.Db_ser.ph_map (cached: false)
 // def Imandrax_api_common.Db_ser.ph_map (mangled name: "Common_Db_ser_ph_map")
 export type Common_Db_ser_ph_map<_V_tyreg_poly_ty,_V_tyreg_poly_a> = Array<[Common_Pattern_head_t_poly<_V_tyreg_poly_ty>,_V_tyreg_poly_a]>;
 
@@ -1863,7 +1863,7 @@ export function Common_Db_ser_ph_map_of_twine<_V_tyreg_poly_ty,_V_tyreg_poly_a>(
   return d.get_array(off).toArray().map(x => ((tup : Array<offset>): [Common_Pattern_head_t_poly<_V_tyreg_poly_ty>,_V_tyreg_poly_a] => { checkArrayLength(x, tup, 2); return [Common_Pattern_head_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),tup[0]), decode__tyreg_poly_a(d,tup[1])] })(d.get_array(x).toArray()))
 }
 
-// clique Imandrax_api_common.Db_ser.ca_ptr
+// clique Imandrax_api_common.Db_ser.ca_ptr (cached: false)
 // def Imandrax_api_common.Db_ser.ca_ptr (mangled name: "Common_Db_ser_ca_ptr")
 export type Common_Db_ser_ca_ptr<_V_tyreg_poly_a> = Ca_store_Ca_ptr<_V_tyreg_poly_a>;
 
@@ -1872,7 +1872,7 @@ export function Common_Db_ser_ca_ptr_of_twine<_V_tyreg_poly_a>(d: twine.Decoder,
   return Ca_store_Ca_ptr_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_a(d,off)),off)
 }
 
-// clique Imandrax_api_common.Db_ser.t_poly
+// clique Imandrax_api_common.Db_ser.t_poly (cached: false)
 // def Imandrax_api_common.Db_ser.t_poly (mangled name: "Common_Db_ser_t_poly")
 export class Common_Db_ser_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -1916,7 +1916,7 @@ export function Common_Db_ser_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_t
   return new Common_Db_ser_t_poly(decls, rw_rules, inst_rules, rule_spec_fc, rule_spec_rw_rules, fc, elim, gen, thm_as_rw, thm_as_fc, thm_as_elim, thm_as_gen, admission, count_funs_of_ty, disabled)
 }
 
-// clique Imandrax_api_mir.Type.var
+// clique Imandrax_api_mir.Type.var (cached: false)
 // def Imandrax_api_mir.Type.var (mangled name: "Mir_Type_var")
 export type Mir_Type_var = Uid;
 
@@ -1924,7 +1924,7 @@ export function Mir_Type_var_of_twine(d: twine.Decoder, off: offset): Mir_Type_v
   return Uid_of_twine(d, off)
 }
 
-// clique Imandrax_api_mir.Type.clique
+// clique Imandrax_api_mir.Type.clique (cached: false)
 // def Imandrax_api_mir.Type.clique (mangled name: "Mir_Type_clique")
 export type Mir_Type_clique = Uid_set;
 
@@ -1932,7 +1932,7 @@ export function Mir_Type_clique_of_twine(d: twine.Decoder, off: offset): Mir_Typ
   return Uid_set_of_twine(d, off)
 }
 
-// clique Imandrax_api_mir.Type.generation
+// clique Imandrax_api_mir.Type.generation (cached: false)
 // def Imandrax_api_mir.Type.generation (mangled name: "Mir_Type_generation")
 export type Mir_Type_generation = bigint;
 
@@ -1940,7 +1940,7 @@ export function Mir_Type_generation_of_twine(d: twine.Decoder, off: offset): Mir
   return d.get_int(off)
 }
 
-// clique Imandrax_api_mir.Type.t
+// clique Imandrax_api_mir.Type.t (cached: true)
 // def Imandrax_api_mir.Type.t (mangled name: "Mir_Type")
 export class Mir_Type {
   constructor(
@@ -1948,11 +1948,13 @@ export class Mir_Type {
 }
 
 export function Mir_Type_of_twine(d: twine.Decoder, off: offset): Mir_Type {
+  return twine.withCache(d, off, "Imandrax_api_mir.Type.t", ((d: twine.Decoder, off:offset) => {
   const x = Ty_view_view_of_twine(d,((d:twine.Decoder,off:offset) => d.get_null(off)), ((d:twine.Decoder,off:offset) => Mir_Type_var_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off) // single unboxed field
   return new Mir_Type(x)
+  }))
 }
 
-// clique Imandrax_api_mir.Type.ser
+// clique Imandrax_api_mir.Type.ser (cached: false)
 // def Imandrax_api_mir.Type.ser (mangled name: "Mir_Type_ser")
 export class Mir_Type_ser {
   constructor(
@@ -1964,7 +1966,7 @@ export function Mir_Type_ser_of_twine(d: twine.Decoder, off: offset): Mir_Type_s
   return new Mir_Type_ser(x)
 }
 
-// clique Imandrax_api_mir.Type.def
+// clique Imandrax_api_mir.Type.def (cached: false)
 // def Imandrax_api_mir.Type.def (mangled name: "Mir_Type_def")
 export type Mir_Type_def = Ty_view_def_poly<Mir_Type>;
 
@@ -1972,7 +1974,7 @@ export function Mir_Type_def_of_twine(d: twine.Decoder, off: offset): Mir_Type_d
   return Ty_view_def_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Var.t
+// clique Imandrax_api_mir.Var.t (cached: false)
 // def Imandrax_api_mir.Var.t (mangled name: "Mir_Var")
 export type Mir_Var = Common_Var_t_poly<Mir_Type>;
 
@@ -1980,7 +1982,7 @@ export function Mir_Var_of_twine(d: twine.Decoder, off: offset): Mir_Var {
   return Common_Var_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Typed_symbol.t
+// clique Imandrax_api_mir.Typed_symbol.t (cached: false)
 // def Imandrax_api_mir.Typed_symbol.t (mangled name: "Mir_Typed_symbol")
 export type Mir_Typed_symbol = Common_Typed_symbol_t_poly<Mir_Type>;
 
@@ -1988,7 +1990,7 @@ export function Mir_Typed_symbol_of_twine(d: twine.Decoder, off: offset): Mir_Ty
   return Common_Typed_symbol_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Type_schema.t
+// clique Imandrax_api_mir.Type_schema.t (cached: false)
 // def Imandrax_api_mir.Type_schema.t (mangled name: "Mir_Type_schema")
 export type Mir_Type_schema = Common_Type_schema_t_poly<Mir_Type>;
 
@@ -1996,7 +1998,7 @@ export function Mir_Type_schema_of_twine(d: twine.Decoder, off: offset): Mir_Typ
   return Common_Type_schema_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Trigger.t
+// clique Imandrax_api_mir.Trigger.t (cached: false)
 // def Imandrax_api_mir.Trigger.t (mangled name: "Mir_Trigger")
 export type Mir_Trigger = Common_Trigger_t_poly<Mir_Type>;
 
@@ -2004,7 +2006,7 @@ export function Mir_Trigger_of_twine(d: twine.Decoder, off: offset): Mir_Trigger
   return Common_Trigger_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Applied_symbol.t
+// clique Imandrax_api_mir.Applied_symbol.t (cached: false)
 // def Imandrax_api_mir.Applied_symbol.t (mangled name: "Mir_Applied_symbol")
 export type Mir_Applied_symbol = Common_Applied_symbol_t_poly<Mir_Type>;
 
@@ -2012,7 +2014,7 @@ export function Mir_Applied_symbol_of_twine(d: twine.Decoder, off: offset): Mir_
   return Common_Applied_symbol_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Term.view
+// clique Imandrax_api_mir.Term.view (cached: false)
 // def Imandrax_api_mir.Term.view (mangled name: "Mir_Term_view")
 export class Mir_Term_view_Const<_V_tyreg_poly_t,_V_tyreg_poly_ty> {
   constructor(public arg: Const) {}
@@ -2219,7 +2221,7 @@ export function Mir_Term_view_of_twine<_V_tyreg_poly_t,_V_tyreg_poly_ty>(d: twin
   }
 }
 
-// clique Imandrax_api_mir.Term.generation
+// clique Imandrax_api_mir.Term.generation (cached: false)
 // def Imandrax_api_mir.Term.generation (mangled name: "Mir_Term_generation")
 export type Mir_Term_generation = bigint;
 
@@ -2227,7 +2229,7 @@ export function Mir_Term_generation_of_twine(d: twine.Decoder, off: offset): Mir
   return d.get_int(off)
 }
 
-// clique Imandrax_api_mir.Term.t
+// clique Imandrax_api_mir.Term.t (cached: true)
 // def Imandrax_api_mir.Term.t (mangled name: "Mir_Term")
 export class Mir_Term {
   constructor(
@@ -2236,14 +2238,16 @@ export class Mir_Term {
 }
 
 export function Mir_Term_of_twine(d: twine.Decoder, off: offset): Mir_Term {
+  return twine.withCache(d, off, "Imandrax_api_mir.Term.t", ((d: twine.Decoder, off:offset) => {
   const fields = d.get_array(off).toArray()
   checkArrayLength(off, fields, 2)
   const view = Mir_Term_view_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),fields[0])
   const ty = Mir_Type_of_twine(d, fields[1])
   return new Mir_Term(view, ty)
+  }))
 }
 
-// clique Imandrax_api_mir.Term.ser
+// clique Imandrax_api_mir.Term.ser (cached: false)
 // def Imandrax_api_mir.Term.ser (mangled name: "Mir_Term_ser")
 export class Mir_Term_ser {
   constructor(
@@ -2259,7 +2263,7 @@ export function Mir_Term_ser_of_twine(d: twine.Decoder, off: offset): Mir_Term_s
   return new Mir_Term_ser(view, ty)
 }
 
-// clique Imandrax_api_mir.Term.term
+// clique Imandrax_api_mir.Term.term (cached: false)
 // def Imandrax_api_mir.Term.term (mangled name: "Mir_Term_term")
 export type Mir_Term_term = Mir_Term;
 
@@ -2267,7 +2271,7 @@ export function Mir_Term_term_of_twine(d: twine.Decoder, off: offset): Mir_Term_
   return Mir_Term_of_twine(d, off)
 }
 
-// clique Imandrax_api_mir.Top_fun.t
+// clique Imandrax_api_mir.Top_fun.t (cached: false)
 // def Imandrax_api_mir.Top_fun.t (mangled name: "Mir_Top_fun")
 export type Mir_Top_fun = [Array<Mir_Var>,Mir_Term];
 
@@ -2275,7 +2279,7 @@ export function Mir_Top_fun_of_twine(d: twine.Decoder, off: offset): Mir_Top_fun
   return ((tup : Array<offset>): [Array<Mir_Var>,Mir_Term] => { checkArrayLength(off, tup, 2); return [d.get_array(tup[0]).toArray().map(x => Mir_Var_of_twine(d, x)), Mir_Term_of_twine(d, tup[1])] })(d.get_array(off).toArray())
 }
 
-// clique Imandrax_api_mir.Theorem.t
+// clique Imandrax_api_mir.Theorem.t (cached: false)
 // def Imandrax_api_mir.Theorem.t (mangled name: "Mir_Theorem")
 export type Mir_Theorem = Common_Theorem_t_poly<Mir_Term,Mir_Type>;
 
@@ -2283,7 +2287,7 @@ export function Mir_Theorem_of_twine(d: twine.Decoder, off: offset): Mir_Theorem
   return Common_Theorem_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Tactic.t
+// clique Imandrax_api_mir.Tactic.t (cached: false)
 // def Imandrax_api_mir.Tactic.t (mangled name: "Mir_Tactic")
 export type Mir_Tactic = Common_Tactic_t_poly<Mir_Term,Mir_Type>;
 
@@ -2291,7 +2295,7 @@ export function Mir_Tactic_of_twine(d: twine.Decoder, off: offset): Mir_Tactic {
   return Common_Tactic_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Sequent.t
+// clique Imandrax_api_mir.Sequent.t (cached: false)
 // def Imandrax_api_mir.Sequent.t (mangled name: "Mir_Sequent")
 export type Mir_Sequent = Common_Sequent_t_poly<Mir_Term>;
 
@@ -2299,7 +2303,7 @@ export function Mir_Sequent_of_twine(d: twine.Decoder, off: offset): Mir_Sequent
   return Common_Sequent_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Rewrite_rule.t
+// clique Imandrax_api_mir.Rewrite_rule.t (cached: false)
 // def Imandrax_api_mir.Rewrite_rule.t (mangled name: "Mir_Rewrite_rule")
 export type Mir_Rewrite_rule = Common_Rewrite_rule_t_poly<Mir_Term,Mir_Type>;
 
@@ -2307,7 +2311,7 @@ export function Mir_Rewrite_rule_of_twine(d: twine.Decoder, off: offset): Mir_Re
   return Common_Rewrite_rule_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Region.Region.t
+// clique Imandrax_api_mir.Region.Region.t (cached: false)
 // def Imandrax_api_mir.Region.Region.t (mangled name: "Mir_Region_Region")
 export type Mir_Region_Region = Common_Region_t_poly<Mir_Term,Mir_Type>;
 
@@ -2315,7 +2319,7 @@ export function Mir_Region_Region_of_twine(d: twine.Decoder, off: offset): Mir_R
   return Common_Region_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Proof_obligation.t
+// clique Imandrax_api_mir.Proof_obligation.t (cached: false)
 // def Imandrax_api_mir.Proof_obligation.t (mangled name: "Mir_Proof_obligation")
 export type Mir_Proof_obligation = Common_Proof_obligation_t_poly<Mir_Term,Mir_Type>;
 
@@ -2323,7 +2327,7 @@ export function Mir_Proof_obligation_of_twine(d: twine.Decoder, off: offset): Mi
   return Common_Proof_obligation_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Pre_trigger.t
+// clique Imandrax_api_mir.Pre_trigger.t (cached: false)
 // def Imandrax_api_mir.Pre_trigger.t (mangled name: "Mir_Pre_trigger")
 export type Mir_Pre_trigger = [Mir_Term,As_trigger];
 
@@ -2331,7 +2335,7 @@ export function Mir_Pre_trigger_of_twine(d: twine.Decoder, off: offset): Mir_Pre
   return ((tup : Array<offset>): [Mir_Term,As_trigger] => { checkArrayLength(off, tup, 2); return [Mir_Term_of_twine(d, tup[0]), As_trigger_of_twine(d, tup[1])] })(d.get_array(off).toArray())
 }
 
-// clique Imandrax_api_mir.Pattern_head.t
+// clique Imandrax_api_mir.Pattern_head.t (cached: false)
 // def Imandrax_api_mir.Pattern_head.t (mangled name: "Mir_Pattern_head")
 export type Mir_Pattern_head = Common_Pattern_head_t_poly<Mir_Type>;
 
@@ -2339,7 +2343,7 @@ export function Mir_Pattern_head_of_twine(d: twine.Decoder, off: offset): Mir_Pa
   return Common_Pattern_head_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Model.t
+// clique Imandrax_api_mir.Model.t (cached: false)
 // def Imandrax_api_mir.Model.t (mangled name: "Mir_Model")
 export type Mir_Model = Common_Model_t_poly<Mir_Term,Mir_Type>;
 
@@ -2347,7 +2351,7 @@ export function Mir_Model_of_twine(d: twine.Decoder, off: offset): Mir_Model {
   return Common_Model_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Instantiation_rule.t
+// clique Imandrax_api_mir.Instantiation_rule.t (cached: false)
 // def Imandrax_api_mir.Instantiation_rule.t (mangled name: "Mir_Instantiation_rule")
 export type Mir_Instantiation_rule = Common_Instantiation_rule_t_poly<Mir_Term,Mir_Type>;
 
@@ -2355,7 +2359,7 @@ export function Mir_Instantiation_rule_of_twine(d: twine.Decoder, off: offset): 
   return Common_Instantiation_rule_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Hints.t
+// clique Imandrax_api_mir.Hints.t (cached: false)
 // def Imandrax_api_mir.Hints.t (mangled name: "Mir_Hints")
 export type Mir_Hints = Common_Hints_t_poly<Mir_Term,Mir_Type>;
 
@@ -2363,7 +2367,7 @@ export function Mir_Hints_of_twine(d: twine.Decoder, off: offset): Mir_Hints {
   return Common_Hints_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Fun_def.t
+// clique Imandrax_api_mir.Fun_def.t (cached: false)
 // def Imandrax_api_mir.Fun_def.t (mangled name: "Mir_Fun_def")
 export type Mir_Fun_def = Common_Fun_def_t_poly<Mir_Term,Mir_Type>;
 
@@ -2371,7 +2375,7 @@ export function Mir_Fun_def_of_twine(d: twine.Decoder, off: offset): Mir_Fun_def
   return Common_Fun_def_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Fun_decomp.t
+// clique Imandrax_api_mir.Fun_decomp.t (cached: false)
 // def Imandrax_api_mir.Fun_decomp.t (mangled name: "Mir_Fun_decomp")
 export type Mir_Fun_decomp = Common_Fun_decomp_t_poly<Mir_Term,Mir_Type>;
 
@@ -2379,7 +2383,7 @@ export function Mir_Fun_decomp_of_twine(d: twine.Decoder, off: offset): Mir_Fun_
   return Common_Fun_decomp_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Fo_pattern.t
+// clique Imandrax_api_mir.Fo_pattern.t (cached: false)
 // def Imandrax_api_mir.Fo_pattern.t (mangled name: "Mir_Fo_pattern")
 export type Mir_Fo_pattern = Common_Fo_pattern_t_poly<Mir_Type>;
 
@@ -2387,7 +2391,7 @@ export function Mir_Fo_pattern_of_twine(d: twine.Decoder, off: offset): Mir_Fo_p
   return Common_Fo_pattern_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Elimination_rule.t
+// clique Imandrax_api_mir.Elimination_rule.t (cached: false)
 // def Imandrax_api_mir.Elimination_rule.t (mangled name: "Mir_Elimination_rule")
 export type Mir_Elimination_rule = Common_Elimination_rule_t_poly<Mir_Term,Mir_Type>;
 
@@ -2395,7 +2399,7 @@ export function Mir_Elimination_rule_of_twine(d: twine.Decoder, off: offset): Mi
   return Common_Elimination_rule_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_mir.Decomp.t
+// clique Imandrax_api_mir.Decomp.t (cached: false)
 // def Imandrax_api_mir.Decomp.t (mangled name: "Mir_Decomp")
 export class Mir_Decomp {
   constructor(
@@ -2421,7 +2425,7 @@ export function Mir_Decomp_of_twine(d: twine.Decoder, off: offset): Mir_Decomp {
   return new Mir_Decomp(f_id, assuming, basis, rule_specs, ctx_simp, lift_bool, prune)
 }
 
-// clique Imandrax_api_mir.Db_ser.t
+// clique Imandrax_api_mir.Db_ser.t (cached: false)
 // def Imandrax_api_mir.Db_ser.t (mangled name: "Mir_Db_ser")
 export type Mir_Db_ser = Common_Db_ser_t_poly<Mir_Term,Mir_Type>;
 
@@ -2429,7 +2433,7 @@ export function Mir_Db_ser_of_twine(d: twine.Decoder, off: offset): Mir_Db_ser {
   return Common_Db_ser_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_eval.Ordinal.t
+// clique Imandrax_api_eval.Ordinal.t (cached: false)
 // def Imandrax_api_eval.Ordinal.t (mangled name: "Eval_Ordinal")
 export class Eval_Ordinal_Int {
   constructor(public arg: bigint) {}
@@ -2462,7 +2466,7 @@ export function Eval_Ordinal_of_twine(d: twine.Decoder, off: offset): Eval_Ordin
   }
 }
 
-// clique Imandrax_api_eval.Value.cstor_descriptor
+// clique Imandrax_api_eval.Value.cstor_descriptor (cached: false)
 // def Imandrax_api_eval.Value.cstor_descriptor (mangled name: "Eval_Value_cstor_descriptor")
 export class Eval_Value_cstor_descriptor {
   constructor(
@@ -2478,7 +2482,7 @@ export function Eval_Value_cstor_descriptor_of_twine(d: twine.Decoder, off: offs
   return new Eval_Value_cstor_descriptor(cd_idx, cd_name)
 }
 
-// clique Imandrax_api_eval.Value.record_descriptor
+// clique Imandrax_api_eval.Value.record_descriptor (cached: false)
 // def Imandrax_api_eval.Value.record_descriptor (mangled name: "Eval_Value_record_descriptor")
 export class Eval_Value_record_descriptor {
   constructor(
@@ -2494,7 +2498,7 @@ export function Eval_Value_record_descriptor_of_twine(d: twine.Decoder, off: off
   return new Eval_Value_record_descriptor(rd_name, rd_fields)
 }
 
-// clique Imandrax_api_eval.Value.view
+// clique Imandrax_api_eval.Value.view (cached: false)
 // def Imandrax_api_eval.Value.view (mangled name: "Eval_Value_view")
 export class Eval_Value_view_V_true<_V_tyreg_poly_v,_V_tyreg_poly_closure> {
   constructor(){}
@@ -2649,7 +2653,7 @@ export function Eval_Value_view_of_twine<_V_tyreg_poly_v,_V_tyreg_poly_closure>(
   }
 }
 
-// clique Imandrax_api_eval.Value.erased_closure
+// clique Imandrax_api_eval.Value.erased_closure (cached: false)
 // def Imandrax_api_eval.Value.erased_closure (mangled name: "Eval_Value_erased_closure")
 export class Eval_Value_erased_closure {
   constructor(
@@ -2661,7 +2665,7 @@ export function Eval_Value_erased_closure_of_twine(d: twine.Decoder, off: offset
   return new Eval_Value_erased_closure(x)
 }
 
-// clique Imandrax_api_eval.Value.t
+// clique Imandrax_api_eval.Value.t (cached: false)
 // def Imandrax_api_eval.Value.t (mangled name: "Eval_Value")
 export class Eval_Value {
   constructor(
@@ -2673,7 +2677,7 @@ export function Eval_Value_of_twine(d: twine.Decoder, off: offset): Eval_Value {
   return new Eval_Value(x)
 }
 
-// clique Imandrax_api_report.Expansion.t
+// clique Imandrax_api_report.Expansion.t (cached: false)
 // def Imandrax_api_report.Expansion.t (mangled name: "Report_Expansion")
 export class Report_Expansion<_V_tyreg_poly_term> {
   constructor(
@@ -2692,7 +2696,7 @@ export function Report_Expansion_of_twine<_V_tyreg_poly_term>(d: twine.Decoder, 
   return new Report_Expansion(f_name, lhs, rhs)
 }
 
-// clique Imandrax_api_report.Instantiation.t
+// clique Imandrax_api_report.Instantiation.t (cached: false)
 // def Imandrax_api_report.Instantiation.t (mangled name: "Report_Instantiation")
 export class Report_Instantiation<_V_tyreg_poly_term> {
   constructor(
@@ -2709,7 +2713,7 @@ export function Report_Instantiation_of_twine<_V_tyreg_poly_term>(d: twine.Decod
   return new Report_Instantiation(assertion, from_rule)
 }
 
-// clique Imandrax_api_report.Smt_proof.t
+// clique Imandrax_api_report.Smt_proof.t (cached: false)
 // def Imandrax_api_report.Smt_proof.t (mangled name: "Report_Smt_proof")
 export class Report_Smt_proof<_V_tyreg_poly_term> {
   constructor(
@@ -2730,7 +2734,7 @@ export function Report_Smt_proof_of_twine<_V_tyreg_poly_term>(d: twine.Decoder, 
   return new Report_Smt_proof(logic, unsat_core, expansions, instantiations)
 }
 
-// clique Imandrax_api_report.Rtext.t, Imandrax_api_report.Rtext.item
+// clique Imandrax_api_report.Rtext.t, Imandrax_api_report.Rtext.item (cached: false)
 // def Imandrax_api_report.Rtext.t (mangled name: "Report_Rtext")
 export type Report_Rtext<_V_tyreg_poly_term> = Array<Report_Rtext_item<_V_tyreg_poly_term>>;
 
@@ -2854,7 +2858,7 @@ export function Report_Rtext_item_of_twine<_V_tyreg_poly_term>(d: twine.Decoder,
   }
 }
 
-// clique Imandrax_api_report.Atomic_event.model
+// clique Imandrax_api_report.Atomic_event.model (cached: false)
 // def Imandrax_api_report.Atomic_event.model (mangled name: "Report_Atomic_event_model")
 export type Report_Atomic_event_model<_V_tyreg_poly_term,_V_tyreg_poly_ty> = Common_Model_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>;
 
@@ -2864,7 +2868,7 @@ export function Report_Atomic_event_model_of_twine<_V_tyreg_poly_term,_V_tyreg_p
   return Common_Model_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)
 }
 
-// clique Imandrax_api_report.Atomic_event.poly
+// clique Imandrax_api_report.Atomic_event.poly (cached: false)
 // def Imandrax_api_report.Atomic_event.poly (mangled name: "Report_Atomic_event_poly")
 export class Report_Atomic_event_poly_E_message<_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_term2,_V_tyreg_poly_ty2> {
   constructor(public arg: Report_Rtext<_V_tyreg_poly_term>) {}
@@ -3097,7 +3101,7 @@ export function Report_Atomic_event_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_po
   }
 }
 
-// clique Imandrax_api_report.Atomic_event.Mir.t
+// clique Imandrax_api_report.Atomic_event.Mir.t (cached: false)
 // def Imandrax_api_report.Atomic_event.Mir.t (mangled name: "Report_Atomic_event_Mir")
 export type Report_Atomic_event_Mir = Report_Atomic_event_poly<Mir_Term,Mir_Type,Mir_Term,Mir_Type>;
 
@@ -3105,7 +3109,7 @@ export function Report_Atomic_event_Mir_of_twine(d: twine.Decoder, off: offset):
   return Report_Atomic_event_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_report.Event.t_linear
+// clique Imandrax_api_report.Event.t_linear (cached: false)
 // def Imandrax_api_report.Event.t_linear (mangled name: "Report_Event_t_linear")
 export class Report_Event_t_linear_EL_atomic<_V_tyreg_poly_atomic_ev> {
   constructor(
@@ -3161,7 +3165,7 @@ export function Report_Event_t_linear_of_twine<_V_tyreg_poly_atomic_ev>(d: twine
   }
 }
 
-// clique Imandrax_api_report.Event.t_tree
+// clique Imandrax_api_report.Event.t_tree (cached: false)
 // def Imandrax_api_report.Event.t_tree (mangled name: "Report_Event_t_tree")
 export class Report_Event_t_tree_ET_atomic<_V_tyreg_poly_atomic_ev,_V_tyreg_poly_sub> {
   constructor(
@@ -3210,7 +3214,7 @@ export function Report_Event_t_tree_of_twine<_V_tyreg_poly_atomic_ev,_V_tyreg_po
   }
 }
 
-// clique Imandrax_api_report.Report.event
+// clique Imandrax_api_report.Report.event (cached: false)
 // def Imandrax_api_report.Report.event (mangled name: "Report_Report_event")
 export type Report_Report_event = Report_Event_t_linear<Report_Atomic_event_Mir>;
 
@@ -3218,7 +3222,7 @@ export function Report_Report_event_of_twine(d: twine.Decoder, off: offset): Rep
   return Report_Event_t_linear_of_twine(d,((d:twine.Decoder,off:offset) => Report_Atomic_event_Mir_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_report.Report.t
+// clique Imandrax_api_report.Report.t (cached: false)
 // def Imandrax_api_report.Report.t (mangled name: "Report_Report")
 export class Report_Report {
   constructor(
@@ -3230,7 +3234,7 @@ export function Report_Report_of_twine(d: twine.Decoder, off: offset): Report_Re
   return new Report_Report(x)
 }
 
-// clique Imandrax_api_proof.Arg.t
+// clique Imandrax_api_proof.Arg.t (cached: false)
 // def Imandrax_api_proof.Arg.t (mangled name: "Proof_Arg")
 export class Proof_Arg_A_term<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(public arg: _V_tyreg_poly_term) {}
@@ -3327,7 +3331,7 @@ export function Proof_Arg_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine
   }
 }
 
-// clique Imandrax_api_proof.Var_poly.t
+// clique Imandrax_api_proof.Var_poly.t (cached: false)
 // def Imandrax_api_proof.Var_poly.t (mangled name: "Proof_Var_poly")
 export type Proof_Var_poly<_V_tyreg_poly_ty> = [Uid,_V_tyreg_poly_ty];
 
@@ -3336,7 +3340,7 @@ export function Proof_Var_poly_of_twine<_V_tyreg_poly_ty>(d: twine.Decoder, deco
   return ((tup : Array<offset>): [Uid,_V_tyreg_poly_ty] => { checkArrayLength(off, tup, 2); return [Uid_of_twine(d, tup[0]), decode__tyreg_poly_ty(d,tup[1])] })(d.get_array(off).toArray())
 }
 
-// clique Imandrax_api_proof.View.t
+// clique Imandrax_api_proof.View.t (cached: false)
 // def Imandrax_api_proof.View.t (mangled name: "Proof_View")
 export class Proof_View_T_assume<_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg_poly_proof> {
   constructor(){}
@@ -3405,7 +3409,7 @@ export function Proof_View_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty,_V_tyreg
   }
 }
 
-// clique Imandrax_api_proof.Proof_term.t_poly
+// clique Imandrax_api_proof.Proof_term.t_poly (cached: false)
 // def Imandrax_api_proof.Proof_term.t_poly (mangled name: "Proof_Proof_term_t_poly")
 export class Proof_Proof_term_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3425,7 +3429,7 @@ export function Proof_Proof_term_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_pol
   return new Proof_Proof_term_t_poly(id, concl, view)
 }
 
-// clique Imandrax_api_tasks.PO_task.t_poly
+// clique Imandrax_api_tasks.PO_task.t_poly (cached: false)
 // def Imandrax_api_tasks.PO_task.t_poly (mangled name: "Tasks_PO_task_t_poly")
 export class Tasks_PO_task_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3447,7 +3451,7 @@ export function Tasks_PO_task_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_t
   return new Tasks_PO_task_t_poly(from_sym, count, db, po)
 }
 
-// clique Imandrax_api_tasks.PO_task.Mir.t
+// clique Imandrax_api_tasks.PO_task.Mir.t (cached: false)
 // def Imandrax_api_tasks.PO_task.Mir.t (mangled name: "Tasks_PO_task_Mir")
 export type Tasks_PO_task_Mir = Tasks_PO_task_t_poly<Mir_Term,Mir_Type>;
 
@@ -3455,7 +3459,7 @@ export function Tasks_PO_task_Mir_of_twine(d: twine.Decoder, off: offset): Tasks
   return Tasks_PO_task_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_tasks.PO_res.stats
+// clique Imandrax_api_tasks.PO_res.stats (cached: false)
 // def Imandrax_api_tasks.PO_res.stats (mangled name: "Tasks_PO_res_stats")
 export type Tasks_PO_res_stats = Stat_time;
 
@@ -3463,7 +3467,7 @@ export function Tasks_PO_res_stats_of_twine(d: twine.Decoder, off: offset): Task
   return Stat_time_of_twine(d, off)
 }
 
-// clique Imandrax_api_tasks.PO_res.proof_found
+// clique Imandrax_api_tasks.PO_res.proof_found (cached: false)
 // def Imandrax_api_tasks.PO_res.proof_found (mangled name: "Tasks_PO_res_proof_found")
 export class Tasks_PO_res_proof_found<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3481,7 +3485,7 @@ export function Tasks_PO_res_proof_found_of_twine<_V_tyreg_poly_term,_V_tyreg_po
   return new Tasks_PO_res_proof_found(anchor, proof)
 }
 
-// clique Imandrax_api_tasks.PO_res.instance
+// clique Imandrax_api_tasks.PO_res.instance (cached: false)
 // def Imandrax_api_tasks.PO_res.instance (mangled name: "Tasks_PO_res_instance")
 export class Tasks_PO_res_instance<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3499,7 +3503,7 @@ export function Tasks_PO_res_instance_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_
   return new Tasks_PO_res_instance(anchor, model)
 }
 
-// clique Imandrax_api_tasks.PO_res.no_proof
+// clique Imandrax_api_tasks.PO_res.no_proof (cached: false)
 // def Imandrax_api_tasks.PO_res.no_proof (mangled name: "Tasks_PO_res_no_proof")
 export class Tasks_PO_res_no_proof<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3519,7 +3523,7 @@ export function Tasks_PO_res_no_proof_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_
   return new Tasks_PO_res_no_proof(err, counter_model, subgoals)
 }
 
-// clique Imandrax_api_tasks.PO_res.unsat
+// clique Imandrax_api_tasks.PO_res.unsat (cached: false)
 // def Imandrax_api_tasks.PO_res.unsat (mangled name: "Tasks_PO_res_unsat")
 export class Tasks_PO_res_unsat<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3539,7 +3543,7 @@ export function Tasks_PO_res_unsat_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>
   return new Tasks_PO_res_unsat(anchor, err, proof)
 }
 
-// clique Imandrax_api_tasks.PO_res.success
+// clique Imandrax_api_tasks.PO_res.success (cached: false)
 // def Imandrax_api_tasks.PO_res.success (mangled name: "Tasks_PO_res_success")
 export class Tasks_PO_res_success_Proof<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(public arg: Tasks_PO_res_proof_found<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
@@ -3576,7 +3580,7 @@ export function Tasks_PO_res_success_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_t
   }
 }
 
-// clique Imandrax_api_tasks.PO_res.error
+// clique Imandrax_api_tasks.PO_res.error (cached: false)
 // def Imandrax_api_tasks.PO_res.error (mangled name: "Tasks_PO_res_error")
 export class Tasks_PO_res_error_No_proof<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(public arg: Tasks_PO_res_no_proof<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
@@ -3637,7 +3641,7 @@ export function Tasks_PO_res_error_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>
   }
 }
 
-// clique Imandrax_api_tasks.PO_res.result
+// clique Imandrax_api_tasks.PO_res.result (cached: false)
 // def Imandrax_api_tasks.PO_res.result (mangled name: "Tasks_PO_res_result")
 export type Tasks_PO_res_result<_V_tyreg_poly_a,_V_tyreg_poly_term,_V_tyreg_poly_ty> = _V_tyreg_poly_a | Tasks_PO_res_error<_V_tyreg_poly_term,_V_tyreg_poly_ty>;
 
@@ -3648,7 +3652,7 @@ export function Tasks_PO_res_result_of_twine<_V_tyreg_poly_a,_V_tyreg_poly_term,
   return twine.result(d,  ((d:twine.Decoder,off:offset)=> decode__tyreg_poly_a(d,off)), ((d:twine.Decoder,off:offset) => Tasks_PO_res_error_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)), off)
 }
 
-// clique Imandrax_api_tasks.PO_res.shallow_poly
+// clique Imandrax_api_tasks.PO_res.shallow_poly (cached: false)
 // def Imandrax_api_tasks.PO_res.shallow_poly (mangled name: "Tasks_PO_res_shallow_poly")
 export class Tasks_PO_res_shallow_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3670,7 +3674,7 @@ export function Tasks_PO_res_shallow_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_p
   return new Tasks_PO_res_shallow_poly(from_, res, stats, report)
 }
 
-// clique Imandrax_api_tasks.PO_res.full_poly
+// clique Imandrax_api_tasks.PO_res.full_poly (cached: false)
 // def Imandrax_api_tasks.PO_res.full_poly (mangled name: "Tasks_PO_res_full_poly")
 export class Tasks_PO_res_full_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3692,7 +3696,7 @@ export function Tasks_PO_res_full_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly
   return new Tasks_PO_res_full_poly(from_, res, stats, report)
 }
 
-// clique Imandrax_api_tasks.PO_res.Shallow.t
+// clique Imandrax_api_tasks.PO_res.Shallow.t (cached: false)
 // def Imandrax_api_tasks.PO_res.Shallow.t (mangled name: "Tasks_PO_res_Shallow")
 export type Tasks_PO_res_Shallow = Tasks_PO_res_shallow_poly<Mir_Term,Mir_Type>;
 
@@ -3700,7 +3704,7 @@ export function Tasks_PO_res_Shallow_of_twine(d: twine.Decoder, off: offset): Ta
   return Tasks_PO_res_shallow_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_tasks.PO_res.full.t
+// clique Imandrax_api_tasks.PO_res.full.t (cached: false)
 // def Imandrax_api_tasks.PO_res.full.t (mangled name: "Tasks_PO_res_full")
 export type Tasks_PO_res_full = Tasks_PO_res_full_poly<Mir_Term,Mir_Type>;
 
@@ -3708,7 +3712,7 @@ export function Tasks_PO_res_full_of_twine(d: twine.Decoder, off: offset): Tasks
   return Tasks_PO_res_full_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_tasks.Eval_task.t_poly
+// clique Imandrax_api_tasks.Eval_task.t_poly (cached: false)
 // def Imandrax_api_tasks.Eval_task.t_poly (mangled name: "Tasks_Eval_task_t_poly")
 export class Tasks_Eval_task_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3730,7 +3734,7 @@ export function Tasks_Eval_task_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly
   return new Tasks_Eval_task_t_poly(db, term, anchor, timeout)
 }
 
-// clique Imandrax_api_tasks.Eval_task.Mir.t
+// clique Imandrax_api_tasks.Eval_task.Mir.t (cached: false)
 // def Imandrax_api_tasks.Eval_task.Mir.t (mangled name: "Tasks_Eval_task_Mir")
 export type Tasks_Eval_task_Mir = Tasks_Eval_task_t_poly<Mir_Term,Mir_Type>;
 
@@ -3738,7 +3742,7 @@ export function Tasks_Eval_task_Mir_of_twine(d: twine.Decoder, off: offset): Tas
   return Tasks_Eval_task_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_tasks.Eval_res.value
+// clique Imandrax_api_tasks.Eval_res.value (cached: false)
 // def Imandrax_api_tasks.Eval_res.value (mangled name: "Tasks_Eval_res_value")
 export type Tasks_Eval_res_value = Eval_Value;
 
@@ -3746,7 +3750,7 @@ export function Tasks_Eval_res_value_of_twine(d: twine.Decoder, off: offset): Ta
   return Eval_Value_of_twine(d, off)
 }
 
-// clique Imandrax_api_tasks.Eval_res.stats
+// clique Imandrax_api_tasks.Eval_res.stats (cached: false)
 // def Imandrax_api_tasks.Eval_res.stats (mangled name: "Tasks_Eval_res_stats")
 export class Tasks_Eval_res_stats {
   constructor(
@@ -3762,7 +3766,7 @@ export function Tasks_Eval_res_stats_of_twine(d: twine.Decoder, off: offset): Ta
   return new Tasks_Eval_res_stats(compile_time, exec_time)
 }
 
-// clique Imandrax_api_tasks.Eval_res.success
+// clique Imandrax_api_tasks.Eval_res.success (cached: false)
 // def Imandrax_api_tasks.Eval_res.success (mangled name: "Tasks_Eval_res_success")
 export class Tasks_Eval_res_success {
   constructor(
@@ -3774,7 +3778,7 @@ export function Tasks_Eval_res_success_of_twine(d: twine.Decoder, off: offset): 
   return new Tasks_Eval_res_success(x)
 }
 
-// clique Imandrax_api_tasks.Eval_res.t
+// clique Imandrax_api_tasks.Eval_res.t (cached: false)
 // def Imandrax_api_tasks.Eval_res.t (mangled name: "Tasks_Eval_res")
 export class Tasks_Eval_res {
   constructor(
@@ -3790,7 +3794,7 @@ export function Tasks_Eval_res_of_twine(d: twine.Decoder, off: offset): Tasks_Ev
   return new Tasks_Eval_res(res, stats)
 }
 
-// clique Imandrax_api_tasks.Decomp_task.decomp_poly
+// clique Imandrax_api_tasks.Decomp_task.decomp_poly (cached: false)
 // def Imandrax_api_tasks.Decomp_task.decomp_poly (mangled name: "Tasks_Decomp_task_decomp_poly")
 export class Tasks_Decomp_task_decomp_poly_Decomp<_V_tyreg_poly_term> {
   constructor(public arg: Common_Decomp_t_) {}
@@ -3825,7 +3829,7 @@ export function Tasks_Decomp_task_decomp_poly_of_twine<_V_tyreg_poly_term>(d: tw
   }
 }
 
-// clique Imandrax_api_tasks.Decomp_task.t_poly
+// clique Imandrax_api_tasks.Decomp_task.t_poly (cached: false)
 // def Imandrax_api_tasks.Decomp_task.t_poly (mangled name: "Tasks_Decomp_task_t_poly")
 export class Tasks_Decomp_task_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3845,7 +3849,7 @@ export function Tasks_Decomp_task_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_po
   return new Tasks_Decomp_task_t_poly(db, decomp, anchor)
 }
 
-// clique Imandrax_api_tasks.Decomp_task.Mir.decomp
+// clique Imandrax_api_tasks.Decomp_task.Mir.decomp (cached: false)
 // def Imandrax_api_tasks.Decomp_task.Mir.decomp (mangled name: "Tasks_Decomp_task_Mir_decomp")
 export type Tasks_Decomp_task_Mir_decomp = Tasks_Decomp_task_decomp_poly<Mir_Term>;
 
@@ -3853,7 +3857,7 @@ export function Tasks_Decomp_task_Mir_decomp_of_twine(d: twine.Decoder, off: off
   return Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_tasks.Decomp_task.Mir.t
+// clique Imandrax_api_tasks.Decomp_task.Mir.t (cached: false)
 // def Imandrax_api_tasks.Decomp_task.Mir.t (mangled name: "Tasks_Decomp_task_Mir")
 export type Tasks_Decomp_task_Mir = Tasks_Decomp_task_t_poly<Mir_Term,Mir_Type>;
 
@@ -3861,7 +3865,7 @@ export function Tasks_Decomp_task_Mir_of_twine(d: twine.Decoder, off: offset): T
   return Tasks_Decomp_task_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_tasks.Decomp_res.success
+// clique Imandrax_api_tasks.Decomp_res.success (cached: false)
 // def Imandrax_api_tasks.Decomp_res.success (mangled name: "Tasks_Decomp_res_success")
 export class Tasks_Decomp_res_success<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3879,7 +3883,7 @@ export function Tasks_Decomp_res_success_of_twine<_V_tyreg_poly_term,_V_tyreg_po
   return new Tasks_Decomp_res_success(anchor, decomp)
 }
 
-// clique Imandrax_api_tasks.Decomp_res.error
+// clique Imandrax_api_tasks.Decomp_res.error (cached: false)
 // def Imandrax_api_tasks.Decomp_res.error (mangled name: "Tasks_Decomp_res_error")
 export class Tasks_Decomp_res_error_Error {
   constructor(public arg: Error_Error_core) {}
@@ -3902,7 +3906,7 @@ export function Tasks_Decomp_res_error_of_twine(d: twine.Decoder, off: offset): 
   }
 }
 
-// clique Imandrax_api_tasks.Decomp_res.result
+// clique Imandrax_api_tasks.Decomp_res.result (cached: false)
 // def Imandrax_api_tasks.Decomp_res.result (mangled name: "Tasks_Decomp_res_result")
 export type Tasks_Decomp_res_result<_V_tyreg_poly_a> = _V_tyreg_poly_a | Tasks_Decomp_res_error;
 
@@ -3911,7 +3915,7 @@ export function Tasks_Decomp_res_result_of_twine<_V_tyreg_poly_a>(d: twine.Decod
   return twine.result(d,  ((d:twine.Decoder,off:offset)=> decode__tyreg_poly_a(d,off)), ((d:twine.Decoder,off:offset) => Tasks_Decomp_res_error_of_twine(d, off)), off)
 }
 
-// clique Imandrax_api_tasks.Decomp_res.shallow_poly
+// clique Imandrax_api_tasks.Decomp_res.shallow_poly (cached: false)
 // def Imandrax_api_tasks.Decomp_res.shallow_poly (mangled name: "Tasks_Decomp_res_shallow_poly")
 export class Tasks_Decomp_res_shallow_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3933,7 +3937,7 @@ export function Tasks_Decomp_res_shallow_poly_of_twine<_V_tyreg_poly_term,_V_tyr
   return new Tasks_Decomp_res_shallow_poly(from_, res, stats, report)
 }
 
-// clique Imandrax_api_tasks.Decomp_res.full_poly
+// clique Imandrax_api_tasks.Decomp_res.full_poly (cached: false)
 // def Imandrax_api_tasks.Decomp_res.full_poly (mangled name: "Tasks_Decomp_res_full_poly")
 export class Tasks_Decomp_res_full_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
@@ -3955,7 +3959,7 @@ export function Tasks_Decomp_res_full_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_
   return new Tasks_Decomp_res_full_poly(from_, res, stats, report)
 }
 
-// clique Imandrax_api_tasks.Decomp_res.Shallow.t
+// clique Imandrax_api_tasks.Decomp_res.Shallow.t (cached: false)
 // def Imandrax_api_tasks.Decomp_res.Shallow.t (mangled name: "Tasks_Decomp_res_Shallow")
 export type Tasks_Decomp_res_Shallow = Tasks_Decomp_res_shallow_poly<Mir_Term,Mir_Type>;
 
@@ -3963,7 +3967,7 @@ export function Tasks_Decomp_res_Shallow_of_twine(d: twine.Decoder, off: offset)
   return Tasks_Decomp_res_shallow_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
-// clique Imandrax_api_tasks.Decomp_res.Full.t
+// clique Imandrax_api_tasks.Decomp_res.Full.t (cached: false)
 // def Imandrax_api_tasks.Decomp_res.Full.t (mangled name: "Tasks_Decomp_res_Full")
 export type Tasks_Decomp_res_Full = Tasks_Decomp_res_full_poly<Mir_Term,Mir_Type>;
 
