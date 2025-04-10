@@ -38,6 +38,8 @@ genrust:
 
 gents:
 	@make -s gents -C src/ts/lib/
+	@make -s install-deps -C src/ts/proto
+	@make -s gents -C src/ts/proto
 
 build-ts-dev: gents
 	@make -C src/ts build-dev
