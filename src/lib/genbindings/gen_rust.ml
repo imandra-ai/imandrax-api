@@ -348,7 +348,7 @@ let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
   List.iter gen_def clique;
   ()
 
-let find_immediate_types (cliques : tydef list list) : State.t =
+let find_immediate_types (cliques : Ty_set.t list) : State.t =
   let set =
     ref
       (Str_map.values special_types
@@ -371,10 +371,10 @@ let find_immediate_types (cliques : tydef list list) : State.t =
     in
     if is_immediate then set := Str_set.add d.name !set
   in
-  List.iter (List.iter add_def) cliques;
+  List.iter (fun (set : Ty_set.t) -> List.iter add_def set.clique) cliques;
   State.make ~immediate_types:!set
 
-let gen ~out ~artifacts:_ ~types:(cliques : TR.Ty_def.clique list) () : unit =
+let gen ~out ~artifacts:_ ~types:(cliques : Ty_set.t list) () : unit =
   let@ oc = CCIO.with_out out in
 
   (* aliases are complicated because sometimes they erase type
@@ -384,7 +384,8 @@ let gen ~out ~artifacts:_ ~types:(cliques : TR.Ty_def.clique list) () : unit =
   fpf oc "%s\n" prelude;
   let st = find_immediate_types cliques in
   List.iter
-    (fun cl -> if not (skip_clique cl) then gen_clique st ~oc cl)
+    (fun (set : Ty_set.t) ->
+      if not (skip_clique set.clique) then gen_clique st ~oc set.clique)
     cliques;
 
   ()

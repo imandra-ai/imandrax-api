@@ -52,6 +52,9 @@ let names_to_exclude : Str_set.t =
       "Util_twine_.Q.t";
     ]
 
+let names_to_cache : Str_set.t =
+  Str_set.of_list [ "Imandrax_api_mir.Term.t"; "Imandrax_api_mir.Type.t" ]
+
 let split_any_path (path : string) : string list =
   let path = CCString.replace ~sub:"." ~by:"__" path in
   CCString.Split.list_cpy ~by:"__" path
@@ -157,7 +160,7 @@ let qualify_types_in_cliques (cliques : TR.Ty_def.clique list) :
   let subst = List.fold_left rename_clique { subst = Path_map.empty } cliques in
   List.map (List.map (subst_def ~subst)) cliques
 
-let parse_typereg () : TR.Ty_def.clique list =
+let parse_typereg () : Ty_set.t list =
   let cliques = ref [] in
   let l =
     let j = J.from_string Data_.types in
@@ -176,5 +179,19 @@ let parse_typereg () : TR.Ty_def.clique list =
   let cl =
     List.rev !cliques |> qualify_types_in_cliques
     |> Remove_ocaml_only_fields.process
+    |> List.map (fun cl ->
+           let cached =
+             List.exists
+               (fun (d : TR.Ty_def.t) -> Str_set.mem d.name names_to_cache)
+               cl
+           in
+
+           if cached && List.exists (fun (d : TR.Ty_def.t) -> d.params <> []) cl
+           then
+             failwith
+             @@ spf "Cannot cache polymorphic type in [%s]"
+                  (String.concat ","
+                  @@ List.map (fun (d : TR.Ty_def.t) -> d.name) cl);
+           { Ty_set.clique = cl; cached })
   in
   cl

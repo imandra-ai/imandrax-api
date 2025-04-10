@@ -230,9 +230,10 @@ function Chash_of_twine(d: twine.Decoder, off:number): Chash {
   ]
   |> Str_map.of_list
 
-let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
-  fpf oc "\n// clique %s\n"
-    (String.concat ", " @@ List.map (fun (d : tydef) -> d.name) clique);
+let gen_clique ~oc (set : Ty_set.t) : unit =
+  fpf oc "\n// clique %s (cached: %b)\n"
+    (String.concat ", " @@ List.map (fun (d : tydef) -> d.name) set.clique)
+    set.cached;
 
   let gen_def (def : tydef) : unit =
     let buf = Buffer.create 32 in
@@ -260,6 +261,14 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
         params, twine_params, params_decls, twine_params_kw
     in
 
+    let start_cached name =
+      if set.cached then
+        bpf buf
+          "  return twine.withCache(d, off, %S, ((d: twine.Decoder, \
+           off:offset) => {\n"
+          name
+    and stop_cached () = if set.cached then bpf buf "  }))\n" in
+
     let declare_ty (def : tydef) =
       match def.decl with
       | Alias ty ->
@@ -268,8 +277,10 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
           "export function %s%s(d: twine.Decoder, %soff: offset): %s%s {\n"
           (of_twine_of_ty_name def.name)
           tsparams ts_twine_params tsname tsparams;
+        start_cached def.name;
         List.iter (fun s -> bpf buf " %s; // ignore\n" s) params_decls;
         bpf buf "  return %s\n" (of_twine_of_type_expr ty ~off:"off");
+        stop_cached ();
         bpf buf "}\n"
       | Record r ->
         bpf buf "export class %s%s {\n" tsname tsparams;
@@ -288,6 +299,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
           "export function %s_of_twine%s(d: twine.Decoder, %soff: offset): \
            %s%s {\n"
           tsname tsparams ts_twine_params tsname tsparams;
+        start_cached def.name;
         if def.unboxed then (
           let _field_name, field_ty =
             match r.fields with
@@ -310,6 +322,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
             (String.concat ", "
             @@ List.map (fun (field, _) -> mangle_field_name field) r.fields)
         );
+        stop_cached ();
         bpf buf "}\n"
       | TR.Ty_def.Alg cstors ->
         List.iter
@@ -326,6 +339,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
                 "export function %s_of_twine%s(d: twine.Decoder, %s_tw_args: \
                  Array<offset>, off: offset): %s%s {\n"
                 c_tsname tsparams ts_twine_params c_tsname tsparams;
+              start_cached def.name;
               List.iter (fun s -> bpf buf "  %s; // ignore \n" s) params_decls;
               bpf buf "  checkArrayLength(off, _tw_args, 1)\n";
               bpf buf "  const arg = %s\n"
@@ -338,6 +352,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
                 "export function %s_of_twine%s(d: twine.Decoder, %s_tw_args: \
                  Array<offset>, off: offset): %s%s {\n"
                 c_tsname tsparams ts_twine_params c_tsname tsparams;
+              start_cached def.name;
               List.iter (fun s -> bpf buf "  %s; // ignore\n" s) params_decls;
               bpf buf "  checkArrayLength(off, _tw_args, %d)\n"
                 (List.length c.args);
@@ -365,6 +380,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
                 "export function %s_of_twine%s(d: twine.Decoder, %s_tw_args: \
                  Array<offset>, off: offset): %s%s {\n"
                 c_tsname tsparams ts_twine_params c_tsname tsparams;
+              start_cached def.name;
               List.iter (fun s -> bpf buf "  %s\n" s) params_decls;
               bpf buf "  checkArrayLength(off, _tw_args, %d)\n"
                 (List.length labels);
@@ -375,6 +391,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
                 labels c.args;
               bpf buf "  return new %s(%s)\n" c_tsname
                 (String.concat "," @@ List.map mangle_field_name labels));
+            stop_cached ();
             bpf buf "}\n")
           cstors;
         bpf buf "export type %s%s = " tsname tsparams;
@@ -390,6 +407,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
           "export function %s_of_twine%s(d: twine.Decoder, %soff: offset): \
            %s%s {\n"
           tsname tsparams ts_twine_params tsname tsparams;
+        start_cached def.name;
         bpf buf "  const c = d.get_cstor(off)\n";
         bpf buf "  switch (c.cstor_idx) {\n";
         List.iteri
@@ -409,6 +427,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
           "      throw new twine.TwineError({msg: `expected %s, got invalid \
            constructor ${c.cstor_idx}`, offset: off})\n"
           tsname;
+        stop_cached ();
         bpf buf "\n  }\n}\n"
     in
 
@@ -420,7 +439,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
     Buffer.output_buffer oc buf
   in
 
-  List.iter gen_def clique;
+  List.iter gen_def set.clique;
   ()
 
 let gen_artifacts (artifacts : Artifact.t list) : string =
@@ -448,12 +467,15 @@ let gen_artifacts (artifacts : Artifact.t list) : string =
 
   Buffer.contents buf
 
-let gen ~out ~(artifacts : Artifact.t list)
-    ~types:(cliques : TR.Ty_def.clique list) () : unit =
+let gen ~out ~(artifacts : Artifact.t list) ~types:(cliques : Ty_set.t list) ()
+    : unit =
   let@ oc = CCIO.with_out out in
 
   fpf oc "%s\n" prelude;
-  List.iter (fun cl -> if not (skip_clique cl) then gen_clique ~oc cl) cliques;
+  List.iter
+    (fun (tys : Ty_set.t) ->
+      if not (skip_clique tys.clique) then gen_clique ~oc tys)
+    cliques;
   fpf oc "%s\n" (gen_artifacts artifacts);
 
   ()

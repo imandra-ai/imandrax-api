@@ -26,14 +26,14 @@ let rec expand_in_ty (aliases : aliases) (ty : tyexpr) =
       in
       Utils.subst_ty subst body |> expand_in_ty aliases)
 
-let expand_aliases (cliques : TR.Ty_def.clique list) : _ list =
+let expand_aliases (cliques : Ty_set.t list) : _ list =
   let aliases = ref Str_map.empty in
-  let cliques =
+  let sets =
     Iter.of_list cliques
-    |> Iter.filter_map (fun defs ->
-           let defs =
+    |> Iter.filter_map (fun (defs : Ty_set.t) ->
+           let clique =
              CCList.filter
-               (fun (d : tydef) ->
+               (fun (d : TR.Ty_def.t) ->
                  match d.decl with
                  | Alias ty ->
                    aliases :=
@@ -42,16 +42,26 @@ let expand_aliases (cliques : TR.Ty_def.clique list) : _ list =
                        !aliases;
                    false
                  | _ -> true)
-               defs
+               defs.clique
            in
-           if defs = [] then
+           if defs.clique = [] then
              None
            else
-             Some defs)
+             Some { defs with clique })
     |> Iter.to_list
   in
 
   List.map
-    (List.map (fun (d : tydef) ->
-         { d with decl = TR.Ty_def.map_decl ~f:(expand_in_ty !aliases) d.decl }))
-    cliques
+    (fun (set : Ty_set.t) ->
+      {
+        set with
+        Ty_set.clique =
+          List.map
+            (fun (d : TR.Ty_def.t) ->
+              {
+                d with
+                decl = TR.Ty_def.map_decl ~f:(expand_in_ty !aliases) d.decl;
+              })
+            set.clique;
+      })
+    sets

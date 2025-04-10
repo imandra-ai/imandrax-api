@@ -6,7 +6,8 @@ let main ~out ~lang () : unit =
 
   if !dump then (
     List.iter
-      (fun d -> Format.printf "@[<2>got clique@ %a@]@." TR.Ty_def.pp_clique d)
+      (fun (d : Ty_set.t) ->
+        Format.printf "@[<2>got clique@ %a@]@." TR.Ty_def.pp_clique d.clique)
       types;
     List.iter
       (fun (a : Artifact.t) ->

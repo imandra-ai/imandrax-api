@@ -1,3 +1,3 @@
 open Common_
 
-val expand_aliases : TR.Ty_def.clique list -> TR.Ty_def.clique list
+val expand_aliases : Ty_set.t list -> Ty_set.t list

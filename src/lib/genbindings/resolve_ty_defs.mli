@@ -1,3 +1,3 @@
 open Common_
 
-val parse_typereg : unit -> TR.Ty_def.clique list
+val parse_typereg : unit -> Ty_set.t list

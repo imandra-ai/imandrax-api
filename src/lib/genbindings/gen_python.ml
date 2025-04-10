@@ -215,9 +215,10 @@ def Chash_of_twine(d, off:int) -> Chash:
   ]
   |> Str_map.of_list
 
-let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
-  fpf oc "\n# clique %s\n"
-    (String.concat "," @@ List.map (fun (d : tydef) -> d.name) clique);
+let gen_clique ~oc (tys : Ty_set.t) : unit =
+  fpf oc "\n# clique %s (cached: %b)\n"
+    (String.concat "," @@ List.map (fun (d : tydef) -> d.name) tys.clique)
+    tys.cached;
 
   let gen_def (def : tydef) : unit =
     let buf = Buffer.create 32 in
@@ -246,11 +247,19 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
         params, twine_params, params_decls, twine_params_kw
     in
 
+    let cached_decorator =
+      if tys.cached then
+        spf "@twine.cached(name=%S)\n" def.name
+      else
+        ""
+    in
+
     let declare_ty (def : tydef) =
       match def.decl with
       | Alias ty ->
         bpf buf "type %s%s = %s\n\n" pyname pyparams (gen_type_expr ty);
-        bpf buf "def %s(d: twine.Decoder, %soff: int) -> %s:\n"
+        bpf buf "%sdef %s(d: twine.Decoder, %soff: int) -> %s:\n"
+          cached_decorator
           (of_twine_of_ty_name def.name)
           pytwine_params pyname;
         List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
@@ -264,8 +273,8 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
           r.fields;
         bpf buf "\n";
 
-        bpf buf "def %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s:\n"
-          pyname pyparams pytwine_params pyname;
+        bpf buf "%sdef %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s:\n"
+          cached_decorator pyname pyparams pytwine_params pyname;
         if def.unboxed then (
           let field_name, field_ty =
             match r.fields with
@@ -303,9 +312,10 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
             | [ x ], None ->
               bpf buf "    arg: %s\n\n" (gen_type_expr x);
               bpf buf
-                "def %s_of_twine%s(d: twine.Decoder, %sargs: tuple[int, ...]) \
-                 -> %s%s:\n"
-                c_pyname pyparams pytwine_params c_pyname pyparams;
+                "%sdef %s_of_twine%s(d: twine.Decoder, %sargs: tuple[int, \
+                 ...]) -> %s%s:\n"
+                cached_decorator c_pyname pyparams pytwine_params c_pyname
+                pyparams;
               List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
               bpf buf "    arg = %s\n" (of_twine_of_type_expr ~off:"args[0]" x);
               bpf buf "    return %s(arg=arg)\n" c_pyname
@@ -313,9 +323,10 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
               bpf buf "    args: tuple[%s]\n\n"
                 (String.concat "," @@ List.map gen_type_expr c.args);
               bpf buf
-                "def %s_of_twine%s(d: twine.Decoder, %sargs: tuple[int, ...]) \
-                 -> %s%s:\n"
-                c_pyname pyparams pytwine_params c_pyname pyparams;
+                "%sdef %s_of_twine%s(d: twine.Decoder, %sargs: tuple[int, \
+                 ...]) -> %s%s:\n"
+                cached_decorator c_pyname pyparams pytwine_params c_pyname
+                pyparams;
               List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
               bpf buf "    cargs = (%s)\n"
                 (String.concat ","
@@ -332,9 +343,10 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
                 labels c.args;
               bpf buf "\n\n";
               bpf buf
-                "def %s_of_twine%s(d: twine.Decoder, %sargs: tuple[int, ...]) \
-                 -> %s%s:\n"
-                c_pyname pyparams pytwine_params c_pyname pyparams;
+                "%sdef %s_of_twine%s(d: twine.Decoder, %sargs: tuple[int, \
+                 ...]) -> %s%s:\n"
+                cached_decorator c_pyname pyparams pytwine_params c_pyname
+                pyparams;
               List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
               CCList.iteri2
                 (fun i lbl ty ->
@@ -361,8 +373,8 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
           cstors;
         bpf buf "\n\n";
 
-        bpf buf "def %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s:\n"
-          pyname pyparams pytwine_params pyname;
+        bpf buf "%sdef %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s:\n"
+          cached_decorator pyname pyparams pytwine_params pyname;
         bpf buf "    match d.get_cstor(off=off):\n";
         List.iteri
           (fun i (c : TR.Ty_def.cstor) ->
@@ -392,7 +404,7 @@ let gen_clique ~oc (clique : TR.Ty_def.clique) : unit =
     Buffer.output_buffer oc buf
   in
 
-  List.iter gen_def clique;
+  List.iter gen_def tys.clique;
   ()
 
 let gen_artifacts (artifacts : Artifact.t list) : string =
@@ -417,12 +429,15 @@ let gen_artifacts (artifacts : Artifact.t list) : string =
 
   Buffer.contents buf
 
-let gen ~out ~(artifacts : Artifact.t list)
-    ~types:(cliques : TR.Ty_def.clique list) () : unit =
+let gen ~out ~(artifacts : Artifact.t list) ~types:(cliques : Ty_set.t list) ()
+    : unit =
   let@ oc = CCIO.with_out out in
 
   fpf oc "%s\n" prelude;
-  List.iter (fun cl -> if not (skip_clique cl) then gen_clique ~oc cl) cliques;
+  List.iter
+    (fun (set : Ty_set.t) ->
+      if not (skip_clique set.clique) then gen_clique ~oc set)
+    cliques;
   fpf oc "%s\n" (gen_artifacts artifacts);
 
   ()
