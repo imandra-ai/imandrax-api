@@ -106,14 +106,25 @@ paths:
       requestBody:
         required: true
         content:
-          schema:
-            $ref: '#/components/schemas/code_snippet'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/code_snippet'
       responses:
         "200":
           description: Submitting code was successful (but code might contain errors)
           content:
             application/json:
               schema: {$ref: '#/components/schemas/eval_res'}
+  /parse/term/:
+    get:
+      summary: parse a term and return it as an artifact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/code_snippet'
+      responses: {$ref: '#/components/responses/artifact_res'}
 components:
   schemas:
     session:
@@ -184,3 +195,26 @@ components:
           type: array
           items: {$ref: '#/components/schemas/error'}
       required: [current, res, duration_s]
+  responses:
+    artifact_res:
+      description: A response returning a single artifact
+      "200":
+        description: The artifact was found
+        content:
+          application/octet-stream:
+            description: The pure twine data
+            schema:
+              type: string
+              format: binary
+              contentMediaType: application/x-twine-data
+          application/zip:
+            schema:
+              description: The artifact .zip file
+              type: string
+              format: binary
+          text/plain:
+            schema:
+              description: The twine data, in base64
+              type: string
+              format: byte
+              contentMediaType: application/x-twine-data
