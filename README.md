@@ -23,52 +23,20 @@ To install the development version, export `VERSION=latest-main`:
 $ VERSION=latest-main ./scripts/install.sh
 ```
 
-Once the CLI is installed (and, in the case of linux, in path),
-you can login using:
+## Getting an Imandra Universe API key
 
-```sh
-$ ./configure-imandrax.auth.sh
+To use ImandraX, you'll need an Imandra Universe API Key, available from https://universe.imandra.ai/ under your `User Settings` panel.
+Once you have that API key, copy it into this file:
+
 ```
-
-and configure imandrax to talk to the relevant cloud server:
-```sh
-$ mkdir -p ~/.config/imandrax
-$ cat <<EOF > ~/.config/imandrax/config.toml
-[net]
-deployment = "prod"
-EOF
-```
-
-(or for the development version:
-```sh
-$ mkdir -p ~/.config/imandrax
-$ cat <<EOF > ~/.config/imandrax/config.toml
-[net]
-deployment = "dev"
-EOF
-```
-)
-
-This is necessary for the CLI to be able to communicate with the server.
-Once logged in, the CLI can be freely used, e.g. with
-
-```sh
-$ cat > foo.iml <<EOF
-let f x = x+1
-verify (fun x -> f x > x)
-EOF
-
-$ imandrax-cli check foo.iml
+~/.config/imandrax/api_key
 ```
 
 ## VS Code Plugin / LSP
 
-The VS Code plugin needs to be obtained separately.
-If you have access, you can find the latest release binary (.vsix) file here:
-https://github.com/imandra-ai/imandrax-vscode/releases
+Next, install the ImandraX VS Code plugin from the VS Code Marketplace ([link](https://marketplace.visualstudio.com/items?itemName=imandra.imandrax)). 
 
-Soon we will bundle this with the installer and/or make the plugin available through
-the VS Code extensions marketplace.
+Depending on the location of your `imandrax` installation, you may need to modify the `settings.json` for the ImandraX VS Code plugin to point to your `imandrax-cli` binary.
 
 ### Curl
 
