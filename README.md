@@ -14,13 +14,13 @@ ImandraX currently supports Linux on x86_64, and macOS on aarch64 (ie ARM machin
 To install the `imandrax-cli` locally, use:
 
 ```sh
-$ ./scripts/install.sh
+./scripts/install.sh
 ```
 
 To install the development version, export `VERSION=latest-main`:
 
 ```sh
-$ VERSION=latest-main ./scripts/install.sh
+VERSION=latest-main ./scripts/install.sh
 ```
 
 ## Getting an Imandra Universe API key
@@ -43,7 +43,7 @@ Depending on the location of your `imandrax` installation, you may need to modif
 Example if the server is listening on port 8083:
 
 ```sh
-$ curl -X POST http://localhost:8083/api/v1/System/gc_stats -H 'content-type: application/json' -d {}
+curl -X POST http://localhost:8083/api/v1/System/gc_stats -H 'content-type: application/json' -d {}
 {"minorCollections":"4","majorCollections":"2","heapSizeB":"3081624"}
 ```
 
@@ -58,14 +58,14 @@ Requires: python >= 3.12
 Install dependencies to be able to fetch the package, and login to google cloud:
 
 ```sh
-$ pip install keyring keyrings-google-artifactregistry-auth twirp google-cloud-storage
-$ gcloud auth application-default login
+pip install keyring keyrings-google-artifactregistry-auth twirp google-cloud-storage
+gcloud auth application-default login
 ```
 
 then install via:
 
 ```sh
-$ pip install --index-url https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/simple/ imandrax-api
+pip install --index-url https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/simple/ imandrax-api
 ```
 
 #### Building Python API package locally
@@ -89,3 +89,4 @@ $ pip install src/py/dist/imandrax_api-0.7-py3-none-any.whl
 - [ ] use https://github.com/stephenh/ts-proto
 - [ ] write a RPC client implementation on top (websocket+JSON? or directly use the binary version)
 </details>
+
