@@ -6,12 +6,10 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Art } from "./artmsg";
-import { Error } from "./error";
-import { Session } from "./session";
-import { Task, TaskID } from "./task";
-
-export const protobufPackage = "imandrax.api";
+import { Art } from "./artmsg.js";
+import { Error } from "./error.js";
+import { Session } from "./session.js";
+import { Task, TaskID } from "./task.js";
 
 export enum EvalResult {
   EVAL_OK = 0,
@@ -149,7 +147,7 @@ export const CodeSnippet: MessageFns<CodeSnippet> = {
   fromJSON(object: any): CodeSnippet {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
-      code: isSet(object.code) ? globalThis.String(object.code) : "",
+      code: isSet(object.code) ? gt.String(object.code) : "",
     };
   },
 
@@ -249,9 +247,9 @@ export const CodeSnippetEvalResult: MessageFns<CodeSnippetEvalResult> = {
   fromJSON(object: any): CodeSnippetEvalResult {
     return {
       res: isSet(object.res) ? evalResultFromJSON(object.res) : 0,
-      durationS: isSet(object.durationS) ? globalThis.Number(object.durationS) : 0,
-      tasks: globalThis.Array.isArray(object?.tasks) ? object.tasks.map((e: any) => Task.fromJSON(e)) : [],
-      errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
+      durationS: isSet(object.durationS) ? gt.Number(object.durationS) : 0,
+      tasks: gt.Array.isArray(object?.tasks) ? object.tasks.map((e: any) => Task.fromJSON(e)) : [],
+      errors: gt.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
     };
   },
 
@@ -322,7 +320,7 @@ export const ParseQuery: MessageFns<ParseQuery> = {
   },
 
   fromJSON(object: any): ParseQuery {
-    return { code: isSet(object.code) ? globalThis.String(object.code) : "" };
+    return { code: isSet(object.code) ? gt.String(object.code) : "" };
   },
 
   toJSON(message: ParseQuery): unknown {
@@ -440,7 +438,7 @@ export const ArtifactListResult: MessageFns<ArtifactListResult> = {
   },
 
   fromJSON(object: any): ArtifactListResult {
-    return { kinds: globalThis.Array.isArray(object?.kinds) ? object.kinds.map((e: any) => globalThis.String(e)) : [] };
+    return { kinds: gt.Array.isArray(object?.kinds) ? object.kinds.map((e: any) => gt.String(e)) : [] };
   },
 
   toJSON(message: ArtifactListResult): unknown {
@@ -511,7 +509,7 @@ export const ArtifactGetQuery: MessageFns<ArtifactGetQuery> = {
   fromJSON(object: any): ArtifactGetQuery {
     return {
       taskId: isSet(object.taskId) ? TaskID.fromJSON(object.taskId) : undefined,
-      kind: isSet(object.kind) ? globalThis.String(object.kind) : "",
+      kind: isSet(object.kind) ? gt.String(object.kind) : "",
     };
   },
 
@@ -724,11 +722,30 @@ interface Rpc {
   request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
 }
 
+declare const self: any | undefined;
+declare const window: any | undefined;
+declare const global: any | undefined;
+const gt: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
+
 function bytesFromBase64(b64: string): Uint8Array {
-  if ((globalThis as any).Buffer) {
-    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  if ((gt as any).Buffer) {
+    return Uint8Array.from(gt.Buffer.from(b64, "base64"));
   } else {
-    const bin = globalThis.atob(b64);
+    const bin = gt.atob(b64);
     const arr = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; ++i) {
       arr[i] = bin.charCodeAt(i);
@@ -738,34 +755,35 @@ function bytesFromBase64(b64: string): Uint8Array {
 }
 
 function base64FromBytes(arr: Uint8Array): string {
-  if ((globalThis as any).Buffer) {
-    return globalThis.Buffer.from(arr).toString("base64");
+  if ((gt as any).Buffer) {
+    return gt.Buffer.from(arr).toString("base64");
   } else {
     const bin: string[] = [];
     arr.forEach((byte) => {
-      bin.push(globalThis.String.fromCharCode(byte));
+      bin.push(gt.String.fromCharCode(byte));
     });
-    return globalThis.btoa(bin.join(""));
+    return gt.btoa(bin.join(""));
   }
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
+type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export interface MessageFns<T> {
+interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;

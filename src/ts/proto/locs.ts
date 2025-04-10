@@ -7,8 +7,6 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 
-export const protobufPackage = "";
-
 export interface Position {
   line: number;
   col: number;
@@ -70,8 +68,8 @@ export const Position: MessageFns<Position> = {
 
   fromJSON(object: any): Position {
     return {
-      line: isSet(object.line) ? globalThis.Number(object.line) : 0,
-      col: isSet(object.col) ? globalThis.Number(object.col) : 0,
+      line: isSet(object.line) ? gt.Number(object.line) : 0,
+      col: isSet(object.col) ? gt.Number(object.col) : 0,
     };
   },
 
@@ -157,7 +155,7 @@ export const Location: MessageFns<Location> = {
 
   fromJSON(object: any): Location {
     return {
-      file: isSet(object.file) ? globalThis.String(object.file) : undefined,
+      file: isSet(object.file) ? gt.String(object.file) : undefined,
       start: isSet(object.start) ? Position.fromJSON(object.start) : undefined,
       stop: isSet(object.stop) ? Position.fromJSON(object.stop) : undefined,
     };
@@ -191,23 +189,43 @@ export const Location: MessageFns<Location> = {
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+declare const self: any | undefined;
+declare const window: any | undefined;
+declare const global: any | undefined;
+const gt: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
 
-export type DeepPartial<T> = T extends Builtin ? T
+type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+
+type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export interface MessageFns<T> {
+interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;

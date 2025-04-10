@@ -6,9 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Empty } from "./utils";
-
-export const protobufPackage = "imandrax.session";
+import { Empty } from "./utils.js";
 
 /** A session identifier. */
 export interface Session {
@@ -71,7 +69,7 @@ export const Session: MessageFns<Session> = {
   },
 
   fromJSON(object: any): Session {
-    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+    return { id: isSet(object.id) ? gt.String(object.id) : "" };
   },
 
   toJSON(message: Session): unknown {
@@ -141,8 +139,8 @@ export const SessionCreate: MessageFns<SessionCreate> = {
 
   fromJSON(object: any): SessionCreate {
     return {
-      poCheck: isSet(object.poCheck) ? globalThis.Boolean(object.poCheck) : undefined,
-      apiVersion: isSet(object.apiVersion) ? globalThis.String(object.apiVersion) : "",
+      poCheck: isSet(object.poCheck) ? gt.Boolean(object.poCheck) : undefined,
+      apiVersion: isSet(object.apiVersion) ? gt.String(object.apiVersion) : "",
     };
   },
 
@@ -218,7 +216,7 @@ export const SessionOpen: MessageFns<SessionOpen> = {
   fromJSON(object: any): SessionOpen {
     return {
       id: isSet(object.id) ? Session.fromJSON(object.id) : undefined,
-      apiVersion: isSet(object.apiVersion) ? globalThis.String(object.apiVersion) : "",
+      apiVersion: isSet(object.apiVersion) ? gt.String(object.apiVersion) : "",
     };
   },
 
@@ -296,23 +294,43 @@ interface Rpc {
   request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+declare const self: any | undefined;
+declare const window: any | undefined;
+declare const global: any | undefined;
+const gt: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
 
-export type DeepPartial<T> = T extends Builtin ? T
+type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+
+type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export interface MessageFns<T> {
+interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;

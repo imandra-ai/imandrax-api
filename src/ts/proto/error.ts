@@ -6,9 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Location } from "./locs";
-
-export const protobufPackage = "";
+import { Location } from "./locs.js";
 
 export interface Error {
   /** The toplevel error message. */
@@ -103,9 +101,9 @@ export const Error: MessageFns<Error> = {
   fromJSON(object: any): Error {
     return {
       msg: isSet(object.msg) ? Error_Message.fromJSON(object.msg) : undefined,
-      kind: isSet(object.kind) ? globalThis.String(object.kind) : "",
-      stack: globalThis.Array.isArray(object?.stack) ? object.stack.map((e: any) => Error_Message.fromJSON(e)) : [],
-      process: isSet(object.process) ? globalThis.String(object.process) : undefined,
+      kind: isSet(object.kind) ? gt.String(object.kind) : "",
+      stack: gt.Array.isArray(object?.stack) ? object.stack.map((e: any) => Error_Message.fromJSON(e)) : [],
+      process: isSet(object.process) ? gt.String(object.process) : undefined,
     };
   },
 
@@ -199,9 +197,9 @@ export const Error_Message: MessageFns<Error_Message> = {
 
   fromJSON(object: any): Error_Message {
     return {
-      msg: isSet(object.msg) ? globalThis.String(object.msg) : "",
-      locs: globalThis.Array.isArray(object?.locs) ? object.locs.map((e: any) => Location.fromJSON(e)) : [],
-      backtrace: isSet(object.backtrace) ? globalThis.String(object.backtrace) : undefined,
+      msg: isSet(object.msg) ? gt.String(object.msg) : "",
+      locs: gt.Array.isArray(object?.locs) ? object.locs.map((e: any) => Location.fromJSON(e)) : [],
+      backtrace: isSet(object.backtrace) ? gt.String(object.backtrace) : undefined,
     };
   },
 
@@ -231,23 +229,43 @@ export const Error_Message: MessageFns<Error_Message> = {
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+declare const self: any | undefined;
+declare const window: any | undefined;
+declare const global: any | undefined;
+const gt: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
 
-export type DeepPartial<T> = T extends Builtin ? T
+type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+
+type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export interface MessageFns<T> {
+interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;

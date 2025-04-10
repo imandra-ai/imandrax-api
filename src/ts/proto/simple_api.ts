@@ -6,13 +6,11 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Art } from "./artmsg";
-import { Error } from "./error";
-import { Session } from "./session";
-import { Task } from "./task";
-import { Empty, StringMsg } from "./utils";
-
-export const protobufPackage = "imandrax.simple";
+import { Art } from "./artmsg.js";
+import { Error } from "./error.js";
+import { Session } from "./session.js";
+import { Task } from "./task.js";
+import { Empty, StringMsg } from "./utils.js";
 
 export enum LiftBool {
   Default = 0,
@@ -115,8 +113,7 @@ export interface DecomposeReq {
 
 /** Result of a decomposition */
 export interface DecomposeRes {
-  artifact?: Art | undefined;
-  err?: Empty | undefined;
+  res?: { $case: "artifact"; artifact: Art } | { $case: "err"; err: Empty } | undefined;
   errors: Error[];
   /** the ID of the task */
   task: Task | undefined;
@@ -201,20 +198,22 @@ export interface Sat {
 }
 
 export interface VerifyRes {
-  unknown?: StringMsg | undefined;
-  err?: Empty | undefined;
-  proved?: Proved | undefined;
-  refuted?: Refuted | undefined;
+  res?:
+    | { $case: "unknown"; unknown: StringMsg }
+    | { $case: "err"; err: Empty }
+    | { $case: "proved"; proved: Proved }
+    | { $case: "refuted"; refuted: Refuted }
+    | undefined;
   errors: Error[];
   /** the ID of the task */
   task: Task | undefined;
 }
 
 export interface InstanceRes {
-  unknown?: StringMsg | undefined;
-  err?: Empty | undefined;
-  unsat?: Unsat | undefined;
-  sat?: Sat | undefined;
+  res?: { $case: "unknown"; unknown: StringMsg } | { $case: "err"; err: Empty } | { $case: "unsat"; unsat: Unsat } | {
+    $case: "sat";
+    sat: Sat;
+  } | undefined;
   errors: Error[];
   /** the ID of the task */
   task: Task | undefined;
@@ -273,7 +272,7 @@ export const SessionCreateReq: MessageFns<SessionCreateReq> = {
   },
 
   fromJSON(object: any): SessionCreateReq {
-    return { apiVersion: isSet(object.apiVersion) ? globalThis.String(object.apiVersion) : "" };
+    return { apiVersion: isSet(object.apiVersion) ? gt.String(object.apiVersion) : "" };
   },
 
   toJSON(message: SessionCreateReq): unknown {
@@ -431,16 +430,14 @@ export const DecomposeReq: MessageFns<DecomposeReq> = {
   fromJSON(object: any): DecomposeReq {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      assuming: isSet(object.assuming) ? globalThis.String(object.assuming) : undefined,
-      basis: globalThis.Array.isArray(object?.basis) ? object.basis.map((e: any) => globalThis.String(e)) : [],
-      ruleSpecs: globalThis.Array.isArray(object?.ruleSpecs)
-        ? object.ruleSpecs.map((e: any) => globalThis.String(e))
-        : [],
-      prune: isSet(object.prune) ? globalThis.Boolean(object.prune) : false,
-      ctxSimp: isSet(object.ctxSimp) ? globalThis.Boolean(object.ctxSimp) : undefined,
+      name: isSet(object.name) ? gt.String(object.name) : "",
+      assuming: isSet(object.assuming) ? gt.String(object.assuming) : undefined,
+      basis: gt.Array.isArray(object?.basis) ? object.basis.map((e: any) => gt.String(e)) : [],
+      ruleSpecs: gt.Array.isArray(object?.ruleSpecs) ? object.ruleSpecs.map((e: any) => gt.String(e)) : [],
+      prune: isSet(object.prune) ? gt.Boolean(object.prune) : false,
+      ctxSimp: isSet(object.ctxSimp) ? gt.Boolean(object.ctxSimp) : undefined,
       liftBool: isSet(object.liftBool) ? liftBoolFromJSON(object.liftBool) : undefined,
-      str: isSet(object.str) ? globalThis.Boolean(object.str) : undefined,
+      str: isSet(object.str) ? gt.Boolean(object.str) : undefined,
     };
   },
 
@@ -497,16 +494,18 @@ export const DecomposeReq: MessageFns<DecomposeReq> = {
 };
 
 function createBaseDecomposeRes(): DecomposeRes {
-  return { artifact: undefined, err: undefined, errors: [], task: undefined };
+  return { res: undefined, errors: [], task: undefined };
 }
 
 export const DecomposeRes: MessageFns<DecomposeRes> = {
   encode(message: DecomposeRes, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.artifact !== undefined) {
-      Art.encode(message.artifact, writer.uint32(10).fork()).join();
-    }
-    if (message.err !== undefined) {
-      Empty.encode(message.err, writer.uint32(18).fork()).join();
+    switch (message.res?.$case) {
+      case "artifact":
+        Art.encode(message.res.artifact, writer.uint32(10).fork()).join();
+        break;
+      case "err":
+        Empty.encode(message.res.err, writer.uint32(18).fork()).join();
+        break;
     }
     for (const v of message.errors) {
       Error.encode(v!, writer.uint32(82).fork()).join();
@@ -529,7 +528,7 @@ export const DecomposeRes: MessageFns<DecomposeRes> = {
             break;
           }
 
-          message.artifact = Art.decode(reader, reader.uint32());
+          message.res = { $case: "artifact", artifact: Art.decode(reader, reader.uint32()) };
           continue;
         }
         case 2: {
@@ -537,7 +536,7 @@ export const DecomposeRes: MessageFns<DecomposeRes> = {
             break;
           }
 
-          message.err = Empty.decode(reader, reader.uint32());
+          message.res = { $case: "err", err: Empty.decode(reader, reader.uint32()) };
           continue;
         }
         case 10: {
@@ -567,20 +566,22 @@ export const DecomposeRes: MessageFns<DecomposeRes> = {
 
   fromJSON(object: any): DecomposeRes {
     return {
-      artifact: isSet(object.artifact) ? Art.fromJSON(object.artifact) : undefined,
-      err: isSet(object.err) ? Empty.fromJSON(object.err) : undefined,
-      errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
+      res: isSet(object.artifact)
+        ? { $case: "artifact", artifact: Art.fromJSON(object.artifact) }
+        : isSet(object.err)
+        ? { $case: "err", err: Empty.fromJSON(object.err) }
+        : undefined,
+      errors: gt.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
       task: isSet(object.task) ? Task.fromJSON(object.task) : undefined,
     };
   },
 
   toJSON(message: DecomposeRes): unknown {
     const obj: any = {};
-    if (message.artifact !== undefined) {
-      obj.artifact = Art.toJSON(message.artifact);
-    }
-    if (message.err !== undefined) {
-      obj.err = Empty.toJSON(message.err);
+    if (message.res?.$case === "artifact") {
+      obj.artifact = Art.toJSON(message.res.artifact);
+    } else if (message.res?.$case === "err") {
+      obj.err = Empty.toJSON(message.res.err);
     }
     if (message.errors?.length) {
       obj.errors = message.errors.map((e) => Error.toJSON(e));
@@ -596,10 +597,20 @@ export const DecomposeRes: MessageFns<DecomposeRes> = {
   },
   fromPartial<I extends Exact<DeepPartial<DecomposeRes>, I>>(object: I): DecomposeRes {
     const message = createBaseDecomposeRes();
-    message.artifact = (object.artifact !== undefined && object.artifact !== null)
-      ? Art.fromPartial(object.artifact)
-      : undefined;
-    message.err = (object.err !== undefined && object.err !== null) ? Empty.fromPartial(object.err) : undefined;
+    switch (object.res?.$case) {
+      case "artifact": {
+        if (object.res?.artifact !== undefined && object.res?.artifact !== null) {
+          message.res = { $case: "artifact", artifact: Art.fromPartial(object.res.artifact) };
+        }
+        break;
+      }
+      case "err": {
+        if (object.res?.err !== undefined && object.res?.err !== null) {
+          message.res = { $case: "err", err: Empty.fromPartial(object.res.err) };
+        }
+        break;
+      }
+    }
     message.errors = object.errors?.map((e) => Error.fromPartial(e)) || [];
     message.task = (object.task !== undefined && object.task !== null) ? Task.fromPartial(object.task) : undefined;
     return message;
@@ -656,7 +667,7 @@ export const EvalSrcReq: MessageFns<EvalSrcReq> = {
   fromJSON(object: any): EvalSrcReq {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
-      src: isSet(object.src) ? globalThis.String(object.src) : "",
+      src: isSet(object.src) ? gt.String(object.src) : "",
     };
   },
 
@@ -755,10 +766,10 @@ export const EvalRes: MessageFns<EvalRes> = {
 
   fromJSON(object: any): EvalRes {
     return {
-      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
-      messages: globalThis.Array.isArray(object?.messages) ? object.messages.map((e: any) => globalThis.String(e)) : [],
-      errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
-      tasks: globalThis.Array.isArray(object?.tasks) ? object.tasks.map((e: any) => Task.fromJSON(e)) : [],
+      success: isSet(object.success) ? gt.Boolean(object.success) : false,
+      messages: gt.Array.isArray(object?.messages) ? object.messages.map((e: any) => gt.String(e)) : [],
+      errors: gt.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
+      tasks: gt.Array.isArray(object?.tasks) ? object.tasks.map((e: any) => Task.fromJSON(e)) : [],
     };
   },
 
@@ -853,8 +864,8 @@ export const VerifySrcReq: MessageFns<VerifySrcReq> = {
   fromJSON(object: any): VerifySrcReq {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
-      src: isSet(object.src) ? globalThis.String(object.src) : "",
-      hints: isSet(object.hints) ? globalThis.String(object.hints) : undefined,
+      src: isSet(object.src) ? gt.String(object.src) : "",
+      hints: isSet(object.hints) ? gt.String(object.hints) : undefined,
     };
   },
 
@@ -947,8 +958,8 @@ export const VerifyNameReq: MessageFns<VerifyNameReq> = {
   fromJSON(object: any): VerifyNameReq {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      hints: isSet(object.hints) ? globalThis.String(object.hints) : undefined,
+      name: isSet(object.name) ? gt.String(object.name) : "",
+      hints: isSet(object.hints) ? gt.String(object.hints) : undefined,
     };
   },
 
@@ -1041,8 +1052,8 @@ export const InstanceSrcReq: MessageFns<InstanceSrcReq> = {
   fromJSON(object: any): InstanceSrcReq {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
-      src: isSet(object.src) ? globalThis.String(object.src) : "",
-      hints: isSet(object.hints) ? globalThis.String(object.hints) : undefined,
+      src: isSet(object.src) ? gt.String(object.src) : "",
+      hints: isSet(object.hints) ? gt.String(object.hints) : undefined,
     };
   },
 
@@ -1135,8 +1146,8 @@ export const InstanceNameReq: MessageFns<InstanceNameReq> = {
   fromJSON(object: any): InstanceNameReq {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      hints: isSet(object.hints) ? globalThis.String(object.hints) : undefined,
+      name: isSet(object.name) ? gt.String(object.name) : "",
+      hints: isSet(object.hints) ? gt.String(object.hints) : undefined,
     };
   },
 
@@ -1205,7 +1216,7 @@ export const Proved: MessageFns<Proved> = {
   },
 
   fromJSON(object: any): Proved {
-    return { proofPp: isSet(object.proofPp) ? globalThis.String(object.proofPp) : undefined };
+    return { proofPp: isSet(object.proofPp) ? gt.String(object.proofPp) : undefined };
   },
 
   toJSON(message: Proved): unknown {
@@ -1263,7 +1274,7 @@ export const Unsat: MessageFns<Unsat> = {
   },
 
   fromJSON(object: any): Unsat {
-    return { proofPp: isSet(object.proofPp) ? globalThis.String(object.proofPp) : undefined };
+    return { proofPp: isSet(object.proofPp) ? gt.String(object.proofPp) : undefined };
   },
 
   toJSON(message: Unsat): unknown {
@@ -1345,7 +1356,7 @@ export const Model: MessageFns<Model> = {
   fromJSON(object: any): Model {
     return {
       mType: isSet(object.mType) ? modelTypeFromJSON(object.mType) : 0,
-      src: isSet(object.src) ? globalThis.String(object.src) : "",
+      src: isSet(object.src) ? gt.String(object.src) : "",
       artifact: isSet(object.artifact) ? Art.fromJSON(object.artifact) : undefined,
     };
   },
@@ -1495,22 +1506,24 @@ export const Sat: MessageFns<Sat> = {
 };
 
 function createBaseVerifyRes(): VerifyRes {
-  return { unknown: undefined, err: undefined, proved: undefined, refuted: undefined, errors: [], task: undefined };
+  return { res: undefined, errors: [], task: undefined };
 }
 
 export const VerifyRes: MessageFns<VerifyRes> = {
   encode(message: VerifyRes, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.unknown !== undefined) {
-      StringMsg.encode(message.unknown, writer.uint32(10).fork()).join();
-    }
-    if (message.err !== undefined) {
-      Empty.encode(message.err, writer.uint32(18).fork()).join();
-    }
-    if (message.proved !== undefined) {
-      Proved.encode(message.proved, writer.uint32(26).fork()).join();
-    }
-    if (message.refuted !== undefined) {
-      Refuted.encode(message.refuted, writer.uint32(34).fork()).join();
+    switch (message.res?.$case) {
+      case "unknown":
+        StringMsg.encode(message.res.unknown, writer.uint32(10).fork()).join();
+        break;
+      case "err":
+        Empty.encode(message.res.err, writer.uint32(18).fork()).join();
+        break;
+      case "proved":
+        Proved.encode(message.res.proved, writer.uint32(26).fork()).join();
+        break;
+      case "refuted":
+        Refuted.encode(message.res.refuted, writer.uint32(34).fork()).join();
+        break;
     }
     for (const v of message.errors) {
       Error.encode(v!, writer.uint32(82).fork()).join();
@@ -1533,7 +1546,7 @@ export const VerifyRes: MessageFns<VerifyRes> = {
             break;
           }
 
-          message.unknown = StringMsg.decode(reader, reader.uint32());
+          message.res = { $case: "unknown", unknown: StringMsg.decode(reader, reader.uint32()) };
           continue;
         }
         case 2: {
@@ -1541,7 +1554,7 @@ export const VerifyRes: MessageFns<VerifyRes> = {
             break;
           }
 
-          message.err = Empty.decode(reader, reader.uint32());
+          message.res = { $case: "err", err: Empty.decode(reader, reader.uint32()) };
           continue;
         }
         case 3: {
@@ -1549,7 +1562,7 @@ export const VerifyRes: MessageFns<VerifyRes> = {
             break;
           }
 
-          message.proved = Proved.decode(reader, reader.uint32());
+          message.res = { $case: "proved", proved: Proved.decode(reader, reader.uint32()) };
           continue;
         }
         case 4: {
@@ -1557,7 +1570,7 @@ export const VerifyRes: MessageFns<VerifyRes> = {
             break;
           }
 
-          message.refuted = Refuted.decode(reader, reader.uint32());
+          message.res = { $case: "refuted", refuted: Refuted.decode(reader, reader.uint32()) };
           continue;
         }
         case 10: {
@@ -1587,28 +1600,30 @@ export const VerifyRes: MessageFns<VerifyRes> = {
 
   fromJSON(object: any): VerifyRes {
     return {
-      unknown: isSet(object.unknown) ? StringMsg.fromJSON(object.unknown) : undefined,
-      err: isSet(object.err) ? Empty.fromJSON(object.err) : undefined,
-      proved: isSet(object.proved) ? Proved.fromJSON(object.proved) : undefined,
-      refuted: isSet(object.refuted) ? Refuted.fromJSON(object.refuted) : undefined,
-      errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
+      res: isSet(object.unknown)
+        ? { $case: "unknown", unknown: StringMsg.fromJSON(object.unknown) }
+        : isSet(object.err)
+        ? { $case: "err", err: Empty.fromJSON(object.err) }
+        : isSet(object.proved)
+        ? { $case: "proved", proved: Proved.fromJSON(object.proved) }
+        : isSet(object.refuted)
+        ? { $case: "refuted", refuted: Refuted.fromJSON(object.refuted) }
+        : undefined,
+      errors: gt.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
       task: isSet(object.task) ? Task.fromJSON(object.task) : undefined,
     };
   },
 
   toJSON(message: VerifyRes): unknown {
     const obj: any = {};
-    if (message.unknown !== undefined) {
-      obj.unknown = StringMsg.toJSON(message.unknown);
-    }
-    if (message.err !== undefined) {
-      obj.err = Empty.toJSON(message.err);
-    }
-    if (message.proved !== undefined) {
-      obj.proved = Proved.toJSON(message.proved);
-    }
-    if (message.refuted !== undefined) {
-      obj.refuted = Refuted.toJSON(message.refuted);
+    if (message.res?.$case === "unknown") {
+      obj.unknown = StringMsg.toJSON(message.res.unknown);
+    } else if (message.res?.$case === "err") {
+      obj.err = Empty.toJSON(message.res.err);
+    } else if (message.res?.$case === "proved") {
+      obj.proved = Proved.toJSON(message.res.proved);
+    } else if (message.res?.$case === "refuted") {
+      obj.refuted = Refuted.toJSON(message.res.refuted);
     }
     if (message.errors?.length) {
       obj.errors = message.errors.map((e) => Error.toJSON(e));
@@ -1624,16 +1639,32 @@ export const VerifyRes: MessageFns<VerifyRes> = {
   },
   fromPartial<I extends Exact<DeepPartial<VerifyRes>, I>>(object: I): VerifyRes {
     const message = createBaseVerifyRes();
-    message.unknown = (object.unknown !== undefined && object.unknown !== null)
-      ? StringMsg.fromPartial(object.unknown)
-      : undefined;
-    message.err = (object.err !== undefined && object.err !== null) ? Empty.fromPartial(object.err) : undefined;
-    message.proved = (object.proved !== undefined && object.proved !== null)
-      ? Proved.fromPartial(object.proved)
-      : undefined;
-    message.refuted = (object.refuted !== undefined && object.refuted !== null)
-      ? Refuted.fromPartial(object.refuted)
-      : undefined;
+    switch (object.res?.$case) {
+      case "unknown": {
+        if (object.res?.unknown !== undefined && object.res?.unknown !== null) {
+          message.res = { $case: "unknown", unknown: StringMsg.fromPartial(object.res.unknown) };
+        }
+        break;
+      }
+      case "err": {
+        if (object.res?.err !== undefined && object.res?.err !== null) {
+          message.res = { $case: "err", err: Empty.fromPartial(object.res.err) };
+        }
+        break;
+      }
+      case "proved": {
+        if (object.res?.proved !== undefined && object.res?.proved !== null) {
+          message.res = { $case: "proved", proved: Proved.fromPartial(object.res.proved) };
+        }
+        break;
+      }
+      case "refuted": {
+        if (object.res?.refuted !== undefined && object.res?.refuted !== null) {
+          message.res = { $case: "refuted", refuted: Refuted.fromPartial(object.res.refuted) };
+        }
+        break;
+      }
+    }
     message.errors = object.errors?.map((e) => Error.fromPartial(e)) || [];
     message.task = (object.task !== undefined && object.task !== null) ? Task.fromPartial(object.task) : undefined;
     return message;
@@ -1641,22 +1672,24 @@ export const VerifyRes: MessageFns<VerifyRes> = {
 };
 
 function createBaseInstanceRes(): InstanceRes {
-  return { unknown: undefined, err: undefined, unsat: undefined, sat: undefined, errors: [], task: undefined };
+  return { res: undefined, errors: [], task: undefined };
 }
 
 export const InstanceRes: MessageFns<InstanceRes> = {
   encode(message: InstanceRes, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.unknown !== undefined) {
-      StringMsg.encode(message.unknown, writer.uint32(10).fork()).join();
-    }
-    if (message.err !== undefined) {
-      Empty.encode(message.err, writer.uint32(18).fork()).join();
-    }
-    if (message.unsat !== undefined) {
-      Unsat.encode(message.unsat, writer.uint32(26).fork()).join();
-    }
-    if (message.sat !== undefined) {
-      Sat.encode(message.sat, writer.uint32(34).fork()).join();
+    switch (message.res?.$case) {
+      case "unknown":
+        StringMsg.encode(message.res.unknown, writer.uint32(10).fork()).join();
+        break;
+      case "err":
+        Empty.encode(message.res.err, writer.uint32(18).fork()).join();
+        break;
+      case "unsat":
+        Unsat.encode(message.res.unsat, writer.uint32(26).fork()).join();
+        break;
+      case "sat":
+        Sat.encode(message.res.sat, writer.uint32(34).fork()).join();
+        break;
     }
     for (const v of message.errors) {
       Error.encode(v!, writer.uint32(82).fork()).join();
@@ -1679,7 +1712,7 @@ export const InstanceRes: MessageFns<InstanceRes> = {
             break;
           }
 
-          message.unknown = StringMsg.decode(reader, reader.uint32());
+          message.res = { $case: "unknown", unknown: StringMsg.decode(reader, reader.uint32()) };
           continue;
         }
         case 2: {
@@ -1687,7 +1720,7 @@ export const InstanceRes: MessageFns<InstanceRes> = {
             break;
           }
 
-          message.err = Empty.decode(reader, reader.uint32());
+          message.res = { $case: "err", err: Empty.decode(reader, reader.uint32()) };
           continue;
         }
         case 3: {
@@ -1695,7 +1728,7 @@ export const InstanceRes: MessageFns<InstanceRes> = {
             break;
           }
 
-          message.unsat = Unsat.decode(reader, reader.uint32());
+          message.res = { $case: "unsat", unsat: Unsat.decode(reader, reader.uint32()) };
           continue;
         }
         case 4: {
@@ -1703,7 +1736,7 @@ export const InstanceRes: MessageFns<InstanceRes> = {
             break;
           }
 
-          message.sat = Sat.decode(reader, reader.uint32());
+          message.res = { $case: "sat", sat: Sat.decode(reader, reader.uint32()) };
           continue;
         }
         case 10: {
@@ -1733,28 +1766,30 @@ export const InstanceRes: MessageFns<InstanceRes> = {
 
   fromJSON(object: any): InstanceRes {
     return {
-      unknown: isSet(object.unknown) ? StringMsg.fromJSON(object.unknown) : undefined,
-      err: isSet(object.err) ? Empty.fromJSON(object.err) : undefined,
-      unsat: isSet(object.unsat) ? Unsat.fromJSON(object.unsat) : undefined,
-      sat: isSet(object.sat) ? Sat.fromJSON(object.sat) : undefined,
-      errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
+      res: isSet(object.unknown)
+        ? { $case: "unknown", unknown: StringMsg.fromJSON(object.unknown) }
+        : isSet(object.err)
+        ? { $case: "err", err: Empty.fromJSON(object.err) }
+        : isSet(object.unsat)
+        ? { $case: "unsat", unsat: Unsat.fromJSON(object.unsat) }
+        : isSet(object.sat)
+        ? { $case: "sat", sat: Sat.fromJSON(object.sat) }
+        : undefined,
+      errors: gt.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
       task: isSet(object.task) ? Task.fromJSON(object.task) : undefined,
     };
   },
 
   toJSON(message: InstanceRes): unknown {
     const obj: any = {};
-    if (message.unknown !== undefined) {
-      obj.unknown = StringMsg.toJSON(message.unknown);
-    }
-    if (message.err !== undefined) {
-      obj.err = Empty.toJSON(message.err);
-    }
-    if (message.unsat !== undefined) {
-      obj.unsat = Unsat.toJSON(message.unsat);
-    }
-    if (message.sat !== undefined) {
-      obj.sat = Sat.toJSON(message.sat);
+    if (message.res?.$case === "unknown") {
+      obj.unknown = StringMsg.toJSON(message.res.unknown);
+    } else if (message.res?.$case === "err") {
+      obj.err = Empty.toJSON(message.res.err);
+    } else if (message.res?.$case === "unsat") {
+      obj.unsat = Unsat.toJSON(message.res.unsat);
+    } else if (message.res?.$case === "sat") {
+      obj.sat = Sat.toJSON(message.res.sat);
     }
     if (message.errors?.length) {
       obj.errors = message.errors.map((e) => Error.toJSON(e));
@@ -1770,12 +1805,32 @@ export const InstanceRes: MessageFns<InstanceRes> = {
   },
   fromPartial<I extends Exact<DeepPartial<InstanceRes>, I>>(object: I): InstanceRes {
     const message = createBaseInstanceRes();
-    message.unknown = (object.unknown !== undefined && object.unknown !== null)
-      ? StringMsg.fromPartial(object.unknown)
-      : undefined;
-    message.err = (object.err !== undefined && object.err !== null) ? Empty.fromPartial(object.err) : undefined;
-    message.unsat = (object.unsat !== undefined && object.unsat !== null) ? Unsat.fromPartial(object.unsat) : undefined;
-    message.sat = (object.sat !== undefined && object.sat !== null) ? Sat.fromPartial(object.sat) : undefined;
+    switch (object.res?.$case) {
+      case "unknown": {
+        if (object.res?.unknown !== undefined && object.res?.unknown !== null) {
+          message.res = { $case: "unknown", unknown: StringMsg.fromPartial(object.res.unknown) };
+        }
+        break;
+      }
+      case "err": {
+        if (object.res?.err !== undefined && object.res?.err !== null) {
+          message.res = { $case: "err", err: Empty.fromPartial(object.res.err) };
+        }
+        break;
+      }
+      case "unsat": {
+        if (object.res?.unsat !== undefined && object.res?.unsat !== null) {
+          message.res = { $case: "unsat", unsat: Unsat.fromPartial(object.res.unsat) };
+        }
+        break;
+      }
+      case "sat": {
+        if (object.res?.sat !== undefined && object.res?.sat !== null) {
+          message.res = { $case: "sat", sat: Sat.fromPartial(object.res.sat) };
+        }
+        break;
+      }
+    }
     message.errors = object.errors?.map((e) => Error.fromPartial(e)) || [];
     message.task = (object.task !== undefined && object.task !== null) ? Task.fromPartial(object.task) : undefined;
     return message;
@@ -1832,7 +1887,7 @@ export const TypecheckReq: MessageFns<TypecheckReq> = {
   fromJSON(object: any): TypecheckReq {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
-      src: isSet(object.src) ? globalThis.String(object.src) : "",
+      src: isSet(object.src) ? gt.String(object.src) : "",
     };
   },
 
@@ -1920,9 +1975,9 @@ export const TypecheckRes: MessageFns<TypecheckRes> = {
 
   fromJSON(object: any): TypecheckRes {
     return {
-      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
-      types: isSet(object.types) ? globalThis.String(object.types) : "",
-      errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
+      success: isSet(object.success) ? gt.Boolean(object.success) : false,
+      types: isSet(object.types) ? gt.String(object.types) : "",
+      errors: gt.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
     };
   },
 
@@ -2060,23 +2115,43 @@ interface Rpc {
   request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+declare const self: any | undefined;
+declare const window: any | undefined;
+declare const global: any | undefined;
+const gt: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
 
-export type DeepPartial<T> = T extends Builtin ? T
+type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+
+type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export interface MessageFns<T> {
+interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;

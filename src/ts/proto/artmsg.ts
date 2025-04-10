@@ -7,8 +7,6 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 
-export const protobufPackage = "";
-
 export interface StorageEntry {
   /** the CA store key */
   key: string;
@@ -79,7 +77,7 @@ export const StorageEntry: MessageFns<StorageEntry> = {
 
   fromJSON(object: any): StorageEntry {
     return {
-      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      key: isSet(object.key) ? gt.String(object.key) : "",
       value: isSet(object.value) ? bytesFromBase64(object.value) : new Uint8Array(0),
     };
   },
@@ -177,12 +175,10 @@ export const Art: MessageFns<Art> = {
 
   fromJSON(object: any): Art {
     return {
-      kind: isSet(object.kind) ? globalThis.String(object.kind) : "",
+      kind: isSet(object.kind) ? gt.String(object.kind) : "",
       data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(0),
-      apiVersion: isSet(object.apiVersion) ? globalThis.String(object.apiVersion) : "",
-      storage: globalThis.Array.isArray(object?.storage)
-        ? object.storage.map((e: any) => StorageEntry.fromJSON(e))
-        : [],
+      apiVersion: isSet(object.apiVersion) ? gt.String(object.apiVersion) : "",
+      storage: gt.Array.isArray(object?.storage) ? object.storage.map((e: any) => StorageEntry.fromJSON(e)) : [],
     };
   },
 
@@ -216,11 +212,30 @@ export const Art: MessageFns<Art> = {
   },
 };
 
+declare const self: any | undefined;
+declare const window: any | undefined;
+declare const global: any | undefined;
+const gt: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
+
 function bytesFromBase64(b64: string): Uint8Array {
-  if ((globalThis as any).Buffer) {
-    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  if ((gt as any).Buffer) {
+    return Uint8Array.from(gt.Buffer.from(b64, "base64"));
   } else {
-    const bin = globalThis.atob(b64);
+    const bin = gt.atob(b64);
     const arr = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; ++i) {
       arr[i] = bin.charCodeAt(i);
@@ -230,34 +245,35 @@ function bytesFromBase64(b64: string): Uint8Array {
 }
 
 function base64FromBytes(arr: Uint8Array): string {
-  if ((globalThis as any).Buffer) {
-    return globalThis.Buffer.from(arr).toString("base64");
+  if ((gt as any).Buffer) {
+    return gt.Buffer.from(arr).toString("base64");
   } else {
     const bin: string[] = [];
     arr.forEach((byte) => {
-      bin.push(globalThis.String.fromCharCode(byte));
+      bin.push(gt.String.fromCharCode(byte));
     });
-    return globalThis.btoa(bin.join(""));
+    return gt.btoa(bin.join(""));
   }
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
+type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export interface MessageFns<T> {
+interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;

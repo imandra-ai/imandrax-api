@@ -6,14 +6,12 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Empty } from "./utils";
-
-export const protobufPackage = "imandrax.system";
+import { Empty } from "./utils.js";
 
 export interface GcStats {
-  heapSizeB: number;
-  majorCollections: number;
-  minorCollections: number;
+  heapSizeB: bigint;
+  majorCollections: bigint;
+  minorCollections: bigint;
 }
 
 export interface VersionResponse {
@@ -22,18 +20,27 @@ export interface VersionResponse {
 }
 
 function createBaseGcStats(): GcStats {
-  return { heapSizeB: 0, majorCollections: 0, minorCollections: 0 };
+  return { heapSizeB: 0n, majorCollections: 0n, minorCollections: 0n };
 }
 
 export const GcStats: MessageFns<GcStats> = {
   encode(message: GcStats, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.heapSizeB !== 0) {
+    if (message.heapSizeB !== 0n) {
+      if (BigInt.asIntN(64, message.heapSizeB) !== message.heapSizeB) {
+        throw new gt.Error("value provided for field message.heapSizeB of type int64 too large");
+      }
       writer.uint32(8).int64(message.heapSizeB);
     }
-    if (message.majorCollections !== 0) {
+    if (message.majorCollections !== 0n) {
+      if (BigInt.asIntN(64, message.majorCollections) !== message.majorCollections) {
+        throw new gt.Error("value provided for field message.majorCollections of type int64 too large");
+      }
       writer.uint32(16).int64(message.majorCollections);
     }
-    if (message.minorCollections !== 0) {
+    if (message.minorCollections !== 0n) {
+      if (BigInt.asIntN(64, message.minorCollections) !== message.minorCollections) {
+        throw new gt.Error("value provided for field message.minorCollections of type int64 too large");
+      }
       writer.uint32(24).int64(message.minorCollections);
     }
     return writer;
@@ -51,7 +58,7 @@ export const GcStats: MessageFns<GcStats> = {
             break;
           }
 
-          message.heapSizeB = longToNumber(reader.int64());
+          message.heapSizeB = reader.int64() as bigint;
           continue;
         }
         case 2: {
@@ -59,7 +66,7 @@ export const GcStats: MessageFns<GcStats> = {
             break;
           }
 
-          message.majorCollections = longToNumber(reader.int64());
+          message.majorCollections = reader.int64() as bigint;
           continue;
         }
         case 3: {
@@ -67,7 +74,7 @@ export const GcStats: MessageFns<GcStats> = {
             break;
           }
 
-          message.minorCollections = longToNumber(reader.int64());
+          message.minorCollections = reader.int64() as bigint;
           continue;
         }
       }
@@ -81,22 +88,22 @@ export const GcStats: MessageFns<GcStats> = {
 
   fromJSON(object: any): GcStats {
     return {
-      heapSizeB: isSet(object.heapSizeB) ? globalThis.Number(object.heapSizeB) : 0,
-      majorCollections: isSet(object.majorCollections) ? globalThis.Number(object.majorCollections) : 0,
-      minorCollections: isSet(object.minorCollections) ? globalThis.Number(object.minorCollections) : 0,
+      heapSizeB: isSet(object.heapSizeB) ? BigInt(object.heapSizeB) : 0n,
+      majorCollections: isSet(object.majorCollections) ? BigInt(object.majorCollections) : 0n,
+      minorCollections: isSet(object.minorCollections) ? BigInt(object.minorCollections) : 0n,
     };
   },
 
   toJSON(message: GcStats): unknown {
     const obj: any = {};
-    if (message.heapSizeB !== 0) {
-      obj.heapSizeB = Math.round(message.heapSizeB);
+    if (message.heapSizeB !== 0n) {
+      obj.heapSizeB = message.heapSizeB.toString();
     }
-    if (message.majorCollections !== 0) {
-      obj.majorCollections = Math.round(message.majorCollections);
+    if (message.majorCollections !== 0n) {
+      obj.majorCollections = message.majorCollections.toString();
     }
-    if (message.minorCollections !== 0) {
-      obj.minorCollections = Math.round(message.minorCollections);
+    if (message.minorCollections !== 0n) {
+      obj.minorCollections = message.minorCollections.toString();
     }
     return obj;
   },
@@ -106,9 +113,9 @@ export const GcStats: MessageFns<GcStats> = {
   },
   fromPartial<I extends Exact<DeepPartial<GcStats>, I>>(object: I): GcStats {
     const message = createBaseGcStats();
-    message.heapSizeB = object.heapSizeB ?? 0;
-    message.majorCollections = object.majorCollections ?? 0;
-    message.minorCollections = object.minorCollections ?? 0;
+    message.heapSizeB = object.heapSizeB ?? 0n;
+    message.majorCollections = object.majorCollections ?? 0n;
+    message.minorCollections = object.minorCollections ?? 0n;
     return message;
   },
 };
@@ -162,8 +169,8 @@ export const VersionResponse: MessageFns<VersionResponse> = {
 
   fromJSON(object: any): VersionResponse {
     return {
-      version: isSet(object.version) ? globalThis.String(object.version) : "",
-      gitVersion: isSet(object.gitVersion) ? globalThis.String(object.gitVersion) : undefined,
+      version: isSet(object.version) ? gt.String(object.version) : "",
+      gitVersion: isSet(object.gitVersion) ? gt.String(object.gitVersion) : undefined,
     };
   },
 
@@ -233,34 +240,43 @@ interface Rpc {
   request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+declare const self: any | undefined;
+declare const window: any | undefined;
+declare const global: any | undefined;
+const gt: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
 
-export type DeepPartial<T> = T extends Builtin ? T
+type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+
+type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
-
-function longToNumber(int64: { toString(): string }): number {
-  const num = globalThis.Number(int64.toString());
-  if (num > globalThis.Number.MAX_SAFE_INTEGER) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-  }
-  if (num < globalThis.Number.MIN_SAFE_INTEGER) {
-    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
-  }
-  return num;
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export interface MessageFns<T> {
+interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;
