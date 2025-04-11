@@ -81,6 +81,8 @@ update-submodules:
 	git submodule update --init
 
 opam-pin-submodules: update-submodules
+	# Until there's a new release of `trace`, we need to pin it.
+	opam pin https://github.com/c-cube/ocaml-trace.git -y -n
 
 opam-install-deps: update-submodules
 	opam install . --deps-only
