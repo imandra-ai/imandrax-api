@@ -1,7 +1,7 @@
 'use strict';
 // automatically generated using genbindings.ml, do not edit
 
-import * as  twine from './twine.ts';
+import * as  twine from './twine';
 
 type offset = twine.offset;
 export type Error = Error_Error_core;
