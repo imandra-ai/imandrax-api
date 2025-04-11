@@ -11,7 +11,7 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@main
-      - run: make update-submodules opam-pin-submodules
+      - run: make update-submodules
       - run: docker build . -f dep/Dockerfile.4.14
   run-5-2:
     name: build 5.2
@@ -19,7 +19,7 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@main
-      - run: make update-submodules opam-pin-submodules
+      - run: make update-submodules
       - run: docker build . -f dep/Dockerfile.5.2
   tsc:
     name: tsc

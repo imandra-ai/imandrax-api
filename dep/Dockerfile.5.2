@@ -23,6 +23,9 @@ RUN sudo apt install curl libcurl4-gnutls-dev -y
 RUN opam depext -yt zarith conf-pkg-config camlzip
 RUN opam pin -n .
 
+# Until there's a new release of `trace`, we need to pin it.
+RUN opam pin https://github.com/c-cube/ocaml-trace.git -y -n
+
 RUN opam install -t imandrax-api imandrax-api-client \
   imandrax-api-client-ezcurl \
   imandrax-api-client-cohttp imandrax-api-cli \

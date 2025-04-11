@@ -18,6 +18,9 @@ COPY --chown=opam \
 RUN opam depext -yt zarith conf-pkg-config camlzip
 RUN opam pin -n .
 
+# Until there's a new release of `trace`, we need to pin it.
+RUN opam pin https://github.com/c-cube/ocaml-trace.git -y -n
+
 RUN opam install -t imandrax-api imandrax-api-client imandrax-api-client-cohttp \
   --deps-only
 RUN opam exec -- dune build @install -p \
