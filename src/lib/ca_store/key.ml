@@ -31,7 +31,8 @@ let[@inline] chash ~ty hash : t =
   if String.contains ty ':' then invalid_arg "chash key: ty cannot contain ':'";
   of_str_ @@ spf "hash:%s:%s" ty (Chash.slugify hash)
 
-let[@inline] cname cname : t =
+let[@inline] cname (cname : Cname.t) : t =
+  assert cname.is_key;
   let ty = "id" in
   of_str_ @@ spf "cname:%s:%s" ty (Cname.slugify cname)
 
