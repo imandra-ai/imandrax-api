@@ -29,7 +29,6 @@ function install_macos() {
   if curl "${ARCHIVE}" -o "${DESTINATION}"; then
     chmod +x "${DESTINATION}"
     export PATH="${INSTALL_PREFIX}:$PATH"
-    source ~/.zshrc
     echo "downloaded installer at ${DESTINATION}"
   else
     printf 'Curl failed with error code "%d" (check the manual)\n' "$?" >&2
