@@ -45,7 +45,7 @@ function install_macos() {
   echo "downloading from ${ARCHIVE}"
   curl "${ARCHIVE}" -o "$TMP_FILE"
   echo "downloaded installer at $TMP_FILE"
-  sudo installer -pkg "$TMP_FILE" -target /
+  installer -pkg "$TMP_FILE" -target /
 }
 
 # detect OS
