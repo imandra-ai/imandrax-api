@@ -28,7 +28,7 @@ function install_macos() {
   echo "downloading from ${ARCHIVE}"
   if curl "${ARCHIVE}" -o "${DESTINATION}"; then
     chmod +x "${DESTINATION}"
-    export PATH="${INSTALL_PREFIX}:$PATH"
+    export PATH="${INSTALL_PREFIX}:${PATH}"
     echo "downloaded installer at ${DESTINATION}"
   else
     printf 'Curl failed with error code "%d" (check the manual)\n' "$?" >&2
