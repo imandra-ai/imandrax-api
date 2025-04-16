@@ -6,15 +6,18 @@
     This means they can be shared freely and independently, and do not depend on
     incidental or generative state. *)
 
-type t = {
+type t_ = {
   name: string;
   chash: Chash.t;
 }
 [@@deriving eq, ord, twine, typereg]
 
+type t = t_ Util_twine_.With_tag6.t [@@deriving twine, eq, ord, typereg]
+
 let hash self = CCHash.(combine2 (string self.name) (Chash.hash self.chash))
 
 let () =
+  (* now add caching *)
   Imandrakit_twine.Encode.add_cache_with ~eq:equal ~hash to_twine_ref;
   Imandrakit_twine.Decode.add_cache of_twine_ref
 
