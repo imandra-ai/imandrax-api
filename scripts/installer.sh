@@ -23,7 +23,7 @@ function install_linux() {
 function install_macos() {
   ARCHIVE="${BUCKET_URL}/${FILE_NAME}"
 
-  mkdir ${INSTALL_PREFIX}
+  mkdir -p ${INSTALL_PREFIX}
   echo "downloading from ${ARCHIVE}"
   curl "${ARCHIVE}" -o "$INSTALL_PREFIX"
   echo "downloaded installer at $INSTALL_PREFIX/${FILE_NAME}"
