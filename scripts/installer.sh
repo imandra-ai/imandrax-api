@@ -8,7 +8,7 @@ FILE_NAME="imandrax_cli.exe"
 
 set +u
 if [ "${INSTALL_PREFIX}" == "" ]; then
-  INSTALL_PREFIX="~/.imandrax-cli/bin"
+  INSTALL_PREFIX="$HOME/.imandrax-cli/bin"
 fi
 if [ "${VERSION}" == "" ]; then
   VERSION="latest"
