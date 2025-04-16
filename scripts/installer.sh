@@ -28,7 +28,10 @@ function install_macos() {
   echo "downloading from ${ARCHIVE}"
   if curl "${ARCHIVE}" -o "${DESTINATION}"; then
     chmod +x "${DESTINATION}"
-    export PATH="${INSTALL_PREFIX}:${PATH}"
+    # i can append this line to .zshrc
+    # (creating the file if it doesn't exist)
+    # export PATH="${INSTALL_PREFIX}:${PATH}"
+    # to get the bin into the path without sudo privs
     echo "downloaded installer at ${DESTINATION}"
   else
     printf 'Curl failed with error code "%d" (check the manual)\n' "$?" >&2
