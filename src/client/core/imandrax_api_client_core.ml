@@ -145,6 +145,10 @@ module Make (Fut : FUT) = struct
            ~api_version:Imandrax_api.Versioning.api_types_version
            ~id:(Some sesh) ()
 
+    let delete ?timeout_s (self : client) (sesh : API.session) : unit Fut.t =
+      let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+      self.rpc#rpc_call ~timeout_s API.SessionManager.Client.end_session sesh
+
     let keep_alive ?timeout_s (self : client) sesh : unit Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
       self.rpc#rpc_call ~timeout_s API.SessionManager.Client.keep_session_alive
