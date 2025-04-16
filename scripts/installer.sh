@@ -2,7 +2,7 @@
 
 set -ue
 
-BUCKET_NAME="imandra-dev-imandrax-main"
+BUCKET_NAME="seb_public_bucket"
 BUCKET_URL="https://storage.googleapis.com/${BUCKET_NAME}"
 FILE_NAME="imandrax_cli.exe"
 
@@ -26,7 +26,7 @@ function install_macos() {
 
   mkdir -p ${INSTALL_PREFIX}
   echo "downloading from ${ARCHIVE}"
-  if curl "${ARCHIVE}" > "{$DESTINATION}"; then
+  if curl "${ARCHIVE}" -o "{$DESTINATION}"; then
     chmod +x "{$DESTINATION}"
     echo "downloaded installer at {$DESTINATION}"
   else
