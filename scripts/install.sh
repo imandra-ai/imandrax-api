@@ -43,7 +43,7 @@ function install_macos() {
   TMP_FILE="${TMPDIR:-/tmp}/imandrax-macos-aarch64.pkg"
 
   echo "downloading from ${ARCHIVE}"
-  wget "${ARCHIVE}" -O "$TMP_FILE"
+  curl "${ARCHIVE}" -o "$TMP_FILE"
   echo "downloaded installer at $TMP_FILE"
   sudo installer -pkg "$TMP_FILE" -target /
 }
