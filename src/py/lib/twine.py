@@ -308,12 +308,12 @@ class Decoder:
 def cached(name: str) -> Any:
     def decorator(f) -> Any:
         """Decorator for cached functions"""
-        def cached_f(dec: Decoder, off: offset):
-            cache = dec.caches.setdefault(name, {})
+        def cached_f(d: Decoder, off: offset):
+            cache = d.caches.setdefault(name, {})
             if off in cache:
                 return cache[off]
             else:
-                value = f(dec, off)
+                value = f(d, off)
                 cache[off] = value
                 return value
         return cached_f
