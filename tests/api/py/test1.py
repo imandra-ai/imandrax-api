@@ -1,12 +1,20 @@
 import imandrax_api
+import time
 
-c = imandrax_api.Client(url="http://localhost:8082")
+def timeit(what: str, f, *args, **kwargs):
+    t_start = time.monotonic_ns() / 1e9
+    res = f(*args, **kwargs)
+    t_stop = time.monotonic_ns() / 1e9
+    print(f"{what} took {t_stop - t_start:.5}s")
+    return res
+
+c = timeit("create client", lambda: imandrax_api.Client(url="http://localhost:8082"))
 c.status()
 
-x1 = c.eval_src(src="let f x=x+1 ;;")
+x1 = timeit("eval1", lambda: c.eval_src(src="let f x=x+1 ;;"))
 print("x1: ", x1)
 
-x2 = c.eval_src(src="theorem yolo1 x = f x > x ;;")
+x2 = timeit("eval2", lambda: c.eval_src(src="theorem yolo1 x = f x > x ;;"))
 
 print("x2: ", x2)
 
@@ -33,3 +41,5 @@ with open('art.po_res.zip', 'wb') as f:
 
 with open('art.po_res.zip', 'wb') as f:
     f.write(art_po_res.art_zip)
+
+del c
