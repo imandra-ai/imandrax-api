@@ -22,11 +22,13 @@ function install_linux() {
 
 function install_macos() {
   ARCHIVE="${BUCKET_URL}/${FILE_NAME}"
+  DESTINATION="${INSTALL_PREFIX}/${FILE_NAME}"
 
   mkdir -p ${INSTALL_PREFIX}
   echo "downloading from ${ARCHIVE}"
-  curl "${ARCHIVE}" -o "${INSTALL_PREFIX}/${FILE_NAME}"
-  echo "downloaded installer at $INSTALL_PREFIX/${FILE_NAME}"
+  curl "${ARCHIVE}" -o "{$DESTINATION}"
+  chmod +x "{$DESTINATION}"
+  echo "downloaded installer at {$DESTINATION}"
 }
 
 # detect OS
