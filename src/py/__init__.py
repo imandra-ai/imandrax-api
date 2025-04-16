@@ -29,6 +29,7 @@ class Client:
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session = requests.Session()
+        self._closed = False
         self._auth_token = auth_token
         if auth_token:
             self._session.headers["Authorization"] = f"Bearer {auth_token}"
@@ -74,11 +75,16 @@ class Client:
         return self
 
     def __exit__(self, *_) -> None:
+        if self._closed: return
+        if not hasattr(self, '_sesh'): return
         try:
             self._client.end_session(ctx=Context(), request=self._sesh, timeout=None)
+            self._closed = True
         except TwirpServerException as e:
             raise Exception("Error while ending session") from e
 
+    def __del__(self):
+        self.__exit__()
 
     def status(self) -> str:
         return self._client.status(
