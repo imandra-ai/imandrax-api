@@ -17,7 +17,7 @@ fi
 set -u
 
 function install_linux() {
-    echo "linux not supported at this time"
+  echo "linux not supported at this time"
 }
 
 function install_macos() {
@@ -28,6 +28,7 @@ function install_macos() {
   echo "downloading from ${ARCHIVE}"
   if curl "${ARCHIVE}" -o "${DESTINATION}"; then
     chmod +x "${DESTINATION}"
+    export PATH="${INSTALL_PREFIX}:$PATH"
     echo "downloaded installer at ${DESTINATION}"
   else
     printf 'Curl failed with error code "%d" (check the manual)\n' "$?" >&2
