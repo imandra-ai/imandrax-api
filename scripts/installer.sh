@@ -25,7 +25,7 @@ function install_macos() {
 
   mkdir -p ${INSTALL_PREFIX}
   echo "downloading from ${ARCHIVE}"
-  curl "${ARCHIVE}" -o "$INSTALL_PREFIX"
+  curl "${ARCHIVE}" -o "${INSTALL_PREFIX}/${FILE_NAME}"
   echo "downloaded installer at $INSTALL_PREFIX/${FILE_NAME}"
 }
 
