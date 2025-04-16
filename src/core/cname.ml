@@ -9,12 +9,17 @@
 type t_ = {
   name: string;
   chash: Chash.t;
+  is_key: bool;
+      (** Is this cname a key (ie a toplevel definition)? Or, if [false], is it
+          just a symbol defined as part of another symbol (cstor, label, etc) *)
 }
 [@@deriving eq, ord, twine, typereg]
 
 type t = t_ Util_twine_.With_tag6.t [@@deriving twine, eq, ord, typereg]
 
-let hash self = CCHash.(combine2 (string self.name) (Chash.hash self.chash))
+let hash self =
+  CCHash.(
+    combine3 (string self.name) (Chash.hash self.chash) (bool self.is_key))
 
 let () =
   (* now add caching *)
@@ -35,7 +40,11 @@ open struct
 end
 
 let slugify self : string =
-  spf "%s%c%s" self.name sep_websafe_ (Chash.slugify self.chash)
+  let base = spf "%s%c%s" self.name sep_websafe_ (Chash.slugify self.chash) in
+  if self.is_key then
+    base
+  else
+    spf "notkey-%s" base
 
 let unslugify (str : string) : t option =
   (* look from the right, since the name itself could contain [sep_websafe_] *)
@@ -47,8 +56,14 @@ let unslugify (str : string) : t option =
     | None -> None
     | Some i ->
       let name = String.sub str 0 i in
+      let name, is_key =
+        if CCString.prefix ~pre:"notkey-" name then
+          CCString.chop_prefix ~pre:"notkey-" name |> Option.get, false
+        else
+          name, true
+      in
       let hash = String.sub str (i + 1) (String.length str - i - 2) in
       (match Chash.unslugify hash with
-      | chash -> Some { name; chash }
+      | chash -> Some { name; chash; is_key }
       | exception Invalid_argument _ -> None)
   )
