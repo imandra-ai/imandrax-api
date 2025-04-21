@@ -14,7 +14,11 @@ open struct
 end
 
 type ('term, 'ty) t_poly = {
-  decls: Imandrax_api.Uid_set.t;
+  cname_decls: Imandrax_api.Uid_set.t;  (** declarations by cname/cptr *)
+  local_tys: 'ty Imandrax_api.Ty_view.def_poly list;
+      (** type declarations included here *)
+  local_funs: ('term, 'ty) Fun_def.t_poly list;
+      (** function declarations included here *)
   rw_rules: ('ty, ('term, 'ty) Rewrite_rule.t_poly ca_ptr list) ph_map;
   inst_rules: ('term, 'ty) Instantiation_rule.t_poly ca_ptr uid_map;
   rule_spec_fc: 'ty Trigger.t_poly ca_ptr list uid_map;
