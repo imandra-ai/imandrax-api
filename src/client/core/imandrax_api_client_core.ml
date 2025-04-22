@@ -189,3 +189,8 @@ module Blocking = struct
   include Prelude
   include Make (Fut_blocking)
 end
+
+module Standard_endpoints = struct
+  let dev_url = "https://api.dev.imandracapital.com/internal/imandrax"
+  let prod_url = "https://api.imandra.ai/internal/imandrax"
+end
