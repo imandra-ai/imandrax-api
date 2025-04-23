@@ -1,7 +1,7 @@
 (** Ordinal type. *)
 type t =
-  | Int of Util_twine_.Z.t
-  | Cons of t * Util_twine_.Z.t * t
+  | Int of Util_twine.Z.t
+  | Cons of t * Util_twine.Z.t * t
 [@@deriving twine, typereg, eq]
 
 let pp out (self : t) : unit =

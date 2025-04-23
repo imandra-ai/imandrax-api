@@ -22,13 +22,14 @@ def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Calla
         case _:
             raise twine.Error('expected result')
 
+type WithTag6[T] = T
 type WithTag7[T] = T
 
-def decode_with_tag7[T](d: twine.Decoder, off: int, d0: [Callable[...,T]]) -> With_tag7[T]:
-    tag = d.get_tag(off=off)
-    if tag.tag != 7:
-        raise Error(f'Expected tag 7, got tag {tag.tag} at off=0x{off:x}')
-    return d0(d=d, off=tag.arg)
+def decode_with_tag[T](tag: int, d: twine.Decoder, off: int, d0: [Callable[...,T]]) -> With_tag7[T]:
+    dec_tag = d.get_tag(off=off)
+    if dec_tag.tag != tag:
+    raise Error(f'Expected tag {tag}, got tag {dec_tag.tag} at off=0x{off:x}')
+    return d0(d=d, off=dec_tag.arg)
 
 def decode_q(d: twine.Decoder, off:int) -> tuple[int,int]:
     num, denum = d.get_array(off=off)
@@ -85,27 +86,6 @@ def Error_Error_core_of_twine(d: twine.Decoder, off: int) -> Error_Error_core:
     msg = Error_Error_core_message_of_twine(d=d, off=fields[2])
     stack = Error_Error_core_stack_of_twine(d=d, off=fields[3])
     return Error_Error_core(process=process,kind=kind,msg=msg,stack=stack)
-
-# clique Imandrax_api.Util_twine_.as_pair (cached: false)
-# def Imandrax_api.Util_twine_.as_pair (mangled name: "Util_twine__as_pair")
-@dataclass(slots=True, frozen=True)
-class Util_twine__as_pair:
-    num: int
-    denum: int
-
-def Util_twine__as_pair_of_twine(d: twine.Decoder, off: int) -> Util_twine__as_pair:
-    fields = list(d.get_array(off=off))
-    num = d.get_int(off=fields[0])
-    denum = d.get_int(off=fields[1])
-    return Util_twine__as_pair(num=num,denum=denum)
-
-# clique Imandrax_api.Util_twine_.t (cached: false)
-# def Imandrax_api.Util_twine_.t (mangled name: "Util_twine_")
-type Util_twine_[_V_tyreg_poly_a] = "_V_tyreg_poly_a"
-
-def Util_twine__of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Util_twine_:
-    decode__tyreg_poly_a = d0
-    return decode__tyreg_poly_a(d=d,off=off)
 
 # clique Imandrax_api.Builtin_data.kind (cached: false)
 # def Imandrax_api.Builtin_data.kind (mangled name: "Builtin_data_kind")
@@ -175,18 +155,27 @@ type Chash = bytes
 def Chash_of_twine(d, off:int) -> Chash:
     return d.get_bytes(off=off)
 
-# clique Imandrax_api.Cname.t (cached: false)
-# def Imandrax_api.Cname.t (mangled name: "Cname")
+# clique Imandrax_api.Cname.t_ (cached: false)
+# def Imandrax_api.Cname.t_ (mangled name: "Cname_t_")
 @dataclass(slots=True, frozen=True)
-class Cname:
+class Cname_t_:
     name: str
     chash: Chash
+    is_key: bool
 
-def Cname_of_twine(d: twine.Decoder, off: int) -> Cname:
+def Cname_t__of_twine(d: twine.Decoder, off: int) -> Cname_t_:
     fields = list(d.get_array(off=off))
     name = d.get_str(off=fields[0])
     chash = Chash_of_twine(d=d, off=fields[1])
-    return Cname(name=name,chash=chash)
+    is_key = d.get_bool(off=fields[2])
+    return Cname_t_(name=name,chash=chash,is_key=is_key)
+
+# clique Imandrax_api.Cname.t (cached: false)
+# def Imandrax_api.Cname.t (mangled name: "Cname")
+type Cname = WithTag6[Cname_t_]
+
+def Cname_of_twine(d: twine.Decoder, off: int) -> Cname:
+    return decode_with_tag(tag=6, d=d, off=off, d0=lambda d, off: Cname_t__of_twine(d=d, off=off))
 
 # clique Imandrax_api.Uid.gen_kind (cached: false)
 # def Imandrax_api.Uid.gen_kind (mangled name: "Uid_gen_kind")
@@ -826,7 +815,7 @@ def Anchor_of_twine(d: twine.Decoder, off: int) -> Anchor:
 type Ca_store_Key = WithTag7[str]
 
 def Ca_store_Key_of_twine(d: twine.Decoder, off: int) -> Ca_store_Key:
-    return decode_with_tag7(d=d, off=off, d0=lambda d, off: d.get_str(off=off))
+    return decode_with_tag(tag=7, d=d, off=off, d0=lambda d, off: d.get_str(off=off))
 
 # clique Imandrax_api_ca_store.Ca_ptr.Raw.t (cached: false)
 # def Imandrax_api_ca_store.Ca_ptr.Raw.t (mangled name: "Ca_store_Ca_ptr_Raw")
@@ -1755,7 +1744,9 @@ def Common_Db_ser_ca_ptr_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_po
 # def Imandrax_api_common.Db_ser.t_poly (mangled name: "Common_Db_ser_t_poly")
 @dataclass(slots=True, frozen=True)
 class Common_Db_ser_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decls: Uid_set
+    cname_decls: Uid_set
+    local_tys: list[Ty_view_def_poly["_V_tyreg_poly_ty"]]
+    local_funs: list[Common_Fun_def_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
     rw_rules: Common_Db_ser_ph_map["_V_tyreg_poly_ty",list[Common_Db_ser_ca_ptr[Common_Rewrite_rule_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]]
     inst_rules: Common_Db_ser_uid_map[Common_Db_ser_ca_ptr[Common_Instantiation_rule_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]]
     rule_spec_fc: Common_Db_ser_uid_map[list[Common_Db_ser_ca_ptr[Common_Trigger_t_poly["_V_tyreg_poly_ty"]]]]
@@ -1775,22 +1766,24 @@ def Common_Db_ser_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    decls = Uid_set_of_twine(d=d, off=fields[0])
-    rw_rules = Common_Db_ser_ph_map_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Rewrite_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
-    inst_rules = Common_Db_ser_uid_map_of_twine(d=d,off=fields[2],d0=(lambda d, off: Common_Db_ser_ca_ptr_of_twine(d=d,off=off,d0=(lambda d, off: Common_Instantiation_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))))
-    rule_spec_fc = Common_Db_ser_uid_map_of_twine(d=d,off=fields[3],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Trigger_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
-    rule_spec_rw_rules = Common_Db_ser_uid_map_of_twine(d=d,off=fields[4],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Rewrite_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
-    fc = Common_Db_ser_ph_map_of_twine(d=d,off=fields[5],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Trigger_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
-    elim = Common_Db_ser_ph_map_of_twine(d=d,off=fields[6],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Elimination_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
-    gen = Common_Db_ser_ph_map_of_twine(d=d,off=fields[7],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Trigger_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
-    thm_as_rw = Common_Db_ser_uid_map_of_twine(d=d,off=fields[8],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Rewrite_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
-    thm_as_fc = Common_Db_ser_uid_map_of_twine(d=d,off=fields[9],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Instantiation_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
-    thm_as_elim = Common_Db_ser_uid_map_of_twine(d=d,off=fields[10],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Elimination_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
-    thm_as_gen = Common_Db_ser_uid_map_of_twine(d=d,off=fields[11],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Instantiation_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
-    admission = Common_Db_ser_uid_map_of_twine(d=d,off=fields[12],d0=(lambda d, off: Common_Db_ser_ca_ptr_of_twine(d=d,off=off,d0=(lambda d, off: Common_Admission_of_twine(d=d, off=off)))))
-    count_funs_of_ty = Common_Db_ser_uid_map_of_twine(d=d,off=fields[13],d0=(lambda d, off: Uid_of_twine(d=d, off=off)))
-    disabled = Uid_set_of_twine(d=d, off=fields[14])
-    return Common_Db_ser_t_poly(decls=decls,rw_rules=rw_rules,inst_rules=inst_rules,rule_spec_fc=rule_spec_fc,rule_spec_rw_rules=rule_spec_rw_rules,fc=fc,elim=elim,gen=gen,thm_as_rw=thm_as_rw,thm_as_fc=thm_as_fc,thm_as_elim=thm_as_elim,thm_as_gen=thm_as_gen,admission=admission,count_funs_of_ty=count_funs_of_ty,disabled=disabled)
+    cname_decls = Uid_set_of_twine(d=d, off=fields[0])
+    local_tys = [Ty_view_def_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[1])]
+    local_funs = [Common_Fun_def_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[2])]
+    rw_rules = Common_Db_ser_ph_map_of_twine(d=d,off=fields[3],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Rewrite_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    inst_rules = Common_Db_ser_uid_map_of_twine(d=d,off=fields[4],d0=(lambda d, off: Common_Db_ser_ca_ptr_of_twine(d=d,off=off,d0=(lambda d, off: Common_Instantiation_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))))
+    rule_spec_fc = Common_Db_ser_uid_map_of_twine(d=d,off=fields[5],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Trigger_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    rule_spec_rw_rules = Common_Db_ser_uid_map_of_twine(d=d,off=fields[6],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Rewrite_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    fc = Common_Db_ser_ph_map_of_twine(d=d,off=fields[7],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Trigger_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    elim = Common_Db_ser_ph_map_of_twine(d=d,off=fields[8],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Elimination_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    gen = Common_Db_ser_ph_map_of_twine(d=d,off=fields[9],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d1=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Trigger_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    thm_as_rw = Common_Db_ser_uid_map_of_twine(d=d,off=fields[10],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Rewrite_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    thm_as_fc = Common_Db_ser_uid_map_of_twine(d=d,off=fields[11],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Instantiation_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    thm_as_elim = Common_Db_ser_uid_map_of_twine(d=d,off=fields[12],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Elimination_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    thm_as_gen = Common_Db_ser_uid_map_of_twine(d=d,off=fields[13],d0=(lambda d, off: [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Instantiation_rule_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)]))
+    admission = Common_Db_ser_uid_map_of_twine(d=d,off=fields[14],d0=(lambda d, off: Common_Db_ser_ca_ptr_of_twine(d=d,off=off,d0=(lambda d, off: Common_Admission_of_twine(d=d, off=off)))))
+    count_funs_of_ty = Common_Db_ser_uid_map_of_twine(d=d,off=fields[15],d0=(lambda d, off: Uid_of_twine(d=d, off=off)))
+    disabled = Uid_set_of_twine(d=d, off=fields[16])
+    return Common_Db_ser_t_poly(cname_decls=cname_decls,local_tys=local_tys,local_funs=local_funs,rw_rules=rw_rules,inst_rules=inst_rules,rule_spec_fc=rule_spec_fc,rule_spec_rw_rules=rule_spec_rw_rules,fc=fc,elim=elim,gen=gen,thm_as_rw=thm_as_rw,thm_as_fc=thm_as_fc,thm_as_elim=thm_as_elim,thm_as_gen=thm_as_gen,admission=admission,count_funs_of_ty=count_funs_of_ty,disabled=disabled)
 
 # clique Imandrax_api_mir.Type.var (cached: false)
 # def Imandrax_api_mir.Type.var (mangled name: "Mir_Type_var")

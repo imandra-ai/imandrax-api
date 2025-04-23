@@ -1,4 +1,4 @@
-type t = string Util_twine_.With_tag7.t [@@deriving eq, ord, typereg, twine]
+type t = string Util_twine.With_tag7.t [@@deriving eq, ord, typereg, twine]
 (** A CA store key.
 
     We wrap the string in tag(7,...) so we can statically find keys in stored
@@ -31,8 +31,9 @@ let[@inline] chash ~ty hash : t =
   if String.contains ty ':' then invalid_arg "chash key: ty cannot contain ':'";
   of_str_ @@ spf "hash:%s:%s" ty (Chash.slugify hash)
 
-let[@inline] cname ~ty cname : t =
-  if String.contains ty ':' then invalid_arg "cname key: ty cannot contain ':'";
+let[@inline] cname (cname : Cname.t) : t =
+  assert cname.is_key;
+  let ty = "id" in
   of_str_ @@ spf "cname:%s:%s" ty (Cname.slugify cname)
 
 let[@inline] task ~kind hash : t =

@@ -25,9 +25,8 @@ val chash : ty:string -> Chash.t -> t
 (** Value represented by the hash of its serialized representation
     @param ty What "type" of data? *)
 
-val cname : ty:string -> Cname.t -> t
-(** Key for data that is already content addressed by its cname.
-    @param ty What "type" of data? (ie term, type, fundef, etc.) *)
+val cname : Cname.t -> t
+(** Key for data that is already content addressed by its cname. *)
 
 val task : kind:string -> Chash.t -> t
 (** Key for tasks that are content addressed by the hash of the task definition.

@@ -1,8 +1,8 @@
 type t =
   | Const_float of float
   | Const_string of string
-  | Const_z of Util_twine_.Z.t
-  | Const_q of Util_twine_.Q.t
+  | Const_z of Util_twine.Z.t
+  | Const_q of Util_twine.Q.t
   | Const_real_approx of string
   | Const_uid of Uid.t
   | Const_bool of bool

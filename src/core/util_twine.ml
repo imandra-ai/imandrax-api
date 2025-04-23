@@ -58,17 +58,45 @@ end = struct
     Q.make num denum
 end
 
-(** A value that will be tagged with 7 in twine *)
-module With_tag7 = struct
-  type 'a t = 'a [@@deriving show, eq, ord, typereg]
+module Make_with_tag (X : sig
+  val tag : int
+end) =
+struct
+  type 'a tagged = 'a [@@deriving show, eq, ord] [@@typereg.skip]
 
-  let to_twine enc_a enc (self : 'a t) =
-    Imandrakit_twine.Encode.(tag enc ~tag:7 ~v:(enc_a enc self))
+  let to_twine enc_a enc (self : 'a tagged) =
+    Imandrakit_twine.Encode.(tag enc ~tag:X.tag ~v:(enc_a enc self))
 
-  let of_twine (dec_a : 'a Imandrakit_twine.Decode.decoder) dec off : 'a t =
+  let of_twine (dec_a : 'a Imandrakit_twine.Decode.decoder) dec off : 'a tagged
+      =
     Imandrakit_twine.Decode.(
       let n, v = tag dec off in
-      if n <> 7 then fail "Expected a `tag(7, …)`";
+      if n <> X.tag then fail (spf "expected a `tag(%d, …)`" X.tag);
       let s = dec_a dec v in
       s)
+end
+
+(** a value that will be tagged with 7 in twine *)
+module With_tag7 = struct
+  include Make_with_tag (struct
+    let tag = 7
+  end)
+
+  type 'a t = 'a [@@deriving typereg] [@@typereg.name "With_tag7.t"]
+
+  let equal = equal_tagged
+  let compare = compare_tagged
+  let pp = pp_tagged
+end
+
+module With_tag6 = struct
+  include Make_with_tag (struct
+    let tag = 6
+  end)
+
+  type 'a t = 'a [@@deriving typereg] [@@typereg.name "With_tag6.t"]
+
+  let equal = equal_tagged
+  let compare = compare_tagged
+  let pp = pp_tagged
 end

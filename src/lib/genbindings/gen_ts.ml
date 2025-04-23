@@ -19,6 +19,7 @@ import * as  twine from './twine';
 type offset = twine.offset;
 export type Error = Error_Error_core;
 
+export type WithTag6<T> = T;
 export type WithTag7<T> = T;
 
 function checkArrayLength(off: offset, a: Array<offset>, len: number): void {
@@ -27,11 +28,11 @@ function checkArrayLength(off: offset, a: Array<offset>, len: number): void {
   }
 }
 
-function decode_with_tag7<T>(d: twine.Decoder, off: offset, d0: (d: twine.Decoder, o: offset) => T) : WithTag7<T> {
-  const tag = d.get_tag(off);
-  if (tag.tag != 7)
-    throw new twine.TwineError({msg: `Expected tag 7, got tag ${tag.tag}`, offset: off})
-  return d0(d, tag.value)
+function decode_with_tag<T>(tag: number, d: twine.Decoder, off: offset, d0: (d: twine.Decoder, o: offset) => T) : T {
+  const dec_tag = d.get_tag(off);
+  if (dec_tag.tag != tag)
+  throw new twine.TwineError({msg: `Expected tag ${tag}, got tag ${dec_tag.tag}`, offset: off})
+  return d0(d, dec_tag.value)
 }
 
 export type Void = never;
@@ -114,7 +115,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
     gen_type_expr ty
   | Cstor (s, args) ->
     (match s, args with
-    | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] -> "bigint"
+    | ("int" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] -> "bigint"
     | "string", [] -> "string"
     | "bool", [] -> "boolean"
     | "array", [ x ] | "list", [ x ] -> spf "Array<%s>" (gen_type_expr x)
@@ -128,8 +129,9 @@ let rec gen_type_expr (ty : tyexpr) : string =
       spf "%s | %s" (gen_type_expr x) (gen_type_expr y)
     | "Imandrakit_error__Error_core.Data.t", [] -> spf "null"
     | "option", [ x ] -> spf "undefined | %s" (gen_type_expr x)
-    | "Util_twine_.With_tag7.t", [ x ] -> spf "WithTag7<%s>" (gen_type_expr x)
-    | "Util_twine_.Q.t", [] -> "[bigint, bigint]"
+    | "Util_twine.With_tag6.t", [ x ] -> spf "WithTag6<%s>" (gen_type_expr x)
+    | "Util_twine.With_tag7.t", [ x ] -> spf "WithTag7<%s>" (gen_type_expr x)
+    | "Util_twine.Q.t", [] -> "[bigint, bigint]"
     | s, [] -> mangle_ty_name s
     | _ ->
       spf "%s<%s>" (mangle_ty_name s)
@@ -158,8 +160,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
   | Attrs (ty, _) -> of_twine_of_type_expr ty ~off
   | Cstor (s, args) ->
     (match s, args with
-    | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] ->
-      spf "d.get_int(%s)" off
+    | ("int" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] -> spf "d.get_int(%s)" off
     | "string", [] -> spf "d.get_str(%s)" off
     | "bool", [] -> spf "d.get_bool(%s)" off
     | "array", [ x ] | "list", [ x ] ->
@@ -187,14 +188,17 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
         (of_twine_of_type_expr y ~off:"off")
         off
     | "Imandrakit_error__Error_core.Data.t", [] -> spf "null"
-    | "Util_twine_.With_tag7.t", [ x ] ->
-      spf "decode_with_tag7(d, %s, ((d:twine.Decoder,off:offset) => %s))" off
+    | "Util_twine.With_tag6.t", [ x ] ->
+      spf "decode_with_tag(6, d, %s, ((d:twine.Decoder,off:offset) => %s))" off
+        (of_twine_of_type_expr x ~off:"off")
+    | "Util_twine.With_tag7.t", [ x ] ->
+      spf "decode_with_tag(7, d, %s, ((d:twine.Decoder,off:offset) => %s))" off
         (of_twine_of_type_expr x ~off:"off")
     | "option", [ x ] ->
       spf "twine.optional(d,  ((d:twine.Decoder,off:offset) => %s), %s)"
         (of_twine_of_type_expr ~off:"off" x)
         off
-    | "Util_twine_.Q.t", [] -> spf "decode_q(d,%s)" off
+    | "Util_twine.Q.t", [] -> spf "decode_q(d,%s)" off
     | s, [] -> spf "%s(d, %s)" (of_twine_of_ty_name s) off
     | _ ->
       let args =
