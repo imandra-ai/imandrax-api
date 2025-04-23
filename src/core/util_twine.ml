@@ -62,7 +62,7 @@ module Make_with_tag (X : sig
   val tag : int
 end) =
 struct
-  type 'a tagged = 'a [@@deriving show, eq, ord]
+  type 'a tagged = 'a [@@deriving show, eq, ord] [@@typereg.skip]
 
   let to_twine enc_a enc (self : 'a tagged) =
     Imandrakit_twine.Encode.(tag enc ~tag:X.tag ~v:(enc_a enc self))
@@ -82,8 +82,11 @@ module With_tag7 = struct
     let tag = 7
   end)
 
-  type 'a t = 'a tagged
-  [@@deriving show, eq, ord, typereg] [@@typereg.name "with_tag7"]
+  type 'a t = 'a [@@deriving typereg] [@@typereg.name "With_tag7.t"]
+
+  let equal = equal_tagged
+  let compare = compare_tagged
+  let pp = pp_tagged
 end
 
 module With_tag6 = struct
@@ -91,6 +94,9 @@ module With_tag6 = struct
     let tag = 6
   end)
 
-  type 'a t = 'a tagged
-  [@@deriving show, eq, ord, typereg] [@@typereg.name "with_tag6"]
+  type 'a t = 'a [@@deriving typereg] [@@typereg.name "With_tag6.t"]
+
+  let equal = equal_tagged
+  let compare = compare_tagged
+  let pp = pp_tagged
 end

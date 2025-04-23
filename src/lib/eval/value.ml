@@ -17,8 +17,8 @@ type record_descriptor = {
 type ('v, 'closure) view =
   | V_true
   | V_false
-  | V_int of Util_twine_.Z.t
-  | V_real of Util_twine_.Q.t
+  | V_int of Util_twine.Z.t
+  | V_real of Util_twine.Q.t
   | V_string of string
   | V_cstor of cstor_descriptor * 'v array
   | V_tuple of 'v array

@@ -1,4 +1,4 @@
-module Util_twine_ = Imandrax_api.Util_twine_
+module Util_twine = Imandrax_api.Util_twine
 
 type ('term, 'ty) status =
   | Unknown
@@ -8,8 +8,8 @@ type ('term, 'ty) status =
 type 'term meta =
   | Null
   | Bool of bool
-  | Int of Util_twine_.Z.t
-  | Real of Util_twine_.Q.t
+  | Int of Util_twine.Z.t
+  | Real of Util_twine.Q.t
   | String of string
   | Assoc of (string * 'term meta) list
   | Term of 'term

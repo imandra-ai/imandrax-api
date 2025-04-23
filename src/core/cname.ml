@@ -15,7 +15,7 @@ type t_ = {
 }
 [@@deriving eq, ord, twine, typereg]
 
-type t = t_ Util_twine_.With_tag6.t [@@deriving twine, eq, ord, typereg]
+type t = t_ Util_twine.With_tag6.t [@@deriving twine, eq, ord, typereg]
 
 let hash self =
   CCHash.(

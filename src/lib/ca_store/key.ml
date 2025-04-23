@@ -1,4 +1,4 @@
-type t = string Util_twine_.With_tag7.t [@@deriving eq, ord, typereg, twine]
+type t = string Util_twine.With_tag7.t [@@deriving eq, ord, typereg, twine]
 (** A CA store key.
 
     We wrap the string in tag(7,...) so we can statically find keys in stored

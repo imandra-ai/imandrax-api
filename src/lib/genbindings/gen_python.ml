@@ -109,7 +109,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
     gen_type_expr ty
   | Cstor (s, args) ->
     (match s, args with
-    | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] -> "int"
+    | ("int" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] -> "int"
     | "string", [] -> "str"
     | "bool", [] -> "bool"
     | "array", [ x ] | "list", [ x ] -> spf "list[%s]" (gen_type_expr x)
@@ -123,9 +123,9 @@ let rec gen_type_expr (ty : tyexpr) : string =
       spf "%s | %s" (gen_type_expr x) (gen_type_expr y)
     | "Imandrakit_error__Error_core.Data.t", [] -> spf "unit"
     | "option", [ x ] -> spf "None | %s" (gen_type_expr x)
-    | "Util_twine_.With_tag7.t", [ x ] -> spf "WithTag7[%s]" (gen_type_expr x)
-    | "Util_twine_.With_tag6.t", [ x ] -> spf "WithTag6[%s]" (gen_type_expr x)
-    | "Util_twine_.Q.t", [] -> "tuple[int, int]"
+    | "Util_twine.With_tag7.t", [ x ] -> spf "WithTag7[%s]" (gen_type_expr x)
+    | "Util_twine.With_tag6.t", [ x ] -> spf "WithTag6[%s]" (gen_type_expr x)
+    | "Util_twine.Q.t", [] -> "tuple[int, int]"
     | s, [] -> mangle_ty_name s
     | _ ->
       spf "%s[%s]" (mangle_ty_name s)
@@ -148,7 +148,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
   | Attrs (ty, _) -> of_twine_of_type_expr ty ~off
   | Cstor (s, args) ->
     (match s, args with
-    | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] ->
+    | ("int" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] ->
       spf "d.get_int(off=%s)" off
     | "string", [] -> spf "d.get_str(off=%s)" off
     | "bool", [] -> spf "d.get_bool(off=%s)" off
@@ -177,16 +177,16 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
         (of_twine_of_type_expr x ~off:"off")
         (of_twine_of_type_expr y ~off:"off")
     | "Imandrakit_error__Error_core.Data.t", [] -> spf "()"
-    | "Util_twine_.With_tag6.t", [ x ] ->
+    | "Util_twine.With_tag6.t", [ x ] ->
       spf "decode_with_tag(tag=6, d=d, off=%s, d0=lambda d, off: %s)" off
         (of_twine_of_type_expr x ~off:"off")
-    | "Util_twine_.With_tag7.t", [ x ] ->
+    | "Util_twine.With_tag7.t", [ x ] ->
       spf "decode_with_tag(tag=7, d=d, off=%s, d0=lambda d, off: %s)" off
         (of_twine_of_type_expr x ~off:"off")
     | "option", [ x ] ->
       spf "twine.optional(d=d, off=%s, d0=lambda d, off: %s)" off
         (of_twine_of_type_expr ~off:"off" x)
-    | "Util_twine_.Q.t", [] -> spf "decode_q(d=d,off=%s)" off
+    | "Util_twine.Q.t", [] -> spf "decode_q(d=d,off=%s)" off
     | s, [] -> spf "%s(d=d, off=%s)" (of_twine_of_ty_name s) off
     | _ ->
       let args =
