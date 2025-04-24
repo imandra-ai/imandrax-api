@@ -28,7 +28,7 @@ type WithTag7[T] = T
 def decode_with_tag[T](tag: int, d: twine.Decoder, off: int, d0: [Callable[...,T]]) -> With_tag7[T]:
     dec_tag = d.get_tag(off=off)
     if dec_tag.tag != tag:
-    raise Error(f'Expected tag {tag}, got tag {dec_tag.tag} at off=0x{off:x}')
+        raise Error(f'Expected tag {tag}, got tag {dec_tag.tag} at off=0x{off:x}')
     return d0(d=d, off=dec_tag.arg)
 
 def decode_q(d: twine.Decoder, off:int) -> tuple[int,int]:
