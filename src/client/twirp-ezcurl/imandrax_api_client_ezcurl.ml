@@ -69,7 +69,7 @@ module Conn = struct
     let headers = auth_header in
     Curl.set_verbose client self.verbose;
 
-    C.call_exn ~encoding:self.encoding ~prefix:None ~client
+    C.call_exn ~encoding:self.encoding ~prefix:(Some "api/v1") ~client
       ~base_url:self.addr.url ~headers rpc req
 
   let to_rpc (self : t) : rpc_client =

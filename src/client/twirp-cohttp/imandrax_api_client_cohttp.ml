@@ -45,8 +45,8 @@ module Conn = struct
 
       let headers = auth_header in
 
-      C.call ~encoding:self.encoding ~prefix:None ~base_url:self.addr.url
-        ~headers rpc req
+      C.call ~encoding:self.encoding ~prefix:(Some "api/v1")
+        ~base_url:self.addr.url ~headers rpc req
     in
     Lwt.pick [ fut; Lwt_unix.timeout timeout_s ]
 
