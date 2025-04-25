@@ -23,7 +23,7 @@ url_prod = f"https://api.imandra.ai/internal/imandrax/{api_types_version.api_typ
 class Client:
     def __init__(
         self,
-        url: str,
+        url: str = url_prod,
         server_path_prefix="/api/v1",
         auth_token: str | None = None,
         timeout: int = 30,
