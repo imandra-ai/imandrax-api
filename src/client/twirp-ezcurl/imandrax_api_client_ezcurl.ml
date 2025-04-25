@@ -73,7 +73,7 @@ module Conn = struct
     Log.debug (fun k ->
         k "auth headers: [%s]"
           (String.concat ","
-          @@ List.map (fun (k, v) -> spf "%s: %s" k v)
+          @@ List.map (fun (k, _) -> spf "%s: ****" k)
           @@ auth_header));
 
     let headers = auth_header in
