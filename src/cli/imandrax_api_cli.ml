@@ -6,8 +6,6 @@ type cli =
   | Version of Opts.conn  (** Display the version. *)
   | GC_stats of Opts.conn_with_repeat
   | Reduce_memory of Opts.conn  (** Reduce memory usage *)
-  | Repl of Opts.repl
-      (** Open an interactive REPL session (read-eval-print loop). *)
 (*
   | Check of check  (** Check files in batch mode. *)
   | Serve of serve  (** Start a server to explore existing sessions. *)
@@ -77,6 +75,5 @@ let run (cli : cli) : unit =
   | Version c -> version c
   | GC_stats c -> gc_stats c
   | Reduce_memory c -> reduce_memory c
-  | Repl r -> Repl.run r
 
 [%%subliner.cmds eval.cli <- run] [@@name "imandrax-cli"]

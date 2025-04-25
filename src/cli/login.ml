@@ -150,7 +150,7 @@ let run (self : Opts.login) : int =
   | Ok tok ->
     (* success! *)
     Log.debug (fun k -> k "success! got token %S" tok);
-    let tok_file = Utils.auth_token_filename ~dev:self.dev () in
+    let tok_file = Utils.auth_token_filename () in
     (* TODO: make it less ugly *)
     (try ignore (Unix.system (spf "mkdir -p %s" (Filename.dirname tok_file)))
      with _ -> ());

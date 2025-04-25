@@ -27,21 +27,6 @@ type conn_with_repeat = {
 [@@deriving subliner, show { with_path = false }]
 (** Show imports by calling `dot`. *)
 
-type repl = {
-  local_http: bool;  (** Use HTTP on localhost *)
-  dev: bool;  (** Use dev environment *)
-  debug: bool;  (** Enable debug *)
-  log_level: (Logs.level[@conv parse_log_level]) option; [@conv parse_log_level]
-      (** Log level *)
-  log_file: string option;
-  session: string option;
-      (** Attempt to reconnect to the session with the given ID *)
-  raw: bool;  (** Disable linenoise *)
-  bt: bool;  (** backtraces *)
-}
-[@@deriving subliner, show { with_path = false }]
-(** Run the ImandraX REPL. *)
-
 type login = {
   dev: bool;  (** Use dev environment *)
   debug: bool;  (** Enable debug *)

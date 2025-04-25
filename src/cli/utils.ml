@@ -29,21 +29,16 @@ let reporter ?log_file () : Logs.reporter =
   in
   { Logs.report }
 
-let auth_token_filename ~dev () : string =
+let auth_token_filename () : string =
   let xdg = Xdg.create ~env:Sys.getenv_opt () in
-  let dir = Filename.concat (Xdg.cache_dir xdg) "imandrax" in
-  let base =
-    if dev then
-      "auth_token_dev"
-    else
-      "auth_token"
-  in
+  let dir = Filename.concat (Xdg.config_dir xdg) "imandrax" in
+  let base = "api_key" in
   let file = Filename.concat dir base in
   file
 
 (** Read token from disk *)
-let get_auth_token ~dev () : string option =
-  let file = auth_token_filename ~dev () in
+let get_auth_token () : string option =
+  let file = auth_token_filename () in
   Log.info (fun k -> k "looking for auth token in %S" file);
   try Some (CCIO.File.read_exn file)
   with exn ->
@@ -55,17 +50,16 @@ let with_client ~local_http ~dev ~debug () (f : C.t -> 'a) : 'a =
   let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "cli.with-client" in
   let client =
     if local_http then
-      C.create ~verbose:debug ~tls:false ~host:"localhost" ~port:8086
-        ~auth_token:None ()
+      C.create ~verbose:debug ~url:"http://localhost:8086" ~auth_token:None ()
     else (
-      let host =
+      let url =
         if dev then
-          "imandrax.dev.imandracapital.com"
+          C.url_dev
         else
-          failwith "prod not implemented yet (use --dev)"
+          C.url_prod
       in
-      let auth_token = get_auth_token ~dev () in
-      C.create ~verbose:debug ~tls:true ~host ~port:443 ~auth_token ()
+      let auth_token = get_auth_token () in
+      C.create ~verbose:debug ~url ~auth_token ()
     )
   in
   let finally () =
