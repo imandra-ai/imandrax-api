@@ -191,11 +191,11 @@ module Blocking = struct
 end
 
 module Standard_endpoints = struct
-  let dev_url =
+  let url_dev =
     Printf.sprintf "https://api.dev.imandracapital.com/internal/imandrax/%s/"
       Imandrax_api.Versioning.api_types_version
 
-  let prod_url =
+  let url_prod =
     Printf.sprintf "https://api.imandra.ai/internal/imandrax/%s/"
       Imandrax_api.Versioning.api_types_version
 end

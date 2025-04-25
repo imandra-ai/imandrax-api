@@ -45,8 +45,8 @@ module Conn = struct
 
       let headers = auth_header in
 
-      C.call ~encoding:self.encoding ~prefix:(Some "api/v1")
-        ~base_url:self.addr.url ~headers rpc req
+      C.call ~encoding:self.encoding ~prefix:None ~base_url:self.addr.url
+        ~headers rpc req
     in
     Lwt.pick [ fut; Lwt_unix.timeout timeout_s ]
 
@@ -75,9 +75,11 @@ module Conn = struct
     end
 end
 
-let create ?(tls = true) ?(verbose = false) ?(encoding = `JSON) ~host ~port
+include Imandrax_api_client_core.Standard_endpoints
+
+let create ?(verbose = false) ?(encoding = `JSON) ?(url = url_prod)
     ~(auth_token : string option) () : t =
-  let addr = { Addr.tls; host; port } in
+  let addr = { Addr.url } in
   let conn =
     { Conn.active = Atomic.make true; encoding; verbose; addr; auth_token }
   in
