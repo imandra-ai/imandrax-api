@@ -17,6 +17,8 @@ from . import api_types_version
 
 # TODO: https://requests.readthedocs.io/en/latest/user/advanced/#example-automatic-retries (for calls that are idempotent, maybe we pass `idempotent=True` for them
 
+url_dev = f"https://api.dev.imandracapital.com/internal/imandrax/{api_types_version.api_types_version}/"
+url_prod = f"https://api.imandra.ai/internal/imandrax/{api_types_version.api_types_version}/"
 
 class Client:
     def __init__(
