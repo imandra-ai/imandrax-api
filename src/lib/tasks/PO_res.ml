@@ -9,6 +9,13 @@ type ('term, 'ty) proof_found = {
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 (** Type returned on success for verify *)
 
+type proof_found_upto = {
+  anchor: Imandrax_api.Anchor.t;
+  upto: Upto.t;
+}
+[@@deriving twine, typereg, map, iter, show { with_path = false }]
+(** Type returned on success for verify *)
+
 type ('term, 'ty) instance = {
   anchor: Imandrax_api.Anchor.t;
   model: ('term, 'ty) Imandrax_api_common.Model.t_poly;
@@ -36,6 +43,7 @@ type ('term, 'ty) unsat = {
 type ('term, 'ty) success =
   | Proof of ('term, 'ty) proof_found  (** For verify *)
   | Instance of ('term, 'ty) instance  (** For instance *)
+  | Proof_upto of proof_found_upto
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
 type ('term, 'ty) error =
