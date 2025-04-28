@@ -17,10 +17,15 @@ from . import api_types_version
 
 # TODO: https://requests.readthedocs.io/en/latest/user/advanced/#example-automatic-retries (for calls that are idempotent, maybe we pass `idempotent=True` for them
 
-url_dev = f"https://api.dev.imandracapital.com/internal/imandrax/{api_types_version.api_types_version}/"
-url_prod = f"https://api.imandra.ai/internal/imandrax/{api_types_version.api_types_version}/"
+url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
+url_prod = "https://api.imandra.ai/internal/imandrax/"
+
 
 class Client:
+    def mk_context(self) -> Context:
+        """Build a request context with the appropriate headers"""
+        return Context(headers={"x-api-version": api_types_version.api_types_version})
+
     def __init__(
         self,
         url: str = url_prod,
@@ -54,7 +59,7 @@ class Client:
         if session_id is None:
             try:
                 self._sesh = self._client.create_session(
-                    ctx=Context(),
+                    ctx=self.mk_context(),
                     request=simple_api_pb2.SessionCreateReq(
                         api_version=api_types_version.api_types_version
                     ),
@@ -77,10 +82,14 @@ class Client:
         return self
 
     def __exit__(self, *_) -> None:
-        if self._closed: return
-        if not hasattr(self, '_sesh'): return
+        if self._closed:
+            return
+        if not hasattr(self, "_sesh"):
+            return
         try:
-            self._client.end_session(ctx=Context(), request=self._sesh, timeout=None)
+            self._client.end_session(
+                ctx=self.mk_context(), request=self._sesh, timeout=None
+            )
             self._closed = True
         except TwirpServerException as e:
             raise Exception("Error while ending session") from e
@@ -90,7 +99,7 @@ class Client:
 
     def status(self) -> str:
         return self._client.status(
-            ctx=Context(),
+            ctx=self.mk_context(),
             request=utils_pb2.Empty(),
         )
 
@@ -108,7 +117,7 @@ class Client:
     ) -> simple_api_pb2.DecomposeRes:
         timeout = timeout or self._timeout
         return self._client.decompose(
-            ctx=Context(),
+            ctx=self.mk_context(),
             request=simple_api_pb2.DecomposeReq(
                 name=name,
                 assuming=assuming,
@@ -130,7 +139,7 @@ class Client:
     ) -> simple_api_pb2.EvalRes:
         timeout = timeout or self._timeout
         return self._client.eval_src(
-            ctx=Context(),
+            ctx=self.mk_context(),
             request=simple_api_pb2.EvalSrcReq(src=src, session=self._sesh),
             timeout=timeout,
         )
@@ -143,7 +152,7 @@ class Client:
     ) -> simple_api_pb2.VerifyRes:
         timeout = timeout or self._timeout
         return self._client.verify_src(
-            ctx=Context(),
+            ctx=self.mk_context(),
             request=simple_api_pb2.VerifySrcReq(
                 src=src, session=self._sesh, hints=hints
             ),
@@ -158,7 +167,7 @@ class Client:
     ) -> simple_api_pb2.InstanceRes:
         timeout = timeout or self._timeout
         return self._client.instance_src(
-            ctx=Context(),
+            ctx=self.mk_context(),
             request=simple_api_pb2.InstanceSrcReq(
                 src=src, session=self._sesh, hints=hints
             ),
@@ -170,7 +179,7 @@ class Client:
     ) -> api_pb2.ArtifactListResult:
         timeout = timeout or self._timeout
         return self._api_client.list_artifacts(
-            ctx=Context(),
+            ctx=self.mk_context(),
             request=api_pb2.ArtifactListQuery(task_id=task.id),
             timeout=timeout,
         )
@@ -180,15 +189,17 @@ class Client:
     ) -> api_pb2.ArtifactZip:
         timeout = timeout or self._timeout
         return self._api_client.get_artifact_zip(
-            ctx=Context(),
+            ctx=self.mk_context(),
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
             timeout=timeout,
         )
 
-    def typecheck( self, src: str, timeout: Optional[float] = None) -> simple_api_pb2.TypecheckRes:
+    def typecheck(
+        self, src: str, timeout: Optional[float] = None
+    ) -> simple_api_pb2.TypecheckRes:
         timeout = timeout or self._timeout
         return self._client.typecheck(
-            ctx=Context(),
+            ctx=self.mk_context(),
             request=simple_api_pb2.TypecheckReq(src=src, session=self._sesh),
             timeout=timeout,
         )

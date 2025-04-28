@@ -43,7 +43,9 @@ module Conn = struct
             @@ List.map (fun (k, _) -> spf "%s: ****" k)
             @@ auth_header));
 
-      let headers = auth_header in
+      let headers =
+        auth_header @ Imandrax_api_client_core.Standard_endpoints.headers
+      in
 
       C.call ~encoding:self.encoding ~prefix:(Some "api/v1")
         ~base_url:self.addr.url ~headers rpc req
