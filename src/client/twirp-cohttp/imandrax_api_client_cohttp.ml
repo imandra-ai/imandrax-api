@@ -9,19 +9,9 @@ open Lwt.Syntax
 include Imandrax_api_client_lwt
 
 module Addr = struct
-  type t = {
-    tls: bool;
-    host: string;
-    port: int;
-  }
+  type t = { url: string } [@@unboxed]
 
-  let show self =
-    spf "http%s://%s:%d"
-      (if self.tls then
-         "s"
-       else
-         "")
-      self.host self.port
+  let show self = self.url
 end
 
 module Conn = struct
@@ -50,14 +40,15 @@ module Conn = struct
       Log.debug (fun k ->
           k "auth headers: [%s]"
             (String.concat ","
-            @@ List.map (fun (k, v) -> spf "%s: %s" k v)
+            @@ List.map (fun (k, _) -> spf "%s: ****" k)
             @@ auth_header));
 
-      let headers = auth_header in
+      let headers =
+        auth_header @ Imandrax_api_client_core.Standard_endpoints.headers
+      in
 
       C.call ~encoding:self.encoding ~prefix:(Some "api/v1")
-        ~host:self.addr.host ~port:self.addr.port ~use_tls:self.addr.tls
-        ~headers rpc req
+        ~base_url:self.addr.url ~headers rpc req
     in
     Lwt.pick [ fut; Lwt_unix.timeout timeout_s ]
 
@@ -86,9 +77,11 @@ module Conn = struct
     end
 end
 
-let create ?(tls = true) ?(verbose = false) ?(encoding = `JSON) ~host ~port
+include Imandrax_api_client_core.Standard_endpoints
+
+let create ?(verbose = false) ?(encoding = `JSON) ?(url = url_prod)
     ~(auth_token : string option) () : t =
-  let addr = { Addr.tls; host; port } in
+  let addr = { Addr.url } in
   let conn =
     { Conn.active = Atomic.make true; encoding; verbose; addr; auth_token }
   in

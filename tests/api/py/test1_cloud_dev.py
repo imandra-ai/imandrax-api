@@ -1,6 +1,6 @@
 import imandrax_api, os, sys
 
-url = "https://api.dev.imandracapital.com/internal/imandrax"
+url = imandrax_api.url_dev
 
 auth_path = os.path.expanduser('~/.config/imandrax/api_key')
 try:

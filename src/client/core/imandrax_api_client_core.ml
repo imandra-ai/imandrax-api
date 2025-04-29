@@ -191,6 +191,7 @@ module Blocking = struct
 end
 
 module Standard_endpoints = struct
-  let dev_url = "https://api.dev.imandracapital.com/internal/imandrax"
-  let prod_url = "https://api.imandra.ai/internal/imandrax"
+  let headers = [ "x-api-version", Imandrax_api.Versioning.api_types_version ]
+  let url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
+  let url_prod = "https://api.imandra.ai/internal/imandrax/"
 end

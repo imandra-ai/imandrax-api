@@ -62,8 +62,8 @@ module Client = Imandrax_api_client_cohttp
 
 (* TODO: use a state thing, and in toplevel make it global *)
 
-let connect ?(tls = false) ?(host = "127.0.0.1") ?encoding ~port () : Client.t =
-  Client.create ~verbose:true ~tls ~host ~port ?encoding ~auth_token:None ()
+let connect ?url ?encoding () : Client.t =
+  Client.create ~verbose:true ?url ?encoding ~auth_token:None ()
 
 let disconnect = Client.disconnect
 
