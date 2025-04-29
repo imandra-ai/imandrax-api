@@ -79,6 +79,10 @@ type proved = {
   proof_pp : string option;
 }
 
+type proved_upto = {
+  msg : string option;
+}
+
 type unsat = {
   proof_pp : string option;
 }
@@ -106,6 +110,7 @@ type verify_res_res =
   | Err
   | Proved of proved
   | Refuted of refuted
+  | Proved_upto of proved_upto
 
 and verify_res = {
   res : verify_res_res;
@@ -226,6 +231,12 @@ val default_proved :
   unit ->
   proved
 (** [default_proved ()] is the default value for type [proved] *)
+
+val default_proved_upto : 
+  ?msg:string option ->
+  unit ->
+  proved_upto
+(** [default_proved_upto ()] is the default value for type [proved_upto] *)
 
 val default_unsat : 
   ?proof_pp:string option ->
@@ -380,6 +391,12 @@ val make_proved :
   proved
 (** [make_proved … ()] is a builder for type [proved] *)
 
+val make_proved_upto : 
+  ?msg:string option ->
+  unit ->
+  proved_upto
+(** [make_proved_upto … ()] is a builder for type [proved_upto] *)
+
 val make_unsat : 
   ?proof_pp:string option ->
   unit ->
@@ -479,6 +496,9 @@ val pp_instance_name_req : Format.formatter -> instance_name_req -> unit
 val pp_proved : Format.formatter -> proved -> unit 
 (** [pp_proved v] formats v *)
 
+val pp_proved_upto : Format.formatter -> proved_upto -> unit 
+(** [pp_proved_upto v] formats v *)
+
 val pp_unsat : Format.formatter -> unsat -> unit 
 (** [pp_unsat v] formats v *)
 
@@ -550,6 +570,9 @@ val encode_pb_instance_name_req : instance_name_req -> Pbrt.Encoder.t -> unit
 
 val encode_pb_proved : proved -> Pbrt.Encoder.t -> unit
 (** [encode_pb_proved v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_proved_upto : proved_upto -> Pbrt.Encoder.t -> unit
+(** [encode_pb_proved_upto v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_unsat : unsat -> Pbrt.Encoder.t -> unit
 (** [encode_pb_unsat v encoder] encodes [v] with the given [encoder] *)
@@ -623,6 +646,9 @@ val decode_pb_instance_name_req : Pbrt.Decoder.t -> instance_name_req
 val decode_pb_proved : Pbrt.Decoder.t -> proved
 (** [decode_pb_proved decoder] decodes a [proved] binary value from [decoder] *)
 
+val decode_pb_proved_upto : Pbrt.Decoder.t -> proved_upto
+(** [decode_pb_proved_upto decoder] decodes a [proved_upto] binary value from [decoder] *)
+
 val decode_pb_unsat : Pbrt.Decoder.t -> unsat
 (** [decode_pb_unsat decoder] decodes a [unsat] binary value from [decoder] *)
 
@@ -695,6 +721,9 @@ val encode_json_instance_name_req : instance_name_req -> Yojson.Basic.t
 val encode_json_proved : proved -> Yojson.Basic.t
 (** [encode_json_proved v encoder] encodes [v] to to json *)
 
+val encode_json_proved_upto : proved_upto -> Yojson.Basic.t
+(** [encode_json_proved_upto v encoder] encodes [v] to to json *)
+
 val encode_json_unsat : unsat -> Yojson.Basic.t
 (** [encode_json_unsat v encoder] encodes [v] to to json *)
 
@@ -766,6 +795,9 @@ val decode_json_instance_name_req : Yojson.Basic.t -> instance_name_req
 
 val decode_json_proved : Yojson.Basic.t -> proved
 (** [decode_json_proved decoder] decodes a [proved] value from [decoder] *)
+
+val decode_json_proved_upto : Yojson.Basic.t -> proved_upto
+(** [decode_json_proved_upto decoder] decodes a [proved_upto] value from [decoder] *)
 
 val decode_json_unsat : Yojson.Basic.t -> unsat
 (** [decode_json_unsat decoder] decodes a [unsat] value from [decoder] *)
