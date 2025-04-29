@@ -9,7 +9,7 @@ BUCKET_URL="https://storage.googleapis.com/${BUCKET_NAME}"
 
 set +u
 if [ "${INSTALL_PREFIX}" == "" ]; then
-  INSTALL_PREFIX="$HOME/.local"
+  INSTALL_PREFIX="/usr/local"
 fi
 if [ "${VERSION}" == "" ]; then
   VERSION="latest"
@@ -38,40 +38,14 @@ function install_linux() {
   sudo install -t "$BIN_DIR/" "${TMPDIR:-/tmp}/tldrs"
 }
 
-function add_to_zshrc() {
-  ZSHRC="$HOME/.zshrc"
-  BIN_DIR="${INSTALL_PREFIX}/usr/local/bin"
-  LINE="export PATH=\"${BIN_DIR}:\$PATH\""
-
-  touch "$ZSHRC"
-
-  if ! grep -qxF "$LINE" "$ZSHRC"; then
-    printf "\n# Added by ImandraX API CLI installer on %s\n%s\n" \
-      "$(date '+%Y-%m-%d')" "$LINE" >> "$ZSHRC"
-    echo "added install dir to PATH in $ZSHRC"
-  else
-    :
-  fi
-}
-
 function install_macos() {
   ARCHIVE="${BUCKET_URL}/imandrax-macos-aarch64-${VERSION}.pkg"
   TMP_FILE="${TMPDIR:-/tmp}/imandrax-macos-aarch64.pkg"
 
   echo "downloading from ${ARCHIVE}"
-  curl -s "${ARCHIVE}" -o "$TMP_FILE"
+  wget "${ARCHIVE}" -O "$TMP_FILE"
   echo "downloaded installer at $TMP_FILE"
-  mkdir -p $INSTALL_PREFIX
-  echo "created dir ${INSTALL_PREFIX}"
-  cd "${TMPDIR:-/tmp}"
-  tar xzf $TMP_FILE
-  echo "extracted to temp dir"
-  tar xzf Payload -C $INSTALL_PREFIX
-  echo "extracted and copied files to install dir"
-  sed -i '' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
-    $INSTALL_PREFIX/usr/local/bin/imandrax-cli
-
-  add_to_zshrc
+  sudo installer -pkg "$TMP_FILE" -target /
 }
 
 # detect OS
