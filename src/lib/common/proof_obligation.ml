@@ -10,6 +10,8 @@ type ('term, 'ty) t_poly = {
           This means we won't negate the goal. *)
   anchor: Imandrax_api.Anchor.t;
       (** An identifier linking this PO to some user-defined object *)
+  upto: Imandrax_api.Upto.t option;
+      (** For a [verify] statement, can be used for bounded verification *)
   timeout: int option;  (** Timeout *)
 }
 [@@deriving show { with_path = false }, twine, typereg, map, iter]
