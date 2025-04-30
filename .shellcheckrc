@@ -11,4 +11,5 @@ enable=quote-safe-variables
 # but i figured it was better to remove it.
 # enable=require-double-brackets
 enable=require-variable-braces
+external-sources=true
 shell=sh
