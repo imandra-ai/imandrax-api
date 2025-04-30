@@ -61,16 +61,16 @@ function install_macos() {
   echo "downloading from ${ARCHIVE}"
   curl -s "${ARCHIVE}" -o "$TMP_FILE"
   echo "downloaded installer at $TMP_FILE"
-  mkdir -p $INSTALL_PREFIX
+  mkdir -p "$INSTALL_PREFIX"
   echo "created dir ${INSTALL_PREFIX}"
   cd "${TMPDIR:-/tmp}"
-  tar xzf $TMP_FILE
+  tar xzf "$TMP_FILE"
   echo "extracted to temp dir"
   tar -xzf Payload -C "$INSTALL_PREFIX" opt
   tar -xzf Payload -C "$INSTALL_PREFIX" --strip-components=3 usr/local/bin
   echo "extracted and copied files to install dir"
   sed -i '' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
-    $INSTALL_PREFIX/bin/imandrax-cli
+    "$INSTALL_PREFIX/bin/imandrax-cli"
 
   add_to_zshrc
 }
