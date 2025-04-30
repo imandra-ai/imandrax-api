@@ -11,7 +11,7 @@ type ('term, 'ty) proof_found = {
 
 type verified_upto = {
   anchor: Imandrax_api.Anchor.t;
-  upto: Upto.t;
+  upto: Imandrax_api.Upto.t;
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 (** Type returned on success for verify *)
