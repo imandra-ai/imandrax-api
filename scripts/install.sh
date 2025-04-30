@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh—eu
 # (c) Copyright Imandra Inc., 2024-2025.
 
 set -ue
@@ -8,10 +8,10 @@ BUCKET_NAME="imandra-prod-imandrax-releases"
 BUCKET_URL="https://storage.googleapis.com/${BUCKET_NAME}"
 
 set +u
-if [ "${INSTALL_PREFIX}" == "" ]; then
-  INSTALL_PREFIX="$HOME/.local"
+if [[ "${INSTALL_PREFIX}" == "" ]]; then
+  INSTALL_PREFIX="${HOME}/.local"
 fi
-if [ "${VERSION}" == "" ]; then
+if [[ "${VERSION}" == "" ]]; then
   VERSION="latest"
 fi
 
@@ -28,27 +28,28 @@ function install_linux() {
   mkdir -p "${BIN_DIR}"
 
   echo "downloading from ${ARCHIVE}"
-  wget "${ARCHIVE}" -O "$TMP_FILE"
-  echo "downloaded to $TMP_FILE"
+  wget "${ARCHIVE}" -O "${TMP_FILE}"
+  echo "downloaded to ${TMP_FILE}"
   cd "${TMPDIR:-/tmp}"
-  tar xvf "$TMP_FILE"
+  tar xvf "${TMP_FILE}"
   echo "using sudo to copy files"
-  sudo install -t "$BIN_DIR/" "${TMPDIR:-/tmp}/imandrax-cli"
-  sudo install -t "$BIN_DIR/" "${TMPDIR:-/tmp}/imandrax-ws-client"
-  sudo install -t "$BIN_DIR/" "${TMPDIR:-/tmp}/tldrs"
+  sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/imandrax-cli"
+  sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/imandrax-ws-client"
+  sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/tldrs"
 }
 
 function add_to_zshrc() {
-  ZSHRC="$HOME/.zshrc"
+  ZSHRC="${HOME}/.zshrc"
   BIN_DIR="${INSTALL_PREFIX}/bin"
   LINE="export PATH=\"${BIN_DIR}:\$PATH\""
 
-  touch "$ZSHRC"
+  touch "${ZSHRC}"
 
-  if ! grep -qxF "$LINE" "$ZSHRC"; then
+  if ! grep -qxF "${LINE}" "${ZSHRC}"; then
+    DATE_STRING="$(date '+%Y-%m-%d')"
     printf "\n# Added by ImandraX API CLI installer on %s\n%s\n" \
-      "$(date '+%Y-%m-%d')" "$LINE" >> "$ZSHRC"
-    echo "added install dir to PATH in $ZSHRC"
+      "${DATE_STRING}" "${LINE}" >> "${ZSHRC}"
+    echo "added install dir to PATH in ${ZSHRC}"
   else
     :
   fi
@@ -59,18 +60,18 @@ function install_macos() {
   TMP_FILE="${TMPDIR:-/tmp}/imandrax-macos-aarch64.pkg"
 
   echo "downloading from ${ARCHIVE}"
-  curl -s "${ARCHIVE}" -o "$TMP_FILE"
-  echo "downloaded installer at $TMP_FILE"
-  mkdir -p "$INSTALL_PREFIX"
+  curl -s "${ARCHIVE}" -o "${TMP_FILE}"
+  echo "downloaded installer at ${TMP_FILE}"
+  mkdir -p "${INSTALL_PREFIX}"
   echo "created dir ${INSTALL_PREFIX}"
-  cd "${TMPDIR:-/tmp}"
-  tar xzf "$TMP_FILE"
+  cd "${TMPDIR}":-/tmp
+  tar xzf "${TMP_FILE}"
   echo "extracted to temp dir"
-  tar -xzf Payload -C "$INSTALL_PREFIX" opt
-  tar -xzf Payload -C "$INSTALL_PREFIX" --strip-components=3 usr/local/bin
+  tar -xzf Payload -C "${INSTALL_PREFIX}" opt
+  tar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
   echo "extracted and copied files to install dir"
   sed -i '' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
-    "$INSTALL_PREFIX/bin/imandrax-cli"
+    "${INSTALL_PREFIX}/bin/imandrax-cli"
 
   add_to_zshrc
 }
