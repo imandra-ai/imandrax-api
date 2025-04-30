@@ -87,6 +87,26 @@ def Error_Error_core_of_twine(d: twine.Decoder, off: int) -> Error_Error_core:
     stack = Error_Error_core_stack_of_twine(d=d, off=fields[3])
     return Error_Error_core(process=process,kind=kind,msg=msg,stack=stack)
 
+# clique Imandrax_api.Upto.t (cached: false)
+# def Imandrax_api.Upto.t (mangled name: "Upto")
+@dataclass(slots=True, frozen=True)
+class Upto_N_steps:
+    arg: int
+
+def Upto_N_steps_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Upto_N_steps:
+    arg = d.get_int(off=args[0])
+    return Upto_N_steps(arg=arg)
+
+type Upto = Upto_N_steps
+
+def Upto_of_twine(d: twine.Decoder, off: int) -> Upto:
+    match d.get_cstor(off=off):
+         case twine.Constructor(idx=0, args=args):
+             args = tuple(args)
+             return Upto_N_steps_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=idx):
+             raise twine.Error(f'expected Upto, got invalid constructor {idx}')
+
 # clique Imandrax_api.Builtin_data.kind (cached: false)
 # def Imandrax_api.Builtin_data.kind (mangled name: "Builtin_data_kind")
 @dataclass(slots=True, frozen=True)
@@ -1253,19 +1273,31 @@ def Common_Theorem_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine
 # def Imandrax_api_common.Tactic.t_poly (mangled name: "Common_Tactic_t_poly")
 @dataclass(slots=True, frozen=True)
 class Common_Tactic_t_poly_Default_termination[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    max_steps: int
     basis: Uid_set
 
 
 def Common_Tactic_t_poly_Default_termination_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Tactic_t_poly_Default_termination[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
-    basis = Uid_set_of_twine(d=d, off=args[0])
-    return Common_Tactic_t_poly_Default_termination(basis=basis)
+    max_steps = d.get_int(off=args[0])
+    basis = Uid_set_of_twine(d=d, off=args[1])
+    return Common_Tactic_t_poly_Default_termination(max_steps=max_steps,basis=basis)
 
 
 @dataclass(slots=True, frozen=True)
 class Common_Tactic_t_poly_Default_thm[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    pass
+    max_steps: int
+    upto: None | Upto
+
+
+def Common_Tactic_t_poly_Default_thm_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Tactic_t_poly_Default_thm[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    max_steps = d.get_int(off=args[0])
+    upto = twine.optional(d=d, off=args[1], d0=lambda d, off: Upto_of_twine(d=d, off=off))
+    return Common_Tactic_t_poly_Default_thm(max_steps=max_steps,upto=upto)
+
 
 @dataclass(slots=True, frozen=True)
 class Common_Tactic_t_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
@@ -1285,7 +1317,8 @@ def Common_Tactic_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
              args = tuple(args)
              return Common_Tactic_t_poly_Default_termination_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=1, args=args):
-             return Common_Tactic_t_poly_Default_thm[_V_tyreg_poly_term,_V_tyreg_poly_ty]()
+             args = tuple(args)
+             return Common_Tactic_t_poly_Default_thm_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=2, args=args):
              args = tuple(args)
              return Common_Tactic_t_poly_Term_of_twine(d=d, args=args, d0=d0,d1=d1,)
@@ -1568,6 +1601,7 @@ class Common_Proof_obligation_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     is_instance: bool
     anchor: Anchor
     timeout: None | int
+    upto: None | Upto
 
 def Common_Proof_obligation_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Proof_obligation_t_poly:
     decode__tyreg_poly_term = d0
@@ -1579,7 +1613,8 @@ def Common_Proof_obligation_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty]
     is_instance = d.get_bool(off=fields[3])
     anchor = Anchor_of_twine(d=d, off=fields[4])
     timeout = twine.optional(d=d, off=fields[5], d0=lambda d, off: d.get_int(off=off))
-    return Common_Proof_obligation_t_poly(descr=descr,goal=goal,tactic=tactic,is_instance=is_instance,anchor=anchor,timeout=timeout)
+    upto = twine.optional(d=d, off=fields[6], d0=lambda d, off: Upto_of_twine(d=d, off=off))
+    return Common_Proof_obligation_t_poly(descr=descr,goal=goal,tactic=tactic,is_instance=is_instance,anchor=anchor,timeout=timeout,upto=upto)
 
 # clique Imandrax_api_common.Instantiation_rule_kind.t (cached: false)
 # def Imandrax_api_common.Instantiation_rule_kind.t (mangled name: "Common_Instantiation_rule_kind")
@@ -3307,6 +3342,19 @@ def Tasks_PO_res_proof_found_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: tw
     proof = Proof_Proof_term_t_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Tasks_PO_res_proof_found(anchor=anchor,proof=proof)
 
+# clique Imandrax_api_tasks.PO_res.verified_upto (cached: false)
+# def Imandrax_api_tasks.PO_res.verified_upto (mangled name: "Tasks_PO_res_verified_upto")
+@dataclass(slots=True, frozen=True)
+class Tasks_PO_res_verified_upto:
+    anchor: Anchor
+    upto: Upto
+
+def Tasks_PO_res_verified_upto_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_verified_upto:
+    fields = list(d.get_array(off=off))
+    anchor = Anchor_of_twine(d=d, off=fields[0])
+    upto = Upto_of_twine(d=d, off=fields[1])
+    return Tasks_PO_res_verified_upto(anchor=anchor,upto=upto)
+
 # clique Imandrax_api_tasks.PO_res.instance (cached: false)
 # def Imandrax_api_tasks.PO_res.instance (mangled name: "Tasks_PO_res_instance")
 @dataclass(slots=True, frozen=True)
@@ -3378,7 +3426,17 @@ def Tasks_PO_res_success_Instance_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](
     arg = Tasks_PO_res_instance_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Tasks_PO_res_success_Instance(arg=arg)
 
-type Tasks_PO_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Tasks_PO_res_success_Proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Instance[_V_tyreg_poly_term,_V_tyreg_poly_ty]
+@dataclass(slots=True, frozen=True)
+class Tasks_PO_res_success_Verified_upto[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: Tasks_PO_res_verified_upto
+
+def Tasks_PO_res_success_Verified_upto_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_PO_res_success_Verified_upto[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = Tasks_PO_res_verified_upto_of_twine(d=d, off=args[0])
+    return Tasks_PO_res_success_Verified_upto(arg=arg)
+
+type Tasks_PO_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Tasks_PO_res_success_Proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Instance[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Verified_upto[_V_tyreg_poly_term,_V_tyreg_poly_ty]
 
 def Tasks_PO_res_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_success:
     match d.get_cstor(off=off):
@@ -3388,6 +3446,9 @@ def Tasks_PO_res_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
          case twine.Constructor(idx=1, args=args):
              args = tuple(args)
              return Tasks_PO_res_success_Instance_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=2, args=args):
+             args = tuple(args)
+             return Tasks_PO_res_success_Verified_upto_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Tasks_PO_res_success, got invalid constructor {idx}')
 
