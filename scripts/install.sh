@@ -40,7 +40,7 @@ function install_linux() {
 
 function add_to_zshrc() {
   ZSHRC="$HOME/.zshrc"
-  BIN_DIR="${INSTALL_PREFIX}/usr/local/bin"
+  BIN_DIR="${INSTALL_PREFIX}/bin"
   LINE="export PATH=\"${BIN_DIR}:\$PATH\""
 
   touch "$ZSHRC"
@@ -67,7 +67,7 @@ function install_macos() {
   tar xzf $TMP_FILE
   echo "extracted to temp dir"
   tar -xzf Payload -C "$INSTALL_PREFIX" opt
-  tar -xzf Payload -C "$INSTALL_PREFIX" --strip-components=2 usr/local/bin
+  tar -xzf Payload -C "$INSTALL_PREFIX" --strip-components=3 usr/local/bin
   echo "extracted and copied files to install dir"
   sed -i '' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
     $INSTALL_PREFIX/bin/imandrax-cli
