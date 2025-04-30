@@ -70,7 +70,7 @@ function install_macos() {
   tar -xzf Payload -C "$INSTALL_PREFIX" --strip-components=2 usr/local/bin
   echo "extracted and copied files to install dir"
   sed -i '' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
-    $INSTALL_PREFIX/usr/local/bin/imandrax-cli
+    $INSTALL_PREFIX/bin/imandrax-cli
 
   add_to_zshrc
 }
