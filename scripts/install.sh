@@ -66,7 +66,8 @@ function install_macos() {
   cd "${TMPDIR:-/tmp}"
   tar xzf $TMP_FILE
   echo "extracted to temp dir"
-  tar xzf Payload -C $INSTALL_PREFIX
+  tar -xzf Payload -C "$INSTALL_PREFIX" opt
+  tar -xzf Payload -C "$INSTALL_PREFIX" --strip-components=2 usr/local/bin
   echo "extracted and copied files to install dir"
   sed -i '' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
     $INSTALL_PREFIX/usr/local/bin/imandrax-cli
