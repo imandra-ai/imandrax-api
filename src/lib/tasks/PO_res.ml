@@ -9,7 +9,7 @@ type ('term, 'ty) proof_found = {
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 (** Type returned on success for verify *)
 
-type proof_found_upto = {
+type verified_upto = {
   anchor: Imandrax_api.Anchor.t;
   upto: Upto.t;
 }
@@ -43,7 +43,7 @@ type ('term, 'ty) unsat = {
 type ('term, 'ty) success =
   | Proof of ('term, 'ty) proof_found  (** For verify *)
   | Instance of ('term, 'ty) instance  (** For instance *)
-  | Proof_upto of proof_found_upto
+  | Verified_upto of verified_upto
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
 type ('term, 'ty) error =
