@@ -1,23 +1,23 @@
-#!/bin/sh—eu
+#!/bin/sh
 # (c) Copyright Imandra Inc., 2024-2025.
 
-set -ue
+set -eu
 
 # see: .github/workflows/main.yml in imandrax to see what the names are
 BUCKET_NAME="imandra-prod-imandrax-releases"
 BUCKET_URL="https://storage.googleapis.com/${BUCKET_NAME}"
 
 set +u
-if [[ "${INSTALL_PREFIX}" == "" ]]; then
+if [ "${INSTALL_PREFIX}" = "" ]; then
   INSTALL_PREFIX="${HOME}/.local"
 fi
-if [[ "${VERSION}" == "" ]]; then
+if [ "${VERSION}" = "" ]; then
   VERSION="latest"
 fi
 
 set -u
 
-function install_linux() {
+install_linux() {
   ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
 
   echo "installing in '${INSTALL_PREFIX}/bin/' …"
@@ -38,7 +38,7 @@ function install_linux() {
   sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/tldrs"
 }
 
-function add_to_zshrc() {
+add_to_zshrc() {
   ZSHRC="${HOME}/.zshrc"
   BIN_DIR="${INSTALL_PREFIX}/bin"
   LINE="export PATH=\"${BIN_DIR}:\$PATH\""
@@ -55,7 +55,7 @@ function add_to_zshrc() {
   fi
 }
 
-function install_macos() {
+install_macos() {
   ARCHIVE="${BUCKET_URL}/imandrax-macos-aarch64-${VERSION}.pkg"
   TMP_FILE="${TMPDIR:-/tmp}/imandrax-macos-aarch64.pkg"
 

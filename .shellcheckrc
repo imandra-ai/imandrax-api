@@ -6,5 +6,9 @@ enable=check-set-e-suppressed
 enable=check-unassigned-uppercase
 enable=deprecate-which
 enable=quote-safe-variables
-enable=require-double-brackets
+# sh doesn't support double brackets.
+# shellcheck knows this, and will ignore the directive,
+# but i figured it was better to remove it.
+# enable=require-double-brackets
 enable=require-variable-braces
+shell=sh
