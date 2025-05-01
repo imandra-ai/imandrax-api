@@ -17,7 +17,7 @@ if _async_available:
             self, 
             address: str, 
             server_path_prefix: str, 
-            session: aiohttp.ClientSession = aiohttp.ClientSession(),
+            session: aiohttp.ClientSession,
             timeout=5
         ) -> None:
             self._address = address
