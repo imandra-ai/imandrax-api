@@ -82,10 +82,8 @@ install_macos() {
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
   printf 'Add ImandraX API CLI to PATH via .zshrc (y/n)? '
-  old_stty_cfg=$(stty -g)
-  stty raw -echo ; answer=$(head -c 1) ; stty "${old_stty_cfg}"
+  read -r answer
   if [ "${answer}" != "${answer#[Yy]}" ];then
-    echo ''
     _install_macos_add_to_zshrc "${INSTALL_PREFIX}"
   else
     echo No
