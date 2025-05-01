@@ -7,10 +7,6 @@ set -eu
 BUCKET_NAME="imandra-prod-imandrax-releases"
 BUCKET_URL="https://storage.googleapis.com/${BUCKET_NAME}"
 
-SCRIPT_DIR=$(dirname -- "$0")
-SCRIPT_PATH=$(cd -- "${SCRIPT_DIR}" && pwd)
-LIB_PATH="${SCRIPT_PATH}/lib"
-
 set +u
 if [ "${INSTALL_PREFIX}" = "" ]; then
   INSTALL_PREFIX="${HOME}/.local"
@@ -42,14 +38,68 @@ install_linux() {
   sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/tldrs"
 }
 
+_install_macos_add_to_zshrc() {
+  INSTALL_PREFIX=$1
+  ZSHRC="${HOME}/.zshrc"
+  BIN_DIR="${INSTALL_PREFIX}/bin"
+  LINE="export PATH=\"${BIN_DIR}:\$PATH\""
+
+  touch "${ZSHRC}"
+
+  if ! grep -qxF "${LINE}" "${ZSHRC}"; then
+    DATE_STRING="$(date '+%Y-%m-%d')"
+    printf "\n# Added by ImandraX API CLI installer on %s\n%s\n" \
+      "${DATE_STRING}" "${LINE}" >> "${ZSHRC}"
+    echo "added install dir to PATH in ${ZSHRC}"
+  else
+    echo "ImandraX API ClI was already present in .zshrc"
+  fi
+}
+
+install_macos() {
+  BUCKET_URL=$1
+  VERSION=$2
+  INSTALL_PREFIX=$3
+
+  FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
+  ARCHIVE="${BUCKET_URL}/${FILENAME}"
+  TMP_DIR="${TMPDIR:-/tmp}"
+  TMP_FILE="${TMP_DIR}/${FILENAME}"
+
+  echo "downloading from ${ARCHIVE}"
+  curl -s "${ARCHIVE}" -o "${TMP_FILE}"
+  echo "downloaded installer at ${TMP_FILE}"
+  cd "${TMP_DIR}"
+  bsdtar xzf "${TMP_FILE}"
+  echo "extracted to temp dir"
+  mkdir -p "${INSTALL_PREFIX}"
+  echo "created dir ${INSTALL_PREFIX}"
+  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
+  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
+  echo "extracted and copied files to install dir"
+  sed -i'.backup' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
+    "${INSTALL_PREFIX}/bin/imandrax-cli"
+  rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
+
+  printf 'Add ImandraX API CLI to PATH via .zshrc (y/n)? '
+  old_stty_cfg=$(stty -g)
+  stty raw -echo ; answer=$(head -c 1) ; stty "${old_stty_cfg}"
+  if [ "${answer}" != "${answer#[Yy]}" ];then
+    echo ''
+    _install_macos_add_to_zshrc "${INSTALL_PREFIX}"
+  else
+    echo No
+  fi
+
+  echo 'Installed ImandraX API CLI'
+}
+
 # detect OS
 case "$(uname -s)" in
   Linux*)
     install_linux
     ;;
   Darwin*)
-    # shellcheck source=lib/install_macos.sh
-    . "${LIB_PATH}"/install_macos.sh 
     install_macos "${BUCKET_URL}" "${VERSION}" "${INSTALL_PREFIX}"
     ;;
   *)
