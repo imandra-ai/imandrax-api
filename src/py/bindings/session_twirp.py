@@ -5,7 +5,11 @@
 from google.protobuf import symbol_database as _symbol_database
 
 from ..twirp.client import TwirpClient
-_async_available = False
+try:
+	from ..twirp.async_client import AsyncTwirpClient
+	_async_available = True
+except ModuleNotFoundError:
+	_async_available = False
 
 _sym_db = _symbol_database.Default()
 
@@ -47,3 +51,43 @@ class SessionManagerClient(TwirpClient):
 			response_obj=_sym_db.GetSymbol("Empty"),
 			**kwargs,
 		)
+
+
+if _async_available:
+	class AsyncSessionManagerClient(AsyncTwirpClient):
+
+		async def create_session(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.session.SessionManager/create_session",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.session.Session"),
+				**kwargs,
+			)
+
+		async def open_session(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.session.SessionManager/open_session",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("Empty"),
+				**kwargs,
+			)
+
+		async def end_session(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.session.SessionManager/end_session",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("Empty"),
+				**kwargs,
+			)
+
+		async def keep_session_alive(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.session.SessionManager/keep_session_alive",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("Empty"),
+				**kwargs,
+			)

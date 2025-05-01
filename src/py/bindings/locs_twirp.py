@@ -5,6 +5,10 @@
 from google.protobuf import symbol_database as _symbol_database
 
 from ..twirp.client import TwirpClient
-_async_available = False
+try:
+	from ..twirp.async_client import AsyncTwirpClient
+	_async_available = True
+except ModuleNotFoundError:
+	_async_available = False
 
 _sym_db = _symbol_database.Default()
