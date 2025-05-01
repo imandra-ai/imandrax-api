@@ -58,4 +58,6 @@ install_macos() {
   else
     echo No
   fi
+
+  echo 'Installed ImandraX API CLI'
 }
