@@ -14,13 +14,13 @@ ImandraX currently supports Linux on x86_64, and macOS on aarch64 (ie ARM machin
 To install the `imandrax-cli` locally, use:
 
 ```sh
-./scripts/install.sh
+./scripts/install
 ```
 
 To install the development version, export `VERSION=latest-main`:
 
 ```sh
-VERSION=latest-main ./scripts/install.sh
+VERSION=latest-main ./scripts/install
 ```
 
 ## Getting an Imandra Universe API key
