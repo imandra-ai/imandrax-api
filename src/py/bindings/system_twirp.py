@@ -5,7 +5,11 @@
 from google.protobuf import symbol_database as _symbol_database
 
 from ..twirp.client import TwirpClient
-_async_available = False
+try:
+	from ..twirp.async_client import AsyncTwirpClient
+	_async_available = True
+except ModuleNotFoundError:
+	_async_available = False
 
 _sym_db = _symbol_database.Default()
 
@@ -38,3 +42,34 @@ class SystemClient(TwirpClient):
 			response_obj=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
 			**kwargs,
 		)
+
+
+if _async_available:
+	class AsyncSystemClient(AsyncTwirpClient):
+
+		async def version(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.system.System/version",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.system.VersionResponse"),
+				**kwargs,
+			)
+
+		async def gc_stats(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.system.System/gc_stats",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
+				**kwargs,
+			)
+
+		async def release_memory(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.system.System/release_memory",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
+				**kwargs,
+			)

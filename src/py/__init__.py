@@ -20,84 +20,12 @@ from . import api_types_version
 url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
 url_prod = "https://api.imandra.ai/internal/imandrax/"
 
-
-class Client:
+class BaseClient:
     def mk_context(self) -> Context:
         """Build a request context with the appropriate headers"""
         return Context(headers={"x-api-version": api_types_version.api_types_version})
 
-    def __init__(
-        self,
-        url: str = url_prod,
-        server_path_prefix="/api/v1",
-        auth_token: str | None = None,
-        timeout: int = 30,
-        session_id: str | None = None,
-    ) -> None:
-        # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
-        self._session = requests.Session()
-        self._closed = False
-        self._auth_token = auth_token
-        if auth_token:
-            self._session.headers["Authorization"] = f"Bearer {auth_token}"
-        self._url = url
-        self._server_path_prefix = server_path_prefix
-        self._client = simple_api_twirp.SimpleClient(
-            url,
-            timeout=timeout,
-            server_path_prefix=server_path_prefix,
-            session=self._session,
-        )
-        self._api_client = api_twirp.EvalClient(
-            url,
-            timeout=timeout,
-            server_path_prefix=server_path_prefix,
-            session=self._session,
-        )
-        self._timeout = timeout
-
-        if session_id is None:
-            try:
-                self._sesh = self._client.create_session(
-                    ctx=self.mk_context(),
-                    request=simple_api_pb2.SessionCreateReq(
-                        api_version=api_types_version.api_types_version
-                    ),
-                    timeout=timeout,
-                )
-            except TwirpServerException as ex:
-                if ex.meta.get("body", {}).get("code") == Errors.InvalidArgument:
-                    raise Exception(
-                        "API version mismatch. Try upgrading the imandrax-api package."
-                    ) from ex
-                else:
-                    raise ex
-        else:
-            # TODO: actually re-open session via RPC
-            self._sesh = session_pb2.Session(
-                session_id=session_id,
-            )
-
-    def __enter__(self, *_):
-        return self
-
-    def __exit__(self, *_) -> None:
-        if self._closed:
-            return
-        if not hasattr(self, "_sesh"):
-            return
-        try:
-            self._client.end_session(
-                ctx=self.mk_context(), request=self._sesh, timeout=None
-            )
-            self._closed = True
-        except TwirpServerException as e:
-            raise Exception("Error while ending session") from e
-
-    def __del__(self):
-        self.__exit__()
-
-    def status(self) -> str:
+    def status(self):
         return self._client.status(
             ctx=self.mk_context(),
             request=utils_pb2.Empty(),
@@ -203,3 +131,158 @@ class Client:
             request=simple_api_pb2.TypecheckReq(src=src, session=self._sesh),
             timeout=timeout,
         )
+
+
+class Client(BaseClient):
+    def __init__(
+        self,
+        url: str = url_prod,
+        server_path_prefix="/api/v1",
+        auth_token: str | None = None,
+        timeout: int = 30,
+        session_id: str | None = None,
+    ) -> None:
+        # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
+        self._session = requests.Session()
+        self._closed = False
+        self._auth_token = auth_token
+        if auth_token:
+            self._session.headers["Authorization"] = f"Bearer {auth_token}"
+        self._url = url
+        self._server_path_prefix = server_path_prefix
+        self._client = simple_api_twirp.SimpleClient(
+            url,
+            timeout=timeout,
+            server_path_prefix=server_path_prefix,
+            session=self._session,
+        )
+        self._api_client = api_twirp.EvalClient(
+            url,
+            timeout=timeout,
+            server_path_prefix=server_path_prefix,
+            session=self._session,
+        )
+        self._timeout = timeout
+
+        if session_id is None:
+            try:
+                self._sesh = self._client.create_session(
+                    ctx=self.mk_context(),
+                    request=simple_api_pb2.SessionCreateReq(
+                        api_version=api_types_version.api_types_version
+                    ),
+                    timeout=timeout,
+                )
+            except TwirpServerException as ex:
+                if ex.meta.get("body", {}).get("code") == Errors.InvalidArgument:
+                    raise Exception(
+                        "API version mismatch. Try upgrading the imandrax-api package."
+                    ) from ex
+                else:
+                    raise ex
+        else:
+            # TODO: actually re-open session via RPC
+            self._sesh = session_pb2.Session(
+                session_id=session_id,
+            )
+
+    def __enter__(self, *_):
+        return self
+
+    def __exit__(self, *_) -> None:
+        if self._closed:
+            return
+        if not hasattr(self, "_sesh"):
+            return
+        try:
+            self._client.end_session(
+                ctx=self.mk_context(), request=self._sesh, timeout=None
+            )
+            self._session.close()
+            self._closed = True
+        except TwirpServerException as e:
+            raise Exception("Error while ending session") from e
+
+    def __del__(self):
+        self.__exit__()
+
+try:
+	import aiohttp
+	_async_available = True
+except ModuleNotFoundError:
+	_async_available = False
+
+if _async_available:
+    class AsyncClient(BaseClient):
+        def __init__(
+            self,
+            url: str = url_prod,
+            server_path_prefix="/api/v1",
+            auth_token: str | None = None,
+            timeout: int = 30,
+            session_id: str | None = None,
+        ) -> None:
+            # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
+            self._session = aiohttp.ClientSession()
+            self._session_id = session_id
+            self._closed = False
+            self._auth_token = auth_token
+            if auth_token:
+                self._session.headers["Authorization"] = f"Bearer {auth_token}"
+            self._url = url
+            self._server_path_prefix = server_path_prefix
+            self._client = simple_api_twirp.AsyncSimpleClient(
+                url,
+                timeout=timeout,
+                server_path_prefix=server_path_prefix,
+                session=self._session,
+            )
+            self._api_client = api_twirp.AsyncEvalClient(
+                url,
+                timeout=timeout,
+                server_path_prefix=server_path_prefix,
+                session=self._session,
+            )
+            self._timeout = timeout
+
+        async def __aenter__(self, *_):
+            await self._session.__aenter__()
+            if self._session_id is None:
+                try:
+                    session =  await self._client.create_session(
+                        ctx=self.mk_context(),
+                        request=simple_api_pb2.SessionCreateReq(
+                            api_version=api_types_version.api_types_version
+                        )
+                    )
+                    self._sesh = session
+                    self._session_id = self._sesh.id
+                except TwirpServerException as ex:
+                    if ex.code == Errors.InvalidArgument:
+                        raise Exception(
+                            "API version mismatch. Try upgrading the imandrax-api package."
+                        ) from ex
+                    else:
+                        raise ex
+            else:
+                # TODO: actually re-open session via RPC
+                self._sesh = session_pb2.Session(
+                    session_id=self._session_id,
+                )
+            return self
+
+        async def __aexit__(self, *_) -> None:
+            if self._closed:
+                return
+            if not hasattr(self, "_sesh"):
+                await self._session.close()
+                self._closed = True
+                return
+            try:
+                await self._client.end_session(
+                    ctx=self.mk_context(), request=self._sesh, timeout=None
+                )
+                await self._session.close()
+                self._closed = True
+            except TwirpServerException as e:
+                raise Exception("Error while ending session") from e
