@@ -45,8 +45,9 @@ install_macos() {
   bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
   bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
   echo "extracted and copied files to install dir"
-  sed -i '' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
+  sed -i'.backup' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
     "${INSTALL_PREFIX}/bin/imandrax-cli"
+  rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
   printf 'Add ImandraX API CLI to PATH via .zshrc (y/n)? '
   old_stty_cfg=$(stty -g)
