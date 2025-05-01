@@ -52,7 +52,7 @@ _install_macos_add_to_zshrc() {
       "${DATE_STRING}" "${LINE}" >> "${ZSHRC}"
     echo "added install dir to PATH in ${ZSHRC}"
   else
-    echo "ImandraX API ClI was already present in .zshrc"
+    echo "ImandraX API CLI was already present in .zshrc"
   fi
 }
 
