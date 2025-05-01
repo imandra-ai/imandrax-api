@@ -38,14 +38,12 @@ install_macos() {
   curl -s "${ARCHIVE}" -o "${TMP_FILE}"
   echo "downloaded installer at ${TMP_FILE}"
   cd "${TMP_DIR}"
-  tar xzf "${TMP_FILE}"
-  # Nix uses a different tar... about to replace all tars with pkgutils
-  # pkgutil --expand-full "${TMP_FILE}" "${TMP_DIR}/" -f
+  bsdtar xzf "${TMP_FILE}"
   echo "extracted to temp dir"
   mkdir -p "${INSTALL_PREFIX}"
   echo "created dir ${INSTALL_PREFIX}"
-  tar -xzf Payload -C "${INSTALL_PREFIX}" opt
-  tar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
+  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
+  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
   echo "extracted and copied files to install dir"
   sed -i '' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
     "${INSTALL_PREFIX}/bin/imandrax-cli"
