@@ -20,7 +20,7 @@ _install_macos_add_to_zshrc() {
       "${DATE_STRING}" "${LINE}" >> "${ZSHRC}"
     echo "added install dir to PATH in ${ZSHRC}"
   else
-    :
+    echo "ImandraX API ClI was already present in .zshrc"
   fi
 }
 
@@ -29,22 +29,34 @@ install_macos() {
   VERSION=$2
   INSTALL_PREFIX=$3
 
-  ARCHIVE="${BUCKET_URL}/imandrax-macos-aarch64-${VERSION}.pkg"
-  TMP_FILE="${TMPDIR:-/tmp}/imandrax-macos-aarch64.pkg"
+  FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
+  ARCHIVE="${BUCKET_URL}/${FILENAME}"
+  TMP_DIR="${TMPDIR:-/tmp}"
+  TMP_FILE="${TMP_DIR}/${FILENAME}"
 
   echo "downloading from ${ARCHIVE}"
   curl -s "${ARCHIVE}" -o "${TMP_FILE}"
   echo "downloaded installer at ${TMP_FILE}"
+  cd "${TMP_DIR}"
+  tar xzf "${TMP_FILE}"
+  # Nix uses a different tar... about to replace all tars with pkgutils
+  # pkgutil --expand-full "${TMP_FILE}" "${TMP_DIR}/" -f
+  echo "extracted to temp dir"
   mkdir -p "${INSTALL_PREFIX}"
   echo "created dir ${INSTALL_PREFIX}"
-  cd "${TMPDIR}":-/tmp
-  tar xzf "${TMP_FILE}"
-  echo "extracted to temp dir"
   tar -xzf Payload -C "${INSTALL_PREFIX}" opt
   tar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
   echo "extracted and copied files to install dir"
   sed -i '' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
     "${INSTALL_PREFIX}/bin/imandrax-cli"
 
-  _install_macos_add_to_zshrc "${INSTALL_PREFIX}"
+  printf 'Add ImandraX API CLI to PATH via .zshrc (y/n)? '
+  old_stty_cfg=$(stty -g)
+  stty raw -echo ; answer=$(head -c 1) ; stty "${old_stty_cfg}"
+  if [ "${answer}" != "${answer#[Yy]}" ];then
+    echo ''
+    _install_macos_add_to_zshrc "${INSTALL_PREFIX}"
+  else
+    echo No
+  fi
 }
