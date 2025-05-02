@@ -38,21 +38,21 @@ install_linux() {
   sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/tldrs"
 }
 
-_install_macos_add_to_zshrc() {
+_install_macos_add_to_profile() {
   INSTALL_PREFIX=$1
-  ZSHRC="${HOME}/.zshrc"
+  PROFILE="${HOME}/.profile"
   BIN_DIR="${INSTALL_PREFIX}/bin"
   LINE="export PATH=\"${BIN_DIR}:\$PATH\""
 
-  touch "${ZSHRC}"
+  touch "${PROFILE}"
 
-  if ! grep -qxF "${LINE}" "${ZSHRC}"; then
+  if ! grep -qxF "${LINE}" "${PROFILE}"; then
     DATE_STRING="$(date '+%Y-%m-%d')"
     printf "\n# Added by ImandraX API CLI installer on %s\n%s\n" \
-      "${DATE_STRING}" "${LINE}" >> "${ZSHRC}"
-    echo "added install dir to PATH in ${ZSHRC}"
+      "${DATE_STRING}" "${LINE}" >> "${PROFILE}"
+    echo "added install dir to PATH in ${PROFILE}"
   else
-    echo "ImandraX API CLI was already present in .zshrc"
+    echo "ImandraX API CLI was already present in .profile"
   fi
 }
 
@@ -81,12 +81,12 @@ install_macos() {
     "${INSTALL_PREFIX}/bin/imandrax-cli"
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
-  printf 'Add ImandraX API CLI to PATH via .zshrc (Y/n)? '
+  printf 'Add ImandraX API CLI to PATH via .profile (Y/n)? '
   read -r answer
   if [ "${answer}" != "${answer#[Nn]}" ];then
-    echo 'Not updating .zshrc'
+    echo 'Not updating .profile'
   else
-    _install_macos_add_to_zshrc "${INSTALL_PREFIX}"
+    _install_macos_add_to_profile "${INSTALL_PREFIX}"
   fi
 
   echo 'Installed ImandraX API CLI'
