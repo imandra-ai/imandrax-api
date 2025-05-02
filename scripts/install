@@ -86,24 +86,30 @@ _install_macos_add_to_profile() {
 _install_macos_prompt_to_update_path() {
   INSTALL_PREFIX=$1
 
-  printf 'Add ImandraX to PATH via .zprofile (Y/n)? '
-  read -r answer_zprofile
-  if [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
-    echo 'Not updating .zprofile'
-  else
-    _install_macos_add_to_profile "${INSTALL_PREFIX}" ".zprofile"
-  fi
+  if [ -w  "${HOME}" ]; then
+    if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
+      printf 'Add ImandraX to PATH via .zprofile (Y/n)? '
+      read -r answer_zprofile
+      if [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
+        echo 'Not updating .zprofile'
+      else
+        _install_macos_add_to_profile "${INSTALL_PREFIX}" ".zprofile"
+      fi
+    fi
 
-  printf 'Add ImandraX to PATH via .profile (Y/n)? '
-  read -r answer_profile
-  if [ "${answer_profile}" != "${answer_profile#[Nn]}" ];then
-    echo 'Not updating .profile'
-  else
-    _install_macos_add_to_profile "${INSTALL_PREFIX}" ".profile"
-  fi
-  if [ "${answer_profile}" != "${answer_profile#[Nn]}" ] && \
-      [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
-    echo "You might want to add ${INSTALL_PREFIX}/bin to your PATH."
+    if [ ! -e "${HOME}/.profile" ] || [ -w "${HOME}/.profile" ];then
+      printf 'Add ImandraX to PATH via .profile (Y/n)? '
+      read -r answer_profile
+      if [ "${answer_profile}" != "${answer_profile#[Nn]}" ];then
+        echo 'Not updating .profile'
+      else
+        _install_macos_add_to_profile "${INSTALL_PREFIX}" ".profile"
+      fi
+      if [ "${answer_profile}" != "${answer_profile#[Nn]}" ] && \
+          [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
+        echo "You might want to add ${INSTALL_PREFIX}/bin to your PATH."
+      fi
+    fi
   fi
 }
 
