@@ -162,8 +162,6 @@ install_macos() {
   _install_macos_check_files_present "${INSTALL_PREFIX}"
   _install_macos_prompt_to_update_path "${INSTALL_PREFIX}"
 
-  echo 'Installed ImandraX!'
-
   echo "Installed ImandraX! Next:"
   echo " * Go to https://universe.imandra.ai."
   echo " * Try creating an API key to get started."
