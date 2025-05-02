@@ -72,7 +72,7 @@ _install_macos_add_to_profile() {
 
     # just do the same check again!
     if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
-      echo "added install dir to PATH in ${PROFILE_FILE}"
+      echo "Added install dir to PATH in ${PROFILE_FILE}"
     else
       status=$? 
       if [ "${status}" -ne 1 ];then
@@ -110,6 +110,7 @@ _install_macos_prompt_to_update_path() {
         echo "You might want to add ${INSTALL_PREFIX}/bin to your PATH."
       fi
     fi
+    echo ''
   fi
 }
 
@@ -120,21 +121,22 @@ _install_macos_extract_files() {
 
   cd "${TMP_DIR}"
   bsdtar xzf "${TMP_FILE}"
-  echo "extracted to ${TMP_DIR}"
+  echo "Extracted outer tarball in-place"
   mkdir -p "${INSTALL_PREFIX}"
-  echo "created dir ${INSTALL_PREFIX}"
+  echo "Created dir ${INSTALL_PREFIX}"
   bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
   bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
-  echo "extracted and copied files to install dir"
+  echo "Extracted inner tarball to ${INSTALL_PREFIX}"
+  echo ''
 }
 
 _install_macos_download_files() {
   ARCHIVE=$1
   TMP_FILE=$2
 
-  echo "downloading from ${ARCHIVE}"
+  echo "Downloading ${ARCHIVE}"
   curl -s "${ARCHIVE}" -o "${TMP_FILE}"
-  echo "downloaded installer at ${TMP_FILE}"
+  echo "Downloaded at ${TMP_FILE}"
 }
 
 install_macos() {
