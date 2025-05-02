@@ -127,6 +127,8 @@ install_macos() {
   # clean up temp files
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
+  _install_macos_check_files_present "${INSTALL_PREFIX}"
+
   printf 'Add ImandraX to PATH via .zprofile (Y/n)? '
   read -r answer_zprofile
   if [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
@@ -142,16 +144,12 @@ install_macos() {
   else
     _install_macos_add_to_profile "${INSTALL_PREFIX}" ".profile"
   fi
-
-  _install_macos_check_files_present "${INSTALL_PREFIX}"
-  
-
-  echo 'Installed ImandraX'
-
   if [ "${answer_profile}" != "${answer_profile#[Nn]}" ] && \
       [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
     echo "You might want to add ${INSTALL_PREFIX}/bin to your PATH."
   fi
+
+  echo 'Installed ImandraX!'
 
   echo 'Now go to https://universe.imandra.ai and try creating an API key to get started.'
   echo 'See the docs for more info: https://github.com/imandra-ai/imandrax-api?tab=readme-ov-file#getting-an-imandra-universe-api-key'
