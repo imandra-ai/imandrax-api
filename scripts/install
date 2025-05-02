@@ -124,6 +124,9 @@ install_macos() {
       [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
     echo "You might want to add ${INSTALL_PREFIX}/bin to your PATH."
   fi
+
+  echo 'Now go to https://universe.imandra.ai and try creating an API key to get started.'
+  echo 'See the docs for more info: https://github.com/imandra-ai/imandrax-api?tab=readme-ov-file#getting-an-imandra-universe-api-key'
 }
 
 cat << EOF
