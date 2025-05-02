@@ -38,6 +38,24 @@ install_linux() {
   sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/tldrs"
 }
 
+_install_macos_add_to_zprofile() {
+  INSTALL_PREFIX=$1
+  ZPROFILE="${HOME}/.zprofile"
+  BIN_DIR="${INSTALL_PREFIX}/bin"
+  LINE="export PATH=\"${BIN_DIR}:\$PATH\""
+
+  touch "${ZPROFILE}"
+
+  if ! grep -qxF "${LINE}" "${ZPROFILE}"; then
+    DATE_STRING="$(date '+%Y-%m-%d')"
+    printf "\n# Added by ImandraX API CLI installer on %s\n%s\n" \
+      "${DATE_STRING}" "${LINE}" >> "${ZPROFILE}"
+    echo "added install dir to PATH in ${ZPROFILE}"
+  else
+    echo "ImandraX API CLI was already present in .zprofile"
+  fi
+}
+
 _install_macos_add_to_profile() {
   INSTALL_PREFIX=$1
   PROFILE="${HOME}/.profile"
@@ -86,7 +104,7 @@ install_macos() {
   if [ "${answer}" != "${answer#[Nn]}" ];then
     echo 'Not updating .profile'
   else
-    _install_macos_add_to_profile "${INSTALL_PREFIX}"
+    _install_macos_add_to_zprofile "${INSTALL_PREFIX}"
   fi
 
   echo 'Installed ImandraX API CLI'
