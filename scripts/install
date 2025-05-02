@@ -120,8 +120,11 @@ install_macos() {
   _install_macos_download_files "${ARCHIVE}" "${TMP_FILE}"
   _install_macos_extract_files "${TMP_DIR}" "${TMP_FILE}" "${INSTALL_PREFIX}"
 
+  # modify executable to find libs
   sed -i'.backup' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
     "${INSTALL_PREFIX}/bin/imandrax-cli"
+  
+  # clean up temp files
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
   printf 'Add ImandraX to PATH via .zprofile (Y/n)? '
