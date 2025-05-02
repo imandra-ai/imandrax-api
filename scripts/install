@@ -99,7 +99,7 @@ _install_macos_extract_files() {
 
   cd "${TMP_DIR}"
   bsdtar xzf "${TMP_FILE}"
-  echo "extracted to temp dir"
+  echo "extracted to ${TMP_DIR}"
   mkdir -p "${INSTALL_PREFIX}"
   echo "created dir ${INSTALL_PREFIX}"
   bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
