@@ -69,10 +69,10 @@ _install_macos_add_to_profile() {
     DATE_STRING="$(date '+%Y-%m-%d')"
     printf "\n# Added by ImandraX installer on %s\n%s\n" \
       "${DATE_STRING}" "${LINE}" >> "${PROFILE_FILE}"
+
     # just do the same check again!
     if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
       echo "added install dir to PATH in ${PROFILE_FILE}"
-
     else
       status=$? 
       if [ "${status}" -ne 1 ];then
