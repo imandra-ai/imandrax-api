@@ -71,7 +71,7 @@ install_macos() {
   FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
   ARCHIVE="${BUCKET_URL}/${FILENAME}"
   TMP_DIR="${TMPDIR:-/tmp}"
-  TMP_FILE="${TMP_DIR}/${FILENAME}"
+  TMP_FILE="${TMP_DIR}${FILENAME}"
 
   echo "downloading from ${ARCHIVE}"
   curl -s "${ARCHIVE}" -o "${TMP_FILE}"
