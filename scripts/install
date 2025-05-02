@@ -122,7 +122,10 @@ _install_macos_extract_files() {
   cd "${TMP_DIR}"
   bsdtar xzf "${TMP_FILE}"
   echo "Extracted outer tarball in-place"
-  mkdir -p "${INSTALL_PREFIX}"
+  if ! [ -d "${INSTALL_PREFIX}" ];then 
+    echo "Creating ${INSTALL_PREFIX}"
+    mkdir -p "${INSTALL_PREFIX}"
+  fi
   echo "Created dir ${INSTALL_PREFIX}"
   bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
   bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
