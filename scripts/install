@@ -107,6 +107,30 @@ _install_macos_extract_files() {
   echo "extracted and copied files to install dir"
 }
 
+_install_macos_prompt_to_update_path() {
+  INSTALL_PREFIX=$1
+
+  printf 'Add ImandraX to PATH via .zprofile (Y/n)? '
+  read -r answer_zprofile
+  if [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
+    echo 'Not updating .zprofile'
+  else
+    _install_macos_add_to_profile "${INSTALL_PREFIX}" ".zprofile"
+  fi
+
+  printf 'Add ImandraX to PATH via .profile (Y/n)? '
+  read -r answer_profile
+  if [ "${answer_profile}" != "${answer_profile#[Nn]}" ];then
+    echo 'Not updating .profile'
+  else
+    _install_macos_add_to_profile "${INSTALL_PREFIX}" ".profile"
+  fi
+  if [ "${answer_profile}" != "${answer_profile#[Nn]}" ] && \
+      [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
+    echo "You might want to add ${INSTALL_PREFIX}/bin to your PATH."
+  fi
+}
+
 install_macos() {
   BUCKET_URL=$1
   VERSION=$2
@@ -128,26 +152,7 @@ install_macos() {
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
   _install_macos_check_files_present "${INSTALL_PREFIX}"
-
-  printf 'Add ImandraX to PATH via .zprofile (Y/n)? '
-  read -r answer_zprofile
-  if [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
-    echo 'Not updating .zprofile'
-  else
-    _install_macos_add_to_profile "${INSTALL_PREFIX}" ".zprofile"
-  fi
-
-  printf 'Add ImandraX to PATH via .profile (Y/n)? '
-  read -r answer_profile
-  if [ "${answer_profile}" != "${answer_profile#[Nn]}" ];then
-    echo 'Not updating .profile'
-  else
-    _install_macos_add_to_profile "${INSTALL_PREFIX}" ".profile"
-  fi
-  if [ "${answer_profile}" != "${answer_profile#[Nn]}" ] && \
-      [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
-    echo "You might want to add ${INSTALL_PREFIX}/bin to your PATH."
-  fi
+  _install_macos_prompt_to_update_path "${INSTALL_PREFIX}"
 
   echo 'Installed ImandraX!'
 
