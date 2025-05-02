@@ -163,8 +163,8 @@ install_macos() {
   _install_macos_prompt_to_update_path "${INSTALL_PREFIX}"
 
   echo "Installed ImandraX! Next:"
-  echo " * Go to https://universe.imandra.ai."
-  echo " * Try creating an API key to get started."
+  echo " * Go to https://universe.imandra.ai"
+  echo " * Try creating an API key to get started"
 
   echo 'See the docs for more info: https://github.com/imandra-ai/imandrax-api?tab=readme-ov-file#getting-an-imandra-universe-api-key'
 }
