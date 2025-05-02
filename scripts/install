@@ -169,7 +169,8 @@ install_macos() {
   echo " * Go to https://universe.imandra.ai"
   echo " * Try creating an API key to get started"
 
-  echo 'See the docs for more info: https://github.com/imandra-ai/imandrax-api?tab=readme-ov-file#getting-an-imandra-universe-api-key'
+  echo 'See the docs for more info: '
+  echo 'https://github.com/imandra-ai/imandrax-api?tab=readme-ov-file#getting-an-imandra-universe-api-key'
 }
 
 cat << EOF
