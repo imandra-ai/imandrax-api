@@ -81,12 +81,12 @@ install_macos() {
     "${INSTALL_PREFIX}/bin/imandrax-cli"
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
-  printf 'Add ImandraX API CLI to PATH via .zshrc (y/N)? '
+  printf 'Add ImandraX API CLI to PATH via .zshrc (Y/n)? '
   read -r answer
-  if [ "${answer}" != "${answer#[Yy]}" ];then
-    _install_macos_add_to_zshrc "${INSTALL_PREFIX}"
+  if [ "${answer}" != "${answer#[Nn]}" ];then
+    echo 'Not updating .zshrc'
   else
-    echo No
+    _install_macos_add_to_zshrc "${INSTALL_PREFIX}"
   fi
 
   echo 'Installed ImandraX API CLI'
