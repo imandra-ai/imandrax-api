@@ -48,11 +48,11 @@ _install_macos_add_to_zprofile() {
 
   if ! grep -qxF "${LINE}" "${ZPROFILE}"; then
     DATE_STRING="$(date '+%Y-%m-%d')"
-    printf "\n# Added by ImandraX API CLI installer on %s\n%s\n" \
+    printf "\n# Added by ImandraX installer on %s\n%s\n" \
       "${DATE_STRING}" "${LINE}" >> "${ZPROFILE}"
     echo "added install dir to PATH in ${ZPROFILE}"
   else
-    echo "ImandraX API CLI was already present in .zprofile"
+    echo "ImandraX was already present in .zprofile"
   fi
 }
 
@@ -66,11 +66,11 @@ _install_macos_add_to_profile() {
 
   if ! grep -qxF "${LINE}" "${PROFILE}"; then
     DATE_STRING="$(date '+%Y-%m-%d')"
-    printf "\n# Added by ImandraX API CLI installer on %s\n%s\n" \
+    printf "\n# Added by ImandraX installer on %s\n%s\n" \
       "${DATE_STRING}" "${LINE}" >> "${PROFILE}"
     echo "added install dir to PATH in ${PROFILE}"
   else
-    echo "ImandraX API CLI was already present in .profile"
+    echo "ImandraX was already present in .profile"
   fi
 }
 
@@ -99,7 +99,7 @@ install_macos() {
     "${INSTALL_PREFIX}/bin/imandrax-cli"
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
-  printf 'Add ImandraX API CLI to PATH via .profile (Y/n)? '
+  printf 'Add ImandraX to PATH via .profile (Y/n)? '
   read -r answer
   if [ "${answer}" != "${answer#[Nn]}" ];then
     echo 'Not updating .profile'
@@ -107,7 +107,7 @@ install_macos() {
     _install_macos_add_to_zprofile "${INSTALL_PREFIX}"
   fi
 
-  echo 'Installed ImandraX API CLI'
+  echo 'Installed ImandraX'
 }
 
 # detect OS
