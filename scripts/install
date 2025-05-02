@@ -87,6 +87,9 @@ _install_macos_prompt_to_update_path() {
 
   BIN_DIR="${INSTALL_PREFIX}/bin"
 
+  answer_zprofile=
+  answer_profile=
+
   if [ -w  "${HOME}" ]; then
     if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
       printf "Add %s to PATH via .zprofile (Y/n)? " "${BIN_DIR}"
