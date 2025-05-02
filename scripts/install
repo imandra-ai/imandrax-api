@@ -57,9 +57,11 @@ _install_macos_add_to_profile() {
   BIN_DIR="${INSTALL_PREFIX}/bin"
   LINE="export PATH=\"${BIN_DIR}:\$PATH\""
 
-  touch "${PROFILE_FILE}"
+  # touch "${PROFILE_FILE}"
 
-  if ! grep -qxF "${LINE}" "${PROFILE_FILE}"; then
+  if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
+    echo "ImandraX was already present in ${PROFILE_NAME}"
+  else
     DATE_STRING="$(date '+%Y-%m-%d')"
     printf "\n# Added by ImandraX installer on %s\n%s\n" \
       "${DATE_STRING}" "${LINE}" >> "${PROFILE_FILE}"
@@ -69,8 +71,6 @@ _install_macos_add_to_profile() {
     else
       echo "added install dir to PATH in ${PROFILE_FILE}"
     fi
-  else
-    echo "ImandraX was already present in ${PROFILE_NAME}"
   fi
 }
 
