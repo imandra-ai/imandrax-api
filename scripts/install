@@ -92,6 +92,21 @@ _install_macos_download_files() {
   echo "downloaded installer at ${TMP_FILE}"
 }
 
+_install_macos_extract_files() {
+  TMP_DIR=$1
+  TMP_FILE=$2
+  INSTALL_PREFIX=$3
+
+  cd "${TMP_DIR}"
+  bsdtar xzf "${TMP_FILE}"
+  echo "extracted to temp dir"
+  mkdir -p "${INSTALL_PREFIX}"
+  echo "created dir ${INSTALL_PREFIX}"
+  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
+  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
+  echo "extracted and copied files to install dir"
+}
+
 install_macos() {
   BUCKET_URL=$1
   VERSION=$2
@@ -103,14 +118,8 @@ install_macos() {
   TMP_FILE="${TMP_DIR}${FILENAME}"
 
   _install_macos_download_files "${ARCHIVE}" "${TMP_FILE}"
-  cd "${TMP_DIR}"
-  bsdtar xzf "${TMP_FILE}"
-  echo "extracted to temp dir"
-  mkdir -p "${INSTALL_PREFIX}"
-  echo "created dir ${INSTALL_PREFIX}"
-  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
-  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
-  echo "extracted and copied files to install dir"
+  _install_macos_extract_files "${TMP_DIR}" "${TMP_FILE}" "${INSTALL_PREFIX}"
+
   sed -i'.backup' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
     "${INSTALL_PREFIX}/bin/imandrax-cli"
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
