@@ -116,6 +116,11 @@ install_macos() {
   fi
 
   echo 'Installed ImandraX'
+
+  if [ "${answer_profile}" != "${answer_profile#[Nn]}" ] && \
+    [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
+    echo "You might want to add ${INSTALL_PREFIX}/bin to your PATH."
+  fi
 }
 
 # detect OS
