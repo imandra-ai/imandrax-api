@@ -1,0 +1,21 @@
+name: Installer smoke-test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  run-installer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make script executable
+        run: chmod +x scripts/install
+
+      - name: Run installer script
+        env:
+          INSTALL_PREFIX: ${{ github.workspace }}/.test_install
+          VERSION: latest
+        run: scripts/install
