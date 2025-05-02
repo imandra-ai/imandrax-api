@@ -83,30 +83,6 @@ _install_macos_add_to_profile() {
   fi
 }
 
-_install_macos_download_files() {
-  ARCHIVE=$1
-  TMP_FILE=$2
-
-  echo "downloading from ${ARCHIVE}"
-  curl -s "${ARCHIVE}" -o "${TMP_FILE}"
-  echo "downloaded installer at ${TMP_FILE}"
-}
-
-_install_macos_extract_files() {
-  TMP_DIR=$1
-  TMP_FILE=$2
-  INSTALL_PREFIX=$3
-
-  cd "${TMP_DIR}"
-  bsdtar xzf "${TMP_FILE}"
-  echo "extracted to ${TMP_DIR}"
-  mkdir -p "${INSTALL_PREFIX}"
-  echo "created dir ${INSTALL_PREFIX}"
-  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
-  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
-  echo "extracted and copied files to install dir"
-}
-
 _install_macos_prompt_to_update_path() {
   INSTALL_PREFIX=$1
 
@@ -129,6 +105,30 @@ _install_macos_prompt_to_update_path() {
       [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
     echo "You might want to add ${INSTALL_PREFIX}/bin to your PATH."
   fi
+}
+
+_install_macos_extract_files() {
+  TMP_DIR=$1
+  TMP_FILE=$2
+  INSTALL_PREFIX=$3
+
+  cd "${TMP_DIR}"
+  bsdtar xzf "${TMP_FILE}"
+  echo "extracted to ${TMP_DIR}"
+  mkdir -p "${INSTALL_PREFIX}"
+  echo "created dir ${INSTALL_PREFIX}"
+  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
+  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
+  echo "extracted and copied files to install dir"
+}
+
+_install_macos_download_files() {
+  ARCHIVE=$1
+  TMP_FILE=$2
+
+  echo "downloading from ${ARCHIVE}"
+  curl -s "${ARCHIVE}" -o "${TMP_FILE}"
+  echo "downloaded installer at ${TMP_FILE}"
 }
 
 install_macos() {
