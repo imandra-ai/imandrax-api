@@ -99,12 +99,20 @@ install_macos() {
     "${INSTALL_PREFIX}/bin/imandrax-cli"
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
-  printf 'Add ImandraX to PATH via .profile (Y/n)? '
-  read -r answer
-  if [ "${answer}" != "${answer#[Nn]}" ];then
-    echo 'Not updating .profile'
+  printf 'Add ImandraX to PATH via .zprofile (Y/n)? '
+  read -r answer_zprofile
+  if [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
+    echo 'Not updating .zprofile'
   else
     _install_macos_add_to_zprofile "${INSTALL_PREFIX}"
+  fi
+
+  printf 'Add ImandraX to PATH via .profile (Y/n)? '
+  read -r answer_profile
+  if [ "${answer_profile}" != "${answer_profile#[Nn]}" ];then
+    echo 'Not updating .profile'
+  else
+    _install_macos_add_to_profile "${INSTALL_PREFIX}"
   fi
 
   echo 'Installed ImandraX'
