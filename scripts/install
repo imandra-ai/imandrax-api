@@ -87,34 +87,39 @@ _install_macos_prompt_to_update_path() {
 
   BIN_DIR="${INSTALL_PREFIX}/bin"
 
-  answer_zprofile=
-  answer_profile=
+  path_presented=false
+  path_set=false
 
   if [ -w  "${HOME}" ]; then
     if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
       printf "Add %s to PATH via .zprofile (Y/n)? " "${BIN_DIR}"
+      path_presented=true
       read -r answer_zprofile
       if [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
         echo 'Not updating .zprofile'
       else
         _install_macos_add_to_profile "${BIN_DIR}" ".zprofile"
+        path_set=true
       fi
     fi
 
     if [ ! -e "${HOME}/.profile" ] || [ -w "${HOME}/.profile" ];then
       printf "Add %s to PATH via .profile (Y/n)? " "${BIN_DIR}"
+      path_presented=true
       read -r answer_profile
       if [ "${answer_profile}" != "${answer_profile#[Nn]}" ];then
         echo 'Not updating .profile'
       else
         _install_macos_add_to_profile "${BIN_DIR}" ".profile"
+        path_set=true
       fi
     fi
   fi
-
-  if [ "${answer_profile}" != "${answer_profile#[Nn]}" ] && \
-      [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
-    echo "You might want to add ${BIN_DIR} to your PATH."
+  if ! "${path_presented}" || ! "${path_set}"; then
+    if ! "${path_presented}";then
+      echo "We couldn't write to .profile or .zprofile."
+    fi
+    echo "You should add ${BIN_DIR} to your PATH."
   fi
   echo ''
 }
