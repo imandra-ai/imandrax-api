@@ -18,4 +18,4 @@ jobs:
         env:
           INSTALL_PREFIX: ${{ github.workspace }}/.test_install
           VERSION: latest
-        run: scripts/install
+        run: yes | scripts/install
