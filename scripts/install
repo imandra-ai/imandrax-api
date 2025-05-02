@@ -110,6 +110,7 @@ _install_macos_prompt_to_update_path() {
         _install_macos_add_to_profile "${BIN_DIR}" ".profile"
       fi
     fi
+
     if [ "${answer_profile}" != "${answer_profile#[Nn]}" ] && \
           [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
         echo "You might want to add ${BIN_DIR}/bin to your PATH."
