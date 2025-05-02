@@ -83,6 +83,15 @@ _install_macos_add_to_profile() {
   fi
 }
 
+_install_macos_download_files() {
+  ARCHIVE=$1
+  TMP_FILE=$2
+
+  echo "downloading from ${ARCHIVE}"
+  curl -s "${ARCHIVE}" -o "${TMP_FILE}"
+  echo "downloaded installer at ${TMP_FILE}"
+}
+
 install_macos() {
   BUCKET_URL=$1
   VERSION=$2
@@ -93,9 +102,7 @@ install_macos() {
   TMP_DIR="${TMPDIR:-/tmp}"
   TMP_FILE="${TMP_DIR}${FILENAME}"
 
-  echo "downloading from ${ARCHIVE}"
-  curl -s "${ARCHIVE}" -o "${TMP_FILE}"
-  echo "downloaded installer at ${TMP_FILE}"
+  _install_macos_download_files "${ARCHIVE}" "${TMP_FILE}"
   cd "${TMP_DIR}"
   bsdtar xzf "${TMP_FILE}"
   echo "extracted to temp dir"
