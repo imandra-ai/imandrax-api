@@ -57,7 +57,7 @@ _install_macos_add_to_profile() {
   BIN_DIR="${INSTALL_PREFIX}/bin"
   LINE="export PATH=\"${BIN_DIR}:\$PATH\""
 
-  touch "${PROFILE}"
+  touch "${PROFILE_PATH}"
 
   if ! grep -qxF "${LINE}" "${PROFILE_PATH}"; then
     DATE_STRING="$(date '+%Y-%m-%d')"
