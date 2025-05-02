@@ -38,6 +38,17 @@ install_linux() {
   sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/tldrs"
 }
 
+_install_macos_check_files_present() {
+  INSTALL_PREFIX=$1
+
+  if [ ! -x "${INSTALL_PREFIX}/bin/imandrax-cli" ] || \
+      [ ! -x "${INSTALL_PREFIX}/bin/imandrax-ws-client" ] || \
+      [ ! -x "${INSTALL_PREFIX}/bin/tldrs" ]; then
+    echo "Some files failed to install, aborting."
+    exit 1
+  fi
+}
+
 _install_macos_add_to_profile() {
   INSTALL_PREFIX=$1
   PROFILE=$2
@@ -104,10 +115,13 @@ install_macos() {
     _install_macos_add_to_profile "${INSTALL_PREFIX}" ".profile"
   fi
 
+  _install_macos_check_files_present "${INSTALL_PREFIX}"
+  
+
   echo 'Installed ImandraX'
 
   if [ "${answer_profile}" != "${answer_profile#[Nn]}" ] && \
-    [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
+      [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
     echo "You might want to add ${INSTALL_PREFIX}/bin to your PATH."
   fi
 }
