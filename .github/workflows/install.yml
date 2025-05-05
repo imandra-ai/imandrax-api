@@ -15,7 +15,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Alt shellcheck
-        run: find . -type f -name "*.sh" -exec shellcheck {} +
+        run: |
+          wget https://github.com/koalaman/shellcheck/releases/download/v0.10.0/shellcheck-v0.10.0.darwin.aarch64.tar.xz
+          tar -xf shellcheck-v0.10.0.darwin.aarch64.tar.xz
+          shellcheck-v0.10.0/shellcheck scripts/install
 
       - name: Make script executable
         run: chmod +x scripts/install
