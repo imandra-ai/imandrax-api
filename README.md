@@ -17,7 +17,7 @@ For most people, all that's needed to install `imandrax-cli` is:
 ./scripts/install
 ```
 
-For those okay with occaisionally breaking changes, the development version can be installed by exporting `VERSION=latest-main`:
+For those okay with occasionally breaking changes, the development version can be installed by exporting `VERSION=latest-main`:
 
 ```sh
 VERSION=latest-main ./scripts/install
