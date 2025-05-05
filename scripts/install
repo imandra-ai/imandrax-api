@@ -209,7 +209,7 @@ install_macos() {
   _install_macos_check_files_present "${INSTALL_PREFIX}"
   _install_macos_prompt_to_update_path "${INSTALL_PREFIX}"
 
-  CONFIG_DIR="${HOME}/.config/imandrax/"
+  CONFIG_DIR="${HOME}/.config/imandrax"
 
   _install_macos_prompt_for_api_key "${CONFIG_DIR}"
 
