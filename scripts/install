@@ -44,19 +44,19 @@ _install_macos_prompt_for_api_key() {
   CONFIG_DIR=$1
   
   API_KEY_PATH="${CONFIG_DIR}/api_key"
-  PATH=${CONFIG_DIR}
+  WORKING_DIR=${CONFIG_DIR}
 
   if [ ! -e "${API_KEY_PATH}" ]; then
-    while [ ! -d "${PATH}" ]; do
-      PATH=$(dirname -- "${PATH}")
+    while [ ! -d "${WORKING_DIR}" ]; do
+      WORKING_DIR=$(dirname -- "${WORKING_DIR}")
     done       
   fi
 
-  if [ -w "${PATH}" ]; then
+  if [ -w "${WORKING_DIR}" ]; then
     echo "API keys are available here: ${API_KEYS_URL}."
     printf "You can paste your API key here or hit enter to skip and configure it yourself later: "
-    read -r answer_api_key
-    if [ -z "${answer_api_key}" ]; then
+    read -r ANSWER_API_KEY
+    if [ -z "${ANSWER_API_KEY}" ]; then
       echo "Skipped setting API key (make sure to set this yourself later in ${API_KEY_PATH}"
     else
       if ! [ -d "${CONFIG_DIR}" ];then
@@ -64,7 +64,7 @@ _install_macos_prompt_for_api_key() {
         mkdir -p "${CONFIG_DIR}"
       fi
       touch "${API_KEY_PATH}"
-      (rm -f "${API_KEY_PATH}" && echo "${answer_api_key}" > "${API_KEY_PATH}")
+      (rm -f "${API_KEY_PATH}" && echo "${ANSWER_API_KEY}" > "${API_KEY_PATH}")
       echo "Updated API key"
     fi
     echo ''
