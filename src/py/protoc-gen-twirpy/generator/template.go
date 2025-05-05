@@ -36,7 +36,11 @@ var TwirpTemplate = template.Must(template.New("TwirpTemplate").Parse(`# -*- cod
 from google.protobuf import symbol_database as _symbol_database
 
 from ..twirp.client import TwirpClient
-_async_available = False
+try:
+	from ..twirp.async_client import AsyncTwirpClient
+	_async_available = True
+except ImportError:
+	_async_available = False
 
 _sym_db = _symbol_database.Default()
 {{range .Services}}
@@ -51,4 +55,17 @@ class {{.Name}}Client(TwirpClient):
 			response_obj=_sym_db.GetSymbol("{{.Output}}"),
 			**kwargs,
 		)
+{{end}}
+
+if _async_available:
+	class Async{{.Name}}Client(AsyncTwirpClient):
+{{range .Methods}}
+		async def {{.Name}}(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/{{.ServiceURL}}/{{.Name}}",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("{{.Output}}"),
+				**kwargs,
+			)
 {{end}}{{end}}`))

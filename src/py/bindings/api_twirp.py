@@ -5,7 +5,11 @@
 from google.protobuf import symbol_database as _symbol_database
 
 from ..twirp.client import TwirpClient
-_async_available = False
+try:
+	from ..twirp.async_client import AsyncTwirpClient
+	_async_available = True
+except ImportError:
+	_async_available = False
 
 _sym_db = _symbol_database.Default()
 
@@ -65,3 +69,61 @@ class EvalClient(TwirpClient):
 			response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactZip"),
 			**kwargs,
 		)
+
+
+if _async_available:
+	class AsyncEvalClient(AsyncTwirpClient):
+
+		async def eval_code_snippet(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.api.Eval/eval_code_snippet",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.api.CodeSnippetEvalResult"),
+				**kwargs,
+			)
+
+		async def parse_term(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.api.Eval/parse_term",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
+				**kwargs,
+			)
+
+		async def parse_type(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.api.Eval/parse_type",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
+				**kwargs,
+			)
+
+		async def list_artifacts(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.api.Eval/list_artifacts",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactListResult"),
+				**kwargs,
+			)
+
+		async def get_artifact(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.api.Eval/get_artifact",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
+				**kwargs,
+			)
+
+		async def get_artifact_zip(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.api.Eval/get_artifact_zip",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactZip"),
+				**kwargs,
+			)

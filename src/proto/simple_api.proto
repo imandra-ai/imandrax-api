@@ -144,6 +144,10 @@ message Proved {
   optional string proof_pp = 1;
 }
 
+message Verified_upto {
+  optional string msg = 1;
+}
+
 message Unsat {
   optional string proof_pp = 1;
 }
@@ -177,6 +181,7 @@ message VerifyRes {
     Empty err = 2;
     Proved proved = 3;
     Refuted refuted = 4;
+    Verified_upto verified_upto = 5;
   }
 
   repeated Error errors = 10;

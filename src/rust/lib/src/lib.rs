@@ -58,6 +58,13 @@ pub struct ErrorError_core<'a> {
 
 // clique 
 
+// clique Imandrax_api.Upto.t
+// immediate
+#[derive(Debug, Clone)]
+pub enum Upto {
+  N_steps(BigInt),
+}
+
 // clique Imandrax_api.Builtin_data.kind
 #[derive(Debug, Clone)]
 pub enum Builtin_dataKind<'a> {
@@ -438,9 +445,13 @@ pub struct CommonTheoremT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 #[derive(Debug, Clone)]
 pub enum CommonTacticT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Default_termination {
+    max_steps: BigInt,
     basis: &'a UidSet<'a>,
   },
-  Default_thm,
+  Default_thm {
+    max_steps: BigInt,
+    upto: Option<Upto>,
+  },
   Term((&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term)),
 }
 
@@ -535,6 +546,7 @@ pub struct CommonProof_obligationT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:
   pub is_instance: bool,
   pub anchor: &'a Anchor<'a>,
   pub timeout: Option<BigInt>,
+  pub upto: Option<Upto>,
 }
 
 
@@ -1007,6 +1019,14 @@ pub struct TasksPO_resProof_found<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 }
 
 
+// clique Imandrax_api_tasks.PO_res.verified_upto
+#[derive(Debug, Clone)]
+pub struct TasksPO_resVerified_upto<'a> {
+  pub anchor: &'a Anchor<'a>,
+  pub upto: Upto,
+}
+
+
 // clique Imandrax_api_tasks.PO_res.instance
 #[derive(Debug, Clone)]
 pub struct TasksPO_resInstance<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
@@ -1038,6 +1058,7 @@ pub struct TasksPO_resUnsat<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 pub enum TasksPO_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Proof(&'a TasksPO_resProof_found<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Instance(&'a TasksPO_resInstance<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Verified_upto(&'a TasksPO_resVerified_upto<'a>),
 }
 
 // clique Imandrax_api_tasks.PO_res.error

@@ -72,6 +72,10 @@ type proved = {
   proof_pp : string option;
 }
 
+type verified_upto = {
+  msg : string option;
+}
+
 type unsat = {
   proof_pp : string option;
 }
@@ -99,6 +103,7 @@ type verify_res_res =
   | Err
   | Proved of proved
   | Refuted of refuted
+  | Verified_upto of verified_upto
 
 and verify_res = {
   res : verify_res_res;
@@ -235,6 +240,12 @@ let rec default_proved
   ?proof_pp:((proof_pp:string option) = None)
   () : proved  = {
   proof_pp;
+}
+
+let rec default_verified_upto 
+  ?msg:((msg:string option) = None)
+  () : verified_upto  = {
+  msg;
 }
 
 let rec default_unsat 
@@ -433,6 +444,14 @@ let default_proved_mutable () : proved_mutable = {
   proof_pp = None;
 }
 
+type verified_upto_mutable = {
+  mutable msg : string option;
+}
+
+let default_verified_upto_mutable () : verified_upto_mutable = {
+  msg = None;
+}
+
 type unsat_mutable = {
   mutable proof_pp : string option;
 }
@@ -624,6 +643,12 @@ let rec make_proved
   proof_pp;
 }
 
+let rec make_verified_upto 
+  ?msg:((msg:string option) = None)
+  () : verified_upto  = {
+  msg;
+}
+
 let rec make_unsat 
   ?proof_pp:((proof_pp:string option) = None)
   () : unsat  = {
@@ -791,6 +816,12 @@ let rec pp_proved fmt (v:proved) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
+let rec pp_verified_upto fmt (v:verified_upto) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "msg" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.msg;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
 let rec pp_unsat fmt (v:unsat) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "proof_pp" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.proof_pp;
@@ -828,6 +859,7 @@ let rec pp_verify_res_res fmt (v:verify_res_res) =
   | Err  -> Format.fprintf fmt "Err"
   | Proved x -> Format.fprintf fmt "@[<hv2>Proved(@,%a)@]" pp_proved x
   | Refuted x -> Format.fprintf fmt "@[<hv2>Refuted(@,%a)@]" pp_refuted x
+  | Verified_upto x -> Format.fprintf fmt "@[<hv2>Verified_upto(@,%a)@]" pp_verified_upto x
 
 and pp_verify_res fmt (v:verify_res) = 
   let pp_i fmt () =
@@ -1064,6 +1096,15 @@ let rec encode_pb_proved (v:proved) encoder =
   end;
   ()
 
+let rec encode_pb_verified_upto (v:verified_upto) encoder = 
+  begin match v.msg with
+  | Some x -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
 let rec encode_pb_unsat (v:unsat) encoder = 
   begin match v.proof_pp with
   | Some x -> 
@@ -1123,6 +1164,9 @@ let rec encode_pb_verify_res_res (v:verify_res_res) encoder =
   | Refuted x ->
     Pbrt.Encoder.nested encode_pb_refuted x encoder;
     Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  | Verified_upto x ->
+    Pbrt.Encoder.nested encode_pb_verified_upto x encoder;
+    Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
   end
 
 and encode_pb_verify_res (v:verify_res) encoder = 
@@ -1139,6 +1183,9 @@ and encode_pb_verify_res (v:verify_res) encoder =
   | Refuted x ->
     Pbrt.Encoder.nested encode_pb_refuted x encoder;
     Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  | Verified_upto x ->
+    Pbrt.Encoder.nested encode_pb_verified_upto x encoder;
+    Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
   end;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
@@ -1571,6 +1618,24 @@ let rec decode_pb_proved d =
     proof_pp = v.proof_pp;
   } : proved)
 
+let rec decode_pb_verified_upto d =
+  let v = default_verified_upto_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.msg <- Some (Pbrt.Decoder.string d);
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verified_upto), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    msg = v.msg;
+  } : verified_upto)
+
 let rec decode_pb_unsat d =
   let v = default_unsat_mutable () in
   let continue__= ref true in
@@ -1672,6 +1737,7 @@ let rec decode_pb_verify_res_res d =
       end
       | Some (3, _) -> (Proved (decode_pb_proved (Pbrt.Decoder.nested d)) : verify_res_res) 
       | Some (4, _) -> (Refuted (decode_pb_refuted (Pbrt.Decoder.nested d)) : verify_res_res) 
+      | Some (5, _) -> (Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d)) : verify_res_res) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -1710,6 +1776,11 @@ and decode_pb_verify_res d =
     end
     | Some (4, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(verify_res), field(4)" pk
+    | Some (5, Pbrt.Bytes) -> begin
+      v.res <- Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d));
+    end
+    | Some (5, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(5)" pk
     | Some (10, Pbrt.Bytes) -> begin
       v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
     end
@@ -2008,6 +2079,14 @@ let rec encode_json_proved (v:proved) =
   in
   `Assoc assoc
 
+let rec encode_json_verified_upto (v:verified_upto) = 
+  let assoc = [] in 
+  let assoc = match v.msg with
+    | None -> assoc
+    | Some v -> ("msg", Pbrt_yojson.make_string v) :: assoc
+  in
+  `Assoc assoc
+
 let rec encode_json_unsat (v:unsat) = 
   let assoc = [] in 
   let assoc = match v.proof_pp with
@@ -2053,6 +2132,7 @@ let rec encode_json_verify_res_res (v:verify_res_res) =
   | Err -> `Assoc [("err", `Null)]
   | Proved v -> `Assoc [("proved", encode_json_proved v)]
   | Refuted v -> `Assoc [("refuted", encode_json_refuted v)]
+  | Verified_upto v -> `Assoc [("verifiedUpto", encode_json_verified_upto v)]
   end
 
 and encode_json_verify_res (v:verify_res) = 
@@ -2062,6 +2142,7 @@ and encode_json_verify_res (v:verify_res) =
       | Err -> ("err", `Null) :: assoc
       | Proved v -> ("proved", encode_json_proved v) :: assoc
       | Refuted v -> ("refuted", encode_json_refuted v) :: assoc
+      | Verified_upto v -> ("verifiedUpto", encode_json_verified_upto v) :: assoc
   in (* match v.res *)
   let assoc =
     let l = v.errors |> List.map Error.encode_json_error in
@@ -2390,6 +2471,22 @@ let rec decode_json_proved d =
     proof_pp = v.proof_pp;
   } : proved)
 
+let rec decode_json_verified_upto d =
+  let v = default_verified_upto_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("msg", json_value) -> 
+      v.msg <- Some (Pbrt_yojson.string json_value "verified_upto" "msg")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    msg = v.msg;
+  } : verified_upto)
+
 let rec decode_json_unsat d =
   let v = default_unsat_mutable () in
   let assoc = match d with
@@ -2480,6 +2577,8 @@ let rec decode_json_verify_res_res json =
       (Proved ((decode_json_proved json_value)) : verify_res_res)
     | ("refuted", json_value)::_ -> 
       (Refuted ((decode_json_refuted json_value)) : verify_res_res)
+    | ("verifiedUpto", json_value)::_ -> 
+      (Verified_upto ((decode_json_verified_upto json_value)) : verify_res_res)
     
     | _ :: tl -> loop tl
   in
@@ -2499,6 +2598,8 @@ and decode_json_verify_res d =
       v.res <- Proved ((decode_json_proved json_value))
     | ("refuted", json_value) -> 
       v.res <- Refuted ((decode_json_refuted json_value))
+    | ("verifiedUpto", json_value) -> 
+      v.res <- Verified_upto ((decode_json_verified_upto json_value))
     | ("errors", `List l) -> begin
       v.errors <- List.map (function
         | json_value -> (Error.decode_json_error json_value)
