@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+env:
+  INSTALL_PREFIX: ${{ github.workspace }}/.test_install
+
 jobs:
   run-macos-installer:
     runs-on: macos-latest
@@ -16,9 +19,9 @@ jobs:
 
       - name: Run installer script
         env:
-          INSTALL_PREFIX: ${{ github.workspace }}/.test_install
+          INSTALL_PREFIX: ${{ env.INSTALL_PREFIX }}
           VERSION: latest
         run: yes | scripts/install
 
       - name: Run ImandraX version
-        run: $HOME/.local/bin/imandrax-cli version | grep -q '^imandrax'
+        run: "{{ env.INSTALL_PREFIX }}/bin/imandrax-cli version | grep -q '^imandrax'"
