@@ -14,10 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ludeeus/action-shellcheck@master
-        with:
-          scandir: './scripts'
-          ignore_names: install-internal.sh
+      - name: Alt shellcheck
+        run: find . -type f -name "*.sh" -exec shellcheck {} +
 
       - name: Make script executable
         run: chmod +x scripts/install
