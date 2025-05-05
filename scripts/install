@@ -7,7 +7,7 @@ set -eu
 BUCKET_NAME="imandra-prod-imandrax-releases"
 BUCKET_URL="https://storage.googleapis.com/${BUCKET_NAME}"
 
-API_KEYS_URL="https://https://universe.imandra.ai/user/api-keys"
+API_KEYS_URL="https://universe.imandra.ai/user/api-keys"
 
 set +u
 if [ "${INSTALL_PREFIX}" = "" ]; then
@@ -54,7 +54,7 @@ _install_macos_prompt_for_api_key() {
   fi
 
   if [ -w "${path}" ]; then
-    printf "API keys are available here: %s." "${API_KEYS_URL}"
+    printf "API keys are available here: %s.\n" "${API_KEYS_URL}"
     printf "You can paste your API key here or hit enter to skip and configure it yourself later: "
     read -r answer_api_key
     if [ -z "${answer_api_key}" ]; then
@@ -66,7 +66,9 @@ _install_macos_prompt_for_api_key() {
       fi
       touch "${API_KEY_PATH}"
       (rm -f "${API_KEY_PATH}" && echo "${answer_api_key}" > "${API_KEY_PATH}")
+      echo "Updated API key"
     fi
+    echo ''
   fi
 }
 
@@ -211,12 +213,16 @@ install_macos() {
 
   _install_macos_prompt_for_api_key "${CONFIG_DIR}"
 
-  echo "Installed ImandraX! Next:"
-  echo " * Go to https://universe.imandra.ai"
-  echo " * Try creating an API key to get started"
+  
+  cat << EOF
+***********************
+* Installed ImandraX! *
+***********************
+
+EOF
 
   echo 'See the docs for more info: '
-  echo 'https://github.com/imandra-ai/imandrax-api?tab=readme-ov-file#getting-an-imandra-universe-api-key'
+  echo 'https://github.com/imandra-ai/imandrax-api'
 }
 
 cat << EOF
