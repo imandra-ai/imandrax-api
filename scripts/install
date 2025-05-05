@@ -16,7 +16,6 @@ fi
 if [ "${VERSION}" = "" ]; then
   VERSION="latest"
 fi
-
 set -u
 
 install_linux() {
@@ -43,17 +42,17 @@ install_linux() {
 _install_macos_prompt_for_api_key() {
   # ~/.config/imandrax/api_key
   CONFIG_DIR=$1
+  
   API_KEY_PATH="${CONFIG_DIR}/api_key"
-
-  path=${CONFIG_DIR}
+  PATH=${CONFIG_DIR}
 
   if [ ! -e "${API_KEY_PATH}" ]; then
-    while [ ! -d "${path}" ]; do
-      path=$(dirname -- "${path}")
+    while [ ! -d "${PATH}" ]; do
+      PATH=$(dirname -- "${PATH}")
     done       
   fi
 
-  if [ -w "${path}" ]; then
+  if [ -w "${PATH}" ]; then
     echo "API keys are available here: ${API_KEYS_URL}."
     printf "You can paste your API key here or hit enter to skip and configure it yourself later: "
     read -r answer_api_key
@@ -86,8 +85,8 @@ _install_macos_check_files_present() {
 _install_macos_add_to_profile() {
   BIN_DIR=$1
   PROFILE_NAME=$2
-  PROFILE_FILE="${HOME}/${PROFILE_NAME}"
 
+  PROFILE_FILE="${HOME}/${PROFILE_NAME}"
   LINE="export PATH=\"${BIN_DIR}:\$PATH\""
 
   touch "${PROFILE_FILE}"
@@ -95,9 +94,9 @@ _install_macos_add_to_profile() {
   if grep -qxF "${LINE}" "${PROFILE_FILE}";then
     echo "${BIN_DIR} was already present in ${PROFILE_NAME}"
   else
-    status=$? 
-    if [ "${status}" -ne 1 ];then
-      exit "${status}"
+    STATUS=$? 
+    if [ "${STATUS}" -ne 1 ];then
+      exit "${STATUS}"
     fi
     DATE_STRING="$(date '+%Y-%m-%d')"
     printf "\n# Added by ImandraX installer on %s\n%s\n" \
@@ -107,9 +106,9 @@ _install_macos_add_to_profile() {
     if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
       echo "Added install dir to PATH in ${PROFILE_FILE}"
     else
-      status=$? 
-      if [ "${status}" -ne 1 ];then
-        exit "${status}"
+      STATUS=$? 
+      if [ "${STATUS}" -ne 1 ];then
+        exit "${STATUS}"
       fi
       echo "Updatng PATH via ${PROFILE_NAME} failed!"
     fi
@@ -120,37 +119,36 @@ _install_macos_prompt_to_update_path() {
   INSTALL_PREFIX=$1
 
   BIN_DIR="${INSTALL_PREFIX}/bin"
-
-  path_presented=false
-  path_set=false
+  PATH_PRESENTED=false
+  PATH_SET=false
 
   if [ -w  "${HOME}" ]; then
     if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
       printf "Add %s to PATH via .zprofile (Y/n)? " "${BIN_DIR}"
-      path_presented=true
-      read -r answer_zprofile
-      if [ "${answer_zprofile}" != "${answer_zprofile#[Nn]}" ];then
+      PATH_PRESENTED=true
+      read -r ANSWER_ZPROFILE
+      if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ];then
         echo 'Not updating .zprofile'
       else
         _install_macos_add_to_profile "${BIN_DIR}" ".zprofile"
-        path_set=true
+        PATH_SET=true
       fi
     fi
 
     if [ ! -e "${HOME}/.profile" ] || [ -w "${HOME}/.profile" ];then
       printf "Add %s to PATH via .profile (Y/n)? " "${BIN_DIR}"
-      path_presented=true
-      read -r answer_profile
-      if [ "${answer_profile}" != "${answer_profile#[Nn]}" ];then
+      PATH_PRESENTED=true
+      read -r ANSWER_PROFILE
+      if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ];then
         echo 'Not updating .profile'
       else
         _install_macos_add_to_profile "${BIN_DIR}" ".profile"
-        path_set=true
+        PATH_SET=true
       fi
     fi
   fi
-  if ! "${path_presented}" || ! "${path_set}"; then
-    if ! "${path_presented}";then
+  if ! "${PATH_PRESENTED}" || ! "${PATH_SET}"; then
+    if ! "${PATH_PRESENTED}";then
       echo "We couldn't write to .profile or .zprofile."
     fi
     echo "You should add ${BIN_DIR} to your PATH."
@@ -187,9 +185,8 @@ _install_macos_download_files() {
 }
 
 install_macos() {
-  BUCKET_URL=$1
-  VERSION=$2
-  INSTALL_PREFIX=$3
+  VERSION=$1
+  INSTALL_PREFIX=$2
 
   FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
   ARCHIVE="${BUCKET_URL}/${FILENAME}"
@@ -213,16 +210,14 @@ install_macos() {
 
   _install_macos_prompt_for_api_key "${CONFIG_DIR}"
 
-  
   cat << EOF
 ***********************
 * Installed ImandraX! *
 ***********************
 
+See the docs for more info:
+https://github.com/imandra-ai/imandrax-api
 EOF
-
-  echo 'See the docs for more info: '
-  echo 'https://github.com/imandra-ai/imandrax-api'
 }
 
 cat << EOF
@@ -242,7 +237,7 @@ case "$(uname -s)" in
     install_linux
     ;;
   Darwin*)
-    install_macos "${BUCKET_URL}" "${VERSION}" "${INSTALL_PREFIX}"
+    install_macos "${VERSION}" "${INSTALL_PREFIX}"
     ;;
   *)
     echo "unsupported OS"; exit 1
