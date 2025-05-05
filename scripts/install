@@ -54,11 +54,11 @@ _install_macos_prompt_for_api_key() {
   fi
 
   if [ -w "${path}" ]; then
-    printf "API keys are available here: %s.\n" "${API_KEYS_URL}"
+    echo "API keys are available here: ${API_KEYS_URL}."
     printf "You can paste your API key here or hit enter to skip and configure it yourself later: "
     read -r answer_api_key
     if [ -z "${answer_api_key}" ]; then
-      printf 'Skipped setting API key (make sure to set this yourself later in %s)' "${API_KEY_PATH}"
+      echo "Skipped setting API key (make sure to set this yourself later in ${API_KEY_PATH}"
     else
       if ! [ -d "${CONFIG_DIR}" ];then
         echo "Creating ${CONFIG_DIR}"
