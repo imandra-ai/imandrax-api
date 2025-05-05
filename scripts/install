@@ -18,6 +18,13 @@ if [ "${VERSION}" = "" ]; then
 fi
 set -u
 
+_fail() {
+  MSG=$1
+
+  echo "ERROR: ${MSG}" 2>&1
+  exit 1
+}
+
 install_linux() {
   ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
 
@@ -77,8 +84,7 @@ _install_macos_check_files_present() {
   if [ ! -x "${INSTALL_PREFIX}/bin/imandrax-cli" ] || \
       [ ! -x "${INSTALL_PREFIX}/bin/imandrax-ws-client" ] || \
       [ ! -x "${INSTALL_PREFIX}/bin/tldrs" ]; then
-    echo "Some files failed to install, aborting."
-    exit 1
+    _fail "Some files failed to install, aborting."
   fi
 }
 
@@ -240,5 +246,5 @@ case "$(uname -s)" in
     install_macos "${VERSION}" "${INSTALL_PREFIX}"
     ;;
   *)
-    echo "unsupported OS"; exit 1
+    _fail "unsupported OS";
 esac
