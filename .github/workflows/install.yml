@@ -19,3 +19,6 @@ jobs:
           INSTALL_PREFIX: ${{ github.workspace }}/.test_install
           VERSION: latest
         run: yes | scripts/install
+
+      - name: Run ImandraX version
+        run: $HOME/.local/bin/imandrax-cli version | grep -q '^imandrax'
