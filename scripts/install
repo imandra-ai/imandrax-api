@@ -21,7 +21,7 @@ set -u
 _fail() {
   MSG=$1
 
-  echo "ERROR: ${MSG}" 2>&1
+  echo "ERROR: ${MSG}" 1>&2
   exit 1
 }
 
