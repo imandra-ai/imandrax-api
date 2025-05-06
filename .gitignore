@@ -8,3 +8,7 @@ node_modules
 *.twine
 *.zip
 *.gz
+build/
+src/py.egg-info
+.DS_Store
+
