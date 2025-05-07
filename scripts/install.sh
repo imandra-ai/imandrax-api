@@ -222,7 +222,7 @@ install_macos() {
 ***********************
 
 See the docs for more info:
-https://github.com/imandra-ai/imandrax-api
+https://docs.imandra.ai/imandrax/
 EOF
 }
 
