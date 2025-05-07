@@ -9,26 +9,17 @@ if [ "${INSTALL_PREFIX}" = "" ]; then
 fi
 set -u
 
-_fail() {
-  MSG=$1
-
-  echo "ERROR: ${MSG}" >&2
-  exit 1
-}
-
-uninstall_linux() {
-  _fail 'Linux not yet supported'
-}
-
 uninstall_macos() {
+  echo 'Uninstalling ImandraX!'
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli"
+  rm -rf "${INSTALL_PREFIX}/bin/imandrax-ws-client"
+  rm -rf "${INSTALL_PREFIX}/bin/tldrs"
+  rm -rf "${INSTALL_PREFIX}/opt/imandrax"
+  echo 'Done!'
 }
 
 # detect OS
 case "$(uname -s)" in
-  Linux*)
-    uninstall_linux
-    ;;
   Darwin*)
     uninstall_macos
     ;;
