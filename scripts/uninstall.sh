@@ -22,14 +22,20 @@ _uninstall_macos_delete_path_if_exists() {
 }
 
 uninstall_macos() {
-  echo 'Uninstalling ImandraX!'
-  rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli"
-  rm -rf "${INSTALL_PREFIX}/bin/imandrax-ws-client"
-  rm -rf "${INSTALL_PREFIX}/bin/tldrs"
-  rm -rf "${INSTALL_PREFIX}/opt/imandrax"
-  _uninstall_macos_delete_path_if_exists '.profile'
-  _uninstall_macos_delete_path_if_exists '.zprofile'
-  echo 'Done!'
+  printf "Uninstall ImandraX (y/N)? "
+  read -r ANSWER_UNINSTALL
+  if [ "${ANSWER_UNINSTALL}" != "${ANSWER_UNINSTALL#[Yy]}" ];then
+    echo 'Uninstalling ImandraX!'
+    rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli"
+    rm -rf "${INSTALL_PREFIX}/bin/imandrax-ws-client"
+    rm -rf "${INSTALL_PREFIX}/bin/tldrs"
+    rm -rf "${INSTALL_PREFIX}/opt/imandrax"
+    _uninstall_macos_delete_path_if_exists '.profile'
+    _uninstall_macos_delete_path_if_exists '.zprofile'
+    echo 'Done!'
+  else
+    echo 'Not uninstalling ImandraX!'
+  fi
 }
 
 # detect OS
