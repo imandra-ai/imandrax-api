@@ -9,12 +9,26 @@ if [ "${INSTALL_PREFIX}" = "" ]; then
 fi
 set -u
 
+_uninstall_macos_delete_path_if_exists() {
+  PROFILE_NAME=$1
+
+  PROFILE_FILE="${HOME}/${PROFILE_NAME}"
+
+  sed -i'.backup' '/^# Added by ImandraX installer/{
+      N;
+      d;
+    }' $PROFILE_FILE
+  rm -rf "${PROFILE_FILE}.backup"
+}
+
 uninstall_macos() {
   echo 'Uninstalling ImandraX!'
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli"
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-ws-client"
   rm -rf "${INSTALL_PREFIX}/bin/tldrs"
   rm -rf "${INSTALL_PREFIX}/opt/imandrax"
+  _uninstall_macos_delete_path_if_exists '.profile'
+  _uninstall_macos_delete_path_if_exists '.zprofile'
   echo 'Done!'
 }
 
