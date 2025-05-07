@@ -17,7 +17,7 @@ _uninstall_macos_delete_path_if_exists() {
   sed -i'.backup' '/^# Added by ImandraX installer/{
       N;
       d;
-    }' $PROFILE_FILE
+    }' "${PROFILE_FILE}"
   rm -rf "${PROFILE_FILE}.backup"
 }
 
@@ -25,6 +25,7 @@ uninstall_macos() {
   printf "Uninstall ImandraX (y/N)? "
   read -r ANSWER_UNINSTALL
   if [ "${ANSWER_UNINSTALL}" != "${ANSWER_UNINSTALL#[Yy]}" ];then
+    echo ''
     echo 'Uninstalling ImandraX!'
     rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli"
     rm -rf "${INSTALL_PREFIX}/bin/imandrax-ws-client"
