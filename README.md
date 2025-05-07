@@ -11,13 +11,13 @@ This contains:
 
 ImandraX currently supports Linux on x86_64, and macOS on aarch64 (ie ARM machines).
 
-For stability, most users should install `imandra-cli`:
+Most users should simply run `scripts/install` to install the latest stable production release of `imandrax-cli`:
 
 ```sh
 ./scripts/install
 ```
 
-For those okay with occasional breaking changes, the development version can be installed by exporting `VERSION=latest-main`:
+For those wanting bleeding edge updates (and okay with occasional breaking changes!), the development version can be installed by exporting `VERSION=latest-main`:
 
 ```sh
 VERSION=latest-main ./scripts/install
