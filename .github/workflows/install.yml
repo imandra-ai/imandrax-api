@@ -18,16 +18,16 @@ jobs:
         run: |
           wget https://github.com/koalaman/shellcheck/releases/download/v0.10.0/shellcheck-v0.10.0.darwin.aarch64.tar.xz
           tar -xf shellcheck-v0.10.0.darwin.aarch64.tar.xz
-          shellcheck-v0.10.0/shellcheck scripts/install
+          shellcheck-v0.10.0/shellcheck scripts/install.sh
 
       - name: Make script executable
-        run: chmod +x scripts/install
+        run: chmod +x scripts/install.sh
 
       - name: Run installer script
         env:
           INSTALL_PREFIX: ${{ env.INSTALL_PREFIX }}
           VERSION: latest
-        run: yes | scripts/install
+        run: yes | scripts/install.sh
 
       - name: Run ImandraX version
         run: ${{ env.INSTALL_PREFIX }}/bin/imandrax-cli version | grep -q '^imandrax'
