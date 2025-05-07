@@ -9,6 +9,13 @@ if [ "${INSTALL_PREFIX}" = "" ]; then
 fi
 set -u
 
+_fail() {
+  MSG=$1
+
+  echo "ERROR: ${MSG}" >&2
+  exit 1
+}
+
 _uninstall_macos_delete_path_if_exists() {
   PROFILE_NAME=$1
 
