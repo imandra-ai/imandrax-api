@@ -32,3 +32,13 @@ jobs:
 
       - name: Run ImandraX version
         run: ${{ env.INSTALL_PREFIX }}/bin/imandrax-cli version | grep -q '^imandrax'
+
+      - name: Run uninstaller script
+        env:
+          INSTALL_PREFIX: ${{ env.INSTALL_PREFIX }}
+        run: |
+          set -eu
+          yes | scripts/uninstall.sh
+          if command -v imandrax-cli >/dev/null 2>&1; then
+            exit 1
+          fi
