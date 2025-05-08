@@ -41,6 +41,9 @@ uninstall_macos() {
     _uninstall_macos_delete_path_if_exists '.profile'
     _uninstall_macos_delete_path_if_exists '.zprofile'
     echo 'Done!'
+    echo ''
+    echo 'If you have any feedback for us, please let us know!'
+    echo 'https://universe.imandra.ai/contact'
   else
     echo 'Not uninstalling ImandraX!'
   fi
