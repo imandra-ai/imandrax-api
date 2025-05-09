@@ -30,9 +30,7 @@ _fail() {
 #
 
 _common_prompt_for_api_key() {
-  # ~/.config/imandrax/api_key
-  CONFIG_DIR=$1
-  
+  CONFIG_DIR="${HOME}/.config/imandrax"
   API_KEY_PATH="${CONFIG_DIR}/api_key"
   WORKING_DIR=${CONFIG_DIR}
 
@@ -151,7 +149,7 @@ _common_prompt_to_update_path() {
 # Linux
 #
 
-_install_linux_extract_files() {
+_linux_extract_files() {
   TMP_DIR=$1
   TMP_FILE=$2
 
@@ -170,7 +168,7 @@ _install_linux_extract_files() {
   echo "Files copied to ${INSTALL_PREFIX}"
 }
 
-_install_linux_download_files() {
+_linux_download_files() {
   ARCHIVE=$1
   TMP_FILE=$2
 
@@ -179,30 +177,26 @@ _install_linux_download_files() {
   echo "Downloaded at ${TMP_FILE}"
 }
 
-install_linux() {
+linux_install() {
   ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
   BIN_DIR="${INSTALL_PREFIX}/bin"
   TMP_DIR="${TMPDIR:-/tmp}"
   TMP_FILE="${TMP_DIR}/imandrax-linux-x86_64.tar.gz"
 
-  _install_linux_download_files "${ARCHIVE}" "${TMP_FILE}"
+  _linux_download_files "${ARCHIVE}" "${TMP_FILE}"
 
-  _install_linux_extract_files "${TMP_DIR}" "${TMP_FILE}"
+  _linux_extract_files "${TMP_DIR}" "${TMP_FILE}"
 
   _common_check_files_present
- 
   _common_prompt_to_update_path "${BIN_DIR}"
-
-  CONFIG_DIR="${HOME}/.config/imandrax"
-
-  _common_prompt_for_api_key "${CONFIG_DIR}"
+  _common_prompt_for_api_key
 }
 
 #
 # MacOS
 #
 
-_install_macos_extract_files() {
+_macos_extract_files() {
   TMP_DIR=$1
   TMP_FILE=$2
 
@@ -220,7 +214,7 @@ _install_macos_extract_files() {
   echo ''
 }
 
-_install_macos_download_files() {
+_macos_download_files() {
   ARCHIVE=$1
   TMP_FILE=$2
 
@@ -229,14 +223,14 @@ _install_macos_download_files() {
   echo "Downloaded at ${TMP_FILE}"
 }
 
-install_macos() {
+macos_install() {
   FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
   ARCHIVE="${BUCKET_URL}/${FILENAME}"
   TMP_DIR="${TMPDIR:-/tmp}"
   TMP_FILE="${TMP_DIR}${FILENAME}"
 
-  _install_macos_download_files "${ARCHIVE}" "${TMP_FILE}"
-  _install_macos_extract_files "${TMP_DIR}" "${TMP_FILE}"
+  _macos_download_files "${ARCHIVE}" "${TMP_FILE}"
+  _macos_extract_files "${TMP_DIR}" "${TMP_FILE}"
 
   # modify executable to find libs
   sed -i'.backup' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
@@ -247,10 +241,7 @@ install_macos() {
 
   _common_check_files_present
   _common_prompt_to_update_path
-
-  CONFIG_DIR="${HOME}/.config/imandrax"
-
-  _common_prompt_for_api_key "${CONFIG_DIR}"
+  _common_prompt_for_api_key
 }
 
 cat << EOF
@@ -267,10 +258,10 @@ EOF
 # detect OS
 case "$(uname -s)" in
   Linux*)
-    install_linux
+    linux_install
     ;;
   Darwin*)
-    install_macos
+    macos_install
     ;;
   *) _fail "unsupported OS";
 esac
