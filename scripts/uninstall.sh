@@ -20,13 +20,13 @@ _uninstall_macos_delete_path_if_exists() {
   PROFILE_NAME=$1
 
   PROFILE_FILE="${HOME}/${PROFILE_NAME}"
-  # todo also check if file exists!
-
-  sed -i'.backup' '/^# Added by ImandraX installer/{
-      N;
-      d;
-    }' "${PROFILE_FILE}"
-  rm -rf "${PROFILE_FILE}.backup"
+  if [ -e "${PROFILE_FILE}" ]; then
+    sed -i'.backup' '/^# Added by ImandraX installer/{
+        N;
+        d;
+      }' "${PROFILE_FILE}"
+    rm -rf "${PROFILE_FILE}.backup"
+  fi
 }
 
 uninstall_macos() {
