@@ -27,6 +27,7 @@ type decompose_req = {
   ctx_simp : bool option;
   lift_bool : lift_bool option;
   str : bool option;
+  timeout : int32 option;
 }
 
 type decompose_res_res =
@@ -163,6 +164,7 @@ val default_decompose_req :
   ?ctx_simp:bool option ->
   ?lift_bool:lift_bool option ->
   ?str:bool option ->
+  ?timeout:int32 option ->
   unit ->
   decompose_req
 (** [default_decompose_req ()] is the default value for type [decompose_req] *)
@@ -324,6 +326,7 @@ val make_decompose_req :
   ?ctx_simp:bool option ->
   ?lift_bool:lift_bool option ->
   ?str:bool option ->
+  ?timeout:int32 option ->
   unit ->
   decompose_req
 (** [make_decompose_req … ()] is a builder for type [decompose_req] *)

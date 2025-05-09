@@ -20,6 +20,7 @@ type decompose_req = {
   ctx_simp : bool option;
   lift_bool : lift_bool option;
   str : bool option;
+  timeout : int32 option;
 }
 
 type decompose_res_res =
@@ -152,6 +153,7 @@ let rec default_decompose_req
   ?ctx_simp:((ctx_simp:bool option) = None)
   ?lift_bool:((lift_bool:lift_bool option) = None)
   ?str:((str:bool option) = None)
+  ?timeout:((timeout:int32 option) = None)
   () : decompose_req  = {
   session;
   name;
@@ -162,6 +164,7 @@ let rec default_decompose_req
   ctx_simp;
   lift_bool;
   str;
+  timeout;
 }
 
 let rec default_decompose_res_res () : decompose_res_res = Artifact (Artmsg.default_art ())
@@ -338,6 +341,7 @@ type decompose_req_mutable = {
   mutable ctx_simp : bool option;
   mutable lift_bool : lift_bool option;
   mutable str : bool option;
+  mutable timeout : int32 option;
 }
 
 let default_decompose_req_mutable () : decompose_req_mutable = {
@@ -350,6 +354,7 @@ let default_decompose_req_mutable () : decompose_req_mutable = {
   ctx_simp = None;
   lift_bool = None;
   str = None;
+  timeout = None;
 }
 
 type decompose_res_mutable = {
@@ -554,6 +559,7 @@ let rec make_decompose_req
   ?ctx_simp:((ctx_simp:bool option) = None)
   ?lift_bool:((lift_bool:lift_bool option) = None)
   ?str:((str:bool option) = None)
+  ?timeout:((timeout:int32 option) = None)
   () : decompose_req  = {
   session;
   name;
@@ -564,6 +570,7 @@ let rec make_decompose_req
   ctx_simp;
   lift_bool;
   str;
+  timeout;
 }
 
 
@@ -746,6 +753,7 @@ let rec pp_decompose_req fmt (v:decompose_req) =
     Pbrt.Pp.pp_record_field ~first:false "ctx_simp" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.ctx_simp;
     Pbrt.Pp.pp_record_field ~first:false "lift_bool" (Pbrt.Pp.pp_option pp_lift_bool) fmt v.lift_bool;
     Pbrt.Pp.pp_record_field ~first:false "str" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.str;
+    Pbrt.Pp.pp_record_field ~first:false "timeout" (Pbrt.Pp.pp_option Pbrt.Pp.pp_int32) fmt v.timeout;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -956,6 +964,12 @@ let rec encode_pb_decompose_req (v:decompose_req) encoder =
   | Some x -> 
     Pbrt.Encoder.bool x encoder;
     Pbrt.Encoder.key 9 Pbrt.Varint encoder; 
+  | None -> ();
+  end;
+  begin match v.timeout with
+  | Some x -> 
+    Pbrt.Encoder.int32_as_varint x encoder;
+    Pbrt.Encoder.key 10 Pbrt.Varint encoder; 
   | None -> ();
   end;
   ()
@@ -1348,6 +1362,11 @@ let rec decode_pb_decompose_req d =
     end
     | Some (9, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(decompose_req), field(9)" pk
+    | Some (10, Pbrt.Varint) -> begin
+      v.timeout <- Some (Pbrt.Decoder.int32_as_varint d);
+    end
+    | Some (10, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req), field(10)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
@@ -1360,6 +1379,7 @@ let rec decode_pb_decompose_req d =
     ctx_simp = v.ctx_simp;
     lift_bool = v.lift_bool;
     str = v.str;
+    timeout = v.timeout;
   } : decompose_req)
 
 let rec decode_pb_decompose_res_res d = 
@@ -1969,6 +1989,10 @@ let rec encode_json_decompose_req (v:decompose_req) =
     | None -> assoc
     | Some v -> ("str", Pbrt_yojson.make_bool v) :: assoc
   in
+  let assoc = match v.timeout with
+    | None -> assoc
+    | Some v -> ("timeout", Pbrt_yojson.make_int (Int32.to_int v)) :: assoc
+  in
   `Assoc assoc
 
 let rec encode_json_decompose_res_res (v:decompose_res_res) = 
@@ -2258,6 +2282,8 @@ let rec decode_json_decompose_req d =
       v.lift_bool <- Some ((decode_json_lift_bool json_value))
     | ("str", json_value) -> 
       v.str <- Some (Pbrt_yojson.bool json_value "decompose_req" "str")
+    | ("timeout", json_value) -> 
+      v.timeout <- Some (Pbrt_yojson.int32 json_value "decompose_req" "timeout")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -2271,6 +2297,7 @@ let rec decode_json_decompose_req d =
     ctx_simp = v.ctx_simp;
     lift_bool = v.lift_bool;
     str = v.str;
+    timeout = v.timeout;
   } : decompose_req)
 
 let rec decode_json_decompose_res_res json =
