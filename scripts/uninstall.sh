@@ -16,7 +16,11 @@ _fail() {
   exit 1
 }
 
-_uninstall_macos_delete_path_if_exists() {
+#
+# Common
+#
+
+_common_delete_path_if_exists() {
   PROFILE_NAME=$1
 
   PROFILE_FILE="${HOME}/${PROFILE_NAME}"
@@ -29,32 +33,48 @@ _uninstall_macos_delete_path_if_exists() {
   fi
 }
 
-uninstall_macos() {
-  printf "Uninstall ImandraX (y/N)? "
-  read -r ANSWER_UNINSTALL
-  if [ "${ANSWER_UNINSTALL}" != "${ANSWER_UNINSTALL#[Yy]}" ];then
-    echo ''
-    echo 'Uninstalling ImandraX!'
-    rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli"
-    rm -rf "${INSTALL_PREFIX}/bin/imandrax-ws-client"
-    rm -rf "${INSTALL_PREFIX}/bin/tldrs"
-    rm -rf "${INSTALL_PREFIX}/opt/imandrax"
-    _uninstall_macos_delete_path_if_exists '.profile'
-    _uninstall_macos_delete_path_if_exists '.zprofile'
-    echo 'Done!'
-    echo ''
-    echo 'If you have any feedback for us, please let us know!'
-    echo 'https://universe.imandra.ai/contact'
-  else
-    echo 'Not uninstalling ImandraX!'
-  fi
+common_uninstall() {
+  rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli"
+  rm -rf "${INSTALL_PREFIX}/bin/imandrax-ws-client"
+  rm -rf "${INSTALL_PREFIX}/bin/tldrs"
+  _common_delete_path_if_exists '.profile'
+  _common_delete_path_if_exists '.zprofile'
 }
 
-# detect OS
-case "$(uname -s)" in
-  Darwin*)
-    uninstall_macos
-    ;;
-  *)
-    _fail "unsupported OS";
-esac
+#
+# MacOS
+#
+
+macos_uninstall() {
+  rm -rf "${INSTALL_PREFIX}/opt/imandrax"
+}
+
+#
+#
+#
+
+printf "Uninstall ImandraX (y/N)? "
+read -r ANSWER_UNINSTALL
+if [ "${ANSWER_UNINSTALL}" != "${ANSWER_UNINSTALL#[Yy]}" ];then
+  echo ''
+  echo 'Uninstalling ImandraX!'
+
+  # detect OS
+  case "$(uname -s)" in
+    Darwin*)
+      macos_uninstall
+      ;;
+    Linux*) 
+      ;;
+    *) _fail "unsupported OS";
+  esac
+
+  common_uninstall
+
+  echo 'Done!'
+  echo ''
+  echo 'If you have any feedback for us, please let us know!'
+  echo 'https://universe.imandra.ai/contact'
+else
+  echo 'Not uninstalling ImandraX!'
+fi
