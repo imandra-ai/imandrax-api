@@ -25,7 +25,11 @@ _fail() {
   exit 1
 }
 
-_install_macos_prompt_for_api_key() {
+#
+# Common
+#
+
+_common_prompt_for_api_key() {
   # ~/.config/imandrax/api_key
   CONFIG_DIR=$1
   
@@ -57,7 +61,7 @@ _install_macos_prompt_for_api_key() {
   fi
 }
 
-_install_macos_check_files_present() {
+_common_check_files_present() {
   if [ ! -x "${INSTALL_PREFIX}/bin/imandrax-cli" ] || \
       [ ! -x "${INSTALL_PREFIX}/bin/imandrax-ws-client" ] || \
       [ ! -x "${INSTALL_PREFIX}/bin/tldrs" ]; then
@@ -65,7 +69,7 @@ _install_macos_check_files_present() {
   fi
 }
 
-_install_macos_add_to_profile() {
+_common_add_to_profile() {
   BIN_DIR=$1
   PROFILE_NAME=$2
 
@@ -98,7 +102,7 @@ _install_macos_add_to_profile() {
   fi
 }
 
-_install_macos_prompt_to_update_path() {
+_common_prompt_to_update_path() {
   BIN_DIR="${INSTALL_PREFIX}/bin"
   PATH_PRESENTED=false
   PATH_SET=false
@@ -111,7 +115,7 @@ _install_macos_prompt_to_update_path() {
       if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ];then
         echo 'Not updating .zprofile'
       else
-        _install_macos_add_to_profile "${BIN_DIR}" ".zprofile"
+        _common_add_to_profile "${BIN_DIR}" ".zprofile"
         PATH_SET=true
       fi
     fi
@@ -123,7 +127,7 @@ _install_macos_prompt_to_update_path() {
       if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ];then
         echo 'Not updating .profile'
       else
-        _install_macos_add_to_profile "${BIN_DIR}" ".profile"
+        _common_add_to_profile "${BIN_DIR}" ".profile"
         PATH_SET=true
       fi
     fi
@@ -137,32 +141,9 @@ _install_macos_prompt_to_update_path() {
   echo ''
 }
 
-_install_macos_extract_files() {
-  TMP_DIR=$1
-  TMP_FILE=$2
-
-  cd "${TMP_DIR}"
-  bsdtar xzf "${TMP_FILE}"
-  echo "Extracted outer tarball in-place"
-  if ! [ -d "${INSTALL_PREFIX}" ];then 
-    echo "Creating ${INSTALL_PREFIX}"
-    mkdir -p "${INSTALL_PREFIX}"
-  fi
-  echo "Created dir ${INSTALL_PREFIX}"
-  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
-  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
-  echo "Extracted inner tarball to ${INSTALL_PREFIX}"
-  echo ''
-}
-
-_install_macos_download_files() {
-  ARCHIVE=$1
-  TMP_FILE=$2
-
-  echo "Downloading ${ARCHIVE}"
-  curl -s "${ARCHIVE}" -o "${TMP_FILE}"
-  echo "Downloaded at ${TMP_FILE}"
-}
+#
+# Linux
+#
 
 _install_linux_extract_files() {
   TMP_DIR=$1
@@ -202,13 +183,44 @@ install_linux() {
 
   _install_linux_extract_files $TMP_DIR $TMP_FILE
 
-  _install_macos_check_files_present
+  _common_check_files_present
  
-  _install_macos_prompt_to_update_path $BIN_DIR
+  _common_prompt_to_update_path $BIN_DIR
 
   CONFIG_DIR="${HOME}/.config/imandrax"
 
-  _install_macos_prompt_for_api_key "${CONFIG_DIR}"
+  _common_prompt_for_api_key "${CONFIG_DIR}"
+}
+
+#
+# MacOS
+#
+
+_install_macos_extract_files() {
+  TMP_DIR=$1
+  TMP_FILE=$2
+
+  cd "${TMP_DIR}"
+  bsdtar xzf "${TMP_FILE}"
+  echo "Extracted outer tarball in-place"
+  if ! [ -d "${INSTALL_PREFIX}" ];then 
+    echo "Creating ${INSTALL_PREFIX}"
+    mkdir -p "${INSTALL_PREFIX}"
+  fi
+  echo "Created dir ${INSTALL_PREFIX}"
+  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
+  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
+  echo "Extracted inner tarball to ${INSTALL_PREFIX}"
+  echo ''
+}
+
+_install_macos_download_files() {
+  ARCHIVE=$1
+  TMP_FILE=$2
+
+  echo "Downloading ${ARCHIVE}"
+  curl -s "${ARCHIVE}" -o "${TMP_FILE}"
+  echo "Downloaded at ${TMP_FILE}"
 }
 
 install_macos() {
@@ -227,21 +239,12 @@ install_macos() {
   # clean up temp files
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
-  _install_macos_check_files_present
-  _install_macos_prompt_to_update_path
+  _common_check_files_present
+  _common_prompt_to_update_path
 
   CONFIG_DIR="${HOME}/.config/imandrax"
 
-  _install_macos_prompt_for_api_key "${CONFIG_DIR}"
-
-  cat << EOF
-***********************
-* Installed ImandraX! *
-***********************
-
-See the docs for more info:
-https://docs.imandra.ai/imandrax/
-EOF
+  _common_prompt_for_api_key "${CONFIG_DIR}"
 }
 
 cat << EOF
@@ -266,3 +269,12 @@ case "$(uname -s)" in
   *)
     _fail "unsupported OS";
 esac
+
+  cat << EOF
+***********************
+* Installed ImandraX! *
+***********************
+
+See the docs for more info:
+https://docs.imandra.ai/imandrax/
+EOF
