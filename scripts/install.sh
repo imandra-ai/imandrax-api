@@ -212,8 +212,6 @@ install_linux() {
 }
 
 install_macos() {
-  VERSION=$1
-
   FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
   ARCHIVE="${BUCKET_URL}/${FILENAME}"
   TMP_DIR="${TMPDIR:-/tmp}"
@@ -263,7 +261,7 @@ case "$(uname -s)" in
     install_linux
     ;;
   Darwin*)
-    install_macos "${VERSION}"
+    install_macos
     ;;
   *)
     _fail "unsupported OS";
