@@ -187,11 +187,11 @@ install_linux() {
 
   _install_linux_download_files "${ARCHIVE}" "${TMP_FILE}"
 
-  _install_linux_extract_files $TMP_DIR $TMP_FILE
+  _install_linux_extract_files "${TMP_DIR}" "${TMP_FILE}"
 
   _common_check_files_present
  
-  _common_prompt_to_update_path $BIN_DIR
+  _common_prompt_to_update_path "${BIN_DIR}"
 
   CONFIG_DIR="${HOME}/.config/imandrax"
 
