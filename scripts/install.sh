@@ -25,27 +25,6 @@ _fail() {
   exit 1
 }
 
-install_linux() {
-  ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
-
-  echo "installing in '${INSTALL_PREFIX}/bin/' …"
-
-  BIN_DIR="${INSTALL_PREFIX}/bin"
-  TMP_FILE="${TMPDIR:-/tmp}/imandrax-linux-x86_64.tar.gz"
-
-  mkdir -p "${BIN_DIR}"
-
-  echo "downloading from ${ARCHIVE}"
-  wget "${ARCHIVE}" -O "${TMP_FILE}"
-  echo "downloaded to ${TMP_FILE}"
-  cd "${TMPDIR:-/tmp}"
-  tar xvf "${TMP_FILE}"
-  echo "using sudo to copy files"
-  sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/imandrax-cli"
-  sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/imandrax-ws-client"
-  sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/tldrs"
-}
-
 _install_macos_prompt_for_api_key() {
   # ~/.config/imandrax/api_key
   CONFIG_DIR=$1
@@ -79,8 +58,6 @@ _install_macos_prompt_for_api_key() {
 }
 
 _install_macos_check_files_present() {
-  INSTALL_PREFIX=$1
-
   if [ ! -x "${INSTALL_PREFIX}/bin/imandrax-cli" ] || \
       [ ! -x "${INSTALL_PREFIX}/bin/imandrax-ws-client" ] || \
       [ ! -x "${INSTALL_PREFIX}/bin/tldrs" ]; then
@@ -122,8 +99,6 @@ _install_macos_add_to_profile() {
 }
 
 _install_macos_prompt_to_update_path() {
-  INSTALL_PREFIX=$1
-
   BIN_DIR="${INSTALL_PREFIX}/bin"
   PATH_PRESENTED=false
   PATH_SET=false
@@ -165,7 +140,6 @@ _install_macos_prompt_to_update_path() {
 _install_macos_extract_files() {
   TMP_DIR=$1
   TMP_FILE=$2
-  INSTALL_PREFIX=$3
 
   cd "${TMP_DIR}"
   bsdtar xzf "${TMP_FILE}"
@@ -190,9 +164,31 @@ _install_macos_download_files() {
   echo "Downloaded at ${TMP_FILE}"
 }
 
+install_linux() {
+  ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
+  BIN_DIR="${INSTALL_PREFIX}/bin"
+
+  echo "installing in '${BIN_DIR} …"
+
+  TMP_FILE="${TMPDIR:-/tmp}/imandrax-linux-x86_64.tar.gz"
+
+  mkdir -p "${BIN_DIR}"
+
+  echo "downloading from ${ARCHIVE}"
+  wget "${ARCHIVE}" -O "${TMP_FILE}"
+  echo "downloaded to ${TMP_FILE}"
+  cd "${TMPDIR:-/tmp}"
+  tar xvf "${TMP_FILE}"
+  echo "using sudo to copy files"
+  mkdir -p "${BIN_DIR}"
+  install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/imandrax-cli"
+  install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/imandrax-ws-client"
+  install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/tldrs"
+  _install_macos_prompt_to_update_path $BIN_DIR
+}
+
 install_macos() {
   VERSION=$1
-  INSTALL_PREFIX=$2
 
   FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
   ARCHIVE="${BUCKET_URL}/${FILENAME}"
@@ -200,7 +196,7 @@ install_macos() {
   TMP_FILE="${TMP_DIR}${FILENAME}"
 
   _install_macos_download_files "${ARCHIVE}" "${TMP_FILE}"
-  _install_macos_extract_files "${TMP_DIR}" "${TMP_FILE}" "${INSTALL_PREFIX}"
+  _install_macos_extract_files "${TMP_DIR}" "${TMP_FILE}"
 
   # modify executable to find libs
   sed -i'.backup' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
@@ -209,8 +205,8 @@ install_macos() {
   # clean up temp files
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
-  _install_macos_check_files_present "${INSTALL_PREFIX}"
-  _install_macos_prompt_to_update_path "${INSTALL_PREFIX}"
+  _install_macos_check_files_present
+  _install_macos_prompt_to_update_path
 
   CONFIG_DIR="${HOME}/.config/imandrax"
 
@@ -243,7 +239,7 @@ case "$(uname -s)" in
     install_linux
     ;;
   Darwin*)
-    install_macos "${VERSION}" "${INSTALL_PREFIX}"
+    install_macos "${VERSION}"
     ;;
   *)
     _fail "unsupported OS";
