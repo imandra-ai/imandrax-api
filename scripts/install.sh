@@ -164,19 +164,26 @@ _install_macos_download_files() {
   echo "Downloaded at ${TMP_FILE}"
 }
 
+# _install_linux_download_files() {
+#   ARCHIVE=$1
+#   TMP_FILE=$2
+
+#   echo "Downloading ${ARCHIVE}"
+#   wget "${ARCHIVE}" -O "${TMP_FILE}"
+#   echo "Downloaded at ${TMP_FILE}"
+# }
+
 install_linux() {
   ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
   BIN_DIR="${INSTALL_PREFIX}/bin"
-
-  echo "installing in '${BIN_DIR} …"
-
   TMP_FILE="${TMPDIR:-/tmp}/imandrax-linux-x86_64.tar.gz"
+
+  _install_macos_download_files "${ARCHIVE}" "${TMP_FILE}"
 
   mkdir -p "${BIN_DIR}"
 
-  echo "downloading from ${ARCHIVE}"
-  wget "${ARCHIVE}" -O "${TMP_FILE}"
-  echo "downloaded to ${TMP_FILE}"
+  
+  
   cd "${TMPDIR:-/tmp}"
   tar xvf "${TMP_FILE}"
   echo "using sudo to copy files"
