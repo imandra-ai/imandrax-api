@@ -108,29 +108,35 @@ _common_prompt_to_update_path() {
   PATH_SET=false
 
   if [ -w  "${HOME}" ]; then
-    if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
-      printf "Add %s to PATH via .zprofile (Y/n)? " "${BIN_DIR}"
-      PATH_PRESENTED=true
-      read -r ANSWER_ZPROFILE
-      if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ];then
-        echo 'Not updating .zprofile'
-      else
-        _common_add_to_profile "${BIN_DIR}" ".zprofile"
-        PATH_SET=true
-      fi
-    fi
-
-    if [ ! -e "${HOME}/.profile" ] || [ -w "${HOME}/.profile" ];then
-      printf "Add %s to PATH via .profile (Y/n)? " "${BIN_DIR}"
-      PATH_PRESENTED=true
-      read -r ANSWER_PROFILE
-      if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ];then
-        echo 'Not updating .profile'
-      else
-        _common_add_to_profile "${BIN_DIR}" ".profile"
-        PATH_SET=true
-      fi
-    fi
+    case "${SHELL:-}" in
+      '/bin/bash'*)
+        if [ ! -e "${HOME}/.profile" ] || [ -w "${HOME}/.profile" ];then
+          printf "Add %s to PATH via .profile (Y/n)? " "${BIN_DIR}"
+          PATH_PRESENTED=true
+          read -r ANSWER_PROFILE
+          if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ];then
+            echo 'Not updating .profile'
+          else
+            _common_add_to_profile "${BIN_DIR}" ".profile"
+            PATH_SET=true
+          fi
+        fi
+      ;;
+      '/bin/zsh'*)
+        if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
+          printf "Add %s to PATH via .zprofile (Y/n)? " "${BIN_DIR}"
+          PATH_PRESENTED=true
+          read -r ANSWER_ZPROFILE
+          if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ];then
+            echo 'Not updating .zprofile'
+          else
+            _common_add_to_profile "${BIN_DIR}" ".zprofile"
+            PATH_SET=true
+          fi
+        fi
+      ;;
+      *)
+    esac
   fi
   if ! "${PATH_PRESENTED}" || ! "${PATH_SET}"; then
     if ! "${PATH_PRESENTED}";then
@@ -266,8 +272,7 @@ case "$(uname -s)" in
   Darwin*)
     install_macos
     ;;
-  *)
-    _fail "unsupported OS";
+  *) _fail "unsupported OS";
 esac
 
   cat << EOF
