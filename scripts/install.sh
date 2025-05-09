@@ -164,34 +164,51 @@ _install_macos_download_files() {
   echo "Downloaded at ${TMP_FILE}"
 }
 
-# _install_linux_download_files() {
-#   ARCHIVE=$1
-#   TMP_FILE=$2
+_install_linux_extract_files() {
+  TMP_DIR=$1
+  TMP_FILE=$2
 
-#   echo "Downloading ${ARCHIVE}"
-#   wget "${ARCHIVE}" -O "${TMP_FILE}"
-#   echo "Downloaded at ${TMP_FILE}"
-# }
+  cd "${TMP_DIR}"
+  if ! [ -d "${INSTALL_PREFIX}" ];then 
+    echo "Creating ${INSTALL_PREFIX}"
+    mkdir -p "${INSTALL_PREFIX}"
+  fi
+
+  tar xvf "${TMP_FILE}"
+  echo 'Extracted tarball in-place'
+
+  install -t "${BIN_DIR}/" "${TMP_DIR}/imandrax-cli"
+  install -t "${BIN_DIR}/" "${TMP_DIR}/imandrax-ws-client"
+  install -t "${BIN_DIR}/" "${TMP_DIR}/tldrs"
+  echo "Files copied to ${INSTALL_PREFIX}"
+}
+
+_install_linux_download_files() {
+  ARCHIVE=$1
+  TMP_FILE=$2
+
+  echo "Downloading ${ARCHIVE}"
+  wget "${ARCHIVE}" -O "${TMP_FILE}"
+  echo "Downloaded at ${TMP_FILE}"
+}
 
 install_linux() {
   ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
   BIN_DIR="${INSTALL_PREFIX}/bin"
-  TMP_FILE="${TMPDIR:-/tmp}/imandrax-linux-x86_64.tar.gz"
+  TMP_DIR="${TMPDIR:-/tmp}"
+  TMP_FILE="${TMP_DIR}/imandrax-linux-x86_64.tar.gz"
 
-  _install_macos_download_files "${ARCHIVE}" "${TMP_FILE}"
+  _install_linux_download_files "${ARCHIVE}" "${TMP_FILE}"
 
-  mkdir -p "${BIN_DIR}"
+  _install_linux_extract_files $TMP_DIR $TMP_FILE
 
-  
-  
-  cd "${TMPDIR:-/tmp}"
-  tar xvf "${TMP_FILE}"
-  echo "using sudo to copy files"
-  mkdir -p "${BIN_DIR}"
-  install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/imandrax-cli"
-  install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/imandrax-ws-client"
-  install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/tldrs"
+  _install_macos_check_files_present
+ 
   _install_macos_prompt_to_update_path $BIN_DIR
+
+  CONFIG_DIR="${HOME}/.config/imandrax"
+
+  _install_macos_prompt_for_api_key "${CONFIG_DIR}"
 }
 
 install_macos() {
