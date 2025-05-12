@@ -11,6 +11,7 @@ env:
 jobs:
   run-macos-installer:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-latest
