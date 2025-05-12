@@ -34,7 +34,7 @@ jobs:
         env:
           INSTALL_PREFIX: ${{ env.INSTALL_PREFIX }}
           VERSION: latest
-        run: yes | scripts/install.sh
+        run: yes 2>/dev/null | scripts/install.sh
 
       - name: Run ImandraX version
         run: ${{ env.INSTALL_PREFIX }}/bin/imandrax-cli version | grep -q '^imandrax'
