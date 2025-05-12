@@ -68,7 +68,8 @@ _add_to_profile() {
   PROFILE_FILE=$1
   PROFILE_NAME=$2
 
-  if [ -z "$3" ]; then
+  OPTIONAL_PATH_STRING=${3:-}
+  if [ -z "${OPTIONAL_PATH_STRING}" ]; then
     LINE="export PATH=\"${BIN_DIR}:\$PATH\""
   else
     LINE=$3
