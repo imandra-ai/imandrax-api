@@ -14,9 +14,9 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            shellcheck-file: v0.10.0/shellcheck-v0.10.0.darwin.aarch64.tar.xz
+            shellcheck-file: shellcheck-v0.10.0.darwin.aarch64.tar.xz
           - os: ubuntu-latest
-            shellcheck-file: shellcheck-v0.10.0.linux.aarch64.tar.xz
+            shellcheck-file: shellcheck-v0.10.0.linux.x86_64.tar.xz
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
