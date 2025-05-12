@@ -26,11 +26,7 @@ _fail() {
   exit 1
 }
 
-#
-# Common
-#
-
-_common_prompt_for_api_key() {
+_prompt_for_api_key() {
   CONFIG_DIR="${HOME}/.config/imandrax"
   API_KEY_PATH="${CONFIG_DIR}/api_key"
   WORKING_DIR=${CONFIG_DIR}
@@ -60,7 +56,7 @@ _common_prompt_for_api_key() {
   fi
 }
 
-_common_check_files_present() {
+_check_files_present() {
   if [ ! -x "${INSTALL_PREFIX}/bin/imandrax-cli" ] || \
       [ ! -x "${INSTALL_PREFIX}/bin/imandrax-ws-client" ] || \
       [ ! -x "${INSTALL_PREFIX}/bin/tldrs" ]; then
@@ -68,7 +64,7 @@ _common_check_files_present() {
   fi
 }
 
-_common_add_to_profile() {
+_add_to_profile() {
   PROFILE_FILE=$1
   PROFILE_NAME=$2
 
@@ -104,7 +100,7 @@ _common_add_to_profile() {
   fi
 }
 
-_common_prompt_to_update_path() {
+_prompt_to_update_path() {
   PATH_PRESENTED=false
   PATH_SET=false
 
@@ -123,7 +119,7 @@ _common_prompt_to_update_path() {
           if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ]; then
             echo "Not updating ${ZPROFILE_NAME}"
           else
-            _common_add_to_profile "${ZPROFILE_FILE}" "${ZPROFILE_NAME}"
+            _add_to_profile "${ZPROFILE_FILE}" "${ZPROFILE_NAME}"
             PATH_SET=true
           fi
         fi
@@ -139,7 +135,7 @@ _common_prompt_to_update_path() {
           if [ "${ANSWER_FISH}" != "${ANSWER_FISH#[Nn]}" ]; then
             echo "Not updating ${FISH_CONFIG_NAME}"
           else
-            _common_add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}" \
+            _add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}" \
               "fish_add_path --global ${BIN_DIR}"
             PATH_SET=true
           fi
@@ -155,7 +151,7 @@ _common_prompt_to_update_path() {
           if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
             echo 'Not updating .profile'
           else
-            _common_add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}"
+            _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}"
             PATH_SET=true
           fi
         fi
@@ -211,9 +207,9 @@ linux_install() {
 
   _linux_extract_files "${TMP_DIR}" "${TMP_FILE}"
 
-  _common_check_files_present
-  _common_prompt_to_update_path
-  _common_prompt_for_api_key
+  _check_files_present
+  _prompt_to_update_path
+  _prompt_for_api_key
 }
 
 #
@@ -263,9 +259,9 @@ macos_install() {
   # clean up temp files
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
-  _common_check_files_present
-  _common_prompt_to_update_path
-  _common_prompt_for_api_key
+  _check_files_present
+  _prompt_to_update_path
+  _prompt_for_api_key
 }
 
 cat << EOF
