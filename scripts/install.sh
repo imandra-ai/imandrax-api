@@ -153,9 +153,9 @@ _linux_extract_files() {
   TMP_FILE=$2
 
   cd "${TMP_DIR}"
-  if ! [ -d "${INSTALL_PREFIX}" ];then 
-    echo "Creating ${INSTALL_PREFIX}"
-    mkdir -p "${INSTALL_PREFIX}"
+  if ! [ -d "${BIN_DIR}" ];then 
+    echo "Creating ${BIN_DIR}"
+    mkdir -p "${BIN_DIR}"
   fi
 
   tar xvf "${TMP_FILE}"
