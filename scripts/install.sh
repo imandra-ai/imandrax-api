@@ -152,6 +152,7 @@ _common_prompt_to_update_path() {
 _linux_extract_files() {
   TMP_DIR=$1
   TMP_FILE=$2
+  BIN_DIR=$3
 
   cd "${TMP_DIR}"
   if ! [ -d "${INSTALL_PREFIX}" ];then 
@@ -185,7 +186,7 @@ linux_install() {
 
   _linux_download_files "${ARCHIVE}" "${TMP_FILE}"
 
-  _linux_extract_files "${TMP_DIR}" "${TMP_FILE}"
+  _linux_extract_files "${TMP_DIR}" "${TMP_FILE}" "${BIN_DIR}"
 
   _common_check_files_present
   _common_prompt_to_update_path "${BIN_DIR}"
