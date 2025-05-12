@@ -69,7 +69,7 @@ _common_check_files_present() {
 }
 
 _common_add_to_profile() {
-  PROFILE_NAME=$2
+  PROFILE_NAME=$1
 
   PROFILE_FILE="${HOME}/${PROFILE_NAME}"
   LINE="export PATH=\"${BIN_DIR}:\$PATH\""
