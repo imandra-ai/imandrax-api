@@ -188,9 +188,8 @@ _linux_extract_files() {
   tar xvf "${TMP_FILE}"
   echo 'Extracted tarball in-place'
 
-  install -t "${BIN_DIR}/" "${TMP_DIR}/imandrax-cli"
-  install -t "${BIN_DIR}/" "${TMP_DIR}/imandrax-ws-client"
-  install -t "${BIN_DIR}/" "${TMP_DIR}/tldrs"
+  install -d "${BIN_DIR}/"
+  install -D "${BIN_DIR}/*" "${TMP_DIR}"
   echo "Files copied to ${INSTALL_PREFIX}"
 }
 
