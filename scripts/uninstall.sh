@@ -72,9 +72,6 @@ if [ "${ANSWER_UNINSTALL}" != "${ANSWER_UNINSTALL#[Yy]}" ];then
   common_uninstall
 
   echo 'Done!'
-  echo ''
-  echo 'If you have any feedback for us, please let us know!'
-  echo 'https://universe.imandra.ai/contact'
 else
   echo 'Not uninstalling ImandraX!'
 fi
