@@ -175,17 +175,19 @@ _linux_extract_files() {
   TMP_DIR=$1
   TMP_FILE=$2
 
+  EXTRACT_DIR="${TMP_DIR}/imandrax-installer"
+
   cd "${TMP_DIR}"
   if ! [ -d "${BIN_DIR}" ]; then 
     echo "Creating ${BIN_DIR}"
     mkdir -p "${BIN_DIR}"
   fi
 
-  tar xvf "${TMP_FILE}"
-  echo 'Extracted tarball in-place'
+  tar xvf "${TMP_FILE}" -C "${EXTRACT_DIR}"
+  echo "Extracted tarball to ${EXTRACT_DIR}"
 
-  install -d "${BIN_DIR}/"
-  install -D "${BIN_DIR}/*" "${TMP_DIR}"
+  mkdir -p "${BIN_DIR}" -C 
+  cp -a "${EXTRACT_DIR}/." "${BIN_DIR}"
   echo "Files copied to ${INSTALL_PREFIX}"
 }
 
