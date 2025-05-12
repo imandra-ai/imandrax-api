@@ -67,11 +67,16 @@ _common_check_files_present() {
     _fail "Some files failed to install, aborting."
   fi
 }
+
 _common_add_to_profile() {
   PROFILE_FILE=$1
   PROFILE_NAME=$2
 
-  LINE="export PATH=\"${BIN_DIR}:\$PATH\""
+  if [ -z "$3" ]; then
+    LINE="export PATH=\"${BIN_DIR}:\$PATH\""
+  else
+    LINE=$3
+  fi
 
   touch "${PROFILE_FILE}"
 
@@ -134,7 +139,8 @@ _common_prompt_to_update_path() {
           if [ "${ANSWER_FISH}" != "${ANSWER_FISH#[Nn]}" ]; then
             echo "Not updating ${FISH_CONFIG_NAME}"
           else
-          _common_add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}"
+            _common_add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}" \
+              "fish_add_path --global ${BIN_DIR}"
             PATH_SET=true
           fi
         fi
