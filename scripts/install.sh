@@ -68,6 +68,10 @@ _common_check_files_present() {
   fi
 }
 
+_common_fish_add_to_config() {
+  _fail todo
+}
+
 _common_add_to_profile() {
   PROFILE_NAME=$1
 
@@ -88,7 +92,7 @@ _common_add_to_profile() {
       "${DATE_STRING}" "${LINE}" >> "${PROFILE_FILE}"
 
     # just do the same check again!
-    if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
+    if grep -qxF "${LINE}" "${PROFILE_FILE}";then
       echo "Added install dir to PATH in ${PROFILE_FILE}"
     else
       STATUS=$? 
@@ -104,7 +108,7 @@ _common_prompt_to_update_path() {
   PATH_PRESENTED=false
   PATH_SET=false
 
-  if [ -w  "${HOME}" ]; then
+  if [ -w  "${HOME}" ];then
     case "${SHELL:-}" in
       '/bin/zsh'*)
         if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
@@ -115,6 +119,21 @@ _common_prompt_to_update_path() {
             echo 'Not updating .zprofile'
           else
             _common_add_to_profile ".zprofile"
+            PATH_SET=true
+          fi
+        fi
+      ;;
+      '/bin/fish'*)
+        FISH_CONFIG_FILE="${HOME}/.config/fish/conf.d/imandrax.fish"
+        if [ ! -e "${FISH_CONFIG_FILE}" ] \
+            || [ -w "${FISH_CONFIG_FILE}" ];then
+          printf "Add %s to PATH via %s (Y/n)?" "${BIN_DIR}" "${FISH_CONFIG_FILE}"
+          PATH_PRESENTED=true
+          read -r ANSWER_FISH
+          if [ "${ANSWER_FISH}" != "${ANSWER_FISH#[Nn]}" ];then
+            echo "Not updating ${FISH_CONFIG_FILE}"
+          else
+            _common_fish_add_to_config "${FISH_CONFIG_FILE}"
             PATH_SET=true
           fi
         fi
