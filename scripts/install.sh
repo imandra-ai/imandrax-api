@@ -109,8 +109,9 @@ _common_prompt_to_update_path() {
   PATH_SET=false
 
   if [ -w  "${HOME}" ];then
-    case "${SHELL:-}" in
-      '/bin/zsh'*)
+    SHELL="${SHELL:-}"
+    case ${SHELL##*/} in
+      zsh)
         if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
           printf "Add %s to PATH via .zprofile (Y/n)? " "${BIN_DIR}"
           PATH_PRESENTED=true
@@ -123,7 +124,7 @@ _common_prompt_to_update_path() {
           fi
         fi
       ;;
-      '/bin/fish'*)
+      fish)
         FISH_CONFIG_FILE="${HOME}/.config/fish/conf.d/imandrax.fish"
         if [ ! -e "${FISH_CONFIG_FILE}" ] \
             || [ -w "${FISH_CONFIG_FILE}" ];then
