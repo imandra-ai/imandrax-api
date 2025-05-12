@@ -104,8 +104,10 @@ _common_prompt_to_update_path() {
   PATH_SET=false
 
   if [ -w  "${HOME}" ];then
-    SHELL="${SHELL:-}"
-    case ${SHELL##*/} in
+    PARENT_SHELL="$(ps -p "${PPID}" -o command=)"
+    PARENT_SHELL=${PARENT_SHELL##*/}
+    PARENT_SHELL=${PARENT_SHELL%% *}
+    case ${PARENT_SHELL} in
       zsh)
         ZPROFILE_FILE="${HOME}/.zprofile"
         ZPROFILE_NAME=${ZPROFILE_FILE##*/}
