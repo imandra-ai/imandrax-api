@@ -188,7 +188,7 @@ _linux_extract_files() {
   tar xvf "${TMP_FILE}" -C "${EXTRACT_DIR}"
   echo "Extracted tarball to ${EXTRACT_DIR}"
 
-  mkdir -p "${BIN_DIR}" -C 
+  mkdir -p "${BIN_DIR}"
   cp -a "${EXTRACT_DIR}/." "${BIN_DIR}"
   echo "Files copied to ${INSTALL_PREFIX}"
 }
