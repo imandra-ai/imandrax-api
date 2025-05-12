@@ -9,7 +9,7 @@ env:
   INSTALL_PREFIX: ${{ github.workspace }}/.test_install
 
 jobs:
-  run-macos-installer:
+  run-installer:
     strategy:
       fail-fast: false
       matrix:
