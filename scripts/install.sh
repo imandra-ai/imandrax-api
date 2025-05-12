@@ -136,7 +136,7 @@ _prompt_to_update_path() {
             echo "Not updating ${FISH_CONFIG_NAME}"
           else
             _add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}" \
-              "fish_add_path --global ${BIN_DIR}"
+                "fish_add_path --global ${BIN_DIR}"
             PATH_SET=true
           fi
         fi
