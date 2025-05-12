@@ -183,6 +183,7 @@ _linux_extract_files() {
     mkdir -p "${BIN_DIR}"
   fi
 
+  mkdir -p "${EXTRACT_DIR}"
   tar xvf "${TMP_FILE}" -C "${EXTRACT_DIR}"
   echo "Extracted tarball to ${EXTRACT_DIR}"
 
