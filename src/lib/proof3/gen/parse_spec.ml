@@ -84,6 +84,11 @@ type t = {
 [@@deriving show { with_path = false }, of_yojson]
 
 let spec : t =
-  match of_yojson @@ J.from_string Raw.spec with
+  let j =
+    match Yojson_five.Safe.from_string Raw.spec with
+    | Ok j -> j
+    | Error res -> failwith res
+  in
+  match of_yojson j with
   | Ok s -> s
   | Error msg -> failwith @@ spf "Could not parse spec: %s" msg

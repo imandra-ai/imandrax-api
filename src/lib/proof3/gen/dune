@@ -4,12 +4,12 @@
  (flags :standard)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std))
- (libraries containers))
+ (libraries containers yojson-five))
 
 (rule
  (targets spec_.ml)
  (deps
-  (:file proof_spec.json))
+  (:file proof_spec.json5))
  (action
   (with-stdout-to
    %{targets}

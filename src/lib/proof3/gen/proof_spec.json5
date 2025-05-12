@@ -526,7 +526,17 @@
         ],
         "last_step": "ProofStep"
       },
-      "doc": "Takes last step `A |- B`, a list of assumptions [C1…Cn] used to prove that last step, and returns `C1…Cn ||- (A |- B)`."
+      "doc": "Takes last step `A |- B`, a list of assumptions `C1…Cn` \
+        used to prove that last step, \
+        and returns concl=`C1…Cn ||- (A |- B)`. \n\
+        \n\
+        The assumptions are the ones introduced via {!Assume} \
+        in the proof tree of [last_step]. For example in a tactic \
+        term that proves `G |- A /\ B` from proofs of `G |- A` \
+        and `G |- B`, we might use a deep intro to prove \
+        ` (G |- A), (G |- B) ||- (G |- A/\B) ` \
+        by proving `G |- A/\B` (as [last_step]) with a proof tree that \
+        contains `Assume` steps for `G |- A` and `G |- B`."
     },
     {
       "name": "deep_subst",
