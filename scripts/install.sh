@@ -13,6 +13,7 @@ set +u
 if [ "${INSTALL_PREFIX}" = "" ]; then
   INSTALL_PREFIX="${HOME}/.local"
 fi
+BIN_DIR="${INSTALL_PREFIX}/bin"
 if [ "${VERSION}" = "" ]; then
   VERSION="latest"
 fi
@@ -37,7 +38,7 @@ _common_prompt_for_api_key() {
   if [ ! -e "${API_KEY_PATH}" ]; then
     while [ ! -d "${WORKING_DIR}" ]; do
       WORKING_DIR=$(dirname -- "${WORKING_DIR}")
-    done       
+    done
   fi
 
   if [ -w "${WORKING_DIR}" ]; then
@@ -68,7 +69,6 @@ _common_check_files_present() {
 }
 
 _common_add_to_profile() {
-  BIN_DIR=$1
   PROFILE_NAME=$2
 
   PROFILE_FILE="${HOME}/${PROFILE_NAME}"
@@ -101,7 +101,6 @@ _common_add_to_profile() {
 }
 
 _common_prompt_to_update_path() {
-  BIN_DIR="${INSTALL_PREFIX}/bin"
   PATH_PRESENTED=false
   PATH_SET=false
 
@@ -115,7 +114,7 @@ _common_prompt_to_update_path() {
           if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ];then
             echo 'Not updating .profile'
           else
-            _common_add_to_profile "${BIN_DIR}" ".profile"
+            _common_add_to_profile ".profile"
             PATH_SET=true
           fi
         fi
@@ -128,7 +127,7 @@ _common_prompt_to_update_path() {
           if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ];then
             echo 'Not updating .zprofile'
           else
-            _common_add_to_profile "${BIN_DIR}" ".zprofile"
+            _common_add_to_profile ".zprofile"
             PATH_SET=true
           fi
         fi
@@ -152,7 +151,6 @@ _common_prompt_to_update_path() {
 _linux_extract_files() {
   TMP_DIR=$1
   TMP_FILE=$2
-  BIN_DIR=$3
 
   cd "${TMP_DIR}"
   if ! [ -d "${INSTALL_PREFIX}" ];then 
@@ -180,16 +178,15 @@ _linux_download_files() {
 
 linux_install() {
   ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
-  BIN_DIR="${INSTALL_PREFIX}/bin"
   TMP_DIR="${TMPDIR:-/tmp}"
   TMP_FILE="${TMP_DIR}/imandrax-linux-x86_64.tar.gz"
 
   _linux_download_files "${ARCHIVE}" "${TMP_FILE}"
 
-  _linux_extract_files "${TMP_DIR}" "${TMP_FILE}" "${BIN_DIR}"
+  _linux_extract_files "${TMP_DIR}" "${TMP_FILE}"
 
   _common_check_files_present
-  _common_prompt_to_update_path "${BIN_DIR}"
+  _common_prompt_to_update_path
   _common_prompt_for_api_key
 }
 
