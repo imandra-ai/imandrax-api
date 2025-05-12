@@ -48,7 +48,7 @@ _common_prompt_for_api_key() {
     if [ -z "${ANSWER_API_KEY}" ]; then
       echo "Skipped setting API key (make sure to set this yourself later in ${API_KEY_PATH}"
     else
-      if ! [ -d "${CONFIG_DIR}" ];then
+      if ! [ -d "${CONFIG_DIR}" ]; then
         echo "Creating ${CONFIG_DIR}"
         mkdir -p "${CONFIG_DIR}"
       fi
@@ -75,11 +75,11 @@ _common_add_to_profile() {
 
   touch "${PROFILE_FILE}"
 
-  if grep -qxF "${LINE}" "${PROFILE_FILE}";then
+  if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
     echo "${BIN_DIR} was already present in ${PROFILE_NAME}"
   else
     STATUS=$? 
-    if [ "${STATUS}" -ne 1 ];then
+    if [ "${STATUS}" -ne 1 ]; then
       exit "${STATUS}"
     fi
     DATE_STRING="$(date '+%Y-%m-%d')"
@@ -87,11 +87,11 @@ _common_add_to_profile() {
       "${DATE_STRING}" "${LINE}" >> "${PROFILE_FILE}"
 
     # just do the same check again!
-    if grep -qxF "${LINE}" "${PROFILE_FILE}";then
+    if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
       echo "Added install dir to PATH in ${PROFILE_FILE}"
     else
       STATUS=$? 
-      if [ "${STATUS}" -ne 1 ];then
+      if [ "${STATUS}" -ne 1 ]; then
         exit "${STATUS}"
       fi
       echo "Updatng PATH via ${PROFILE_NAME} failed!"
@@ -103,7 +103,7 @@ _common_prompt_to_update_path() {
   PATH_PRESENTED=false
   PATH_SET=false
 
-  if [ -w  "${HOME}" ];then
+  if [ -w  "${HOME}" ]; then
     PARENT_SHELL="$(ps -p "${PPID}" -o command=)"
     PARENT_SHELL=${PARENT_SHELL##*/}
     PARENT_SHELL=${PARENT_SHELL%% *}
@@ -111,11 +111,11 @@ _common_prompt_to_update_path() {
       zsh)
         ZPROFILE_FILE="${HOME}/.zprofile"
         ZPROFILE_NAME=${ZPROFILE_FILE##*/}
-        if [ ! -e "${ZPROFILE_FILE}" ] || [ -w "${ZPROFILE_FILE}" ];then
+        if [ ! -e "${ZPROFILE_FILE}" ] || [ -w "${ZPROFILE_FILE}" ]; then
           printf "Add %s to PATH via ${ZPROFILE_NAME} (Y/n)? " "${BIN_DIR}"
           PATH_PRESENTED=true
           read -r ANSWER_ZPROFILE
-          if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ];then
+          if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ]; then
             echo "Not updating ${ZPROFILE_NAME}"
           else
             _common_add_to_profile "${ZPROFILE_FILE}" "${ZPROFILE_NAME}"
@@ -127,11 +127,11 @@ _common_prompt_to_update_path() {
         FISH_CONFIG_FILE="${HOME}/.config/fish/conf.d/imandrax.fish"
         FISH_CONFIG_NAME=${FISH_CONFIG_FILE##*/}
         if [ ! -e "${FISH_CONFIG_FILE}" ] \
-            || [ -w "${FISH_CONFIG_FILE}" ];then
+            || [ -w "${FISH_CONFIG_FILE}" ]; then
           printf "Add %s to PATH via %s (Y/n)?" "${BIN_DIR}" "${FISH_CONFIG_FILE}"
           PATH_PRESENTED=true
           read -r ANSWER_FISH
-          if [ "${ANSWER_FISH}" != "${ANSWER_FISH#[Nn]}" ];then
+          if [ "${ANSWER_FISH}" != "${ANSWER_FISH#[Nn]}" ]; then
             echo "Not updating ${FISH_CONFIG_NAME}"
           else
           _common_add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}"
@@ -142,11 +142,11 @@ _common_prompt_to_update_path() {
       *)
         PROFILE_FILE="${HOME}/.profile"
         PROFILE_NAME=${PROFILE_FILE##*/}
-        if [ ! -e "${PROFILE_FILE}" ] || [ -w "${PROFILE_FILE}" ];then
+        if [ ! -e "${PROFILE_FILE}" ] || [ -w "${PROFILE_FILE}" ]; then
           printf "Add %s to PATH via .profile (Y/n)? " "${BIN_DIR}"
           PATH_PRESENTED=true
           read -r ANSWER_PROFILE
-          if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ];then
+          if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
             echo 'Not updating .profile'
           else
             _common_add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}"
@@ -157,7 +157,7 @@ _common_prompt_to_update_path() {
     esac
   fi
   if ! "${PATH_PRESENTED}" || ! "${PATH_SET}"; then
-    if ! "${PATH_PRESENTED}";then
+    if ! "${PATH_PRESENTED}"; then
       echo "We couldn't write to .profile or .zprofile."
     fi
     echo "You should add ${BIN_DIR} to your PATH."
@@ -174,7 +174,7 @@ _linux_extract_files() {
   TMP_FILE=$2
 
   cd "${TMP_DIR}"
-  if ! [ -d "${BIN_DIR}" ];then 
+  if ! [ -d "${BIN_DIR}" ]; then 
     echo "Creating ${BIN_DIR}"
     mkdir -p "${BIN_DIR}"
   fi
@@ -222,7 +222,7 @@ _macos_extract_files() {
   cd "${TMP_DIR}"
   bsdtar xzf "${TMP_FILE}"
   echo "Extracted outer tarball in-place"
-  if ! [ -d "${INSTALL_PREFIX}" ];then 
+  if ! [ -d "${INSTALL_PREFIX}" ]; then 
     echo "Creating ${INSTALL_PREFIX}"
     mkdir -p "${INSTALL_PREFIX}"
   fi
