@@ -106,19 +106,6 @@ _common_prompt_to_update_path() {
 
   if [ -w  "${HOME}" ]; then
     case "${SHELL:-}" in
-      '/bin/bash'*)
-        if [ ! -e "${HOME}/.profile" ] || [ -w "${HOME}/.profile" ];then
-          printf "Add %s to PATH via .profile (Y/n)? " "${BIN_DIR}"
-          PATH_PRESENTED=true
-          read -r ANSWER_PROFILE
-          if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ];then
-            echo 'Not updating .profile'
-          else
-            _common_add_to_profile ".profile"
-            PATH_SET=true
-          fi
-        fi
-      ;;
       '/bin/zsh'*)
         if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
           printf "Add %s to PATH via .zprofile (Y/n)? " "${BIN_DIR}"
@@ -133,6 +120,18 @@ _common_prompt_to_update_path() {
         fi
       ;;
       *)
+        if [ ! -e "${HOME}/.profile" ] || [ -w "${HOME}/.profile" ];then
+          printf "Add %s to PATH via .profile (Y/n)? " "${BIN_DIR}"
+          PATH_PRESENTED=true
+          read -r ANSWER_PROFILE
+          if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ];then
+            echo 'Not updating .profile'
+          else
+            _common_add_to_profile ".profile"
+            PATH_SET=true
+          fi
+        fi
+      ;;
     esac
   fi
   if ! "${PATH_PRESENTED}" || ! "${PATH_SET}"; then
