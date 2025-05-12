@@ -67,15 +67,10 @@ _common_check_files_present() {
     _fail "Some files failed to install, aborting."
   fi
 }
-
-_common_fish_add_to_config() {
-  _fail todo
-}
-
 _common_add_to_profile() {
-  PROFILE_NAME=$1
+  PROFILE_FILE=$1
+  PROFILE_NAME=$2
 
-  PROFILE_FILE="${HOME}/${PROFILE_NAME}"
   LINE="export PATH=\"${BIN_DIR}:\$PATH\""
 
   touch "${PROFILE_FILE}"
@@ -112,42 +107,47 @@ _common_prompt_to_update_path() {
     SHELL="${SHELL:-}"
     case ${SHELL##*/} in
       zsh)
-        if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
-          printf "Add %s to PATH via .zprofile (Y/n)? " "${BIN_DIR}"
+        ZPROFILE_FILE="${HOME}/.zprofile"
+        ZPROFILE_NAME=${ZPROFILE_FILE##*/}
+        if [ ! -e "${ZPROFILE_FILE}" ] || [ -w "${ZPROFILE_FILE}" ];then
+          printf "Add %s to PATH via ${ZPROFILE_NAME} (Y/n)? " "${BIN_DIR}"
           PATH_PRESENTED=true
           read -r ANSWER_ZPROFILE
           if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ];then
-            echo 'Not updating .zprofile'
+            echo "Not updating ${ZPROFILE_NAME}"
           else
-            _common_add_to_profile ".zprofile"
+            _common_add_to_profile "${ZPROFILE_FILE}" "${ZPROFILE_NAME}"
             PATH_SET=true
           fi
         fi
       ;;
       fish)
         FISH_CONFIG_FILE="${HOME}/.config/fish/conf.d/imandrax.fish"
+        FISH_CONFIG_NAME=${FISH_CONFIG_FILE##*/}
         if [ ! -e "${FISH_CONFIG_FILE}" ] \
             || [ -w "${FISH_CONFIG_FILE}" ];then
           printf "Add %s to PATH via %s (Y/n)?" "${BIN_DIR}" "${FISH_CONFIG_FILE}"
           PATH_PRESENTED=true
           read -r ANSWER_FISH
           if [ "${ANSWER_FISH}" != "${ANSWER_FISH#[Nn]}" ];then
-            echo "Not updating ${FISH_CONFIG_FILE}"
+            echo "Not updating ${FISH_CONFIG_NAME}"
           else
-            _common_fish_add_to_config "${FISH_CONFIG_FILE}"
+          _common_add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}"
             PATH_SET=true
           fi
         fi
       ;;
       *)
-        if [ ! -e "${HOME}/.profile" ] || [ -w "${HOME}/.profile" ];then
+        PROFILE_FILE="${HOME}/.profile"
+        PROFILE_NAME=${PROFILE_FILE##*/}
+        if [ ! -e "${PROFILE_FILE}" ] || [ -w "${PROFILE_FILE}" ];then
           printf "Add %s to PATH via .profile (Y/n)? " "${BIN_DIR}"
           PATH_PRESENTED=true
           read -r ANSWER_PROFILE
           if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ];then
             echo 'Not updating .profile'
           else
-            _common_add_to_profile ".profile"
+            _common_add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}"
             PATH_SET=true
           fi
         fi
