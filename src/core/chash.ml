@@ -32,7 +32,7 @@ type 'a hasher = builder -> 'a -> unit
 let[@inline] new_hash_ () : Cryptokit.hash = H.blake2b n_bits_
 
 let new_builder_ () : builder =
-  { h = new_hash_ (); buf = Bytes.create 1024; off = 0 }
+  { h = new_hash_ (); buf = Bytes.create 512; off = 0 }
 
 let[@inline] to_bin (x : t) : string = (x :> string)
 
@@ -110,7 +110,10 @@ let[@inline] char self x =
 
 let string (self : builder) (str : string) =
   let len = String.length str in
-  if len < Bytes.length self.buf then (
+  if self.off = 0 then
+    (* bypass buf *)
+    self.h#add_string str
+  else if len < Bytes.length self.buf then (
     reserve_ self len;
     Bytes.blit_string str 0 self.buf self.off len;
     self.off <- self.off + len
@@ -132,7 +135,7 @@ let sub_hash (self : builder) (x : t) =
 (* store sign, then bits *)
 let z self x =
   bool self (Z.sign x >= 0);
-  self.h#add_string (Z.to_bits x)
+  string self (Z.to_bits x)
 
 let q b x =
   z b (Q.num x);
