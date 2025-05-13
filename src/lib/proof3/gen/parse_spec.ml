@@ -38,7 +38,6 @@ let meta_type_of_yojson j =
 
 type type_ = {
   name: string;
-  doc: string;
   ml: string;  (** ocaml name *)
 }
 [@@deriving show { with_path = false }, of_yojson]
@@ -90,5 +89,7 @@ let spec : t =
     | Error res -> failwith res
   in
   match of_yojson j with
-  | Ok s -> s
+  | Ok s ->
+    (* Format.eprintf "spec: %a@." pp s; *)
+    s
   | Error msg -> failwith @@ spf "Could not parse spec: %s" msg

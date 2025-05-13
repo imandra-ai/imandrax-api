@@ -41,42 +41,34 @@
   "types": [
     {
       "name": "Const",
-      "doc": "A literal constant (integer, float, etc.).",
       "ml": "Imandrax_api.Const.t"
     },
     {
       "name": "Var",
-      "doc": "A term variable.",
       "ml": "Imandrax_api_mir.Var.t"
     },
     {
       "name": "FunDef",
-      "doc": "A reference to a function or constant symbol.",
       "ml": "Imandrax_api_mir.Fun_def.t"
     },
     {
       "name": "TypeDef",
-      "doc": "A reference to a type definition.",
       "ml": "Imandrax_api_mir.Type.def"
     },
     {
       "name": "Term",
-      "doc": "A term.",
       "ml": "Imandrax_api_mir.Term.t"
     },
     {
       "name": "Type",
-      "doc": "A type.",
       "ml": "Imandrax_api_mir.Type.t"
     },
     {
       "name": "Sequent",
-      "doc": "A classical clause made of terms.",
       "ml": "Imandrax_api_mir.Sequent.t"
     },
     {
       "name": "DeepSequent",
-      "doc": "A deep sequent (sequent-of-sequents), with one conclusion and a list of premises.",
       "ml": "Deep_sequent.t"
     }
   ],
@@ -528,10 +520,10 @@
       },
       "doc": "Takes last step `A |- B`, a list of assumptions `C1…Cn` \
 used to prove that last step, \
-and returns concl=`C1…Cn ||- (A |- B)`. \n\
+and returns concl=`C1…Cn ||- (A |- B)`.\n\
 \n\
 The assumptions are the ones introduced via {!Assume} \
-in the proof tree of [last_step]. For example in a tactic \
+in the proof tree of [last_step].\nFor example in a tactic \
 term that proves `G |- A /\\ B` from proofs of `G |- A` \
 and `G |- B`, we might use a deep intro to prove \
 ` (G |- A), (G |- B) ||- (G |- A/\\B) ` \

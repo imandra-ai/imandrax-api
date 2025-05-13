@@ -254,7 +254,7 @@ and deep_proof_step =
       assumptions: Imandrax_api_mir.Sequent.t list;
       last_step: proof_step offset_for
     }
-    (** Takes last step [A |- B], a list of assumptions [C1…Cn] used to prove that last step, and returns concl=[C1…Cn ||- (A |- B)]. \n\nThe assumptions are the ones introduced via {!Assume} in the proof tree of [last_step]. For example in a tactic term that proves [G |- A /\ B] from proofs of [G |- A] and [G |- B], we might use a deep intro to prove [ (G |- A), (G |- B) ||- (G |- A/\B) ] by proving [G |- A/\B] (as [last_step]) with a proof tree that contains [Assume] steps for [G |- A] and [G |- B]. *)
+    (** Takes last step [A |- B], a list of assumptions [C1…Cn] used to prove that last step, and returns concl=[C1…Cn ||- (A |- B)].\n\nThe assumptions are the ones introduced via {!Assume} in the proof tree of [last_step].\nFor example in a tactic term that proves [G |- A /\ B] from proofs of [G |- A] and [G |- B], we might use a deep intro to prove [ (G |- A), (G |- B) ||- (G |- A/\B) ] by proving [G |- A/\B] (as [last_step]) with a proof tree that contains [Assume] steps for [G |- A] and [G |- B]. *)
   | Deep_subst of {
       concl: Deep_sequent.t;
       p: deep_proof_step offset_for;
