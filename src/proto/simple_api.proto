@@ -69,6 +69,8 @@ message DecomposeReq {
   optional LiftBool lift_bool = 8;
 
   optional bool str = 9;
+
+  optional int32 timeout = 10;
 }
 
 // Result of a decomposition

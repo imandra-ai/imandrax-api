@@ -9,6 +9,7 @@ type ('term, 'ty) t_poly = {
   db: ('term, 'ty) Imandrax_api_common.Db_ser.t_poly;
   decomp: 'term decomp_poly;
   anchor: Imandrax_api.Anchor.t;
+  timeout: int option;
 }
 [@@deriving show { with_path = false }, twine, typereg]
 
