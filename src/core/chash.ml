@@ -23,15 +23,36 @@ let _of_bin x : t =
 
 type builder = {
   h: Cryptokit.hash;
-  buf8: bytes;  (** 8B buffer *)
+  buf: bytes;  (** Buffer to accumulate bytes, at least 8 bytes long *)
+  mutable off: int;  (** Offset in [buf] *)
 }
 
 type 'a hasher = builder -> 'a -> unit
 
 let[@inline] new_hash_ () : Cryptokit.hash = H.blake2b n_bits_
-let new_builder_ () : builder = { h = new_hash_ (); buf8 = Bytes.create 8 }
+
+let new_builder_ () : builder =
+  { h = new_hash_ (); buf = Bytes.create 1024; off = 0 }
+
 let[@inline] to_bin (x : t) : string = (x :> string)
-let[@inline] finalize (self : builder) = self.h#result |> _of_bin
+
+let[@inline never] flush_buf_ (self : builder) : unit =
+  if self.off > 0 then (
+    self.h#add_substring self.buf 0 self.off;
+    self.off <- 0
+  )
+
+let finalize (self : builder) =
+  flush_buf_ self;
+  self.h#result |> _of_bin
+
+let[@inline] available_ (self : builder) : int =
+  Bytes.length self.buf - self.off - 1
+
+(** Reserve [n] bytes of space *)
+let[@inline] reserve_ (self : builder) (n : int) =
+  assert (n < Bytes.length self.buf);
+  if available_ self < n then flush_buf_ self
 
 let to_string (s : t) =
   Base64.encode_exn ~alphabet:Base64.uri_safe_alphabet ~pad:false (s :> string)
@@ -62,24 +83,51 @@ let make (c : 'a hasher) (x : 'a) : t =
   finalize ctx
 
 let[@inline] int64 self x =
-  Bytes.set_int64_le self.buf8 0 x;
-  self.h#add_substring self.buf8 0 8
+  reserve_ self 8;
+  Bytes.set_int64_le self.buf self.off x;
+  self.off <- self.off + 8
 
 let[@inline] int (self : builder) x = int64 self (Int64.of_int x)
 
 let[@inline] int32 self x =
-  Bytes.set_int32_le self.buf8 0 x;
-  self.h#add_substring self.buf8 0 4
+  reserve_ self 4;
+  Bytes.set_int32_le self.buf self.off x;
+  self.off <- self.off + 4
 
 let[@inline] nativeint self x = int64 self (Int64.of_nativeint x)
 
-external int_of_bool_ : bool -> int = "%identity"
+external char_of_bool_ : bool -> char = "%identity"
 
-let[@inline] bool self x = self.h#add_byte (int_of_bool_ x)
-let[@inline] char self x = self.h#add_char x
-let[@inline] string self x = self.h#add_string x
+let[@inline] bool self x =
+  reserve_ self 1;
+  Bytes.set self.buf self.off (char_of_bool_ x);
+  self.off <- self.off + 1
+
+let[@inline] char self x =
+  reserve_ self 1;
+  Bytes.set self.buf self.off x;
+  self.off <- self.off + 1
+
+let string (self : builder) (str : string) =
+  let len = String.length str in
+  if len < Bytes.length self.buf then (
+    reserve_ self len;
+    Bytes.blit_string str 0 self.buf self.off len;
+    self.off <- self.off + len
+  ) else (
+    (* write what we have and pass [s] directly to hasher *)
+    flush_buf_ self;
+    self.h#add_string str
+  )
+
 let[@inline] float self x = int64 self (Int64.bits_of_float x)
-let sub_hash self (x : t) = self.h#add_string (to_bin x)
+
+let sub_hash (self : builder) (x : t) =
+  let str = to_bin x in
+  let n = String.length str in
+  reserve_ self n;
+  Bytes.blit_string str 0 self.buf self.off n;
+  self.off <- self.off + n
 
 (* store sign, then bits *)
 let z self x =
