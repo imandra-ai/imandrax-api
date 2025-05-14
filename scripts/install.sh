@@ -119,7 +119,7 @@ _prompt_to_update_path() {
         ZPROFILE_FILE="${HOME}/.zprofile"
         ZPROFILE_NAME=${ZPROFILE_FILE##*/}
         if [ ! -e "${ZPROFILE_FILE}" ] || [ -w "${ZPROFILE_FILE}" ]; then
-          printf "Add %s to PATH via ${ZPROFILE_NAME} (Y/n)? " "${BIN_DIR}"
+          printf "Add ${BIN_DIR} to PATH via ${ZPROFILE_NAME} (Y/n)? "
           PATH_PRESENTED=true
           read -r ANSWER_ZPROFILE
           if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ]; then
