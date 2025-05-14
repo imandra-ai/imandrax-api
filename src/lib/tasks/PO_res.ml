@@ -87,6 +87,7 @@ type ('term, 'ty) full_poly = {
     [@printer In_mem_archive.pp ()]);
       (** The report, when it's not serialized it's stored compressed in memory.
       *)
+      (* proof3: _; *)
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 

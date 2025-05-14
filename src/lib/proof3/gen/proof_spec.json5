@@ -518,7 +518,7 @@
         ],
         "last_step": "ProofStep"
       },
-      "doc": "Takes last step `A |- B`, a list of assumptions `C1…Cn` \
+      "doc": "(* remove? *)Takes last step `A |- B`, a list of assumptions `C1…Cn` \
 used to prove that last step, \
 and returns concl=`C1…Cn ||- (A |- B)`.\n\
 \n\
