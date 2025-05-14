@@ -13,6 +13,7 @@ type ('term, 'ty) t_poly = {
   timeout: int option;  (** Timeout *)
   upto: Imandrax_api.Upto.t option;
       (** For a [verify] statement, can be used for bounded verification *)
+  trace_options: Imandrax_api.Trace_options.t;  (** trace/proof options *)
 }
 [@@deriving show { with_path = false }, twine, typereg, map, iter]
 (** Proof obligation.

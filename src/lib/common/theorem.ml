@@ -9,6 +9,7 @@ type ('term, 'ty) t_poly = {
   thm_triggers: 'term Pre_trigger.t_poly list;
   thm_is_axiom: bool;
   thm_by: 'ty Var.t_poly list * 'term;
+  thm_trace_options: Imandrax_api.Trace_options.t;
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 (** A theorem, entered with [theorem foo x y = <formula using x,y>] *)
