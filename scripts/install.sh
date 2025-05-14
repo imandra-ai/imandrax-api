@@ -68,12 +68,16 @@ _add_to_profile() {
   PROFILE_FILE=$1
   PROFILE_NAME=$2
 
+  echo 'here we are'
+  echo 'get optional path string'
   OPTIONAL_PATH_STRING=${3:-}
   if [ -z "${OPTIONAL_PATH_STRING}" ]; then
     LINE="export PATH=\"${BIN_DIR}:\$PATH\""
   else
     LINE=$3
   fi
+  
+  echo ${LINE}
 
   touch "${PROFILE_FILE}"
 
@@ -99,6 +103,7 @@ _add_to_profile() {
       echo "Updatng PATH via ${PROFILE_NAME} failed!"
     fi
   fi
+  echo 'we made it to the end without exiting'
 }
 
 _prompt_to_update_path() {
@@ -146,12 +151,13 @@ _prompt_to_update_path() {
         PROFILE_FILE="${HOME}/.profile"
         PROFILE_NAME=${PROFILE_FILE##*/}
         if [ ! -e "${PROFILE_FILE}" ] || [ -w "${PROFILE_FILE}" ]; then
-          printf "Add %s to PATH via .profile (Y/n)? " "${BIN_DIR}"
+          printf "Add %s to PATH via ${PROFILE_NAME} (Y/n)? " "${BIN_DIR}"
           PATH_PRESENTED=true
           read -r ANSWER_PROFILE
           if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
-            echo 'Not updating .profile'
+            echo "Not updating ${PROFILE_NAME}"
           else
+            echo 'lets add it then!'
             _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}"
             PATH_SET=true
           fi
