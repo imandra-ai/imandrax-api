@@ -82,7 +82,7 @@ _add_to_profile() {
   else
     STATUS=$? 
     if [ "${STATUS}" -ne 1 ]; then
-      _fail "failed to add to PATH ${STATUS}"
+      exit "${STATUS}"
     fi
     DATE_STRING="$(date '+%Y-%m-%d')"
     printf "\n# Added by ImandraX installer on %s\n%s\n" \
@@ -94,7 +94,7 @@ _add_to_profile() {
     else
       STATUS=$? 
       if [ "${STATUS}" -ne 1 ]; then
-        _fail "failed to add to PATH: ${STATUS}"
+        exit "${STATUS}"
       fi
       echo "Updatng PATH via ${PROFILE_NAME} failed!"
     fi
