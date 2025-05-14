@@ -195,7 +195,7 @@ _linux_extract_files() {
   echo "Extracted tarball to ${EXTRACT_DIR}"
 
   mkdir -p "${BIN_DIR}"
-  cp -af "${EXTRACT_DIR}/." "${BIN_DIR}"
+  cp -f "${EXTRACT_DIR}/." "${BIN_DIR}"
   echo "Files copied to ${INSTALL_PREFIX}"
 }
 
