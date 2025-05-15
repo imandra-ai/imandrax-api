@@ -13,6 +13,7 @@ set +u
 if [ "${INSTALL_PREFIX}" = "" ]; then
   INSTALL_PREFIX="${HOME}/.local"
 fi
+BIN_DIR="${INSTALL_PREFIX}/bin"
 if [ "${VERSION}" = "" ]; then
   VERSION="latest"
 fi
@@ -25,38 +26,15 @@ _fail() {
   exit 1
 }
 
-install_linux() {
-  ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
-
-  echo "installing in '${INSTALL_PREFIX}/bin/' …"
-
-  BIN_DIR="${INSTALL_PREFIX}/bin"
-  TMP_FILE="${TMPDIR:-/tmp}/imandrax-linux-x86_64.tar.gz"
-
-  mkdir -p "${BIN_DIR}"
-
-  echo "downloading from ${ARCHIVE}"
-  wget "${ARCHIVE}" -O "${TMP_FILE}"
-  echo "downloaded to ${TMP_FILE}"
-  cd "${TMPDIR:-/tmp}"
-  tar xvf "${TMP_FILE}"
-  echo "using sudo to copy files"
-  sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/imandrax-cli"
-  sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/imandrax-ws-client"
-  sudo install -t "${BIN_DIR}/" "${TMPDIR:-/tmp}/tldrs"
-}
-
-_install_macos_prompt_for_api_key() {
-  # ~/.config/imandrax/api_key
-  CONFIG_DIR=$1
-  
+_prompt_for_api_key() {
+  CONFIG_DIR="${HOME}/.config/imandrax"
   API_KEY_PATH="${CONFIG_DIR}/api_key"
   WORKING_DIR=${CONFIG_DIR}
 
   if [ ! -e "${API_KEY_PATH}" ]; then
     while [ ! -d "${WORKING_DIR}" ]; do
       WORKING_DIR=$(dirname -- "${WORKING_DIR}")
-    done       
+    done
   fi
 
   if [ -w "${WORKING_DIR}" ]; then
@@ -66,7 +44,7 @@ _install_macos_prompt_for_api_key() {
     if [ -z "${ANSWER_API_KEY}" ]; then
       echo "Skipped setting API key (make sure to set this yourself later in ${API_KEY_PATH}"
     else
-      if ! [ -d "${CONFIG_DIR}" ];then
+      if ! [ -d "${CONFIG_DIR}" ]; then
         echo "Creating ${CONFIG_DIR}"
         mkdir -p "${CONFIG_DIR}"
       fi
@@ -78,9 +56,7 @@ _install_macos_prompt_for_api_key() {
   fi
 }
 
-_install_macos_check_files_present() {
-  INSTALL_PREFIX=$1
-
+_check_files_present() {
   if [ ! -x "${INSTALL_PREFIX}/bin/imandrax-cli" ] || \
       [ ! -x "${INSTALL_PREFIX}/bin/imandrax-ws-client" ] || \
       [ ! -x "${INSTALL_PREFIX}/bin/tldrs" ]; then
@@ -88,20 +64,28 @@ _install_macos_check_files_present() {
   fi
 }
 
-_install_macos_add_to_profile() {
-  BIN_DIR=$1
+_add_to_profile() {
+  PROFILE_FILE=$1
   PROFILE_NAME=$2
 
-  PROFILE_FILE="${HOME}/${PROFILE_NAME}"
-  LINE="export PATH=\"${BIN_DIR}:\$PATH\""
+  echo 'here we are'
+  echo 'get optional path string'
+  OPTIONAL_PATH_STRING=${3:-}
+  if [ -z "${OPTIONAL_PATH_STRING}" ]; then
+    LINE="export PATH=\"${BIN_DIR}:\$PATH\""
+  else
+    LINE=$3
+  fi
+  
+  echo "${LINE}"
 
   touch "${PROFILE_FILE}"
 
-  if grep -qxF "${LINE}" "${PROFILE_FILE}";then
+  if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
     echo "${BIN_DIR} was already present in ${PROFILE_NAME}"
   else
     STATUS=$? 
-    if [ "${STATUS}" -ne 1 ];then
+    if [ "${STATUS}" -ne 1 ]; then
       exit "${STATUS}"
     fi
     DATE_STRING="$(date '+%Y-%m-%d')"
@@ -113,48 +97,76 @@ _install_macos_add_to_profile() {
       echo "Added install dir to PATH in ${PROFILE_FILE}"
     else
       STATUS=$? 
-      if [ "${STATUS}" -ne 1 ];then
+      if [ "${STATUS}" -ne 1 ]; then
         exit "${STATUS}"
       fi
       echo "Updatng PATH via ${PROFILE_NAME} failed!"
     fi
   fi
+  echo 'we made it to the end without exiting'
 }
 
-_install_macos_prompt_to_update_path() {
-  INSTALL_PREFIX=$1
-
-  BIN_DIR="${INSTALL_PREFIX}/bin"
+_prompt_to_update_path() {
   PATH_PRESENTED=false
   PATH_SET=false
 
   if [ -w  "${HOME}" ]; then
-    if [ ! -e "${HOME}/.zprofile" ] || [ -w "${HOME}/.zprofile" ];then
-      printf "Add %s to PATH via .zprofile (Y/n)? " "${BIN_DIR}"
-      PATH_PRESENTED=true
-      read -r ANSWER_ZPROFILE
-      if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ];then
-        echo 'Not updating .zprofile'
-      else
-        _install_macos_add_to_profile "${BIN_DIR}" ".zprofile"
-        PATH_SET=true
-      fi
-    fi
-
-    if [ ! -e "${HOME}/.profile" ] || [ -w "${HOME}/.profile" ];then
-      printf "Add %s to PATH via .profile (Y/n)? " "${BIN_DIR}"
-      PATH_PRESENTED=true
-      read -r ANSWER_PROFILE
-      if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ];then
-        echo 'Not updating .profile'
-      else
-        _install_macos_add_to_profile "${BIN_DIR}" ".profile"
-        PATH_SET=true
-      fi
-    fi
+    PARENT_SHELL="$(ps -p "${PPID}" -o command=)"
+    PARENT_SHELL=${PARENT_SHELL##*/}
+    PARENT_SHELL=${PARENT_SHELL%% *}
+    case ${PARENT_SHELL} in
+      zsh)
+        ZPROFILE_FILE="${HOME}/.zprofile"
+        ZPROFILE_NAME=${ZPROFILE_FILE##*/}
+        if [ ! -e "${ZPROFILE_FILE}" ] || [ -w "${ZPROFILE_FILE}" ]; then
+          printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${ZPROFILE_NAME}"
+          PATH_PRESENTED=true
+          read -r ANSWER_ZPROFILE
+          if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ]; then
+            echo "Not updating ${ZPROFILE_NAME}"
+          else
+            _add_to_profile "${ZPROFILE_FILE}" "${ZPROFILE_NAME}"
+            PATH_SET=true
+          fi
+        fi
+      ;;
+      fish)
+        FISH_CONFIG_FILE="${HOME}/.config/fish/conf.d/imandrax.fish"
+        FISH_CONFIG_NAME=${FISH_CONFIG_FILE##*/}
+        if [ ! -e "${FISH_CONFIG_FILE}" ] \
+            || [ -w "${FISH_CONFIG_FILE}" ]; then
+          printf "Add %s to PATH via %s (Y/n)?" "${BIN_DIR}" "${FISH_CONFIG_FILE}"
+          PATH_PRESENTED=true
+          read -r ANSWER_FISH
+          if [ "${ANSWER_FISH}" != "${ANSWER_FISH#[Nn]}" ]; then
+            echo "Not updating ${FISH_CONFIG_NAME}"
+          else
+            _add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}" \
+                "fish_add_path --global ${BIN_DIR}"
+            PATH_SET=true
+          fi
+        fi
+      ;;
+      *)
+        PROFILE_FILE="${HOME}/.profile"
+        PROFILE_NAME=${PROFILE_FILE##*/}
+        if [ ! -e "${PROFILE_FILE}" ] || [ -w "${PROFILE_FILE}" ]; then
+          printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${PROFILE_NAME}"
+          PATH_PRESENTED=true
+          read -r ANSWER_PROFILE
+          if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
+            echo "Not updating ${PROFILE_NAME}"
+          else
+            echo 'lets add it then!'
+            _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}"
+            PATH_SET=true
+          fi
+        fi
+      ;;
+    esac
   fi
   if ! "${PATH_PRESENTED}" || ! "${PATH_SET}"; then
-    if ! "${PATH_PRESENTED}";then
+    if ! "${PATH_PRESENTED}"; then
       echo "We couldn't write to .profile or .zprofile."
     fi
     echo "You should add ${BIN_DIR} to your PATH."
@@ -162,15 +174,66 @@ _install_macos_prompt_to_update_path() {
   echo ''
 }
 
-_install_macos_extract_files() {
+#
+# Linux
+#
+
+_linux_extract_files() {
   TMP_DIR=$1
   TMP_FILE=$2
-  INSTALL_PREFIX=$3
+
+  EXTRACT_DIR="${TMP_DIR}/imandrax-installer"
+
+  cd "${TMP_DIR}"
+  if ! [ -d "${BIN_DIR}" ]; then 
+    echo "Creating ${BIN_DIR}"
+    mkdir -p "${BIN_DIR}"
+  fi
+
+  mkdir -p "${EXTRACT_DIR}"
+  tar xvf "${TMP_FILE}" -C "${EXTRACT_DIR}"
+  echo "Extracted tarball to ${EXTRACT_DIR}"
+
+  mkdir -p "${BIN_DIR}"
+  cp -a -f "${EXTRACT_DIR}/." "${BIN_DIR}"
+  echo "Files copied to ${INSTALL_PREFIX}"
+}
+
+_linux_download_files() {
+  ARCHIVE=$1
+  TMP_FILE=$2
+
+  echo "Downloading ${ARCHIVE}"
+  wget "${ARCHIVE}" -O "${TMP_FILE}"
+  echo "Downloaded at ${TMP_FILE}"
+}
+
+linux_install() {
+  ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
+  TMP_DIR="${TMPDIR:-/tmp}"
+  TMP_FILE="${TMP_DIR}/imandrax-linux-x86_64.tar.gz"
+
+  _linux_download_files "${ARCHIVE}" "${TMP_FILE}"
+
+  _linux_extract_files "${TMP_DIR}" "${TMP_FILE}"
+
+  _check_files_present
+  _prompt_to_update_path
+  _prompt_for_api_key
+}
+
+#
+# MacOS
+#
+
+_macos_extract_files() {
+  TMP_DIR=$1
+  TMP_FILE=$2
 
   cd "${TMP_DIR}"
   bsdtar xzf "${TMP_FILE}"
   echo "Extracted outer tarball in-place"
-  if ! [ -d "${INSTALL_PREFIX}" ];then 
+  if ! [ -d "${INSTALL_PREFIX}" ]; then 
     echo "Creating ${INSTALL_PREFIX}"
     mkdir -p "${INSTALL_PREFIX}"
   fi
@@ -181,7 +244,7 @@ _install_macos_extract_files() {
   echo ''
 }
 
-_install_macos_download_files() {
+_macos_download_files() {
   ARCHIVE=$1
   TMP_FILE=$2
 
@@ -190,17 +253,14 @@ _install_macos_download_files() {
   echo "Downloaded at ${TMP_FILE}"
 }
 
-install_macos() {
-  VERSION=$1
-  INSTALL_PREFIX=$2
-
+macos_install() {
   FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
   ARCHIVE="${BUCKET_URL}/${FILENAME}"
   TMP_DIR="${TMPDIR:-/tmp}"
   TMP_FILE="${TMP_DIR}${FILENAME}"
 
-  _install_macos_download_files "${ARCHIVE}" "${TMP_FILE}"
-  _install_macos_extract_files "${TMP_DIR}" "${TMP_FILE}" "${INSTALL_PREFIX}"
+  _macos_download_files "${ARCHIVE}" "${TMP_FILE}"
+  _macos_extract_files "${TMP_DIR}" "${TMP_FILE}"
 
   # modify executable to find libs
   sed -i'.backup' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
@@ -209,21 +269,9 @@ install_macos() {
   # clean up temp files
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
 
-  _install_macos_check_files_present "${INSTALL_PREFIX}"
-  _install_macos_prompt_to_update_path "${INSTALL_PREFIX}"
-
-  CONFIG_DIR="${HOME}/.config/imandrax"
-
-  _install_macos_prompt_for_api_key "${CONFIG_DIR}"
-
-  cat << EOF
-***********************
-* Installed ImandraX! *
-***********************
-
-See the docs for more info:
-https://docs.imandra.ai/imandrax/
-EOF
+  _check_files_present
+  _prompt_to_update_path
+  _prompt_for_api_key
 }
 
 cat << EOF
@@ -240,11 +288,19 @@ EOF
 # detect OS
 case "$(uname -s)" in
   Linux*)
-    install_linux
+    linux_install
     ;;
   Darwin*)
-    install_macos "${VERSION}" "${INSTALL_PREFIX}"
+    macos_install
     ;;
-  *)
-    _fail "unsupported OS";
+  *) _fail "unsupported OS";
 esac
+
+  cat << EOF
+***********************
+* Installed ImandraX! *
+***********************
+
+See the docs for more info:
+https://docs.imandra.ai/imandrax/
+EOF
