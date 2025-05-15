@@ -77,7 +77,7 @@ _add_to_profile() {
     LINE=$3
   fi
   
-  echo ${LINE}
+  echo "${LINE}"
 
   touch "${PROFILE_FILE}"
 
@@ -119,7 +119,7 @@ _prompt_to_update_path() {
         ZPROFILE_FILE="${HOME}/.zprofile"
         ZPROFILE_NAME=${ZPROFILE_FILE##*/}
         if [ ! -e "${ZPROFILE_FILE}" ] || [ -w "${ZPROFILE_FILE}" ]; then
-          printf "Add ${BIN_DIR} to PATH via ${ZPROFILE_NAME} (Y/n)? "
+          printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${ZPROFILE_NAME}"
           PATH_PRESENTED=true
           read -r ANSWER_ZPROFILE
           if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ]; then
@@ -151,7 +151,7 @@ _prompt_to_update_path() {
         PROFILE_FILE="${HOME}/.profile"
         PROFILE_NAME=${PROFILE_FILE##*/}
         if [ ! -e "${PROFILE_FILE}" ] || [ -w "${PROFILE_FILE}" ]; then
-          printf "Add %s to PATH via ${PROFILE_NAME} (Y/n)? " "${BIN_DIR}"
+          printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${PROFILE_NAME}"
           PATH_PRESENTED=true
           read -r ANSWER_PROFILE
           if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
