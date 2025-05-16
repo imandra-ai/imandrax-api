@@ -13,6 +13,10 @@ class type t = object
   method store1 : Key.t -> (unit -> string) -> unit
   (** Store a single k/v pair *)
 
+  method store_optional : Key.t -> string -> unit
+  (** Store a k/v pair optionally. The implementation can decide to add an
+      expiration date, use archival storage, or just drop this altogether. *)
+
   method flush : unit -> unit
   (** Flush into underlying storage, if relevant *)
 end
@@ -23,6 +27,7 @@ let[@inline] store_l (self : #t) (entries : _ list) : unit =
   if entries <> [] then store self (Iter.of_list entries)
 
 let[@inline] store1 (self : #t) k v : unit = self#store1 k v
+let[@inline] store_optional (self : #t) k v : unit = self#store_optional k v
 let[@inline] flush (self : #t) : unit = self#flush ()
 let pp out (self : #t) = Fmt.fprintf out "<cstore.writer %s>" self#name
 let show self = Fmt.to_string pp self
@@ -34,5 +39,6 @@ class dummy : t =
     method name = "dummy"
     method store1 _ _ = ()
     method store _ = ()
+    method store_optional _ _ = ()
     method flush () = ()
   end
