@@ -1,0 +1,24 @@
+(executable
+ (name mk_rules)
+ (modules mk_rules parse_spec spec_ codegen_md)
+ (flags :standard)
+ (preprocess
+  (pps ppx_deriving_yojson ppx_deriving.std))
+ (libraries containers yojson-five))
+
+(rule
+ (targets spec_.ml)
+ (deps
+  (:file proof_spec.json5))
+ (action
+  (with-stdout-to
+   %{targets}
+   (progn
+    (echo "let spec = {json|")
+    (cat %{file})
+    (echo "|json}")))))
+
+(install
+ (package imandrax-api)
+ (section share)
+ (files proof_spec.json))

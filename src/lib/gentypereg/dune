@@ -12,6 +12,7 @@
   imandrax-api.eval
   imandrax-api.report
   imandrax-api.proof
+  imandrax-api.proof3
   imandrax-api.tasks
   imandrax-api.artifact)
  (flags :standard -linkall))

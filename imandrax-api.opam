@@ -18,6 +18,7 @@ depends: [
   "imandrakit"
   "imandrakit-log"
   "imandrakit-io"
+  "yojson-five" {with-build}
   "pbrt" {>= "3.0"}
   "pbrt_yojson" {>= "3.0"}
   "ocaml-protoc" {>= "3.1.1" & with-dev-setup}

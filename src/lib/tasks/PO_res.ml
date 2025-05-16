@@ -73,6 +73,7 @@ type ('term, 'ty) shallow_poly = {
     [@printer In_mem_archive.pp ()]);
       (** The report, when it's not serialized it's stored compressed in memory.
       *)
+  trace_ptr: Proof3_trace_ptr.t option;  (** Trace of the proof, if present *)
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
@@ -87,6 +88,7 @@ type ('term, 'ty) full_poly = {
     [@printer In_mem_archive.pp ()]);
       (** The report, when it's not serialized it's stored compressed in memory.
       *)
+  trace_ptr: Proof3_trace_ptr.t option;  (** Trace of the proof, if present *)
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
