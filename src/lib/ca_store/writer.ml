@@ -13,7 +13,7 @@ class type t = object
   method store1 : Key.t -> (unit -> string) -> unit
   (** Store a single k/v pair *)
 
-  method store_optional : Key.t -> string -> unit
+  method store_optional : Key.t -> (unit -> string) -> unit
   (** Store a k/v pair optionally. The implementation can decide to add an
       expiration date, use archival storage, or just drop this altogether. *)
 
