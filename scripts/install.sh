@@ -19,6 +19,8 @@ if [ "${VERSION}" = "" ]; then
 fi
 set -u
 
+DEFAULT_LINE="export PATH=\"${BIN_DIR}:\$PATH\""
+
 _fail() {
   MSG=$1
 
@@ -31,18 +33,36 @@ _prompt_for_api_key() {
   API_KEY_PATH="${CONFIG_DIR}/api_key"
   WORKING_DIR=${CONFIG_DIR}
 
+  echo "Checking ${API_KEY_PATH}"
+
+  API_KEY_CONTENTS="$(tr -d '[:space:]' < "${API_KEY_PATH}")"
+  SHOULD_SKIP_WRITING_KEY=false
+  if [ -f "${API_KEY_PATH}" ] && [ -s "${API_KEY_PATH}" ]; then
+    if [ -n "${API_KEY_CONTENTS}" ]; then
+      echo "It looks like an API key is already configured."
+      printf "Do you want to enter a new key? This will overwrite the existing one. (y/N) "
+      read -r ANSWER_NEW_API_KEY
+      if [ "${ANSWER_NEW_API_KEY}" = "${ANSWER_NEW_API_KEY#[Yy]}" ]; then
+        echo "Not updating API key"
+        echo ""
+        SHOULD_SKIP_WRITING_KEY=true
+      fi
+    fi
+  fi
+
   if [ ! -e "${API_KEY_PATH}" ]; then
     while [ ! -d "${WORKING_DIR}" ]; do
       WORKING_DIR=$(dirname -- "${WORKING_DIR}")
     done
   fi
 
-  if [ -w "${WORKING_DIR}" ]; then
+  if [ -w "${WORKING_DIR}" ] && 
+      [ "${SHOULD_SKIP_WRITING_KEY}" != true ]; then
     echo "API keys are available here: ${API_KEYS_URL}."
     printf "You can paste your API key here or hit enter to skip and configure it yourself later: "
     read -r ANSWER_API_KEY
     if [ -z "${ANSWER_API_KEY}" ]; then
-      echo "Skipped setting API key (make sure to set this yourself later in ${API_KEY_PATH}"
+      echo "Skipped setting API key (make sure to set this yourself later)"
     else
       if ! [ -d "${CONFIG_DIR}" ]; then
         echo "Creating ${CONFIG_DIR}"
@@ -67,37 +87,27 @@ _check_files_present() {
 _add_to_profile() {
   PROFILE_FILE=$1
   PROFILE_NAME=$2
-
-  OPTIONAL_PATH_STRING=${3:-}
-  if [ -z "${OPTIONAL_PATH_STRING}" ]; then
-    LINE="export PATH=\"${BIN_DIR}:\$PATH\""
-  else
-    LINE=$3
-  fi
+  LINE=$3
 
   touch "${PROFILE_FILE}"
 
+  STATUS=$? 
+  if [ "${STATUS}" -ne 1 ]; then
+    exit "${STATUS}"
+  fi
+  DATE_STRING="$(date '+%Y-%m-%d')"
+  printf "\n# Added by ImandraX installer on %s\n%s\n" \
+    "${DATE_STRING}" "${LINE}" >> "${PROFILE_FILE}"
+
+  # just do the same check again!
   if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
-    echo "${BIN_DIR} is already present in ${PROFILE_NAME}"
+    echo "Added install dir to PATH in ${PROFILE_FILE}"
   else
     STATUS=$? 
     if [ "${STATUS}" -ne 1 ]; then
       exit "${STATUS}"
     fi
-    DATE_STRING="$(date '+%Y-%m-%d')"
-    printf "\n# Added by ImandraX installer on %s\n%s\n" \
-      "${DATE_STRING}" "${LINE}" >> "${PROFILE_FILE}"
-
-    # just do the same check again!
-    if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
-      echo "Added install dir to PATH in ${PROFILE_FILE}"
-    else
-      STATUS=$? 
-      if [ "${STATUS}" -ne 1 ]; then
-        exit "${STATUS}"
-      fi
-      echo "Updatng PATH via ${PROFILE_NAME} failed!"
-    fi
+    echo "Updatng PATH via ${PROFILE_NAME} failed!"
   fi
 }
 
@@ -114,14 +124,21 @@ _prompt_to_update_path() {
         ZPROFILE_FILE="${HOME}/.zprofile"
         ZPROFILE_NAME=${ZPROFILE_FILE##*/}
         if [ ! -e "${ZPROFILE_FILE}" ] || [ -w "${ZPROFILE_FILE}" ]; then
-          printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${ZPROFILE_NAME}"
-          PATH_PRESENTED=true
-          read -r ANSWER_ZPROFILE
-          if [ "${ANSWER_ZPROFILE}" != "${ANSWER_ZPROFILE#[Nn]}" ]; then
-            echo "Not updating ${ZPROFILE_NAME}"
-          else
-            _add_to_profile "${ZPROFILE_FILE}" "${ZPROFILE_NAME}"
+          LINE=${DEFAULT_LINE}
+          if grep -qxF "${LINE}" "${ZPROFILE_FILE}"; then
+            echo "${LINE} is already present in ${ZPROFILE_NAME}"
+            PATH_PRESENTED=true
             PATH_SET=true
+          else
+            printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${ZPROFILE_NAME}"
+            PATH_PRESENTED=true
+            read -r ANSWER_PROFILE
+            if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
+              echo "Not updating ${ZPROFILE_NAME}"
+            else
+              _add_to_profile "${ZPROFILE_FILE}" "${ZPROFILE_NAME}" "${LINE}"
+              PATH_SET=true
+            fi
           fi
         fi
       ;;
@@ -130,15 +147,21 @@ _prompt_to_update_path() {
         FISH_CONFIG_NAME=${FISH_CONFIG_FILE##*/}
         if [ ! -e "${FISH_CONFIG_FILE}" ] \
             || [ -w "${FISH_CONFIG_FILE}" ]; then
-          printf "Add %s to PATH via %s (Y/n)?" "${BIN_DIR}" "${FISH_CONFIG_FILE}"
-          PATH_PRESENTED=true
-          read -r ANSWER_FISH
-          if [ "${ANSWER_FISH}" != "${ANSWER_FISH#[Nn]}" ]; then
-            echo "Not updating ${FISH_CONFIG_NAME}"
-          else
-            _add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}" \
-                "fish_add_path --global ${BIN_DIR}"
+          LINE="fish_add_path --global ${BIN_DIR}"
+          if grep -qxF "${LINE}" "${FISH_CONFIG_FILE}"; then
+            echo "${LINE} is already present in ${FISH_CONFIG_NAME}"
+            PATH_PRESENTED=true
             PATH_SET=true
+          else
+            printf "Add %s to PATH via %s (Y/n)?" "${BIN_DIR}" "${FISH_CONFIG_FILE}"
+            PATH_PRESENTED=true
+            read -r ANSWER_FISH
+            if [ "${ANSWER_FISH}" != "${ANSWER_FISH#[Nn]}" ]; then
+              echo "Not updating ${FISH_CONFIG_NAME}"
+            else
+              _add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}" "${LINE}"
+              PATH_SET=true
+            fi
           fi
         fi
       ;;
@@ -146,15 +169,21 @@ _prompt_to_update_path() {
         PROFILE_FILE="${HOME}/.profile"
         PROFILE_NAME=${PROFILE_FILE##*/}
         if [ ! -e "${PROFILE_FILE}" ] || [ -w "${PROFILE_FILE}" ]; then
-          printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${PROFILE_NAME}"
-          PATH_PRESENTED=true
-          read -r ANSWER_PROFILE
-          if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
-            echo "Not updating ${PROFILE_NAME}"
-          else
-            echo 'lets add it then!'
-            _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}"
+          LINE=${DEFAULT_LINE}
+          if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
+            echo "${LINE} is already present in ${PROFILE_NAME}"
+            PATH_PRESENTED=true
             PATH_SET=true
+          else
+            printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${PROFILE_NAME}"
+            PATH_PRESENTED=true
+            read -r ANSWER_PROFILE
+            if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
+              echo "Not updating ${PROFILE_NAME}"
+            else
+              _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}" "${LINE}"
+              PATH_SET=true
+            fi
           fi
         fi
       ;;
@@ -164,7 +193,7 @@ _prompt_to_update_path() {
     if ! "${PATH_PRESENTED}"; then
       echo "We couldn't write to .profile or .zprofile."
     fi
-    echo "You should add ${BIN_DIR} to your PATH."
+    echo "Make sure to add ${BIN_DIR} to your PATH."
   fi
   echo ''
 }
