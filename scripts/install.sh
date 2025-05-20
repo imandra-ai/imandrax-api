@@ -6,19 +6,11 @@ set -eu
 # see: .github/workflows/main.yml in imandrax to see what the names are
 BUCKET_NAME="imandra-prod-imandrax-releases"
 BUCKET_URL="https://storage.googleapis.com/${BUCKET_NAME}"
-
 API_KEYS_URL="https://universe.imandra.ai/user/api-keys"
 
-set +u
-if [ "${INSTALL_PREFIX}" = "" ]; then
-  INSTALL_PREFIX="${HOME}/.local"
-fi
+INSTALL_PREFIX=${INSTALL_PREFIX:-"${HOME}/.local"}
 BIN_DIR="${INSTALL_PREFIX}/bin"
-if [ "${VERSION}" = "" ]; then
-  VERSION="latest"
-fi
-set -u
-
+VERSION=${VERSION:-"latest"}
 DEFAULT_LINE="export PATH=\"${BIN_DIR}:\$PATH\""
 
 _fail() {
