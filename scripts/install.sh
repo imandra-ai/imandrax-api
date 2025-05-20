@@ -74,8 +74,6 @@ _add_to_profile() {
   else
     LINE=$3
   fi
-  
-  echo "${LINE}"
 
   touch "${PROFILE_FILE}"
 
