@@ -96,7 +96,7 @@ _add_to_profile() {
     if [ "${STATUS}" -ne 1 ]; then
       exit "${STATUS}"
     fi
-    echo "Updatng PATH via ${PROFILE_NAME} failed!" >&2
+    echo "Updating PATH via ${PROFILE_NAME} failed!" >&2
   fi
 }
 
