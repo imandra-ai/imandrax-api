@@ -78,7 +78,7 @@ _add_to_profile() {
   touch "${PROFILE_FILE}"
 
   if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
-    echo "${BIN_DIR} was already present in ${PROFILE_NAME}"
+    echo "${BIN_DIR} is already present in ${PROFILE_NAME}"
   else
     STATUS=$? 
     if [ "${STATUS}" -ne 1 ]; then
