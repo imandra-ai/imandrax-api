@@ -91,10 +91,7 @@ _add_to_profile() {
 
   touch "${PROFILE_FILE}"
 
-  STATUS=$? 
-  if [ "${STATUS}" -ne 0 ]; then
-    exit "${STATUS}"
-  fi
+  
   DATE_STRING="$(date '+%Y-%m-%d')"
   printf "\n# Added by ImandraX installer on %s\n%s\n" \
     "${DATE_STRING}" "${LINE}" >> "${PROFILE_FILE}"
@@ -126,6 +123,10 @@ _update_path() {
       PATH_PRESENTED=true
       PATH_SET=true
     else
+      STATUS=$? 
+      if [ "${STATUS}" -ne 1 ]; then
+        exit "${STATUS}"
+      fi
       printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${PROFILE_NAME}" >&2
       PATH_PRESENTED=true
       read -r ANSWER_PROFILE
