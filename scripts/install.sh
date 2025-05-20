@@ -101,14 +101,44 @@ _add_to_profile() {
 
   # just do the same check again!
   if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
-    echo "Added install dir to PATH in ${PROFILE_FILE}"
+    echo "Added install dir to PATH in ${PROFILE_FILE}" >&2
   else
     STATUS=$? 
     if [ "${STATUS}" -ne 1 ]; then
       exit "${STATUS}"
     fi
-    echo "Updatng PATH via ${PROFILE_NAME} failed!"
+    echo "Updatng PATH via ${PROFILE_NAME} failed!" >&2
   fi
+}
+
+_update_path() {
+  PROFILE_FILE=$1
+  LINE=$2
+
+  PROFILE_NAME=${PROFILE_FILE##*/}
+  PATH_PRESENTED=false
+  PATH_SET=false
+
+  if [ ! -e "${PROFILE_FILE}" ] || [ -w "${PROFILE_FILE}" ]; then
+    LINE=${DEFAULT_LINE}
+    if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
+      echo "${LINE} is already present in ${PROFILE_NAME}" >&2
+      PATH_PRESENTED=true
+      PATH_SET=true
+    else
+      printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${PROFILE_NAME}" >&2
+      PATH_PRESENTED=true
+      read -r ANSWER_PROFILE
+      if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
+        echo "Not updating ${PROFILE_NAME}" >&2
+      else
+        _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}" "${LINE}"
+        PATH_SET=true
+      fi
+    fi
+  fi
+
+  echo "${PATH_PRESENTED}" "${PATH_SET}"
 }
 
 _prompt_to_update_path() {
@@ -122,70 +152,30 @@ _prompt_to_update_path() {
     case ${PARENT_SHELL} in
       zsh)
         ZPROFILE_FILE="${HOME}/.zprofile"
-        ZPROFILE_NAME=${ZPROFILE_FILE##*/}
-        if [ ! -e "${ZPROFILE_FILE}" ] || [ -w "${ZPROFILE_FILE}" ]; then
-          LINE=${DEFAULT_LINE}
-          if grep -qxF "${LINE}" "${ZPROFILE_FILE}"; then
-            echo "${LINE} is already present in ${ZPROFILE_NAME}"
-            PATH_PRESENTED=true
-            PATH_SET=true
-          else
-            printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${ZPROFILE_NAME}"
-            PATH_PRESENTED=true
-            read -r ANSWER_PROFILE
-            if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
-              echo "Not updating ${ZPROFILE_NAME}"
-            else
-              _add_to_profile "${ZPROFILE_FILE}" "${ZPROFILE_NAME}" "${LINE}"
-              PATH_SET=true
-            fi
-          fi
-        fi
+        LINE="${DEFAULT_LINE}"
+        RES=$(_update_path "${ZPROFILE_FILE}" "${LINE}")
+        # shellcheck disable=SC2086
+        set -- ${RES}
+        PATH_PRESENTED=$1
+        PATH_SET=$2
       ;;
       fish)
         FISH_CONFIG_FILE="${HOME}/.config/fish/conf.d/imandrax.fish"
-        FISH_CONFIG_NAME=${FISH_CONFIG_FILE##*/}
-        if [ ! -e "${FISH_CONFIG_FILE}" ] \
-            || [ -w "${FISH_CONFIG_FILE}" ]; then
-          LINE="fish_add_path --global ${BIN_DIR}"
-          if grep -qxF "${LINE}" "${FISH_CONFIG_FILE}"; then
-            echo "${LINE} is already present in ${FISH_CONFIG_NAME}"
-            PATH_PRESENTED=true
-            PATH_SET=true
-          else
-            printf "Add %s to PATH via %s (Y/n)?" "${BIN_DIR}" "${FISH_CONFIG_FILE}"
-            PATH_PRESENTED=true
-            read -r ANSWER_FISH
-            if [ "${ANSWER_FISH}" != "${ANSWER_FISH#[Nn]}" ]; then
-              echo "Not updating ${FISH_CONFIG_NAME}"
-            else
-              _add_to_profile "${FISH_CONFIG_FILE}" "${FISH_CONFIG_NAME}" "${LINE}"
-              PATH_SET=true
-            fi
-          fi
-        fi
+        LINE="fish_add_path --global ${BIN_DIR}"
+        RES=$(_update_path "${FISH_CONFIG_FILE}" "${LINE}")
+        # shellcheck disable=SC2086
+        set -- ${RES}
+        PATH_PRESENTED=$1
+        PATH_SET=$2
       ;;
       *)
         PROFILE_FILE="${HOME}/.profile"
-        PROFILE_NAME=${PROFILE_FILE##*/}
-        if [ ! -e "${PROFILE_FILE}" ] || [ -w "${PROFILE_FILE}" ]; then
-          LINE=${DEFAULT_LINE}
-          if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
-            echo "${LINE} is already present in ${PROFILE_NAME}"
-            PATH_PRESENTED=true
-            PATH_SET=true
-          else
-            printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${PROFILE_NAME}"
-            PATH_PRESENTED=true
-            read -r ANSWER_PROFILE
-            if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
-              echo "Not updating ${PROFILE_NAME}"
-            else
-              _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}" "${LINE}"
-              PATH_SET=true
-            fi
-          fi
-        fi
+        LINE="${DEFAULT_LINE}"
+        RES=$(_update_path "${PROFILE_FILE}" "${LINE}")
+        # shellcheck disable=SC2086
+        set -- ${RES}
+        PATH_PRESENTED=$1
+        PATH_SET=$2
       ;;
     esac
   fi
