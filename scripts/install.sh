@@ -35,9 +35,9 @@ _prompt_for_api_key() {
 
   echo "Checking ${API_KEY_PATH}"
 
-  API_KEY_CONTENTS="$(tr -d '[:space:]' < "${API_KEY_PATH}")"
   SHOULD_SKIP_WRITING_KEY=false
   if [ -f "${API_KEY_PATH}" ] && [ -s "${API_KEY_PATH}" ]; then
+    API_KEY_CONTENTS="$(tr -d '[:space:]' < "${API_KEY_PATH}")"
     if [ -n "${API_KEY_CONTENTS}" ]; then
       echo "It looks like an API key is already configured."
       printf "Do you want to enter a new key? This will overwrite the existing one. (y/N) "
