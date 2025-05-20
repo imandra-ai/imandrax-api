@@ -117,7 +117,6 @@ _update_path() {
   PATH_SET=false
 
   if [ ! -e "${PROFILE_FILE}" ] || [ -w "${PROFILE_FILE}" ]; then
-    LINE=${DEFAULT_LINE}
     if [ -e "${PROFILE_FILE}" ] && grep -qxF "${LINE}" "${PROFILE_FILE}"; then
       echo "${LINE} is already present in ${PROFILE_NAME}" >&2
       PATH_PRESENTED=true
