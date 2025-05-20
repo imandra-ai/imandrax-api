@@ -291,7 +291,7 @@ case "$(uname -s)" in
   *) _fail "unsupported OS";
 esac
 
-  cat << EOF
+cat << EOF
 ***********************
 * Installed ImandraX! *
 ***********************
