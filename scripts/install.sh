@@ -92,7 +92,7 @@ _add_to_profile() {
   touch "${PROFILE_FILE}"
 
   STATUS=$? 
-  if [ "${STATUS}" -ne 1 ]; then
+  if [ "${STATUS}" -ne 0 ]; then
     exit "${STATUS}"
   fi
   DATE_STRING="$(date '+%Y-%m-%d')"
@@ -103,7 +103,7 @@ _add_to_profile() {
   if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
     echo "Added install dir to PATH in ${PROFILE_FILE}" >&2
   else
-    STATUS=$? 
+    STATUS=$?
     if [ "${STATUS}" -ne 1 ]; then
       exit "${STATUS}"
     fi
