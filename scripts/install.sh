@@ -68,8 +68,6 @@ _add_to_profile() {
   PROFILE_FILE=$1
   PROFILE_NAME=$2
 
-  echo 'here we are'
-  echo 'get optional path string'
   OPTIONAL_PATH_STRING=${3:-}
   if [ -z "${OPTIONAL_PATH_STRING}" ]; then
     LINE="export PATH=\"${BIN_DIR}:\$PATH\""
@@ -103,7 +101,6 @@ _add_to_profile() {
       echo "Updatng PATH via ${PROFILE_NAME} failed!"
     fi
   fi
-  echo 'we made it to the end without exiting'
 }
 
 _prompt_to_update_path() {
