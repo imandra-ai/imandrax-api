@@ -38,6 +38,7 @@
   imandrakit
   imandrakit-log
   imandrakit-io
+  (yojson-five :with-build)
   (pbrt
    (>= 3.0))
   (pbrt_yojson

@@ -48,6 +48,7 @@ let names_to_exclude : Str_set.t =
       "Util_twine.With_tag7.t";
       "Imandrakit_error__Error_core.Data.t";
       "Imandrax_api_eval__Value.Custom_value.t";
+      "Imandrakit_twine.offset_for";
       "option";
       "Util_twine.Z.t";
       "Util_twine.Q.t";

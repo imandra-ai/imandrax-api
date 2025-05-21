@@ -5,7 +5,10 @@ type 'term t_poly = {
   concls: 'term list;  (** Conclusions *)
 }
 [@@deriving eq, ord, twine, typereg, map, iter]
-(** A classical sequent *)
+(** A classical sequent. It can be considered as an equivalent boolean formula
+    by taking the universal closure of its implication form: the sequent
+    [p(x), q |- a, b(x,y)] is equivalent to the formula
+    [forall x,y. (p(x) and q) ==> (a or b(x,y))]. *)
 
 let pp_seq ppt ppf lhs rhs =
   let h_i, c_i = ref 0, ref 0 in

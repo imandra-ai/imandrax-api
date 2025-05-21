@@ -3457,6 +3457,581 @@ export function Proof_Proof_term_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_pol
   return new Proof_Proof_term_t_poly(id, concl, view)
 }
 
+// clique Imandrax_api_proof3.Scope.t (cached: false)
+// def Imandrax_api_proof3.Scope.t (mangled name: "Proof3_Scope")
+export class Proof3_Scope {
+  constructor(
+    public sc:Array<bigint>) {}
+}
+
+export function Proof3_Scope_of_twine(d: twine.Decoder, off: offset): Proof3_Scope {
+  const x = d.get_array(off).toArray().map(x => d.get_int(x)) // single unboxed field
+  return new Proof3_Scope(x)
+}
+
+// clique Imandrax_api_proof3.Types.offset_for (cached: false)
+// def Imandrax_api_proof3.Types.offset_for (mangled name: "Proof3_Types_offset_for")
+export type Proof3_Types_offset_for<_V_tyreg_poly_a> = Twine_offset_for<_V_tyreg_poly_a>;
+
+export function Proof3_Types_offset_for_of_twine<_V_tyreg_poly_a>(d: twine.Decoder, decode__tyreg_poly_a: (d:twine.Decoder, off:offset) => _V_tyreg_poly_a,off: offset): Proof3_Types_offset_for<_V_tyreg_poly_a> {
+ decode__tyreg_poly_a; // ignore
+  return Twine_offset_for_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_a(d,off)),off)
+}
+
+// clique Imandrax_api_proof3.Types.proof_step, Imandrax_api_proof3.Types.deep_proof_step, Imandrax_api_proof3.Types.deep_proof_tree (cached: false)
+// def Imandrax_api_proof3.Types.proof_step (mangled name: "Proof3_Types_proof_step")
+export class Proof3_Types_proof_step_Assume {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Assume_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Assume {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Assume(cargs)
+}
+export class Proof3_Types_proof_step_By_def {
+  constructor(public args: [Proof3_Scope,Mir_Term,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_By_def_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_By_def {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Term,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1]),Mir_Term_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_By_def(cargs)
+}
+export class Proof3_Types_proof_step_Lemma {
+  constructor(public args: [Proof3_Scope,Mir_Term,Mir_Sequent]){}
+}
+export function Proof3_Types_proof_step_Lemma_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Lemma {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Term,Mir_Sequent] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1]),Mir_Sequent_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_Lemma(cargs)
+}
+export class Proof3_Types_proof_step_Sorry {
+  constructor(public args: [Proof3_Scope,Mir_Sequent]){}
+}
+export function Proof3_Types_proof_step_Sorry_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Sorry {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Sequent] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Sequent_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Sorry(cargs)
+}
+export class Proof3_Types_proof_step_Cc {
+  constructor(public args: [Proof3_Scope,Mir_Sequent]){}
+}
+export function Proof3_Types_proof_step_Cc_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Cc {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Sequent] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Sequent_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Cc(cargs)
+}
+export class Proof3_Types_proof_step_Intros {
+  constructor(public args: [Proof3_Scope,Mir_Sequent]){}
+}
+export function Proof3_Types_proof_step_Intros_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Intros {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Sequent] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Sequent_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Intros(cargs)
+}
+export class Proof3_Types_proof_step_Unintros {
+  constructor(public args: [Proof3_Scope,Array<Mir_Term>,Mir_Sequent]){}
+}
+export function Proof3_Types_proof_step_Unintros_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Unintros {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Array<Mir_Term>,Mir_Sequent] = [Proof3_Scope_of_twine(d, _tw_args[0]),d.get_array(_tw_args[1]).toArray().map(x => Mir_Term_of_twine(d, x)),Mir_Sequent_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_Unintros(cargs)
+}
+export class Proof3_Types_proof_step_If_true {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_If_true_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_If_true {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_If_true(cargs)
+}
+export class Proof3_Types_proof_step_If_false {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_If_false_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_If_false {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_If_false(cargs)
+}
+export class Proof3_Types_proof_step_If_trivial {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_If_trivial_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_If_trivial {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_If_trivial(cargs)
+}
+export class Proof3_Types_proof_step_If_trivial_neg {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_If_trivial_neg_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_If_trivial_neg {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_If_trivial_neg(cargs)
+}
+export class Proof3_Types_proof_step_Trivial {
+  constructor(public args: [Proof3_Scope,Mir_Sequent]){}
+}
+export function Proof3_Types_proof_step_Trivial_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Trivial {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Sequent] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Sequent_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Trivial(cargs)
+}
+export class Proof3_Types_proof_step_And_elim {
+  constructor(public args: [Proof3_Scope,Mir_Sequent,Mir_Sequent]){}
+}
+export function Proof3_Types_proof_step_And_elim_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_And_elim {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Sequent,Mir_Sequent] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Sequent_of_twine(d, _tw_args[1]),Mir_Sequent_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_And_elim(cargs)
+}
+export class Proof3_Types_proof_step_Or_left {
+  constructor(public args: [Proof3_Scope,Mir_Sequent,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Or_left_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Or_left {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Sequent,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Sequent_of_twine(d, _tw_args[1]),Mir_Term_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_Or_left(cargs)
+}
+export class Proof3_Types_proof_step_Or_right {
+  constructor(public args: [Proof3_Scope,Mir_Sequent,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Or_right_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Or_right {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Sequent,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Sequent_of_twine(d, _tw_args[1]),Mir_Term_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_Or_right(cargs)
+}
+export class Proof3_Types_proof_step_Cstor_inj {
+  constructor(public args: [Proof3_Scope,Mir_Term,Mir_Term,bigint]){}
+}
+export function Proof3_Types_proof_step_Cstor_inj_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Cstor_inj {
+  checkArrayLength(off, _tw_args, 4)
+  const cargs: [Proof3_Scope,Mir_Term,Mir_Term,bigint] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1]),Mir_Term_of_twine(d, _tw_args[2]),d.get_int(_tw_args[3])]
+  return new Proof3_Types_proof_step_Cstor_inj(cargs)
+}
+export class Proof3_Types_proof_step_Cstor_disj {
+  constructor(public args: [Proof3_Scope,Mir_Term,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Cstor_disj_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Cstor_disj {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Term,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1]),Mir_Term_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_Cstor_disj(cargs)
+}
+export class Proof3_Types_proof_step_Cstor_is_a_true {
+  constructor(public args: [Proof3_Scope,Mir_Term,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Cstor_is_a_true_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Cstor_is_a_true {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Term,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1]),Mir_Term_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_Cstor_is_a_true(cargs)
+}
+export class Proof3_Types_proof_step_Cstor_is_a_false {
+  constructor(public args: [Proof3_Scope,Mir_Term,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Cstor_is_a_false_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Cstor_is_a_false {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Term,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1]),Mir_Term_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_Cstor_is_a_false(cargs)
+}
+export class Proof3_Types_proof_step_Cstor_is_a_project {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Cstor_is_a_project_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Cstor_is_a_project {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Cstor_is_a_project(cargs)
+}
+export class Proof3_Types_proof_step_Cstor_select {
+  constructor(public args: [Proof3_Scope,Mir_Term,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Cstor_select_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Cstor_select {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Term,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1]),Mir_Term_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_Cstor_select(cargs)
+}
+export class Proof3_Types_proof_step_Destruct {
+  constructor(public args: [Proof3_Scope,Mir_Term,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Destruct_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Destruct {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Term,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1]),Mir_Term_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_Destruct(cargs)
+}
+export class Proof3_Types_proof_step_And_true_left {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_And_true_left_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_And_true_left {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_And_true_left(cargs)
+}
+export class Proof3_Types_proof_step_And_true_right {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_And_true_right_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_And_true_right {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_And_true_right(cargs)
+}
+export class Proof3_Types_proof_step_And_false_left {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_And_false_left_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_And_false_left {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_And_false_left(cargs)
+}
+export class Proof3_Types_proof_step_And_false_right {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_And_false_right_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_And_false_right {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_And_false_right(cargs)
+}
+export class Proof3_Types_proof_step_And_refl {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_And_refl_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_And_refl {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_And_refl(cargs)
+}
+export class Proof3_Types_proof_step_Or_false_left {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Or_false_left_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Or_false_left {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Or_false_left(cargs)
+}
+export class Proof3_Types_proof_step_Or_false_right {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Or_false_right_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Or_false_right {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Or_false_right(cargs)
+}
+export class Proof3_Types_proof_step_Or_true_left {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Or_true_left_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Or_true_left {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Or_true_left(cargs)
+}
+export class Proof3_Types_proof_step_Or_true_right {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Or_true_right_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Or_true_right {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Or_true_right(cargs)
+}
+export class Proof3_Types_proof_step_Or_refl {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Or_refl_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Or_refl {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Or_refl(cargs)
+}
+export class Proof3_Types_proof_step_Imply_true_right {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Imply_true_right_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Imply_true_right {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Imply_true_right(cargs)
+}
+export class Proof3_Types_proof_step_Imply_true_left {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Imply_true_left_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Imply_true_left {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Imply_true_left(cargs)
+}
+export class Proof3_Types_proof_step_Imply_false_left {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Imply_false_left_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Imply_false_left {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Imply_false_left(cargs)
+}
+export class Proof3_Types_proof_step_Imply_false_right {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Imply_false_right_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Imply_false_right {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Imply_false_right(cargs)
+}
+export class Proof3_Types_proof_step_Imply_refl {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Imply_refl_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Imply_refl {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Imply_refl(cargs)
+}
+export class Proof3_Types_proof_step_Neq {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Neq_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Neq {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Neq(cargs)
+}
+export class Proof3_Types_proof_step_Eq_const {
+  constructor(public args: [Proof3_Scope,Mir_Term,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Eq_const_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Eq_const {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Mir_Term,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1]),Mir_Term_of_twine(d, _tw_args[2])]
+  return new Proof3_Types_proof_step_Eq_const(cargs)
+}
+export class Proof3_Types_proof_step_Double_neg_elim {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Double_neg_elim_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Double_neg_elim {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Double_neg_elim(cargs)
+}
+export class Proof3_Types_proof_step_Eq_true_elim {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Eq_true_elim_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Eq_true_elim {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Eq_true_elim(cargs)
+}
+export class Proof3_Types_proof_step_Eq_false_not {
+  constructor(public args: [Proof3_Scope,Mir_Term]){}
+}
+export function Proof3_Types_proof_step_Eq_false_not_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Eq_false_not {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Scope,Mir_Term] = [Proof3_Scope_of_twine(d, _tw_args[0]),Mir_Term_of_twine(d, _tw_args[1])]
+  return new Proof3_Types_proof_step_Eq_false_not(cargs)
+}
+export class Proof3_Types_proof_step_Cut {
+  constructor(public args: [Proof3_Scope,Proof3_Types_offset_for<Proof3_Types_proof_step>,Array<Proof3_Types_offset_for<Proof3_Types_proof_step>>]){}
+}
+export function Proof3_Types_proof_step_Cut_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Cut {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Proof3_Types_offset_for<Proof3_Types_proof_step>,Array<Proof3_Types_offset_for<Proof3_Types_proof_step>>] = [Proof3_Scope_of_twine(d, _tw_args[0]),Proof3_Types_offset_for_of_twine(d,((d:twine.Decoder,off:offset) => Proof3_Types_proof_step_of_twine(d, off)),_tw_args[1]),d.get_array(_tw_args[2]).toArray().map(x => Proof3_Types_offset_for_of_twine(d,((d:twine.Decoder,off:offset) => Proof3_Types_proof_step_of_twine(d, off)),x))]
+  return new Proof3_Types_proof_step_Cut(cargs)
+}
+export class Proof3_Types_proof_step_Subst {
+  constructor(public args: [Proof3_Scope,Proof3_Types_offset_for<Proof3_Types_proof_step>,Array<[Mir_Var,Mir_Term]>]){}
+}
+export function Proof3_Types_proof_step_Subst_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_proof_step_Subst {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Proof3_Types_offset_for<Proof3_Types_proof_step>,Array<[Mir_Var,Mir_Term]>] = [Proof3_Scope_of_twine(d, _tw_args[0]),Proof3_Types_offset_for_of_twine(d,((d:twine.Decoder,off:offset) => Proof3_Types_proof_step_of_twine(d, off)),_tw_args[1]),d.get_array(_tw_args[2]).toArray().map(x => ((tup : Array<offset>): [Mir_Var,Mir_Term] => { checkArrayLength(x, tup, 2); return [Mir_Var_of_twine(d, tup[0]), Mir_Term_of_twine(d, tup[1])] })(d.get_array(x).toArray()))]
+  return new Proof3_Types_proof_step_Subst(cargs)
+}
+export type Proof3_Types_proof_step = Proof3_Types_proof_step_Assume| Proof3_Types_proof_step_By_def| Proof3_Types_proof_step_Lemma| Proof3_Types_proof_step_Sorry| Proof3_Types_proof_step_Cc| Proof3_Types_proof_step_Intros| Proof3_Types_proof_step_Unintros| Proof3_Types_proof_step_If_true| Proof3_Types_proof_step_If_false| Proof3_Types_proof_step_If_trivial| Proof3_Types_proof_step_If_trivial_neg| Proof3_Types_proof_step_Trivial| Proof3_Types_proof_step_And_elim| Proof3_Types_proof_step_Or_left| Proof3_Types_proof_step_Or_right| Proof3_Types_proof_step_Cstor_inj| Proof3_Types_proof_step_Cstor_disj| Proof3_Types_proof_step_Cstor_is_a_true| Proof3_Types_proof_step_Cstor_is_a_false| Proof3_Types_proof_step_Cstor_is_a_project| Proof3_Types_proof_step_Cstor_select| Proof3_Types_proof_step_Destruct| Proof3_Types_proof_step_And_true_left| Proof3_Types_proof_step_And_true_right| Proof3_Types_proof_step_And_false_left| Proof3_Types_proof_step_And_false_right| Proof3_Types_proof_step_And_refl| Proof3_Types_proof_step_Or_false_left| Proof3_Types_proof_step_Or_false_right| Proof3_Types_proof_step_Or_true_left| Proof3_Types_proof_step_Or_true_right| Proof3_Types_proof_step_Or_refl| Proof3_Types_proof_step_Imply_true_right| Proof3_Types_proof_step_Imply_true_left| Proof3_Types_proof_step_Imply_false_left| Proof3_Types_proof_step_Imply_false_right| Proof3_Types_proof_step_Imply_refl| Proof3_Types_proof_step_Neq| Proof3_Types_proof_step_Eq_const| Proof3_Types_proof_step_Double_neg_elim| Proof3_Types_proof_step_Eq_true_elim| Proof3_Types_proof_step_Eq_false_not| Proof3_Types_proof_step_Cut| Proof3_Types_proof_step_Subst
+
+export function Proof3_Types_proof_step_of_twine(d: twine.Decoder, off: offset): Proof3_Types_proof_step {
+  const c = d.get_cstor(off)
+  switch (c.cstor_idx) {
+   case 0:
+      return Proof3_Types_proof_step_Assume_of_twine(d,  c.args, off)
+   case 1:
+      return Proof3_Types_proof_step_By_def_of_twine(d,  c.args, off)
+   case 2:
+      return Proof3_Types_proof_step_Lemma_of_twine(d,  c.args, off)
+   case 3:
+      return Proof3_Types_proof_step_Sorry_of_twine(d,  c.args, off)
+   case 4:
+      return Proof3_Types_proof_step_Cc_of_twine(d,  c.args, off)
+   case 5:
+      return Proof3_Types_proof_step_Intros_of_twine(d,  c.args, off)
+   case 6:
+      return Proof3_Types_proof_step_Unintros_of_twine(d,  c.args, off)
+   case 7:
+      return Proof3_Types_proof_step_If_true_of_twine(d,  c.args, off)
+   case 8:
+      return Proof3_Types_proof_step_If_false_of_twine(d,  c.args, off)
+   case 9:
+      return Proof3_Types_proof_step_If_trivial_of_twine(d,  c.args, off)
+   case 10:
+      return Proof3_Types_proof_step_If_trivial_neg_of_twine(d,  c.args, off)
+   case 11:
+      return Proof3_Types_proof_step_Trivial_of_twine(d,  c.args, off)
+   case 12:
+      return Proof3_Types_proof_step_And_elim_of_twine(d,  c.args, off)
+   case 13:
+      return Proof3_Types_proof_step_Or_left_of_twine(d,  c.args, off)
+   case 14:
+      return Proof3_Types_proof_step_Or_right_of_twine(d,  c.args, off)
+   case 15:
+      return Proof3_Types_proof_step_Cstor_inj_of_twine(d,  c.args, off)
+   case 16:
+      return Proof3_Types_proof_step_Cstor_disj_of_twine(d,  c.args, off)
+   case 17:
+      return Proof3_Types_proof_step_Cstor_is_a_true_of_twine(d,  c.args, off)
+   case 18:
+      return Proof3_Types_proof_step_Cstor_is_a_false_of_twine(d,  c.args, off)
+   case 19:
+      return Proof3_Types_proof_step_Cstor_is_a_project_of_twine(d,  c.args, off)
+   case 20:
+      return Proof3_Types_proof_step_Cstor_select_of_twine(d,  c.args, off)
+   case 21:
+      return Proof3_Types_proof_step_Destruct_of_twine(d,  c.args, off)
+   case 22:
+      return Proof3_Types_proof_step_And_true_left_of_twine(d,  c.args, off)
+   case 23:
+      return Proof3_Types_proof_step_And_true_right_of_twine(d,  c.args, off)
+   case 24:
+      return Proof3_Types_proof_step_And_false_left_of_twine(d,  c.args, off)
+   case 25:
+      return Proof3_Types_proof_step_And_false_right_of_twine(d,  c.args, off)
+   case 26:
+      return Proof3_Types_proof_step_And_refl_of_twine(d,  c.args, off)
+   case 27:
+      return Proof3_Types_proof_step_Or_false_left_of_twine(d,  c.args, off)
+   case 28:
+      return Proof3_Types_proof_step_Or_false_right_of_twine(d,  c.args, off)
+   case 29:
+      return Proof3_Types_proof_step_Or_true_left_of_twine(d,  c.args, off)
+   case 30:
+      return Proof3_Types_proof_step_Or_true_right_of_twine(d,  c.args, off)
+   case 31:
+      return Proof3_Types_proof_step_Or_refl_of_twine(d,  c.args, off)
+   case 32:
+      return Proof3_Types_proof_step_Imply_true_right_of_twine(d,  c.args, off)
+   case 33:
+      return Proof3_Types_proof_step_Imply_true_left_of_twine(d,  c.args, off)
+   case 34:
+      return Proof3_Types_proof_step_Imply_false_left_of_twine(d,  c.args, off)
+   case 35:
+      return Proof3_Types_proof_step_Imply_false_right_of_twine(d,  c.args, off)
+   case 36:
+      return Proof3_Types_proof_step_Imply_refl_of_twine(d,  c.args, off)
+   case 37:
+      return Proof3_Types_proof_step_Neq_of_twine(d,  c.args, off)
+   case 38:
+      return Proof3_Types_proof_step_Eq_const_of_twine(d,  c.args, off)
+   case 39:
+      return Proof3_Types_proof_step_Double_neg_elim_of_twine(d,  c.args, off)
+   case 40:
+      return Proof3_Types_proof_step_Eq_true_elim_of_twine(d,  c.args, off)
+   case 41:
+      return Proof3_Types_proof_step_Eq_false_not_of_twine(d,  c.args, off)
+   case 42:
+      return Proof3_Types_proof_step_Cut_of_twine(d,  c.args, off)
+   case 43:
+      return Proof3_Types_proof_step_Subst_of_twine(d,  c.args, off)
+   default:
+      throw new twine.TwineError({msg: `expected Proof3_Types_proof_step, got invalid constructor ${c.cstor_idx}`, offset: off})
+
+  }
+}
+// def Imandrax_api_proof3.Types.deep_proof_step (mangled name: "Proof3_Types_deep_proof_step")
+export class Proof3_Types_deep_proof_step_Deep_cut {
+  constructor(public args: [Proof3_Scope,Proof3_Types_offset_for<Proof3_Types_deep_proof_step>,Array<Proof3_Types_offset_for<Proof3_Types_deep_proof_step>>]){}
+}
+export function Proof3_Types_deep_proof_step_Deep_cut_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_deep_proof_step_Deep_cut {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Proof3_Types_offset_for<Proof3_Types_deep_proof_step>,Array<Proof3_Types_offset_for<Proof3_Types_deep_proof_step>>] = [Proof3_Scope_of_twine(d, _tw_args[0]),Proof3_Types_offset_for_of_twine(d,((d:twine.Decoder,off:offset) => Proof3_Types_deep_proof_step_of_twine(d, off)),_tw_args[1]),d.get_array(_tw_args[2]).toArray().map(x => Proof3_Types_offset_for_of_twine(d,((d:twine.Decoder,off:offset) => Proof3_Types_deep_proof_step_of_twine(d, off)),x))]
+  return new Proof3_Types_deep_proof_step_Deep_cut(cargs)
+}
+export class Proof3_Types_deep_proof_step_Deep_intro {
+  constructor(public args: [Proof3_Scope,Proof3_Scope,Proof3_Types_offset_for<Proof3_Types_proof_step>]){}
+}
+export function Proof3_Types_deep_proof_step_Deep_intro_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_deep_proof_step_Deep_intro {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Proof3_Scope,Proof3_Types_offset_for<Proof3_Types_proof_step>] = [Proof3_Scope_of_twine(d, _tw_args[0]),Proof3_Scope_of_twine(d, _tw_args[1]),Proof3_Types_offset_for_of_twine(d,((d:twine.Decoder,off:offset) => Proof3_Types_proof_step_of_twine(d, off)),_tw_args[2])]
+  return new Proof3_Types_deep_proof_step_Deep_intro(cargs)
+}
+export class Proof3_Types_deep_proof_step_Deep_subst {
+  constructor(public args: [Proof3_Scope,Proof3_Types_offset_for<Proof3_Types_deep_proof_step>,Array<[Mir_Var,Mir_Term]>]){}
+}
+export function Proof3_Types_deep_proof_step_Deep_subst_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_deep_proof_step_Deep_subst {
+  checkArrayLength(off, _tw_args, 3)
+  const cargs: [Proof3_Scope,Proof3_Types_offset_for<Proof3_Types_deep_proof_step>,Array<[Mir_Var,Mir_Term]>] = [Proof3_Scope_of_twine(d, _tw_args[0]),Proof3_Types_offset_for_of_twine(d,((d:twine.Decoder,off:offset) => Proof3_Types_deep_proof_step_of_twine(d, off)),_tw_args[1]),d.get_array(_tw_args[2]).toArray().map(x => ((tup : Array<offset>): [Mir_Var,Mir_Term] => { checkArrayLength(x, tup, 2); return [Mir_Var_of_twine(d, tup[0]), Mir_Term_of_twine(d, tup[1])] })(d.get_array(x).toArray()))]
+  return new Proof3_Types_deep_proof_step_Deep_subst(cargs)
+}
+export type Proof3_Types_deep_proof_step = Proof3_Types_deep_proof_step_Deep_cut| Proof3_Types_deep_proof_step_Deep_intro| Proof3_Types_deep_proof_step_Deep_subst
+
+export function Proof3_Types_deep_proof_step_of_twine(d: twine.Decoder, off: offset): Proof3_Types_deep_proof_step {
+  const c = d.get_cstor(off)
+  switch (c.cstor_idx) {
+   case 0:
+      return Proof3_Types_deep_proof_step_Deep_cut_of_twine(d,  c.args, off)
+   case 1:
+      return Proof3_Types_deep_proof_step_Deep_intro_of_twine(d,  c.args, off)
+   case 2:
+      return Proof3_Types_deep_proof_step_Deep_subst_of_twine(d,  c.args, off)
+   default:
+      throw new twine.TwineError({msg: `expected Proof3_Types_deep_proof_step, got invalid constructor ${c.cstor_idx}`, offset: off})
+
+  }
+}
+// def Imandrax_api_proof3.Types.deep_proof_tree (mangled name: "Proof3_Types_deep_proof_tree")
+export class Proof3_Types_deep_proof_tree_Pt_root {
+  constructor(){}
+}
+export class Proof3_Types_deep_proof_tree_Pt_node {
+  constructor(public args: [Proof3_Types_offset_for<Proof3_Types_deep_proof_tree>,Proof3_Types_offset_for<Proof3_Types_deep_proof_step>]){}
+}
+export function Proof3_Types_deep_proof_tree_Pt_node_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Proof3_Types_deep_proof_tree_Pt_node {
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Proof3_Types_offset_for<Proof3_Types_deep_proof_tree>,Proof3_Types_offset_for<Proof3_Types_deep_proof_step>] = [Proof3_Types_offset_for_of_twine(d,((d:twine.Decoder,off:offset) => Proof3_Types_deep_proof_tree_of_twine(d, off)),_tw_args[0]),Proof3_Types_offset_for_of_twine(d,((d:twine.Decoder,off:offset) => Proof3_Types_deep_proof_step_of_twine(d, off)),_tw_args[1])]
+  return new Proof3_Types_deep_proof_tree_Pt_node(cargs)
+}
+export type Proof3_Types_deep_proof_tree = Proof3_Types_deep_proof_tree_Pt_root| Proof3_Types_deep_proof_tree_Pt_node
+
+export function Proof3_Types_deep_proof_tree_of_twine(d: twine.Decoder, off: offset): Proof3_Types_deep_proof_tree {
+  const c = d.get_cstor(off)
+  switch (c.cstor_idx) {
+   case 0:
+     return new Proof3_Types_deep_proof_tree_Pt_root()
+   case 1:
+      return Proof3_Types_deep_proof_tree_Pt_node_of_twine(d,  c.args, off)
+   default:
+      throw new twine.TwineError({msg: `expected Proof3_Types_deep_proof_tree, got invalid constructor ${c.cstor_idx}`, offset: off})
+
+  }
+}
+
+// clique Imandrax_api_proof3.Entrypoint.t (cached: false)
+// def Imandrax_api_proof3.Entrypoint.t (mangled name: "Proof3_Entrypoint")
+export class Proof3_Entrypoint {
+  constructor(
+    public last_steps:Array<Proof3_Types_proof_step>,
+    public last_deep_steps:Array<Proof3_Types_deep_proof_step>,
+    public tree_leaves:Array<Proof3_Types_deep_proof_tree>) {}
+}
+
+export function Proof3_Entrypoint_of_twine(d: twine.Decoder, off: offset): Proof3_Entrypoint {
+  const fields = d.get_array(off).toArray()
+  checkArrayLength(off, fields, 3)
+  const last_steps = d.get_array(fields[0]).toArray().map(x => Proof3_Types_proof_step_of_twine(d, x))
+  const last_deep_steps = d.get_array(fields[1]).toArray().map(x => Proof3_Types_deep_proof_step_of_twine(d, x))
+  const tree_leaves = d.get_array(fields[2]).toArray().map(x => Proof3_Types_deep_proof_tree_of_twine(d, x))
+  return new Proof3_Entrypoint(last_steps, last_deep_steps, tree_leaves)
+}
+
+// clique Imandrax_api_proof3.Deep_seq.t (cached: false)
+// def Imandrax_api_proof3.Deep_seq.t (mangled name: "Proof3_Deep_seq")
+export class Proof3_Deep_seq {
+  constructor(
+    public hyps:Array<Mir_Sequent>,
+    public concl:Mir_Sequent) {}
+}
+
+export function Proof3_Deep_seq_of_twine(d: twine.Decoder, off: offset): Proof3_Deep_seq {
+  const fields = d.get_array(off).toArray()
+  checkArrayLength(off, fields, 2)
+  const hyps = d.get_array(fields[0]).toArray().map(x => Mir_Sequent_of_twine(d, x))
+  const concl = Mir_Sequent_of_twine(d, fields[1])
+  return new Proof3_Deep_seq(hyps, concl)
+}
+
 // clique Imandrax_api_tasks.PO_task.t_poly (cached: false)
 // def Imandrax_api_tasks.PO_task.t_poly (mangled name: "Tasks_PO_task_t_poly")
 export class Tasks_PO_task_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
@@ -3891,18 +4466,20 @@ export class Tasks_Decomp_task_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
     public db:Common_Db_ser_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
     public decomp:Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term>,
-    public anchor:Anchor) {}
+    public anchor:Anchor,
+    public timeout:undefined | bigint) {}
 }
 
 export function Tasks_Decomp_task_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Tasks_Decomp_task_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
     decode__tyreg_poly_term
     decode__tyreg_poly_ty
   const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 3)
+  checkArrayLength(off, fields, 4)
   const db = Common_Db_ser_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[0])
   const decomp = Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)),fields[1])
   const anchor = Anchor_of_twine(d, fields[2])
-  return new Tasks_Decomp_task_t_poly(db, decomp, anchor)
+  const timeout = twine.optional(d,  ((d:twine.Decoder,off:offset) => d.get_int(off)), fields[3])
+  return new Tasks_Decomp_task_t_poly(db, decomp, anchor, timeout)
 }
 
 // clique Imandrax_api_tasks.Decomp_task.Mir.decomp (cached: false)

@@ -997,6 +997,92 @@ pub struct ProofProof_termT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 }
 
 
+// clique Imandrax_api_proof3.Scope.t
+#[derive(Debug, Clone)]
+pub struct Proof3Scope<'a> {
+  pub sc: &'a [BigInt],
+}
+
+
+// clique 
+
+// clique Imandrax_api_proof3.Types.proof_step,Imandrax_api_proof3.Types.deep_proof_step,Imandrax_api_proof3.Types.deep_proof_tree
+#[derive(Debug, Clone)]
+pub enum Proof3TypesProof_step<'a> {
+  Assume(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  By_def(&'a Proof3Scope<'a>,&'a MirTerm<'a>,&'a MirTerm<'a>),
+  Lemma(&'a Proof3Scope<'a>,&'a MirTerm<'a>,&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>),
+  Sorry(&'a Proof3Scope<'a>,&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>),
+  Cc(&'a Proof3Scope<'a>,&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>),
+  Intros(&'a Proof3Scope<'a>,&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>),
+  Unintros(&'a Proof3Scope<'a>,&'a [&'a MirTerm<'a>],&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>),
+  If_true(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  If_false(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  If_trivial(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  If_trivial_neg(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Trivial(&'a Proof3Scope<'a>,&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>),
+  And_elim(&'a Proof3Scope<'a>,&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>,&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>),
+  Or_left(&'a Proof3Scope<'a>,&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>,&'a MirTerm<'a>),
+  Or_right(&'a Proof3Scope<'a>,&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>,&'a MirTerm<'a>),
+  Cstor_inj(&'a Proof3Scope<'a>,&'a MirTerm<'a>,&'a MirTerm<'a>,BigInt),
+  Cstor_disj(&'a Proof3Scope<'a>,&'a MirTerm<'a>,&'a MirTerm<'a>),
+  Cstor_is_a_true(&'a Proof3Scope<'a>,&'a MirTerm<'a>,&'a MirTerm<'a>),
+  Cstor_is_a_false(&'a Proof3Scope<'a>,&'a MirTerm<'a>,&'a MirTerm<'a>),
+  Cstor_is_a_project(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Cstor_select(&'a Proof3Scope<'a>,&'a MirTerm<'a>,&'a MirTerm<'a>),
+  Destruct(&'a Proof3Scope<'a>,&'a MirTerm<'a>,&'a MirTerm<'a>),
+  And_true_left(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  And_true_right(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  And_false_left(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  And_false_right(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  And_refl(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Or_false_left(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Or_false_right(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Or_true_left(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Or_true_right(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Or_refl(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Imply_true_right(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Imply_true_left(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Imply_false_left(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Imply_false_right(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Imply_refl(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Neq(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Eq_const(&'a Proof3Scope<'a>,&'a MirTerm<'a>,&'a MirTerm<'a>),
+  Double_neg_elim(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Eq_true_elim(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Eq_false_not(&'a Proof3Scope<'a>,&'a MirTerm<'a>),
+  Cut(&'a Proof3Scope<'a>,&'a TwineOffset_for<'a,&'a Proof3TypesProof_step<'a>>,&'a [&'a TwineOffset_for<'a,&'a Proof3TypesProof_step<'a>>]),
+  Subst(&'a Proof3Scope<'a>,&'a TwineOffset_for<'a,&'a Proof3TypesProof_step<'a>>,&'a [(&'a CommonVarT_poly<'a,&'a MirType<'a>>,&'a MirTerm<'a>)]),
+}
+#[derive(Debug, Clone)]
+pub enum Proof3TypesDeep_proof_step<'a> {
+  Deep_cut(&'a Proof3Scope<'a>,&'a TwineOffset_for<'a,&'a Proof3TypesDeep_proof_step<'a>>,&'a [&'a TwineOffset_for<'a,&'a Proof3TypesDeep_proof_step<'a>>]),
+  Deep_intro(&'a Proof3Scope<'a>,&'a Proof3Scope<'a>,&'a TwineOffset_for<'a,&'a Proof3TypesProof_step<'a>>),
+  Deep_subst(&'a Proof3Scope<'a>,&'a TwineOffset_for<'a,&'a Proof3TypesDeep_proof_step<'a>>,&'a [(&'a CommonVarT_poly<'a,&'a MirType<'a>>,&'a MirTerm<'a>)]),
+}
+#[derive(Debug, Clone)]
+pub enum Proof3TypesDeep_proof_tree<'a> {
+  Pt_root,
+  Pt_node(&'a TwineOffset_for<'a,&'a Proof3TypesDeep_proof_tree<'a>>,&'a TwineOffset_for<'a,&'a Proof3TypesDeep_proof_step<'a>>),
+}
+
+// clique Imandrax_api_proof3.Entrypoint.t
+#[derive(Debug, Clone)]
+pub struct Proof3Entrypoint<'a> {
+  pub last_steps: &'a [&'a Proof3TypesProof_step<'a>],
+  pub last_deep_steps: &'a [&'a Proof3TypesDeep_proof_step<'a>],
+  pub tree_leaves: &'a [&'a Proof3TypesDeep_proof_tree<'a>],
+}
+
+
+// clique Imandrax_api_proof3.Deep_seq.t
+#[derive(Debug, Clone)]
+pub struct Proof3Deep_seq<'a> {
+  pub hyps: &'a [&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>],
+  pub concl: &'a CommonSequentT_poly<'a,&'a MirTerm<'a>>,
+}
+
+
 // clique Imandrax_api_tasks.PO_task.t_poly
 #[derive(Debug, Clone)]
 pub struct TasksPO_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
@@ -1147,6 +1233,7 @@ pub struct TasksDecomp_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub db: &'a CommonDb_serT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub decomp: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term>,
   pub anchor: &'a Anchor<'a>,
+  pub timeout: Option<BigInt>,
 }
 
 

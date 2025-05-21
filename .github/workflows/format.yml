@@ -13,6 +13,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - uses: cachix/install-nix-action@v20
-    - name: 'dune build @fmt'
+    - id: 'dune-fmt'
+      name: 'dune build @fmt'
       run: |-
-        nix-shell -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/bffc22eb12172e6db3c5dde9e3e5628f8e3e7912.tar.gz  dep/format.nix --command "make check-format DUNE=dune"
+        nix-shell -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/bffc22eb12172e6db3c5dde9e3e5628f8e3e7912.tar.gz  dep/format.nix --command "make check-format DUNE=dune DUNE_OPTS='--ignore-promoted-rules'"

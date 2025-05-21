@@ -1,0 +1,561 @@
+{
+  "wire_types": [
+    {
+      "name": "Int",
+      "doc": "An integer",
+      "ml": "int"
+    },
+    {
+      "name": "Bool",
+      "doc": "A boolean",
+      "ml": "bool"
+    },
+    {
+      "name": "Ref",
+      "doc": "A reference to a previous identifier.",
+      "ml": "Imandrakit_twine.offset_for"
+    },
+    {
+      "name": "String",
+      "doc": "A UTF8 string",
+      "ml": "string"
+    },
+    {
+      "name": "Bytes",
+      "doc": "A binary blob",
+      "ml": "bytes"
+    },
+    {
+      "name": "List",
+      "doc": "A list"
+    },
+    {
+      "name": "Option",
+      "doc": "An optional."
+    },
+    {
+      "name": "Tuple",
+      "doc": "A tuple of arguments"
+    }
+  ],
+  "types": [
+    {
+      "name": "Const",
+      "ml": "Imandrax_api.Const.t"
+    },
+    {
+      "name": "Var",
+      "ml": "Imandrax_api_mir.Var.t"
+    },
+    {
+      "name": "FunDef",
+      "ml": "Imandrax_api_mir.Fun_def.t"
+    },
+    {
+      "name": "TypeDef",
+      "ml": "Imandrax_api_mir.Type.def"
+    },
+    {
+      "name": "Term",
+      "ml": "Imandrax_api_mir.Term.t"
+    },
+    {
+      "name": "Type",
+      "ml": "Imandrax_api_mir.Type.t"
+    },
+    {
+      "name": "Sequent",
+      "ml": "Imandrax_api_mir.Sequent.t"
+    },
+    {
+      "name": "DeepSequent",
+      "ml": "Deep_sequent.t"
+    }
+  ],
+  "defined_types": [
+    {
+      "name": "ProofStep",
+      "doc": "A proof step, proving a clause using logical rules.",
+      "ml_name": "proof_step"
+    },
+    {
+      "name": "DeepProofStep",
+      "doc": "A proof step at the level of deep sequents.",
+      "ml_name": "deep_proof_step"
+    }
+  ],
+  "cstors": [
+    {
+      "name": "assume",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "Takes `t` and returns `|- t`, adding it to assumptions."
+    },
+    {
+      "name": "by_def",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "lhs": "Term",
+        "body": "Term"
+      },
+      "doc": "Takes `f(t1…tn)` and `body_f[t1…tn]` and asserts `|- f(t1…tn) = body_f[t1…tn]` when `f = λx1…xn. body_f[x1…xn]`."
+    },
+    {
+      "name": "lemma",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "predicate": "Term",
+        "lemma": "Sequent"
+      },
+      "doc": "Takes `p(t1…tn)` and `body_p`, where `p(x1…xn) := body_p[x1…xn]` is a previously proved theorem, and asserts `|- body_p[t1…tn]`"
+    },
+    {
+      "name": "sorry",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent"
+      },
+      "doc": "Takes `G ?- t` and returns `G |- t`. This is a hole in the proof, only useful as a temporary placeholder while looking for a real proof."
+    },
+    {
+      "name": "cc",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent"
+      },
+      "doc": "Takes `hyps ?- t=u` and proves `hyps |- t=u` by congruence closure."
+    },
+    {
+      "name": "if_true",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`if_true (if a b c)` is `a=true |- (if a b c) = b`."
+    },
+    {
+      "name": "if_false",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`if_false (if a b c)` is `a=false |- (if a b c) = c`."
+    },
+    {
+      "name": "if_trivial",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`b=true, c=false |- (if a b c) = a`."
+    },
+    {
+      "name": "if_trivial_neg",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`b=false, c=true |- (if a b c) = not a`."
+    },
+    {
+      "name": "trivial",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent"
+      },
+      "doc": "`trivial (G, t ?- t, _)` proves `(G, t |- t, …)`"
+    },
+    {
+      "name": "and_elim",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "lhs": "ProofStep",
+        "rhs": "ProofStep"
+      },
+      "doc": "Takes proofs of `G1 |- a` and `G2 |- b`, produces a proof of `(G1, G2 |- a && b)`."
+    },
+    {
+      "name": "or_left",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "lhs": "ProofStep",
+        "t": "Term"
+      },
+      "doc": "Takes `G |- a` and `b`, produces a proof of `(G |- a || b)`."
+    },
+    {
+      "name": "or_right",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "rhs": "ProofStep",
+        "t": "Term"
+      },
+      "doc": "Takes `G |- b` and `a`, produces a proof of `(G |- a || b)`."
+    },
+    {
+      "name": "cstor_inj",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term",
+        "u": "Term",
+        "i": "Int"
+      },
+      "doc": "Given terms `t := C(t1…tn)` and `u := C(u1…un)` with same constructors, and index `i`, returns `t = u |- ti = ui`."
+    },
+    {
+      "name": "cstor_disj",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t1": "Term",
+        "t2": "Term"
+      },
+      "doc": "Given terms `t1 := C1(…)` and `t2 := C2(…)` with distinct constructors, returns `|- not (t1 = t2)`."
+    },
+    {
+      "name": "cstor_is_a_true",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "isa_t": "Term",
+        "cstor_t": "Term"
+      },
+      "doc": "Given terms `is(C) t` and `v := C(…)`, prove `t = v |- is(C) t = true`."
+    },
+    {
+      "name": "cstor_is_a_false",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "isa_t": "Term",
+        "cstor_t": "Term"
+      },
+      "doc": "Given terms `is(C) t` and `v := C2(…)` with `C2` a distinct constructor, prove `t = v |- is(C) t = false`."
+    },
+    {
+      "name": "cstor_is_a_project",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "Given term `is-a(C,t)`, return `is-a(C,t) = true |- t = C(select(C,0,t), …)`"
+    },
+    {
+      "name": "cstor_select",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t1": "Term",
+        "t2": "Term"
+      },
+      "doc": "Given `t1 := select(C,i,u)` and `t2 := C(v1…vn)`, returns `u=t2 |- t1=v_i`"
+    },
+    {
+      "name": "destruct",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term",
+        "u": "Term"
+      },
+      "doc": "Given terms `t := destruct (C, i, sub_t)` and `u := C (v1…vn)`, return `sub_t = u |- t = v_i`."
+    },
+    {
+      "name": "and_true_left",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`true && t |- t`"
+    },
+    {
+      "name": "and_true_right",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`t && true |- t`"
+    },
+    {
+      "name": "and_false_left",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`false && _ |- false`"
+    },
+    {
+      "name": "and_false_right",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`_  && false |- false`"
+    },
+    {
+      "name": "and_refl",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`t && t |- t`"
+    },
+    {
+      "name": "or_false_left",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`false || x |- x`"
+    },
+    {
+      "name": "or_false_right",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`x || false |- x`"
+    },
+    {
+      "name": "or_true_left",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`true || _ |- true`"
+    },
+    {
+      "name": "or_true_right",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`_ || true |- true`"
+    },
+    {
+      "name": "or_refl",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`x || x |- x`"
+    },
+    {
+      "name": "imply_true_right",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`_ ==> true |- true`"
+    },
+    {
+      "name": "imply_true_left",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`true ==> b |- b`"
+    },
+    {
+      "name": "imply_false_left",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`false ==> _ |- true`"
+    },
+    {
+      "name": "imply_false_right",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent"
+      },
+      "doc": "`(true ==> false) |- false`"
+    },
+    {
+      "name": "imply_refl",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`(t ==> t) |- true`"
+    },
+    {
+      "name": "neq",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term",
+        "u": "Term"
+      },
+      "doc": "`|- (t <> u) = not (t=u)`"
+    },
+    {
+      "name": "refl",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`|- (t=t)`"
+    },
+    {
+      "name": "neq_const",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "c1": "Term",
+        "c2": "Term"
+      },
+      "doc": "`|- (c1 = c2) = false` where `c1` and `c2` are distinct."
+    },
+    {
+      "name": "double_neg_elim",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "`not (not t) |- t`"
+    },
+    {
+      "name": "eq_true_elim",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "t = true |- t"
+    },
+    {
+      "name": "eq_false_not",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "t": "Term"
+      },
+      "doc": "t = false |- not t"
+    },
+    {
+      "name": "cut",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "main": "ProofStep",
+        "sides": [
+          "List",
+          "ProofStep"
+        ]
+      },
+      "doc": "Takes `A1…An,B |- G` (main) and `C_i |- A_i` (sides) and returns `B,C_1…C_n |- G`."
+    },
+    {
+      "name": "subst",
+      "ret": "ProofStep",
+      "args": {
+        "concl": "Sequent",
+        "p": "ProofStep",
+        "subst": [
+          "List",
+          [
+            "Tuple",
+            "Var",
+            "Term"
+          ]
+        ]
+      },
+      "doc": "from `A |- B` and `subst` to `subst(A) |- subst(B)`."
+    },
+    {
+      "name": "deep_cut",
+      "ret": "DeepProofStep",
+      "args": {
+        "concl": "DeepSequent",
+        "main": "DeepProofStep",
+        "sides": [
+          "List",
+          "DeepProofStep"
+        ]
+      },
+      "doc": "Takes `A1…An, B ||- G` (main) and `C_i ||- A_i` (sides) and returns `B, C1…Cn ||- G`."
+    },
+    {
+      "name": "deep_intro",
+      "ret": "DeepProofStep",
+      "args": {
+        "concl": "DeepSequent",
+        "assumptions": [
+          "List",
+          "Sequent"
+        ],
+        "last_step": "ProofStep"
+      },
+      "doc": "(* remove? *)Takes last step `A |- B`, a list of assumptions `C1…Cn` \
+used to prove that last step, \
+and returns concl=`C1…Cn ||- (A |- B)`.\n\
+\n\
+The assumptions are the ones introduced via {!Assume} \
+in the proof tree of [last_step].\nFor example in a tactic \
+term that proves `G |- A /\\ B` from proofs of `G |- A` \
+and `G |- B`, we might use a deep intro to prove \
+` (G |- A), (G |- B) ||- (G |- A/\\B) ` \
+by proving `G |- A/\\B` (as [last_step]) with a proof tree that \
+contains `Assume` steps for `G |- A` and `G |- B`."
+    },
+    {
+      "name": "deep_subst",
+      "ret": "DeepProofStep",
+      "args": {
+        "concl": "DeepSequent",
+        "p": "DeepProofStep",
+        "subst": [
+          "List",
+          [
+            "Tuple",
+            "Var",
+            "Term"
+          ]
+        ]
+      },
+      "doc": "From `A1…An ||- C` and `subst` to `A1…An ||- subst(C)`."
+    },
+    {
+      "name": "deep_ref",
+      "ret": "DeepProofStep",
+      "args": {
+        "concl": "DeepSequent",
+        "file_ref": "string",
+        "p": "DeepProofStep"
+      },
+      "doc": "Takes some form of reference to another proof file, and an offset `p` within that file. Intended to be used for subtasks."
+    }
+  ]
+}

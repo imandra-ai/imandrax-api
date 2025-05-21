@@ -10,6 +10,9 @@ from . import twine
 
 __all__ = ['twine']
 
+# offset in file
+type OffsetFor[T] = int
+
 type Error = Error_Error_core
 def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
     match d.get_cstor(off=off):
@@ -3294,6 +3297,609 @@ def Proof_Proof_term_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twi
     view = Proof_View_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)),d2=(lambda d, off: Proof_Proof_term_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     return Proof_Proof_term_t_poly(id=id,concl=concl,view=view)
 
+# clique Imandrax_api_proof3.Scope.t (cached: false)
+# def Imandrax_api_proof3.Scope.t (mangled name: "Proof3_Scope")
+@dataclass(slots=True, frozen=True)
+class Proof3_Scope:
+    sc: list[int]
+
+def Proof3_Scope_of_twine(d: twine.Decoder, off: int) -> Proof3_Scope:
+    x = [d.get_int(off=x) for x in d.get_array(off=off)] # single unboxed field
+    return Proof3_Scope(sc=x)
+
+# clique Imandrax_api_proof3.Types.offset_for (cached: false)
+# def Imandrax_api_proof3.Types.offset_for (mangled name: "Proof3_Types_offset_for")
+type Proof3_Types_offset_for[_V_tyreg_poly_a] = OffsetFor["_V_tyreg_poly_a"]
+
+def Proof3_Types_offset_for_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Proof3_Types_offset_for:
+    decode__tyreg_poly_a = d0
+    return Twine_offset_for_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_a(d=d,off=off)))
+
+# clique Imandrax_api_proof3.Types.proof_step,Imandrax_api_proof3.Types.deep_proof_step,Imandrax_api_proof3.Types.deep_proof_tree (cached: false)
+# def Imandrax_api_proof3.Types.proof_step (mangled name: "Proof3_Types_proof_step")
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Assume:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Assume_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Assume:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Assume(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_By_def:
+    args: tuple[Proof3_Scope,Mir_Term,Mir_Term]
+
+def Proof3_Types_proof_step_By_def_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_By_def:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]),Mir_Term_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_By_def(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Lemma:
+    args: tuple[Proof3_Scope,Mir_Term,Mir_Sequent]
+
+def Proof3_Types_proof_step_Lemma_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Lemma:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]),Mir_Sequent_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_Lemma(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Sorry:
+    args: tuple[Proof3_Scope,Mir_Sequent]
+
+def Proof3_Types_proof_step_Sorry_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Sorry:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Sequent_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Sorry(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Cc:
+    args: tuple[Proof3_Scope,Mir_Sequent]
+
+def Proof3_Types_proof_step_Cc_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Cc:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Sequent_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Cc(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Intros:
+    args: tuple[Proof3_Scope,Mir_Sequent]
+
+def Proof3_Types_proof_step_Intros_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Intros:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Sequent_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Intros(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Unintros:
+    args: tuple[Proof3_Scope,list[Mir_Term],Mir_Sequent]
+
+def Proof3_Types_proof_step_Unintros_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Unintros:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),[Mir_Term_of_twine(d=d, off=x) for x in d.get_array(off=args[1])],Mir_Sequent_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_Unintros(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_If_true:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_If_true_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_If_true:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_If_true(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_If_false:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_If_false_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_If_false:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_If_false(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_If_trivial:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_If_trivial_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_If_trivial:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_If_trivial(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_If_trivial_neg:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_If_trivial_neg_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_If_trivial_neg:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_If_trivial_neg(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Trivial:
+    args: tuple[Proof3_Scope,Mir_Sequent]
+
+def Proof3_Types_proof_step_Trivial_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Trivial:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Sequent_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Trivial(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_And_elim:
+    args: tuple[Proof3_Scope,Mir_Sequent,Mir_Sequent]
+
+def Proof3_Types_proof_step_And_elim_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_And_elim:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Sequent_of_twine(d=d, off=args[1]),Mir_Sequent_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_And_elim(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Or_left:
+    args: tuple[Proof3_Scope,Mir_Sequent,Mir_Term]
+
+def Proof3_Types_proof_step_Or_left_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Or_left:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Sequent_of_twine(d=d, off=args[1]),Mir_Term_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_Or_left(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Or_right:
+    args: tuple[Proof3_Scope,Mir_Sequent,Mir_Term]
+
+def Proof3_Types_proof_step_Or_right_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Or_right:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Sequent_of_twine(d=d, off=args[1]),Mir_Term_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_Or_right(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Cstor_inj:
+    args: tuple[Proof3_Scope,Mir_Term,Mir_Term,int]
+
+def Proof3_Types_proof_step_Cstor_inj_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Cstor_inj:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]),Mir_Term_of_twine(d=d, off=args[2]),d.get_int(off=args[3]))
+    return Proof3_Types_proof_step_Cstor_inj(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Cstor_disj:
+    args: tuple[Proof3_Scope,Mir_Term,Mir_Term]
+
+def Proof3_Types_proof_step_Cstor_disj_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Cstor_disj:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]),Mir_Term_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_Cstor_disj(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Cstor_is_a_true:
+    args: tuple[Proof3_Scope,Mir_Term,Mir_Term]
+
+def Proof3_Types_proof_step_Cstor_is_a_true_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Cstor_is_a_true:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]),Mir_Term_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_Cstor_is_a_true(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Cstor_is_a_false:
+    args: tuple[Proof3_Scope,Mir_Term,Mir_Term]
+
+def Proof3_Types_proof_step_Cstor_is_a_false_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Cstor_is_a_false:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]),Mir_Term_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_Cstor_is_a_false(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Cstor_is_a_project:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Cstor_is_a_project_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Cstor_is_a_project:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Cstor_is_a_project(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Cstor_select:
+    args: tuple[Proof3_Scope,Mir_Term,Mir_Term]
+
+def Proof3_Types_proof_step_Cstor_select_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Cstor_select:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]),Mir_Term_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_Cstor_select(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Destruct:
+    args: tuple[Proof3_Scope,Mir_Term,Mir_Term]
+
+def Proof3_Types_proof_step_Destruct_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Destruct:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]),Mir_Term_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_Destruct(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_And_true_left:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_And_true_left_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_And_true_left:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_And_true_left(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_And_true_right:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_And_true_right_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_And_true_right:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_And_true_right(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_And_false_left:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_And_false_left_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_And_false_left:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_And_false_left(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_And_false_right:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_And_false_right_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_And_false_right:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_And_false_right(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_And_refl:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_And_refl_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_And_refl:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_And_refl(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Or_false_left:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Or_false_left_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Or_false_left:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Or_false_left(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Or_false_right:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Or_false_right_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Or_false_right:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Or_false_right(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Or_true_left:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Or_true_left_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Or_true_left:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Or_true_left(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Or_true_right:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Or_true_right_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Or_true_right:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Or_true_right(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Or_refl:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Or_refl_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Or_refl:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Or_refl(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Imply_true_right:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Imply_true_right_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Imply_true_right:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Imply_true_right(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Imply_true_left:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Imply_true_left_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Imply_true_left:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Imply_true_left(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Imply_false_left:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Imply_false_left_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Imply_false_left:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Imply_false_left(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Imply_false_right:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Imply_false_right_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Imply_false_right:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Imply_false_right(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Imply_refl:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Imply_refl_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Imply_refl:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Imply_refl(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Neq:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Neq_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Neq:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Neq(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Eq_const:
+    args: tuple[Proof3_Scope,Mir_Term,Mir_Term]
+
+def Proof3_Types_proof_step_Eq_const_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Eq_const:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]),Mir_Term_of_twine(d=d, off=args[2]))
+    return Proof3_Types_proof_step_Eq_const(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Double_neg_elim:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Double_neg_elim_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Double_neg_elim:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Double_neg_elim(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Eq_true_elim:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Eq_true_elim_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Eq_true_elim:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Eq_true_elim(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Eq_false_not:
+    args: tuple[Proof3_Scope,Mir_Term]
+
+def Proof3_Types_proof_step_Eq_false_not_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Eq_false_not:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Mir_Term_of_twine(d=d, off=args[1]))
+    return Proof3_Types_proof_step_Eq_false_not(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Cut:
+    args: tuple[Proof3_Scope,Proof3_Types_offset_for[Proof3_Types_proof_step],list[Proof3_Types_offset_for[Proof3_Types_proof_step]]]
+
+def Proof3_Types_proof_step_Cut_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Cut:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Proof3_Types_offset_for_of_twine(d=d,off=args[1],d0=(lambda d, off: Proof3_Types_proof_step_of_twine(d=d, off=off))),[Proof3_Types_offset_for_of_twine(d=d,off=x,d0=(lambda d, off: Proof3_Types_proof_step_of_twine(d=d, off=off))) for x in d.get_array(off=args[2])])
+    return Proof3_Types_proof_step_Cut(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_proof_step_Subst:
+    args: tuple[Proof3_Scope,Proof3_Types_offset_for[Proof3_Types_proof_step],list[tuple[Mir_Var,Mir_Term]]]
+
+def Proof3_Types_proof_step_Subst_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_proof_step_Subst:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Proof3_Types_offset_for_of_twine(d=d,off=args[1],d0=(lambda d, off: Proof3_Types_proof_step_of_twine(d=d, off=off))),[(lambda tup: (Mir_Var_of_twine(d=d, off=tup[0]),Mir_Term_of_twine(d=d, off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[2])])
+    return Proof3_Types_proof_step_Subst(args=cargs)
+
+type Proof3_Types_proof_step = Proof3_Types_proof_step_Assume| Proof3_Types_proof_step_By_def| Proof3_Types_proof_step_Lemma| Proof3_Types_proof_step_Sorry| Proof3_Types_proof_step_Cc| Proof3_Types_proof_step_Intros| Proof3_Types_proof_step_Unintros| Proof3_Types_proof_step_If_true| Proof3_Types_proof_step_If_false| Proof3_Types_proof_step_If_trivial| Proof3_Types_proof_step_If_trivial_neg| Proof3_Types_proof_step_Trivial| Proof3_Types_proof_step_And_elim| Proof3_Types_proof_step_Or_left| Proof3_Types_proof_step_Or_right| Proof3_Types_proof_step_Cstor_inj| Proof3_Types_proof_step_Cstor_disj| Proof3_Types_proof_step_Cstor_is_a_true| Proof3_Types_proof_step_Cstor_is_a_false| Proof3_Types_proof_step_Cstor_is_a_project| Proof3_Types_proof_step_Cstor_select| Proof3_Types_proof_step_Destruct| Proof3_Types_proof_step_And_true_left| Proof3_Types_proof_step_And_true_right| Proof3_Types_proof_step_And_false_left| Proof3_Types_proof_step_And_false_right| Proof3_Types_proof_step_And_refl| Proof3_Types_proof_step_Or_false_left| Proof3_Types_proof_step_Or_false_right| Proof3_Types_proof_step_Or_true_left| Proof3_Types_proof_step_Or_true_right| Proof3_Types_proof_step_Or_refl| Proof3_Types_proof_step_Imply_true_right| Proof3_Types_proof_step_Imply_true_left| Proof3_Types_proof_step_Imply_false_left| Proof3_Types_proof_step_Imply_false_right| Proof3_Types_proof_step_Imply_refl| Proof3_Types_proof_step_Neq| Proof3_Types_proof_step_Eq_const| Proof3_Types_proof_step_Double_neg_elim| Proof3_Types_proof_step_Eq_true_elim| Proof3_Types_proof_step_Eq_false_not| Proof3_Types_proof_step_Cut| Proof3_Types_proof_step_Subst
+
+def Proof3_Types_proof_step_of_twine(d: twine.Decoder, off: int) -> Proof3_Types_proof_step:
+    match d.get_cstor(off=off):
+         case twine.Constructor(idx=0, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Assume_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=1, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_By_def_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=2, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Lemma_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=3, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Sorry_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=4, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Cc_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=5, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Intros_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=6, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Unintros_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=7, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_If_true_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=8, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_If_false_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=9, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_If_trivial_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=10, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_If_trivial_neg_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=11, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Trivial_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=12, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_And_elim_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=13, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Or_left_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=14, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Or_right_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=15, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Cstor_inj_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=16, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Cstor_disj_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=17, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Cstor_is_a_true_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=18, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Cstor_is_a_false_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=19, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Cstor_is_a_project_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=20, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Cstor_select_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=21, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Destruct_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=22, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_And_true_left_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=23, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_And_true_right_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=24, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_And_false_left_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=25, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_And_false_right_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=26, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_And_refl_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=27, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Or_false_left_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=28, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Or_false_right_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=29, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Or_true_left_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=30, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Or_true_right_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=31, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Or_refl_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=32, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Imply_true_right_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=33, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Imply_true_left_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=34, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Imply_false_left_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=35, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Imply_false_right_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=36, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Imply_refl_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=37, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Neq_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=38, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Eq_const_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=39, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Double_neg_elim_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=40, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Eq_true_elim_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=41, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Eq_false_not_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=42, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Cut_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=43, args=args):
+             args = tuple(args)
+             return Proof3_Types_proof_step_Subst_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=idx):
+             raise twine.Error(f'expected Proof3_Types_proof_step, got invalid constructor {idx}')
+# def Imandrax_api_proof3.Types.deep_proof_step (mangled name: "Proof3_Types_deep_proof_step")
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_deep_proof_step_Deep_cut:
+    args: tuple[Proof3_Scope,Proof3_Types_offset_for[Proof3_Types_deep_proof_step],list[Proof3_Types_offset_for[Proof3_Types_deep_proof_step]]]
+
+def Proof3_Types_deep_proof_step_Deep_cut_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_deep_proof_step_Deep_cut:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Proof3_Types_offset_for_of_twine(d=d,off=args[1],d0=(lambda d, off: Proof3_Types_deep_proof_step_of_twine(d=d, off=off))),[Proof3_Types_offset_for_of_twine(d=d,off=x,d0=(lambda d, off: Proof3_Types_deep_proof_step_of_twine(d=d, off=off))) for x in d.get_array(off=args[2])])
+    return Proof3_Types_deep_proof_step_Deep_cut(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_deep_proof_step_Deep_intro:
+    args: tuple[Proof3_Scope,Proof3_Scope,Proof3_Types_offset_for[Proof3_Types_proof_step]]
+
+def Proof3_Types_deep_proof_step_Deep_intro_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_deep_proof_step_Deep_intro:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Proof3_Scope_of_twine(d=d, off=args[1]),Proof3_Types_offset_for_of_twine(d=d,off=args[2],d0=(lambda d, off: Proof3_Types_proof_step_of_twine(d=d, off=off))))
+    return Proof3_Types_deep_proof_step_Deep_intro(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_deep_proof_step_Deep_subst:
+    args: tuple[Proof3_Scope,Proof3_Types_offset_for[Proof3_Types_deep_proof_step],list[tuple[Mir_Var,Mir_Term]]]
+
+def Proof3_Types_deep_proof_step_Deep_subst_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_deep_proof_step_Deep_subst:
+    cargs = (Proof3_Scope_of_twine(d=d, off=args[0]),Proof3_Types_offset_for_of_twine(d=d,off=args[1],d0=(lambda d, off: Proof3_Types_deep_proof_step_of_twine(d=d, off=off))),[(lambda tup: (Mir_Var_of_twine(d=d, off=tup[0]),Mir_Term_of_twine(d=d, off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[2])])
+    return Proof3_Types_deep_proof_step_Deep_subst(args=cargs)
+
+type Proof3_Types_deep_proof_step = Proof3_Types_deep_proof_step_Deep_cut| Proof3_Types_deep_proof_step_Deep_intro| Proof3_Types_deep_proof_step_Deep_subst
+
+def Proof3_Types_deep_proof_step_of_twine(d: twine.Decoder, off: int) -> Proof3_Types_deep_proof_step:
+    match d.get_cstor(off=off):
+         case twine.Constructor(idx=0, args=args):
+             args = tuple(args)
+             return Proof3_Types_deep_proof_step_Deep_cut_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=1, args=args):
+             args = tuple(args)
+             return Proof3_Types_deep_proof_step_Deep_intro_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=2, args=args):
+             args = tuple(args)
+             return Proof3_Types_deep_proof_step_Deep_subst_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=idx):
+             raise twine.Error(f'expected Proof3_Types_deep_proof_step, got invalid constructor {idx}')
+# def Imandrax_api_proof3.Types.deep_proof_tree (mangled name: "Proof3_Types_deep_proof_tree")
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_deep_proof_tree_Pt_root:
+    pass
+
+@dataclass(slots=True, frozen=True)
+class Proof3_Types_deep_proof_tree_Pt_node:
+    args: tuple[Proof3_Types_offset_for[Proof3_Types_deep_proof_tree],Proof3_Types_offset_for[Proof3_Types_deep_proof_step]]
+
+def Proof3_Types_deep_proof_tree_Pt_node_of_twine(d: twine.Decoder, args: tuple[int, ...]) -> Proof3_Types_deep_proof_tree_Pt_node:
+    cargs = (Proof3_Types_offset_for_of_twine(d=d,off=args[0],d0=(lambda d, off: Proof3_Types_deep_proof_tree_of_twine(d=d, off=off))),Proof3_Types_offset_for_of_twine(d=d,off=args[1],d0=(lambda d, off: Proof3_Types_deep_proof_step_of_twine(d=d, off=off))))
+    return Proof3_Types_deep_proof_tree_Pt_node(args=cargs)
+
+type Proof3_Types_deep_proof_tree = Proof3_Types_deep_proof_tree_Pt_root| Proof3_Types_deep_proof_tree_Pt_node
+
+def Proof3_Types_deep_proof_tree_of_twine(d: twine.Decoder, off: int) -> Proof3_Types_deep_proof_tree:
+    match d.get_cstor(off=off):
+         case twine.Constructor(idx=0, args=args):
+             return Proof3_Types_deep_proof_tree_Pt_root()
+         case twine.Constructor(idx=1, args=args):
+             args = tuple(args)
+             return Proof3_Types_deep_proof_tree_Pt_node_of_twine(d=d, args=args, )
+         case twine.Constructor(idx=idx):
+             raise twine.Error(f'expected Proof3_Types_deep_proof_tree, got invalid constructor {idx}')
+
+# clique Imandrax_api_proof3.Entrypoint.t (cached: false)
+# def Imandrax_api_proof3.Entrypoint.t (mangled name: "Proof3_Entrypoint")
+@dataclass(slots=True, frozen=True)
+class Proof3_Entrypoint:
+    last_steps: list[Proof3_Types_proof_step]
+    last_deep_steps: list[Proof3_Types_deep_proof_step]
+    tree_leaves: list[Proof3_Types_deep_proof_tree]
+
+def Proof3_Entrypoint_of_twine(d: twine.Decoder, off: int) -> Proof3_Entrypoint:
+    fields = list(d.get_array(off=off))
+    last_steps = [Proof3_Types_proof_step_of_twine(d=d, off=x) for x in d.get_array(off=fields[0])]
+    last_deep_steps = [Proof3_Types_deep_proof_step_of_twine(d=d, off=x) for x in d.get_array(off=fields[1])]
+    tree_leaves = [Proof3_Types_deep_proof_tree_of_twine(d=d, off=x) for x in d.get_array(off=fields[2])]
+    return Proof3_Entrypoint(last_steps=last_steps,last_deep_steps=last_deep_steps,tree_leaves=tree_leaves)
+
+# clique Imandrax_api_proof3.Deep_seq.t (cached: false)
+# def Imandrax_api_proof3.Deep_seq.t (mangled name: "Proof3_Deep_seq")
+@dataclass(slots=True, frozen=True)
+class Proof3_Deep_seq:
+    hyps: list[Mir_Sequent]
+    concl: Mir_Sequent
+
+def Proof3_Deep_seq_of_twine(d: twine.Decoder, off: int) -> Proof3_Deep_seq:
+    fields = list(d.get_array(off=off))
+    hyps = [Mir_Sequent_of_twine(d=d, off=x) for x in d.get_array(off=fields[0])]
+    concl = Mir_Sequent_of_twine(d=d, off=fields[1])
+    return Proof3_Deep_seq(hyps=hyps,concl=concl)
+
 # clique Imandrax_api_tasks.PO_task.t_poly (cached: false)
 # def Imandrax_api_tasks.PO_task.t_poly (mangled name: "Tasks_PO_task_t_poly")
 @dataclass(slots=True, frozen=True)
@@ -3684,6 +4290,7 @@ class Tasks_Decomp_task_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     db: Common_Db_ser_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     decomp: Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term"]
     anchor: Anchor
+    timeout: None | int
 
 def Tasks_Decomp_task_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_Decomp_task_t_poly:
     decode__tyreg_poly_term = d0
@@ -3692,7 +4299,8 @@ def Tasks_Decomp_task_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: tw
     db = Common_Db_ser_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     decomp = Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
     anchor = Anchor_of_twine(d=d, off=fields[2])
-    return Tasks_Decomp_task_t_poly(db=db,decomp=decomp,anchor=anchor)
+    timeout = twine.optional(d=d, off=fields[3], d0=lambda d, off: d.get_int(off=off))
+    return Tasks_Decomp_task_t_poly(db=db,decomp=decomp,anchor=anchor,timeout=timeout)
 
 # clique Imandrax_api_tasks.Decomp_task.Mir.decomp (cached: false)
 # def Imandrax_api_tasks.Decomp_task.Mir.decomp (mangled name: "Tasks_Decomp_task_Mir_decomp")

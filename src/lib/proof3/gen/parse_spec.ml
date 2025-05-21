@@ -1,0 +1,95 @@
+open struct
+  module J = Yojson.Safe
+
+  let spf = Printf.sprintf
+end
+
+module Encoder = Encoder
+
+(** The raw text *)
+module Raw = struct
+  let spec = Spec_.spec
+end
+
+type wire_type = {
+  name: string;
+  doc: string;
+  ml: string option; [@default None]
+}
+[@@deriving show { with_path = false }, of_yojson]
+
+(** The type of a command, term definition, etc. *)
+type meta_type =
+  | M_ty of string
+  | M_list of meta_type
+  | M_option of meta_type
+  | M_tuple of meta_type list
+[@@deriving show { with_path = false }, ord]
+
+let meta_type_of_yojson j =
+  let rec loop = function
+    | `String s -> M_ty s
+    | `List [ `String "List"; s ] -> M_list (loop s)
+    | `List [ `String "Option"; s ] -> M_option (loop s)
+    | `List (`String "Tuple" :: l) -> M_tuple (List.map loop l)
+    | _j -> failwith (spf "cannot parse meta-type: %s" (J.to_string _j))
+  in
+  try Ok (loop j) with Failure err -> Error err
+
+type type_ = {
+  name: string;
+  ml: string;  (** ocaml name *)
+}
+[@@deriving show { with_path = false }, of_yojson]
+
+type defined_type = {
+  name: string;
+  doc: string;
+  ml_name: string;
+  direct: bool; [@default false]
+}
+[@@deriving show { with_path = false }, of_yojson]
+
+type args = (string * meta_type) list [@@deriving show]
+
+let unwrap_ = function
+  | Ok x -> x
+  | Error e -> failwith e
+
+let args_of_yojson j =
+  try
+    let res =
+      J.Util.to_assoc j
+      |> List.map (fun (name, j) -> name, meta_type_of_yojson j |> unwrap_)
+    in
+    Ok res
+  with Failure e -> Error e
+
+type cstor = {
+  name: string;
+  full_name: string option; [@default None]
+  ret: meta_type;
+  args: args;
+  doc: string;
+}
+[@@deriving show { with_path = false }, of_yojson]
+
+type t = {
+  wire_types: wire_type list;
+  types: type_ list;
+  defined_types: defined_type list;
+  cstors: cstor list;
+}
+[@@deriving show { with_path = false }, of_yojson]
+
+let spec : t =
+  let j =
+    match Yojson_five.Safe.from_string Raw.spec with
+    | Ok j -> j
+    | Error res -> failwith res
+  in
+  match of_yojson j with
+  | Ok s ->
+    (* Format.eprintf "spec: %a@." pp s; *)
+    s
+  | Error msg -> failwith @@ spf "Could not parse spec: %s" msg

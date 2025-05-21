@@ -334,6 +334,10 @@ class Constructor[Args]:
     idx: int
     args: Args
 
+@dataclass(slots=True, frozen=True)
+class Ref:
+    """An explicit reference"""
+    offset: int
 
 type value = (
     None
@@ -345,6 +349,7 @@ type value = (
     | tuple["value", ...]
     | Constructor[tuple["value", ...]]
     | Tag["value"]
+    | Ref
 )
 
 type shallow_value = (
@@ -357,6 +362,7 @@ type shallow_value = (
     | tuple[offset, ...]
     | Constructor[tuple[offset, ...]]
     | Tag[offset]
+    | Ref
 )
 
 
