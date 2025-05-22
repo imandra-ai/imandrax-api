@@ -5,13 +5,6 @@ set -eu
 
 INSTALL_PREFIX=${INSTALL_PREFIX:-"${HOME}/.local"}
 
-_fail() {
-  MSG=$1
-
-  echo "ERROR: ${MSG}" >&2
-  exit 1
-}
-
 _show_usage() {
   cat << EOF
 ************************
@@ -25,6 +18,13 @@ There are two optional arguments:
   -h      show this page
 EOF
   exit 0
+}
+
+_fail() {
+  MSG=$1
+
+  echo "ERROR: ${MSG}" >&2
+  exit 1
 }
 
 case "${1:-}" in 
