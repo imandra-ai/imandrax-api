@@ -3,11 +3,11 @@
 
 set -eu
 
-set +u
-if [ "${INSTALL_PREFIX}" = "" ]; then
-  INSTALL_PREFIX="${HOME}/.local"
-fi
-set -u
+INSTALL_PREFIX=${INSTALL_PREFIX:-"${HOME}/.local"}
+case "${1:-}" in 
+  -y) ALL_DEFAULTS=true;; 
+  *) ALL_DEFAULTS=false; 
+esac
 
 _fail() {
   MSG=$1
@@ -54,8 +54,9 @@ macos_uninstall() {
 #
 
 printf "Uninstall ImandraX (y/N)? "
-read -r ANSWER_UNINSTALL
-if [ "${ANSWER_UNINSTALL}" != "${ANSWER_UNINSTALL#[Yy]}" ];then
+if [ "${ALL_DEFAULTS}" = "true" ] ||
+    { read -r ANSWER_UNINSTALL \
+    && [ "${ANSWER_UNINSTALL}" != "${ANSWER_UNINSTALL#[Yy]}" ]; };then
   echo ''
   echo 'Uninstalling ImandraX!'
 
