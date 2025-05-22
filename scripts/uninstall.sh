@@ -3,11 +3,22 @@
 
 set -eu
 
-set +u
-if [ "${INSTALL_PREFIX}" = "" ]; then
-  INSTALL_PREFIX="${HOME}/.local"
-fi
-set -u
+INSTALL_PREFIX=${INSTALL_PREFIX:-"${HOME}/.local"}
+
+_show_usage() {
+  cat << EOF
+************************
+* ImandraX Uninstaller *
+************************
+
+This script uninstalls ImandraX. 
+
+There are two optional arguments:
+  -y      give default responses to all questions
+  -h      show this page
+EOF
+  exit 0
+}
 
 _fail() {
   MSG=$1
@@ -15,6 +26,17 @@ _fail() {
   echo "ERROR: ${MSG}" >&2
   exit 1
 }
+
+case "${1:-}" in 
+  -y) 
+    ALL_DEFAULTS=true;; 
+  -h) 
+    _show_usage;;
+  '') 
+    ALL_DEFAULTS=false;;
+  *) 
+    _fail "Invalid input '$1'. Try passing -h for usage"
+esac
 
 #
 # Common
@@ -54,8 +76,9 @@ macos_uninstall() {
 #
 
 printf "Uninstall ImandraX (y/N)? "
-read -r ANSWER_UNINSTALL
-if [ "${ANSWER_UNINSTALL}" != "${ANSWER_UNINSTALL#[Yy]}" ];then
+if [ "${ALL_DEFAULTS}" = "true" ] ||
+    { read -r ANSWER_UNINSTALL \
+    && [ "${ANSWER_UNINSTALL}" != "${ANSWER_UNINSTALL#[Yy]}" ]; };then
   echo ''
   echo 'Uninstalling ImandraX!'
 

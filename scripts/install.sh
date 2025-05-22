@@ -13,12 +13,38 @@ BIN_DIR="${INSTALL_PREFIX}/bin"
 VERSION=${VERSION:-"latest"}
 DEFAULT_LINE="export PATH=\"${BIN_DIR}:\$PATH\""
 
+_show_usage() {
+  cat << EOF
+************************
+* ImandraX Installer *
+************************
+
+This script installs ImandraX. 
+
+There are two optional arguments:
+  -y      give default responses to all questions
+  -h      show this page
+EOF
+  exit 0
+}
+
 _fail() {
   MSG=$1
 
   echo "ERROR: ${MSG}" >&2
   exit 1
 }
+
+case "${1:-}" in 
+  -y) 
+    ALL_DEFAULTS=true;; 
+  -h) 
+    _show_usage;;
+  '') 
+    ALL_DEFAULTS=false;;
+  *) 
+    _fail "Invalid input '$1'. Try passing -h for usage"
+esac
 
 _prompt_for_api_key() {
   CONFIG_DIR="${HOME}/.config/imandrax"
@@ -33,8 +59,9 @@ _prompt_for_api_key() {
     if [ -n "${API_KEY_CONTENTS}" ]; then
       echo "It looks like an API key is already configured."
       printf "Do you want to enter a new key? This will overwrite the existing one. (y/N) "
-      read -r ANSWER_NEW_API_KEY
-      if [ "${ANSWER_NEW_API_KEY}" = "${ANSWER_NEW_API_KEY#[Yy]}" ]; then
+      if [ "${ALL_DEFAULTS}" = "true" ] ||
+          { read -r ANSWER_NEW_API_KEY && \
+          [ "${ANSWER_NEW_API_KEY}" = "${ANSWER_NEW_API_KEY#[Yy]}" ]; } then
         echo "Not updating API key"
         echo ""
         SHOULD_SKIP_WRITING_KEY=true
@@ -52,8 +79,10 @@ _prompt_for_api_key() {
       [ "${SHOULD_SKIP_WRITING_KEY}" != true ]; then
     echo "API keys are available here: ${API_KEYS_URL}."
     printf "You can paste your API key here or hit enter to skip and configure it yourself later: "
-    read -r ANSWER_API_KEY
-    if [ -z "${ANSWER_API_KEY}" ]; then
+    # technically we shouldn't need a default here, since SHOULD_SKIP_WRITING_KEY should default to true
+    if [ "${ALL_DEFAULTS}" = "true" ] ||
+        { read -r ANSWER_API_KEY && \
+        [ -z "${ANSWER_API_KEY}" ]; } then
       echo "Skipped setting API key (make sure to set this yourself later)"
     else
       if ! [ -d "${CONFIG_DIR}" ]; then
@@ -121,8 +150,11 @@ _update_path() {
       fi
       printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${PROFILE_NAME}" >&2
       PATH_PRESENTED=true
-      read -r ANSWER_PROFILE
-      if [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; then
+      if [ "${ALL_DEFAULTS}" = "true" ]; then
+        _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}" "${LINE}"
+        PATH_SET=true
+      elif { read -r ANSWER_PROFILE && \
+          [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; } then
         echo "Not updating ${PROFILE_NAME}" >&2
       else
         _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}" "${LINE}"
@@ -141,8 +173,8 @@ _prompt_to_update_path() {
   if [ -w  "${HOME}" ]; then
     PARENT_SHELL="$(ps -p "${PPID}" -o command=)"
     PARENT_SHELL=${PARENT_SHELL##*/}
-    PARENT_SHELL=${PARENT_SHELL#*-}
     PARENT_SHELL=${PARENT_SHELL%% *}
+    PARENT_SHELL=${PARENT_SHELL#*-}
     case ${PARENT_SHELL} in
       zsh)
         ZPROFILE_FILE="${HOME}/.zprofile"
