@@ -4,6 +4,7 @@
 set -eu
 
 INSTALL_PREFIX=${INSTALL_PREFIX:-"${HOME}/.local"}
+
 case "${1:-}" in 
   -y) ALL_DEFAULTS=true;; 
   *) ALL_DEFAULTS=false; 
