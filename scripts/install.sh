@@ -141,7 +141,7 @@ _prompt_to_update_path() {
   if [ -w  "${HOME}" ]; then
     PARENT_SHELL="$(ps -p "${PPID}" -o command=)"
     PARENT_SHELL=${PARENT_SHELL##*/}
-    PARENT_SHELL=${PARENT_SHELL##*-}
+    PARENT_SHELL=${PARENT_SHELL#*-}
     PARENT_SHELL=${PARENT_SHELL%% *}
     case ${PARENT_SHELL} in
       zsh)
