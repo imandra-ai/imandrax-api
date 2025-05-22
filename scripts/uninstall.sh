@@ -5,11 +5,15 @@ set -eu
 
 INSTALL_PREFIX=${INSTALL_PREFIX:-"${HOME}/.local"}
 
-case "${1:-}" in 
-  -y) 
-    ALL_DEFAULTS=true;; 
-  -h) 
-    cat << EOF
+_fail() {
+  MSG=$1
+
+  echo "ERROR: ${MSG}" >&2
+  exit 1
+}
+
+_show_usage() {
+  cat << EOF
 ************************
 * ImandraX Uninstaller *
 ************************
@@ -19,23 +23,20 @@ This script uninstalls ImandraX.
 There are two optional arguments:
   -y      give default responses to all questions
   -h      show this page
-
 EOF
-    exit 0
-    ;;
+  exit 0
+}
+
+case "${1:-}" in 
+  -y) 
+    ALL_DEFAULTS=true;; 
+  -h) 
+    _show_usage;;
   '') 
     ALL_DEFAULTS=false;;
   *) 
-    echo "Invalid input '$1'. Try passing -h for usage"
-    exit 1;
+    _fail "Invalid input '$1'. Try passing -h for usage"
 esac
-
-_fail() {
-  MSG=$1
-
-  echo "ERROR: ${MSG}" >&2
-  exit 1
-}
 
 #
 # Common

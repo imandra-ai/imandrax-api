@@ -13,11 +13,8 @@ BIN_DIR="${INSTALL_PREFIX}/bin"
 VERSION=${VERSION:-"latest"}
 DEFAULT_LINE="export PATH=\"${BIN_DIR}:\$PATH\""
 
-case "${1:-}" in 
-  -y) 
-    ALL_DEFAULTS=true;; 
-  -h) 
-    cat << EOF
+_show_usage() {
+  cat << EOF
 ************************
 * ImandraX Installer *
 ************************
@@ -27,16 +24,9 @@ This script installs ImandraX.
 There are two optional arguments:
   -y      give default responses to all questions
   -h      show this page
-
 EOF
-    exit 0
-    ;;
-  '') 
-    ALL_DEFAULTS=false;;
-  *) 
-    echo "Invalid input '$1'. Try passing -h for usage"
-    exit 1;
-esac
+  exit 0
+}
 
 _fail() {
   MSG=$1
@@ -44,6 +34,17 @@ _fail() {
   echo "ERROR: ${MSG}" >&2
   exit 1
 }
+
+case "${1:-}" in 
+  -y) 
+    ALL_DEFAULTS=true;; 
+  -h) 
+    _show_usage;;
+  '') 
+    ALL_DEFAULTS=false;;
+  *) 
+    _fail "Invalid input '$1'. Try passing -h for usage"
+esac
 
 _prompt_for_api_key() {
   CONFIG_DIR="${HOME}/.config/imandrax"
