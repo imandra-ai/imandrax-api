@@ -227,7 +227,16 @@ _download_files() {
     wget "${ARCHIVE}" -O "${TMP_FILE}"
     echo "Downloaded at ${TMP_FILE}"
   else
-    _fail "Either curl or wget needed to continue the installation"
+    _fail "$(cat << EOF || true
+Either curl or wget is needed to continue the installation.
+Please install with your package manager, with a command like:
+
+ * sudo apt install curl 
+ * brew install wget
+ * etc
+
+EOF
+)"
   fi
 }
 
