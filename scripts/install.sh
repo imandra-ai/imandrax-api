@@ -214,6 +214,23 @@ _prompt_to_update_path() {
   echo ''
 }
 
+_download_files() {
+  ARCHIVE=$1
+  TMP_FILE=$2
+
+  if command -v curl >/dev/null; then
+    echo "Downloading ${ARCHIVE}"
+    curl -s "${ARCHIVE}" -o "${TMP_FILE}"
+    echo "Downloaded at ${TMP_FILE}"
+  elif command -v wget >/dev/null; then
+    echo "Downloading ${ARCHIVE}"
+    wget "${ARCHIVE}" -O "${TMP_FILE}"
+    echo "Downloaded at ${TMP_FILE}"
+  else
+    _fail "Either curl or wget needed to continue the installation"
+  fi
+}
+
 #
 # Linux
 #
@@ -239,21 +256,12 @@ _linux_extract_files() {
   echo "Files copied to ${INSTALL_PREFIX}"
 }
 
-_linux_download_files() {
-  ARCHIVE=$1
-  TMP_FILE=$2
-
-  echo "Downloading ${ARCHIVE}"
-  wget "${ARCHIVE}" -O "${TMP_FILE}"
-  echo "Downloaded at ${TMP_FILE}"
-}
-
 linux_install() {
   ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
   TMP_DIR="${TMPDIR:-/tmp}"
   TMP_FILE="${TMP_DIR}/imandrax-linux-x86_64.tar.gz"
 
-  _linux_download_files "${ARCHIVE}" "${TMP_FILE}"
+  _download_files "${ARCHIVE}" "${TMP_FILE}"
 
   _linux_extract_files "${TMP_DIR}" "${TMP_FILE}"
 
@@ -284,22 +292,13 @@ _macos_extract_files() {
   echo ''
 }
 
-_macos_download_files() {
-  ARCHIVE=$1
-  TMP_FILE=$2
-
-  echo "Downloading ${ARCHIVE}"
-  curl -s "${ARCHIVE}" -o "${TMP_FILE}"
-  echo "Downloaded at ${TMP_FILE}"
-}
-
 macos_install() {
   FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
   ARCHIVE="${BUCKET_URL}/${FILENAME}"
   TMP_DIR="${TMPDIR:-/tmp}"
   TMP_FILE="${TMP_DIR}${FILENAME}"
 
-  _macos_download_files "${ARCHIVE}" "${TMP_FILE}"
+  _download_files "${ARCHIVE}" "${TMP_FILE}"
   _macos_extract_files "${TMP_DIR}" "${TMP_FILE}"
 
   # modify executable to find libs
