@@ -44,6 +44,7 @@ type ('t, 'ty) view =
       cases: ('ty Imandrax_api_common.Applied_symbol.t_poly * 't) list;
       default: 't option;
     }
+  | With_subanchor of 't * Imandrax_api.Sub_anchor.t
 [@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
 
 open struct
@@ -73,6 +74,8 @@ let hash_view hasht (v : _ view) : int =
       combine4 50 (hasht u)
         (list (pair Applied_symbol.hash hasht) cases)
         (opt hasht default))
+  | With_subanchor (t, an) ->
+    CCHash.(combine3 60 (hasht t) (Imandrax_api.Sub_anchor.hash an))
 
 module Build_ : sig
   type generation [@@deriving show, eq, twine]
