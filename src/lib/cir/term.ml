@@ -62,6 +62,7 @@ type ('t, 'ty) view =
       rhs: 't;
       body: 't;
     }
+  | With_subanchor of 't * Imandrax_api.Sub_anchor.t
 [@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
 
 type t = {
@@ -133,9 +134,11 @@ let rec equal (t1 : t) (t2 : t) =
       equal c1.rhs c2.rhs
       && CCList.equal Var.equal c1.vars c2.vars
       && equal c1.body c2.body
+    | With_subanchor (t1, a1), With_subanchor (t2, a2) ->
+      equal t1 t2 && Sub_anchor.equal a1 a2
     | ( ( Var _ | Sym _ | Const _ | If _ | Let _ | Let_tuple _ | Apply _ | Fun _
         | Construct _ | Destruct _ | Is_a _ | Tuple _ | Field _ | Tuple_field _
-        | Record _ | Case _ ),
+        | Record _ | Case _ | With_subanchor _ ),
         _ ) ->
       false
   )
