@@ -104,6 +104,7 @@ module Build_ : sig
   type ser = {
     view: (t, Type.t) view;
     ty: Type.t;
+    sub_anchor: Imandrax_api.Sub_anchor.t option;
   }
 
   and t = private {
@@ -234,12 +235,16 @@ end = struct
   type ser = {
     view: (t, Type.t) view;
     ty: Type.t;
+    sub_anchor: Imandrax_api.Sub_anchor.t option;
   }
   [@@deriving twine, typereg, show, eq]
 
   open struct
-    let[@inline] ser_of_term (t : term) : ser = { view = t.view; ty = t.ty }
-    let[@inline] ser_to_term st ser : term = make st ser.view ser.ty
+    let[@inline] ser_of_term (t : term) : ser =
+      { view = t.view; ty = t.ty; sub_anchor = t.sub_anchor }
+
+    let[@inline] ser_to_term st ser : term =
+      make st ?sub_anchor:ser.sub_anchor ser.view ser.ty
   end
 
   let () =
