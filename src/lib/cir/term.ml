@@ -62,12 +62,12 @@ type ('t, 'ty) view =
       rhs: 't;
       body: 't;
     }
+  | With_subanchor of 't * Imandrax_api.Sub_anchor.t
 [@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
 
 type t = {
   view: (t, Type.t) view;
   ty: Type.t;
-  sub_anchor: Imandrax_api.Sub_anchor.t option;
 }
 [@@deriving twine, typereg, show { with_path = false }]
 
@@ -93,9 +93,7 @@ let[@inline] view (self : t) : (t, Type.t) view = self.view
 let rec equal (t1 : t) (t2 : t) =
   if t1 == t2 then
     true
-  else
-    Option.equal Imandrax_api.Sub_anchor.equal t1.sub_anchor t2.sub_anchor
-    &&
+  else (
     match t1.view, t2.view with
     | Var v1, Var v2 -> Var.equal v1 v2
     | Sym s1, Sym s2 -> Applied_symbol.equal s1 s2
@@ -136,8 +134,11 @@ let rec equal (t1 : t) (t2 : t) =
       equal c1.rhs c2.rhs
       && CCList.equal Var.equal c1.vars c2.vars
       && equal c1.body c2.body
+    | With_subanchor (t1, a1), With_subanchor (t2, a2) ->
+      equal t1 t2 && Sub_anchor.equal a1 a2
     | ( ( Var _ | Sym _ | Const _ | If _ | Let _ | Let_tuple _ | Apply _ | Fun _
         | Construct _ | Destruct _ | Is_a _ | Tuple _ | Field _ | Tuple_field _
-        | Record _ | Case _ ),
+        | Record _ | Case _ | With_subanchor _ ),
         _ ) ->
       false
+  )
