@@ -8,7 +8,7 @@ type 'term sub_res = {
   sub_goals: 'term Imandrax_api_mir.Sequent.t_poly list;
   res: (unit, string) Util_twine.Result.t;
 }
-[@@deriving twine, map, typereg, iter, show { with_path = false }]
+[@@deriving twine, eq, map, typereg, iter, show { with_path = false }]
 (** A result at a given point in the tactic tree *)
 
 type ('term, 'ty) proof_found = {
