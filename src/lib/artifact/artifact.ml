@@ -100,7 +100,9 @@ type t = Artifact : {
 } -> t
 
 (** Pack together an artifact *)
-  let[@inline] make ~storage ~kind data : t = Artifact {kind; data; storage}
+let[@inline] make ~storage ~kind data : t = Artifact {kind; data; storage}
+
+let storage (Artifact a) : storage = a.storage
 
 let[@inline] make_term ?(storage=[]) : Imandrax_api_mir.Term.t -> t = fun x -> make ~storage ~kind:Term x
 
