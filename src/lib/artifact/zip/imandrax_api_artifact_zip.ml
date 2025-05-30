@@ -25,10 +25,12 @@ let write_zip ?level ?(metadata = true) (zip : Util_zip.out_file)
 
   Util_zip.add_entry ?level data zip "data.twine";
 
-  let storage =
-    Imandrakit_twine.Encode.encode_to_string Artifact.storage_to_twine storage
-  in
-  if storage <> "" then Util_zip.add_entry ?level storage zip "storage.twine";
+  if storage <> [] then (
+    let storage_str =
+      Imandrakit_twine.Encode.encode_to_string Artifact.storage_to_twine storage
+    in
+    Util_zip.add_entry ?level storage_str zip "storage.twine"
+  );
 
   let manifest : Manifest.t =
     let kind = Artifact.kind_to_string kind in
