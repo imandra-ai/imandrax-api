@@ -104,17 +104,27 @@ module Build_ : sig
   type ser = {
     view: (t, Type.t) view;
     ty: Type.t;
+    sub_anchor: Imandrax_api.Sub_anchor.t option;
   }
 
   and t = private {
     view: (t, Type.t) view;
     ty: Type.t;
     generation: generation;
+    sub_anchor: Imandrax_api.Sub_anchor.t option;
   }
   [@@deriving twine, show, eq]
 
   val hash : t -> int
-  val make : State.t -> (t, Type.t) view -> Type.t -> t
+
+  val make :
+    ?sub_anchor:Imandrax_api.Sub_anchor.t ->
+    State.t ->
+    (t, Type.t) view ->
+    Type.t ->
+    t
+
+  val set_sub_anchor : State.t -> t -> Imandrax_api.Sub_anchor.t -> t
 end = struct
   type generation = int [@@deriving show, eq, twine, typereg]
 
@@ -124,6 +134,7 @@ end = struct
     view: (t, Type.t) view;
     ty: Type.t;
     generation: (generation[@ocaml_only]);
+    sub_anchor: Imandrax_api.Sub_anchor.t option;
   }
   [@@deriving twine, typereg, show { with_path = false }]
 
@@ -136,7 +147,9 @@ end = struct
     if hashconsed_same_gen then
       t1 == t2
     else
-      Type.equal t1.ty t2.ty && equal_view equal_rec Type.equal t1.view t2.view
+      Type.equal t1.ty t2.ty
+      && equal_view equal_rec Type.equal t1.view t2.view
+      && Option.equal Imandrax_api.Sub_anchor.equal t1.sub_anchor t2.sub_anchor
 
   (** Hash. We cannot use [t.id] because it doesn't work across generations or
       on non hashconsed terms. *)
@@ -145,8 +158,9 @@ end = struct
       if depth = 0 then
         hash_view (fun _ -> 1) t.view
       else
-        CCHash.combine2 (Type.hash t.ty)
+        CCHash.combine3 (Type.hash t.ty)
           (hash_view (hash_rec_ (depth - 1)) t.view)
+          (CCHash.opt Imandrax_api.Sub_anchor.hash t.sub_anchor)
     in
     hash_rec_ 3 t
 
@@ -156,7 +170,9 @@ end = struct
     type nonrec t = t
 
     let equal t1 t2 =
-      Type.equal t1.ty t2.ty && equal_view equal Type.equal t1.view t2.view
+      Type.equal t1.ty t2.ty
+      && equal_view equal Type.equal t1.view t2.view
+      && Option.equal Imandrax_api.Sub_anchor.equal t1.sub_anchor t2.sub_anchor
 
     let hash = hash
   end)
@@ -198,30 +214,37 @@ end = struct
       | None -> failwith "MIR term: no state in the decoder"
   end
 
-  let hashcons_ (tbl : _ H.t) t : t =
+  let[@inline never] hashcons_ (tbl : _ H.t) t : t =
     match H.find tbl t with
     | u -> u
     | exception Not_found ->
       H.add tbl t t;
       t
 
-  let[@inline] make (st : State.t) view ty : t =
-    let t = { view; ty; generation = st.generation } in
+  let[@inline] make ?sub_anchor (st : State.t) view ty : t =
+    let t = { view; ty; generation = st.generation; sub_anchor } in
     match st.hcons with
     | None -> t
     | Some h -> hashcons_ h t
+
+  let[@inline] set_sub_anchor st t sub_anchor : t =
+    make ~sub_anchor st t.view t.ty
 
   type term = t
 
   type ser = {
     view: (t, Type.t) view;
     ty: Type.t;
+    sub_anchor: Imandrax_api.Sub_anchor.t option;
   }
   [@@deriving twine, typereg, show, eq]
 
   open struct
-    let[@inline] ser_of_term (t : term) : ser = { view = t.view; ty = t.ty }
-    let[@inline] ser_to_term st ser : term = make st ser.view ser.ty
+    let[@inline] ser_of_term (t : term) : ser =
+      { view = t.view; ty = t.ty; sub_anchor = t.sub_anchor }
+
+    let[@inline] ser_to_term st ser : term =
+      make st ?sub_anchor:ser.sub_anchor ser.view ser.ty
   end
 
   let () =
