@@ -5,7 +5,7 @@ let () =
     should cache it aggressively *)
   Imandrakit_twine.Decode.add_cache fname_of_twine_ref;
   Imandrakit_twine.Encode.add_cache ~max_string_size:12
-    (module String)
+    (module CCString)
     fname_to_twine_ref
 
 type t = {
