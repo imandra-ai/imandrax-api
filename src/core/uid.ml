@@ -19,9 +19,12 @@ type t = {
 }
 [@@deriving twine, typereg, eq, ord, show { with_path = false }]
 
-let hash_gen_kind = function
-  | Local -> CCHash.int 1
-  | To_be_rewritten -> CCHash.int 2
+let hash_kind_1 = CCHash.int 1
+let hash_kind_2 = CCHash.int 2
+
+let[@inline] hash_gen_kind = function
+  | Local -> hash_kind_1
+  | To_be_rewritten -> hash_kind_2
 
 let hash x =
   match x.view with

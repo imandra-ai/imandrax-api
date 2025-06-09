@@ -17,7 +17,7 @@ type t_ = {
 
 type t = t_ Util_twine.With_tag6.t [@@deriving twine, eq, ord, typereg]
 
-let hash self =
+let[@inline] hash self =
   CCHash.(
     combine3 (string self.name) (Chash.hash self.chash) (bool self.is_key))
 
