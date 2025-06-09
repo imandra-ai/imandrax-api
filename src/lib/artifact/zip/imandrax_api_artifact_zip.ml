@@ -20,8 +20,11 @@ end
 
 let write_zip ?level ?(metadata = true) (zip : Util_zip.out_file)
     (self : Artifact.t) : unit =
+  let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "api.artifact.zip.write" in
   let (Artifact { kind; storage; data = _ }) = self in
   let data = Imandrakit_twine.Encode.encode_to_string Artifact.to_twine self in
+  Trace.add_data_to_span _sp
+    [ "data.size", `String (Util.format_byte_size @@ String.length data) ];
 
   Util_zip.add_entry ?level data zip "data.twine";
 
@@ -29,6 +32,11 @@ let write_zip ?level ?(metadata = true) (zip : Util_zip.out_file)
     let storage_str =
       Imandrakit_twine.Encode.encode_to_string Artifact.storage_to_twine storage
     in
+    Trace.add_data_to_span _sp
+      [
+        ( "storage.size",
+          `String (Util.format_byte_size @@ String.length storage_str) );
+      ];
     Util_zip.add_entry ?level storage_str zip "storage.twine"
   );
 
@@ -67,10 +75,15 @@ let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
       let@ () = Error.guards "Finding entry in zip" in
       Util_zip.find_entry zip "manifest.json"
     in
-    let m = Util_zip.read_entry zip e in
+    let m_str = Util_zip.read_entry zip e in
+    Trace.add_data_to_span _sp
+      [
+        "manifest.size", `String (Util.format_byte_size @@ String.length m_str);
+      ];
+
     let manifest_j =
       let@ () = Error.guards "Parsing JSON" in
-      Json.from_string ~fname:"manifest.json" m
+      Json.from_string ~fname:"manifest.json" m_str
     in
     match Manifest.of_yojson manifest_j with
     | Ok m -> m
@@ -106,6 +119,8 @@ let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
     | exception _ -> []
     | str ->
       let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "decode-storage" in
+      Trace.add_data_to_span _sp
+        [ "storage.size", `String (Util.format_byte_size @@ String.length str) ];
       Imandrakit_twine.Decode.decode_string Artifact.storage_of_twine str
   in
 
@@ -120,6 +135,8 @@ let read_zip (zip : Util_zip.in_file) : (Manifest.t * Artifact.t) Error.result =
       let@ _sp = Trace.with_span ~__FILE__ ~__LINE__ "read-zip-entry.data" in
       Util_zip.read_entry zip entry
     in
+    Trace.add_data_to_span _sp
+      [ "data.size", `String (Util.format_byte_size @@ String.length data) ];
 
     let mt = Mir.Term.State.create () in
     Imandrakit_twine.Decode.decode_string
