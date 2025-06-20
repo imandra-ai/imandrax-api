@@ -83,7 +83,7 @@ message DecomposeRes {
   repeated Error errors = 10;
 
   // the ID of the task
-  Task task = 11;
+  imandrax.task.Task task = 11;
 }
 
 message EvalSrcReq {
@@ -91,6 +91,20 @@ message EvalSrcReq {
 
   // source code to evaluate
   string src = 2;
+
+  // if true, do not wait for tasks results, only return the task list
+  // and not the task results. Use `get_artifact` to get the results.
+  optional bool async_only = 3;
+}
+
+// Output of an "eval" statement
+message EvalOutput {
+  bool success = 1;
+
+  // result as a OCaml value, if any
+  optional string value_as_ocaml = 2;
+
+  repeated Error errors = 10;
 }
 
 message EvalRes {
@@ -103,7 +117,13 @@ message EvalRes {
   repeated Error errors = 3;
 
   // all tasks started during eval
-  repeated Task tasks = 4;
+  repeated imandrax.task.Task tasks = 4;
+
+  repeated PO_Res po_results = 10;
+
+  repeated EvalOutput eval_results = 11;
+
+  repeated DecomposeRes decomp_results = 12;
 }
 
 message VerifySrcReq {
@@ -177,6 +197,30 @@ message Sat {
   optional Model model = 1;
 }
 
+message CounterSat {
+  optional Model model = 1;
+}
+
+// Result of any PO (theorem, verify, etc)
+message PO_Res {
+  oneof res {
+    StringMsg unknown = 1;
+    Empty err = 2;
+    Proved proof = 3;
+    CounterSat instance = 4;
+    Verified_upto verified_upto = 5;
+  }
+
+  repeated Error errors = 10;
+
+  // the ID of the task
+  imandrax.task.Task task = 11;
+
+  // Where did the task originate?
+  imandrax.task.Origin origin = 12;
+}
+
+
 message VerifyRes {
   oneof res {
     StringMsg unknown = 1;
@@ -189,7 +233,7 @@ message VerifyRes {
   repeated Error errors = 10;
 
   // the ID of the task
-  Task task = 11;
+  imandrax.task.Task task = 11;
 }
 
 message InstanceRes {
@@ -203,7 +247,7 @@ message InstanceRes {
   repeated Error errors = 10;
 
   // the ID of the task
-  Task task = 11;
+  imandrax.task.Task task = 11;
 }
 
 // compat notes: no history, not reset

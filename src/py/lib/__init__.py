@@ -535,6 +535,26 @@ def Ty_view_def_poly_of_twine[_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[.
     timeout = twine.optional(d=d, off=fields[4], d0=lambda d, off: d.get_int(off=off))
     return Ty_view_def_poly(name=name,params=params,decl=decl,clique=clique,timeout=timeout)
 
+# clique Imandrax_api.Sub_anchor.fname (cached: false)
+# def Imandrax_api.Sub_anchor.fname (mangled name: "Sub_anchor_fname")
+type Sub_anchor_fname = str
+
+def Sub_anchor_fname_of_twine(d: twine.Decoder, off: int) -> Sub_anchor_fname:
+    return d.get_str(off=off)
+
+# clique Imandrax_api.Sub_anchor.t (cached: false)
+# def Imandrax_api.Sub_anchor.t (mangled name: "Sub_anchor")
+@dataclass(slots=True, frozen=True)
+class Sub_anchor:
+    fname: Sub_anchor_fname
+    anchor: int
+
+def Sub_anchor_of_twine(d: twine.Decoder, off: int) -> Sub_anchor:
+    fields = list(d.get_array(off=off))
+    fname = Sub_anchor_fname_of_twine(d=d, off=fields[0])
+    anchor = d.get_int(off=fields[1])
+    return Sub_anchor(fname=fname,anchor=anchor)
+
 # clique Imandrax_api.Stat_time.t (cached: false)
 # def Imandrax_api.Stat_time.t (mangled name: "Stat_time")
 @dataclass(slots=True, frozen=True)
@@ -2133,13 +2153,15 @@ def Mir_Term_generation_of_twine(d: twine.Decoder, off: int) -> Mir_Term_generat
 class Mir_Term:
     view: Mir_Term_view[Mir_Term,Mir_Type]
     ty: Mir_Type
+    sub_anchor: None | Sub_anchor
 
 @twine.cached(name="Imandrax_api_mir.Term.t")
 def Mir_Term_of_twine(d: twine.Decoder, off: int) -> Mir_Term:
     fields = list(d.get_array(off=off))
     view = Mir_Term_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
     ty = Mir_Type_of_twine(d=d, off=fields[1])
-    return Mir_Term(view=view,ty=ty)
+    sub_anchor = twine.optional(d=d, off=fields[2], d0=lambda d, off: Sub_anchor_of_twine(d=d, off=off))
+    return Mir_Term(view=view,ty=ty,sub_anchor=sub_anchor)
 
 # clique Imandrax_api_mir.Term.ser (cached: false)
 # def Imandrax_api_mir.Term.ser (mangled name: "Mir_Term_ser")
@@ -2147,12 +2169,14 @@ def Mir_Term_of_twine(d: twine.Decoder, off: int) -> Mir_Term:
 class Mir_Term_ser:
     view: Mir_Term_view[Mir_Term,Mir_Type]
     ty: Mir_Type
+    sub_anchor: None | Sub_anchor
 
 def Mir_Term_ser_of_twine(d: twine.Decoder, off: int) -> Mir_Term_ser:
     fields = list(d.get_array(off=off))
     view = Mir_Term_view_of_twine(d=d,off=fields[0],d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
     ty = Mir_Type_of_twine(d=d, off=fields[1])
-    return Mir_Term_ser(view=view,ty=ty)
+    sub_anchor = twine.optional(d=d, off=fields[2], d0=lambda d, off: Sub_anchor_of_twine(d=d, off=off))
+    return Mir_Term_ser(view=view,ty=ty,sub_anchor=sub_anchor)
 
 # clique Imandrax_api_mir.Term.term (cached: false)
 # def Imandrax_api_mir.Term.term (mangled name: "Mir_Term_term")
@@ -3327,12 +3351,31 @@ type Tasks_PO_res_stats = Stat_time
 def Tasks_PO_res_stats_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_stats:
     return Stat_time_of_twine(d=d, off=off)
 
+# clique Imandrax_api_tasks.PO_res.sub_res (cached: false)
+# def Imandrax_api_tasks.PO_res.sub_res (mangled name: "Tasks_PO_res_sub_res")
+@dataclass(slots=True, frozen=True)
+class Tasks_PO_res_sub_res[_V_tyreg_poly_term]:
+    sub_anchor: Sub_anchor
+    goal: Common_Sequent_t_poly["_V_tyreg_poly_term"]
+    sub_goals: list[Common_Sequent_t_poly["_V_tyreg_poly_term"]]
+    res: None | str
+
+def Tasks_PO_res_sub_res_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],off: int) -> Tasks_PO_res_sub_res:
+    decode__tyreg_poly_term = d0
+    fields = list(d.get_array(off=off))
+    sub_anchor = Sub_anchor_of_twine(d=d, off=fields[0])
+    goal = Common_Sequent_t_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
+    sub_goals = [Common_Sequent_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))) for x in d.get_array(off=fields[2])]
+    res = twine_result(d=d, off=fields[3], d0=lambda d, off: d.get_null(off=off), d1=lambda d, off: d.get_str(off=off))
+    return Tasks_PO_res_sub_res(sub_anchor=sub_anchor,goal=goal,sub_goals=sub_goals,res=res)
+
 # clique Imandrax_api_tasks.PO_res.proof_found (cached: false)
 # def Imandrax_api_tasks.PO_res.proof_found (mangled name: "Tasks_PO_res_proof_found")
 @dataclass(slots=True, frozen=True)
 class Tasks_PO_res_proof_found[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     anchor: Anchor
     proof: Proof_Proof_term_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+    sub_anchor: None | Sub_anchor
 
 def Tasks_PO_res_proof_found_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_proof_found:
     decode__tyreg_poly_term = d0
@@ -3340,7 +3383,8 @@ def Tasks_PO_res_proof_found_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: tw
     fields = list(d.get_array(off=off))
     anchor = Anchor_of_twine(d=d, off=fields[0])
     proof = Proof_Proof_term_t_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
-    return Tasks_PO_res_proof_found(anchor=anchor,proof=proof)
+    sub_anchor = twine.optional(d=d, off=fields[2], d0=lambda d, off: Sub_anchor_of_twine(d=d, off=off))
+    return Tasks_PO_res_proof_found(anchor=anchor,proof=proof,sub_anchor=sub_anchor)
 
 # clique Imandrax_api_tasks.PO_res.verified_upto (cached: false)
 # def Imandrax_api_tasks.PO_res.verified_upto (mangled name: "Tasks_PO_res_verified_upto")
@@ -3377,6 +3421,7 @@ class Tasks_PO_res_no_proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     err: Error_Error_core
     counter_model: None | Common_Model_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     subgoals: list[Mir_Sequent]
+    sub_anchor: None | Sub_anchor
 
 def Tasks_PO_res_no_proof_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_no_proof:
     decode__tyreg_poly_term = d0
@@ -3385,7 +3430,8 @@ def Tasks_PO_res_no_proof_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine
     err = Error_Error_core_of_twine(d=d, off=fields[0])
     counter_model = twine.optional(d=d, off=fields[1], d0=lambda d, off: Common_Model_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))
     subgoals = [Mir_Sequent_of_twine(d=d, off=x) for x in d.get_array(off=fields[2])]
-    return Tasks_PO_res_no_proof(err=err,counter_model=counter_model,subgoals=subgoals)
+    sub_anchor = twine.optional(d=d, off=fields[3], d0=lambda d, off: Sub_anchor_of_twine(d=d, off=off))
+    return Tasks_PO_res_no_proof(err=err,counter_model=counter_model,subgoals=subgoals,sub_anchor=sub_anchor)
 
 # clique Imandrax_api_tasks.PO_res.unsat (cached: false)
 # def Imandrax_api_tasks.PO_res.unsat (mangled name: "Tasks_PO_res_unsat")
@@ -3394,6 +3440,7 @@ class Tasks_PO_res_unsat[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     anchor: Anchor
     err: Error_Error_core
     proof: Proof_Proof_term_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+    sub_anchor: None | Sub_anchor
 
 def Tasks_PO_res_unsat_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_unsat:
     decode__tyreg_poly_term = d0
@@ -3402,7 +3449,8 @@ def Tasks_PO_res_unsat_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.De
     anchor = Anchor_of_twine(d=d, off=fields[0])
     err = Error_Error_core_of_twine(d=d, off=fields[1])
     proof = Proof_Proof_term_t_poly_of_twine(d=d,off=fields[2],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
-    return Tasks_PO_res_unsat(anchor=anchor,err=err,proof=proof)
+    sub_anchor = twine.optional(d=d, off=fields[3], d0=lambda d, off: Sub_anchor_of_twine(d=d, off=off))
+    return Tasks_PO_res_unsat(anchor=anchor,err=err,proof=proof,sub_anchor=sub_anchor)
 
 # clique Imandrax_api_tasks.PO_res.success (cached: false)
 # def Imandrax_api_tasks.PO_res.success (mangled name: "Tasks_PO_res_success")
@@ -3531,6 +3579,7 @@ class Tasks_PO_res_shallow_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     res: Tasks_PO_res_result[Tasks_PO_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"],"_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     stats: Tasks_PO_res_stats
     report: In_mem_archive[Report_Report]
+    sub_res: list[list[Tasks_PO_res_sub_res["_V_tyreg_poly_term"]]]
 
 def Tasks_PO_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_shallow_poly:
     decode__tyreg_poly_term = d0
@@ -3540,7 +3589,8 @@ def Tasks_PO_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: t
     res = Tasks_PO_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_PO_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))),d1=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     stats = Tasks_PO_res_stats_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
-    return Tasks_PO_res_shallow_poly(from_=from_,res=res,stats=stats,report=report)
+    sub_res = [[Tasks_PO_res_sub_res_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))) for x in d.get_array(off=x)] for x in d.get_array(off=fields[4])]
+    return Tasks_PO_res_shallow_poly(from_=from_,res=res,stats=stats,report=report,sub_res=sub_res)
 
 # clique Imandrax_api_tasks.PO_res.full_poly (cached: false)
 # def Imandrax_api_tasks.PO_res.full_poly (mangled name: "Tasks_PO_res_full_poly")
@@ -3550,6 +3600,7 @@ class Tasks_PO_res_full_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     res: Tasks_PO_res_result[Tasks_PO_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"],"_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     stats: Tasks_PO_res_stats
     report: In_mem_archive[Report_Report]
+    sub_res: list[list[Tasks_PO_res_sub_res["_V_tyreg_poly_term"]]]
 
 def Tasks_PO_res_full_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_full_poly:
     decode__tyreg_poly_term = d0
@@ -3559,7 +3610,8 @@ def Tasks_PO_res_full_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twin
     res = Tasks_PO_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_PO_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))),d1=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     stats = Tasks_PO_res_stats_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
-    return Tasks_PO_res_full_poly(from_=from_,res=res,stats=stats,report=report)
+    sub_res = [[Tasks_PO_res_sub_res_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))) for x in d.get_array(off=x)] for x in d.get_array(off=fields[4])]
+    return Tasks_PO_res_full_poly(from_=from_,res=res,stats=stats,report=report,sub_res=sub_res)
 
 # clique Imandrax_api_tasks.PO_res.Shallow.t (cached: false)
 # def Imandrax_api_tasks.PO_res.Shallow.t (mangled name: "Tasks_PO_res_Shallow")
@@ -3684,6 +3736,7 @@ class Tasks_Decomp_task_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     db: Common_Db_ser_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     decomp: Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term"]
     anchor: Anchor
+    timeout: None | int
 
 def Tasks_Decomp_task_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_Decomp_task_t_poly:
     decode__tyreg_poly_term = d0
@@ -3692,7 +3745,8 @@ def Tasks_Decomp_task_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: tw
     db = Common_Db_ser_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     decomp = Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
     anchor = Anchor_of_twine(d=d, off=fields[2])
-    return Tasks_Decomp_task_t_poly(db=db,decomp=decomp,anchor=anchor)
+    timeout = twine.optional(d=d, off=fields[3], d0=lambda d, off: d.get_int(off=off))
+    return Tasks_Decomp_task_t_poly(db=db,decomp=decomp,anchor=anchor,timeout=timeout)
 
 # clique Imandrax_api_tasks.Decomp_task.Mir.decomp (cached: false)
 # def Imandrax_api_tasks.Decomp_task.Mir.decomp (mangled name: "Tasks_Decomp_task_Mir_decomp")

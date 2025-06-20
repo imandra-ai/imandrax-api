@@ -16,6 +16,11 @@ type task = {
   kind : task_kind;
 }
 
+type origin = {
+  from_sym : string;
+  count : int32;
+}
+
 let rec default_task_kind () = (Task_unspecified:task_kind)
 
 let rec default_task_id 
@@ -30,6 +35,14 @@ let rec default_task
   () : task  = {
   id;
   kind;
+}
+
+let rec default_origin 
+  ?from_sym:((from_sym:string) = "")
+  ?count:((count:int32) = 0l)
+  () : origin  = {
+  from_sym;
+  count;
 }
 
 type task_id_mutable = {
@@ -50,6 +63,16 @@ let default_task_mutable () : task_mutable = {
   kind = default_task_kind ();
 }
 
+type origin_mutable = {
+  mutable from_sym : string;
+  mutable count : int32;
+}
+
+let default_origin_mutable () : origin_mutable = {
+  from_sym = "";
+  count = 0l;
+}
+
 
 (** {2 Make functions} *)
 
@@ -66,6 +89,14 @@ let rec make_task
   () : task  = {
   id;
   kind;
+}
+
+let rec make_origin 
+  ~(from_sym:string)
+  ~(count:int32)
+  () : origin  = {
+  from_sym;
+  count;
 }
 
 [@@@ocaml.warning "-27-30-39"]
@@ -90,6 +121,13 @@ let rec pp_task fmt (v:task) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "id" (Pbrt.Pp.pp_option pp_task_id) fmt v.id;
     Pbrt.Pp.pp_record_field ~first:false "kind" pp_task_kind fmt v.kind;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_origin fmt (v:origin) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "from_sym" Pbrt.Pp.pp_string fmt v.from_sym;
+    Pbrt.Pp.pp_record_field ~first:false "count" Pbrt.Pp.pp_int32 fmt v.count;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -118,6 +156,13 @@ let rec encode_pb_task (v:task) encoder =
   | None -> ();
   end;
   encode_pb_task_kind v.kind encoder;
+  Pbrt.Encoder.key 2 Pbrt.Varint encoder; 
+  ()
+
+let rec encode_pb_origin (v:origin) encoder = 
+  Pbrt.Encoder.string v.from_sym encoder;
+  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  Pbrt.Encoder.int32_as_varint v.count encoder;
   Pbrt.Encoder.key 2 Pbrt.Varint encoder; 
   ()
 
@@ -176,6 +221,30 @@ let rec decode_pb_task d =
     kind = v.kind;
   } : task)
 
+let rec decode_pb_origin d =
+  let v = default_origin_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.from_sym <- Pbrt.Decoder.string d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(origin), field(1)" pk
+    | Some (2, Pbrt.Varint) -> begin
+      v.count <- Pbrt.Decoder.int32_as_varint d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(origin), field(2)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    from_sym = v.from_sym;
+    count = v.count;
+  } : origin)
+
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -200,6 +269,12 @@ let rec encode_json_task (v:task) =
     | Some v -> ("id", encode_json_task_id v) :: assoc
   in
   let assoc = ("kind", encode_json_task_kind v.kind) :: assoc in
+  `Assoc assoc
+
+let rec encode_json_origin (v:origin) = 
+  let assoc = [] in 
+  let assoc = ("fromSym", Pbrt_yojson.make_string v.from_sym) :: assoc in
+  let assoc = ("count", Pbrt_yojson.make_int (Int32.to_int v.count)) :: assoc in
   `Assoc assoc
 
 [@@@ocaml.warning "-27-30-39"]
@@ -249,3 +324,22 @@ let rec decode_json_task d =
     id = v.id;
     kind = v.kind;
   } : task)
+
+let rec decode_json_origin d =
+  let v = default_origin_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("fromSym", json_value) -> 
+      v.from_sym <- Pbrt_yojson.string json_value "origin" "from_sym"
+    | ("count", json_value) -> 
+      v.count <- Pbrt_yojson.int32 json_value "origin" "count"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    from_sym = v.from_sym;
+    count = v.count;
+  } : origin)

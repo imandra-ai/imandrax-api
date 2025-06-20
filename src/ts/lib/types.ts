@@ -575,6 +575,30 @@ export function Ty_view_def_poly_of_twine<_V_tyreg_poly_ty>(d: twine.Decoder, de
   return new Ty_view_def_poly(name, params, decl, clique, timeout)
 }
 
+// clique Imandrax_api.Sub_anchor.fname (cached: false)
+// def Imandrax_api.Sub_anchor.fname (mangled name: "Sub_anchor_fname")
+export type Sub_anchor_fname = string;
+
+export function Sub_anchor_fname_of_twine(d: twine.Decoder, off: offset): Sub_anchor_fname {
+  return d.get_str(off)
+}
+
+// clique Imandrax_api.Sub_anchor.t (cached: false)
+// def Imandrax_api.Sub_anchor.t (mangled name: "Sub_anchor")
+export class Sub_anchor {
+  constructor(
+    public fname:Sub_anchor_fname,
+    public anchor:bigint) {}
+}
+
+export function Sub_anchor_of_twine(d: twine.Decoder, off: offset): Sub_anchor {
+  const fields = d.get_array(off).toArray()
+  checkArrayLength(off, fields, 2)
+  const fname = Sub_anchor_fname_of_twine(d, fields[0])
+  const anchor = d.get_int(fields[1])
+  return new Sub_anchor(fname, anchor)
+}
+
 // clique Imandrax_api.Stat_time.t (cached: false)
 // def Imandrax_api.Stat_time.t (mangled name: "Stat_time")
 export class Stat_time {
@@ -2262,16 +2286,18 @@ export function Mir_Term_generation_of_twine(d: twine.Decoder, off: offset): Mir
 export class Mir_Term {
   constructor(
     public view:Mir_Term_view<Mir_Term,Mir_Type>,
-    public ty:Mir_Type) {}
+    public ty:Mir_Type,
+    public sub_anchor:undefined | Sub_anchor) {}
 }
 
 export function Mir_Term_of_twine(d: twine.Decoder, off: offset): Mir_Term {
   return twine.withCache(d, off, "Imandrax_api_mir.Term.t", ((d: twine.Decoder, off:offset) => {
   const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 2)
+  checkArrayLength(off, fields, 3)
   const view = Mir_Term_view_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),fields[0])
   const ty = Mir_Type_of_twine(d, fields[1])
-  return new Mir_Term(view, ty)
+  const sub_anchor = twine.optional(d,  ((d:twine.Decoder,off:offset) => Sub_anchor_of_twine(d, off)), fields[2])
+  return new Mir_Term(view, ty, sub_anchor)
   }))
 }
 
@@ -2280,15 +2306,17 @@ export function Mir_Term_of_twine(d: twine.Decoder, off: offset): Mir_Term {
 export class Mir_Term_ser {
   constructor(
     public view:Mir_Term_view<Mir_Term,Mir_Type>,
-    public ty:Mir_Type) {}
+    public ty:Mir_Type,
+    public sub_anchor:undefined | Sub_anchor) {}
 }
 
 export function Mir_Term_ser_of_twine(d: twine.Decoder, off: offset): Mir_Term_ser {
   const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 2)
+  checkArrayLength(off, fields, 3)
   const view = Mir_Term_view_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),fields[0])
   const ty = Mir_Type_of_twine(d, fields[1])
-  return new Mir_Term_ser(view, ty)
+  const sub_anchor = twine.optional(d,  ((d:twine.Decoder,off:offset) => Sub_anchor_of_twine(d, off)), fields[2])
+  return new Mir_Term_ser(view, ty, sub_anchor)
 }
 
 // clique Imandrax_api_mir.Term.term (cached: false)
@@ -3495,22 +3523,45 @@ export function Tasks_PO_res_stats_of_twine(d: twine.Decoder, off: offset): Task
   return Stat_time_of_twine(d, off)
 }
 
+// clique Imandrax_api_tasks.PO_res.sub_res (cached: false)
+// def Imandrax_api_tasks.PO_res.sub_res (mangled name: "Tasks_PO_res_sub_res")
+export class Tasks_PO_res_sub_res<_V_tyreg_poly_term> {
+  constructor(
+    public sub_anchor:Sub_anchor,
+    public goal:Common_Sequent_t_poly<_V_tyreg_poly_term>,
+    public sub_goals:Array<Common_Sequent_t_poly<_V_tyreg_poly_term>>,
+    public res:null | string) {}
+}
+
+export function Tasks_PO_res_sub_res_of_twine<_V_tyreg_poly_term>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term,off: offset): Tasks_PO_res_sub_res<_V_tyreg_poly_term> {
+    decode__tyreg_poly_term
+  const fields = d.get_array(off).toArray()
+  checkArrayLength(off, fields, 4)
+  const sub_anchor = Sub_anchor_of_twine(d, fields[0])
+  const goal = Common_Sequent_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)),fields[1])
+  const sub_goals = d.get_array(fields[2]).toArray().map(x => Common_Sequent_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)),x))
+  const res = twine.result(d,  ((d:twine.Decoder,off:offset)=> d.get_null(off)), ((d:twine.Decoder,off:offset) => d.get_str(off)), fields[3])
+  return new Tasks_PO_res_sub_res(sub_anchor, goal, sub_goals, res)
+}
+
 // clique Imandrax_api_tasks.PO_res.proof_found (cached: false)
 // def Imandrax_api_tasks.PO_res.proof_found (mangled name: "Tasks_PO_res_proof_found")
 export class Tasks_PO_res_proof_found<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
     public anchor:Anchor,
-    public proof:Proof_Proof_term_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
+    public proof:Proof_Proof_term_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
+    public sub_anchor:undefined | Sub_anchor) {}
 }
 
 export function Tasks_PO_res_proof_found_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Tasks_PO_res_proof_found<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
     decode__tyreg_poly_term
     decode__tyreg_poly_ty
   const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 2)
+  checkArrayLength(off, fields, 3)
   const anchor = Anchor_of_twine(d, fields[0])
   const proof = Proof_Proof_term_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[1])
-  return new Tasks_PO_res_proof_found(anchor, proof)
+  const sub_anchor = twine.optional(d,  ((d:twine.Decoder,off:offset) => Sub_anchor_of_twine(d, off)), fields[2])
+  return new Tasks_PO_res_proof_found(anchor, proof, sub_anchor)
 }
 
 // clique Imandrax_api_tasks.PO_res.verified_upto (cached: false)
@@ -3553,18 +3604,20 @@ export class Tasks_PO_res_no_proof<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
     public err:Error_Error_core,
     public counter_model:undefined | Common_Model_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
-    public subgoals:Array<Mir_Sequent>) {}
+    public subgoals:Array<Mir_Sequent>,
+    public sub_anchor:undefined | Sub_anchor) {}
 }
 
 export function Tasks_PO_res_no_proof_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Tasks_PO_res_no_proof<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
     decode__tyreg_poly_term
     decode__tyreg_poly_ty
   const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 3)
+  checkArrayLength(off, fields, 4)
   const err = Error_Error_core_of_twine(d, fields[0])
   const counter_model = twine.optional(d,  ((d:twine.Decoder,off:offset) => Common_Model_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)), fields[1])
   const subgoals = d.get_array(fields[2]).toArray().map(x => Mir_Sequent_of_twine(d, x))
-  return new Tasks_PO_res_no_proof(err, counter_model, subgoals)
+  const sub_anchor = twine.optional(d,  ((d:twine.Decoder,off:offset) => Sub_anchor_of_twine(d, off)), fields[3])
+  return new Tasks_PO_res_no_proof(err, counter_model, subgoals, sub_anchor)
 }
 
 // clique Imandrax_api_tasks.PO_res.unsat (cached: false)
@@ -3573,18 +3626,20 @@ export class Tasks_PO_res_unsat<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
     public anchor:Anchor,
     public err:Error_Error_core,
-    public proof:Proof_Proof_term_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
+    public proof:Proof_Proof_term_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
+    public sub_anchor:undefined | Sub_anchor) {}
 }
 
 export function Tasks_PO_res_unsat_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Tasks_PO_res_unsat<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
     decode__tyreg_poly_term
     decode__tyreg_poly_ty
   const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 3)
+  checkArrayLength(off, fields, 4)
   const anchor = Anchor_of_twine(d, fields[0])
   const err = Error_Error_core_of_twine(d, fields[1])
   const proof = Proof_Proof_term_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[2])
-  return new Tasks_PO_res_unsat(anchor, err, proof)
+  const sub_anchor = twine.optional(d,  ((d:twine.Decoder,off:offset) => Sub_anchor_of_twine(d, off)), fields[3])
+  return new Tasks_PO_res_unsat(anchor, err, proof, sub_anchor)
 }
 
 // clique Imandrax_api_tasks.PO_res.success (cached: false)
@@ -3715,19 +3770,21 @@ export class Tasks_PO_res_shallow_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
     public from_:Ca_store_Ca_ptr<Common_Proof_obligation_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>>,
     public res:Tasks_PO_res_result<Tasks_PO_res_success<_V_tyreg_poly_term,_V_tyreg_poly_ty>,_V_tyreg_poly_term,_V_tyreg_poly_ty>,
     public stats:Tasks_PO_res_stats,
-    public report:In_mem_archive<Report_Report>) {}
+    public report:In_mem_archive<Report_Report>,
+    public sub_res:Array<Array<Tasks_PO_res_sub_res<_V_tyreg_poly_term>>>) {}
 }
 
 export function Tasks_PO_res_shallow_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Tasks_PO_res_shallow_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
     decode__tyreg_poly_term
     decode__tyreg_poly_ty
   const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 4)
+  checkArrayLength(off, fields, 5)
   const from_ = Ca_store_Ca_ptr_of_twine(d,((d:twine.Decoder,off:offset) => Common_Proof_obligation_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)),fields[0])
   const res = Tasks_PO_res_result_of_twine(d,((d:twine.Decoder,off:offset) => Tasks_PO_res_success_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[1])
   const stats = Tasks_PO_res_stats_of_twine(d, fields[2])
   const report = In_mem_archive_of_twine(d,((d:twine.Decoder,off:offset) => Report_Report_of_twine(d, off)),fields[3])
-  return new Tasks_PO_res_shallow_poly(from_, res, stats, report)
+  const sub_res = d.get_array(fields[4]).toArray().map(x => d.get_array(x).toArray().map(x => Tasks_PO_res_sub_res_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)),x)))
+  return new Tasks_PO_res_shallow_poly(from_, res, stats, report, sub_res)
 }
 
 // clique Imandrax_api_tasks.PO_res.full_poly (cached: false)
@@ -3737,19 +3794,21 @@ export class Tasks_PO_res_full_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
     public from_:Common_Proof_obligation_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
     public res:Tasks_PO_res_result<Tasks_PO_res_success<_V_tyreg_poly_term,_V_tyreg_poly_ty>,_V_tyreg_poly_term,_V_tyreg_poly_ty>,
     public stats:Tasks_PO_res_stats,
-    public report:In_mem_archive<Report_Report>) {}
+    public report:In_mem_archive<Report_Report>,
+    public sub_res:Array<Array<Tasks_PO_res_sub_res<_V_tyreg_poly_term>>>) {}
 }
 
 export function Tasks_PO_res_full_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Tasks_PO_res_full_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
     decode__tyreg_poly_term
     decode__tyreg_poly_ty
   const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 4)
+  checkArrayLength(off, fields, 5)
   const from_ = Common_Proof_obligation_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[0])
   const res = Tasks_PO_res_result_of_twine(d,((d:twine.Decoder,off:offset) => Tasks_PO_res_success_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[1])
   const stats = Tasks_PO_res_stats_of_twine(d, fields[2])
   const report = In_mem_archive_of_twine(d,((d:twine.Decoder,off:offset) => Report_Report_of_twine(d, off)),fields[3])
-  return new Tasks_PO_res_full_poly(from_, res, stats, report)
+  const sub_res = d.get_array(fields[4]).toArray().map(x => d.get_array(x).toArray().map(x => Tasks_PO_res_sub_res_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)),x)))
+  return new Tasks_PO_res_full_poly(from_, res, stats, report, sub_res)
 }
 
 // clique Imandrax_api_tasks.PO_res.Shallow.t (cached: false)
@@ -3891,18 +3950,20 @@ export class Tasks_Decomp_task_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
     public db:Common_Db_ser_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
     public decomp:Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term>,
-    public anchor:Anchor) {}
+    public anchor:Anchor,
+    public timeout:undefined | bigint) {}
 }
 
 export function Tasks_Decomp_task_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Tasks_Decomp_task_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
     decode__tyreg_poly_term
     decode__tyreg_poly_ty
   const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 3)
+  checkArrayLength(off, fields, 4)
   const db = Common_Db_ser_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[0])
   const decomp = Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)),fields[1])
   const anchor = Anchor_of_twine(d, fields[2])
-  return new Tasks_Decomp_task_t_poly(db, decomp, anchor)
+  const timeout = twine.optional(d,  ((d:twine.Decoder,off:offset) => d.get_int(off)), fields[3])
+  return new Tasks_Decomp_task_t_poly(db, decomp, anchor, timeout)
 }
 
 // clique Imandrax_api_tasks.Decomp_task.Mir.decomp (cached: false)

@@ -43,6 +43,49 @@ and decompose_res = {
 type eval_src_req = {
   session : Session.session option;
   src : string;
+  async_only : bool option;
+}
+
+type eval_output = {
+  success : bool;
+  value_as_ocaml : string option;
+  errors : Error.error list;
+}
+
+type proved = {
+  proof_pp : string option;
+}
+
+type model_type =
+  | Counter_example 
+  | Instance 
+
+type model = {
+  m_type : model_type;
+  src : string;
+  artifact : Artmsg.art option;
+}
+
+type counter_sat = {
+  model : model option;
+}
+
+type verified_upto = {
+  msg : string option;
+}
+
+type po_res_res =
+  | Unknown of Utils.string_msg
+  | Err
+  | Proof of proved
+  | Instance of counter_sat
+  | Verified_upto of verified_upto
+
+and po_res = {
+  res : po_res_res;
+  errors : Error.error list;
+  task : Task.task option;
+  origin : Task.origin option;
 }
 
 type eval_res = {
@@ -50,6 +93,9 @@ type eval_res = {
   messages : string list;
   errors : Error.error list;
   tasks : Task.task list;
+  po_results : po_res list;
+  eval_results : eval_output list;
+  decomp_results : decompose_res list;
 }
 
 type verify_src_req = {
@@ -76,26 +122,8 @@ type instance_name_req = {
   hints : string option;
 }
 
-type proved = {
-  proof_pp : string option;
-}
-
-type verified_upto = {
-  msg : string option;
-}
-
 type unsat = {
   proof_pp : string option;
-}
-
-type model_type =
-  | Counter_example 
-  | Instance 
-
-type model = {
-  m_type : model_type;
-  src : string;
-  artifact : Artmsg.art option;
 }
 
 type refuted = {
@@ -183,15 +211,68 @@ val default_decompose_res :
 val default_eval_src_req : 
   ?session:Session.session option ->
   ?src:string ->
+  ?async_only:bool option ->
   unit ->
   eval_src_req
 (** [default_eval_src_req ()] is the default value for type [eval_src_req] *)
+
+val default_eval_output : 
+  ?success:bool ->
+  ?value_as_ocaml:string option ->
+  ?errors:Error.error list ->
+  unit ->
+  eval_output
+(** [default_eval_output ()] is the default value for type [eval_output] *)
+
+val default_proved : 
+  ?proof_pp:string option ->
+  unit ->
+  proved
+(** [default_proved ()] is the default value for type [proved] *)
+
+val default_model_type : unit -> model_type
+(** [default_model_type ()] is the default value for type [model_type] *)
+
+val default_model : 
+  ?m_type:model_type ->
+  ?src:string ->
+  ?artifact:Artmsg.art option ->
+  unit ->
+  model
+(** [default_model ()] is the default value for type [model] *)
+
+val default_counter_sat : 
+  ?model:model option ->
+  unit ->
+  counter_sat
+(** [default_counter_sat ()] is the default value for type [counter_sat] *)
+
+val default_verified_upto : 
+  ?msg:string option ->
+  unit ->
+  verified_upto
+(** [default_verified_upto ()] is the default value for type [verified_upto] *)
+
+val default_po_res_res : unit -> po_res_res
+(** [default_po_res_res ()] is the default value for type [po_res_res] *)
+
+val default_po_res : 
+  ?res:po_res_res ->
+  ?errors:Error.error list ->
+  ?task:Task.task option ->
+  ?origin:Task.origin option ->
+  unit ->
+  po_res
+(** [default_po_res ()] is the default value for type [po_res] *)
 
 val default_eval_res : 
   ?success:bool ->
   ?messages:string list ->
   ?errors:Error.error list ->
   ?tasks:Task.task list ->
+  ?po_results:po_res list ->
+  ?eval_results:eval_output list ->
+  ?decomp_results:decompose_res list ->
   unit ->
   eval_res
 (** [default_eval_res ()] is the default value for type [eval_res] *)
@@ -228,34 +309,11 @@ val default_instance_name_req :
   instance_name_req
 (** [default_instance_name_req ()] is the default value for type [instance_name_req] *)
 
-val default_proved : 
-  ?proof_pp:string option ->
-  unit ->
-  proved
-(** [default_proved ()] is the default value for type [proved] *)
-
-val default_verified_upto : 
-  ?msg:string option ->
-  unit ->
-  verified_upto
-(** [default_verified_upto ()] is the default value for type [verified_upto] *)
-
 val default_unsat : 
   ?proof_pp:string option ->
   unit ->
   unsat
 (** [default_unsat ()] is the default value for type [unsat] *)
-
-val default_model_type : unit -> model_type
-(** [default_model_type ()] is the default value for type [model_type] *)
-
-val default_model : 
-  ?m_type:model_type ->
-  ?src:string ->
-  ?artifact:Artmsg.art option ->
-  unit ->
-  model
-(** [default_model ()] is the default value for type [model] *)
 
 val default_refuted : 
   ?model:model option ->
@@ -343,15 +401,64 @@ val make_decompose_res :
 val make_eval_src_req : 
   ?session:Session.session option ->
   src:string ->
+  ?async_only:bool option ->
   unit ->
   eval_src_req
 (** [make_eval_src_req … ()] is a builder for type [eval_src_req] *)
+
+val make_eval_output : 
+  success:bool ->
+  ?value_as_ocaml:string option ->
+  errors:Error.error list ->
+  unit ->
+  eval_output
+(** [make_eval_output … ()] is a builder for type [eval_output] *)
+
+val make_proved : 
+  ?proof_pp:string option ->
+  unit ->
+  proved
+(** [make_proved … ()] is a builder for type [proved] *)
+
+
+val make_model : 
+  m_type:model_type ->
+  src:string ->
+  ?artifact:Artmsg.art option ->
+  unit ->
+  model
+(** [make_model … ()] is a builder for type [model] *)
+
+val make_counter_sat : 
+  ?model:model option ->
+  unit ->
+  counter_sat
+(** [make_counter_sat … ()] is a builder for type [counter_sat] *)
+
+val make_verified_upto : 
+  ?msg:string option ->
+  unit ->
+  verified_upto
+(** [make_verified_upto … ()] is a builder for type [verified_upto] *)
+
+
+val make_po_res : 
+  res:po_res_res ->
+  errors:Error.error list ->
+  ?task:Task.task option ->
+  ?origin:Task.origin option ->
+  unit ->
+  po_res
+(** [make_po_res … ()] is a builder for type [po_res] *)
 
 val make_eval_res : 
   success:bool ->
   messages:string list ->
   errors:Error.error list ->
   tasks:Task.task list ->
+  po_results:po_res list ->
+  eval_results:eval_output list ->
+  decomp_results:decompose_res list ->
   unit ->
   eval_res
 (** [make_eval_res … ()] is a builder for type [eval_res] *)
@@ -388,32 +495,11 @@ val make_instance_name_req :
   instance_name_req
 (** [make_instance_name_req … ()] is a builder for type [instance_name_req] *)
 
-val make_proved : 
-  ?proof_pp:string option ->
-  unit ->
-  proved
-(** [make_proved … ()] is a builder for type [proved] *)
-
-val make_verified_upto : 
-  ?msg:string option ->
-  unit ->
-  verified_upto
-(** [make_verified_upto … ()] is a builder for type [verified_upto] *)
-
 val make_unsat : 
   ?proof_pp:string option ->
   unit ->
   unsat
 (** [make_unsat … ()] is a builder for type [unsat] *)
-
-
-val make_model : 
-  m_type:model_type ->
-  src:string ->
-  ?artifact:Artmsg.art option ->
-  unit ->
-  model
-(** [make_model … ()] is a builder for type [model] *)
 
 val make_refuted : 
   ?model:model option ->
@@ -481,6 +567,30 @@ val pp_decompose_res : Format.formatter -> decompose_res -> unit
 val pp_eval_src_req : Format.formatter -> eval_src_req -> unit 
 (** [pp_eval_src_req v] formats v *)
 
+val pp_eval_output : Format.formatter -> eval_output -> unit 
+(** [pp_eval_output v] formats v *)
+
+val pp_proved : Format.formatter -> proved -> unit 
+(** [pp_proved v] formats v *)
+
+val pp_model_type : Format.formatter -> model_type -> unit 
+(** [pp_model_type v] formats v *)
+
+val pp_model : Format.formatter -> model -> unit 
+(** [pp_model v] formats v *)
+
+val pp_counter_sat : Format.formatter -> counter_sat -> unit 
+(** [pp_counter_sat v] formats v *)
+
+val pp_verified_upto : Format.formatter -> verified_upto -> unit 
+(** [pp_verified_upto v] formats v *)
+
+val pp_po_res_res : Format.formatter -> po_res_res -> unit 
+(** [pp_po_res_res v] formats v *)
+
+val pp_po_res : Format.formatter -> po_res -> unit 
+(** [pp_po_res v] formats v *)
+
 val pp_eval_res : Format.formatter -> eval_res -> unit 
 (** [pp_eval_res v] formats v *)
 
@@ -496,20 +606,8 @@ val pp_instance_src_req : Format.formatter -> instance_src_req -> unit
 val pp_instance_name_req : Format.formatter -> instance_name_req -> unit 
 (** [pp_instance_name_req v] formats v *)
 
-val pp_proved : Format.formatter -> proved -> unit 
-(** [pp_proved v] formats v *)
-
-val pp_verified_upto : Format.formatter -> verified_upto -> unit 
-(** [pp_verified_upto v] formats v *)
-
 val pp_unsat : Format.formatter -> unsat -> unit 
 (** [pp_unsat v] formats v *)
-
-val pp_model_type : Format.formatter -> model_type -> unit 
-(** [pp_model_type v] formats v *)
-
-val pp_model : Format.formatter -> model -> unit 
-(** [pp_model v] formats v *)
 
 val pp_refuted : Format.formatter -> refuted -> unit 
 (** [pp_refuted v] formats v *)
@@ -556,6 +654,30 @@ val encode_pb_decompose_res : decompose_res -> Pbrt.Encoder.t -> unit
 val encode_pb_eval_src_req : eval_src_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_eval_src_req v encoder] encodes [v] with the given [encoder] *)
 
+val encode_pb_eval_output : eval_output -> Pbrt.Encoder.t -> unit
+(** [encode_pb_eval_output v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_proved : proved -> Pbrt.Encoder.t -> unit
+(** [encode_pb_proved v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_model_type : model_type -> Pbrt.Encoder.t -> unit
+(** [encode_pb_model_type v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_model : model -> Pbrt.Encoder.t -> unit
+(** [encode_pb_model v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_counter_sat : counter_sat -> Pbrt.Encoder.t -> unit
+(** [encode_pb_counter_sat v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_verified_upto : verified_upto -> Pbrt.Encoder.t -> unit
+(** [encode_pb_verified_upto v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_po_res_res : po_res_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_po_res_res v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_po_res : po_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_po_res v encoder] encodes [v] with the given [encoder] *)
+
 val encode_pb_eval_res : eval_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_eval_res v encoder] encodes [v] with the given [encoder] *)
 
@@ -571,20 +693,8 @@ val encode_pb_instance_src_req : instance_src_req -> Pbrt.Encoder.t -> unit
 val encode_pb_instance_name_req : instance_name_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_instance_name_req v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_proved : proved -> Pbrt.Encoder.t -> unit
-(** [encode_pb_proved v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_verified_upto : verified_upto -> Pbrt.Encoder.t -> unit
-(** [encode_pb_verified_upto v encoder] encodes [v] with the given [encoder] *)
-
 val encode_pb_unsat : unsat -> Pbrt.Encoder.t -> unit
 (** [encode_pb_unsat v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_model_type : model_type -> Pbrt.Encoder.t -> unit
-(** [encode_pb_model_type v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_model : model -> Pbrt.Encoder.t -> unit
-(** [encode_pb_model v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_refuted : refuted -> Pbrt.Encoder.t -> unit
 (** [encode_pb_refuted v encoder] encodes [v] with the given [encoder] *)
@@ -631,6 +741,30 @@ val decode_pb_decompose_res : Pbrt.Decoder.t -> decompose_res
 val decode_pb_eval_src_req : Pbrt.Decoder.t -> eval_src_req
 (** [decode_pb_eval_src_req decoder] decodes a [eval_src_req] binary value from [decoder] *)
 
+val decode_pb_eval_output : Pbrt.Decoder.t -> eval_output
+(** [decode_pb_eval_output decoder] decodes a [eval_output] binary value from [decoder] *)
+
+val decode_pb_proved : Pbrt.Decoder.t -> proved
+(** [decode_pb_proved decoder] decodes a [proved] binary value from [decoder] *)
+
+val decode_pb_model_type : Pbrt.Decoder.t -> model_type
+(** [decode_pb_model_type decoder] decodes a [model_type] binary value from [decoder] *)
+
+val decode_pb_model : Pbrt.Decoder.t -> model
+(** [decode_pb_model decoder] decodes a [model] binary value from [decoder] *)
+
+val decode_pb_counter_sat : Pbrt.Decoder.t -> counter_sat
+(** [decode_pb_counter_sat decoder] decodes a [counter_sat] binary value from [decoder] *)
+
+val decode_pb_verified_upto : Pbrt.Decoder.t -> verified_upto
+(** [decode_pb_verified_upto decoder] decodes a [verified_upto] binary value from [decoder] *)
+
+val decode_pb_po_res_res : Pbrt.Decoder.t -> po_res_res
+(** [decode_pb_po_res_res decoder] decodes a [po_res_res] binary value from [decoder] *)
+
+val decode_pb_po_res : Pbrt.Decoder.t -> po_res
+(** [decode_pb_po_res decoder] decodes a [po_res] binary value from [decoder] *)
+
 val decode_pb_eval_res : Pbrt.Decoder.t -> eval_res
 (** [decode_pb_eval_res decoder] decodes a [eval_res] binary value from [decoder] *)
 
@@ -646,20 +780,8 @@ val decode_pb_instance_src_req : Pbrt.Decoder.t -> instance_src_req
 val decode_pb_instance_name_req : Pbrt.Decoder.t -> instance_name_req
 (** [decode_pb_instance_name_req decoder] decodes a [instance_name_req] binary value from [decoder] *)
 
-val decode_pb_proved : Pbrt.Decoder.t -> proved
-(** [decode_pb_proved decoder] decodes a [proved] binary value from [decoder] *)
-
-val decode_pb_verified_upto : Pbrt.Decoder.t -> verified_upto
-(** [decode_pb_verified_upto decoder] decodes a [verified_upto] binary value from [decoder] *)
-
 val decode_pb_unsat : Pbrt.Decoder.t -> unsat
 (** [decode_pb_unsat decoder] decodes a [unsat] binary value from [decoder] *)
-
-val decode_pb_model_type : Pbrt.Decoder.t -> model_type
-(** [decode_pb_model_type decoder] decodes a [model_type] binary value from [decoder] *)
-
-val decode_pb_model : Pbrt.Decoder.t -> model
-(** [decode_pb_model decoder] decodes a [model] binary value from [decoder] *)
 
 val decode_pb_refuted : Pbrt.Decoder.t -> refuted
 (** [decode_pb_refuted decoder] decodes a [refuted] binary value from [decoder] *)
@@ -706,6 +828,30 @@ val encode_json_decompose_res : decompose_res -> Yojson.Basic.t
 val encode_json_eval_src_req : eval_src_req -> Yojson.Basic.t
 (** [encode_json_eval_src_req v encoder] encodes [v] to to json *)
 
+val encode_json_eval_output : eval_output -> Yojson.Basic.t
+(** [encode_json_eval_output v encoder] encodes [v] to to json *)
+
+val encode_json_proved : proved -> Yojson.Basic.t
+(** [encode_json_proved v encoder] encodes [v] to to json *)
+
+val encode_json_model_type : model_type -> Yojson.Basic.t
+(** [encode_json_model_type v encoder] encodes [v] to to json *)
+
+val encode_json_model : model -> Yojson.Basic.t
+(** [encode_json_model v encoder] encodes [v] to to json *)
+
+val encode_json_counter_sat : counter_sat -> Yojson.Basic.t
+(** [encode_json_counter_sat v encoder] encodes [v] to to json *)
+
+val encode_json_verified_upto : verified_upto -> Yojson.Basic.t
+(** [encode_json_verified_upto v encoder] encodes [v] to to json *)
+
+val encode_json_po_res_res : po_res_res -> Yojson.Basic.t
+(** [encode_json_po_res_res v encoder] encodes [v] to to json *)
+
+val encode_json_po_res : po_res -> Yojson.Basic.t
+(** [encode_json_po_res v encoder] encodes [v] to to json *)
+
 val encode_json_eval_res : eval_res -> Yojson.Basic.t
 (** [encode_json_eval_res v encoder] encodes [v] to to json *)
 
@@ -721,20 +867,8 @@ val encode_json_instance_src_req : instance_src_req -> Yojson.Basic.t
 val encode_json_instance_name_req : instance_name_req -> Yojson.Basic.t
 (** [encode_json_instance_name_req v encoder] encodes [v] to to json *)
 
-val encode_json_proved : proved -> Yojson.Basic.t
-(** [encode_json_proved v encoder] encodes [v] to to json *)
-
-val encode_json_verified_upto : verified_upto -> Yojson.Basic.t
-(** [encode_json_verified_upto v encoder] encodes [v] to to json *)
-
 val encode_json_unsat : unsat -> Yojson.Basic.t
 (** [encode_json_unsat v encoder] encodes [v] to to json *)
-
-val encode_json_model_type : model_type -> Yojson.Basic.t
-(** [encode_json_model_type v encoder] encodes [v] to to json *)
-
-val encode_json_model : model -> Yojson.Basic.t
-(** [encode_json_model v encoder] encodes [v] to to json *)
 
 val encode_json_refuted : refuted -> Yojson.Basic.t
 (** [encode_json_refuted v encoder] encodes [v] to to json *)
@@ -781,6 +915,30 @@ val decode_json_decompose_res : Yojson.Basic.t -> decompose_res
 val decode_json_eval_src_req : Yojson.Basic.t -> eval_src_req
 (** [decode_json_eval_src_req decoder] decodes a [eval_src_req] value from [decoder] *)
 
+val decode_json_eval_output : Yojson.Basic.t -> eval_output
+(** [decode_json_eval_output decoder] decodes a [eval_output] value from [decoder] *)
+
+val decode_json_proved : Yojson.Basic.t -> proved
+(** [decode_json_proved decoder] decodes a [proved] value from [decoder] *)
+
+val decode_json_model_type : Yojson.Basic.t -> model_type
+(** [decode_json_model_type decoder] decodes a [model_type] value from [decoder] *)
+
+val decode_json_model : Yojson.Basic.t -> model
+(** [decode_json_model decoder] decodes a [model] value from [decoder] *)
+
+val decode_json_counter_sat : Yojson.Basic.t -> counter_sat
+(** [decode_json_counter_sat decoder] decodes a [counter_sat] value from [decoder] *)
+
+val decode_json_verified_upto : Yojson.Basic.t -> verified_upto
+(** [decode_json_verified_upto decoder] decodes a [verified_upto] value from [decoder] *)
+
+val decode_json_po_res_res : Yojson.Basic.t -> po_res_res
+(** [decode_json_po_res_res decoder] decodes a [po_res_res] value from [decoder] *)
+
+val decode_json_po_res : Yojson.Basic.t -> po_res
+(** [decode_json_po_res decoder] decodes a [po_res] value from [decoder] *)
+
 val decode_json_eval_res : Yojson.Basic.t -> eval_res
 (** [decode_json_eval_res decoder] decodes a [eval_res] value from [decoder] *)
 
@@ -796,20 +954,8 @@ val decode_json_instance_src_req : Yojson.Basic.t -> instance_src_req
 val decode_json_instance_name_req : Yojson.Basic.t -> instance_name_req
 (** [decode_json_instance_name_req decoder] decodes a [instance_name_req] value from [decoder] *)
 
-val decode_json_proved : Yojson.Basic.t -> proved
-(** [decode_json_proved decoder] decodes a [proved] value from [decoder] *)
-
-val decode_json_verified_upto : Yojson.Basic.t -> verified_upto
-(** [decode_json_verified_upto decoder] decodes a [verified_upto] value from [decoder] *)
-
 val decode_json_unsat : Yojson.Basic.t -> unsat
 (** [decode_json_unsat decoder] decodes a [unsat] value from [decoder] *)
-
-val decode_json_model_type : Yojson.Basic.t -> model_type
-(** [decode_json_model_type decoder] decodes a [model_type] value from [decoder] *)
-
-val decode_json_model : Yojson.Basic.t -> model
-(** [decode_json_model decoder] decodes a [model] value from [decoder] *)
 
 val decode_json_refuted : Yojson.Basic.t -> refuted
 (** [decode_json_refuted decoder] decodes a [refuted] value from [decoder] *)

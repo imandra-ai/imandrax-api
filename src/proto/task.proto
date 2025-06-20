@@ -1,6 +1,8 @@
 
 syntax = "proto3";
 
+package imandrax.task;
+
 enum TaskKind {
   TASK_UNSPECIFIED = 0;
   TASK_EVAL = 1;
@@ -17,4 +19,13 @@ message TaskID {
 message Task {
   TaskID id = 1;
   TaskKind kind = 2;
+}
+
+/// Origin of some tasks
+message Origin {
+  /// Symbol from which the task originated
+  string from_sym = 1;
+
+  /// A counter for tasks for this symbol
+  int32 count = 2;
 }

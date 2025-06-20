@@ -4,8 +4,8 @@ type stats = Imandrax_api.Stat_time.t [@@deriving show, twine, typereg]
 
 type 'term sub_res = {
   sub_anchor: Imandrax_api.Sub_anchor.t;
-  goal: 'term Imandrax_api_mir.Sequent.t_poly;
-  sub_goals: 'term Imandrax_api_mir.Sequent.t_poly list;
+  goal: 'term Imandrax_api_common.Sequent.t_poly;
+  sub_goals: 'term Imandrax_api_common.Sequent.t_poly list;
   res: (unit, string) Util_twine.Result.t;
 }
 [@@deriving twine, eq, map, typereg, iter, show { with_path = false }]
@@ -14,7 +14,7 @@ type 'term sub_res = {
 type ('term, 'ty) proof_found = {
   anchor: Imandrax_api.Anchor.t;
   proof: ('term, 'ty) Imandrax_api_proof.Proof_term.t_poly;  (** Proof term. *)
-  sub_anchor: Sub_anchor.t option;
+  sub_anchor: Imandrax_api.Sub_anchor.t option;
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 (** Type returned on success for verify *)
@@ -37,7 +37,7 @@ type ('term, 'ty) no_proof = {
   err: Imandrakit_error.Error_core.t;
   counter_model: ('term, 'ty) Imandrax_api_common.Model.t_poly option;
   subgoals: Imandrax_api_mir.Sequent.t list;
-  sub_anchor: Sub_anchor.t option;
+  sub_anchor: Imandrax_api.Sub_anchor.t option;
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 (** Error case for verify (the PO failed) *)
@@ -47,7 +47,7 @@ type ('term, 'ty) unsat = {
   err: Imandrakit_error.Error_core.t;
   proof: ('term, 'ty) Imandrax_api_proof.Proof_term.t_poly;
       (** Proof term for unsat. *)
-  sub_anchor: Sub_anchor.t option;
+  sub_anchor: Imandrax_api.Sub_anchor.t option;
 }
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 (** Error case for instance *)

@@ -203,6 +203,16 @@ pub struct Ty_viewDef_poly<'a,V_tyreg_poly_ty:'a> {
 }
 
 
+// clique 
+
+// clique Imandrax_api.Sub_anchor.t
+#[derive(Debug, Clone)]
+pub struct Sub_anchor<'a> {
+  pub fname: &'a str,
+  pub anchor: BigInt,
+}
+
+
 // clique Imandrax_api.Stat_time.t
 // immediate
 #[derive(Debug, Clone)]
@@ -725,6 +735,7 @@ pub enum MirTermView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
 pub struct MirTerm<'a> {
   pub view: &'a MirTermView<'a,&'a MirTerm<'a>,&'a MirType<'a>>,
   pub ty: &'a MirType<'a>,
+  pub sub_anchor: Option<&'a Sub_anchor<'a>>,
 }
 
 
@@ -733,6 +744,7 @@ pub struct MirTerm<'a> {
 pub struct MirTermSer<'a> {
   pub view: &'a MirTermView<'a,&'a MirTerm<'a>,&'a MirType<'a>>,
   pub ty: &'a MirType<'a>,
+  pub sub_anchor: Option<&'a Sub_anchor<'a>>,
 }
 
 
@@ -1011,11 +1023,22 @@ pub struct TasksPO_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 // clique 
 
+// clique Imandrax_api_tasks.PO_res.sub_res
+#[derive(Debug, Clone)]
+pub struct TasksPO_resSub_res<'a,V_tyreg_poly_term:'a> {
+  pub sub_anchor: &'a Sub_anchor<'a>,
+  pub goal: &'a CommonSequentT_poly<'a,V_tyreg_poly_term>,
+  pub sub_goals: &'a [&'a CommonSequentT_poly<'a,V_tyreg_poly_term>],
+  pub res: &'a core::result::Result<(), &'a str>,
+}
+
+
 // clique Imandrax_api_tasks.PO_res.proof_found
 #[derive(Debug, Clone)]
 pub struct TasksPO_resProof_found<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub anchor: &'a Anchor<'a>,
   pub proof: &'a ProofProof_termT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  pub sub_anchor: Option<&'a Sub_anchor<'a>>,
 }
 
 
@@ -1041,6 +1064,7 @@ pub struct TasksPO_resNo_proof<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub err: &'a ErrorError_core<'a>,
   pub counter_model: Option<&'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
   pub subgoals: &'a [&'a CommonSequentT_poly<'a,&'a MirTerm<'a>>],
+  pub sub_anchor: Option<&'a Sub_anchor<'a>>,
 }
 
 
@@ -1050,6 +1074,7 @@ pub struct TasksPO_resUnsat<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub anchor: &'a Anchor<'a>,
   pub err: &'a ErrorError_core<'a>,
   pub proof: &'a ProofProof_termT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  pub sub_anchor: Option<&'a Sub_anchor<'a>>,
 }
 
 
@@ -1079,6 +1104,7 @@ pub struct TasksPO_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub res: &'a core::result::Result<&'a TasksPO_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksPO_resError<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
   pub stats: Stat_time,
   pub report: &'a In_mem_archiveRaw<'a>,
+  pub sub_res: &'a [&'a [&'a TasksPO_resSub_res<'a,V_tyreg_poly_term>]],
 }
 
 
@@ -1089,6 +1115,7 @@ pub struct TasksPO_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub res: &'a core::result::Result<&'a TasksPO_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksPO_resError<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
   pub stats: Stat_time,
   pub report: &'a In_mem_archiveRaw<'a>,
+  pub sub_res: &'a [&'a [&'a TasksPO_resSub_res<'a,V_tyreg_poly_term>]],
 }
 
 
@@ -1147,6 +1174,7 @@ pub struct TasksDecomp_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub db: &'a CommonDb_serT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub decomp: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term>,
   pub anchor: &'a Anchor<'a>,
+  pub timeout: Option<BigInt>,
 }
 
 
