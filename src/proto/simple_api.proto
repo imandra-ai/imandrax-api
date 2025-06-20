@@ -93,6 +93,18 @@ message EvalSrcReq {
   string src = 2;
 }
 
+// Output of an "eval" statement
+message EvalOutput {
+  bool success = 1;
+
+  // result as a OCaml value, if any
+  optional string value_as_ocaml = 2;
+}
+
+// Simple result for a proof obligation
+message POOutput {
+}
+
 message EvalRes {
   bool success = 1;
 
@@ -104,6 +116,14 @@ message EvalRes {
 
   // all tasks started during eval
   repeated Task tasks = 4;
+
+  repeated VerifyRes verify_results = 10;
+
+  repeated InstanceRes instance_results = 11;
+
+  repeated EvalOutput eval_results = 12;
+
+  repeated DecomposeRes decomp_results = 13;
 }
 
 message VerifySrcReq {
