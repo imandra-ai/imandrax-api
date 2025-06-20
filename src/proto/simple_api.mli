@@ -52,8 +52,6 @@ type eval_output = {
   errors : Error.error list;
 }
 
-type pooutput = unit
-
 type proved = {
   proof_pp : string option;
 }
@@ -87,6 +85,7 @@ and po_res = {
   res : po_res_res;
   errors : Error.error list;
   task : Task.task option;
+  origin : Task.origin option;
 }
 
 type eval_res = {
@@ -225,9 +224,6 @@ val default_eval_output :
   eval_output
 (** [default_eval_output ()] is the default value for type [eval_output] *)
 
-val default_pooutput : unit
-(** [default_pooutput ()] is the default value for type [pooutput] *)
-
 val default_proved : 
   ?proof_pp:string option ->
   unit ->
@@ -264,6 +260,7 @@ val default_po_res :
   ?res:po_res_res ->
   ?errors:Error.error list ->
   ?task:Task.task option ->
+  ?origin:Task.origin option ->
   unit ->
   po_res
 (** [default_po_res ()] is the default value for type [po_res] *)
@@ -417,7 +414,6 @@ val make_eval_output :
   eval_output
 (** [make_eval_output … ()] is a builder for type [eval_output] *)
 
-
 val make_proved : 
   ?proof_pp:string option ->
   unit ->
@@ -450,6 +446,7 @@ val make_po_res :
   res:po_res_res ->
   errors:Error.error list ->
   ?task:Task.task option ->
+  ?origin:Task.origin option ->
   unit ->
   po_res
 (** [make_po_res … ()] is a builder for type [po_res] *)
@@ -573,9 +570,6 @@ val pp_eval_src_req : Format.formatter -> eval_src_req -> unit
 val pp_eval_output : Format.formatter -> eval_output -> unit 
 (** [pp_eval_output v] formats v *)
 
-val pp_pooutput : Format.formatter -> pooutput -> unit 
-(** [pp_pooutput v] formats v *)
-
 val pp_proved : Format.formatter -> proved -> unit 
 (** [pp_proved v] formats v *)
 
@@ -662,9 +656,6 @@ val encode_pb_eval_src_req : eval_src_req -> Pbrt.Encoder.t -> unit
 
 val encode_pb_eval_output : eval_output -> Pbrt.Encoder.t -> unit
 (** [encode_pb_eval_output v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_pooutput : pooutput -> Pbrt.Encoder.t -> unit
-(** [encode_pb_pooutput v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_proved : proved -> Pbrt.Encoder.t -> unit
 (** [encode_pb_proved v encoder] encodes [v] with the given [encoder] *)
@@ -753,9 +744,6 @@ val decode_pb_eval_src_req : Pbrt.Decoder.t -> eval_src_req
 val decode_pb_eval_output : Pbrt.Decoder.t -> eval_output
 (** [decode_pb_eval_output decoder] decodes a [eval_output] binary value from [decoder] *)
 
-val decode_pb_pooutput : Pbrt.Decoder.t -> pooutput
-(** [decode_pb_pooutput decoder] decodes a [pooutput] binary value from [decoder] *)
-
 val decode_pb_proved : Pbrt.Decoder.t -> proved
 (** [decode_pb_proved decoder] decodes a [proved] binary value from [decoder] *)
 
@@ -843,9 +831,6 @@ val encode_json_eval_src_req : eval_src_req -> Yojson.Basic.t
 val encode_json_eval_output : eval_output -> Yojson.Basic.t
 (** [encode_json_eval_output v encoder] encodes [v] to to json *)
 
-val encode_json_pooutput : pooutput -> Yojson.Basic.t
-(** [encode_json_pooutput v encoder] encodes [v] to to json *)
-
 val encode_json_proved : proved -> Yojson.Basic.t
 (** [encode_json_proved v encoder] encodes [v] to to json *)
 
@@ -932,9 +917,6 @@ val decode_json_eval_src_req : Yojson.Basic.t -> eval_src_req
 
 val decode_json_eval_output : Yojson.Basic.t -> eval_output
 (** [decode_json_eval_output decoder] decodes a [eval_output] value from [decoder] *)
-
-val decode_json_pooutput : Yojson.Basic.t -> pooutput
-(** [decode_json_pooutput decoder] decodes a [pooutput] value from [decoder] *)
 
 val decode_json_proved : Yojson.Basic.t -> proved
 (** [decode_json_proved decoder] decodes a [proved] value from [decoder] *)

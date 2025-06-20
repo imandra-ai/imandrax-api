@@ -15,7 +15,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\ntask.proto\"\x14\n\x06TaskID\x12\n\n\x02id\x18\x01 \x01(\t\"4\n\x04Task\x12\x13\n\x02id\x18\x01 \x01(\x0b\x32\x07.TaskID\x12\x17\n\x04kind\x18\x02 \x01(\x0e\x32\t.TaskKind*i\n\x08TaskKind\x12\x14\n\x10TASK_UNSPECIFIED\x10\x00\x12\r\n\tTASK_EVAL\x10\x01\x12\x11\n\rTASK_CHECK_PO\x10\x02\x12\x14\n\x10TASK_PROOF_CHECK\x10\x03\x12\x0f\n\x0bTASK_DECOMP\x10\x04\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\ntask.proto\x12\rimandrax.task\"\x14\n\x06TaskID\x12\n\n\x02id\x18\x01 \x01(\t\"P\n\x04Task\x12!\n\x02id\x18\x01 \x01(\x0b\x32\x15.imandrax.task.TaskID\x12%\n\x04kind\x18\x02 \x01(\x0e\x32\x17.imandrax.task.TaskKind\")\n\x06Origin\x12\x10\n\x08\x66rom_sym\x18\x01 \x01(\t\x12\r\n\x05\x63ount\x18\x02 \x01(\x05*i\n\x08TaskKind\x12\x14\n\x10TASK_UNSPECIFIED\x10\x00\x12\r\n\tTASK_EVAL\x10\x01\x12\x11\n\rTASK_CHECK_PO\x10\x02\x12\x14\n\x10TASK_PROOF_CHECK\x10\x03\x12\x0f\n\x0bTASK_DECOMP\x10\x04\x62\x06proto3')
 
 _TASKKIND = DESCRIPTOR.enum_types_by_name['TaskKind']
 TaskKind = enum_type_wrapper.EnumTypeWrapper(_TASKKIND)
@@ -28,27 +28,37 @@ TASK_DECOMP = 4
 
 _TASKID = DESCRIPTOR.message_types_by_name['TaskID']
 _TASK = DESCRIPTOR.message_types_by_name['Task']
+_ORIGIN = DESCRIPTOR.message_types_by_name['Origin']
 TaskID = _reflection.GeneratedProtocolMessageType('TaskID', (_message.Message,), {
   'DESCRIPTOR' : _TASKID,
   '__module__' : 'task_pb2'
-  # @@protoc_insertion_point(class_scope:TaskID)
+  # @@protoc_insertion_point(class_scope:imandrax.task.TaskID)
   })
 _sym_db.RegisterMessage(TaskID)
 
 Task = _reflection.GeneratedProtocolMessageType('Task', (_message.Message,), {
   'DESCRIPTOR' : _TASK,
   '__module__' : 'task_pb2'
-  # @@protoc_insertion_point(class_scope:Task)
+  # @@protoc_insertion_point(class_scope:imandrax.task.Task)
   })
 _sym_db.RegisterMessage(Task)
+
+Origin = _reflection.GeneratedProtocolMessageType('Origin', (_message.Message,), {
+  'DESCRIPTOR' : _ORIGIN,
+  '__module__' : 'task_pb2'
+  # @@protoc_insertion_point(class_scope:imandrax.task.Origin)
+  })
+_sym_db.RegisterMessage(Origin)
 
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _TASKKIND._serialized_start=90
-  _TASKKIND._serialized_end=195
-  _TASKID._serialized_start=14
-  _TASKID._serialized_end=34
-  _TASK._serialized_start=36
-  _TASK._serialized_end=88
+  _TASKKIND._serialized_start=176
+  _TASKKIND._serialized_end=281
+  _TASKID._serialized_start=29
+  _TASKID._serialized_end=49
+  _TASK._serialized_start=51
+  _TASK._serialized_end=131
+  _ORIGIN._serialized_start=133
+  _ORIGIN._serialized_end=174
 # @@protoc_insertion_point(module_scope)

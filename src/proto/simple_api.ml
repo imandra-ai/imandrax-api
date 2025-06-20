@@ -45,8 +45,6 @@ type eval_output = {
   errors : Error.error list;
 }
 
-type pooutput = unit
-
 type proved = {
   proof_pp : string option;
 }
@@ -80,6 +78,7 @@ and po_res = {
   res : po_res_res;
   errors : Error.error list;
   task : Task.task option;
+  origin : Task.origin option;
 }
 
 type eval_res = {
@@ -228,8 +227,6 @@ let rec default_eval_output
   errors;
 }
 
-let rec default_pooutput = ()
-
 let rec default_proved 
   ?proof_pp:((proof_pp:string option) = None)
   () : proved  = {
@@ -266,10 +263,12 @@ and default_po_res
   ?res:((res:po_res_res) = Unknown (Utils.default_string_msg ()))
   ?errors:((errors:Error.error list) = [])
   ?task:((task:Task.task option) = None)
+  ?origin:((origin:Task.origin option) = None)
   () : po_res  = {
   res;
   errors;
   task;
+  origin;
 }
 
 let rec default_eval_res 
@@ -500,12 +499,14 @@ type po_res_mutable = {
   mutable res : po_res_res;
   mutable errors : Error.error list;
   mutable task : Task.task option;
+  mutable origin : Task.origin option;
 }
 
 let default_po_res_mutable () : po_res_mutable = {
   res = Unknown (Utils.default_string_msg ());
   errors = [];
   task = None;
+  origin = None;
 }
 
 type eval_res_mutable = {
@@ -711,7 +712,6 @@ let rec make_eval_output
   errors;
 }
 
-
 let rec make_proved 
   ?proof_pp:((proof_pp:string option) = None)
   () : proved  = {
@@ -746,10 +746,12 @@ let rec make_po_res
   ~(res:po_res_res)
   ~(errors:Error.error list)
   ?task:((task:Task.task option) = None)
+  ?origin:((origin:Task.origin option) = None)
   () : po_res  = {
   res;
   errors;
   task;
+  origin;
 }
 
 let rec make_eval_res 
@@ -929,12 +931,6 @@ let rec pp_eval_output fmt (v:eval_output) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_pooutput fmt (v:pooutput) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_unit fmt ()
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
 let rec pp_proved fmt (v:proved) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "proof_pp" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.proof_pp;
@@ -979,6 +975,7 @@ and pp_po_res fmt (v:po_res) =
     Pbrt.Pp.pp_record_field ~first:true "res" pp_po_res_res fmt v.res;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
     Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
+    Pbrt.Pp.pp_record_field ~first:false "origin" (Pbrt.Pp.pp_option Task.pp_origin) fmt v.origin;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1220,9 +1217,6 @@ let rec encode_pb_eval_output (v:eval_output) encoder =
   ) v.errors encoder;
   ()
 
-let rec encode_pb_pooutput (v:pooutput) encoder = 
-()
-
 let rec encode_pb_proved (v:proved) encoder = 
   begin match v.proof_pp with
   | Some x -> 
@@ -1313,6 +1307,12 @@ and encode_pb_po_res (v:po_res) encoder =
   | Some x -> 
     Pbrt.Encoder.nested Task.encode_pb_task x encoder;
     Pbrt.Encoder.key 11 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  begin match v.origin with
+  | Some x -> 
+    Pbrt.Encoder.nested Task.encode_pb_origin x encoder;
+    Pbrt.Encoder.key 12 Pbrt.Bytes encoder; 
   | None -> ();
   end;
   ()
@@ -1775,12 +1775,6 @@ let rec decode_pb_eval_output d =
     errors = v.errors;
   } : eval_output)
 
-let rec decode_pb_pooutput d =
-  match Pbrt.Decoder.key d with
-  | None -> ();
-  | Some (_, pk) -> 
-    Pbrt.Decoder.unexpected_payload "Unexpected fields in empty message(pooutput)" pk
-
 let rec decode_pb_proved d =
   let v = default_proved_mutable () in
   let continue__= ref true in
@@ -1936,12 +1930,18 @@ and decode_pb_po_res d =
     end
     | Some (11, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(po_res), field(11)" pk
+    | Some (12, Pbrt.Bytes) -> begin
+      v.origin <- Some (Task.decode_pb_origin (Pbrt.Decoder.nested d));
+    end
+    | Some (12, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(po_res), field(12)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     res = v.res;
     errors = v.errors;
     task = v.task;
+    origin = v.origin;
   } : po_res)
 
 let rec decode_pb_eval_res d =
@@ -2475,9 +2475,6 @@ let rec encode_json_eval_output (v:eval_output) =
   in
   `Assoc assoc
 
-let rec encode_json_pooutput (v:pooutput) = 
-Pbrt_yojson.make_unit v
-
 let rec encode_json_proved (v:proved) = 
   let assoc = [] in 
   let assoc = match v.proof_pp with
@@ -2542,6 +2539,10 @@ and encode_json_po_res (v:po_res) =
   let assoc = match v.task with
     | None -> assoc
     | Some v -> ("task", Task.encode_json_task v) :: assoc
+  in
+  let assoc = match v.origin with
+    | None -> assoc
+    | Some v -> ("origin", Task.encode_json_origin v) :: assoc
   in
   `Assoc assoc
 
@@ -2888,9 +2889,6 @@ let rec decode_json_eval_output d =
     errors = v.errors;
   } : eval_output)
 
-let rec decode_json_pooutput d =
-Pbrt_yojson.unit d "pooutput" "empty record"
-
 let rec decode_json_proved d =
   let v = default_proved_mutable () in
   let assoc = match d with
@@ -3011,6 +3009,8 @@ and decode_json_po_res d =
     end
     | ("task", json_value) -> 
       v.task <- Some ((Task.decode_json_task json_value))
+    | ("origin", json_value) -> 
+      v.origin <- Some ((Task.decode_json_origin json_value))
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -3018,6 +3018,7 @@ and decode_json_po_res d =
     res = v.res;
     errors = v.errors;
     task = v.task;
+    origin = v.origin;
   } : po_res)
 
 let rec decode_json_eval_res d =

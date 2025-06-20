@@ -83,7 +83,7 @@ message DecomposeRes {
   repeated Error errors = 10;
 
   // the ID of the task
-  Task task = 11;
+  imandrax.task.Task task = 11;
 }
 
 message EvalSrcReq {
@@ -107,10 +107,6 @@ message EvalOutput {
   repeated Error errors = 10;
 }
 
-// Simple result for a proof obligation
-message POOutput {
-}
-
 message EvalRes {
   bool success = 1;
 
@@ -121,7 +117,7 @@ message EvalRes {
   repeated Error errors = 3;
 
   // all tasks started during eval
-  repeated Task tasks = 4;
+  repeated imandrax.task.Task tasks = 4;
 
   repeated PO_Res po_results = 10;
 
@@ -218,7 +214,10 @@ message PO_Res {
   repeated Error errors = 10;
 
   // the ID of the task
-  Task task = 11;
+  imandrax.task.Task task = 11;
+
+  // Where did the task originate?
+  imandrax.task.Origin origin = 12;
 }
 
 
@@ -234,7 +233,7 @@ message VerifyRes {
   repeated Error errors = 10;
 
   // the ID of the task
-  Task task = 11;
+  imandrax.task.Task task = 11;
 }
 
 message InstanceRes {
@@ -248,7 +247,7 @@ message InstanceRes {
   repeated Error errors = 10;
 
   // the ID of the task
-  Task task = 11;
+  imandrax.task.Task task = 11;
 }
 
 // compat notes: no history, not reset
