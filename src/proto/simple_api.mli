@@ -49,6 +49,7 @@ type eval_src_req = {
 type eval_output = {
   success : bool;
   value_as_ocaml : string option;
+  errors : Error.error list;
 }
 
 type pooutput = unit
@@ -219,6 +220,7 @@ val default_eval_src_req :
 val default_eval_output : 
   ?success:bool ->
   ?value_as_ocaml:string option ->
+  ?errors:Error.error list ->
   unit ->
   eval_output
 (** [default_eval_output ()] is the default value for type [eval_output] *)
@@ -410,6 +412,7 @@ val make_eval_src_req :
 val make_eval_output : 
   success:bool ->
   ?value_as_ocaml:string option ->
+  errors:Error.error list ->
   unit ->
   eval_output
 (** [make_eval_output … ()] is a builder for type [eval_output] *)

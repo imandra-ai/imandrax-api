@@ -42,6 +42,7 @@ type eval_src_req = {
 type eval_output = {
   success : bool;
   value_as_ocaml : string option;
+  errors : Error.error list;
 }
 
 type pooutput = unit
@@ -220,9 +221,11 @@ let rec default_eval_src_req
 let rec default_eval_output 
   ?success:((success:bool) = false)
   ?value_as_ocaml:((value_as_ocaml:string option) = None)
+  ?errors:((errors:Error.error list) = [])
   () : eval_output  = {
   success;
   value_as_ocaml;
+  errors;
 }
 
 let rec default_pooutput = ()
@@ -448,11 +451,13 @@ let default_eval_src_req_mutable () : eval_src_req_mutable = {
 type eval_output_mutable = {
   mutable success : bool;
   mutable value_as_ocaml : string option;
+  mutable errors : Error.error list;
 }
 
 let default_eval_output_mutable () : eval_output_mutable = {
   success = false;
   value_as_ocaml = None;
+  errors = [];
 }
 
 type proved_mutable = {
@@ -699,9 +704,11 @@ let rec make_eval_src_req
 let rec make_eval_output 
   ~(success:bool)
   ?value_as_ocaml:((value_as_ocaml:string option) = None)
+  ~(errors:Error.error list)
   () : eval_output  = {
   success;
   value_as_ocaml;
+  errors;
 }
 
 
@@ -918,6 +925,7 @@ let rec pp_eval_output fmt (v:eval_output) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "success" Pbrt.Pp.pp_bool fmt v.success;
     Pbrt.Pp.pp_record_field ~first:false "value_as_ocaml" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.value_as_ocaml;
+    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1206,6 +1214,10 @@ let rec encode_pb_eval_output (v:eval_output) encoder =
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   | None -> ();
   end;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+    Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
+  ) v.errors encoder;
   ()
 
 let rec encode_pb_pooutput (v:pooutput) encoder = 
@@ -1738,6 +1750,7 @@ let rec decode_pb_eval_output d =
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
+      v.errors <- List.rev v.errors;
     ); continue__ := false
     | Some (1, Pbrt.Varint) -> begin
       v.success <- Pbrt.Decoder.bool d;
@@ -1749,11 +1762,17 @@ let rec decode_pb_eval_output d =
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(eval_output), field(2)" pk
+    | Some (10, Pbrt.Bytes) -> begin
+      v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
+    end
+    | Some (10, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(eval_output), field(10)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     success = v.success;
     value_as_ocaml = v.value_as_ocaml;
+    errors = v.errors;
   } : eval_output)
 
 let rec decode_pb_pooutput d =
@@ -2450,6 +2469,10 @@ let rec encode_json_eval_output (v:eval_output) =
     | None -> assoc
     | Some v -> ("valueAsOcaml", Pbrt_yojson.make_string v) :: assoc
   in
+  let assoc =
+    let l = v.errors |> List.map Error.encode_json_error in
+    ("errors", `List l) :: assoc 
+  in
   `Assoc assoc
 
 let rec encode_json_pooutput (v:pooutput) = 
@@ -2851,12 +2874,18 @@ let rec decode_json_eval_output d =
       v.success <- Pbrt_yojson.bool json_value "eval_output" "success"
     | ("valueAsOcaml", json_value) -> 
       v.value_as_ocaml <- Some (Pbrt_yojson.string json_value "eval_output" "value_as_ocaml")
+    | ("errors", `List l) -> begin
+      v.errors <- List.map (function
+        | json_value -> (Error.decode_json_error json_value)
+      ) l;
+    end
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     success = v.success;
     value_as_ocaml = v.value_as_ocaml;
+    errors = v.errors;
   } : eval_output)
 
 let rec decode_json_pooutput d =

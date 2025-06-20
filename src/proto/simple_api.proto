@@ -103,6 +103,8 @@ message EvalOutput {
 
   // result as a OCaml value, if any
   optional string value_as_ocaml = 2;
+
+  repeated Error errors = 10;
 }
 
 // Simple result for a proof obligation
