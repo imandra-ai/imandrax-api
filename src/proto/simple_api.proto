@@ -117,7 +117,7 @@ message EvalRes {
   // all tasks started during eval
   repeated Task tasks = 4;
 
-  repeated PORes po_results = 10;
+  repeated PO_Res po_results = 10;
 
   repeated EvalOutput eval_results = 11;
 
@@ -200,7 +200,7 @@ message CounterSat {
 }
 
 // Result of any PO (theorem, verify, etc)
-message PORes {
+message PO_Res {
   oneof res {
     StringMsg unknown = 1;
     Empty err = 2;

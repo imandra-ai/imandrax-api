@@ -67,15 +67,15 @@ type verified_upto = {
   msg : string option;
 }
 
-type pores_res =
+type po_res_res =
   | Unknown of Utils.string_msg
   | Err
   | Proof of proved
   | Instance of counter_sat
   | Verified_upto of verified_upto
 
-and pores = {
-  res : pores_res;
+and po_res = {
+  res : po_res_res;
   errors : Error.error list;
   task : Task.task option;
 }
@@ -85,7 +85,7 @@ type eval_res = {
   messages : string list;
   errors : Error.error list;
   tasks : Task.task list;
-  po_results : pores list;
+  po_results : po_res list;
   eval_results : eval_output list;
   decomp_results : decompose_res list;
 }
@@ -254,13 +254,13 @@ let rec default_verified_upto
   msg;
 }
 
-let rec default_pores_res () : pores_res = Unknown (Utils.default_string_msg ())
+let rec default_po_res_res () : po_res_res = Unknown (Utils.default_string_msg ())
 
-and default_pores 
-  ?res:((res:pores_res) = Unknown (Utils.default_string_msg ()))
+and default_po_res 
+  ?res:((res:po_res_res) = Unknown (Utils.default_string_msg ()))
   ?errors:((errors:Error.error list) = [])
   ?task:((task:Task.task option) = None)
-  () : pores  = {
+  () : po_res  = {
   res;
   errors;
   task;
@@ -271,7 +271,7 @@ let rec default_eval_res
   ?messages:((messages:string list) = [])
   ?errors:((errors:Error.error list) = [])
   ?tasks:((tasks:Task.task list) = [])
-  ?po_results:((po_results:pores list) = [])
+  ?po_results:((po_results:po_res list) = [])
   ?eval_results:((eval_results:eval_output list) = [])
   ?decomp_results:((decomp_results:decompose_res list) = [])
   () : eval_res  = {
@@ -486,13 +486,13 @@ let default_verified_upto_mutable () : verified_upto_mutable = {
   msg = None;
 }
 
-type pores_mutable = {
-  mutable res : pores_res;
+type po_res_mutable = {
+  mutable res : po_res_res;
   mutable errors : Error.error list;
   mutable task : Task.task option;
 }
 
-let default_pores_mutable () : pores_mutable = {
+let default_po_res_mutable () : po_res_mutable = {
   res = Unknown (Utils.default_string_msg ());
   errors = [];
   task = None;
@@ -503,7 +503,7 @@ type eval_res_mutable = {
   mutable messages : string list;
   mutable errors : Error.error list;
   mutable tasks : Task.task list;
-  mutable po_results : pores list;
+  mutable po_results : po_res list;
   mutable eval_results : eval_output list;
   mutable decomp_results : decompose_res list;
 }
@@ -728,11 +728,11 @@ let rec make_verified_upto
 }
 
 
-let rec make_pores 
-  ~(res:pores_res)
+let rec make_po_res 
+  ~(res:po_res_res)
   ~(errors:Error.error list)
   ?task:((task:Task.task option) = None)
-  () : pores  = {
+  () : po_res  = {
   res;
   errors;
   task;
@@ -743,7 +743,7 @@ let rec make_eval_res
   ~(messages:string list)
   ~(errors:Error.error list)
   ~(tasks:Task.task list)
-  ~(po_results:pores list)
+  ~(po_results:po_res list)
   ~(eval_results:eval_output list)
   ~(decomp_results:decompose_res list)
   () : eval_res  = {
@@ -950,7 +950,7 @@ let rec pp_verified_upto fmt (v:verified_upto) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_pores_res fmt (v:pores_res) =
+let rec pp_po_res_res fmt (v:po_res_res) =
   match v with
   | Unknown x -> Format.fprintf fmt "@[<hv2>Unknown(@,%a)@]" Utils.pp_string_msg x
   | Err  -> Format.fprintf fmt "Err"
@@ -958,9 +958,9 @@ let rec pp_pores_res fmt (v:pores_res) =
   | Instance x -> Format.fprintf fmt "@[<hv2>Instance(@,%a)@]" pp_counter_sat x
   | Verified_upto x -> Format.fprintf fmt "@[<hv2>Verified_upto(@,%a)@]" pp_verified_upto x
 
-and pp_pores fmt (v:pores) = 
+and pp_po_res fmt (v:po_res) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "res" pp_pores_res fmt v.res;
+    Pbrt.Pp.pp_record_field ~first:true "res" pp_po_res_res fmt v.res;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
     Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
   in
@@ -972,7 +972,7 @@ let rec pp_eval_res fmt (v:eval_res) =
     Pbrt.Pp.pp_record_field ~first:false "messages" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.messages;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
     Pbrt.Pp.pp_record_field ~first:false "tasks" (Pbrt.Pp.pp_list Task.pp_task) fmt v.tasks;
-    Pbrt.Pp.pp_record_field ~first:false "po_results" (Pbrt.Pp.pp_list pp_pores) fmt v.po_results;
+    Pbrt.Pp.pp_record_field ~first:false "po_results" (Pbrt.Pp.pp_list pp_po_res) fmt v.po_results;
     Pbrt.Pp.pp_record_field ~first:false "eval_results" (Pbrt.Pp.pp_list pp_eval_output) fmt v.eval_results;
     Pbrt.Pp.pp_record_field ~first:false "decomp_results" (Pbrt.Pp.pp_list pp_decompose_res) fmt v.decomp_results;
   in
@@ -1242,7 +1242,7 @@ let rec encode_pb_verified_upto (v:verified_upto) encoder =
   end;
   ()
 
-let rec encode_pb_pores_res (v:pores_res) encoder = 
+let rec encode_pb_po_res_res (v:po_res_res) encoder = 
   begin match v with
   | Unknown x ->
     Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
@@ -1261,7 +1261,7 @@ let rec encode_pb_pores_res (v:pores_res) encoder =
     Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
   end
 
-and encode_pb_pores (v:pores) encoder = 
+and encode_pb_po_res (v:po_res) encoder = 
   begin match v.res with
   | Unknown x ->
     Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
@@ -1307,7 +1307,7 @@ let rec encode_pb_eval_res (v:eval_res) encoder =
     Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
   ) v.tasks encoder;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested encode_pb_pores x encoder;
+    Pbrt.Encoder.nested encode_pb_po_res x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   ) v.po_results encoder;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
@@ -1832,18 +1832,18 @@ let rec decode_pb_verified_upto d =
     msg = v.msg;
   } : verified_upto)
 
-let rec decode_pb_pores_res d = 
+let rec decode_pb_po_res_res d = 
   let rec loop () = 
-    let ret:pores_res = match Pbrt.Decoder.key d with
-      | None -> Pbrt.Decoder.malformed_variant "pores_res"
-      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : pores_res) 
+    let ret:po_res_res = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "po_res_res"
+      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : po_res_res) 
       | Some (2, _) -> begin 
         Pbrt.Decoder.empty_nested d ;
-        (Err : pores_res)
+        (Err : po_res_res)
       end
-      | Some (3, _) -> (Proof (decode_pb_proved (Pbrt.Decoder.nested d)) : pores_res) 
-      | Some (4, _) -> (Instance (decode_pb_counter_sat (Pbrt.Decoder.nested d)) : pores_res) 
-      | Some (5, _) -> (Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d)) : pores_res) 
+      | Some (3, _) -> (Proof (decode_pb_proved (Pbrt.Decoder.nested d)) : po_res_res) 
+      | Some (4, _) -> (Instance (decode_pb_counter_sat (Pbrt.Decoder.nested d)) : po_res_res) 
+      | Some (5, _) -> (Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d)) : po_res_res) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -1853,8 +1853,8 @@ let rec decode_pb_pores_res d =
   in
   loop ()
 
-and decode_pb_pores d =
-  let v = default_pores_mutable () in
+and decode_pb_po_res d =
+  let v = default_po_res_mutable () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
@@ -1865,45 +1865,45 @@ and decode_pb_pores d =
       v.res <- Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d));
     end
     | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(pores), field(1)" pk
+      Pbrt.Decoder.unexpected_payload "Message(po_res), field(1)" pk
     | Some (2, Pbrt.Bytes) -> begin
       Pbrt.Decoder.empty_nested d;
       v.res <- Err;
     end
     | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(pores), field(2)" pk
+      Pbrt.Decoder.unexpected_payload "Message(po_res), field(2)" pk
     | Some (3, Pbrt.Bytes) -> begin
       v.res <- Proof (decode_pb_proved (Pbrt.Decoder.nested d));
     end
     | Some (3, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(pores), field(3)" pk
+      Pbrt.Decoder.unexpected_payload "Message(po_res), field(3)" pk
     | Some (4, Pbrt.Bytes) -> begin
       v.res <- Instance (decode_pb_counter_sat (Pbrt.Decoder.nested d));
     end
     | Some (4, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(pores), field(4)" pk
+      Pbrt.Decoder.unexpected_payload "Message(po_res), field(4)" pk
     | Some (5, Pbrt.Bytes) -> begin
       v.res <- Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d));
     end
     | Some (5, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(pores), field(5)" pk
+      Pbrt.Decoder.unexpected_payload "Message(po_res), field(5)" pk
     | Some (10, Pbrt.Bytes) -> begin
       v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
     end
     | Some (10, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(pores), field(10)" pk
+      Pbrt.Decoder.unexpected_payload "Message(po_res), field(10)" pk
     | Some (11, Pbrt.Bytes) -> begin
       v.task <- Some (Task.decode_pb_task (Pbrt.Decoder.nested d));
     end
     | Some (11, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(pores), field(11)" pk
+      Pbrt.Decoder.unexpected_payload "Message(po_res), field(11)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     res = v.res;
     errors = v.errors;
     task = v.task;
-  } : pores)
+  } : po_res)
 
 let rec decode_pb_eval_res d =
   let v = default_eval_res_mutable () in
@@ -1939,7 +1939,7 @@ let rec decode_pb_eval_res d =
     | Some (4, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(eval_res), field(4)" pk
     | Some (10, Pbrt.Bytes) -> begin
-      v.po_results <- (decode_pb_pores (Pbrt.Decoder.nested d)) :: v.po_results;
+      v.po_results <- (decode_pb_po_res (Pbrt.Decoder.nested d)) :: v.po_results;
     end
     | Some (10, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(eval_res), field(10)" pk
@@ -2470,7 +2470,7 @@ let rec encode_json_verified_upto (v:verified_upto) =
   in
   `Assoc assoc
 
-let rec encode_json_pores_res (v:pores_res) = 
+let rec encode_json_po_res_res (v:po_res_res) = 
   begin match v with
   | Unknown v -> `Assoc [("unknown", Utils.encode_json_string_msg v)]
   | Err -> `Assoc [("err", `Null)]
@@ -2479,7 +2479,7 @@ let rec encode_json_pores_res (v:pores_res) =
   | Verified_upto v -> `Assoc [("verifiedUpto", encode_json_verified_upto v)]
   end
 
-and encode_json_pores (v:pores) = 
+and encode_json_po_res (v:po_res) = 
   let assoc = [] in 
   let assoc = match v.res with
       | Unknown v -> ("unknown", Utils.encode_json_string_msg v) :: assoc
@@ -2514,7 +2514,7 @@ let rec encode_json_eval_res (v:eval_res) =
     ("tasks", `List l) :: assoc 
   in
   let assoc =
-    let l = v.po_results |> List.map encode_json_pores in
+    let l = v.po_results |> List.map encode_json_po_res in
     ("poResults", `List l) :: assoc 
   in
   let assoc =
@@ -2911,29 +2911,29 @@ let rec decode_json_verified_upto d =
     msg = v.msg;
   } : verified_upto)
 
-let rec decode_json_pores_res json =
+let rec decode_json_po_res_res json =
   let assoc = match json with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
   in
   let rec loop = function
-    | [] -> Pbrt_yojson.E.malformed_variant "pores_res"
+    | [] -> Pbrt_yojson.E.malformed_variant "po_res_res"
     | ("unknown", json_value)::_ -> 
-      (Unknown ((Utils.decode_json_string_msg json_value)) : pores_res)
-    | ("err", _)::_-> (Err : pores_res)
+      (Unknown ((Utils.decode_json_string_msg json_value)) : po_res_res)
+    | ("err", _)::_-> (Err : po_res_res)
     | ("proof", json_value)::_ -> 
-      (Proof ((decode_json_proved json_value)) : pores_res)
+      (Proof ((decode_json_proved json_value)) : po_res_res)
     | ("instance", json_value)::_ -> 
-      (Instance ((decode_json_counter_sat json_value)) : pores_res)
+      (Instance ((decode_json_counter_sat json_value)) : po_res_res)
     | ("verifiedUpto", json_value)::_ -> 
-      (Verified_upto ((decode_json_verified_upto json_value)) : pores_res)
+      (Verified_upto ((decode_json_verified_upto json_value)) : po_res_res)
     
     | _ :: tl -> loop tl
   in
   loop assoc
 
-and decode_json_pores d =
-  let v = default_pores_mutable () in
+and decode_json_po_res d =
+  let v = default_po_res_mutable () in
   let assoc = match d with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
@@ -2962,7 +2962,7 @@ and decode_json_pores d =
     res = v.res;
     errors = v.errors;
     task = v.task;
-  } : pores)
+  } : po_res)
 
 let rec decode_json_eval_res d =
   let v = default_eval_res_mutable () in
@@ -2990,7 +2990,7 @@ let rec decode_json_eval_res d =
     end
     | ("poResults", `List l) -> begin
       v.po_results <- List.map (function
-        | json_value -> (decode_json_pores json_value)
+        | json_value -> (decode_json_po_res json_value)
       ) l;
     end
     | ("evalResults", `List l) -> begin

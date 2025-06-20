@@ -74,15 +74,15 @@ type verified_upto = {
   msg : string option;
 }
 
-type pores_res =
+type po_res_res =
   | Unknown of Utils.string_msg
   | Err
   | Proof of proved
   | Instance of counter_sat
   | Verified_upto of verified_upto
 
-and pores = {
-  res : pores_res;
+and po_res = {
+  res : po_res_res;
   errors : Error.error list;
   task : Task.task option;
 }
@@ -92,7 +92,7 @@ type eval_res = {
   messages : string list;
   errors : Error.error list;
   tasks : Task.task list;
-  po_results : pores list;
+  po_results : po_res list;
   eval_results : eval_output list;
   decomp_results : decompose_res list;
 }
@@ -253,23 +253,23 @@ val default_verified_upto :
   verified_upto
 (** [default_verified_upto ()] is the default value for type [verified_upto] *)
 
-val default_pores_res : unit -> pores_res
-(** [default_pores_res ()] is the default value for type [pores_res] *)
+val default_po_res_res : unit -> po_res_res
+(** [default_po_res_res ()] is the default value for type [po_res_res] *)
 
-val default_pores : 
-  ?res:pores_res ->
+val default_po_res : 
+  ?res:po_res_res ->
   ?errors:Error.error list ->
   ?task:Task.task option ->
   unit ->
-  pores
-(** [default_pores ()] is the default value for type [pores] *)
+  po_res
+(** [default_po_res ()] is the default value for type [po_res] *)
 
 val default_eval_res : 
   ?success:bool ->
   ?messages:string list ->
   ?errors:Error.error list ->
   ?tasks:Task.task list ->
-  ?po_results:pores list ->
+  ?po_results:po_res list ->
   ?eval_results:eval_output list ->
   ?decomp_results:decompose_res list ->
   unit ->
@@ -440,20 +440,20 @@ val make_verified_upto :
 (** [make_verified_upto … ()] is a builder for type [verified_upto] *)
 
 
-val make_pores : 
-  res:pores_res ->
+val make_po_res : 
+  res:po_res_res ->
   errors:Error.error list ->
   ?task:Task.task option ->
   unit ->
-  pores
-(** [make_pores … ()] is a builder for type [pores] *)
+  po_res
+(** [make_po_res … ()] is a builder for type [po_res] *)
 
 val make_eval_res : 
   success:bool ->
   messages:string list ->
   errors:Error.error list ->
   tasks:Task.task list ->
-  po_results:pores list ->
+  po_results:po_res list ->
   eval_results:eval_output list ->
   decomp_results:decompose_res list ->
   unit ->
@@ -585,11 +585,11 @@ val pp_counter_sat : Format.formatter -> counter_sat -> unit
 val pp_verified_upto : Format.formatter -> verified_upto -> unit 
 (** [pp_verified_upto v] formats v *)
 
-val pp_pores_res : Format.formatter -> pores_res -> unit 
-(** [pp_pores_res v] formats v *)
+val pp_po_res_res : Format.formatter -> po_res_res -> unit 
+(** [pp_po_res_res v] formats v *)
 
-val pp_pores : Format.formatter -> pores -> unit 
-(** [pp_pores v] formats v *)
+val pp_po_res : Format.formatter -> po_res -> unit 
+(** [pp_po_res v] formats v *)
 
 val pp_eval_res : Format.formatter -> eval_res -> unit 
 (** [pp_eval_res v] formats v *)
@@ -675,11 +675,11 @@ val encode_pb_counter_sat : counter_sat -> Pbrt.Encoder.t -> unit
 val encode_pb_verified_upto : verified_upto -> Pbrt.Encoder.t -> unit
 (** [encode_pb_verified_upto v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_pores_res : pores_res -> Pbrt.Encoder.t -> unit
-(** [encode_pb_pores_res v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_po_res_res : po_res_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_po_res_res v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_pores : pores -> Pbrt.Encoder.t -> unit
-(** [encode_pb_pores v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_po_res : po_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_po_res v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_eval_res : eval_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_eval_res v encoder] encodes [v] with the given [encoder] *)
@@ -765,11 +765,11 @@ val decode_pb_counter_sat : Pbrt.Decoder.t -> counter_sat
 val decode_pb_verified_upto : Pbrt.Decoder.t -> verified_upto
 (** [decode_pb_verified_upto decoder] decodes a [verified_upto] binary value from [decoder] *)
 
-val decode_pb_pores_res : Pbrt.Decoder.t -> pores_res
-(** [decode_pb_pores_res decoder] decodes a [pores_res] binary value from [decoder] *)
+val decode_pb_po_res_res : Pbrt.Decoder.t -> po_res_res
+(** [decode_pb_po_res_res decoder] decodes a [po_res_res] binary value from [decoder] *)
 
-val decode_pb_pores : Pbrt.Decoder.t -> pores
-(** [decode_pb_pores decoder] decodes a [pores] binary value from [decoder] *)
+val decode_pb_po_res : Pbrt.Decoder.t -> po_res
+(** [decode_pb_po_res decoder] decodes a [po_res] binary value from [decoder] *)
 
 val decode_pb_eval_res : Pbrt.Decoder.t -> eval_res
 (** [decode_pb_eval_res decoder] decodes a [eval_res] binary value from [decoder] *)
@@ -855,11 +855,11 @@ val encode_json_counter_sat : counter_sat -> Yojson.Basic.t
 val encode_json_verified_upto : verified_upto -> Yojson.Basic.t
 (** [encode_json_verified_upto v encoder] encodes [v] to to json *)
 
-val encode_json_pores_res : pores_res -> Yojson.Basic.t
-(** [encode_json_pores_res v encoder] encodes [v] to to json *)
+val encode_json_po_res_res : po_res_res -> Yojson.Basic.t
+(** [encode_json_po_res_res v encoder] encodes [v] to to json *)
 
-val encode_json_pores : pores -> Yojson.Basic.t
-(** [encode_json_pores v encoder] encodes [v] to to json *)
+val encode_json_po_res : po_res -> Yojson.Basic.t
+(** [encode_json_po_res v encoder] encodes [v] to to json *)
 
 val encode_json_eval_res : eval_res -> Yojson.Basic.t
 (** [encode_json_eval_res v encoder] encodes [v] to to json *)
@@ -945,11 +945,11 @@ val decode_json_counter_sat : Yojson.Basic.t -> counter_sat
 val decode_json_verified_upto : Yojson.Basic.t -> verified_upto
 (** [decode_json_verified_upto decoder] decodes a [verified_upto] value from [decoder] *)
 
-val decode_json_pores_res : Yojson.Basic.t -> pores_res
-(** [decode_json_pores_res decoder] decodes a [pores_res] value from [decoder] *)
+val decode_json_po_res_res : Yojson.Basic.t -> po_res_res
+(** [decode_json_po_res_res decoder] decodes a [po_res_res] value from [decoder] *)
 
-val decode_json_pores : Yojson.Basic.t -> pores
-(** [decode_json_pores decoder] decodes a [pores] value from [decoder] *)
+val decode_json_po_res : Yojson.Basic.t -> po_res
+(** [decode_json_po_res decoder] decodes a [po_res] value from [decoder] *)
 
 val decode_json_eval_res : Yojson.Basic.t -> eval_res
 (** [decode_json_eval_res decoder] decodes a [eval_res] value from [decoder] *)
