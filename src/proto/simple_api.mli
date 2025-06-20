@@ -66,7 +66,7 @@ type model = {
   artifact : Artmsg.art option;
 }
 
-type refuted = {
+type counter_sat = {
   model : model option;
 }
 
@@ -74,35 +74,15 @@ type verified_upto = {
   msg : string option;
 }
 
-type verify_res_res =
+type pores_res =
   | Unknown of Utils.string_msg
   | Err
-  | Proved of proved
-  | Refuted of refuted
+  | Proof of proved
+  | Instance of counter_sat
   | Verified_upto of verified_upto
 
-and verify_res = {
-  res : verify_res_res;
-  errors : Error.error list;
-  task : Task.task option;
-}
-
-type unsat = {
-  proof_pp : string option;
-}
-
-type sat = {
-  model : model option;
-}
-
-type instance_res_res =
-  | Unknown of Utils.string_msg
-  | Err
-  | Unsat of unsat
-  | Sat of sat
-
-and instance_res = {
-  res : instance_res_res;
+and pores = {
+  res : pores_res;
   errors : Error.error list;
   task : Task.task option;
 }
@@ -112,8 +92,7 @@ type eval_res = {
   messages : string list;
   errors : Error.error list;
   tasks : Task.task list;
-  verify_results : verify_res list;
-  instance_results : instance_res list;
+  po_results : pores list;
   eval_results : eval_output list;
   decomp_results : decompose_res list;
 }
@@ -140,6 +119,43 @@ type instance_name_req = {
   session : Session.session option;
   name : string;
   hints : string option;
+}
+
+type unsat = {
+  proof_pp : string option;
+}
+
+type refuted = {
+  model : model option;
+}
+
+type sat = {
+  model : model option;
+}
+
+type verify_res_res =
+  | Unknown of Utils.string_msg
+  | Err
+  | Proved of proved
+  | Refuted of refuted
+  | Verified_upto of verified_upto
+
+and verify_res = {
+  res : verify_res_res;
+  errors : Error.error list;
+  task : Task.task option;
+}
+
+type instance_res_res =
+  | Unknown of Utils.string_msg
+  | Err
+  | Unsat of unsat
+  | Sat of sat
+
+and instance_res = {
+  res : instance_res_res;
+  errors : Error.error list;
+  task : Task.task option;
 }
 
 type typecheck_req = {
@@ -225,11 +241,11 @@ val default_model :
   model
 (** [default_model ()] is the default value for type [model] *)
 
-val default_refuted : 
+val default_counter_sat : 
   ?model:model option ->
   unit ->
-  refuted
-(** [default_refuted ()] is the default value for type [refuted] *)
+  counter_sat
+(** [default_counter_sat ()] is the default value for type [counter_sat] *)
 
 val default_verified_upto : 
   ?msg:string option ->
@@ -237,47 +253,23 @@ val default_verified_upto :
   verified_upto
 (** [default_verified_upto ()] is the default value for type [verified_upto] *)
 
-val default_verify_res_res : unit -> verify_res_res
-(** [default_verify_res_res ()] is the default value for type [verify_res_res] *)
+val default_pores_res : unit -> pores_res
+(** [default_pores_res ()] is the default value for type [pores_res] *)
 
-val default_verify_res : 
-  ?res:verify_res_res ->
+val default_pores : 
+  ?res:pores_res ->
   ?errors:Error.error list ->
   ?task:Task.task option ->
   unit ->
-  verify_res
-(** [default_verify_res ()] is the default value for type [verify_res] *)
-
-val default_unsat : 
-  ?proof_pp:string option ->
-  unit ->
-  unsat
-(** [default_unsat ()] is the default value for type [unsat] *)
-
-val default_sat : 
-  ?model:model option ->
-  unit ->
-  sat
-(** [default_sat ()] is the default value for type [sat] *)
-
-val default_instance_res_res : unit -> instance_res_res
-(** [default_instance_res_res ()] is the default value for type [instance_res_res] *)
-
-val default_instance_res : 
-  ?res:instance_res_res ->
-  ?errors:Error.error list ->
-  ?task:Task.task option ->
-  unit ->
-  instance_res
-(** [default_instance_res ()] is the default value for type [instance_res] *)
+  pores
+(** [default_pores ()] is the default value for type [pores] *)
 
 val default_eval_res : 
   ?success:bool ->
   ?messages:string list ->
   ?errors:Error.error list ->
   ?tasks:Task.task list ->
-  ?verify_results:verify_res list ->
-  ?instance_results:instance_res list ->
+  ?po_results:pores list ->
   ?eval_results:eval_output list ->
   ?decomp_results:decompose_res list ->
   unit ->
@@ -315,6 +307,46 @@ val default_instance_name_req :
   unit ->
   instance_name_req
 (** [default_instance_name_req ()] is the default value for type [instance_name_req] *)
+
+val default_unsat : 
+  ?proof_pp:string option ->
+  unit ->
+  unsat
+(** [default_unsat ()] is the default value for type [unsat] *)
+
+val default_refuted : 
+  ?model:model option ->
+  unit ->
+  refuted
+(** [default_refuted ()] is the default value for type [refuted] *)
+
+val default_sat : 
+  ?model:model option ->
+  unit ->
+  sat
+(** [default_sat ()] is the default value for type [sat] *)
+
+val default_verify_res_res : unit -> verify_res_res
+(** [default_verify_res_res ()] is the default value for type [verify_res_res] *)
+
+val default_verify_res : 
+  ?res:verify_res_res ->
+  ?errors:Error.error list ->
+  ?task:Task.task option ->
+  unit ->
+  verify_res
+(** [default_verify_res ()] is the default value for type [verify_res] *)
+
+val default_instance_res_res : unit -> instance_res_res
+(** [default_instance_res_res ()] is the default value for type [instance_res_res] *)
+
+val default_instance_res : 
+  ?res:instance_res_res ->
+  ?errors:Error.error list ->
+  ?task:Task.task option ->
+  unit ->
+  instance_res
+(** [default_instance_res ()] is the default value for type [instance_res] *)
 
 val default_typecheck_req : 
   ?session:Session.session option ->
@@ -395,11 +427,11 @@ val make_model :
   model
 (** [make_model … ()] is a builder for type [model] *)
 
-val make_refuted : 
+val make_counter_sat : 
   ?model:model option ->
   unit ->
-  refuted
-(** [make_refuted … ()] is a builder for type [refuted] *)
+  counter_sat
+(** [make_counter_sat … ()] is a builder for type [counter_sat] *)
 
 val make_verified_upto : 
   ?msg:string option ->
@@ -408,42 +440,20 @@ val make_verified_upto :
 (** [make_verified_upto … ()] is a builder for type [verified_upto] *)
 
 
-val make_verify_res : 
-  res:verify_res_res ->
+val make_pores : 
+  res:pores_res ->
   errors:Error.error list ->
   ?task:Task.task option ->
   unit ->
-  verify_res
-(** [make_verify_res … ()] is a builder for type [verify_res] *)
-
-val make_unsat : 
-  ?proof_pp:string option ->
-  unit ->
-  unsat
-(** [make_unsat … ()] is a builder for type [unsat] *)
-
-val make_sat : 
-  ?model:model option ->
-  unit ->
-  sat
-(** [make_sat … ()] is a builder for type [sat] *)
-
-
-val make_instance_res : 
-  res:instance_res_res ->
-  errors:Error.error list ->
-  ?task:Task.task option ->
-  unit ->
-  instance_res
-(** [make_instance_res … ()] is a builder for type [instance_res] *)
+  pores
+(** [make_pores … ()] is a builder for type [pores] *)
 
 val make_eval_res : 
   success:bool ->
   messages:string list ->
   errors:Error.error list ->
   tasks:Task.task list ->
-  verify_results:verify_res list ->
-  instance_results:instance_res list ->
+  po_results:pores list ->
   eval_results:eval_output list ->
   decomp_results:decompose_res list ->
   unit ->
@@ -481,6 +491,42 @@ val make_instance_name_req :
   unit ->
   instance_name_req
 (** [make_instance_name_req … ()] is a builder for type [instance_name_req] *)
+
+val make_unsat : 
+  ?proof_pp:string option ->
+  unit ->
+  unsat
+(** [make_unsat … ()] is a builder for type [unsat] *)
+
+val make_refuted : 
+  ?model:model option ->
+  unit ->
+  refuted
+(** [make_refuted … ()] is a builder for type [refuted] *)
+
+val make_sat : 
+  ?model:model option ->
+  unit ->
+  sat
+(** [make_sat … ()] is a builder for type [sat] *)
+
+
+val make_verify_res : 
+  res:verify_res_res ->
+  errors:Error.error list ->
+  ?task:Task.task option ->
+  unit ->
+  verify_res
+(** [make_verify_res … ()] is a builder for type [verify_res] *)
+
+
+val make_instance_res : 
+  res:instance_res_res ->
+  errors:Error.error list ->
+  ?task:Task.task option ->
+  unit ->
+  instance_res
+(** [make_instance_res … ()] is a builder for type [instance_res] *)
 
 val make_typecheck_req : 
   ?session:Session.session option ->
@@ -533,29 +579,17 @@ val pp_model_type : Format.formatter -> model_type -> unit
 val pp_model : Format.formatter -> model -> unit 
 (** [pp_model v] formats v *)
 
-val pp_refuted : Format.formatter -> refuted -> unit 
-(** [pp_refuted v] formats v *)
+val pp_counter_sat : Format.formatter -> counter_sat -> unit 
+(** [pp_counter_sat v] formats v *)
 
 val pp_verified_upto : Format.formatter -> verified_upto -> unit 
 (** [pp_verified_upto v] formats v *)
 
-val pp_verify_res_res : Format.formatter -> verify_res_res -> unit 
-(** [pp_verify_res_res v] formats v *)
+val pp_pores_res : Format.formatter -> pores_res -> unit 
+(** [pp_pores_res v] formats v *)
 
-val pp_verify_res : Format.formatter -> verify_res -> unit 
-(** [pp_verify_res v] formats v *)
-
-val pp_unsat : Format.formatter -> unsat -> unit 
-(** [pp_unsat v] formats v *)
-
-val pp_sat : Format.formatter -> sat -> unit 
-(** [pp_sat v] formats v *)
-
-val pp_instance_res_res : Format.formatter -> instance_res_res -> unit 
-(** [pp_instance_res_res v] formats v *)
-
-val pp_instance_res : Format.formatter -> instance_res -> unit 
-(** [pp_instance_res v] formats v *)
+val pp_pores : Format.formatter -> pores -> unit 
+(** [pp_pores v] formats v *)
 
 val pp_eval_res : Format.formatter -> eval_res -> unit 
 (** [pp_eval_res v] formats v *)
@@ -571,6 +605,27 @@ val pp_instance_src_req : Format.formatter -> instance_src_req -> unit
 
 val pp_instance_name_req : Format.formatter -> instance_name_req -> unit 
 (** [pp_instance_name_req v] formats v *)
+
+val pp_unsat : Format.formatter -> unsat -> unit 
+(** [pp_unsat v] formats v *)
+
+val pp_refuted : Format.formatter -> refuted -> unit 
+(** [pp_refuted v] formats v *)
+
+val pp_sat : Format.formatter -> sat -> unit 
+(** [pp_sat v] formats v *)
+
+val pp_verify_res_res : Format.formatter -> verify_res_res -> unit 
+(** [pp_verify_res_res v] formats v *)
+
+val pp_verify_res : Format.formatter -> verify_res -> unit 
+(** [pp_verify_res v] formats v *)
+
+val pp_instance_res_res : Format.formatter -> instance_res_res -> unit 
+(** [pp_instance_res_res v] formats v *)
+
+val pp_instance_res : Format.formatter -> instance_res -> unit 
+(** [pp_instance_res v] formats v *)
 
 val pp_typecheck_req : Format.formatter -> typecheck_req -> unit 
 (** [pp_typecheck_req v] formats v *)
@@ -614,29 +669,17 @@ val encode_pb_model_type : model_type -> Pbrt.Encoder.t -> unit
 val encode_pb_model : model -> Pbrt.Encoder.t -> unit
 (** [encode_pb_model v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_refuted : refuted -> Pbrt.Encoder.t -> unit
-(** [encode_pb_refuted v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_counter_sat : counter_sat -> Pbrt.Encoder.t -> unit
+(** [encode_pb_counter_sat v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_verified_upto : verified_upto -> Pbrt.Encoder.t -> unit
 (** [encode_pb_verified_upto v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_verify_res_res : verify_res_res -> Pbrt.Encoder.t -> unit
-(** [encode_pb_verify_res_res v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_pores_res : pores_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_pores_res v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_verify_res : verify_res -> Pbrt.Encoder.t -> unit
-(** [encode_pb_verify_res v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_unsat : unsat -> Pbrt.Encoder.t -> unit
-(** [encode_pb_unsat v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_sat : sat -> Pbrt.Encoder.t -> unit
-(** [encode_pb_sat v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_instance_res_res : instance_res_res -> Pbrt.Encoder.t -> unit
-(** [encode_pb_instance_res_res v encoder] encodes [v] with the given [encoder] *)
-
-val encode_pb_instance_res : instance_res -> Pbrt.Encoder.t -> unit
-(** [encode_pb_instance_res v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_pores : pores -> Pbrt.Encoder.t -> unit
+(** [encode_pb_pores v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_eval_res : eval_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_eval_res v encoder] encodes [v] with the given [encoder] *)
@@ -652,6 +695,27 @@ val encode_pb_instance_src_req : instance_src_req -> Pbrt.Encoder.t -> unit
 
 val encode_pb_instance_name_req : instance_name_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_instance_name_req v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_unsat : unsat -> Pbrt.Encoder.t -> unit
+(** [encode_pb_unsat v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_refuted : refuted -> Pbrt.Encoder.t -> unit
+(** [encode_pb_refuted v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_sat : sat -> Pbrt.Encoder.t -> unit
+(** [encode_pb_sat v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_verify_res_res : verify_res_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_verify_res_res v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_verify_res : verify_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_verify_res v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_instance_res_res : instance_res_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_instance_res_res v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_instance_res : instance_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_instance_res v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_typecheck_req : typecheck_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_typecheck_req v encoder] encodes [v] with the given [encoder] *)
@@ -695,29 +759,17 @@ val decode_pb_model_type : Pbrt.Decoder.t -> model_type
 val decode_pb_model : Pbrt.Decoder.t -> model
 (** [decode_pb_model decoder] decodes a [model] binary value from [decoder] *)
 
-val decode_pb_refuted : Pbrt.Decoder.t -> refuted
-(** [decode_pb_refuted decoder] decodes a [refuted] binary value from [decoder] *)
+val decode_pb_counter_sat : Pbrt.Decoder.t -> counter_sat
+(** [decode_pb_counter_sat decoder] decodes a [counter_sat] binary value from [decoder] *)
 
 val decode_pb_verified_upto : Pbrt.Decoder.t -> verified_upto
 (** [decode_pb_verified_upto decoder] decodes a [verified_upto] binary value from [decoder] *)
 
-val decode_pb_verify_res_res : Pbrt.Decoder.t -> verify_res_res
-(** [decode_pb_verify_res_res decoder] decodes a [verify_res_res] binary value from [decoder] *)
+val decode_pb_pores_res : Pbrt.Decoder.t -> pores_res
+(** [decode_pb_pores_res decoder] decodes a [pores_res] binary value from [decoder] *)
 
-val decode_pb_verify_res : Pbrt.Decoder.t -> verify_res
-(** [decode_pb_verify_res decoder] decodes a [verify_res] binary value from [decoder] *)
-
-val decode_pb_unsat : Pbrt.Decoder.t -> unsat
-(** [decode_pb_unsat decoder] decodes a [unsat] binary value from [decoder] *)
-
-val decode_pb_sat : Pbrt.Decoder.t -> sat
-(** [decode_pb_sat decoder] decodes a [sat] binary value from [decoder] *)
-
-val decode_pb_instance_res_res : Pbrt.Decoder.t -> instance_res_res
-(** [decode_pb_instance_res_res decoder] decodes a [instance_res_res] binary value from [decoder] *)
-
-val decode_pb_instance_res : Pbrt.Decoder.t -> instance_res
-(** [decode_pb_instance_res decoder] decodes a [instance_res] binary value from [decoder] *)
+val decode_pb_pores : Pbrt.Decoder.t -> pores
+(** [decode_pb_pores decoder] decodes a [pores] binary value from [decoder] *)
 
 val decode_pb_eval_res : Pbrt.Decoder.t -> eval_res
 (** [decode_pb_eval_res decoder] decodes a [eval_res] binary value from [decoder] *)
@@ -733,6 +785,27 @@ val decode_pb_instance_src_req : Pbrt.Decoder.t -> instance_src_req
 
 val decode_pb_instance_name_req : Pbrt.Decoder.t -> instance_name_req
 (** [decode_pb_instance_name_req decoder] decodes a [instance_name_req] binary value from [decoder] *)
+
+val decode_pb_unsat : Pbrt.Decoder.t -> unsat
+(** [decode_pb_unsat decoder] decodes a [unsat] binary value from [decoder] *)
+
+val decode_pb_refuted : Pbrt.Decoder.t -> refuted
+(** [decode_pb_refuted decoder] decodes a [refuted] binary value from [decoder] *)
+
+val decode_pb_sat : Pbrt.Decoder.t -> sat
+(** [decode_pb_sat decoder] decodes a [sat] binary value from [decoder] *)
+
+val decode_pb_verify_res_res : Pbrt.Decoder.t -> verify_res_res
+(** [decode_pb_verify_res_res decoder] decodes a [verify_res_res] binary value from [decoder] *)
+
+val decode_pb_verify_res : Pbrt.Decoder.t -> verify_res
+(** [decode_pb_verify_res decoder] decodes a [verify_res] binary value from [decoder] *)
+
+val decode_pb_instance_res_res : Pbrt.Decoder.t -> instance_res_res
+(** [decode_pb_instance_res_res decoder] decodes a [instance_res_res] binary value from [decoder] *)
+
+val decode_pb_instance_res : Pbrt.Decoder.t -> instance_res
+(** [decode_pb_instance_res decoder] decodes a [instance_res] binary value from [decoder] *)
 
 val decode_pb_typecheck_req : Pbrt.Decoder.t -> typecheck_req
 (** [decode_pb_typecheck_req decoder] decodes a [typecheck_req] binary value from [decoder] *)
@@ -776,29 +849,17 @@ val encode_json_model_type : model_type -> Yojson.Basic.t
 val encode_json_model : model -> Yojson.Basic.t
 (** [encode_json_model v encoder] encodes [v] to to json *)
 
-val encode_json_refuted : refuted -> Yojson.Basic.t
-(** [encode_json_refuted v encoder] encodes [v] to to json *)
+val encode_json_counter_sat : counter_sat -> Yojson.Basic.t
+(** [encode_json_counter_sat v encoder] encodes [v] to to json *)
 
 val encode_json_verified_upto : verified_upto -> Yojson.Basic.t
 (** [encode_json_verified_upto v encoder] encodes [v] to to json *)
 
-val encode_json_verify_res_res : verify_res_res -> Yojson.Basic.t
-(** [encode_json_verify_res_res v encoder] encodes [v] to to json *)
+val encode_json_pores_res : pores_res -> Yojson.Basic.t
+(** [encode_json_pores_res v encoder] encodes [v] to to json *)
 
-val encode_json_verify_res : verify_res -> Yojson.Basic.t
-(** [encode_json_verify_res v encoder] encodes [v] to to json *)
-
-val encode_json_unsat : unsat -> Yojson.Basic.t
-(** [encode_json_unsat v encoder] encodes [v] to to json *)
-
-val encode_json_sat : sat -> Yojson.Basic.t
-(** [encode_json_sat v encoder] encodes [v] to to json *)
-
-val encode_json_instance_res_res : instance_res_res -> Yojson.Basic.t
-(** [encode_json_instance_res_res v encoder] encodes [v] to to json *)
-
-val encode_json_instance_res : instance_res -> Yojson.Basic.t
-(** [encode_json_instance_res v encoder] encodes [v] to to json *)
+val encode_json_pores : pores -> Yojson.Basic.t
+(** [encode_json_pores v encoder] encodes [v] to to json *)
 
 val encode_json_eval_res : eval_res -> Yojson.Basic.t
 (** [encode_json_eval_res v encoder] encodes [v] to to json *)
@@ -814,6 +875,27 @@ val encode_json_instance_src_req : instance_src_req -> Yojson.Basic.t
 
 val encode_json_instance_name_req : instance_name_req -> Yojson.Basic.t
 (** [encode_json_instance_name_req v encoder] encodes [v] to to json *)
+
+val encode_json_unsat : unsat -> Yojson.Basic.t
+(** [encode_json_unsat v encoder] encodes [v] to to json *)
+
+val encode_json_refuted : refuted -> Yojson.Basic.t
+(** [encode_json_refuted v encoder] encodes [v] to to json *)
+
+val encode_json_sat : sat -> Yojson.Basic.t
+(** [encode_json_sat v encoder] encodes [v] to to json *)
+
+val encode_json_verify_res_res : verify_res_res -> Yojson.Basic.t
+(** [encode_json_verify_res_res v encoder] encodes [v] to to json *)
+
+val encode_json_verify_res : verify_res -> Yojson.Basic.t
+(** [encode_json_verify_res v encoder] encodes [v] to to json *)
+
+val encode_json_instance_res_res : instance_res_res -> Yojson.Basic.t
+(** [encode_json_instance_res_res v encoder] encodes [v] to to json *)
+
+val encode_json_instance_res : instance_res -> Yojson.Basic.t
+(** [encode_json_instance_res v encoder] encodes [v] to to json *)
 
 val encode_json_typecheck_req : typecheck_req -> Yojson.Basic.t
 (** [encode_json_typecheck_req v encoder] encodes [v] to to json *)
@@ -857,29 +939,17 @@ val decode_json_model_type : Yojson.Basic.t -> model_type
 val decode_json_model : Yojson.Basic.t -> model
 (** [decode_json_model decoder] decodes a [model] value from [decoder] *)
 
-val decode_json_refuted : Yojson.Basic.t -> refuted
-(** [decode_json_refuted decoder] decodes a [refuted] value from [decoder] *)
+val decode_json_counter_sat : Yojson.Basic.t -> counter_sat
+(** [decode_json_counter_sat decoder] decodes a [counter_sat] value from [decoder] *)
 
 val decode_json_verified_upto : Yojson.Basic.t -> verified_upto
 (** [decode_json_verified_upto decoder] decodes a [verified_upto] value from [decoder] *)
 
-val decode_json_verify_res_res : Yojson.Basic.t -> verify_res_res
-(** [decode_json_verify_res_res decoder] decodes a [verify_res_res] value from [decoder] *)
+val decode_json_pores_res : Yojson.Basic.t -> pores_res
+(** [decode_json_pores_res decoder] decodes a [pores_res] value from [decoder] *)
 
-val decode_json_verify_res : Yojson.Basic.t -> verify_res
-(** [decode_json_verify_res decoder] decodes a [verify_res] value from [decoder] *)
-
-val decode_json_unsat : Yojson.Basic.t -> unsat
-(** [decode_json_unsat decoder] decodes a [unsat] value from [decoder] *)
-
-val decode_json_sat : Yojson.Basic.t -> sat
-(** [decode_json_sat decoder] decodes a [sat] value from [decoder] *)
-
-val decode_json_instance_res_res : Yojson.Basic.t -> instance_res_res
-(** [decode_json_instance_res_res decoder] decodes a [instance_res_res] value from [decoder] *)
-
-val decode_json_instance_res : Yojson.Basic.t -> instance_res
-(** [decode_json_instance_res decoder] decodes a [instance_res] value from [decoder] *)
+val decode_json_pores : Yojson.Basic.t -> pores
+(** [decode_json_pores decoder] decodes a [pores] value from [decoder] *)
 
 val decode_json_eval_res : Yojson.Basic.t -> eval_res
 (** [decode_json_eval_res decoder] decodes a [eval_res] value from [decoder] *)
@@ -895,6 +965,27 @@ val decode_json_instance_src_req : Yojson.Basic.t -> instance_src_req
 
 val decode_json_instance_name_req : Yojson.Basic.t -> instance_name_req
 (** [decode_json_instance_name_req decoder] decodes a [instance_name_req] value from [decoder] *)
+
+val decode_json_unsat : Yojson.Basic.t -> unsat
+(** [decode_json_unsat decoder] decodes a [unsat] value from [decoder] *)
+
+val decode_json_refuted : Yojson.Basic.t -> refuted
+(** [decode_json_refuted decoder] decodes a [refuted] value from [decoder] *)
+
+val decode_json_sat : Yojson.Basic.t -> sat
+(** [decode_json_sat decoder] decodes a [sat] value from [decoder] *)
+
+val decode_json_verify_res_res : Yojson.Basic.t -> verify_res_res
+(** [decode_json_verify_res_res decoder] decodes a [verify_res_res] value from [decoder] *)
+
+val decode_json_verify_res : Yojson.Basic.t -> verify_res
+(** [decode_json_verify_res decoder] decodes a [verify_res] value from [decoder] *)
+
+val decode_json_instance_res_res : Yojson.Basic.t -> instance_res_res
+(** [decode_json_instance_res_res decoder] decodes a [instance_res_res] value from [decoder] *)
+
+val decode_json_instance_res : Yojson.Basic.t -> instance_res
+(** [decode_json_instance_res decoder] decodes a [instance_res] value from [decoder] *)
 
 val decode_json_typecheck_req : Yojson.Basic.t -> typecheck_req
 (** [decode_json_typecheck_req decoder] decodes a [typecheck_req] value from [decoder] *)

@@ -117,13 +117,11 @@ message EvalRes {
   // all tasks started during eval
   repeated Task tasks = 4;
 
-  repeated VerifyRes verify_results = 10;
+  repeated PORes po_results = 10;
 
-  repeated InstanceRes instance_results = 11;
+  repeated EvalOutput eval_results = 11;
 
-  repeated EvalOutput eval_results = 12;
-
-  repeated DecomposeRes decomp_results = 13;
+  repeated DecomposeRes decomp_results = 12;
 }
 
 message VerifySrcReq {
@@ -196,6 +194,27 @@ message Refuted {
 message Sat {
   optional Model model = 1;
 }
+
+message CounterSat {
+  optional Model model = 1;
+}
+
+// Result of any PO (theorem, verify, etc)
+message PORes {
+  oneof res {
+    StringMsg unknown = 1;
+    Empty err = 2;
+    Proved proof = 3;
+    CounterSat instance = 4;
+    Verified_upto verified_upto = 5;
+  }
+
+  repeated Error errors = 10;
+
+  // the ID of the task
+  Task task = 11;
+}
+
 
 message VerifyRes {
   oneof res {

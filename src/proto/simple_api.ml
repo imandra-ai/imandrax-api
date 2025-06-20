@@ -59,7 +59,7 @@ type model = {
   artifact : Artmsg.art option;
 }
 
-type refuted = {
+type counter_sat = {
   model : model option;
 }
 
@@ -67,35 +67,15 @@ type verified_upto = {
   msg : string option;
 }
 
-type verify_res_res =
+type pores_res =
   | Unknown of Utils.string_msg
   | Err
-  | Proved of proved
-  | Refuted of refuted
+  | Proof of proved
+  | Instance of counter_sat
   | Verified_upto of verified_upto
 
-and verify_res = {
-  res : verify_res_res;
-  errors : Error.error list;
-  task : Task.task option;
-}
-
-type unsat = {
-  proof_pp : string option;
-}
-
-type sat = {
-  model : model option;
-}
-
-type instance_res_res =
-  | Unknown of Utils.string_msg
-  | Err
-  | Unsat of unsat
-  | Sat of sat
-
-and instance_res = {
-  res : instance_res_res;
+and pores = {
+  res : pores_res;
   errors : Error.error list;
   task : Task.task option;
 }
@@ -105,8 +85,7 @@ type eval_res = {
   messages : string list;
   errors : Error.error list;
   tasks : Task.task list;
-  verify_results : verify_res list;
-  instance_results : instance_res list;
+  po_results : pores list;
   eval_results : eval_output list;
   decomp_results : decompose_res list;
 }
@@ -133,6 +112,43 @@ type instance_name_req = {
   session : Session.session option;
   name : string;
   hints : string option;
+}
+
+type unsat = {
+  proof_pp : string option;
+}
+
+type refuted = {
+  model : model option;
+}
+
+type sat = {
+  model : model option;
+}
+
+type verify_res_res =
+  | Unknown of Utils.string_msg
+  | Err
+  | Proved of proved
+  | Refuted of refuted
+  | Verified_upto of verified_upto
+
+and verify_res = {
+  res : verify_res_res;
+  errors : Error.error list;
+  task : Task.task option;
+}
+
+type instance_res_res =
+  | Unknown of Utils.string_msg
+  | Err
+  | Unsat of unsat
+  | Sat of sat
+
+and instance_res = {
+  res : instance_res_res;
+  errors : Error.error list;
+  task : Task.task option;
 }
 
 type typecheck_req = {
@@ -226,9 +242,9 @@ let rec default_model
   artifact;
 }
 
-let rec default_refuted 
+let rec default_counter_sat 
   ?model:((model:model option) = None)
-  () : refuted  = {
+  () : counter_sat  = {
   model;
 }
 
@@ -238,37 +254,13 @@ let rec default_verified_upto
   msg;
 }
 
-let rec default_verify_res_res () : verify_res_res = Unknown (Utils.default_string_msg ())
+let rec default_pores_res () : pores_res = Unknown (Utils.default_string_msg ())
 
-and default_verify_res 
-  ?res:((res:verify_res_res) = Unknown (Utils.default_string_msg ()))
+and default_pores 
+  ?res:((res:pores_res) = Unknown (Utils.default_string_msg ()))
   ?errors:((errors:Error.error list) = [])
   ?task:((task:Task.task option) = None)
-  () : verify_res  = {
-  res;
-  errors;
-  task;
-}
-
-let rec default_unsat 
-  ?proof_pp:((proof_pp:string option) = None)
-  () : unsat  = {
-  proof_pp;
-}
-
-let rec default_sat 
-  ?model:((model:model option) = None)
-  () : sat  = {
-  model;
-}
-
-let rec default_instance_res_res () : instance_res_res = Unknown (Utils.default_string_msg ())
-
-and default_instance_res 
-  ?res:((res:instance_res_res) = Unknown (Utils.default_string_msg ()))
-  ?errors:((errors:Error.error list) = [])
-  ?task:((task:Task.task option) = None)
-  () : instance_res  = {
+  () : pores  = {
   res;
   errors;
   task;
@@ -279,8 +271,7 @@ let rec default_eval_res
   ?messages:((messages:string list) = [])
   ?errors:((errors:Error.error list) = [])
   ?tasks:((tasks:Task.task list) = [])
-  ?verify_results:((verify_results:verify_res list) = [])
-  ?instance_results:((instance_results:instance_res list) = [])
+  ?po_results:((po_results:pores list) = [])
   ?eval_results:((eval_results:eval_output list) = [])
   ?decomp_results:((decomp_results:decompose_res list) = [])
   () : eval_res  = {
@@ -288,8 +279,7 @@ let rec default_eval_res
   messages;
   errors;
   tasks;
-  verify_results;
-  instance_results;
+  po_results;
   eval_results;
   decomp_results;
 }
@@ -332,6 +322,48 @@ let rec default_instance_name_req
   session;
   name;
   hints;
+}
+
+let rec default_unsat 
+  ?proof_pp:((proof_pp:string option) = None)
+  () : unsat  = {
+  proof_pp;
+}
+
+let rec default_refuted 
+  ?model:((model:model option) = None)
+  () : refuted  = {
+  model;
+}
+
+let rec default_sat 
+  ?model:((model:model option) = None)
+  () : sat  = {
+  model;
+}
+
+let rec default_verify_res_res () : verify_res_res = Unknown (Utils.default_string_msg ())
+
+and default_verify_res 
+  ?res:((res:verify_res_res) = Unknown (Utils.default_string_msg ()))
+  ?errors:((errors:Error.error list) = [])
+  ?task:((task:Task.task option) = None)
+  () : verify_res  = {
+  res;
+  errors;
+  task;
+}
+
+let rec default_instance_res_res () : instance_res_res = Unknown (Utils.default_string_msg ())
+
+and default_instance_res 
+  ?res:((res:instance_res_res) = Unknown (Utils.default_string_msg ()))
+  ?errors:((errors:Error.error list) = [])
+  ?task:((task:Task.task option) = None)
+  () : instance_res  = {
+  res;
+  errors;
+  task;
 }
 
 let rec default_typecheck_req 
@@ -438,11 +470,11 @@ let default_model_mutable () : model_mutable = {
   artifact = None;
 }
 
-type refuted_mutable = {
+type counter_sat_mutable = {
   mutable model : model option;
 }
 
-let default_refuted_mutable () : refuted_mutable = {
+let default_counter_sat_mutable () : counter_sat_mutable = {
   model = None;
 }
 
@@ -454,41 +486,13 @@ let default_verified_upto_mutable () : verified_upto_mutable = {
   msg = None;
 }
 
-type verify_res_mutable = {
-  mutable res : verify_res_res;
+type pores_mutable = {
+  mutable res : pores_res;
   mutable errors : Error.error list;
   mutable task : Task.task option;
 }
 
-let default_verify_res_mutable () : verify_res_mutable = {
-  res = Unknown (Utils.default_string_msg ());
-  errors = [];
-  task = None;
-}
-
-type unsat_mutable = {
-  mutable proof_pp : string option;
-}
-
-let default_unsat_mutable () : unsat_mutable = {
-  proof_pp = None;
-}
-
-type sat_mutable = {
-  mutable model : model option;
-}
-
-let default_sat_mutable () : sat_mutable = {
-  model = None;
-}
-
-type instance_res_mutable = {
-  mutable res : instance_res_res;
-  mutable errors : Error.error list;
-  mutable task : Task.task option;
-}
-
-let default_instance_res_mutable () : instance_res_mutable = {
+let default_pores_mutable () : pores_mutable = {
   res = Unknown (Utils.default_string_msg ());
   errors = [];
   task = None;
@@ -499,8 +503,7 @@ type eval_res_mutable = {
   mutable messages : string list;
   mutable errors : Error.error list;
   mutable tasks : Task.task list;
-  mutable verify_results : verify_res list;
-  mutable instance_results : instance_res list;
+  mutable po_results : pores list;
   mutable eval_results : eval_output list;
   mutable decomp_results : decompose_res list;
 }
@@ -510,8 +513,7 @@ let default_eval_res_mutable () : eval_res_mutable = {
   messages = [];
   errors = [];
   tasks = [];
-  verify_results = [];
-  instance_results = [];
+  po_results = [];
   eval_results = [];
   decomp_results = [];
 }
@@ -562,6 +564,54 @@ let default_instance_name_req_mutable () : instance_name_req_mutable = {
   session = None;
   name = "";
   hints = None;
+}
+
+type unsat_mutable = {
+  mutable proof_pp : string option;
+}
+
+let default_unsat_mutable () : unsat_mutable = {
+  proof_pp = None;
+}
+
+type refuted_mutable = {
+  mutable model : model option;
+}
+
+let default_refuted_mutable () : refuted_mutable = {
+  model = None;
+}
+
+type sat_mutable = {
+  mutable model : model option;
+}
+
+let default_sat_mutable () : sat_mutable = {
+  model = None;
+}
+
+type verify_res_mutable = {
+  mutable res : verify_res_res;
+  mutable errors : Error.error list;
+  mutable task : Task.task option;
+}
+
+let default_verify_res_mutable () : verify_res_mutable = {
+  res = Unknown (Utils.default_string_msg ());
+  errors = [];
+  task = None;
+}
+
+type instance_res_mutable = {
+  mutable res : instance_res_res;
+  mutable errors : Error.error list;
+  mutable task : Task.task option;
+}
+
+let default_instance_res_mutable () : instance_res_mutable = {
+  res = Unknown (Utils.default_string_msg ());
+  errors = [];
+  task = None;
 }
 
 type typecheck_req_mutable = {
@@ -665,9 +715,9 @@ let rec make_model
   artifact;
 }
 
-let rec make_refuted 
+let rec make_counter_sat 
   ?model:((model:model option) = None)
-  () : refuted  = {
+  () : counter_sat  = {
   model;
 }
 
@@ -678,34 +728,11 @@ let rec make_verified_upto
 }
 
 
-let rec make_verify_res 
-  ~(res:verify_res_res)
+let rec make_pores 
+  ~(res:pores_res)
   ~(errors:Error.error list)
   ?task:((task:Task.task option) = None)
-  () : verify_res  = {
-  res;
-  errors;
-  task;
-}
-
-let rec make_unsat 
-  ?proof_pp:((proof_pp:string option) = None)
-  () : unsat  = {
-  proof_pp;
-}
-
-let rec make_sat 
-  ?model:((model:model option) = None)
-  () : sat  = {
-  model;
-}
-
-
-let rec make_instance_res 
-  ~(res:instance_res_res)
-  ~(errors:Error.error list)
-  ?task:((task:Task.task option) = None)
-  () : instance_res  = {
+  () : pores  = {
   res;
   errors;
   task;
@@ -716,8 +743,7 @@ let rec make_eval_res
   ~(messages:string list)
   ~(errors:Error.error list)
   ~(tasks:Task.task list)
-  ~(verify_results:verify_res list)
-  ~(instance_results:instance_res list)
+  ~(po_results:pores list)
   ~(eval_results:eval_output list)
   ~(decomp_results:decompose_res list)
   () : eval_res  = {
@@ -725,8 +751,7 @@ let rec make_eval_res
   messages;
   errors;
   tasks;
-  verify_results;
-  instance_results;
+  po_results;
   eval_results;
   decomp_results;
 }
@@ -769,6 +794,46 @@ let rec make_instance_name_req
   session;
   name;
   hints;
+}
+
+let rec make_unsat 
+  ?proof_pp:((proof_pp:string option) = None)
+  () : unsat  = {
+  proof_pp;
+}
+
+let rec make_refuted 
+  ?model:((model:model option) = None)
+  () : refuted  = {
+  model;
+}
+
+let rec make_sat 
+  ?model:((model:model option) = None)
+  () : sat  = {
+  model;
+}
+
+
+let rec make_verify_res 
+  ~(res:verify_res_res)
+  ~(errors:Error.error list)
+  ?task:((task:Task.task option) = None)
+  () : verify_res  = {
+  res;
+  errors;
+  task;
+}
+
+
+let rec make_instance_res 
+  ~(res:instance_res_res)
+  ~(errors:Error.error list)
+  ?task:((task:Task.task option) = None)
+  () : instance_res  = {
+  res;
+  errors;
+  task;
 }
 
 let rec make_typecheck_req 
@@ -873,7 +938,7 @@ let rec pp_model fmt (v:model) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_refuted fmt (v:refuted) = 
+let rec pp_counter_sat fmt (v:counter_sat) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "model" (Pbrt.Pp.pp_option pp_model) fmt v.model;
   in
@@ -885,44 +950,17 @@ let rec pp_verified_upto fmt (v:verified_upto) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_verify_res_res fmt (v:verify_res_res) =
+let rec pp_pores_res fmt (v:pores_res) =
   match v with
   | Unknown x -> Format.fprintf fmt "@[<hv2>Unknown(@,%a)@]" Utils.pp_string_msg x
   | Err  -> Format.fprintf fmt "Err"
-  | Proved x -> Format.fprintf fmt "@[<hv2>Proved(@,%a)@]" pp_proved x
-  | Refuted x -> Format.fprintf fmt "@[<hv2>Refuted(@,%a)@]" pp_refuted x
+  | Proof x -> Format.fprintf fmt "@[<hv2>Proof(@,%a)@]" pp_proved x
+  | Instance x -> Format.fprintf fmt "@[<hv2>Instance(@,%a)@]" pp_counter_sat x
   | Verified_upto x -> Format.fprintf fmt "@[<hv2>Verified_upto(@,%a)@]" pp_verified_upto x
 
-and pp_verify_res fmt (v:verify_res) = 
+and pp_pores fmt (v:pores) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "res" pp_verify_res_res fmt v.res;
-    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
-    Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_unsat fmt (v:unsat) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "proof_pp" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.proof_pp;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_sat fmt (v:sat) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "model" (Pbrt.Pp.pp_option pp_model) fmt v.model;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
-let rec pp_instance_res_res fmt (v:instance_res_res) =
-  match v with
-  | Unknown x -> Format.fprintf fmt "@[<hv2>Unknown(@,%a)@]" Utils.pp_string_msg x
-  | Err  -> Format.fprintf fmt "Err"
-  | Unsat x -> Format.fprintf fmt "@[<hv2>Unsat(@,%a)@]" pp_unsat x
-  | Sat x -> Format.fprintf fmt "@[<hv2>Sat(@,%a)@]" pp_sat x
-
-and pp_instance_res fmt (v:instance_res) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "res" pp_instance_res_res fmt v.res;
+    Pbrt.Pp.pp_record_field ~first:true "res" pp_pores_res fmt v.res;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
     Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
   in
@@ -934,8 +972,7 @@ let rec pp_eval_res fmt (v:eval_res) =
     Pbrt.Pp.pp_record_field ~first:false "messages" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.messages;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
     Pbrt.Pp.pp_record_field ~first:false "tasks" (Pbrt.Pp.pp_list Task.pp_task) fmt v.tasks;
-    Pbrt.Pp.pp_record_field ~first:false "verify_results" (Pbrt.Pp.pp_list pp_verify_res) fmt v.verify_results;
-    Pbrt.Pp.pp_record_field ~first:false "instance_results" (Pbrt.Pp.pp_list pp_instance_res) fmt v.instance_results;
+    Pbrt.Pp.pp_record_field ~first:false "po_results" (Pbrt.Pp.pp_list pp_pores) fmt v.po_results;
     Pbrt.Pp.pp_record_field ~first:false "eval_results" (Pbrt.Pp.pp_list pp_eval_output) fmt v.eval_results;
     Pbrt.Pp.pp_record_field ~first:false "decomp_results" (Pbrt.Pp.pp_list pp_decompose_res) fmt v.decomp_results;
   in
@@ -970,6 +1007,55 @@ let rec pp_instance_name_req fmt (v:instance_name_req) =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~first:false "name" Pbrt.Pp.pp_string fmt v.name;
     Pbrt.Pp.pp_record_field ~first:false "hints" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.hints;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_unsat fmt (v:unsat) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "proof_pp" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.proof_pp;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_refuted fmt (v:refuted) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "model" (Pbrt.Pp.pp_option pp_model) fmt v.model;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_sat fmt (v:sat) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "model" (Pbrt.Pp.pp_option pp_model) fmt v.model;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_verify_res_res fmt (v:verify_res_res) =
+  match v with
+  | Unknown x -> Format.fprintf fmt "@[<hv2>Unknown(@,%a)@]" Utils.pp_string_msg x
+  | Err  -> Format.fprintf fmt "Err"
+  | Proved x -> Format.fprintf fmt "@[<hv2>Proved(@,%a)@]" pp_proved x
+  | Refuted x -> Format.fprintf fmt "@[<hv2>Refuted(@,%a)@]" pp_refuted x
+  | Verified_upto x -> Format.fprintf fmt "@[<hv2>Verified_upto(@,%a)@]" pp_verified_upto x
+
+and pp_verify_res fmt (v:verify_res) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "res" pp_verify_res_res fmt v.res;
+    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
+    Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_instance_res_res fmt (v:instance_res_res) =
+  match v with
+  | Unknown x -> Format.fprintf fmt "@[<hv2>Unknown(@,%a)@]" Utils.pp_string_msg x
+  | Err  -> Format.fprintf fmt "Err"
+  | Unsat x -> Format.fprintf fmt "@[<hv2>Unsat(@,%a)@]" pp_unsat x
+  | Sat x -> Format.fprintf fmt "@[<hv2>Sat(@,%a)@]" pp_sat x
+
+and pp_instance_res fmt (v:instance_res) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "res" pp_instance_res_res fmt v.res;
+    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
+    Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1138,7 +1224,7 @@ let rec encode_pb_model (v:model) encoder =
   end;
   ()
 
-let rec encode_pb_refuted (v:refuted) encoder = 
+let rec encode_pb_counter_sat (v:counter_sat) encoder = 
   begin match v.model with
   | Some x -> 
     Pbrt.Encoder.nested encode_pb_model x encoder;
@@ -1156,7 +1242,7 @@ let rec encode_pb_verified_upto (v:verified_upto) encoder =
   end;
   ()
 
-let rec encode_pb_verify_res_res (v:verify_res_res) encoder = 
+let rec encode_pb_pores_res (v:pores_res) encoder = 
   begin match v with
   | Unknown x ->
     Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
@@ -1164,18 +1250,18 @@ let rec encode_pb_verify_res_res (v:verify_res_res) encoder =
   | Err ->
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
     Pbrt.Encoder.empty_nested encoder
-  | Proved x ->
+  | Proof x ->
     Pbrt.Encoder.nested encode_pb_proved x encoder;
     Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  | Refuted x ->
-    Pbrt.Encoder.nested encode_pb_refuted x encoder;
+  | Instance x ->
+    Pbrt.Encoder.nested encode_pb_counter_sat x encoder;
     Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
   | Verified_upto x ->
     Pbrt.Encoder.nested encode_pb_verified_upto x encoder;
     Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
   end
 
-and encode_pb_verify_res (v:verify_res) encoder = 
+and encode_pb_pores (v:pores) encoder = 
   begin match v.res with
   | Unknown x ->
     Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
@@ -1183,76 +1269,15 @@ and encode_pb_verify_res (v:verify_res) encoder =
   | Err ->
     Pbrt.Encoder.empty_nested encoder;
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  | Proved x ->
+  | Proof x ->
     Pbrt.Encoder.nested encode_pb_proved x encoder;
     Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  | Refuted x ->
-    Pbrt.Encoder.nested encode_pb_refuted x encoder;
+  | Instance x ->
+    Pbrt.Encoder.nested encode_pb_counter_sat x encoder;
     Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
   | Verified_upto x ->
     Pbrt.Encoder.nested encode_pb_verified_upto x encoder;
     Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
-  end;
-  Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
-    Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
-  ) v.errors encoder;
-  begin match v.task with
-  | Some x -> 
-    Pbrt.Encoder.nested Task.encode_pb_task x encoder;
-    Pbrt.Encoder.key 11 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  ()
-
-let rec encode_pb_unsat (v:unsat) encoder = 
-  begin match v.proof_pp with
-  | Some x -> 
-    Pbrt.Encoder.string x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  ()
-
-let rec encode_pb_sat (v:sat) encoder = 
-  begin match v.model with
-  | Some x -> 
-    Pbrt.Encoder.nested encode_pb_model x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  ()
-
-let rec encode_pb_instance_res_res (v:instance_res_res) encoder = 
-  begin match v with
-  | Unknown x ->
-    Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  | Err ->
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-    Pbrt.Encoder.empty_nested encoder
-  | Unsat x ->
-    Pbrt.Encoder.nested encode_pb_unsat x encoder;
-    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  | Sat x ->
-    Pbrt.Encoder.nested encode_pb_sat x encoder;
-    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
-  end
-
-and encode_pb_instance_res (v:instance_res) encoder = 
-  begin match v.res with
-  | Unknown x ->
-    Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  | Err ->
-    Pbrt.Encoder.empty_nested encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  | Unsat x ->
-    Pbrt.Encoder.nested encode_pb_unsat x encoder;
-    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
-  | Sat x ->
-    Pbrt.Encoder.nested encode_pb_sat x encoder;
-    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
   end;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
@@ -1282,20 +1307,16 @@ let rec encode_pb_eval_res (v:eval_res) encoder =
     Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
   ) v.tasks encoder;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested encode_pb_verify_res x encoder;
+    Pbrt.Encoder.nested encode_pb_pores x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
-  ) v.verify_results encoder;
-  Pbrt.List_util.rev_iter_with (fun x encoder -> 
-    Pbrt.Encoder.nested encode_pb_instance_res x encoder;
-    Pbrt.Encoder.key 11 Pbrt.Bytes encoder; 
-  ) v.instance_results encoder;
+  ) v.po_results encoder;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
     Pbrt.Encoder.nested encode_pb_eval_output x encoder;
-    Pbrt.Encoder.key 12 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 11 Pbrt.Bytes encoder; 
   ) v.eval_results encoder;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
     Pbrt.Encoder.nested encode_pb_decompose_res x encoder;
-    Pbrt.Encoder.key 13 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 12 Pbrt.Bytes encoder; 
   ) v.decomp_results encoder;
   ()
 
@@ -1363,6 +1384,125 @@ let rec encode_pb_instance_name_req (v:instance_name_req) encoder =
   | Some x -> 
     Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_unsat (v:unsat) encoder = 
+  begin match v.proof_pp with
+  | Some x -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_refuted (v:refuted) encoder = 
+  begin match v.model with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_model x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_sat (v:sat) encoder = 
+  begin match v.model with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_model x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_verify_res_res (v:verify_res_res) encoder = 
+  begin match v with
+  | Unknown x ->
+    Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | Err ->
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.empty_nested encoder
+  | Proved x ->
+    Pbrt.Encoder.nested encode_pb_proved x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | Refuted x ->
+    Pbrt.Encoder.nested encode_pb_refuted x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  | Verified_upto x ->
+    Pbrt.Encoder.nested encode_pb_verified_upto x encoder;
+    Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
+  end
+
+and encode_pb_verify_res (v:verify_res) encoder = 
+  begin match v.res with
+  | Unknown x ->
+    Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | Err ->
+    Pbrt.Encoder.empty_nested encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  | Proved x ->
+    Pbrt.Encoder.nested encode_pb_proved x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | Refuted x ->
+    Pbrt.Encoder.nested encode_pb_refuted x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  | Verified_upto x ->
+    Pbrt.Encoder.nested encode_pb_verified_upto x encoder;
+    Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
+  end;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+    Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
+  ) v.errors encoder;
+  begin match v.task with
+  | Some x -> 
+    Pbrt.Encoder.nested Task.encode_pb_task x encoder;
+    Pbrt.Encoder.key 11 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_instance_res_res (v:instance_res_res) encoder = 
+  begin match v with
+  | Unknown x ->
+    Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | Err ->
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.empty_nested encoder
+  | Unsat x ->
+    Pbrt.Encoder.nested encode_pb_unsat x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | Sat x ->
+    Pbrt.Encoder.nested encode_pb_sat x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  end
+
+and encode_pb_instance_res (v:instance_res) encoder = 
+  begin match v.res with
+  | Unknown x ->
+    Pbrt.Encoder.nested Utils.encode_pb_string_msg x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | Err ->
+    Pbrt.Encoder.empty_nested encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  | Unsat x ->
+    Pbrt.Encoder.nested encode_pb_unsat x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | Sat x ->
+    Pbrt.Encoder.nested encode_pb_sat x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  end;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+    Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
+  ) v.errors encoder;
+  begin match v.task with
+  | Some x -> 
+    Pbrt.Encoder.nested Task.encode_pb_task x encoder;
+    Pbrt.Encoder.key 11 Pbrt.Bytes encoder; 
   | None -> ();
   end;
   ()
@@ -1656,8 +1796,8 @@ let rec decode_pb_model d =
     artifact = v.artifact;
   } : model)
 
-let rec decode_pb_refuted d =
-  let v = default_refuted_mutable () in
+let rec decode_pb_counter_sat d =
+  let v = default_counter_sat_mutable () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
@@ -1667,12 +1807,12 @@ let rec decode_pb_refuted d =
       v.model <- Some (decode_pb_model (Pbrt.Decoder.nested d));
     end
     | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(refuted), field(1)" pk
+      Pbrt.Decoder.unexpected_payload "Message(counter_sat), field(1)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     model = v.model;
-  } : refuted)
+  } : counter_sat)
 
 let rec decode_pb_verified_upto d =
   let v = default_verified_upto_mutable () in
@@ -1692,18 +1832,18 @@ let rec decode_pb_verified_upto d =
     msg = v.msg;
   } : verified_upto)
 
-let rec decode_pb_verify_res_res d = 
+let rec decode_pb_pores_res d = 
   let rec loop () = 
-    let ret:verify_res_res = match Pbrt.Decoder.key d with
-      | None -> Pbrt.Decoder.malformed_variant "verify_res_res"
-      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : verify_res_res) 
+    let ret:pores_res = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "pores_res"
+      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : pores_res) 
       | Some (2, _) -> begin 
         Pbrt.Decoder.empty_nested d ;
-        (Err : verify_res_res)
+        (Err : pores_res)
       end
-      | Some (3, _) -> (Proved (decode_pb_proved (Pbrt.Decoder.nested d)) : verify_res_res) 
-      | Some (4, _) -> (Refuted (decode_pb_refuted (Pbrt.Decoder.nested d)) : verify_res_res) 
-      | Some (5, _) -> (Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d)) : verify_res_res) 
+      | Some (3, _) -> (Proof (decode_pb_proved (Pbrt.Decoder.nested d)) : pores_res) 
+      | Some (4, _) -> (Instance (decode_pb_counter_sat (Pbrt.Decoder.nested d)) : pores_res) 
+      | Some (5, _) -> (Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d)) : pores_res) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -1713,8 +1853,8 @@ let rec decode_pb_verify_res_res d =
   in
   loop ()
 
-and decode_pb_verify_res d =
-  let v = default_verify_res_mutable () in
+and decode_pb_pores d =
+  let v = default_pores_mutable () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
@@ -1725,148 +1865,45 @@ and decode_pb_verify_res d =
       v.res <- Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d));
     end
     | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(1)" pk
+      Pbrt.Decoder.unexpected_payload "Message(pores), field(1)" pk
     | Some (2, Pbrt.Bytes) -> begin
       Pbrt.Decoder.empty_nested d;
       v.res <- Err;
     end
     | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(2)" pk
+      Pbrt.Decoder.unexpected_payload "Message(pores), field(2)" pk
     | Some (3, Pbrt.Bytes) -> begin
-      v.res <- Proved (decode_pb_proved (Pbrt.Decoder.nested d));
+      v.res <- Proof (decode_pb_proved (Pbrt.Decoder.nested d));
     end
     | Some (3, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(3)" pk
+      Pbrt.Decoder.unexpected_payload "Message(pores), field(3)" pk
     | Some (4, Pbrt.Bytes) -> begin
-      v.res <- Refuted (decode_pb_refuted (Pbrt.Decoder.nested d));
+      v.res <- Instance (decode_pb_counter_sat (Pbrt.Decoder.nested d));
     end
     | Some (4, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(4)" pk
+      Pbrt.Decoder.unexpected_payload "Message(pores), field(4)" pk
     | Some (5, Pbrt.Bytes) -> begin
       v.res <- Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d));
     end
     | Some (5, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(5)" pk
+      Pbrt.Decoder.unexpected_payload "Message(pores), field(5)" pk
     | Some (10, Pbrt.Bytes) -> begin
       v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
     end
     | Some (10, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(10)" pk
+      Pbrt.Decoder.unexpected_payload "Message(pores), field(10)" pk
     | Some (11, Pbrt.Bytes) -> begin
       v.task <- Some (Task.decode_pb_task (Pbrt.Decoder.nested d));
     end
     | Some (11, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(11)" pk
+      Pbrt.Decoder.unexpected_payload "Message(pores), field(11)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     res = v.res;
     errors = v.errors;
     task = v.task;
-  } : verify_res)
-
-let rec decode_pb_unsat d =
-  let v = default_unsat_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.proof_pp <- Some (Pbrt.Decoder.string d);
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(unsat), field(1)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    proof_pp = v.proof_pp;
-  } : unsat)
-
-let rec decode_pb_sat d =
-  let v = default_sat_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.model <- Some (decode_pb_model (Pbrt.Decoder.nested d));
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(sat), field(1)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    model = v.model;
-  } : sat)
-
-let rec decode_pb_instance_res_res d = 
-  let rec loop () = 
-    let ret:instance_res_res = match Pbrt.Decoder.key d with
-      | None -> Pbrt.Decoder.malformed_variant "instance_res_res"
-      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : instance_res_res) 
-      | Some (2, _) -> begin 
-        Pbrt.Decoder.empty_nested d ;
-        (Err : instance_res_res)
-      end
-      | Some (3, _) -> (Unsat (decode_pb_unsat (Pbrt.Decoder.nested d)) : instance_res_res) 
-      | Some (4, _) -> (Sat (decode_pb_sat (Pbrt.Decoder.nested d)) : instance_res_res) 
-      | Some (n, payload_kind) -> (
-        Pbrt.Decoder.skip d payload_kind; 
-        loop () 
-      )
-    in
-    ret
-  in
-  loop ()
-
-and decode_pb_instance_res d =
-  let v = default_instance_res_mutable () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-      v.errors <- List.rev v.errors;
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      v.res <- Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d));
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(1)" pk
-    | Some (2, Pbrt.Bytes) -> begin
-      Pbrt.Decoder.empty_nested d;
-      v.res <- Err;
-    end
-    | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(2)" pk
-    | Some (3, Pbrt.Bytes) -> begin
-      v.res <- Unsat (decode_pb_unsat (Pbrt.Decoder.nested d));
-    end
-    | Some (3, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(3)" pk
-    | Some (4, Pbrt.Bytes) -> begin
-      v.res <- Sat (decode_pb_sat (Pbrt.Decoder.nested d));
-    end
-    | Some (4, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(4)" pk
-    | Some (10, Pbrt.Bytes) -> begin
-      v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
-    end
-    | Some (10, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(10)" pk
-    | Some (11, Pbrt.Bytes) -> begin
-      v.task <- Some (Task.decode_pb_task (Pbrt.Decoder.nested d));
-    end
-    | Some (11, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(11)" pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  ({
-    res = v.res;
-    errors = v.errors;
-    task = v.task;
-  } : instance_res)
+  } : pores)
 
 let rec decode_pb_eval_res d =
   let v = default_eval_res_mutable () in
@@ -1876,8 +1913,7 @@ let rec decode_pb_eval_res d =
     | None -> (
       v.decomp_results <- List.rev v.decomp_results;
       v.eval_results <- List.rev v.eval_results;
-      v.instance_results <- List.rev v.instance_results;
-      v.verify_results <- List.rev v.verify_results;
+      v.po_results <- List.rev v.po_results;
       v.tasks <- List.rev v.tasks;
       v.errors <- List.rev v.errors;
       v.messages <- List.rev v.messages;
@@ -1903,25 +1939,20 @@ let rec decode_pb_eval_res d =
     | Some (4, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(eval_res), field(4)" pk
     | Some (10, Pbrt.Bytes) -> begin
-      v.verify_results <- (decode_pb_verify_res (Pbrt.Decoder.nested d)) :: v.verify_results;
+      v.po_results <- (decode_pb_pores (Pbrt.Decoder.nested d)) :: v.po_results;
     end
     | Some (10, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(eval_res), field(10)" pk
     | Some (11, Pbrt.Bytes) -> begin
-      v.instance_results <- (decode_pb_instance_res (Pbrt.Decoder.nested d)) :: v.instance_results;
+      v.eval_results <- (decode_pb_eval_output (Pbrt.Decoder.nested d)) :: v.eval_results;
     end
     | Some (11, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(eval_res), field(11)" pk
     | Some (12, Pbrt.Bytes) -> begin
-      v.eval_results <- (decode_pb_eval_output (Pbrt.Decoder.nested d)) :: v.eval_results;
+      v.decomp_results <- (decode_pb_decompose_res (Pbrt.Decoder.nested d)) :: v.decomp_results;
     end
     | Some (12, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(eval_res), field(12)" pk
-    | Some (13, Pbrt.Bytes) -> begin
-      v.decomp_results <- (decode_pb_decompose_res (Pbrt.Decoder.nested d)) :: v.decomp_results;
-    end
-    | Some (13, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(eval_res), field(13)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
@@ -1929,8 +1960,7 @@ let rec decode_pb_eval_res d =
     messages = v.messages;
     errors = v.errors;
     tasks = v.tasks;
-    verify_results = v.verify_results;
-    instance_results = v.instance_results;
+    po_results = v.po_results;
     eval_results = v.eval_results;
     decomp_results = v.decomp_results;
   } : eval_res)
@@ -2054,6 +2084,200 @@ let rec decode_pb_instance_name_req d =
     name = v.name;
     hints = v.hints;
   } : instance_name_req)
+
+let rec decode_pb_unsat d =
+  let v = default_unsat_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.proof_pp <- Some (Pbrt.Decoder.string d);
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(unsat), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    proof_pp = v.proof_pp;
+  } : unsat)
+
+let rec decode_pb_refuted d =
+  let v = default_refuted_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.model <- Some (decode_pb_model (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(refuted), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    model = v.model;
+  } : refuted)
+
+let rec decode_pb_sat d =
+  let v = default_sat_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.model <- Some (decode_pb_model (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(sat), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    model = v.model;
+  } : sat)
+
+let rec decode_pb_verify_res_res d = 
+  let rec loop () = 
+    let ret:verify_res_res = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "verify_res_res"
+      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : verify_res_res) 
+      | Some (2, _) -> begin 
+        Pbrt.Decoder.empty_nested d ;
+        (Err : verify_res_res)
+      end
+      | Some (3, _) -> (Proved (decode_pb_proved (Pbrt.Decoder.nested d)) : verify_res_res) 
+      | Some (4, _) -> (Refuted (decode_pb_refuted (Pbrt.Decoder.nested d)) : verify_res_res) 
+      | Some (5, _) -> (Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d)) : verify_res_res) 
+      | Some (n, payload_kind) -> (
+        Pbrt.Decoder.skip d payload_kind; 
+        loop () 
+      )
+    in
+    ret
+  in
+  loop ()
+
+and decode_pb_verify_res d =
+  let v = default_verify_res_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      v.errors <- List.rev v.errors;
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.res <- Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      Pbrt.Decoder.empty_nested d;
+      v.res <- Err;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.res <- Proved (decode_pb_proved (Pbrt.Decoder.nested d));
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(3)" pk
+    | Some (4, Pbrt.Bytes) -> begin
+      v.res <- Refuted (decode_pb_refuted (Pbrt.Decoder.nested d));
+    end
+    | Some (4, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(4)" pk
+    | Some (5, Pbrt.Bytes) -> begin
+      v.res <- Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d));
+    end
+    | Some (5, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(5)" pk
+    | Some (10, Pbrt.Bytes) -> begin
+      v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
+    end
+    | Some (10, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(10)" pk
+    | Some (11, Pbrt.Bytes) -> begin
+      v.task <- Some (Task.decode_pb_task (Pbrt.Decoder.nested d));
+    end
+    | Some (11, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(verify_res), field(11)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    res = v.res;
+    errors = v.errors;
+    task = v.task;
+  } : verify_res)
+
+let rec decode_pb_instance_res_res d = 
+  let rec loop () = 
+    let ret:instance_res_res = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "instance_res_res"
+      | Some (1, _) -> (Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d)) : instance_res_res) 
+      | Some (2, _) -> begin 
+        Pbrt.Decoder.empty_nested d ;
+        (Err : instance_res_res)
+      end
+      | Some (3, _) -> (Unsat (decode_pb_unsat (Pbrt.Decoder.nested d)) : instance_res_res) 
+      | Some (4, _) -> (Sat (decode_pb_sat (Pbrt.Decoder.nested d)) : instance_res_res) 
+      | Some (n, payload_kind) -> (
+        Pbrt.Decoder.skip d payload_kind; 
+        loop () 
+      )
+    in
+    ret
+  in
+  loop ()
+
+and decode_pb_instance_res d =
+  let v = default_instance_res_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      v.errors <- List.rev v.errors;
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.res <- Unknown (Utils.decode_pb_string_msg (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      Pbrt.Decoder.empty_nested d;
+      v.res <- Err;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.res <- Unsat (decode_pb_unsat (Pbrt.Decoder.nested d));
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(3)" pk
+    | Some (4, Pbrt.Bytes) -> begin
+      v.res <- Sat (decode_pb_sat (Pbrt.Decoder.nested d));
+    end
+    | Some (4, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(4)" pk
+    | Some (10, Pbrt.Bytes) -> begin
+      v.errors <- (Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors;
+    end
+    | Some (10, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(10)" pk
+    | Some (11, Pbrt.Bytes) -> begin
+      v.task <- Some (Task.decode_pb_task (Pbrt.Decoder.nested d));
+    end
+    | Some (11, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(instance_res), field(11)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    res = v.res;
+    errors = v.errors;
+    task = v.task;
+  } : instance_res)
 
 let rec decode_pb_typecheck_req d =
   let v = default_typecheck_req_mutable () in
@@ -2230,7 +2454,7 @@ let rec encode_json_model (v:model) =
   in
   `Assoc assoc
 
-let rec encode_json_refuted (v:refuted) = 
+let rec encode_json_counter_sat (v:counter_sat) = 
   let assoc = [] in 
   let assoc = match v.model with
     | None -> assoc
@@ -2246,65 +2470,23 @@ let rec encode_json_verified_upto (v:verified_upto) =
   in
   `Assoc assoc
 
-let rec encode_json_verify_res_res (v:verify_res_res) = 
+let rec encode_json_pores_res (v:pores_res) = 
   begin match v with
   | Unknown v -> `Assoc [("unknown", Utils.encode_json_string_msg v)]
   | Err -> `Assoc [("err", `Null)]
-  | Proved v -> `Assoc [("proved", encode_json_proved v)]
-  | Refuted v -> `Assoc [("refuted", encode_json_refuted v)]
+  | Proof v -> `Assoc [("proof", encode_json_proved v)]
+  | Instance v -> `Assoc [("instance", encode_json_counter_sat v)]
   | Verified_upto v -> `Assoc [("verifiedUpto", encode_json_verified_upto v)]
   end
 
-and encode_json_verify_res (v:verify_res) = 
+and encode_json_pores (v:pores) = 
   let assoc = [] in 
   let assoc = match v.res with
       | Unknown v -> ("unknown", Utils.encode_json_string_msg v) :: assoc
       | Err -> ("err", `Null) :: assoc
-      | Proved v -> ("proved", encode_json_proved v) :: assoc
-      | Refuted v -> ("refuted", encode_json_refuted v) :: assoc
+      | Proof v -> ("proof", encode_json_proved v) :: assoc
+      | Instance v -> ("instance", encode_json_counter_sat v) :: assoc
       | Verified_upto v -> ("verifiedUpto", encode_json_verified_upto v) :: assoc
-  in (* match v.res *)
-  let assoc =
-    let l = v.errors |> List.map Error.encode_json_error in
-    ("errors", `List l) :: assoc 
-  in
-  let assoc = match v.task with
-    | None -> assoc
-    | Some v -> ("task", Task.encode_json_task v) :: assoc
-  in
-  `Assoc assoc
-
-let rec encode_json_unsat (v:unsat) = 
-  let assoc = [] in 
-  let assoc = match v.proof_pp with
-    | None -> assoc
-    | Some v -> ("proofPp", Pbrt_yojson.make_string v) :: assoc
-  in
-  `Assoc assoc
-
-let rec encode_json_sat (v:sat) = 
-  let assoc = [] in 
-  let assoc = match v.model with
-    | None -> assoc
-    | Some v -> ("model", encode_json_model v) :: assoc
-  in
-  `Assoc assoc
-
-let rec encode_json_instance_res_res (v:instance_res_res) = 
-  begin match v with
-  | Unknown v -> `Assoc [("unknown", Utils.encode_json_string_msg v)]
-  | Err -> `Assoc [("err", `Null)]
-  | Unsat v -> `Assoc [("unsat", encode_json_unsat v)]
-  | Sat v -> `Assoc [("sat", encode_json_sat v)]
-  end
-
-and encode_json_instance_res (v:instance_res) = 
-  let assoc = [] in 
-  let assoc = match v.res with
-      | Unknown v -> ("unknown", Utils.encode_json_string_msg v) :: assoc
-      | Err -> ("err", `Null) :: assoc
-      | Unsat v -> ("unsat", encode_json_unsat v) :: assoc
-      | Sat v -> ("sat", encode_json_sat v) :: assoc
   in (* match v.res *)
   let assoc =
     let l = v.errors |> List.map Error.encode_json_error in
@@ -2332,12 +2514,8 @@ let rec encode_json_eval_res (v:eval_res) =
     ("tasks", `List l) :: assoc 
   in
   let assoc =
-    let l = v.verify_results |> List.map encode_json_verify_res in
-    ("verifyResults", `List l) :: assoc 
-  in
-  let assoc =
-    let l = v.instance_results |> List.map encode_json_instance_res in
-    ("instanceResults", `List l) :: assoc 
+    let l = v.po_results |> List.map encode_json_pores in
+    ("poResults", `List l) :: assoc 
   in
   let assoc =
     let l = v.eval_results |> List.map encode_json_eval_output in
@@ -2398,6 +2576,84 @@ let rec encode_json_instance_name_req (v:instance_name_req) =
   let assoc = match v.hints with
     | None -> assoc
     | Some v -> ("hints", Pbrt_yojson.make_string v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_unsat (v:unsat) = 
+  let assoc = [] in 
+  let assoc = match v.proof_pp with
+    | None -> assoc
+    | Some v -> ("proofPp", Pbrt_yojson.make_string v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_refuted (v:refuted) = 
+  let assoc = [] in 
+  let assoc = match v.model with
+    | None -> assoc
+    | Some v -> ("model", encode_json_model v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_sat (v:sat) = 
+  let assoc = [] in 
+  let assoc = match v.model with
+    | None -> assoc
+    | Some v -> ("model", encode_json_model v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_verify_res_res (v:verify_res_res) = 
+  begin match v with
+  | Unknown v -> `Assoc [("unknown", Utils.encode_json_string_msg v)]
+  | Err -> `Assoc [("err", `Null)]
+  | Proved v -> `Assoc [("proved", encode_json_proved v)]
+  | Refuted v -> `Assoc [("refuted", encode_json_refuted v)]
+  | Verified_upto v -> `Assoc [("verifiedUpto", encode_json_verified_upto v)]
+  end
+
+and encode_json_verify_res (v:verify_res) = 
+  let assoc = [] in 
+  let assoc = match v.res with
+      | Unknown v -> ("unknown", Utils.encode_json_string_msg v) :: assoc
+      | Err -> ("err", `Null) :: assoc
+      | Proved v -> ("proved", encode_json_proved v) :: assoc
+      | Refuted v -> ("refuted", encode_json_refuted v) :: assoc
+      | Verified_upto v -> ("verifiedUpto", encode_json_verified_upto v) :: assoc
+  in (* match v.res *)
+  let assoc =
+    let l = v.errors |> List.map Error.encode_json_error in
+    ("errors", `List l) :: assoc 
+  in
+  let assoc = match v.task with
+    | None -> assoc
+    | Some v -> ("task", Task.encode_json_task v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_instance_res_res (v:instance_res_res) = 
+  begin match v with
+  | Unknown v -> `Assoc [("unknown", Utils.encode_json_string_msg v)]
+  | Err -> `Assoc [("err", `Null)]
+  | Unsat v -> `Assoc [("unsat", encode_json_unsat v)]
+  | Sat v -> `Assoc [("sat", encode_json_sat v)]
+  end
+
+and encode_json_instance_res (v:instance_res) = 
+  let assoc = [] in 
+  let assoc = match v.res with
+      | Unknown v -> ("unknown", Utils.encode_json_string_msg v) :: assoc
+      | Err -> ("err", `Null) :: assoc
+      | Unsat v -> ("unsat", encode_json_unsat v) :: assoc
+      | Sat v -> ("sat", encode_json_sat v) :: assoc
+  in (* match v.res *)
+  let assoc =
+    let l = v.errors |> List.map Error.encode_json_error in
+    ("errors", `List l) :: assoc 
+  in
+  let assoc = match v.task with
+    | None -> assoc
+    | Some v -> ("task", Task.encode_json_task v) :: assoc
   in
   `Assoc assoc
 
@@ -2623,8 +2879,8 @@ let rec decode_json_model d =
     artifact = v.artifact;
   } : model)
 
-let rec decode_json_refuted d =
-  let v = default_refuted_mutable () in
+let rec decode_json_counter_sat d =
+  let v = default_counter_sat_mutable () in
   let assoc = match d with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
@@ -2637,7 +2893,7 @@ let rec decode_json_refuted d =
   ) assoc;
   ({
     model = v.model;
-  } : refuted)
+  } : counter_sat)
 
 let rec decode_json_verified_upto d =
   let v = default_verified_upto_mutable () in
@@ -2655,29 +2911,29 @@ let rec decode_json_verified_upto d =
     msg = v.msg;
   } : verified_upto)
 
-let rec decode_json_verify_res_res json =
+let rec decode_json_pores_res json =
   let assoc = match json with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
   in
   let rec loop = function
-    | [] -> Pbrt_yojson.E.malformed_variant "verify_res_res"
+    | [] -> Pbrt_yojson.E.malformed_variant "pores_res"
     | ("unknown", json_value)::_ -> 
-      (Unknown ((Utils.decode_json_string_msg json_value)) : verify_res_res)
-    | ("err", _)::_-> (Err : verify_res_res)
-    | ("proved", json_value)::_ -> 
-      (Proved ((decode_json_proved json_value)) : verify_res_res)
-    | ("refuted", json_value)::_ -> 
-      (Refuted ((decode_json_refuted json_value)) : verify_res_res)
+      (Unknown ((Utils.decode_json_string_msg json_value)) : pores_res)
+    | ("err", _)::_-> (Err : pores_res)
+    | ("proof", json_value)::_ -> 
+      (Proof ((decode_json_proved json_value)) : pores_res)
+    | ("instance", json_value)::_ -> 
+      (Instance ((decode_json_counter_sat json_value)) : pores_res)
     | ("verifiedUpto", json_value)::_ -> 
-      (Verified_upto ((decode_json_verified_upto json_value)) : verify_res_res)
+      (Verified_upto ((decode_json_verified_upto json_value)) : pores_res)
     
     | _ :: tl -> loop tl
   in
   loop assoc
 
-and decode_json_verify_res d =
-  let v = default_verify_res_mutable () in
+and decode_json_pores d =
+  let v = default_pores_mutable () in
   let assoc = match d with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
@@ -2686,10 +2942,10 @@ and decode_json_verify_res d =
     | ("unknown", json_value) -> 
       v.res <- Unknown ((Utils.decode_json_string_msg json_value))
     | ("err", _) -> v.res <- Err
-    | ("proved", json_value) -> 
-      v.res <- Proved ((decode_json_proved json_value))
-    | ("refuted", json_value) -> 
-      v.res <- Refuted ((decode_json_refuted json_value))
+    | ("proof", json_value) -> 
+      v.res <- Proof ((decode_json_proved json_value))
+    | ("instance", json_value) -> 
+      v.res <- Instance ((decode_json_counter_sat json_value))
     | ("verifiedUpto", json_value) -> 
       v.res <- Verified_upto ((decode_json_verified_upto json_value))
     | ("errors", `List l) -> begin
@@ -2706,88 +2962,7 @@ and decode_json_verify_res d =
     res = v.res;
     errors = v.errors;
     task = v.task;
-  } : verify_res)
-
-let rec decode_json_unsat d =
-  let v = default_unsat_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("proofPp", json_value) -> 
-      v.proof_pp <- Some (Pbrt_yojson.string json_value "unsat" "proof_pp")
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    proof_pp = v.proof_pp;
-  } : unsat)
-
-let rec decode_json_sat d =
-  let v = default_sat_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("model", json_value) -> 
-      v.model <- Some ((decode_json_model json_value))
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    model = v.model;
-  } : sat)
-
-let rec decode_json_instance_res_res json =
-  let assoc = match json with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  let rec loop = function
-    | [] -> Pbrt_yojson.E.malformed_variant "instance_res_res"
-    | ("unknown", json_value)::_ -> 
-      (Unknown ((Utils.decode_json_string_msg json_value)) : instance_res_res)
-    | ("err", _)::_-> (Err : instance_res_res)
-    | ("unsat", json_value)::_ -> 
-      (Unsat ((decode_json_unsat json_value)) : instance_res_res)
-    | ("sat", json_value)::_ -> 
-      (Sat ((decode_json_sat json_value)) : instance_res_res)
-    
-    | _ :: tl -> loop tl
-  in
-  loop assoc
-
-and decode_json_instance_res d =
-  let v = default_instance_res_mutable () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("unknown", json_value) -> 
-      v.res <- Unknown ((Utils.decode_json_string_msg json_value))
-    | ("err", _) -> v.res <- Err
-    | ("unsat", json_value) -> 
-      v.res <- Unsat ((decode_json_unsat json_value))
-    | ("sat", json_value) -> 
-      v.res <- Sat ((decode_json_sat json_value))
-    | ("errors", `List l) -> begin
-      v.errors <- List.map (function
-        | json_value -> (Error.decode_json_error json_value)
-      ) l;
-    end
-    | ("task", json_value) -> 
-      v.task <- Some ((Task.decode_json_task json_value))
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    res = v.res;
-    errors = v.errors;
-    task = v.task;
-  } : instance_res)
+  } : pores)
 
 let rec decode_json_eval_res d =
   let v = default_eval_res_mutable () in
@@ -2813,14 +2988,9 @@ let rec decode_json_eval_res d =
         | json_value -> (Task.decode_json_task json_value)
       ) l;
     end
-    | ("verifyResults", `List l) -> begin
-      v.verify_results <- List.map (function
-        | json_value -> (decode_json_verify_res json_value)
-      ) l;
-    end
-    | ("instanceResults", `List l) -> begin
-      v.instance_results <- List.map (function
-        | json_value -> (decode_json_instance_res json_value)
+    | ("poResults", `List l) -> begin
+      v.po_results <- List.map (function
+        | json_value -> (decode_json_pores json_value)
       ) l;
     end
     | ("evalResults", `List l) -> begin
@@ -2841,8 +3011,7 @@ let rec decode_json_eval_res d =
     messages = v.messages;
     errors = v.errors;
     tasks = v.tasks;
-    verify_results = v.verify_results;
-    instance_results = v.instance_results;
+    po_results = v.po_results;
     eval_results = v.eval_results;
     decomp_results = v.decomp_results;
   } : eval_res)
@@ -2934,6 +3103,156 @@ let rec decode_json_instance_name_req d =
     name = v.name;
     hints = v.hints;
   } : instance_name_req)
+
+let rec decode_json_unsat d =
+  let v = default_unsat_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("proofPp", json_value) -> 
+      v.proof_pp <- Some (Pbrt_yojson.string json_value "unsat" "proof_pp")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    proof_pp = v.proof_pp;
+  } : unsat)
+
+let rec decode_json_refuted d =
+  let v = default_refuted_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("model", json_value) -> 
+      v.model <- Some ((decode_json_model json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    model = v.model;
+  } : refuted)
+
+let rec decode_json_sat d =
+  let v = default_sat_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("model", json_value) -> 
+      v.model <- Some ((decode_json_model json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    model = v.model;
+  } : sat)
+
+let rec decode_json_verify_res_res json =
+  let assoc = match json with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  let rec loop = function
+    | [] -> Pbrt_yojson.E.malformed_variant "verify_res_res"
+    | ("unknown", json_value)::_ -> 
+      (Unknown ((Utils.decode_json_string_msg json_value)) : verify_res_res)
+    | ("err", _)::_-> (Err : verify_res_res)
+    | ("proved", json_value)::_ -> 
+      (Proved ((decode_json_proved json_value)) : verify_res_res)
+    | ("refuted", json_value)::_ -> 
+      (Refuted ((decode_json_refuted json_value)) : verify_res_res)
+    | ("verifiedUpto", json_value)::_ -> 
+      (Verified_upto ((decode_json_verified_upto json_value)) : verify_res_res)
+    
+    | _ :: tl -> loop tl
+  in
+  loop assoc
+
+and decode_json_verify_res d =
+  let v = default_verify_res_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("unknown", json_value) -> 
+      v.res <- Unknown ((Utils.decode_json_string_msg json_value))
+    | ("err", _) -> v.res <- Err
+    | ("proved", json_value) -> 
+      v.res <- Proved ((decode_json_proved json_value))
+    | ("refuted", json_value) -> 
+      v.res <- Refuted ((decode_json_refuted json_value))
+    | ("verifiedUpto", json_value) -> 
+      v.res <- Verified_upto ((decode_json_verified_upto json_value))
+    | ("errors", `List l) -> begin
+      v.errors <- List.map (function
+        | json_value -> (Error.decode_json_error json_value)
+      ) l;
+    end
+    | ("task", json_value) -> 
+      v.task <- Some ((Task.decode_json_task json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    res = v.res;
+    errors = v.errors;
+    task = v.task;
+  } : verify_res)
+
+let rec decode_json_instance_res_res json =
+  let assoc = match json with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  let rec loop = function
+    | [] -> Pbrt_yojson.E.malformed_variant "instance_res_res"
+    | ("unknown", json_value)::_ -> 
+      (Unknown ((Utils.decode_json_string_msg json_value)) : instance_res_res)
+    | ("err", _)::_-> (Err : instance_res_res)
+    | ("unsat", json_value)::_ -> 
+      (Unsat ((decode_json_unsat json_value)) : instance_res_res)
+    | ("sat", json_value)::_ -> 
+      (Sat ((decode_json_sat json_value)) : instance_res_res)
+    
+    | _ :: tl -> loop tl
+  in
+  loop assoc
+
+and decode_json_instance_res d =
+  let v = default_instance_res_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("unknown", json_value) -> 
+      v.res <- Unknown ((Utils.decode_json_string_msg json_value))
+    | ("err", _) -> v.res <- Err
+    | ("unsat", json_value) -> 
+      v.res <- Unsat ((decode_json_unsat json_value))
+    | ("sat", json_value) -> 
+      v.res <- Sat ((decode_json_sat json_value))
+    | ("errors", `List l) -> begin
+      v.errors <- List.map (function
+        | json_value -> (Error.decode_json_error json_value)
+      ) l;
+    end
+    | ("task", json_value) -> 
+      v.task <- Some ((Task.decode_json_task json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    res = v.res;
+    errors = v.errors;
+    task = v.task;
+  } : instance_res)
 
 let rec decode_json_typecheck_req d =
   let v = default_typecheck_req_mutable () in
