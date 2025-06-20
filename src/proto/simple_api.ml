@@ -36,6 +36,7 @@ and decompose_res = {
 type eval_src_req = {
   session : Session.session option;
   src : string;
+  async_only : bool option;
 }
 
 type eval_output = {
@@ -209,9 +210,11 @@ and default_decompose_res
 let rec default_eval_src_req 
   ?session:((session:Session.session option) = None)
   ?src:((src:string) = "")
+  ?async_only:((async_only:bool option) = None)
   () : eval_src_req  = {
   session;
   src;
+  async_only;
 }
 
 let rec default_eval_output 
@@ -433,11 +436,13 @@ let default_decompose_res_mutable () : decompose_res_mutable = {
 type eval_src_req_mutable = {
   mutable session : Session.session option;
   mutable src : string;
+  mutable async_only : bool option;
 }
 
 let default_eval_src_req_mutable () : eval_src_req_mutable = {
   session = None;
   src = "";
+  async_only = None;
 }
 
 type eval_output_mutable = {
@@ -684,9 +689,11 @@ let rec make_decompose_res
 let rec make_eval_src_req 
   ?session:((session:Session.session option) = None)
   ~(src:string)
+  ?async_only:((async_only:bool option) = None)
   () : eval_src_req  = {
   session;
   src;
+  async_only;
 }
 
 let rec make_eval_output 
@@ -903,6 +910,7 @@ let rec pp_eval_src_req fmt (v:eval_src_req) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~first:false "src" Pbrt.Pp.pp_string fmt v.src;
+    Pbrt.Pp.pp_record_field ~first:false "async_only" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.async_only;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1181,6 +1189,12 @@ let rec encode_pb_eval_src_req (v:eval_src_req) encoder =
   end;
   Pbrt.Encoder.string v.src encoder;
   Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  begin match v.async_only with
+  | Some x -> 
+    Pbrt.Encoder.bool x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Varint encoder; 
+  | None -> ();
+  end;
   ()
 
 let rec encode_pb_eval_output (v:eval_output) encoder = 
@@ -1705,11 +1719,17 @@ let rec decode_pb_eval_src_req d =
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(eval_src_req), field(2)" pk
+    | Some (3, Pbrt.Varint) -> begin
+      v.async_only <- Some (Pbrt.Decoder.bool d);
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(eval_src_req), field(3)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     session = v.session;
     src = v.src;
+    async_only = v.async_only;
   } : eval_src_req)
 
 let rec decode_pb_eval_output d =
@@ -2417,6 +2437,10 @@ let rec encode_json_eval_src_req (v:eval_src_req) =
     | Some v -> ("session", Session.encode_json_session v) :: assoc
   in
   let assoc = ("src", Pbrt_yojson.make_string v.src) :: assoc in
+  let assoc = match v.async_only with
+    | None -> assoc
+    | Some v -> ("asyncOnly", Pbrt_yojson.make_bool v) :: assoc
+  in
   `Assoc assoc
 
 let rec encode_json_eval_output (v:eval_output) = 
@@ -2805,12 +2829,15 @@ let rec decode_json_eval_src_req d =
       v.session <- Some ((Session.decode_json_session json_value))
     | ("src", json_value) -> 
       v.src <- Pbrt_yojson.string json_value "eval_src_req" "src"
+    | ("asyncOnly", json_value) -> 
+      v.async_only <- Some (Pbrt_yojson.bool json_value "eval_src_req" "async_only")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     session = v.session;
     src = v.src;
+    async_only = v.async_only;
   } : eval_src_req)
 
 let rec decode_json_eval_output d =

@@ -43,6 +43,7 @@ and decompose_res = {
 type eval_src_req = {
   session : Session.session option;
   src : string;
+  async_only : bool option;
 }
 
 type eval_output = {
@@ -210,6 +211,7 @@ val default_decompose_res :
 val default_eval_src_req : 
   ?session:Session.session option ->
   ?src:string ->
+  ?async_only:bool option ->
   unit ->
   eval_src_req
 (** [default_eval_src_req ()] is the default value for type [eval_src_req] *)
@@ -400,6 +402,7 @@ val make_decompose_res :
 val make_eval_src_req : 
   ?session:Session.session option ->
   src:string ->
+  ?async_only:bool option ->
   unit ->
   eval_src_req
 (** [make_eval_src_req … ()] is a builder for type [eval_src_req] *)

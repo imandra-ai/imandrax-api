@@ -91,6 +91,10 @@ message EvalSrcReq {
 
   // source code to evaluate
   string src = 2;
+
+  // if true, do not wait for tasks results, only return the task list
+  // and not the task results. Use `get_artifact` to get the results.
+  optional bool async_only = 3;
 }
 
 // Output of an "eval" statement
