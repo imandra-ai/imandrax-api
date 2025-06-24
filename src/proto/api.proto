@@ -38,7 +38,7 @@ message CodeSnippetEvalResult {
   float duration_s = 3;
 
   // Tasks produced in the evaluation.
-  repeated Task tasks = 9;
+  repeated imandrax.task.Task tasks = 9;
 
   // Errors occurring during evaluation.
   repeated Error errors = 10;
@@ -51,7 +51,7 @@ message ParseQuery {
 
 message ArtifactListQuery {
   // the task from which to list the artifacts
-  TaskID task_id = 1;
+  imandrax.task.TaskID task_id = 1;
 }
 
 message ArtifactListResult {
@@ -61,7 +61,7 @@ message ArtifactListResult {
 
 message ArtifactGetQuery {
   // the task from which the artifact comes from
-  TaskID task_id = 1;
+  imandrax.task.TaskID task_id = 1;
 
   // the kind of artifact we want
   string kind = 2;
