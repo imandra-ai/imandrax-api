@@ -313,6 +313,8 @@ macos_install() {
   # modify executable to find libs
   sed -i'.backup' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
     "${INSTALL_PREFIX}/bin/imandrax-cli"
+  sed -i'.backup' "s#export PATH=\"\$PATH:\$DIR\"#BIN_DIR=${BIN_DIR}\nexport PATH=\"\$PATH:\$DIR\:\$BIN_DIR\"#" \
+    "${INSTALL_PREFIX}/bin/imandrax-cli"
   
   # clean up temp files
   rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
