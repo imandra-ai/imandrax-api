@@ -4,6 +4,7 @@ api_types_version.ts:
 	@echo "'use strict'; const api_types_version: string = 'v$(API_TYPES_VERSION)'" > $@
 
 check:
+	npm install @bufbuild/protobuf
 	@tsc --noEmit
 
 OUTDIR=dist
