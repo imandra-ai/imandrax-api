@@ -14,9 +14,8 @@ export class TwineError extends Error {
     super();
     this.msg = params.msg;
     this.offset = params.offset;
-    this.message = `{ msg: ${this.msg}, offset: 0x${
-      this.offset.toString(16)
-    } }`;
+    this.message = `{ msg: ${this.msg}, offset: 0x${this.offset.toString(16)
+      } }`;
   }
 
   override toString(): string {
@@ -120,7 +119,7 @@ export class ArrayCursor extends Cursor implements Iterator<offset> {
   }
 
   toArray(): Array<offset> {
-    const res = [];
+    const res: offset[] = [];
     for (const x of this) res.push(x);
     return res;
   }
@@ -147,7 +146,7 @@ export class DictCursor extends Cursor implements Iterator<[offset, offset]> {
   }
 
   toArray(): Array<[offset, offset]> {
-    const res = [];
+    const res: [offset, offset][] = [];
     for (const x of this) res.push(x);
     return res;
   }
