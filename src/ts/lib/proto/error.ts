@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Location } from "./locs";
+import { Location } from "./locs.js";
 
 export const protobufPackage = "";
 

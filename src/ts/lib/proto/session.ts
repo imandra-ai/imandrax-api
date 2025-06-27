@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Empty } from "./utils";
+import { Empty } from "./utils.js";
 
 export const protobufPackage = "imandrax.session";
 

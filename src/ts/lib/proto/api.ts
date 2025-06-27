@@ -6,10 +6,10 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Art } from "./artmsg";
-import { Error } from "./error";
-import { Session } from "./session";
-import { Task, TaskID } from "./task";
+import { Art } from "./artmsg.js";
+import { Error } from "./error.js";
+import { Session } from "./session.js";
+import { Task, TaskID } from "./task.js";
 
 export const protobufPackage = "imandrax.api";
 

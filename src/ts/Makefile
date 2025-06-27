@@ -26,6 +26,6 @@ ${NPM_ROOT}/.bin/protoc-gen-ts_proto:
 
 tsproto: ${NPM_ROOT}/.bin/protoc-gen-ts_proto
 	mkdir -p lib/proto
-	protoc --plugin=${NPM_ROOT}/.bin/protoc-gen-ts_proto --ts_proto_out=lib/proto --proto_path=../proto ../proto/*.proto
+	protoc --plugin=${NPM_ROOT}/.bin/protoc-gen-ts_proto --ts_proto_out=lib/proto --proto_path=../proto ../proto/*.proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=importSuffix=.js
 
 .PHONY: check api_types_version.ts
