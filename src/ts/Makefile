@@ -19,4 +19,13 @@ build-release: check
 clean:
 	@rm -r $(OUTDIR)
 
+NPM_ROOT=$(shell npm root)
+
+${NPM_ROOT}/.bin/protoc-gen-ts_proto:
+	npm install ts-proto
+
+tsproto: ${NPM_ROOT}/.bin/protoc-gen-ts_proto
+	mkdir -p lib/proto
+	protoc --plugin=${NPM_ROOT}/.bin/protoc-gen-ts_proto --ts_proto_out=lib/proto --proto_path=../proto ../proto/*.proto
+
 .PHONY: check api_types_version.ts
