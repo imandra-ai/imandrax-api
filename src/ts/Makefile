@@ -1,22 +1,30 @@
+OUTDIR=out
 
-API_TYPES_VERSION=$(shell cat ../core/API_TYPES_VERSION)
-api_types_version.ts:
-	@echo "'use strict'; const api_types_version: string = 'v$(API_TYPES_VERSION)'" > $@
+all: tsproto check build-dev build-release
 
-check:
-	@tsc --noEmit
+lib/version.ts: ../core/API_TYPES_VERSION
+	@echo "'use strict'; export const version: string = 'v$(file <$<)'" > $@
 
-OUTDIR=dist
-build-dev: check
-	@mkdir -p $(OUTDIR)/dev/
-	esbuild $(wildcard lib/*.ts) --outdir=$(OUTDIR)/dev/ --sourcemap
+node_modules:
+	@npm install
 
-build-release: check
-	@mkdir -p $(OUTDIR)/release/
-	#esbuild $(wildcard lib/*.ts) --outdir=$(OUTDIR)/release --bundle --minify --sourcemap
-	esbuild lib/types.ts --outfile=$(OUTDIR)/release/imandrax_api.js --bundle --minify --sourcemap
+check: node_modules lib/version.ts
+	@npm run check
+
+build-dev: check lib/version.ts
+	npm run build-dev
+
+build-release: check lib/version.ts
+	npm run build-release
 
 clean:
-	@rm -r $(OUTDIR)
+	@rm -rf lib/version.ts
+	@rm -rf $(OUTDIR)
 
-.PHONY: check api_types_version.ts
+NPM_ROOT=$(shell npm root)
+
+tsproto: node_modules
+	mkdir -p lib/proto
+	protoc --plugin=${NPM_ROOT}/.bin/protoc-gen-ts_proto --ts_proto_out=lib/proto --proto_path=../proto ../proto/*.proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=importSuffix=.js
+
+.PHONY: check build-dev build-release
