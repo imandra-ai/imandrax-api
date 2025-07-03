@@ -52,6 +52,8 @@ message ParseQuery {
 message ArtifactListQuery {
   // the task from which to list the artifacts
   imandrax.task.TaskID task_id = 1;
+
+  imandrax.session.Session session = 2;
 }
 
 message ArtifactListResult {
@@ -65,6 +67,8 @@ message ArtifactGetQuery {
 
   // the kind of artifact we want
   string kind = 2;
+
+  imandrax.session.Session session = 3;
 }
 
 message Artifact {
