@@ -108,7 +108,7 @@ class BaseClient:
         timeout = timeout or self._timeout
         return self._api_client.list_artifacts(
             ctx=self.mk_context(),
-            request=api_pb2.ArtifactListQuery(task_id=task.id),
+            request=api_pb2.ArtifactListQuery(task_id=task.id, session=self._sesh),
             timeout=timeout,
         )
 
@@ -118,7 +118,7 @@ class BaseClient:
         timeout = timeout or self._timeout
         return self._api_client.get_artifact_zip(
             ctx=self.mk_context(),
-            request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
+            request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind, session=self._sesh),
             timeout=timeout,
         )
 
