@@ -29,6 +29,7 @@ type parse_query = {
 
 type artifact_list_query = {
   task_id : Task.task_id option;
+  session : Session.session option;
 }
 
 type artifact_list_result = {
@@ -38,6 +39,7 @@ type artifact_list_result = {
 type artifact_get_query = {
   task_id : Task.task_id option;
   kind : string;
+  session : Session.session option;
 }
 
 type artifact = {
@@ -78,6 +80,7 @@ val default_parse_query :
 
 val default_artifact_list_query : 
   ?task_id:Task.task_id option ->
+  ?session:Session.session option ->
   unit ->
   artifact_list_query
 (** [default_artifact_list_query ()] is the default value for type [artifact_list_query] *)
@@ -91,6 +94,7 @@ val default_artifact_list_result :
 val default_artifact_get_query : 
   ?task_id:Task.task_id option ->
   ?kind:string ->
+  ?session:Session.session option ->
   unit ->
   artifact_get_query
 (** [default_artifact_get_query ()] is the default value for type [artifact_get_query] *)
@@ -135,6 +139,7 @@ val make_parse_query :
 
 val make_artifact_list_query : 
   ?task_id:Task.task_id option ->
+  ?session:Session.session option ->
   unit ->
   artifact_list_query
 (** [make_artifact_list_query … ()] is a builder for type [artifact_list_query] *)
@@ -148,6 +153,7 @@ val make_artifact_list_result :
 val make_artifact_get_query : 
   ?task_id:Task.task_id option ->
   kind:string ->
+  ?session:Session.session option ->
   unit ->
   artifact_get_query
 (** [make_artifact_get_query … ()] is a builder for type [artifact_get_query] *)

@@ -73,6 +73,7 @@ export interface ParseQuery {
 export interface ArtifactListQuery {
   /** the task from which to list the artifacts */
   taskId: TaskID | undefined;
+  session: Session | undefined;
 }
 
 export interface ArtifactListResult {
@@ -87,6 +88,7 @@ export interface ArtifactGetQuery {
     | undefined;
   /** the kind of artifact we want */
   kind: string;
+  session: Session | undefined;
 }
 
 export interface Artifact {
@@ -344,13 +346,16 @@ export const ParseQuery: MessageFns<ParseQuery> = {
 };
 
 function createBaseArtifactListQuery(): ArtifactListQuery {
-  return { taskId: undefined };
+  return { taskId: undefined, session: undefined };
 }
 
 export const ArtifactListQuery: MessageFns<ArtifactListQuery> = {
   encode(message: ArtifactListQuery, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.taskId !== undefined) {
       TaskID.encode(message.taskId, writer.uint32(10).fork()).join();
+    }
+    if (message.session !== undefined) {
+      Session.encode(message.session, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -370,6 +375,14 @@ export const ArtifactListQuery: MessageFns<ArtifactListQuery> = {
           message.taskId = TaskID.decode(reader, reader.uint32());
           continue;
         }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.session = Session.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -380,13 +393,19 @@ export const ArtifactListQuery: MessageFns<ArtifactListQuery> = {
   },
 
   fromJSON(object: any): ArtifactListQuery {
-    return { taskId: isSet(object.taskId) ? TaskID.fromJSON(object.taskId) : undefined };
+    return {
+      taskId: isSet(object.taskId) ? TaskID.fromJSON(object.taskId) : undefined,
+      session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
+    };
   },
 
   toJSON(message: ArtifactListQuery): unknown {
     const obj: any = {};
     if (message.taskId !== undefined) {
       obj.taskId = TaskID.toJSON(message.taskId);
+    }
+    if (message.session !== undefined) {
+      obj.session = Session.toJSON(message.session);
     }
     return obj;
   },
@@ -398,6 +417,9 @@ export const ArtifactListQuery: MessageFns<ArtifactListQuery> = {
     const message = createBaseArtifactListQuery();
     message.taskId = (object.taskId !== undefined && object.taskId !== null)
       ? TaskID.fromPartial(object.taskId)
+      : undefined;
+    message.session = (object.session !== undefined && object.session !== null)
+      ? Session.fromPartial(object.session)
       : undefined;
     return message;
   },
@@ -462,7 +484,7 @@ export const ArtifactListResult: MessageFns<ArtifactListResult> = {
 };
 
 function createBaseArtifactGetQuery(): ArtifactGetQuery {
-  return { taskId: undefined, kind: "" };
+  return { taskId: undefined, kind: "", session: undefined };
 }
 
 export const ArtifactGetQuery: MessageFns<ArtifactGetQuery> = {
@@ -472,6 +494,9 @@ export const ArtifactGetQuery: MessageFns<ArtifactGetQuery> = {
     }
     if (message.kind !== "") {
       writer.uint32(18).string(message.kind);
+    }
+    if (message.session !== undefined) {
+      Session.encode(message.session, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -499,6 +524,14 @@ export const ArtifactGetQuery: MessageFns<ArtifactGetQuery> = {
           message.kind = reader.string();
           continue;
         }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.session = Session.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -512,6 +545,7 @@ export const ArtifactGetQuery: MessageFns<ArtifactGetQuery> = {
     return {
       taskId: isSet(object.taskId) ? TaskID.fromJSON(object.taskId) : undefined,
       kind: isSet(object.kind) ? globalThis.String(object.kind) : "",
+      session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
     };
   },
 
@@ -522,6 +556,9 @@ export const ArtifactGetQuery: MessageFns<ArtifactGetQuery> = {
     }
     if (message.kind !== "") {
       obj.kind = message.kind;
+    }
+    if (message.session !== undefined) {
+      obj.session = Session.toJSON(message.session);
     }
     return obj;
   },
@@ -535,6 +572,9 @@ export const ArtifactGetQuery: MessageFns<ArtifactGetQuery> = {
       ? TaskID.fromPartial(object.taskId)
       : undefined;
     message.kind = object.kind ?? "";
+    message.session = (object.session !== undefined && object.session !== null)
+      ? Session.fromPartial(object.session)
+      : undefined;
     return message;
   },
 };

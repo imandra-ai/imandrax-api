@@ -22,6 +22,7 @@ type parse_query = {
 
 type artifact_list_query = {
   task_id : Task.task_id option;
+  session : Session.session option;
 }
 
 type artifact_list_result = {
@@ -31,6 +32,7 @@ type artifact_list_result = {
 type artifact_get_query = {
   task_id : Task.task_id option;
   kind : string;
+  session : Session.session option;
 }
 
 type artifact = {
@@ -71,8 +73,10 @@ let rec default_parse_query
 
 let rec default_artifact_list_query 
   ?task_id:((task_id:Task.task_id option) = None)
+  ?session:((session:Session.session option) = None)
   () : artifact_list_query  = {
   task_id;
+  session;
 }
 
 let rec default_artifact_list_result 
@@ -84,9 +88,11 @@ let rec default_artifact_list_result
 let rec default_artifact_get_query 
   ?task_id:((task_id:Task.task_id option) = None)
   ?kind:((kind:string) = "")
+  ?session:((session:Session.session option) = None)
   () : artifact_get_query  = {
   task_id;
   kind;
+  session;
 }
 
 let rec default_artifact 
@@ -135,10 +141,12 @@ let default_parse_query_mutable () : parse_query_mutable = {
 
 type artifact_list_query_mutable = {
   mutable task_id : Task.task_id option;
+  mutable session : Session.session option;
 }
 
 let default_artifact_list_query_mutable () : artifact_list_query_mutable = {
   task_id = None;
+  session = None;
 }
 
 type artifact_list_result_mutable = {
@@ -152,11 +160,13 @@ let default_artifact_list_result_mutable () : artifact_list_result_mutable = {
 type artifact_get_query_mutable = {
   mutable task_id : Task.task_id option;
   mutable kind : string;
+  mutable session : Session.session option;
 }
 
 let default_artifact_get_query_mutable () : artifact_get_query_mutable = {
   task_id = None;
   kind = "";
+  session = None;
 }
 
 type artifact_mutable = {
@@ -207,8 +217,10 @@ let rec make_parse_query
 
 let rec make_artifact_list_query 
   ?task_id:((task_id:Task.task_id option) = None)
+  ?session:((session:Session.session option) = None)
   () : artifact_list_query  = {
   task_id;
+  session;
 }
 
 let rec make_artifact_list_result 
@@ -220,9 +232,11 @@ let rec make_artifact_list_result
 let rec make_artifact_get_query 
   ?task_id:((task_id:Task.task_id option) = None)
   ~(kind:string)
+  ?session:((session:Session.session option) = None)
   () : artifact_get_query  = {
   task_id;
   kind;
+  session;
 }
 
 let rec make_artifact 
@@ -271,6 +285,7 @@ let rec pp_parse_query fmt (v:parse_query) =
 let rec pp_artifact_list_query fmt (v:artifact_list_query) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option Task.pp_task_id) fmt v.task_id;
+    Pbrt.Pp.pp_record_field ~first:false "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -284,6 +299,7 @@ let rec pp_artifact_get_query fmt (v:artifact_get_query) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "task_id" (Pbrt.Pp.pp_option Task.pp_task_id) fmt v.task_id;
     Pbrt.Pp.pp_record_field ~first:false "kind" Pbrt.Pp.pp_string fmt v.kind;
+    Pbrt.Pp.pp_record_field ~first:false "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -346,6 +362,12 @@ let rec encode_pb_artifact_list_query (v:artifact_list_query) encoder =
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | None -> ();
   end;
+  begin match v.session with
+  | Some x -> 
+    Pbrt.Encoder.nested Session.encode_pb_session x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
   ()
 
 let rec encode_pb_artifact_list_result (v:artifact_list_result) encoder = 
@@ -364,6 +386,12 @@ let rec encode_pb_artifact_get_query (v:artifact_get_query) encoder =
   end;
   Pbrt.Encoder.string v.kind encoder;
   Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  begin match v.session with
+  | Some x -> 
+    Pbrt.Encoder.nested Session.encode_pb_session x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
   ()
 
 let rec encode_pb_artifact (v:artifact) encoder = 
@@ -482,10 +510,16 @@ let rec decode_pb_artifact_list_query d =
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(artifact_list_query), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.session <- Some (Session.decode_pb_session (Pbrt.Decoder.nested d));
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(artifact_list_query), field(2)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     task_id = v.task_id;
+    session = v.session;
   } : artifact_list_query)
 
 let rec decode_pb_artifact_list_result d =
@@ -524,11 +558,17 @@ let rec decode_pb_artifact_get_query d =
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(artifact_get_query), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.session <- Some (Session.decode_pb_session (Pbrt.Decoder.nested d));
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(artifact_get_query), field(3)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     task_id = v.task_id;
     kind = v.kind;
+    session = v.session;
   } : artifact_get_query)
 
 let rec decode_pb_artifact d =
@@ -610,6 +650,10 @@ let rec encode_json_artifact_list_query (v:artifact_list_query) =
     | None -> assoc
     | Some v -> ("taskId", Task.encode_json_task_id v) :: assoc
   in
+  let assoc = match v.session with
+    | None -> assoc
+    | Some v -> ("session", Session.encode_json_session v) :: assoc
+  in
   `Assoc assoc
 
 let rec encode_json_artifact_list_result (v:artifact_list_result) = 
@@ -627,6 +671,10 @@ let rec encode_json_artifact_get_query (v:artifact_get_query) =
     | Some v -> ("taskId", Task.encode_json_task_id v) :: assoc
   in
   let assoc = ("kind", Pbrt_yojson.make_string v.kind) :: assoc in
+  let assoc = match v.session with
+    | None -> assoc
+    | Some v -> ("session", Session.encode_json_session v) :: assoc
+  in
   `Assoc assoc
 
 let rec encode_json_artifact (v:artifact) = 
@@ -727,11 +775,14 @@ let rec decode_json_artifact_list_query d =
   List.iter (function 
     | ("taskId", json_value) -> 
       v.task_id <- Some ((Task.decode_json_task_id json_value))
+    | ("session", json_value) -> 
+      v.session <- Some ((Session.decode_json_session json_value))
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     task_id = v.task_id;
+    session = v.session;
   } : artifact_list_query)
 
 let rec decode_json_artifact_list_result d =
@@ -764,12 +815,15 @@ let rec decode_json_artifact_get_query d =
       v.task_id <- Some ((Task.decode_json_task_id json_value))
     | ("kind", json_value) -> 
       v.kind <- Pbrt_yojson.string json_value "artifact_get_query" "kind"
+    | ("session", json_value) -> 
+      v.session <- Some ((Session.decode_json_session json_value))
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     task_id = v.task_id;
     kind = v.kind;
+    session = v.session;
   } : artifact_get_query)
 
 let rec decode_json_artifact d =
