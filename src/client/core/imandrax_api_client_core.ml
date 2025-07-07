@@ -113,6 +113,12 @@ module Make (Fut : FUT) = struct
     let arg = API.make_artifact_get_query ~task_id:(Some task) ~kind () in
     self.rpc#rpc_call ~timeout_s API.Eval.Client.get_artifact_zip arg
 
+  let oneshot ?timeout_s (self : t) ~(input : string) () : API.oneshot_res Fut.t
+      =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_oneshot_req ~input ~timeout:(Some timeout_s) () in
+    self.rpc#rpc_call ~timeout_s:(timeout_s +. 2.) API.Simple.Client.oneshot arg
+
   module System = struct
     (** GC statistics *)
     let gc_stats ?timeout_s (self : t) : API.gc_stats Fut.t =
