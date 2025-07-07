@@ -35,6 +35,9 @@ service Simple {
   rpc decompose(DecomposeReq) returns (DecomposeRes);
 
   rpc typecheck(TypecheckReq) returns (TypecheckRes);
+
+  // Sessionless, self contained request/response
+  rpc oneshot(OneshotReq) returns (OneshotRes);
 }
 
 message SessionCreateReq {
@@ -268,4 +271,23 @@ message TypecheckRes {
 
   // akin to stderr
   repeated Error errors = 3;
+}
+
+message OneshotReq {
+  /// Some iml code
+  string input = 1;
+}
+
+message OneshotRes {
+  message Stats {
+    double time = 1;
+  }
+
+  repeated string result = 1;
+
+  repeated string errors = 2;
+
+  Stats stats = 3;
+
+  repeated string detailed_result = 10;
 }
