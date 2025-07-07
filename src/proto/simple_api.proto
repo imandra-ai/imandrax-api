@@ -276,6 +276,8 @@ message TypecheckRes {
 message OneshotReq {
   /// Some iml code
   string input = 1;
+
+  optional double timeout = 2;
 }
 
 message OneshotRes {
