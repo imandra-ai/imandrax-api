@@ -287,7 +287,7 @@ export interface OneshotRes {
   results: string[];
   errors: string[];
   stats: OneshotRes_Stats | undefined;
-  detailedResult: string[];
+  detailedResults: string[];
 }
 
 export interface OneshotRes_Stats {
@@ -2579,7 +2579,7 @@ export const OneshotReq: MessageFns<OneshotReq> = {
 };
 
 function createBaseOneshotRes(): OneshotRes {
-  return { results: [], errors: [], stats: undefined, detailedResult: [] };
+  return { results: [], errors: [], stats: undefined, detailedResults: [] };
 }
 
 export const OneshotRes: MessageFns<OneshotRes> = {
@@ -2593,7 +2593,7 @@ export const OneshotRes: MessageFns<OneshotRes> = {
     if (message.stats !== undefined) {
       OneshotRes_Stats.encode(message.stats, writer.uint32(26).fork()).join();
     }
-    for (const v of message.detailedResult) {
+    for (const v of message.detailedResults) {
       writer.uint32(82).string(v!);
     }
     return writer;
@@ -2635,7 +2635,7 @@ export const OneshotRes: MessageFns<OneshotRes> = {
             break;
           }
 
-          message.detailedResult.push(reader.string());
+          message.detailedResults.push(reader.string());
           continue;
         }
       }
@@ -2652,8 +2652,8 @@ export const OneshotRes: MessageFns<OneshotRes> = {
       results: globalThis.Array.isArray(object?.results) ? object.results.map((e: any) => globalThis.String(e)) : [],
       errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => globalThis.String(e)) : [],
       stats: isSet(object.stats) ? OneshotRes_Stats.fromJSON(object.stats) : undefined,
-      detailedResult: globalThis.Array.isArray(object?.detailedResult)
-        ? object.detailedResult.map((e: any) => globalThis.String(e))
+      detailedResults: globalThis.Array.isArray(object?.detailedResults)
+        ? object.detailedResults.map((e: any) => globalThis.String(e))
         : [],
     };
   },
@@ -2669,8 +2669,8 @@ export const OneshotRes: MessageFns<OneshotRes> = {
     if (message.stats !== undefined) {
       obj.stats = OneshotRes_Stats.toJSON(message.stats);
     }
-    if (message.detailedResult?.length) {
-      obj.detailedResult = message.detailedResult;
+    if (message.detailedResults?.length) {
+      obj.detailedResults = message.detailedResults;
     }
     return obj;
   },
@@ -2685,7 +2685,7 @@ export const OneshotRes: MessageFns<OneshotRes> = {
     message.stats = (object.stats !== undefined && object.stats !== null)
       ? OneshotRes_Stats.fromPartial(object.stats)
       : undefined;
-    message.detailedResult = object.detailedResult?.map((e) => e) || [];
+    message.detailedResults = object.detailedResults?.map((e) => e) || [];
     return message;
   },
 };

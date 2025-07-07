@@ -182,7 +182,7 @@ type oneshot_res = {
   results : string list;
   errors : string list;
   stats : oneshot_res_stats option;
-  detailed_result : string list;
+  detailed_results : string list;
 }
 
 
@@ -395,7 +395,7 @@ val default_oneshot_res :
   ?results:string list ->
   ?errors:string list ->
   ?stats:oneshot_res_stats option ->
-  ?detailed_result:string list ->
+  ?detailed_results:string list ->
   unit ->
   oneshot_res
 (** [default_oneshot_res ()] is the default value for type [oneshot_res] *)
@@ -598,7 +598,7 @@ val make_oneshot_res :
   results:string list ->
   errors:string list ->
   ?stats:oneshot_res_stats option ->
-  detailed_result:string list ->
+  detailed_results:string list ->
   unit ->
   oneshot_res
 (** [make_oneshot_res … ()] is a builder for type [oneshot_res] *)
