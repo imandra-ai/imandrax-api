@@ -289,5 +289,5 @@ message OneshotRes {
 
   Stats stats = 3;
 
-  repeated string detailed_result = 10;
+  repeated string detailed_results = 10;
 }
