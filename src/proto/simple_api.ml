@@ -163,6 +163,21 @@ type typecheck_res = {
   errors : Error.error list;
 }
 
+type oneshot_req = {
+  input : string;
+}
+
+type oneshot_res_stats = {
+  time : float;
+}
+
+type oneshot_res = {
+  result : string list;
+  errors : string list;
+  stats : oneshot_res_stats option;
+  detailed_result : string list;
+}
+
 let rec default_session_create_req 
   ?api_version:((api_version:string) = "")
   () : session_create_req  = {
@@ -387,6 +402,30 @@ let rec default_typecheck_res
   success;
   types;
   errors;
+}
+
+let rec default_oneshot_req 
+  ?input:((input:string) = "")
+  () : oneshot_req  = {
+  input;
+}
+
+let rec default_oneshot_res_stats 
+  ?time:((time:float) = 0.)
+  () : oneshot_res_stats  = {
+  time;
+}
+
+let rec default_oneshot_res 
+  ?result:((result:string list) = [])
+  ?errors:((errors:string list) = [])
+  ?stats:((stats:oneshot_res_stats option) = None)
+  ?detailed_result:((detailed_result:string list) = [])
+  () : oneshot_res  = {
+  result;
+  errors;
+  stats;
+  detailed_result;
 }
 
 type session_create_req_mutable = {
@@ -647,6 +686,36 @@ let default_typecheck_res_mutable () : typecheck_res_mutable = {
   errors = [];
 }
 
+type oneshot_req_mutable = {
+  mutable input : string;
+}
+
+let default_oneshot_req_mutable () : oneshot_req_mutable = {
+  input = "";
+}
+
+type oneshot_res_stats_mutable = {
+  mutable time : float;
+}
+
+let default_oneshot_res_stats_mutable () : oneshot_res_stats_mutable = {
+  time = 0.;
+}
+
+type oneshot_res_mutable = {
+  mutable result : string list;
+  mutable errors : string list;
+  mutable stats : oneshot_res_stats option;
+  mutable detailed_result : string list;
+}
+
+let default_oneshot_res_mutable () : oneshot_res_mutable = {
+  result = [];
+  errors = [];
+  stats = None;
+  detailed_result = [];
+}
+
 
 (** {2 Make functions} *)
 
@@ -870,6 +939,30 @@ let rec make_typecheck_res
   errors;
 }
 
+let rec make_oneshot_req 
+  ~(input:string)
+  () : oneshot_req  = {
+  input;
+}
+
+let rec make_oneshot_res_stats 
+  ~(time:float)
+  () : oneshot_res_stats  = {
+  time;
+}
+
+let rec make_oneshot_res 
+  ~(result:string list)
+  ~(errors:string list)
+  ?stats:((stats:oneshot_res_stats option) = None)
+  ~(detailed_result:string list)
+  () : oneshot_res  = {
+  result;
+  errors;
+  stats;
+  detailed_result;
+}
+
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Formatters} *)
@@ -1084,6 +1177,27 @@ let rec pp_typecheck_res fmt (v:typecheck_res) =
     Pbrt.Pp.pp_record_field ~first:true "success" Pbrt.Pp.pp_bool fmt v.success;
     Pbrt.Pp.pp_record_field ~first:false "types" Pbrt.Pp.pp_string fmt v.types;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_oneshot_req fmt (v:oneshot_req) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "input" Pbrt.Pp.pp_string fmt v.input;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_oneshot_res_stats fmt (v:oneshot_res_stats) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "time" Pbrt.Pp.pp_float fmt v.time;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_oneshot_res fmt (v:oneshot_res) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "result" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.result;
+    Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.errors;
+    Pbrt.Pp.pp_record_field ~first:false "stats" (Pbrt.Pp.pp_option pp_oneshot_res_stats) fmt v.stats;
+    Pbrt.Pp.pp_record_field ~first:false "detailed_result" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.detailed_result;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1553,6 +1667,37 @@ let rec encode_pb_typecheck_res (v:typecheck_res) encoder =
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
     Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
   ) v.errors encoder;
+  ()
+
+let rec encode_pb_oneshot_req (v:oneshot_req) encoder = 
+  Pbrt.Encoder.string v.input encoder;
+  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  ()
+
+let rec encode_pb_oneshot_res_stats (v:oneshot_res_stats) encoder = 
+  Pbrt.Encoder.float_as_bits64 v.time encoder;
+  Pbrt.Encoder.key 1 Pbrt.Bits64 encoder; 
+  ()
+
+let rec encode_pb_oneshot_res (v:oneshot_res) encoder = 
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  ) v.result encoder;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  ) v.errors encoder;
+  begin match v.stats with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_oneshot_res_stats x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
+  ) v.detailed_result encoder;
   ()
 
 [@@@ocaml.warning "-27-30-39"]
@@ -2373,6 +2518,81 @@ let rec decode_pb_typecheck_res d =
     errors = v.errors;
   } : typecheck_res)
 
+let rec decode_pb_oneshot_req d =
+  let v = default_oneshot_req_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.input <- Pbrt.Decoder.string d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(oneshot_req), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    input = v.input;
+  } : oneshot_req)
+
+let rec decode_pb_oneshot_res_stats d =
+  let v = default_oneshot_res_stats_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bits64) -> begin
+      v.time <- Pbrt.Decoder.float_as_bits64 d;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(oneshot_res_stats), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    time = v.time;
+  } : oneshot_res_stats)
+
+let rec decode_pb_oneshot_res d =
+  let v = default_oneshot_res_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      v.detailed_result <- List.rev v.detailed_result;
+      v.errors <- List.rev v.errors;
+      v.result <- List.rev v.result;
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.result <- (Pbrt.Decoder.string d) :: v.result;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(oneshot_res), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.errors <- (Pbrt.Decoder.string d) :: v.errors;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(oneshot_res), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.stats <- Some (decode_pb_oneshot_res_stats (Pbrt.Decoder.nested d));
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(oneshot_res), field(3)" pk
+    | Some (10, Pbrt.Bytes) -> begin
+      v.detailed_result <- (Pbrt.Decoder.string d) :: v.detailed_result;
+    end
+    | Some (10, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(oneshot_res), field(10)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    result = v.result;
+    errors = v.errors;
+    stats = v.stats;
+    detailed_result = v.detailed_result;
+  } : oneshot_res)
+
 [@@@ocaml.warning "-27-30-39"]
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -2721,6 +2941,36 @@ let rec encode_json_typecheck_res (v:typecheck_res) =
   let assoc =
     let l = v.errors |> List.map Error.encode_json_error in
     ("errors", `List l) :: assoc 
+  in
+  `Assoc assoc
+
+let rec encode_json_oneshot_req (v:oneshot_req) = 
+  let assoc = [] in 
+  let assoc = ("input", Pbrt_yojson.make_string v.input) :: assoc in
+  `Assoc assoc
+
+let rec encode_json_oneshot_res_stats (v:oneshot_res_stats) = 
+  let assoc = [] in 
+  let assoc = ("time", Pbrt_yojson.make_string (string_of_float v.time)) :: assoc in
+  `Assoc assoc
+
+let rec encode_json_oneshot_res (v:oneshot_res) = 
+  let assoc = [] in 
+  let assoc =
+    let l = v.result |> List.map Pbrt_yojson.make_string in
+    ("result", `List l) :: assoc 
+  in
+  let assoc =
+    let l = v.errors |> List.map Pbrt_yojson.make_string in
+    ("errors", `List l) :: assoc 
+  in
+  let assoc = match v.stats with
+    | None -> assoc
+    | Some v -> ("stats", encode_json_oneshot_res_stats v) :: assoc
+  in
+  let assoc =
+    let l = v.detailed_result |> List.map Pbrt_yojson.make_string in
+    ("detailedResult", `List l) :: assoc 
   in
   `Assoc assoc
 
@@ -3355,6 +3605,72 @@ let rec decode_json_typecheck_res d =
     errors = v.errors;
   } : typecheck_res)
 
+let rec decode_json_oneshot_req d =
+  let v = default_oneshot_req_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("input", json_value) -> 
+      v.input <- Pbrt_yojson.string json_value "oneshot_req" "input"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    input = v.input;
+  } : oneshot_req)
+
+let rec decode_json_oneshot_res_stats d =
+  let v = default_oneshot_res_stats_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("time", json_value) -> 
+      v.time <- Pbrt_yojson.float json_value "oneshot_res_stats" "time"
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    time = v.time;
+  } : oneshot_res_stats)
+
+let rec decode_json_oneshot_res d =
+  let v = default_oneshot_res_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("result", `List l) -> begin
+      v.result <- List.map (function
+        | json_value -> Pbrt_yojson.string json_value "oneshot_res" "result"
+      ) l;
+    end
+    | ("errors", `List l) -> begin
+      v.errors <- List.map (function
+        | json_value -> Pbrt_yojson.string json_value "oneshot_res" "errors"
+      ) l;
+    end
+    | ("stats", json_value) -> 
+      v.stats <- Some ((decode_json_oneshot_res_stats json_value))
+    | ("detailedResult", `List l) -> begin
+      v.detailed_result <- List.map (function
+        | json_value -> Pbrt_yojson.string json_value "oneshot_res" "detailed_result"
+      ) l;
+    end
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    result = v.result;
+    errors = v.errors;
+    stats = v.stats;
+    detailed_result = v.detailed_result;
+  } : oneshot_res)
+
 module Simple = struct
   open Pbrt_services.Value_mode
   module Client = struct
@@ -3501,6 +3817,19 @@ module Simple = struct
         ~decode_json_res:decode_json_typecheck_res
         ~decode_pb_res:decode_pb_typecheck_res
         () : (typecheck_req, unary, typecheck_res, unary) Client.rpc)
+    open Pbrt_services
+    
+    let oneshot : (oneshot_req, unary, oneshot_res, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"simple"]
+        ~service_name:"Simple" ~rpc_name:"oneshot"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_oneshot_req
+        ~encode_pb_req:encode_pb_oneshot_req
+        ~decode_json_res:decode_json_oneshot_res
+        ~decode_pb_res:decode_pb_oneshot_res
+        () : (oneshot_req, unary, oneshot_res, unary) Client.rpc)
   end
   
   module Server = struct
@@ -3616,6 +3945,16 @@ module Simple = struct
         ~decode_pb_req:decode_pb_typecheck_req
         () : _ Server.rpc)
     
+    let oneshot : (oneshot_req,unary,oneshot_res,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"oneshot"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_oneshot_res
+        ~encode_pb_res:encode_pb_oneshot_res
+        ~decode_json_req:decode_json_oneshot_req
+        ~decode_pb_req:decode_pb_oneshot_req
+        () : _ Server.rpc)
+    
     let make
       ~status:__handler__status
       ~shutdown:__handler__shutdown
@@ -3628,6 +3967,7 @@ module Simple = struct
       ~instance_name:__handler__instance_name
       ~decompose:__handler__decompose
       ~typecheck:__handler__typecheck
+      ~oneshot:__handler__oneshot
       () : _ Server.t =
       { Server.
         service_name="Simple";
@@ -3644,6 +3984,7 @@ module Simple = struct
            (__handler__instance_name instance_name);
            (__handler__decompose decompose);
            (__handler__typecheck typecheck);
+           (__handler__oneshot oneshot);
         ];
       }
   end
