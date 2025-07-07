@@ -172,7 +172,7 @@ type oneshot_res_stats = {
 }
 
 type oneshot_res = {
-  result : string list;
+  results : string list;
   errors : string list;
   stats : oneshot_res_stats option;
   detailed_result : string list;
@@ -417,12 +417,12 @@ let rec default_oneshot_res_stats
 }
 
 let rec default_oneshot_res 
-  ?result:((result:string list) = [])
+  ?results:((results:string list) = [])
   ?errors:((errors:string list) = [])
   ?stats:((stats:oneshot_res_stats option) = None)
   ?detailed_result:((detailed_result:string list) = [])
   () : oneshot_res  = {
-  result;
+  results;
   errors;
   stats;
   detailed_result;
@@ -703,14 +703,14 @@ let default_oneshot_res_stats_mutable () : oneshot_res_stats_mutable = {
 }
 
 type oneshot_res_mutable = {
-  mutable result : string list;
+  mutable results : string list;
   mutable errors : string list;
   mutable stats : oneshot_res_stats option;
   mutable detailed_result : string list;
 }
 
 let default_oneshot_res_mutable () : oneshot_res_mutable = {
-  result = [];
+  results = [];
   errors = [];
   stats = None;
   detailed_result = [];
@@ -952,12 +952,12 @@ let rec make_oneshot_res_stats
 }
 
 let rec make_oneshot_res 
-  ~(result:string list)
+  ~(results:string list)
   ~(errors:string list)
   ?stats:((stats:oneshot_res_stats option) = None)
   ~(detailed_result:string list)
   () : oneshot_res  = {
-  result;
+  results;
   errors;
   stats;
   detailed_result;
@@ -1194,7 +1194,7 @@ let rec pp_oneshot_res_stats fmt (v:oneshot_res_stats) =
 
 let rec pp_oneshot_res fmt (v:oneshot_res) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "result" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.result;
+    Pbrt.Pp.pp_record_field ~first:true "results" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.results;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.errors;
     Pbrt.Pp.pp_record_field ~first:false "stats" (Pbrt.Pp.pp_option pp_oneshot_res_stats) fmt v.stats;
     Pbrt.Pp.pp_record_field ~first:false "detailed_result" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.detailed_result;
@@ -1683,7 +1683,7 @@ let rec encode_pb_oneshot_res (v:oneshot_res) encoder =
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
     Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  ) v.result encoder;
+  ) v.results encoder;
   Pbrt.List_util.rev_iter_with (fun x encoder -> 
     Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
@@ -2562,10 +2562,10 @@ let rec decode_pb_oneshot_res d =
     | None -> (
       v.detailed_result <- List.rev v.detailed_result;
       v.errors <- List.rev v.errors;
-      v.result <- List.rev v.result;
+      v.results <- List.rev v.results;
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.result <- (Pbrt.Decoder.string d) :: v.result;
+      v.results <- (Pbrt.Decoder.string d) :: v.results;
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(oneshot_res), field(1)" pk
@@ -2587,7 +2587,7 @@ let rec decode_pb_oneshot_res d =
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
-    result = v.result;
+    results = v.results;
     errors = v.errors;
     stats = v.stats;
     detailed_result = v.detailed_result;
@@ -2957,8 +2957,8 @@ let rec encode_json_oneshot_res_stats (v:oneshot_res_stats) =
 let rec encode_json_oneshot_res (v:oneshot_res) = 
   let assoc = [] in 
   let assoc =
-    let l = v.result |> List.map Pbrt_yojson.make_string in
-    ("result", `List l) :: assoc 
+    let l = v.results |> List.map Pbrt_yojson.make_string in
+    ("results", `List l) :: assoc 
   in
   let assoc =
     let l = v.errors |> List.map Pbrt_yojson.make_string in
@@ -3644,9 +3644,9 @@ let rec decode_json_oneshot_res d =
     | _ -> assert(false)
   in
   List.iter (function 
-    | ("result", `List l) -> begin
-      v.result <- List.map (function
-        | json_value -> Pbrt_yojson.string json_value "oneshot_res" "result"
+    | ("results", `List l) -> begin
+      v.results <- List.map (function
+        | json_value -> Pbrt_yojson.string json_value "oneshot_res" "results"
       ) l;
     end
     | ("errors", `List l) -> begin
@@ -3665,7 +3665,7 @@ let rec decode_json_oneshot_res d =
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
-    result = v.result;
+    results = v.results;
     errors = v.errors;
     stats = v.stats;
     detailed_result = v.detailed_result;

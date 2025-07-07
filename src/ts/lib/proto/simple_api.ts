@@ -284,7 +284,7 @@ export interface OneshotReq {
 }
 
 export interface OneshotRes {
-  result: string[];
+  results: string[];
   errors: string[];
   stats: OneshotRes_Stats | undefined;
   detailedResult: string[];
@@ -2579,12 +2579,12 @@ export const OneshotReq: MessageFns<OneshotReq> = {
 };
 
 function createBaseOneshotRes(): OneshotRes {
-  return { result: [], errors: [], stats: undefined, detailedResult: [] };
+  return { results: [], errors: [], stats: undefined, detailedResult: [] };
 }
 
 export const OneshotRes: MessageFns<OneshotRes> = {
   encode(message: OneshotRes, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    for (const v of message.result) {
+    for (const v of message.results) {
       writer.uint32(10).string(v!);
     }
     for (const v of message.errors) {
@@ -2611,7 +2611,7 @@ export const OneshotRes: MessageFns<OneshotRes> = {
             break;
           }
 
-          message.result.push(reader.string());
+          message.results.push(reader.string());
           continue;
         }
         case 2: {
@@ -2649,7 +2649,7 @@ export const OneshotRes: MessageFns<OneshotRes> = {
 
   fromJSON(object: any): OneshotRes {
     return {
-      result: globalThis.Array.isArray(object?.result) ? object.result.map((e: any) => globalThis.String(e)) : [],
+      results: globalThis.Array.isArray(object?.results) ? object.results.map((e: any) => globalThis.String(e)) : [],
       errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => globalThis.String(e)) : [],
       stats: isSet(object.stats) ? OneshotRes_Stats.fromJSON(object.stats) : undefined,
       detailedResult: globalThis.Array.isArray(object?.detailedResult)
@@ -2660,8 +2660,8 @@ export const OneshotRes: MessageFns<OneshotRes> = {
 
   toJSON(message: OneshotRes): unknown {
     const obj: any = {};
-    if (message.result?.length) {
-      obj.result = message.result;
+    if (message.results?.length) {
+      obj.results = message.results;
     }
     if (message.errors?.length) {
       obj.errors = message.errors;
@@ -2680,7 +2680,7 @@ export const OneshotRes: MessageFns<OneshotRes> = {
   },
   fromPartial<I extends Exact<DeepPartial<OneshotRes>, I>>(object: I): OneshotRes {
     const message = createBaseOneshotRes();
-    message.result = object.result?.map((e) => e) || [];
+    message.results = object.results?.map((e) => e) || [];
     message.errors = object.errors?.map((e) => e) || [];
     message.stats = (object.stats !== undefined && object.stats !== null)
       ? OneshotRes_Stats.fromPartial(object.stats)
