@@ -115,6 +115,15 @@ class SimpleClient(TwirpClient):
 			**kwargs,
 		)
 
+	def oneshot(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/oneshot",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("imandrax.simple.OneshotRes"),
+			**kwargs,
+		)
+
 
 if _async_available:
 	class AsyncSimpleClient(AsyncTwirpClient):
@@ -215,5 +224,14 @@ if _async_available:
 				ctx=ctx,
 				request=request,
 				response_obj=_sym_db.GetSymbol("imandrax.simple.TypecheckRes"),
+				**kwargs,
+			)
+
+		async def oneshot(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.simple.Simple/oneshot",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.simple.OneshotRes"),
 				**kwargs,
 			)

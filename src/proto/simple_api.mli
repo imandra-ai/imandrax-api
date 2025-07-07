@@ -170,6 +170,22 @@ type typecheck_res = {
   errors : Error.error list;
 }
 
+type oneshot_req = {
+  input : string;
+  timeout : float option;
+}
+
+type oneshot_res_stats = {
+  time : float;
+}
+
+type oneshot_res = {
+  results : string list;
+  errors : string list;
+  stats : oneshot_res_stats option;
+  detailed_results : string list;
+}
+
 
 (** {2 Basic values} *)
 
@@ -364,6 +380,28 @@ val default_typecheck_res :
   typecheck_res
 (** [default_typecheck_res ()] is the default value for type [typecheck_res] *)
 
+val default_oneshot_req : 
+  ?input:string ->
+  ?timeout:float option ->
+  unit ->
+  oneshot_req
+(** [default_oneshot_req ()] is the default value for type [oneshot_req] *)
+
+val default_oneshot_res_stats : 
+  ?time:float ->
+  unit ->
+  oneshot_res_stats
+(** [default_oneshot_res_stats ()] is the default value for type [oneshot_res_stats] *)
+
+val default_oneshot_res : 
+  ?results:string list ->
+  ?errors:string list ->
+  ?stats:oneshot_res_stats option ->
+  ?detailed_results:string list ->
+  unit ->
+  oneshot_res
+(** [default_oneshot_res ()] is the default value for type [oneshot_res] *)
+
 
 (** {2 Make functions} *)
 
@@ -546,6 +584,28 @@ val make_typecheck_res :
   typecheck_res
 (** [make_typecheck_res … ()] is a builder for type [typecheck_res] *)
 
+val make_oneshot_req : 
+  input:string ->
+  ?timeout:float option ->
+  unit ->
+  oneshot_req
+(** [make_oneshot_req … ()] is a builder for type [oneshot_req] *)
+
+val make_oneshot_res_stats : 
+  time:float ->
+  unit ->
+  oneshot_res_stats
+(** [make_oneshot_res_stats … ()] is a builder for type [oneshot_res_stats] *)
+
+val make_oneshot_res : 
+  results:string list ->
+  errors:string list ->
+  ?stats:oneshot_res_stats option ->
+  detailed_results:string list ->
+  unit ->
+  oneshot_res
+(** [make_oneshot_res … ()] is a builder for type [oneshot_res] *)
+
 
 (** {2 Formatters} *)
 
@@ -632,6 +692,15 @@ val pp_typecheck_req : Format.formatter -> typecheck_req -> unit
 
 val pp_typecheck_res : Format.formatter -> typecheck_res -> unit 
 (** [pp_typecheck_res v] formats v *)
+
+val pp_oneshot_req : Format.formatter -> oneshot_req -> unit 
+(** [pp_oneshot_req v] formats v *)
+
+val pp_oneshot_res_stats : Format.formatter -> oneshot_res_stats -> unit 
+(** [pp_oneshot_res_stats v] formats v *)
+
+val pp_oneshot_res : Format.formatter -> oneshot_res -> unit 
+(** [pp_oneshot_res v] formats v *)
 
 
 (** {2 Protobuf Encoding} *)
@@ -720,6 +789,15 @@ val encode_pb_typecheck_req : typecheck_req -> Pbrt.Encoder.t -> unit
 val encode_pb_typecheck_res : typecheck_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_typecheck_res v encoder] encodes [v] with the given [encoder] *)
 
+val encode_pb_oneshot_req : oneshot_req -> Pbrt.Encoder.t -> unit
+(** [encode_pb_oneshot_req v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_oneshot_res_stats : oneshot_res_stats -> Pbrt.Encoder.t -> unit
+(** [encode_pb_oneshot_res_stats v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_oneshot_res : oneshot_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_oneshot_res v encoder] encodes [v] with the given [encoder] *)
+
 
 (** {2 Protobuf Decoding} *)
 
@@ -806,6 +884,15 @@ val decode_pb_typecheck_req : Pbrt.Decoder.t -> typecheck_req
 
 val decode_pb_typecheck_res : Pbrt.Decoder.t -> typecheck_res
 (** [decode_pb_typecheck_res decoder] decodes a [typecheck_res] binary value from [decoder] *)
+
+val decode_pb_oneshot_req : Pbrt.Decoder.t -> oneshot_req
+(** [decode_pb_oneshot_req decoder] decodes a [oneshot_req] binary value from [decoder] *)
+
+val decode_pb_oneshot_res_stats : Pbrt.Decoder.t -> oneshot_res_stats
+(** [decode_pb_oneshot_res_stats decoder] decodes a [oneshot_res_stats] binary value from [decoder] *)
+
+val decode_pb_oneshot_res : Pbrt.Decoder.t -> oneshot_res
+(** [decode_pb_oneshot_res decoder] decodes a [oneshot_res] binary value from [decoder] *)
 
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -894,6 +981,15 @@ val encode_json_typecheck_req : typecheck_req -> Yojson.Basic.t
 val encode_json_typecheck_res : typecheck_res -> Yojson.Basic.t
 (** [encode_json_typecheck_res v encoder] encodes [v] to to json *)
 
+val encode_json_oneshot_req : oneshot_req -> Yojson.Basic.t
+(** [encode_json_oneshot_req v encoder] encodes [v] to to json *)
+
+val encode_json_oneshot_res_stats : oneshot_res_stats -> Yojson.Basic.t
+(** [encode_json_oneshot_res_stats v encoder] encodes [v] to to json *)
+
+val encode_json_oneshot_res : oneshot_res -> Yojson.Basic.t
+(** [encode_json_oneshot_res v encoder] encodes [v] to to json *)
+
 
 (** {2 JSON Decoding} *)
 
@@ -981,6 +1077,15 @@ val decode_json_typecheck_req : Yojson.Basic.t -> typecheck_req
 val decode_json_typecheck_res : Yojson.Basic.t -> typecheck_res
 (** [decode_json_typecheck_res decoder] decodes a [typecheck_res] value from [decoder] *)
 
+val decode_json_oneshot_req : Yojson.Basic.t -> oneshot_req
+(** [decode_json_oneshot_req decoder] decodes a [oneshot_req] value from [decoder] *)
+
+val decode_json_oneshot_res_stats : Yojson.Basic.t -> oneshot_res_stats
+(** [decode_json_oneshot_res_stats decoder] decodes a [oneshot_res_stats] value from [decoder] *)
+
+val decode_json_oneshot_res : Yojson.Basic.t -> oneshot_res
+(** [decode_json_oneshot_res decoder] decodes a [oneshot_res] value from [decoder] *)
+
 
 (** {2 Services} *)
 
@@ -1012,6 +1117,8 @@ module Simple : sig
     val decompose : (decompose_req, unary, decompose_res, unary) Client.rpc
     
     val typecheck : (typecheck_req, unary, typecheck_res, unary) Client.rpc
+    
+    val oneshot : (oneshot_req, unary, oneshot_res, unary) Client.rpc
   end
   
   module Server : sig
@@ -1028,6 +1135,7 @@ module Simple : sig
       instance_name:((instance_name_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
       typecheck:((typecheck_req, unary, typecheck_res, unary) Server.rpc -> 'handler) ->
+      oneshot:((oneshot_req, unary, oneshot_res, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
     
     (** The individual server stubs are only exposed for advanced users. Casual users should prefer accessing them through {!make}. *)
@@ -1053,5 +1161,7 @@ module Simple : sig
     val decompose : (decompose_req,unary,decompose_res,unary) Server.rpc
     
     val typecheck : (typecheck_req,unary,typecheck_res,unary) Server.rpc
+    
+    val oneshot : (oneshot_req,unary,oneshot_res,unary) Server.rpc
   end
 end
