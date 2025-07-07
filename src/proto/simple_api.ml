@@ -165,6 +165,7 @@ type typecheck_res = {
 
 type oneshot_req = {
   input : string;
+  timeout : float option;
 }
 
 type oneshot_res_stats = {
@@ -406,8 +407,10 @@ let rec default_typecheck_res
 
 let rec default_oneshot_req 
   ?input:((input:string) = "")
+  ?timeout:((timeout:float option) = None)
   () : oneshot_req  = {
   input;
+  timeout;
 }
 
 let rec default_oneshot_res_stats 
@@ -688,10 +691,12 @@ let default_typecheck_res_mutable () : typecheck_res_mutable = {
 
 type oneshot_req_mutable = {
   mutable input : string;
+  mutable timeout : float option;
 }
 
 let default_oneshot_req_mutable () : oneshot_req_mutable = {
   input = "";
+  timeout = None;
 }
 
 type oneshot_res_stats_mutable = {
@@ -941,8 +946,10 @@ let rec make_typecheck_res
 
 let rec make_oneshot_req 
   ~(input:string)
+  ?timeout:((timeout:float option) = None)
   () : oneshot_req  = {
   input;
+  timeout;
 }
 
 let rec make_oneshot_res_stats 
@@ -1183,6 +1190,7 @@ let rec pp_typecheck_res fmt (v:typecheck_res) =
 let rec pp_oneshot_req fmt (v:oneshot_req) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "input" Pbrt.Pp.pp_string fmt v.input;
+    Pbrt.Pp.pp_record_field ~first:false "timeout" (Pbrt.Pp.pp_option Pbrt.Pp.pp_float) fmt v.timeout;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1672,6 +1680,12 @@ let rec encode_pb_typecheck_res (v:typecheck_res) encoder =
 let rec encode_pb_oneshot_req (v:oneshot_req) encoder = 
   Pbrt.Encoder.string v.input encoder;
   Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  begin match v.timeout with
+  | Some x -> 
+    Pbrt.Encoder.float_as_bits64 x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bits64 encoder; 
+  | None -> ();
+  end;
   ()
 
 let rec encode_pb_oneshot_res_stats (v:oneshot_res_stats) encoder = 
@@ -2530,10 +2544,16 @@ let rec decode_pb_oneshot_req d =
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(oneshot_req), field(1)" pk
+    | Some (2, Pbrt.Bits64) -> begin
+      v.timeout <- Some (Pbrt.Decoder.float_as_bits64 d);
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(oneshot_req), field(2)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     input = v.input;
+    timeout = v.timeout;
   } : oneshot_req)
 
 let rec decode_pb_oneshot_res_stats d =
@@ -2947,6 +2967,10 @@ let rec encode_json_typecheck_res (v:typecheck_res) =
 let rec encode_json_oneshot_req (v:oneshot_req) = 
   let assoc = [] in 
   let assoc = ("input", Pbrt_yojson.make_string v.input) :: assoc in
+  let assoc = match v.timeout with
+    | None -> assoc
+    | Some v -> ("timeout", Pbrt_yojson.make_string (string_of_float v)) :: assoc
+  in
   `Assoc assoc
 
 let rec encode_json_oneshot_res_stats (v:oneshot_res_stats) = 
@@ -3614,11 +3638,14 @@ let rec decode_json_oneshot_req d =
   List.iter (function 
     | ("input", json_value) -> 
       v.input <- Pbrt_yojson.string json_value "oneshot_req" "input"
+    | ("timeout", json_value) -> 
+      v.timeout <- Some (Pbrt_yojson.float json_value "oneshot_req" "timeout")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
     input = v.input;
+    timeout = v.timeout;
   } : oneshot_req)
 
 let rec decode_json_oneshot_res_stats d =

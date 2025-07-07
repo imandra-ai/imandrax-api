@@ -172,6 +172,7 @@ type typecheck_res = {
 
 type oneshot_req = {
   input : string;
+  timeout : float option;
 }
 
 type oneshot_res_stats = {
@@ -381,6 +382,7 @@ val default_typecheck_res :
 
 val default_oneshot_req : 
   ?input:string ->
+  ?timeout:float option ->
   unit ->
   oneshot_req
 (** [default_oneshot_req ()] is the default value for type [oneshot_req] *)
@@ -584,6 +586,7 @@ val make_typecheck_res :
 
 val make_oneshot_req : 
   input:string ->
+  ?timeout:float option ->
   unit ->
   oneshot_req
 (** [make_oneshot_req … ()] is a builder for type [oneshot_req] *)

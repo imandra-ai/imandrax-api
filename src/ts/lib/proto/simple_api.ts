@@ -281,6 +281,7 @@ export interface TypecheckRes {
 export interface OneshotReq {
   /** / Some iml code */
   input: string;
+  timeout?: number | undefined;
 }
 
 export interface OneshotRes {
@@ -2521,13 +2522,16 @@ export const TypecheckRes: MessageFns<TypecheckRes> = {
 };
 
 function createBaseOneshotReq(): OneshotReq {
-  return { input: "" };
+  return { input: "", timeout: undefined };
 }
 
 export const OneshotReq: MessageFns<OneshotReq> = {
   encode(message: OneshotReq, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.input !== "") {
       writer.uint32(10).string(message.input);
+    }
+    if (message.timeout !== undefined) {
+      writer.uint32(17).double(message.timeout);
     }
     return writer;
   },
@@ -2547,6 +2551,14 @@ export const OneshotReq: MessageFns<OneshotReq> = {
           message.input = reader.string();
           continue;
         }
+        case 2: {
+          if (tag !== 17) {
+            break;
+          }
+
+          message.timeout = reader.double();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2557,13 +2569,19 @@ export const OneshotReq: MessageFns<OneshotReq> = {
   },
 
   fromJSON(object: any): OneshotReq {
-    return { input: isSet(object.input) ? globalThis.String(object.input) : "" };
+    return {
+      input: isSet(object.input) ? globalThis.String(object.input) : "",
+      timeout: isSet(object.timeout) ? globalThis.Number(object.timeout) : undefined,
+    };
   },
 
   toJSON(message: OneshotReq): unknown {
     const obj: any = {};
     if (message.input !== "") {
       obj.input = message.input;
+    }
+    if (message.timeout !== undefined) {
+      obj.timeout = message.timeout;
     }
     return obj;
   },
@@ -2574,6 +2592,7 @@ export const OneshotReq: MessageFns<OneshotReq> = {
   fromPartial<I extends Exact<DeepPartial<OneshotReq>, I>>(object: I): OneshotReq {
     const message = createBaseOneshotReq();
     message.input = object.input ?? "";
+    message.timeout = object.timeout ?? undefined;
     return message;
   },
 };
