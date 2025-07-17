@@ -139,14 +139,15 @@ class Client(BaseClient):
         url: str = url_prod,
         server_path_prefix="/api/v1",
         auth_token: str | None = None,
+        api_key: str | None = None,
         timeout: int = 30,
         session_id: str | None = None,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session = requests.Session()
         self._closed = False
-        self._auth_token = auth_token
-        if auth_token:
+        self._auth_token = api_key if api_key else auth_token
+        if self._auth_token:
             self._session.headers["Authorization"] = f"Bearer {auth_token}"
         self._url = url
         self._server_path_prefix = server_path_prefix
@@ -219,6 +220,7 @@ if _async_available:
             url: str = url_prod,
             server_path_prefix="/api/v1",
             auth_token: str | None = None,
+            api_key: str | None = None,
             timeout: int = 30,
             session_id: str | None = None,
         ) -> None:
@@ -226,8 +228,8 @@ if _async_available:
             self._session = aiohttp.ClientSession()
             self._session_id = session_id
             self._closed = False
-            self._auth_token = auth_token
-            if auth_token:
+            self._auth_token = api_key if api_key else auth_token
+            if self._auth_token:
                 self._session.headers["Authorization"] = f"Bearer {auth_token}"
             self._url = url
             self._server_path_prefix = server_path_prefix
