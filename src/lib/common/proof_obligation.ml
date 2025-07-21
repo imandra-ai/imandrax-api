@@ -8,6 +8,7 @@ type ('term, 'ty) t_poly = {
   is_instance: bool;
       (** If true, we're trying to find an instance of the goal, not a proof.
           This means we won't negate the goal. *)
+  is_verify: bool;  (** If true, this PO stems from a [verify] statement. *)
   anchor: Imandrax_api.Anchor.t;
       (** An identifier linking this PO to some user-defined object *)
   timeout: int option;  (** Timeout *)
