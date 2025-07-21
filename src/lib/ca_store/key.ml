@@ -36,10 +36,17 @@ let[@inline] cname (cname : Cname.t) : t =
   let ty = "id" in
   of_str_ @@ spf "cname:%s:%s" ty (Cname.slugify cname)
 
-let[@inline] task ~kind hash : t =
+let[@inline] task ~kind ~in_prelude hash : t =
   if String.contains kind ':' then
     invalid_arg "task key: kind cannot contain ':'";
-  of_str_ @@ spf "task:%s:%s" kind (Chash.slugify hash)
+  let hash = Chash.slugify hash in
+  let hash =
+    if in_prelude then
+      "p/" ^ hash
+    else
+      hash
+  in
+  of_str_ @@ spf "task:%s:%s" kind hash
 
 let[@inline] custom ~ns str : t =
   if String.contains ns ':' then
@@ -57,6 +64,7 @@ type view =
     }
   | Task of {
       kind: string;
+      in_prelude: bool;
       h: Chash.t;
     }
   | Custom of {
@@ -88,8 +96,12 @@ let view (self : t) : view =
     in
     Cname { ty; name }
   | "task", kind, h ->
-    let h = Chash.unslugify h in
-    Task { kind; h }
+    let h, in_prelude =
+      match CCString.chop_prefix ~pre:"p/" h with
+      | Some h -> Chash.unslugify h, true
+      | None -> Chash.unslugify h, false
+    in
+    Task { kind; in_prelude; h }
   | "custom", ns, data -> Custom { ns; data }
   | _ ->
     Error.failf ~kind:Error_kinds.deserializationError
@@ -112,7 +124,7 @@ let[@inline] as_chash self =
 
 let[@inline] as_task self =
   match view self with
-  | Task { kind; h } -> Some (kind, h)
+  | Task { kind; in_prelude; h } -> Some (kind, in_prelude, h)
   | _ -> None
 
 let[@inline] is_task self = Option.is_some @@ as_task self
