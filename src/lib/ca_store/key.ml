@@ -42,7 +42,7 @@ let[@inline] task ~kind ~in_prelude hash : t =
   let hash = Chash.slugify hash in
   let hash =
     if in_prelude then
-      "p/" ^ hash
+      "p$" ^ hash
     else
       hash
   in
@@ -97,7 +97,7 @@ let view (self : t) : view =
     Cname { ty; name }
   | "task", kind, h ->
     let h, in_prelude =
-      match CCString.chop_prefix ~pre:"p/" h with
+      match CCString.chop_prefix ~pre:"p$" h with
       | Some h -> Chash.unslugify h, true
       | None -> Chash.unslugify h, false
     in
