@@ -18,6 +18,8 @@ jobs:
             shellcheck-file: shellcheck-v0.10.0.darwin.aarch64.tar.xz
           - os: ubuntu-latest
             shellcheck-file: shellcheck-v0.10.0.linux.x86_64.tar.xz
+          - os: macos-13
+            shellcheck-file: shellcheck-v0.10.0.darwin.x86_64.tar.xz
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4

@@ -39,8 +39,18 @@ function install_linux() {
 }
 
 function install_macos() {
-  ARCHIVE="gs://${BUCKET_NAME}/imandrax-macos-aarch64-${VERSION}.pkg"
-  TMP_FILE="${TMPDIR:-/tmp}/imandrax-macos-aarch64.pkg"
+  ARCH="$(uname -m)"
+  if [ "${ARCH}" = "x86_64" ]; then
+    MACOS_ARCH="x64"
+  elif [ "${ARCH}" = "arm64" ]; then
+    MACOS_ARCH="aarch64"
+  else
+    echo "Unsupported macOS architecture: ${ARCH}"; exit 1
+  fi
+  
+  ARCHIVE="gs://${BUCKET_NAME}/imandrax-macos-${MACOS_ARCH}-${VERSION}.pkg"
+  TMP_FILE="${TMPDIR:-/tmp}/imandrax-macos-${MACOS_ARCH}.pkg"
+
 
   #curl "$ARCHIVE" -o "$TMP_FILE"
   echo "downloading from ${ARCHIVE}"

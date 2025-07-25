@@ -302,7 +302,15 @@ _macos_extract_files() {
 }
 
 macos_install() {
-  FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
+  ARCH="$(uname -m)"
+  if [ "${ARCH}" = "x86_64" ]; then
+    MACOS_ARCH="x64"
+  elif [ "${ARCH}" = "arm64" ]; then
+    MACOS_ARCH="aarch64"
+  else
+    _fail "Unsupported macOS architecture: ${ARCH}"
+  fi
+  FILENAME="imandrax-macos-${MACOS_ARCH}-${VERSION}.pkg"
   ARCHIVE="${BUCKET_URL}/${FILENAME}"
   TMP_DIR="${TMPDIR:-/tmp}"
   TMP_FILE="${TMP_DIR}${FILENAME}"
