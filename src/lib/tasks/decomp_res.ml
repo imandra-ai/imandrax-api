@@ -12,7 +12,7 @@ type 'a result = ('a, error) Util_twine.Result.t
 
 type ('term, 'ty) shallow_poly = {
   from:
-    ('term Decomp_task.decomp_poly Imandrax_api_ca_store.Ca_ptr.t
+    (('term, 'ty) Decomp_task.decomp_poly Imandrax_api_ca_store.Ca_ptr.t
     [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
   res: ('term, 'ty) success result;
   stats: Imandrax_api.Stat_time.t;
@@ -27,7 +27,7 @@ type ('term, 'ty) shallow_poly = {
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
 type ('term, 'ty) full_poly = {
-  from: 'term Decomp_task.decomp_poly;
+  from: ('term, 'ty) Decomp_task.decomp_poly;
   res: ('term, 'ty) success result;
   stats: Imandrax_api.Stat_time.t;
   report:
