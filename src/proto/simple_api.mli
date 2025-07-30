@@ -38,7 +38,6 @@ type decompose_req2_by_name = {
   prune : bool;
   ctx_simp : bool option;
   lift_bool : lift_bool option;
-  str : bool option;
 }
 
 type decompose_req2_prune = {
@@ -70,6 +69,7 @@ and decompose_req2_combine = {
 type decompose_req2 = {
   session : Session.session option;
   decomp : decompose_req2_decomp option;
+  str : bool option;
   timeout : int32 option;
 }
 
@@ -264,7 +264,6 @@ val default_decompose_req2_by_name :
   ?prune:bool ->
   ?ctx_simp:bool option ->
   ?lift_bool:lift_bool option ->
-  ?str:bool option ->
   unit ->
   decompose_req2_by_name
 (** [default_decompose_req2_by_name ()] is the default value for type [decompose_req2_by_name] *)
@@ -301,6 +300,7 @@ val default_decompose_req2_combine :
 val default_decompose_req2 : 
   ?session:Session.session option ->
   ?decomp:decompose_req2_decomp option ->
+  ?str:bool option ->
   ?timeout:int32 option ->
   unit ->
   decompose_req2
@@ -528,7 +528,6 @@ val make_decompose_req2_by_name :
   prune:bool ->
   ?ctx_simp:bool option ->
   ?lift_bool:lift_bool option ->
-  ?str:bool option ->
   unit ->
   decompose_req2_by_name
 (** [make_decompose_req2_by_name … ()] is a builder for type [decompose_req2_by_name] *)
@@ -563,6 +562,7 @@ val make_decompose_req2_combine :
 val make_decompose_req2 : 
   ?session:Session.session option ->
   ?decomp:decompose_req2_decomp option ->
+  ?str:bool option ->
   ?timeout:int32 option ->
   unit ->
   decompose_req2
