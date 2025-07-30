@@ -3699,33 +3699,100 @@ def Tasks_Eval_res_of_twine(d: twine.Decoder, off: int) -> Tasks_Eval_res:
 # clique Imandrax_api_tasks.Decomp_task.decomp_poly (cached: false)
 # def Imandrax_api_tasks.Decomp_task.decomp_poly (mangled name: "Tasks_Decomp_task_decomp_poly")
 @dataclass(slots=True, frozen=True)
-class Tasks_Decomp_task_decomp_poly_Decomp[_V_tyreg_poly_term]:
+class Tasks_Decomp_task_decomp_poly_Decomp[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     arg: Common_Decomp_t_
 
-def Tasks_Decomp_task_decomp_poly_Decomp_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],args: tuple[int, ...]) -> Tasks_Decomp_task_decomp_poly_Decomp[_V_tyreg_poly_term]:
+def Tasks_Decomp_task_decomp_poly_Decomp_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_Decomp_task_decomp_poly_Decomp[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     arg = Common_Decomp_t__of_twine(d=d, off=args[0])
     return Tasks_Decomp_task_decomp_poly_Decomp(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Tasks_Decomp_task_decomp_poly_Term[_V_tyreg_poly_term]:
+class Tasks_Decomp_task_decomp_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     arg: "_V_tyreg_poly_term"
 
-def Tasks_Decomp_task_decomp_poly_Term_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],args: tuple[int, ...]) -> Tasks_Decomp_task_decomp_poly_Term[_V_tyreg_poly_term]:
+def Tasks_Decomp_task_decomp_poly_Term_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_Decomp_task_decomp_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
     arg = decode__tyreg_poly_term(d=d,off=args[0])
     return Tasks_Decomp_task_decomp_poly_Term(arg=arg)
 
-type Tasks_Decomp_task_decomp_poly[_V_tyreg_poly_term] = Tasks_Decomp_task_decomp_poly_Decomp[_V_tyreg_poly_term]| Tasks_Decomp_task_decomp_poly_Term[_V_tyreg_poly_term]
+@dataclass(slots=True, frozen=True)
+class Tasks_Decomp_task_decomp_poly_Return[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: Common_Fun_decomp_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
 
-def Tasks_Decomp_task_decomp_poly_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],off: int) -> Tasks_Decomp_task_decomp_poly:
+def Tasks_Decomp_task_decomp_poly_Return_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_Decomp_task_decomp_poly_Return[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = Common_Fun_decomp_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Tasks_Decomp_task_decomp_poly_Return(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Tasks_Decomp_task_decomp_poly_Prune[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+
+def Tasks_Decomp_task_decomp_poly_Prune_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_Decomp_task_decomp_poly_Prune[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Tasks_Decomp_task_decomp_poly_Prune(arg=arg)
+
+@dataclass(slots=True, frozen=True)
+class Tasks_Decomp_task_decomp_poly_Merge[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    args: tuple[Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"],Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
+
+def Tasks_Decomp_task_decomp_poly_Merge_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_Decomp_task_decomp_poly_Merge[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    cargs = (Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=args[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))
+    return Tasks_Decomp_task_decomp_poly_Merge(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Tasks_Decomp_task_decomp_poly_Compound_merge[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    args: tuple[Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"],Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
+
+def Tasks_Decomp_task_decomp_poly_Compound_merge_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_Decomp_task_decomp_poly_Compound_merge[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    cargs = (Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=args[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))
+    return Tasks_Decomp_task_decomp_poly_Compound_merge(args=cargs)
+
+@dataclass(slots=True, frozen=True)
+class Tasks_Decomp_task_decomp_poly_Combine[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    arg: Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
+
+def Tasks_Decomp_task_decomp_poly_Combine_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Tasks_Decomp_task_decomp_poly_Combine[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    arg = Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
+    return Tasks_Decomp_task_decomp_poly_Combine(arg=arg)
+
+type Tasks_Decomp_task_decomp_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Tasks_Decomp_task_decomp_poly_Decomp[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_Decomp_task_decomp_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_Decomp_task_decomp_poly_Return[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_Decomp_task_decomp_poly_Prune[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_Decomp_task_decomp_poly_Merge[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_Decomp_task_decomp_poly_Compound_merge[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_Decomp_task_decomp_poly_Combine[_V_tyreg_poly_term,_V_tyreg_poly_ty]
+
+def Tasks_Decomp_task_decomp_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_Decomp_task_decomp_poly:
     match d.get_cstor(off=off):
          case twine.Constructor(idx=0, args=args):
              args = tuple(args)
-             return Tasks_Decomp_task_decomp_poly_Decomp_of_twine(d=d, args=args, d0=d0,)
+             return Tasks_Decomp_task_decomp_poly_Decomp_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=1, args=args):
              args = tuple(args)
-             return Tasks_Decomp_task_decomp_poly_Term_of_twine(d=d, args=args, d0=d0,)
+             return Tasks_Decomp_task_decomp_poly_Term_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=2, args=args):
+             args = tuple(args)
+             return Tasks_Decomp_task_decomp_poly_Return_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=3, args=args):
+             args = tuple(args)
+             return Tasks_Decomp_task_decomp_poly_Prune_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=4, args=args):
+             args = tuple(args)
+             return Tasks_Decomp_task_decomp_poly_Merge_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=5, args=args):
+             args = tuple(args)
+             return Tasks_Decomp_task_decomp_poly_Compound_merge_of_twine(d=d, args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=6, args=args):
+             args = tuple(args)
+             return Tasks_Decomp_task_decomp_poly_Combine_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Tasks_Decomp_task_decomp_poly, got invalid constructor {idx}')
 
@@ -3734,7 +3801,7 @@ def Tasks_Decomp_task_decomp_poly_of_twine[_V_tyreg_poly_term](d: twine.Decoder,
 @dataclass(slots=True, frozen=True)
 class Tasks_Decomp_task_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     db: Common_Db_ser_t_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
-    decomp: Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term"]
+    decomp: Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     anchor: Anchor
     timeout: None | int
 
@@ -3743,17 +3810,17 @@ def Tasks_Decomp_task_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: tw
     decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
     db = Common_Db_ser_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
-    decomp = Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
+    decomp = Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=fields[1],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     anchor = Anchor_of_twine(d=d, off=fields[2])
     timeout = twine.optional(d=d, off=fields[3], d0=lambda d, off: d.get_int(off=off))
     return Tasks_Decomp_task_t_poly(db=db,decomp=decomp,anchor=anchor,timeout=timeout)
 
 # clique Imandrax_api_tasks.Decomp_task.Mir.decomp (cached: false)
 # def Imandrax_api_tasks.Decomp_task.Mir.decomp (mangled name: "Tasks_Decomp_task_Mir_decomp")
-type Tasks_Decomp_task_Mir_decomp = Tasks_Decomp_task_decomp_poly[Mir_Term]
+type Tasks_Decomp_task_Mir_decomp = Tasks_Decomp_task_decomp_poly[Mir_Term,Mir_Type]
 
 def Tasks_Decomp_task_Mir_decomp_of_twine(d: twine.Decoder, off: int) -> Tasks_Decomp_task_Mir_decomp:
-    return Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)))
+    return Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
 
 # clique Imandrax_api_tasks.Decomp_task.Mir.t (cached: false)
 # def Imandrax_api_tasks.Decomp_task.Mir.t (mangled name: "Tasks_Decomp_task_Mir")
@@ -3809,7 +3876,7 @@ def Tasks_Decomp_res_result_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg
 # def Imandrax_api_tasks.Decomp_res.shallow_poly (mangled name: "Tasks_Decomp_res_shallow_poly")
 @dataclass(slots=True, frozen=True)
 class Tasks_Decomp_res_shallow_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    from_: Ca_store_Ca_ptr[Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term"]]
+    from_: Ca_store_Ca_ptr[Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
     res: Tasks_Decomp_res_result[Tasks_Decomp_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
     stats: Stat_time
     report: In_mem_archive[Report_Report]
@@ -3818,7 +3885,7 @@ def Tasks_Decomp_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))))
+    from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     res = Tasks_Decomp_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_Decomp_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     stats = Stat_time_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
@@ -3828,7 +3895,7 @@ def Tasks_Decomp_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](
 # def Imandrax_api_tasks.Decomp_res.full_poly (mangled name: "Tasks_Decomp_res_full_poly")
 @dataclass(slots=True, frozen=True)
 class Tasks_Decomp_res_full_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    from_: Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term"]
+    from_: Tasks_Decomp_task_decomp_poly["_V_tyreg_poly_term","_V_tyreg_poly_ty"]
     res: Tasks_Decomp_res_result[Tasks_Decomp_res_success["_V_tyreg_poly_term","_V_tyreg_poly_ty"]]
     stats: Stat_time
     report: In_mem_archive[Report_Report]
@@ -3837,7 +3904,7 @@ def Tasks_Decomp_res_full_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: 
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
     fields = list(d.get_array(off=off))
-    from_ = Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)))
+    from_ = Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     res = Tasks_Decomp_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_Decomp_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     stats = Stat_time_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
