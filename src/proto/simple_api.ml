@@ -31,7 +31,6 @@ type decompose_req2_by_name = {
   prune : bool;
   ctx_simp : bool option;
   lift_bool : lift_bool option;
-  str : bool option;
 }
 
 type decompose_req2_prune = {
@@ -63,6 +62,7 @@ and decompose_req2_combine = {
 type decompose_req2 = {
   session : Session.session option;
   decomp : decompose_req2_decomp option;
+  str : bool option;
   timeout : int32 option;
 }
 
@@ -262,7 +262,6 @@ let rec default_decompose_req2_by_name
   ?prune:((prune:bool) = false)
   ?ctx_simp:((ctx_simp:bool option) = None)
   ?lift_bool:((lift_bool:lift_bool option) = None)
-  ?str:((str:bool option) = None)
   () : decompose_req2_by_name  = {
   name;
   assuming;
@@ -271,7 +270,6 @@ let rec default_decompose_req2_by_name
   prune;
   ctx_simp;
   lift_bool;
-  str;
 }
 
 let rec default_decompose_req2_prune 
@@ -307,10 +305,12 @@ and default_decompose_req2_combine
 let rec default_decompose_req2 
   ?session:((session:Session.session option) = None)
   ?decomp:((decomp:decompose_req2_decomp option) = None)
+  ?str:((str:bool option) = None)
   ?timeout:((timeout:int32 option) = None)
   () : decompose_req2  = {
   session;
   decomp;
+  str;
   timeout;
 }
 
@@ -576,7 +576,6 @@ type decompose_req2_by_name_mutable = {
   mutable prune : bool;
   mutable ctx_simp : bool option;
   mutable lift_bool : lift_bool option;
-  mutable str : bool option;
 }
 
 let default_decompose_req2_by_name_mutable () : decompose_req2_by_name_mutable = {
@@ -587,7 +586,6 @@ let default_decompose_req2_by_name_mutable () : decompose_req2_by_name_mutable =
   prune = false;
   ctx_simp = None;
   lift_bool = None;
-  str = None;
 }
 
 type decompose_req2_prune_mutable = {
@@ -629,12 +627,14 @@ let default_decompose_req2_combine_mutable () : decompose_req2_combine_mutable =
 type decompose_req2_mutable = {
   mutable session : Session.session option;
   mutable decomp : decompose_req2_decomp option;
+  mutable str : bool option;
   mutable timeout : int32 option;
 }
 
 let default_decompose_req2_mutable () : decompose_req2_mutable = {
   session = None;
   decomp = None;
+  str = None;
   timeout = None;
 }
 
@@ -936,7 +936,6 @@ let rec make_decompose_req2_by_name
   ~(prune:bool)
   ?ctx_simp:((ctx_simp:bool option) = None)
   ?lift_bool:((lift_bool:lift_bool option) = None)
-  ?str:((str:bool option) = None)
   () : decompose_req2_by_name  = {
   name;
   assuming;
@@ -945,7 +944,6 @@ let rec make_decompose_req2_by_name
   prune;
   ctx_simp;
   lift_bool;
-  str;
 }
 
 let rec make_decompose_req2_prune 
@@ -980,10 +978,12 @@ and make_decompose_req2_combine
 let rec make_decompose_req2 
   ?session:((session:Session.session option) = None)
   ?decomp:((decomp:decompose_req2_decomp option) = None)
+  ?str:((str:bool option) = None)
   ?timeout:((timeout:int32 option) = None)
   () : decompose_req2  = {
   session;
   decomp;
+  str;
   timeout;
 }
 
@@ -1243,7 +1243,6 @@ let rec pp_decompose_req2_by_name fmt (v:decompose_req2_by_name) =
     Pbrt.Pp.pp_record_field ~first:false "prune" Pbrt.Pp.pp_bool fmt v.prune;
     Pbrt.Pp.pp_record_field ~first:false "ctx_simp" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.ctx_simp;
     Pbrt.Pp.pp_record_field ~first:false "lift_bool" (Pbrt.Pp.pp_option pp_lift_bool) fmt v.lift_bool;
-    Pbrt.Pp.pp_record_field ~first:false "str" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.str;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1286,6 +1285,7 @@ let rec pp_decompose_req2 fmt (v:decompose_req2) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~first:false "decomp" (Pbrt.Pp.pp_option pp_decompose_req2_decomp) fmt v.decomp;
+    Pbrt.Pp.pp_record_field ~first:false "str" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.str;
     Pbrt.Pp.pp_record_field ~first:false "timeout" (Pbrt.Pp.pp_option Pbrt.Pp.pp_int32) fmt v.timeout;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
@@ -1595,12 +1595,6 @@ let rec encode_pb_decompose_req2_by_name (v:decompose_req2_by_name) encoder =
     Pbrt.Encoder.key 8 Pbrt.Varint encoder; 
   | None -> ();
   end;
-  begin match v.str with
-  | Some x -> 
-    Pbrt.Encoder.bool x encoder;
-    Pbrt.Encoder.key 9 Pbrt.Varint encoder; 
-  | None -> ();
-  end;
   ()
 
 let rec encode_pb_decompose_req2_prune (v:decompose_req2_prune) encoder = 
@@ -1684,6 +1678,12 @@ let rec encode_pb_decompose_req2 (v:decompose_req2) encoder =
   | Some x -> 
     Pbrt.Encoder.nested encode_pb_decompose_req2_decomp x encoder;
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  begin match v.str with
+  | Some x -> 
+    Pbrt.Encoder.bool x encoder;
+    Pbrt.Encoder.key 9 Pbrt.Varint encoder; 
   | None -> ();
   end;
   begin match v.timeout with
@@ -2280,11 +2280,6 @@ let rec decode_pb_decompose_req2_by_name d =
     end
     | Some (8, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(decompose_req2_by_name), field(8)" pk
-    | Some (9, Pbrt.Varint) -> begin
-      v.str <- Some (Pbrt.Decoder.bool d);
-    end
-    | Some (9, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_by_name), field(9)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
@@ -2295,7 +2290,6 @@ let rec decode_pb_decompose_req2_by_name d =
     prune = v.prune;
     ctx_simp = v.ctx_simp;
     lift_bool = v.lift_bool;
-    str = v.str;
   } : decompose_req2_by_name)
 
 let rec decode_pb_decompose_req2_prune d =
@@ -2418,6 +2412,11 @@ let rec decode_pb_decompose_req2 d =
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(decompose_req2), field(2)" pk
+    | Some (9, Pbrt.Varint) -> begin
+      v.str <- Some (Pbrt.Decoder.bool d);
+    end
+    | Some (9, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2), field(9)" pk
     | Some (10, Pbrt.Varint) -> begin
       v.timeout <- Some (Pbrt.Decoder.int32_as_varint d);
     end
@@ -2428,6 +2427,7 @@ let rec decode_pb_decompose_req2 d =
   ({
     session = v.session;
     decomp = v.decomp;
+    str = v.str;
     timeout = v.timeout;
   } : decompose_req2)
 
@@ -3304,10 +3304,6 @@ let rec encode_json_decompose_req2_by_name (v:decompose_req2_by_name) =
     | None -> assoc
     | Some v -> ("liftBool", encode_json_lift_bool v) :: assoc
   in
-  let assoc = match v.str with
-    | None -> assoc
-    | Some v -> ("str", Pbrt_yojson.make_bool v) :: assoc
-  in
   `Assoc assoc
 
 let rec encode_json_decompose_req2_prune (v:decompose_req2_prune) = 
@@ -3369,6 +3365,10 @@ let rec encode_json_decompose_req2 (v:decompose_req2) =
   let assoc = match v.decomp with
     | None -> assoc
     | Some v -> ("decomp", encode_json_decompose_req2_decomp v) :: assoc
+  in
+  let assoc = match v.str with
+    | None -> assoc
+    | Some v -> ("str", Pbrt_yojson.make_bool v) :: assoc
   in
   let assoc = match v.timeout with
     | None -> assoc
@@ -3811,8 +3811,6 @@ let rec decode_json_decompose_req2_by_name d =
       v.ctx_simp <- Some (Pbrt_yojson.bool json_value "decompose_req2_by_name" "ctx_simp")
     | ("liftBool", json_value) -> 
       v.lift_bool <- Some ((decode_json_lift_bool json_value))
-    | ("str", json_value) -> 
-      v.str <- Some (Pbrt_yojson.bool json_value "decompose_req2_by_name" "str")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -3824,7 +3822,6 @@ let rec decode_json_decompose_req2_by_name d =
     prune = v.prune;
     ctx_simp = v.ctx_simp;
     lift_bool = v.lift_bool;
-    str = v.str;
   } : decompose_req2_by_name)
 
 let rec decode_json_decompose_req2_prune d =
@@ -3932,6 +3929,8 @@ let rec decode_json_decompose_req2 d =
       v.session <- Some ((Session.decode_json_session json_value))
     | ("decomp", json_value) -> 
       v.decomp <- Some ((decode_json_decompose_req2_decomp json_value))
+    | ("str", json_value) -> 
+      v.str <- Some (Pbrt_yojson.bool json_value "decompose_req2" "str")
     | ("timeout", json_value) -> 
       v.timeout <- Some (Pbrt_yojson.int32 json_value "decompose_req2" "timeout")
     
@@ -3940,6 +3939,7 @@ let rec decode_json_decompose_req2 d =
   ({
     session = v.session;
     decomp = v.decomp;
+    str = v.str;
     timeout = v.timeout;
   } : decompose_req2)
 
