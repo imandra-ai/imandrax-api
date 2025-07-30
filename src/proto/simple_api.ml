@@ -23,6 +23,49 @@ type decompose_req = {
   timeout : int32 option;
 }
 
+type decompose_req2_by_name = {
+  name : string;
+  assuming : string option;
+  basis : string list;
+  rule_specs : string list;
+  prune : bool;
+  ctx_simp : bool option;
+  lift_bool : lift_bool option;
+  str : bool option;
+}
+
+type decompose_req2_prune = {
+  d : decompose_req2_decomp option;
+}
+
+and decompose_req2_decomp =
+  | From_artifact of Artmsg.art
+  | By_name of decompose_req2_by_name
+  | Merge of decompose_req2_merge
+  | Compound_merge of decompose_req2_compound_merge
+  | Prune of decompose_req2_prune
+  | Combine of decompose_req2_combine
+
+and decompose_req2_merge = {
+  d1 : decompose_req2_decomp option;
+  d2 : decompose_req2_decomp option;
+}
+
+and decompose_req2_compound_merge = {
+  d1 : decompose_req2_decomp option;
+  d2 : decompose_req2_decomp option;
+}
+
+and decompose_req2_combine = {
+  d : decompose_req2_decomp option;
+}
+
+type decompose_req2 = {
+  session : Session.session option;
+  decomp : decompose_req2_decomp option;
+  timeout : int32 option;
+}
+
 type decompose_res_res =
   | Artifact of Artmsg.art
   | Err
@@ -208,6 +251,66 @@ let rec default_decompose_req
   ctx_simp;
   lift_bool;
   str;
+  timeout;
+}
+
+let rec default_decompose_req2_by_name 
+  ?name:((name:string) = "")
+  ?assuming:((assuming:string option) = None)
+  ?basis:((basis:string list) = [])
+  ?rule_specs:((rule_specs:string list) = [])
+  ?prune:((prune:bool) = false)
+  ?ctx_simp:((ctx_simp:bool option) = None)
+  ?lift_bool:((lift_bool:lift_bool option) = None)
+  ?str:((str:bool option) = None)
+  () : decompose_req2_by_name  = {
+  name;
+  assuming;
+  basis;
+  rule_specs;
+  prune;
+  ctx_simp;
+  lift_bool;
+  str;
+}
+
+let rec default_decompose_req2_prune 
+  ?d:((d:decompose_req2_decomp option) = None)
+  () : decompose_req2_prune  = {
+  d;
+}
+
+and default_decompose_req2_decomp () : decompose_req2_decomp = From_artifact (Artmsg.default_art ())
+
+and default_decompose_req2_merge 
+  ?d1:((d1:decompose_req2_decomp option) = None)
+  ?d2:((d2:decompose_req2_decomp option) = None)
+  () : decompose_req2_merge  = {
+  d1;
+  d2;
+}
+
+and default_decompose_req2_compound_merge 
+  ?d1:((d1:decompose_req2_decomp option) = None)
+  ?d2:((d2:decompose_req2_decomp option) = None)
+  () : decompose_req2_compound_merge  = {
+  d1;
+  d2;
+}
+
+and default_decompose_req2_combine 
+  ?d:((d:decompose_req2_decomp option) = None)
+  () : decompose_req2_combine  = {
+  d;
+}
+
+let rec default_decompose_req2 
+  ?session:((session:Session.session option) = None)
+  ?decomp:((decomp:decompose_req2_decomp option) = None)
+  ?timeout:((timeout:int32 option) = None)
+  () : decompose_req2  = {
+  session;
+  decomp;
   timeout;
 }
 
@@ -462,6 +565,76 @@ let default_decompose_req_mutable () : decompose_req_mutable = {
   ctx_simp = None;
   lift_bool = None;
   str = None;
+  timeout = None;
+}
+
+type decompose_req2_by_name_mutable = {
+  mutable name : string;
+  mutable assuming : string option;
+  mutable basis : string list;
+  mutable rule_specs : string list;
+  mutable prune : bool;
+  mutable ctx_simp : bool option;
+  mutable lift_bool : lift_bool option;
+  mutable str : bool option;
+}
+
+let default_decompose_req2_by_name_mutable () : decompose_req2_by_name_mutable = {
+  name = "";
+  assuming = None;
+  basis = [];
+  rule_specs = [];
+  prune = false;
+  ctx_simp = None;
+  lift_bool = None;
+  str = None;
+}
+
+type decompose_req2_prune_mutable = {
+  mutable d : decompose_req2_decomp option;
+}
+
+let default_decompose_req2_prune_mutable () : decompose_req2_prune_mutable = {
+  d = None;
+}
+
+type decompose_req2_merge_mutable = {
+  mutable d1 : decompose_req2_decomp option;
+  mutable d2 : decompose_req2_decomp option;
+}
+
+let default_decompose_req2_merge_mutable () : decompose_req2_merge_mutable = {
+  d1 = None;
+  d2 = None;
+}
+
+type decompose_req2_compound_merge_mutable = {
+  mutable d1 : decompose_req2_decomp option;
+  mutable d2 : decompose_req2_decomp option;
+}
+
+let default_decompose_req2_compound_merge_mutable () : decompose_req2_compound_merge_mutable = {
+  d1 = None;
+  d2 = None;
+}
+
+type decompose_req2_combine_mutable = {
+  mutable d : decompose_req2_decomp option;
+}
+
+let default_decompose_req2_combine_mutable () : decompose_req2_combine_mutable = {
+  d = None;
+}
+
+type decompose_req2_mutable = {
+  mutable session : Session.session option;
+  mutable decomp : decompose_req2_decomp option;
+  mutable timeout : int32 option;
+}
+
+let default_decompose_req2_mutable () : decompose_req2_mutable = {
+  session = None;
+  decomp = None;
   timeout = None;
 }
 
@@ -755,6 +928,65 @@ let rec make_decompose_req
   timeout;
 }
 
+let rec make_decompose_req2_by_name 
+  ~(name:string)
+  ?assuming:((assuming:string option) = None)
+  ~(basis:string list)
+  ~(rule_specs:string list)
+  ~(prune:bool)
+  ?ctx_simp:((ctx_simp:bool option) = None)
+  ?lift_bool:((lift_bool:lift_bool option) = None)
+  ?str:((str:bool option) = None)
+  () : decompose_req2_by_name  = {
+  name;
+  assuming;
+  basis;
+  rule_specs;
+  prune;
+  ctx_simp;
+  lift_bool;
+  str;
+}
+
+let rec make_decompose_req2_prune 
+  ?d:((d:decompose_req2_decomp option) = None)
+  () : decompose_req2_prune  = {
+  d;
+}
+
+
+and make_decompose_req2_merge 
+  ?d1:((d1:decompose_req2_decomp option) = None)
+  ?d2:((d2:decompose_req2_decomp option) = None)
+  () : decompose_req2_merge  = {
+  d1;
+  d2;
+}
+
+and make_decompose_req2_compound_merge 
+  ?d1:((d1:decompose_req2_decomp option) = None)
+  ?d2:((d2:decompose_req2_decomp option) = None)
+  () : decompose_req2_compound_merge  = {
+  d1;
+  d2;
+}
+
+and make_decompose_req2_combine 
+  ?d:((d:decompose_req2_decomp option) = None)
+  () : decompose_req2_combine  = {
+  d;
+}
+
+let rec make_decompose_req2 
+  ?session:((session:Session.session option) = None)
+  ?decomp:((decomp:decompose_req2_decomp option) = None)
+  ?timeout:((timeout:int32 option) = None)
+  () : decompose_req2  = {
+  session;
+  decomp;
+  timeout;
+}
+
 
 let rec make_decompose_res 
   ~(res:decompose_res_res)
@@ -998,6 +1230,62 @@ let rec pp_decompose_req fmt (v:decompose_req) =
     Pbrt.Pp.pp_record_field ~first:false "ctx_simp" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.ctx_simp;
     Pbrt.Pp.pp_record_field ~first:false "lift_bool" (Pbrt.Pp.pp_option pp_lift_bool) fmt v.lift_bool;
     Pbrt.Pp.pp_record_field ~first:false "str" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.str;
+    Pbrt.Pp.pp_record_field ~first:false "timeout" (Pbrt.Pp.pp_option Pbrt.Pp.pp_int32) fmt v.timeout;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_decompose_req2_by_name fmt (v:decompose_req2_by_name) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "name" Pbrt.Pp.pp_string fmt v.name;
+    Pbrt.Pp.pp_record_field ~first:false "assuming" (Pbrt.Pp.pp_option Pbrt.Pp.pp_string) fmt v.assuming;
+    Pbrt.Pp.pp_record_field ~first:false "basis" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.basis;
+    Pbrt.Pp.pp_record_field ~first:false "rule_specs" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.rule_specs;
+    Pbrt.Pp.pp_record_field ~first:false "prune" Pbrt.Pp.pp_bool fmt v.prune;
+    Pbrt.Pp.pp_record_field ~first:false "ctx_simp" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.ctx_simp;
+    Pbrt.Pp.pp_record_field ~first:false "lift_bool" (Pbrt.Pp.pp_option pp_lift_bool) fmt v.lift_bool;
+    Pbrt.Pp.pp_record_field ~first:false "str" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.str;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_decompose_req2_prune fmt (v:decompose_req2_prune) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "d" (Pbrt.Pp.pp_option pp_decompose_req2_decomp) fmt v.d;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+and pp_decompose_req2_decomp fmt (v:decompose_req2_decomp) =
+  match v with
+  | From_artifact x -> Format.fprintf fmt "@[<hv2>From_artifact(@,%a)@]" Artmsg.pp_art x
+  | By_name x -> Format.fprintf fmt "@[<hv2>By_name(@,%a)@]" pp_decompose_req2_by_name x
+  | Merge x -> Format.fprintf fmt "@[<hv2>Merge(@,%a)@]" pp_decompose_req2_merge x
+  | Compound_merge x -> Format.fprintf fmt "@[<hv2>Compound_merge(@,%a)@]" pp_decompose_req2_compound_merge x
+  | Prune x -> Format.fprintf fmt "@[<hv2>Prune(@,%a)@]" pp_decompose_req2_prune x
+  | Combine x -> Format.fprintf fmt "@[<hv2>Combine(@,%a)@]" pp_decompose_req2_combine x
+
+and pp_decompose_req2_merge fmt (v:decompose_req2_merge) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "d1" (Pbrt.Pp.pp_option pp_decompose_req2_decomp) fmt v.d1;
+    Pbrt.Pp.pp_record_field ~first:false "d2" (Pbrt.Pp.pp_option pp_decompose_req2_decomp) fmt v.d2;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+and pp_decompose_req2_compound_merge fmt (v:decompose_req2_compound_merge) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "d1" (Pbrt.Pp.pp_option pp_decompose_req2_decomp) fmt v.d1;
+    Pbrt.Pp.pp_record_field ~first:false "d2" (Pbrt.Pp.pp_option pp_decompose_req2_decomp) fmt v.d2;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+and pp_decompose_req2_combine fmt (v:decompose_req2_combine) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "d" (Pbrt.Pp.pp_option pp_decompose_req2_decomp) fmt v.d;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_decompose_req2 fmt (v:decompose_req2) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
+    Pbrt.Pp.pp_record_field ~first:false "decomp" (Pbrt.Pp.pp_option pp_decompose_req2_decomp) fmt v.decomp;
     Pbrt.Pp.pp_record_field ~first:false "timeout" (Pbrt.Pp.pp_option Pbrt.Pp.pp_int32) fmt v.timeout;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
@@ -1266,6 +1554,136 @@ let rec encode_pb_decompose_req (v:decompose_req) encoder =
   | Some x -> 
     Pbrt.Encoder.bool x encoder;
     Pbrt.Encoder.key 9 Pbrt.Varint encoder; 
+  | None -> ();
+  end;
+  begin match v.timeout with
+  | Some x -> 
+    Pbrt.Encoder.int32_as_varint x encoder;
+    Pbrt.Encoder.key 10 Pbrt.Varint encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_decompose_req2_by_name (v:decompose_req2_by_name) encoder = 
+  Pbrt.Encoder.string v.name encoder;
+  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  begin match v.assuming with
+  | Some x -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  ) v.basis encoder;
+  Pbrt.List_util.rev_iter_with (fun x encoder -> 
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
+  ) v.rule_specs encoder;
+  Pbrt.Encoder.bool v.prune encoder;
+  Pbrt.Encoder.key 6 Pbrt.Varint encoder; 
+  begin match v.ctx_simp with
+  | Some x -> 
+    Pbrt.Encoder.bool x encoder;
+    Pbrt.Encoder.key 7 Pbrt.Varint encoder; 
+  | None -> ();
+  end;
+  begin match v.lift_bool with
+  | Some x -> 
+    encode_pb_lift_bool x encoder;
+    Pbrt.Encoder.key 8 Pbrt.Varint encoder; 
+  | None -> ();
+  end;
+  begin match v.str with
+  | Some x -> 
+    Pbrt.Encoder.bool x encoder;
+    Pbrt.Encoder.key 9 Pbrt.Varint encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_decompose_req2_prune (v:decompose_req2_prune) encoder = 
+  begin match v.d with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_decompose_req2_decomp x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+and encode_pb_decompose_req2_decomp (v:decompose_req2_decomp) encoder = 
+  begin match v with
+  | From_artifact x ->
+    Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | By_name x ->
+    Pbrt.Encoder.nested encode_pb_decompose_req2_by_name x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  | Merge x ->
+    Pbrt.Encoder.nested encode_pb_decompose_req2_merge x encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  | Compound_merge x ->
+    Pbrt.Encoder.nested encode_pb_decompose_req2_compound_merge x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  | Prune x ->
+    Pbrt.Encoder.nested encode_pb_decompose_req2_prune x encoder;
+    Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
+  | Combine x ->
+    Pbrt.Encoder.nested encode_pb_decompose_req2_combine x encoder;
+    Pbrt.Encoder.key 6 Pbrt.Bytes encoder; 
+  end
+
+and encode_pb_decompose_req2_merge (v:decompose_req2_merge) encoder = 
+  begin match v.d1 with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_decompose_req2_decomp x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  begin match v.d2 with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_decompose_req2_decomp x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+and encode_pb_decompose_req2_compound_merge (v:decompose_req2_compound_merge) encoder = 
+  begin match v.d1 with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_decompose_req2_decomp x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  begin match v.d2 with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_decompose_req2_decomp x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+and encode_pb_decompose_req2_combine (v:decompose_req2_combine) encoder = 
+  begin match v.d with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_decompose_req2_decomp x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_decompose_req2 (v:decompose_req2) encoder = 
+  begin match v.session with
+  | Some x -> 
+    Pbrt.Encoder.nested Session.encode_pb_session x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  begin match v.decomp with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_decompose_req2_decomp x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   | None -> ();
   end;
   begin match v.timeout with
@@ -1817,6 +2235,201 @@ let rec decode_pb_decompose_req d =
     str = v.str;
     timeout = v.timeout;
   } : decompose_req)
+
+let rec decode_pb_decompose_req2_by_name d =
+  let v = default_decompose_req2_by_name_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      v.rule_specs <- List.rev v.rule_specs;
+      v.basis <- List.rev v.basis;
+    ); continue__ := false
+    | Some (2, Pbrt.Bytes) -> begin
+      v.name <- Pbrt.Decoder.string d;
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_by_name), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.assuming <- Some (Pbrt.Decoder.string d);
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_by_name), field(3)" pk
+    | Some (4, Pbrt.Bytes) -> begin
+      v.basis <- (Pbrt.Decoder.string d) :: v.basis;
+    end
+    | Some (4, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_by_name), field(4)" pk
+    | Some (5, Pbrt.Bytes) -> begin
+      v.rule_specs <- (Pbrt.Decoder.string d) :: v.rule_specs;
+    end
+    | Some (5, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_by_name), field(5)" pk
+    | Some (6, Pbrt.Varint) -> begin
+      v.prune <- Pbrt.Decoder.bool d;
+    end
+    | Some (6, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_by_name), field(6)" pk
+    | Some (7, Pbrt.Varint) -> begin
+      v.ctx_simp <- Some (Pbrt.Decoder.bool d);
+    end
+    | Some (7, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_by_name), field(7)" pk
+    | Some (8, Pbrt.Varint) -> begin
+      v.lift_bool <- Some (decode_pb_lift_bool d);
+    end
+    | Some (8, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_by_name), field(8)" pk
+    | Some (9, Pbrt.Varint) -> begin
+      v.str <- Some (Pbrt.Decoder.bool d);
+    end
+    | Some (9, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_by_name), field(9)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    name = v.name;
+    assuming = v.assuming;
+    basis = v.basis;
+    rule_specs = v.rule_specs;
+    prune = v.prune;
+    ctx_simp = v.ctx_simp;
+    lift_bool = v.lift_bool;
+    str = v.str;
+  } : decompose_req2_by_name)
+
+let rec decode_pb_decompose_req2_prune d =
+  let v = default_decompose_req2_prune_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.d <- Some (decode_pb_decompose_req2_decomp (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_prune), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    d = v.d;
+  } : decompose_req2_prune)
+
+and decode_pb_decompose_req2_decomp d = 
+  let rec loop () = 
+    let ret:decompose_req2_decomp = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "decompose_req2_decomp"
+      | Some (1, _) -> (From_artifact (Artmsg.decode_pb_art (Pbrt.Decoder.nested d)) : decompose_req2_decomp) 
+      | Some (2, _) -> (By_name (decode_pb_decompose_req2_by_name (Pbrt.Decoder.nested d)) : decompose_req2_decomp) 
+      | Some (3, _) -> (Merge (decode_pb_decompose_req2_merge (Pbrt.Decoder.nested d)) : decompose_req2_decomp) 
+      | Some (4, _) -> (Compound_merge (decode_pb_decompose_req2_compound_merge (Pbrt.Decoder.nested d)) : decompose_req2_decomp) 
+      | Some (5, _) -> (Prune (decode_pb_decompose_req2_prune (Pbrt.Decoder.nested d)) : decompose_req2_decomp) 
+      | Some (6, _) -> (Combine (decode_pb_decompose_req2_combine (Pbrt.Decoder.nested d)) : decompose_req2_decomp) 
+      | Some (n, payload_kind) -> (
+        Pbrt.Decoder.skip d payload_kind; 
+        loop () 
+      )
+    in
+    ret
+  in
+  loop ()
+
+and decode_pb_decompose_req2_merge d =
+  let v = default_decompose_req2_merge_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.d1 <- Some (decode_pb_decompose_req2_decomp (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_merge), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.d2 <- Some (decode_pb_decompose_req2_decomp (Pbrt.Decoder.nested d));
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_merge), field(2)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    d1 = v.d1;
+    d2 = v.d2;
+  } : decompose_req2_merge)
+
+and decode_pb_decompose_req2_compound_merge d =
+  let v = default_decompose_req2_compound_merge_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.d1 <- Some (decode_pb_decompose_req2_decomp (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_compound_merge), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.d2 <- Some (decode_pb_decompose_req2_decomp (Pbrt.Decoder.nested d));
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_compound_merge), field(2)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    d1 = v.d1;
+    d2 = v.d2;
+  } : decompose_req2_compound_merge)
+
+and decode_pb_decompose_req2_combine d =
+  let v = default_decompose_req2_combine_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.d <- Some (decode_pb_decompose_req2_decomp (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2_combine), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    d = v.d;
+  } : decompose_req2_combine)
+
+let rec decode_pb_decompose_req2 d =
+  let v = default_decompose_req2_mutable () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      v.session <- Some (Session.decode_pb_session (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.decomp <- Some (decode_pb_decompose_req2_decomp (Pbrt.Decoder.nested d));
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2), field(2)" pk
+    | Some (10, Pbrt.Varint) -> begin
+      v.timeout <- Some (Pbrt.Decoder.int32_as_varint d);
+    end
+    | Some (10, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(decompose_req2), field(10)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  ({
+    session = v.session;
+    decomp = v.decomp;
+    timeout = v.timeout;
+  } : decompose_req2)
 
 let rec decode_pb_decompose_res_res d = 
   let rec loop () = 
@@ -2667,6 +3280,102 @@ let rec encode_json_decompose_req (v:decompose_req) =
   in
   `Assoc assoc
 
+let rec encode_json_decompose_req2_by_name (v:decompose_req2_by_name) = 
+  let assoc = [] in 
+  let assoc = ("name", Pbrt_yojson.make_string v.name) :: assoc in
+  let assoc = match v.assuming with
+    | None -> assoc
+    | Some v -> ("assuming", Pbrt_yojson.make_string v) :: assoc
+  in
+  let assoc =
+    let l = v.basis |> List.map Pbrt_yojson.make_string in
+    ("basis", `List l) :: assoc 
+  in
+  let assoc =
+    let l = v.rule_specs |> List.map Pbrt_yojson.make_string in
+    ("ruleSpecs", `List l) :: assoc 
+  in
+  let assoc = ("prune", Pbrt_yojson.make_bool v.prune) :: assoc in
+  let assoc = match v.ctx_simp with
+    | None -> assoc
+    | Some v -> ("ctxSimp", Pbrt_yojson.make_bool v) :: assoc
+  in
+  let assoc = match v.lift_bool with
+    | None -> assoc
+    | Some v -> ("liftBool", encode_json_lift_bool v) :: assoc
+  in
+  let assoc = match v.str with
+    | None -> assoc
+    | Some v -> ("str", Pbrt_yojson.make_bool v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_decompose_req2_prune (v:decompose_req2_prune) = 
+  let assoc = [] in 
+  let assoc = match v.d with
+    | None -> assoc
+    | Some v -> ("d", encode_json_decompose_req2_decomp v) :: assoc
+  in
+  `Assoc assoc
+
+and encode_json_decompose_req2_decomp (v:decompose_req2_decomp) = 
+  begin match v with
+  | From_artifact v -> `Assoc [("fromArtifact", Artmsg.encode_json_art v)]
+  | By_name v -> `Assoc [("byName", encode_json_decompose_req2_by_name v)]
+  | Merge v -> `Assoc [("merge", encode_json_decompose_req2_merge v)]
+  | Compound_merge v -> `Assoc [("compoundMerge", encode_json_decompose_req2_compound_merge v)]
+  | Prune v -> `Assoc [("prune", encode_json_decompose_req2_prune v)]
+  | Combine v -> `Assoc [("combine", encode_json_decompose_req2_combine v)]
+  end
+
+and encode_json_decompose_req2_merge (v:decompose_req2_merge) = 
+  let assoc = [] in 
+  let assoc = match v.d1 with
+    | None -> assoc
+    | Some v -> ("d1", encode_json_decompose_req2_decomp v) :: assoc
+  in
+  let assoc = match v.d2 with
+    | None -> assoc
+    | Some v -> ("d2", encode_json_decompose_req2_decomp v) :: assoc
+  in
+  `Assoc assoc
+
+and encode_json_decompose_req2_compound_merge (v:decompose_req2_compound_merge) = 
+  let assoc = [] in 
+  let assoc = match v.d1 with
+    | None -> assoc
+    | Some v -> ("d1", encode_json_decompose_req2_decomp v) :: assoc
+  in
+  let assoc = match v.d2 with
+    | None -> assoc
+    | Some v -> ("d2", encode_json_decompose_req2_decomp v) :: assoc
+  in
+  `Assoc assoc
+
+and encode_json_decompose_req2_combine (v:decompose_req2_combine) = 
+  let assoc = [] in 
+  let assoc = match v.d with
+    | None -> assoc
+    | Some v -> ("d", encode_json_decompose_req2_decomp v) :: assoc
+  in
+  `Assoc assoc
+
+let rec encode_json_decompose_req2 (v:decompose_req2) = 
+  let assoc = [] in 
+  let assoc = match v.session with
+    | None -> assoc
+    | Some v -> ("session", Session.encode_json_session v) :: assoc
+  in
+  let assoc = match v.decomp with
+    | None -> assoc
+    | Some v -> ("decomp", encode_json_decompose_req2_decomp v) :: assoc
+  in
+  let assoc = match v.timeout with
+    | None -> assoc
+    | Some v -> ("timeout", Pbrt_yojson.make_int (Int32.to_int v)) :: assoc
+  in
+  `Assoc assoc
+
 let rec encode_json_decompose_res_res (v:decompose_res_res) = 
   begin match v with
   | Artifact v -> `Assoc [("artifact", Artmsg.encode_json_art v)]
@@ -3074,6 +3783,165 @@ let rec decode_json_decompose_req d =
     str = v.str;
     timeout = v.timeout;
   } : decompose_req)
+
+let rec decode_json_decompose_req2_by_name d =
+  let v = default_decompose_req2_by_name_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("name", json_value) -> 
+      v.name <- Pbrt_yojson.string json_value "decompose_req2_by_name" "name"
+    | ("assuming", json_value) -> 
+      v.assuming <- Some (Pbrt_yojson.string json_value "decompose_req2_by_name" "assuming")
+    | ("basis", `List l) -> begin
+      v.basis <- List.map (function
+        | json_value -> Pbrt_yojson.string json_value "decompose_req2_by_name" "basis"
+      ) l;
+    end
+    | ("ruleSpecs", `List l) -> begin
+      v.rule_specs <- List.map (function
+        | json_value -> Pbrt_yojson.string json_value "decompose_req2_by_name" "rule_specs"
+      ) l;
+    end
+    | ("prune", json_value) -> 
+      v.prune <- Pbrt_yojson.bool json_value "decompose_req2_by_name" "prune"
+    | ("ctxSimp", json_value) -> 
+      v.ctx_simp <- Some (Pbrt_yojson.bool json_value "decompose_req2_by_name" "ctx_simp")
+    | ("liftBool", json_value) -> 
+      v.lift_bool <- Some ((decode_json_lift_bool json_value))
+    | ("str", json_value) -> 
+      v.str <- Some (Pbrt_yojson.bool json_value "decompose_req2_by_name" "str")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    name = v.name;
+    assuming = v.assuming;
+    basis = v.basis;
+    rule_specs = v.rule_specs;
+    prune = v.prune;
+    ctx_simp = v.ctx_simp;
+    lift_bool = v.lift_bool;
+    str = v.str;
+  } : decompose_req2_by_name)
+
+let rec decode_json_decompose_req2_prune d =
+  let v = default_decompose_req2_prune_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("d", json_value) -> 
+      v.d <- Some ((decode_json_decompose_req2_decomp json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    d = v.d;
+  } : decompose_req2_prune)
+
+and decode_json_decompose_req2_decomp json =
+  let assoc = match json with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  let rec loop = function
+    | [] -> Pbrt_yojson.E.malformed_variant "decompose_req2_decomp"
+    | ("fromArtifact", json_value)::_ -> 
+      (From_artifact ((Artmsg.decode_json_art json_value)) : decompose_req2_decomp)
+    | ("byName", json_value)::_ -> 
+      (By_name ((decode_json_decompose_req2_by_name json_value)) : decompose_req2_decomp)
+    | ("merge", json_value)::_ -> 
+      (Merge ((decode_json_decompose_req2_merge json_value)) : decompose_req2_decomp)
+    | ("compoundMerge", json_value)::_ -> 
+      (Compound_merge ((decode_json_decompose_req2_compound_merge json_value)) : decompose_req2_decomp)
+    | ("prune", json_value)::_ -> 
+      (Prune ((decode_json_decompose_req2_prune json_value)) : decompose_req2_decomp)
+    | ("combine", json_value)::_ -> 
+      (Combine ((decode_json_decompose_req2_combine json_value)) : decompose_req2_decomp)
+    
+    | _ :: tl -> loop tl
+  in
+  loop assoc
+
+and decode_json_decompose_req2_merge d =
+  let v = default_decompose_req2_merge_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("d1", json_value) -> 
+      v.d1 <- Some ((decode_json_decompose_req2_decomp json_value))
+    | ("d2", json_value) -> 
+      v.d2 <- Some ((decode_json_decompose_req2_decomp json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    d1 = v.d1;
+    d2 = v.d2;
+  } : decompose_req2_merge)
+
+and decode_json_decompose_req2_compound_merge d =
+  let v = default_decompose_req2_compound_merge_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("d1", json_value) -> 
+      v.d1 <- Some ((decode_json_decompose_req2_decomp json_value))
+    | ("d2", json_value) -> 
+      v.d2 <- Some ((decode_json_decompose_req2_decomp json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    d1 = v.d1;
+    d2 = v.d2;
+  } : decompose_req2_compound_merge)
+
+and decode_json_decompose_req2_combine d =
+  let v = default_decompose_req2_combine_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("d", json_value) -> 
+      v.d <- Some ((decode_json_decompose_req2_decomp json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    d = v.d;
+  } : decompose_req2_combine)
+
+let rec decode_json_decompose_req2 d =
+  let v = default_decompose_req2_mutable () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("session", json_value) -> 
+      v.session <- Some ((Session.decode_json_session json_value))
+    | ("decomp", json_value) -> 
+      v.decomp <- Some ((decode_json_decompose_req2_decomp json_value))
+    | ("timeout", json_value) -> 
+      v.timeout <- Some (Pbrt_yojson.int32 json_value "decompose_req2" "timeout")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    session = v.session;
+    decomp = v.decomp;
+    timeout = v.timeout;
+  } : decompose_req2)
 
 let rec decode_json_decompose_res_res json =
   let assoc = match json with
@@ -3833,6 +4701,19 @@ module Simple = struct
         () : (decompose_req, unary, decompose_res, unary) Client.rpc)
     open Pbrt_services
     
+    let decompose2 : (decompose_req2, unary, decompose_res, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"simple"]
+        ~service_name:"Simple" ~rpc_name:"decompose2"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_decompose_req2
+        ~encode_pb_req:encode_pb_decompose_req2
+        ~decode_json_res:decode_json_decompose_res
+        ~decode_pb_res:decode_pb_decompose_res
+        () : (decompose_req2, unary, decompose_res, unary) Client.rpc)
+    open Pbrt_services
+    
     let typecheck : (typecheck_req, unary, typecheck_res, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"simple"]
@@ -3962,6 +4843,16 @@ module Simple = struct
         ~decode_pb_req:decode_pb_decompose_req
         () : _ Server.rpc)
     
+    let decompose2 : (decompose_req2,unary,decompose_res,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"decompose2"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_decompose_res
+        ~encode_pb_res:encode_pb_decompose_res
+        ~decode_json_req:decode_json_decompose_req2
+        ~decode_pb_req:decode_pb_decompose_req2
+        () : _ Server.rpc)
+    
     let typecheck : (typecheck_req,unary,typecheck_res,unary) Server.rpc = 
       (Server.mk_rpc ~name:"typecheck"
         ~req_mode:Server.Unary
@@ -3993,6 +4884,7 @@ module Simple = struct
       ~instance_src:__handler__instance_src
       ~instance_name:__handler__instance_name
       ~decompose:__handler__decompose
+      ~decompose2:__handler__decompose2
       ~typecheck:__handler__typecheck
       ~oneshot:__handler__oneshot
       () : _ Server.t =
@@ -4010,6 +4902,7 @@ module Simple = struct
            (__handler__instance_src instance_src);
            (__handler__instance_name instance_name);
            (__handler__decompose decompose);
+           (__handler__decompose2 decompose2);
            (__handler__typecheck typecheck);
            (__handler__oneshot oneshot);
         ];
