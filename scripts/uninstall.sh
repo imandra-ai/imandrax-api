@@ -3,98 +3,33 @@
 
 set -eu
 
-INSTALL_PREFIX=${INSTALL_PREFIX:-"${HOME}/.local"}
+BUCKET_NAME="imandra-prod-imandrax-releases"
+BUCKET_URL="https://storage.googleapis.com/${BUCKET_NAME}"
+UNINSTALL_URL="${BUCKET_URL}/uninstall.sh"
 
-_show_usage() {
-  cat << EOF
-************************
-* ImandraX Uninstaller *
-************************
+printf "This uninstallation script has moved to\n  %s\n" "${UNINSTALL_URL}"
 
-This script uninstalls ImandraX. 
-
-There are two optional arguments:
-  -y      give default responses to all questions
-  -h      show this page
-EOF
-  exit 0
-}
-
-_fail() {
-  MSG=$1
-
-  echo "ERROR: ${MSG}" >&2
-  exit 1
-}
-
-case "${1:-}" in 
-  -y) 
-    ALL_DEFAULTS=true;; 
-  -h) 
-    _show_usage;;
-  '') 
-    ALL_DEFAULTS=false;;
-  *) 
-    _fail "Invalid input '$1'. Try passing -h for usage"
-esac
-
-#
-# Common
-#
-
-_common_delete_path_if_exists() {
-  PROFILE_NAME=$1
-
-  PROFILE_FILE="${HOME}/${PROFILE_NAME}"
-  if [ -e "${PROFILE_FILE}" ]; then
-    sed -i'.backup' '/^# Added by ImandraX installer/{
-        N;
-        d;
-      }' "${PROFILE_FILE}"
-    rm -rf "${PROFILE_FILE}.backup"
-  fi
-}
-
-common_uninstall() {
-  rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli"
-  rm -rf "${INSTALL_PREFIX}/bin/imandrax-ws-client"
-  rm -rf "${INSTALL_PREFIX}/bin/tldrs"
-  _common_delete_path_if_exists '.profile'
-  _common_delete_path_if_exists '.zprofile'
-}
-
-#
-# MacOS
-#
-
-macos_uninstall() {
-  rm -rf "${INSTALL_PREFIX}/opt/imandrax"
-}
-
-#
-#
-#
-
-printf "Uninstall ImandraX (y/N)? "
-if [ "${ALL_DEFAULTS}" = "true" ] ||
-    { read -r ANSWER_UNINSTALL \
-    && [ "${ANSWER_UNINSTALL}" != "${ANSWER_UNINSTALL#[Yy]}" ]; };then
-  echo ''
-  echo 'Uninstalling ImandraX!'
-
-  # detect OS
-  case "$(uname -s)" in
-    Darwin*)
-      macos_uninstall
-      ;;
-    Linux*) 
-      ;;
-    *) _fail "unsupported OS";
-  esac
-
-  common_uninstall
-
-  echo 'Done!'
+if command -v curl >/dev/null 2>&1; then
+    printf "\nWould you like to fetch and run the cloud uninstaller? [y/n] "
+    read -r response
+    case "${response}" in
+        [yY])
+            printf "\nFetching and running the requested uninstaller...\n"
+            if SCRIPT=$(curl -fsSL "${UNINSTALL_URL}"); then
+              sh -c "${SCRIPT}"
+            else
+              printf "Error: Failed to download uninstaller from %s\n" "${UNINSTALL_URL}"
+            fi
+            ;;
+        *)
+            printf "\nTo uninstall ImandraX yourself, please run:\n\n"
+            printf "  sh -c \"\$(curl -fsSL %s)\"\n" "${UNINSTALL_URL}"
+            ;;
+    esac
 else
-  echo 'Not uninstalling ImandraX!'
+    printf "\nNote: curl was not found on your system.\n"
+    printf "The uninstaller script is available at:\n  %s\n" "${UNINSTALL_URL}"
+    printf "\nPlease download and run it manually if you'd like to uninstall ImandraX.\n"
 fi
+
+exit 0

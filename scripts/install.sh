@@ -3,354 +3,40 @@
 
 set -eu
 
-# see: .github/workflows/main.yml in imandrax to see what the names are
-BUCKET_NAME="imandra-prod-imandrax-releases"
-BUCKET_URL="https://storage.googleapis.com/${BUCKET_NAME}"
-API_KEYS_URL="https://universe.imandra.ai/user/api-keys"
+SHORT_URL="https://imandra.ai/get-imandrax.sh"
 
-INSTALL_PREFIX=${INSTALL_PREFIX:-"${HOME}/.local"}
-BIN_DIR="${INSTALL_PREFIX}/bin"
-VERSION=${VERSION:-"latest"}
-DEFAULT_LINE="export PATH=\"${BIN_DIR}:\$PATH\""
+printf "This installation script has moved to\n  %s\n" "${SHORT_URL}"
 
-_show_usage() {
-  cat << EOF
-************************
-* ImandraX Installer *
-************************
-
-This script installs ImandraX. 
-
-There are two optional arguments:
-  -y      give default responses to all questions
-  -h      show this page
-EOF
-  exit 0
-}
-
-_fail() {
-  MSG=$1
-
-  echo "ERROR: ${MSG}" >&2
-  exit 1
-}
-
-case "${1:-}" in 
-  -y) 
-    ALL_DEFAULTS=true;; 
-  -h) 
-    _show_usage;;
-  '') 
-    ALL_DEFAULTS=false;;
-  *) 
-    _fail "Invalid input '$1'. Try passing -h for usage"
-esac
-
-_prompt_for_api_key() {
-  CONFIG_DIR="${HOME}/.config/imandrax"
-  API_KEY_PATH="${CONFIG_DIR}/api_key"
-  WORKING_DIR=${CONFIG_DIR}
-
-  echo "Checking ${API_KEY_PATH}"
-
-  SHOULD_SKIP_WRITING_KEY=false
-  if [ -f "${API_KEY_PATH}" ] && [ -s "${API_KEY_PATH}" ]; then
-    API_KEY_CONTENTS="$(tr -d '[:space:]' < "${API_KEY_PATH}")"
-    if [ -n "${API_KEY_CONTENTS}" ]; then
-      echo "It looks like an API key is already configured."
-      printf "Do you want to enter a new key? This will overwrite the existing one. (y/N) "
-      if [ "${ALL_DEFAULTS}" = "true" ] ||
-          { read -r ANSWER_NEW_API_KEY && \
-          [ "${ANSWER_NEW_API_KEY}" = "${ANSWER_NEW_API_KEY#[Yy]}" ]; } then
-        echo "Not updating API key"
-        echo ""
-        SHOULD_SKIP_WRITING_KEY=true
-      fi
-    fi
-  fi
-
-  if [ ! -e "${API_KEY_PATH}" ]; then
-    while [ ! -d "${WORKING_DIR}" ]; do
-      WORKING_DIR=$(dirname -- "${WORKING_DIR}")
-    done
-  fi
-
-  if [ -w "${WORKING_DIR}" ] && 
-      [ "${SHOULD_SKIP_WRITING_KEY}" != true ]; then
-    echo "API keys are available here: ${API_KEYS_URL}."
-    printf "You can paste your API key here or hit enter to skip and configure it yourself later: "
-    # technically we shouldn't need a default here, since SHOULD_SKIP_WRITING_KEY should default to true
-    if [ "${ALL_DEFAULTS}" = "true" ] ||
-        { read -r ANSWER_API_KEY && \
-        [ -z "${ANSWER_API_KEY}" ]; } then
-      echo "Skipped setting API key (make sure to set this yourself later)"
-    else
-      if ! [ -d "${CONFIG_DIR}" ]; then
-        echo "Creating ${CONFIG_DIR}"
-        mkdir -p "${CONFIG_DIR}"
-      fi
-      touch "${API_KEY_PATH}"
-      (rm -f "${API_KEY_PATH}" && echo "${ANSWER_API_KEY}" > "${API_KEY_PATH}")
-      echo "Updated API key"
-    fi
-    echo ''
-  fi
-}
-
-_check_files_present() {
-  if [ ! -x "${INSTALL_PREFIX}/bin/imandrax-cli" ] || \
-      [ ! -x "${INSTALL_PREFIX}/bin/imandrax-ws-client" ] || \
-      [ ! -x "${INSTALL_PREFIX}/bin/tldrs" ]; then
-    _fail "Some files failed to install, aborting."
-  fi
-}
-
-_add_to_profile() {
-  PROFILE_FILE=$1
-  PROFILE_NAME=$2
-  LINE=$3
-
-  touch "${PROFILE_FILE}"
-
-  
-  DATE_STRING="$(date '+%Y-%m-%d')"
-  printf "\n# Added by ImandraX installer on %s\n%s\n" \
-    "${DATE_STRING}" "${LINE}" >> "${PROFILE_FILE}"
-
-  # just do the same check again!
-  if grep -qxF "${LINE}" "${PROFILE_FILE}"; then
-    echo "Added install dir to PATH in ${PROFILE_FILE}" >&2
-  else
-    STATUS=$?
-    if [ "${STATUS}" -ne 1 ]; then
-      exit "${STATUS}"
-    fi
-    echo "Updating PATH via ${PROFILE_NAME} failed!" >&2
-  fi
-}
-
-_update_path() {
-  PROFILE_FILE=$1
-  LINE=$2
-
-  PROFILE_NAME=${PROFILE_FILE##*/}
-  PATH_PRESENTED=false
-  PATH_SET=false
-
-  if [ ! -e "${PROFILE_FILE}" ] || \
-      { [ -e "${PROFILE_FILE}" ] && [ -w "${PROFILE_FILE}"  ]; }; then
-    if [ -e "${PROFILE_FILE}" ] && grep -qxF "${LINE}" "${PROFILE_FILE}"; then
-      echo "${LINE} is already present in ${PROFILE_NAME}" >&2
-      PATH_PRESENTED=true
-      PATH_SET=true
-    else
-      STATUS=$? 
-      if [ "${STATUS}" -ne 1 ]; then
-        exit "${STATUS}"
-      fi
-      printf "Add %s to PATH via %s (Y/n)? " "${BIN_DIR}" "${PROFILE_NAME}" >&2
-      PATH_PRESENTED=true
-      if [ "${ALL_DEFAULTS}" = "true" ]; then
-        _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}" "${LINE}"
-        PATH_SET=true
-      elif { read -r ANSWER_PROFILE && \
-          [ "${ANSWER_PROFILE}" != "${ANSWER_PROFILE#[Nn]}" ]; } then
-        echo "Not updating ${PROFILE_NAME}" >&2
-      else
-        _add_to_profile "${PROFILE_FILE}" "${PROFILE_NAME}" "${LINE}"
-        PATH_SET=true
-      fi
-    fi
-  fi
-
-  echo "${PATH_PRESENTED}" "${PATH_SET}"
-}
-
-_prompt_to_update_path() {
-  PATH_PRESENTED=false
-  PATH_SET=false
-
-  if [ -w  "${HOME}" ]; then
-    PARENT_SHELL="$(ps -p "${PPID}" -o command=)"
-    PARENT_SHELL=${PARENT_SHELL##*/}
-    PARENT_SHELL=${PARENT_SHELL%% *}
-    PARENT_SHELL=${PARENT_SHELL#*-}
-    case ${PARENT_SHELL} in
-      zsh)
-        ZPROFILE_FILE="${HOME}/.zprofile"
-        LINE="${DEFAULT_LINE}"
-        RES=$(_update_path "${ZPROFILE_FILE}" "${LINE}")
-        # shellcheck disable=SC2086
-        set -- ${RES}
-        PATH_PRESENTED=$1
-        PATH_SET=$2
-      ;;
-      fish)
-        FISH_CONFIG_FILE="${HOME}/.config/fish/conf.d/imandrax.fish"
-        LINE="fish_add_path --global ${BIN_DIR}"
-        RES=$(_update_path "${FISH_CONFIG_FILE}" "${LINE}")
-        # shellcheck disable=SC2086
-        set -- ${RES}
-        PATH_PRESENTED=$1
-        PATH_SET=$2
-      ;;
-      *)
-        PROFILE_FILE="${HOME}/.profile"
-        LINE="${DEFAULT_LINE}"
-        RES=$(_update_path "${PROFILE_FILE}" "${LINE}")
-        # shellcheck disable=SC2086
-        set -- ${RES}
-        PATH_PRESENTED=$1
-        PATH_SET=$2
-      ;;
+if command -v curl >/dev/null 2>&1; then
+    printf "\nWould you like to fetch and run the cloud installer? [y/n] "
+    read -r response
+    case "${response}" in
+        [yY])
+            printf "\nFetching and running the requested installer...\n"
+            if SCRIPT=$(curl -fsSL "${SHORT_URL}"); then
+                if [ -n "${VERSION:-}" ]; then
+                    VERSION="${VERSION}" sh -c "${SCRIPT}"
+                else
+                    sh -c "${SCRIPT}"
+                fi
+            else
+                printf "Error: Failed to download installer from %s\n" "${SHORT_URL}"
+                exit 1
+            fi
+            ;;
+        *)
+            printf "\nTo install ImandraX yourself, please run:\n\n"
+            if [ -n "${VERSION:-}" ]; then
+                printf "  VERSION=%s sh -c \"\$(curl -fsSL %s)\"\n" "${VERSION}" "${SHORT_URL}"
+            else
+                printf "  sh -c \"\$(curl -fsSL %s)\"\n" "${SHORT_URL}"
+            fi
+            ;;
     esac
-  fi
-  if ! "${PATH_PRESENTED}" || ! "${PATH_SET}"; then
-    if ! "${PATH_PRESENTED}"; then
-      echo "We couldn't write to .profile or .zprofile."
-    fi
-    echo "Make sure to add ${BIN_DIR} to your PATH."
-  fi
-  echo ''
-}
+else
+    printf "\nNote: curl was not found on your system.\n"
+    printf "The installer script is available at:\n  %s\n" "${SHORT_URL}"
+    printf "\nPlease download and run it manually if you'd like to install ImandraX.\n"
+fi
 
-_download_files() {
-  ARCHIVE=$1
-  TMP_FILE=$2
-
-  if command -v curl >/dev/null; then
-    echo "Downloading ${ARCHIVE}"
-    curl -s "${ARCHIVE}" -o "${TMP_FILE}"
-    echo "Downloaded at ${TMP_FILE}"
-  elif command -v wget >/dev/null; then
-    echo "Downloading ${ARCHIVE}"
-    wget "${ARCHIVE}" -O "${TMP_FILE}"
-    echo "Downloaded at ${TMP_FILE}"
-  else
-    _fail "$(cat << EOF || true
-Either curl or wget is needed to continue the installation.
-Please install with your package manager, with a command like:
-
- * sudo apt install curl 
- * brew install wget
- * etc
-
-EOF
-)"
-  fi
-}
-
-#
-# Linux
-#
-
-_linux_extract_files() {
-  TMP_DIR=$1
-  TMP_FILE=$2
-
-  EXTRACT_DIR="${TMP_DIR}/imandrax-installer"
-
-  cd "${TMP_DIR}"
-  if ! [ -d "${BIN_DIR}" ]; then 
-    echo "Creating ${BIN_DIR}"
-    mkdir -p "${BIN_DIR}"
-  fi
-
-  mkdir -p "${EXTRACT_DIR}"
-  tar xvf "${TMP_FILE}" -C "${EXTRACT_DIR}"
-  echo "Extracted tarball to ${EXTRACT_DIR}"
-
-  mkdir -p "${BIN_DIR}"
-  cp -a -f "${EXTRACT_DIR}/." "${BIN_DIR}"
-  echo "Files copied to ${INSTALL_PREFIX}"
-}
-
-linux_install() {
-  ARCHIVE="${BUCKET_URL}/imandrax-linux-x86_64-${VERSION}.tar.gz"
-  TMP_DIR="${TMPDIR:-/tmp}"
-  TMP_FILE="${TMP_DIR}/imandrax-linux-x86_64.tar.gz"
-
-  _download_files "${ARCHIVE}" "${TMP_FILE}"
-
-  _linux_extract_files "${TMP_DIR}" "${TMP_FILE}"
-
-  _check_files_present
-  _prompt_to_update_path
-  _prompt_for_api_key
-}
-
-#
-# MacOS
-#
-
-_macos_extract_files() {
-  TMP_DIR=$1
-  TMP_FILE=$2
-
-  cd "${TMP_DIR}"
-  bsdtar xzf "${TMP_FILE}"
-  echo "Extracted outer tarball in-place"
-  if ! [ -d "${INSTALL_PREFIX}" ]; then 
-    echo "Creating ${INSTALL_PREFIX}"
-    mkdir -p "${INSTALL_PREFIX}"
-  fi
-  echo "Created dir ${INSTALL_PREFIX}"
-  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" opt
-  bsdtar -xzf Payload -C "${INSTALL_PREFIX}" --strip-components=3 usr/local/bin
-  echo "Extracted inner tarball to ${INSTALL_PREFIX}"
-  echo ''
-}
-
-macos_install() {
-  FILENAME="imandrax-macos-aarch64-${VERSION}.pkg"
-  ARCHIVE="${BUCKET_URL}/${FILENAME}"
-  TMP_DIR="${TMPDIR:-/tmp}"
-  TMP_FILE="${TMP_DIR}${FILENAME}"
-
-  _download_files "${ARCHIVE}" "${TMP_FILE}"
-  _macos_extract_files "${TMP_DIR}" "${TMP_FILE}"
-
-  # modify executable to find libs
-  sed -i'.backup' "s#DIR=/opt/imandrax#DIR=${INSTALL_PREFIX}/opt/imandrax#" \
-    "${INSTALL_PREFIX}/bin/imandrax-cli"
-  sed -i'.backup' "s#export PATH=\"\$PATH:\$DIR\"#BIN_DIR=${BIN_DIR}\nexport PATH=\"\$PATH:\$DIR\:\$BIN_DIR\"#" \
-    "${INSTALL_PREFIX}/bin/imandrax-cli"
-  
-  # clean up temp files
-  rm -rf "${INSTALL_PREFIX}/bin/imandrax-cli.backup"
-
-  _check_files_present
-  _prompt_to_update_path
-  _prompt_for_api_key
-}
-
-cat << EOF
-
-.___                           .___             ____  ___
-|   | _____ _____    ____    __| _/___________  \   \/  /
-|   |/     \\\__  \  /    \  / __ |\_  __ \__  \  \     /
-|   |  Y Y  \/ __ \|   |  \/ /_/ | |  | \// __ \_/     \ 
-|___|__|_|  (____  /___|  /\____ | |__|  (____  /___/\  \ 
-          \/     \/     \/      \/            \/      \_/
-
-EOF
-
-# detect OS
-case "$(uname -s)" in
-  Linux*)
-    linux_install
-    ;;
-  Darwin*)
-    macos_install
-    ;;
-  *) _fail "unsupported OS";
-esac
-
-cat << EOF
-***********************
-* Installed ImandraX! *
-***********************
-
-See the docs for more info:
-https://docs.imandra.ai/imandrax/
-EOF
+exit 0
