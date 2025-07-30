@@ -30,6 +30,49 @@ type decompose_req = {
   timeout : int32 option;
 }
 
+type decompose_req2_by_name = {
+  name : string;
+  assuming : string option;
+  basis : string list;
+  rule_specs : string list;
+  prune : bool;
+  ctx_simp : bool option;
+  lift_bool : lift_bool option;
+  str : bool option;
+}
+
+type decompose_req2_prune = {
+  d : decompose_req2_decomp option;
+}
+
+and decompose_req2_decomp =
+  | From_artifact of Artmsg.art
+  | By_name of decompose_req2_by_name
+  | Merge of decompose_req2_merge
+  | Compound_merge of decompose_req2_compound_merge
+  | Prune of decompose_req2_prune
+  | Combine of decompose_req2_combine
+
+and decompose_req2_merge = {
+  d1 : decompose_req2_decomp option;
+  d2 : decompose_req2_decomp option;
+}
+
+and decompose_req2_compound_merge = {
+  d1 : decompose_req2_decomp option;
+  d2 : decompose_req2_decomp option;
+}
+
+and decompose_req2_combine = {
+  d : decompose_req2_decomp option;
+}
+
+type decompose_req2 = {
+  session : Session.session option;
+  decomp : decompose_req2_decomp option;
+  timeout : int32 option;
+}
+
 type decompose_res_res =
   | Artifact of Artmsg.art
   | Err
@@ -212,6 +255,56 @@ val default_decompose_req :
   unit ->
   decompose_req
 (** [default_decompose_req ()] is the default value for type [decompose_req] *)
+
+val default_decompose_req2_by_name : 
+  ?name:string ->
+  ?assuming:string option ->
+  ?basis:string list ->
+  ?rule_specs:string list ->
+  ?prune:bool ->
+  ?ctx_simp:bool option ->
+  ?lift_bool:lift_bool option ->
+  ?str:bool option ->
+  unit ->
+  decompose_req2_by_name
+(** [default_decompose_req2_by_name ()] is the default value for type [decompose_req2_by_name] *)
+
+val default_decompose_req2_prune : 
+  ?d:decompose_req2_decomp option ->
+  unit ->
+  decompose_req2_prune
+(** [default_decompose_req2_prune ()] is the default value for type [decompose_req2_prune] *)
+
+val default_decompose_req2_decomp : unit -> decompose_req2_decomp
+(** [default_decompose_req2_decomp ()] is the default value for type [decompose_req2_decomp] *)
+
+val default_decompose_req2_merge : 
+  ?d1:decompose_req2_decomp option ->
+  ?d2:decompose_req2_decomp option ->
+  unit ->
+  decompose_req2_merge
+(** [default_decompose_req2_merge ()] is the default value for type [decompose_req2_merge] *)
+
+val default_decompose_req2_compound_merge : 
+  ?d1:decompose_req2_decomp option ->
+  ?d2:decompose_req2_decomp option ->
+  unit ->
+  decompose_req2_compound_merge
+(** [default_decompose_req2_compound_merge ()] is the default value for type [decompose_req2_compound_merge] *)
+
+val default_decompose_req2_combine : 
+  ?d:decompose_req2_decomp option ->
+  unit ->
+  decompose_req2_combine
+(** [default_decompose_req2_combine ()] is the default value for type [decompose_req2_combine] *)
+
+val default_decompose_req2 : 
+  ?session:Session.session option ->
+  ?decomp:decompose_req2_decomp option ->
+  ?timeout:int32 option ->
+  unit ->
+  decompose_req2
+(** [default_decompose_req2 ()] is the default value for type [decompose_req2] *)
 
 val default_decompose_res_res : unit -> decompose_res_res
 (** [default_decompose_res_res ()] is the default value for type [decompose_res_res] *)
@@ -427,6 +520,54 @@ val make_decompose_req :
   decompose_req
 (** [make_decompose_req … ()] is a builder for type [decompose_req] *)
 
+val make_decompose_req2_by_name : 
+  name:string ->
+  ?assuming:string option ->
+  basis:string list ->
+  rule_specs:string list ->
+  prune:bool ->
+  ?ctx_simp:bool option ->
+  ?lift_bool:lift_bool option ->
+  ?str:bool option ->
+  unit ->
+  decompose_req2_by_name
+(** [make_decompose_req2_by_name … ()] is a builder for type [decompose_req2_by_name] *)
+
+val make_decompose_req2_prune : 
+  ?d:decompose_req2_decomp option ->
+  unit ->
+  decompose_req2_prune
+(** [make_decompose_req2_prune … ()] is a builder for type [decompose_req2_prune] *)
+
+
+val make_decompose_req2_merge : 
+  ?d1:decompose_req2_decomp option ->
+  ?d2:decompose_req2_decomp option ->
+  unit ->
+  decompose_req2_merge
+(** [make_decompose_req2_merge … ()] is a builder for type [decompose_req2_merge] *)
+
+val make_decompose_req2_compound_merge : 
+  ?d1:decompose_req2_decomp option ->
+  ?d2:decompose_req2_decomp option ->
+  unit ->
+  decompose_req2_compound_merge
+(** [make_decompose_req2_compound_merge … ()] is a builder for type [decompose_req2_compound_merge] *)
+
+val make_decompose_req2_combine : 
+  ?d:decompose_req2_decomp option ->
+  unit ->
+  decompose_req2_combine
+(** [make_decompose_req2_combine … ()] is a builder for type [decompose_req2_combine] *)
+
+val make_decompose_req2 : 
+  ?session:Session.session option ->
+  ?decomp:decompose_req2_decomp option ->
+  ?timeout:int32 option ->
+  unit ->
+  decompose_req2
+(** [make_decompose_req2 … ()] is a builder for type [decompose_req2] *)
+
 
 val make_decompose_res : 
   res:decompose_res_res ->
@@ -618,6 +759,27 @@ val pp_lift_bool : Format.formatter -> lift_bool -> unit
 val pp_decompose_req : Format.formatter -> decompose_req -> unit 
 (** [pp_decompose_req v] formats v *)
 
+val pp_decompose_req2_by_name : Format.formatter -> decompose_req2_by_name -> unit 
+(** [pp_decompose_req2_by_name v] formats v *)
+
+val pp_decompose_req2_prune : Format.formatter -> decompose_req2_prune -> unit 
+(** [pp_decompose_req2_prune v] formats v *)
+
+val pp_decompose_req2_decomp : Format.formatter -> decompose_req2_decomp -> unit 
+(** [pp_decompose_req2_decomp v] formats v *)
+
+val pp_decompose_req2_merge : Format.formatter -> decompose_req2_merge -> unit 
+(** [pp_decompose_req2_merge v] formats v *)
+
+val pp_decompose_req2_compound_merge : Format.formatter -> decompose_req2_compound_merge -> unit 
+(** [pp_decompose_req2_compound_merge v] formats v *)
+
+val pp_decompose_req2_combine : Format.formatter -> decompose_req2_combine -> unit 
+(** [pp_decompose_req2_combine v] formats v *)
+
+val pp_decompose_req2 : Format.formatter -> decompose_req2 -> unit 
+(** [pp_decompose_req2 v] formats v *)
+
 val pp_decompose_res_res : Format.formatter -> decompose_res_res -> unit 
 (** [pp_decompose_res_res v] formats v *)
 
@@ -713,6 +875,27 @@ val encode_pb_lift_bool : lift_bool -> Pbrt.Encoder.t -> unit
 
 val encode_pb_decompose_req : decompose_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req2_by_name : decompose_req2_by_name -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req2_by_name v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req2_prune : decompose_req2_prune -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req2_prune v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req2_decomp : decompose_req2_decomp -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req2_decomp v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req2_merge : decompose_req2_merge -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req2_merge v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req2_compound_merge : decompose_req2_compound_merge -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req2_compound_merge v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req2_combine : decompose_req2_combine -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req2_combine v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req2 : decompose_req2 -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req2 v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_decompose_res_res : decompose_res_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_res_res v encoder] encodes [v] with the given [encoder] *)
@@ -810,6 +993,27 @@ val decode_pb_lift_bool : Pbrt.Decoder.t -> lift_bool
 val decode_pb_decompose_req : Pbrt.Decoder.t -> decompose_req
 (** [decode_pb_decompose_req decoder] decodes a [decompose_req] binary value from [decoder] *)
 
+val decode_pb_decompose_req2_by_name : Pbrt.Decoder.t -> decompose_req2_by_name
+(** [decode_pb_decompose_req2_by_name decoder] decodes a [decompose_req2_by_name] binary value from [decoder] *)
+
+val decode_pb_decompose_req2_prune : Pbrt.Decoder.t -> decompose_req2_prune
+(** [decode_pb_decompose_req2_prune decoder] decodes a [decompose_req2_prune] binary value from [decoder] *)
+
+val decode_pb_decompose_req2_decomp : Pbrt.Decoder.t -> decompose_req2_decomp
+(** [decode_pb_decompose_req2_decomp decoder] decodes a [decompose_req2_decomp] binary value from [decoder] *)
+
+val decode_pb_decompose_req2_merge : Pbrt.Decoder.t -> decompose_req2_merge
+(** [decode_pb_decompose_req2_merge decoder] decodes a [decompose_req2_merge] binary value from [decoder] *)
+
+val decode_pb_decompose_req2_compound_merge : Pbrt.Decoder.t -> decompose_req2_compound_merge
+(** [decode_pb_decompose_req2_compound_merge decoder] decodes a [decompose_req2_compound_merge] binary value from [decoder] *)
+
+val decode_pb_decompose_req2_combine : Pbrt.Decoder.t -> decompose_req2_combine
+(** [decode_pb_decompose_req2_combine decoder] decodes a [decompose_req2_combine] binary value from [decoder] *)
+
+val decode_pb_decompose_req2 : Pbrt.Decoder.t -> decompose_req2
+(** [decode_pb_decompose_req2 decoder] decodes a [decompose_req2] binary value from [decoder] *)
+
 val decode_pb_decompose_res_res : Pbrt.Decoder.t -> decompose_res_res
 (** [decode_pb_decompose_res_res decoder] decodes a [decompose_res_res] binary value from [decoder] *)
 
@@ -906,6 +1110,27 @@ val encode_json_lift_bool : lift_bool -> Yojson.Basic.t
 val encode_json_decompose_req : decompose_req -> Yojson.Basic.t
 (** [encode_json_decompose_req v encoder] encodes [v] to to json *)
 
+val encode_json_decompose_req2_by_name : decompose_req2_by_name -> Yojson.Basic.t
+(** [encode_json_decompose_req2_by_name v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req2_prune : decompose_req2_prune -> Yojson.Basic.t
+(** [encode_json_decompose_req2_prune v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req2_decomp : decompose_req2_decomp -> Yojson.Basic.t
+(** [encode_json_decompose_req2_decomp v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req2_merge : decompose_req2_merge -> Yojson.Basic.t
+(** [encode_json_decompose_req2_merge v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req2_compound_merge : decompose_req2_compound_merge -> Yojson.Basic.t
+(** [encode_json_decompose_req2_compound_merge v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req2_combine : decompose_req2_combine -> Yojson.Basic.t
+(** [encode_json_decompose_req2_combine v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req2 : decompose_req2 -> Yojson.Basic.t
+(** [encode_json_decompose_req2 v encoder] encodes [v] to to json *)
+
 val encode_json_decompose_res_res : decompose_res_res -> Yojson.Basic.t
 (** [encode_json_decompose_res_res v encoder] encodes [v] to to json *)
 
@@ -1001,6 +1226,27 @@ val decode_json_lift_bool : Yojson.Basic.t -> lift_bool
 
 val decode_json_decompose_req : Yojson.Basic.t -> decompose_req
 (** [decode_json_decompose_req decoder] decodes a [decompose_req] value from [decoder] *)
+
+val decode_json_decompose_req2_by_name : Yojson.Basic.t -> decompose_req2_by_name
+(** [decode_json_decompose_req2_by_name decoder] decodes a [decompose_req2_by_name] value from [decoder] *)
+
+val decode_json_decompose_req2_prune : Yojson.Basic.t -> decompose_req2_prune
+(** [decode_json_decompose_req2_prune decoder] decodes a [decompose_req2_prune] value from [decoder] *)
+
+val decode_json_decompose_req2_decomp : Yojson.Basic.t -> decompose_req2_decomp
+(** [decode_json_decompose_req2_decomp decoder] decodes a [decompose_req2_decomp] value from [decoder] *)
+
+val decode_json_decompose_req2_merge : Yojson.Basic.t -> decompose_req2_merge
+(** [decode_json_decompose_req2_merge decoder] decodes a [decompose_req2_merge] value from [decoder] *)
+
+val decode_json_decompose_req2_compound_merge : Yojson.Basic.t -> decompose_req2_compound_merge
+(** [decode_json_decompose_req2_compound_merge decoder] decodes a [decompose_req2_compound_merge] value from [decoder] *)
+
+val decode_json_decompose_req2_combine : Yojson.Basic.t -> decompose_req2_combine
+(** [decode_json_decompose_req2_combine decoder] decodes a [decompose_req2_combine] value from [decoder] *)
+
+val decode_json_decompose_req2 : Yojson.Basic.t -> decompose_req2
+(** [decode_json_decompose_req2 decoder] decodes a [decompose_req2] value from [decoder] *)
 
 val decode_json_decompose_res_res : Yojson.Basic.t -> decompose_res_res
 (** [decode_json_decompose_res_res decoder] decodes a [decompose_res_res] value from [decoder] *)
@@ -1116,6 +1362,8 @@ module Simple : sig
     
     val decompose : (decompose_req, unary, decompose_res, unary) Client.rpc
     
+    val decompose2 : (decompose_req2, unary, decompose_res, unary) Client.rpc
+    
     val typecheck : (typecheck_req, unary, typecheck_res, unary) Client.rpc
     
     val oneshot : (oneshot_req, unary, oneshot_res, unary) Client.rpc
@@ -1134,6 +1382,7 @@ module Simple : sig
       instance_src:((instance_src_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       instance_name:((instance_name_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
+      decompose2:((decompose_req2, unary, decompose_res, unary) Server.rpc -> 'handler) ->
       typecheck:((typecheck_req, unary, typecheck_res, unary) Server.rpc -> 'handler) ->
       oneshot:((oneshot_req, unary, oneshot_res, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
@@ -1159,6 +1408,8 @@ module Simple : sig
     val instance_name : (instance_name_req,unary,instance_res,unary) Server.rpc
     
     val decompose : (decompose_req,unary,decompose_res,unary) Server.rpc
+    
+    val decompose2 : (decompose_req2,unary,decompose_res,unary) Server.rpc
     
     val typecheck : (typecheck_req,unary,typecheck_res,unary) Server.rpc
     
