@@ -3911,33 +3911,95 @@ export function Tasks_Eval_res_of_twine(d: twine.Decoder, off: offset): Tasks_Ev
 
 // clique Imandrax_api_tasks.Decomp_task.decomp_poly (cached: false)
 // def Imandrax_api_tasks.Decomp_task.decomp_poly (mangled name: "Tasks_Decomp_task_decomp_poly")
-export class Tasks_Decomp_task_decomp_poly_Decomp<_V_tyreg_poly_term> {
+export class Tasks_Decomp_task_decomp_poly_Decomp<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(public arg: Common_Decomp_t_) {}
 }
-export function Tasks_Decomp_task_decomp_poly_Decomp_of_twine<_V_tyreg_poly_term>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Decomp<_V_tyreg_poly_term> {
+export function Tasks_Decomp_task_decomp_poly_Decomp_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Decomp<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
   checkArrayLength(off, _tw_args, 1)
   const arg = Common_Decomp_t__of_twine(d, _tw_args[0])
   return new Tasks_Decomp_task_decomp_poly_Decomp(arg)
 }
-export class Tasks_Decomp_task_decomp_poly_Term<_V_tyreg_poly_term> {
+export class Tasks_Decomp_task_decomp_poly_Term<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(public arg: _V_tyreg_poly_term) {}
 }
-export function Tasks_Decomp_task_decomp_poly_Term_of_twine<_V_tyreg_poly_term>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Term<_V_tyreg_poly_term> {
+export function Tasks_Decomp_task_decomp_poly_Term_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Term<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
   checkArrayLength(off, _tw_args, 1)
   const arg = decode__tyreg_poly_term(d,_tw_args[0])
   return new Tasks_Decomp_task_decomp_poly_Term(arg)
 }
-export type Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term> = Tasks_Decomp_task_decomp_poly_Decomp<_V_tyreg_poly_term>| Tasks_Decomp_task_decomp_poly_Term<_V_tyreg_poly_term>
+export class Tasks_Decomp_task_decomp_poly_Return<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public arg: Common_Fun_decomp_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
+}
+export function Tasks_Decomp_task_decomp_poly_Return_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Return<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
+  checkArrayLength(off, _tw_args, 1)
+  const arg = Common_Fun_decomp_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0])
+  return new Tasks_Decomp_task_decomp_poly_Return(arg)
+}
+export class Tasks_Decomp_task_decomp_poly_Prune<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public arg: Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
+}
+export function Tasks_Decomp_task_decomp_poly_Prune_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Prune<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
+  checkArrayLength(off, _tw_args, 1)
+  const arg = Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0])
+  return new Tasks_Decomp_task_decomp_poly_Prune(arg)
+}
+export class Tasks_Decomp_task_decomp_poly_Merge<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public args: [Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>]){}
+}
+export function Tasks_Decomp_task_decomp_poly_Merge_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Merge<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore
+  decode__tyreg_poly_ty; // ignore
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>] = [Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0]),Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[1])]
+  return new Tasks_Decomp_task_decomp_poly_Merge(cargs)
+}
+export class Tasks_Decomp_task_decomp_poly_Compound_merge<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public args: [Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>]){}
+}
+export function Tasks_Decomp_task_decomp_poly_Compound_merge_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Compound_merge<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore
+  decode__tyreg_poly_ty; // ignore
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>] = [Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0]),Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[1])]
+  return new Tasks_Decomp_task_decomp_poly_Compound_merge(cargs)
+}
+export class Tasks_Decomp_task_decomp_poly_Combine<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public arg: Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
+}
+export function Tasks_Decomp_task_decomp_poly_Combine_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Combine<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
+  checkArrayLength(off, _tw_args, 1)
+  const arg = Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0])
+  return new Tasks_Decomp_task_decomp_poly_Combine(arg)
+}
+export type Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> = Tasks_Decomp_task_decomp_poly_Decomp<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Term<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Return<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Prune<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Merge<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Compound_merge<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Combine<_V_tyreg_poly_term,_V_tyreg_poly_ty>
 
-export function Tasks_Decomp_task_decomp_poly_of_twine<_V_tyreg_poly_term>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term,off: offset): Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term> {
+export function Tasks_Decomp_task_decomp_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   const c = d.get_cstor(off)
   switch (c.cstor_idx) {
    case 0:
-      return Tasks_Decomp_task_decomp_poly_Decomp_of_twine(d, decode__tyreg_poly_term, c.args, off)
+      return Tasks_Decomp_task_decomp_poly_Decomp_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
    case 1:
-      return Tasks_Decomp_task_decomp_poly_Term_of_twine(d, decode__tyreg_poly_term, c.args, off)
+      return Tasks_Decomp_task_decomp_poly_Term_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 2:
+      return Tasks_Decomp_task_decomp_poly_Return_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 3:
+      return Tasks_Decomp_task_decomp_poly_Prune_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 4:
+      return Tasks_Decomp_task_decomp_poly_Merge_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 5:
+      return Tasks_Decomp_task_decomp_poly_Compound_merge_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 6:
+      return Tasks_Decomp_task_decomp_poly_Combine_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
    default:
       throw new twine.TwineError({msg: `expected Tasks_Decomp_task_decomp_poly, got invalid constructor ${c.cstor_idx}`, offset: off})
 
@@ -3949,7 +4011,7 @@ export function Tasks_Decomp_task_decomp_poly_of_twine<_V_tyreg_poly_term>(d: tw
 export class Tasks_Decomp_task_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
     public db:Common_Db_ser_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
-    public decomp:Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term>,
+    public decomp:Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
     public anchor:Anchor,
     public timeout:undefined | bigint) {}
 }
@@ -3960,7 +4022,7 @@ export function Tasks_Decomp_task_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_po
   const fields = d.get_array(off).toArray()
   checkArrayLength(off, fields, 4)
   const db = Common_Db_ser_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[0])
-  const decomp = Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)),fields[1])
+  const decomp = Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[1])
   const anchor = Anchor_of_twine(d, fields[2])
   const timeout = twine.optional(d,  ((d:twine.Decoder,off:offset) => d.get_int(off)), fields[3])
   return new Tasks_Decomp_task_t_poly(db, decomp, anchor, timeout)
@@ -3968,10 +4030,10 @@ export function Tasks_Decomp_task_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_po
 
 // clique Imandrax_api_tasks.Decomp_task.Mir.decomp (cached: false)
 // def Imandrax_api_tasks.Decomp_task.Mir.decomp (mangled name: "Tasks_Decomp_task_Mir_decomp")
-export type Tasks_Decomp_task_Mir_decomp = Tasks_Decomp_task_decomp_poly<Mir_Term>;
+export type Tasks_Decomp_task_Mir_decomp = Tasks_Decomp_task_decomp_poly<Mir_Term,Mir_Type>;
 
 export function Tasks_Decomp_task_Mir_decomp_of_twine(d: twine.Decoder, off: offset): Tasks_Decomp_task_Mir_decomp {
-  return Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)),off)
+  return Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
 // clique Imandrax_api_tasks.Decomp_task.Mir.t (cached: false)
@@ -4036,7 +4098,7 @@ export function Tasks_Decomp_res_result_of_twine<_V_tyreg_poly_a>(d: twine.Decod
 // def Imandrax_api_tasks.Decomp_res.shallow_poly (mangled name: "Tasks_Decomp_res_shallow_poly")
 export class Tasks_Decomp_res_shallow_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
-    public from_:Ca_store_Ca_ptr<Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term>>,
+    public from_:Ca_store_Ca_ptr<Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>>,
     public res:Tasks_Decomp_res_result<Tasks_Decomp_res_success<_V_tyreg_poly_term,_V_tyreg_poly_ty>>,
     public stats:Stat_time,
     public report:In_mem_archive<Report_Report>) {}
@@ -4047,7 +4109,7 @@ export function Tasks_Decomp_res_shallow_poly_of_twine<_V_tyreg_poly_term,_V_tyr
     decode__tyreg_poly_ty
   const fields = d.get_array(off).toArray()
   checkArrayLength(off, fields, 4)
-  const from_ = Ca_store_Ca_ptr_of_twine(d,((d:twine.Decoder,off:offset) => Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)),off)),fields[0])
+  const from_ = Ca_store_Ca_ptr_of_twine(d,((d:twine.Decoder,off:offset) => Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)),fields[0])
   const res = Tasks_Decomp_res_result_of_twine(d,((d:twine.Decoder,off:offset) => Tasks_Decomp_res_success_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)),fields[1])
   const stats = Stat_time_of_twine(d, fields[2])
   const report = In_mem_archive_of_twine(d,((d:twine.Decoder,off:offset) => Report_Report_of_twine(d, off)),fields[3])
@@ -4058,7 +4120,7 @@ export function Tasks_Decomp_res_shallow_poly_of_twine<_V_tyreg_poly_term,_V_tyr
 // def Imandrax_api_tasks.Decomp_res.full_poly (mangled name: "Tasks_Decomp_res_full_poly")
 export class Tasks_Decomp_res_full_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
-    public from_:Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term>,
+    public from_:Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
     public res:Tasks_Decomp_res_result<Tasks_Decomp_res_success<_V_tyreg_poly_term,_V_tyreg_poly_ty>>,
     public stats:Stat_time,
     public report:In_mem_archive<Report_Report>) {}
@@ -4069,7 +4131,7 @@ export function Tasks_Decomp_res_full_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_
     decode__tyreg_poly_ty
   const fields = d.get_array(off).toArray()
   checkArrayLength(off, fields, 4)
-  const from_ = Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)),fields[0])
+  const from_ = Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[0])
   const res = Tasks_Decomp_res_result_of_twine(d,((d:twine.Decoder,off:offset) => Tasks_Decomp_res_success_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)),fields[1])
   const stats = Stat_time_of_twine(d, fields[2])
   const report = In_mem_archive_of_twine(d,((d:twine.Decoder,off:offset) => Report_Report_of_twine(d, off)),fields[3])
