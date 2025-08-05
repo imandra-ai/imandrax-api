@@ -23,7 +23,7 @@ if _async_available:
             self._session = session
             # prefix used for RPCs
             self._server_path_prefix = server_path_prefix
-            self._timeout = aiohttp.ClientTimeout(total=timeout)
+            self._timeout : aiohttp.ClientTimeout = aiohttp.ClientTimeout(total=timeout)
 
         async def _make_request(
             self, *, url, ctx, request, response_obj, **kwargs
@@ -48,7 +48,7 @@ if _async_available:
                         raise exceptions.TwirpServerException(
                             code=resp.status, 
                             message=resp.reason,
-                            meta={"body": resp.json()}
+                            meta={"body": await resp.json()}
                         )
                     except (aiohttp.ContentTypeError, json.JSONDecodeError):
                         raise exceptions.twirp_error_from_intermediary(
