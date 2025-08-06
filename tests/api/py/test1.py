@@ -22,6 +22,9 @@ print(x2.tasks)
 task2 = x2.tasks[0]
 print("task2: ", task2)
 
+x3 = timeit("eval3", lambda: c.verify_src(src="fun x -> x + 10 <> 21"))
+print(x3)
+
 arts = c.list_artifacts(task2)
 print("arts:", arts)
 
