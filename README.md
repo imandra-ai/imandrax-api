@@ -9,18 +9,18 @@ This contains:
 
 ## Getting started
 
-ImandraX currently supports Linux on x86_64, and macOS on aarch64 (ie ARM machines).
+ImandraX currently supports Linux on x86_64, and macOS on aarch64 (i.e. modern ARM Macs) and x86_64 (Intel Macs).
 
-Most users should simply run `scripts/install.sh` to install the latest stable production release of `imandrax-cli`:
+To get the latest stable production release of `imandra-cli`, run the installer via:
 
 ```sh
-./scripts/install.sh
+sh -c "$(curl -fsSL https://imandra.ai/get-imandrax.sh)"
 ```
 
 For those wanting bleeding edge updates (and okay with occasional breaking changes!), the development version can be installed by exporting `VERSION=latest-main`:
 
 ```sh
-VERSION=latest-main ./scripts/install.sh
+VERSION=latest-main sh -c "$(curl -fsSL https://imandra.ai/get-imandrax.sh)"
 ```
 
 ## Getting an Imandra Universe API key
