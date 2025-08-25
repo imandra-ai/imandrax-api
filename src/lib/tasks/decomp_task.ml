@@ -10,6 +10,11 @@ type ('term, 'ty) decomp_poly =
   | Merge of ('term, 'ty) decomp_poly * ('term, 'ty) decomp_poly
   | Compound_merge of ('term, 'ty) decomp_poly * ('term, 'ty) decomp_poly
   | Combine of ('term, 'ty) decomp_poly
+  | Get of string
+  | Parallel_set of {
+      bindings: (string * ('term, 'ty) decomp_poly) list;
+      and_then: ('term, 'ty) decomp_poly;
+    }
 [@@deriving show, twine, typereg, map, iter]
 
 type ('term, 'ty) t_poly = {
