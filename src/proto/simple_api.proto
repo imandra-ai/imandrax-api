@@ -118,6 +118,27 @@ message DecomposeReq2 {
     Decomp d2 = 2;
   }
 
+  message LocalVarBinding {
+    // bind local name to the result of `d`
+    string name = 1;
+
+    // the operation to perform and store in the variable
+    Decomp d = 2;
+  }
+
+  message LocalVarParallelSet {
+    // list of bindings to do in parallel
+    repeated DecomposeReq2.LocalVarBinding bindings = 1;
+
+    // the decomposition to do after the bindings are evaluated
+    Decomp and_then = 2;
+  }
+
+  message LocalVarGet {
+    // Get the result stored in the variable with the given name
+    string name = 1;
+  }
+
   // The main description of what to decompose
   message Decomp {
     oneof decomp {
@@ -127,6 +148,8 @@ message DecomposeReq2 {
       DecomposeReq2.CompoundMerge compound_merge = 4;
       DecomposeReq2.Prune prune = 5;
       DecomposeReq2.Combine combine = 6;
+      DecomposeReq2.LocalVarGet get = 10;
+      DecomposeReq2.LocalVarParallelSet set = 11;
     }
   };
 
