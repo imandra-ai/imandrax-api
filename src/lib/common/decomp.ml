@@ -26,4 +26,3 @@ type t_ = {
 }
 [@@deriving show, twine, typereg]
 (** Root decomposition task, from the name of a function to decompose *)
-
