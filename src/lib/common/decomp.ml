@@ -13,7 +13,7 @@ type lift_bool =
   | All
       (** Extends [Default] with the rule [(t : bool)] -->
           [if t then true else false] *)
-[@@deriving show, twine, typereg]
+[@@deriving show, twine, typereg, eq, ord]
 
 type t_ = {
   f_id: Imandrax_api.Uid.t;
@@ -24,5 +24,5 @@ type t_ = {
   lift_bool: lift_bool;
   prune: bool;
 }
-[@@deriving show, twine, typereg]
+[@@deriving eq, show, twine, typereg]
 (** Root decomposition task, from the name of a function to decompose *)
