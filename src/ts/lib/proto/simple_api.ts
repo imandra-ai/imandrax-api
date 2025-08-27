@@ -109,9 +109,84 @@ export interface DecomposeReq {
   ruleSpecs: string[];
   prune: boolean;
   ctxSimp?: boolean | undefined;
-  liftBool?: LiftBool | undefined;
+  liftBool?:
+    | LiftBool
+    | undefined;
+  /** include result as string? */
   str?: boolean | undefined;
   timeout?: number | undefined;
+}
+
+/** / More detailed decompose task */
+export interface DecomposeReqFull {
+  session: Session | undefined;
+  decomp:
+    | DecomposeReqFull_Decomp
+    | undefined;
+  /** include result as string? */
+  str?: boolean | undefined;
+  timeout?: number | undefined;
+}
+
+export interface DecomposeReqFull_ByName {
+  /** name of function to decompose */
+  name: string;
+  /** name of side condition function */
+  assuming?: string | undefined;
+  basis: string[];
+  ruleSpecs: string[];
+  prune: boolean;
+  ctxSimp?: boolean | undefined;
+  liftBool?: LiftBool | undefined;
+}
+
+export interface DecomposeReqFull_Prune {
+  d: DecomposeReqFull_Decomp | undefined;
+}
+
+export interface DecomposeReqFull_Combine {
+  d: DecomposeReqFull_Decomp | undefined;
+}
+
+export interface DecomposeReqFull_Merge {
+  d1: DecomposeReqFull_Decomp | undefined;
+  d2: DecomposeReqFull_Decomp | undefined;
+}
+
+export interface DecomposeReqFull_CompoundMerge {
+  d1: DecomposeReqFull_Decomp | undefined;
+  d2: DecomposeReqFull_Decomp | undefined;
+}
+
+export interface DecomposeReqFull_LocalVarBinding {
+  /** bind local name to the result of `d` */
+  name: string;
+  /** the operation to perform and store in the variable */
+  d: DecomposeReqFull_Decomp | undefined;
+}
+
+export interface DecomposeReqFull_LocalVarLet {
+  /** list of let-bindings to do simultaneously (in the same environment) */
+  bindings: DecomposeReqFull_LocalVarBinding[];
+  /** the decomposition to do after the bindings are evaluated */
+  andThen: DecomposeReqFull_Decomp | undefined;
+}
+
+export interface DecomposeReqFull_LocalVarGet {
+  /** Get the result stored in the variable with the given name */
+  name: string;
+}
+
+/** The main description of what to decompose */
+export interface DecomposeReqFull_Decomp {
+  fromArtifact?: Art | undefined;
+  byName?: DecomposeReqFull_ByName | undefined;
+  merge?: DecomposeReqFull_Merge | undefined;
+  compoundMerge?: DecomposeReqFull_CompoundMerge | undefined;
+  prune?: DecomposeReqFull_Prune | undefined;
+  combine?: DecomposeReqFull_Combine | undefined;
+  get?: DecomposeReqFull_LocalVarGet | undefined;
+  set?: DecomposeReqFull_LocalVarLet | undefined;
 }
 
 /** Result of a decomposition */
@@ -568,6 +643,985 @@ export const DecomposeReq: MessageFns<DecomposeReq> = {
     message.liftBool = object.liftBool ?? undefined;
     message.str = object.str ?? undefined;
     message.timeout = object.timeout ?? undefined;
+    return message;
+  },
+};
+
+function createBaseDecomposeReqFull(): DecomposeReqFull {
+  return { session: undefined, decomp: undefined, str: undefined, timeout: undefined };
+}
+
+export const DecomposeReqFull: MessageFns<DecomposeReqFull> = {
+  encode(message: DecomposeReqFull, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.session !== undefined) {
+      Session.encode(message.session, writer.uint32(10).fork()).join();
+    }
+    if (message.decomp !== undefined) {
+      DecomposeReqFull_Decomp.encode(message.decomp, writer.uint32(18).fork()).join();
+    }
+    if (message.str !== undefined) {
+      writer.uint32(72).bool(message.str);
+    }
+    if (message.timeout !== undefined) {
+      writer.uint32(80).int32(message.timeout);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.session = Session.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.decomp = DecomposeReqFull_Decomp.decode(reader, reader.uint32());
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.str = reader.bool();
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.timeout = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull {
+    return {
+      session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
+      decomp: isSet(object.decomp) ? DecomposeReqFull_Decomp.fromJSON(object.decomp) : undefined,
+      str: isSet(object.str) ? globalThis.Boolean(object.str) : undefined,
+      timeout: isSet(object.timeout) ? globalThis.Number(object.timeout) : undefined,
+    };
+  },
+
+  toJSON(message: DecomposeReqFull): unknown {
+    const obj: any = {};
+    if (message.session !== undefined) {
+      obj.session = Session.toJSON(message.session);
+    }
+    if (message.decomp !== undefined) {
+      obj.decomp = DecomposeReqFull_Decomp.toJSON(message.decomp);
+    }
+    if (message.str !== undefined) {
+      obj.str = message.str;
+    }
+    if (message.timeout !== undefined) {
+      obj.timeout = Math.round(message.timeout);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull>, I>>(base?: I): DecomposeReqFull {
+    return DecomposeReqFull.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull>, I>>(object: I): DecomposeReqFull {
+    const message = createBaseDecomposeReqFull();
+    message.session = (object.session !== undefined && object.session !== null)
+      ? Session.fromPartial(object.session)
+      : undefined;
+    message.decomp = (object.decomp !== undefined && object.decomp !== null)
+      ? DecomposeReqFull_Decomp.fromPartial(object.decomp)
+      : undefined;
+    message.str = object.str ?? undefined;
+    message.timeout = object.timeout ?? undefined;
+    return message;
+  },
+};
+
+function createBaseDecomposeReqFull_ByName(): DecomposeReqFull_ByName {
+  return {
+    name: "",
+    assuming: undefined,
+    basis: [],
+    ruleSpecs: [],
+    prune: false,
+    ctxSimp: undefined,
+    liftBool: undefined,
+  };
+}
+
+export const DecomposeReqFull_ByName: MessageFns<DecomposeReqFull_ByName> = {
+  encode(message: DecomposeReqFull_ByName, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.assuming !== undefined) {
+      writer.uint32(26).string(message.assuming);
+    }
+    for (const v of message.basis) {
+      writer.uint32(34).string(v!);
+    }
+    for (const v of message.ruleSpecs) {
+      writer.uint32(42).string(v!);
+    }
+    if (message.prune !== false) {
+      writer.uint32(48).bool(message.prune);
+    }
+    if (message.ctxSimp !== undefined) {
+      writer.uint32(56).bool(message.ctxSimp);
+    }
+    if (message.liftBool !== undefined) {
+      writer.uint32(64).int32(message.liftBool);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull_ByName {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull_ByName();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.assuming = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.basis.push(reader.string());
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.ruleSpecs.push(reader.string());
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.prune = reader.bool();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.ctxSimp = reader.bool();
+          continue;
+        }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.liftBool = reader.int32() as any;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull_ByName {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      assuming: isSet(object.assuming) ? globalThis.String(object.assuming) : undefined,
+      basis: globalThis.Array.isArray(object?.basis) ? object.basis.map((e: any) => globalThis.String(e)) : [],
+      ruleSpecs: globalThis.Array.isArray(object?.ruleSpecs)
+        ? object.ruleSpecs.map((e: any) => globalThis.String(e))
+        : [],
+      prune: isSet(object.prune) ? globalThis.Boolean(object.prune) : false,
+      ctxSimp: isSet(object.ctxSimp) ? globalThis.Boolean(object.ctxSimp) : undefined,
+      liftBool: isSet(object.liftBool) ? liftBoolFromJSON(object.liftBool) : undefined,
+    };
+  },
+
+  toJSON(message: DecomposeReqFull_ByName): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.assuming !== undefined) {
+      obj.assuming = message.assuming;
+    }
+    if (message.basis?.length) {
+      obj.basis = message.basis;
+    }
+    if (message.ruleSpecs?.length) {
+      obj.ruleSpecs = message.ruleSpecs;
+    }
+    if (message.prune !== false) {
+      obj.prune = message.prune;
+    }
+    if (message.ctxSimp !== undefined) {
+      obj.ctxSimp = message.ctxSimp;
+    }
+    if (message.liftBool !== undefined) {
+      obj.liftBool = liftBoolToJSON(message.liftBool);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull_ByName>, I>>(base?: I): DecomposeReqFull_ByName {
+    return DecomposeReqFull_ByName.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_ByName>, I>>(object: I): DecomposeReqFull_ByName {
+    const message = createBaseDecomposeReqFull_ByName();
+    message.name = object.name ?? "";
+    message.assuming = object.assuming ?? undefined;
+    message.basis = object.basis?.map((e) => e) || [];
+    message.ruleSpecs = object.ruleSpecs?.map((e) => e) || [];
+    message.prune = object.prune ?? false;
+    message.ctxSimp = object.ctxSimp ?? undefined;
+    message.liftBool = object.liftBool ?? undefined;
+    return message;
+  },
+};
+
+function createBaseDecomposeReqFull_Prune(): DecomposeReqFull_Prune {
+  return { d: undefined };
+}
+
+export const DecomposeReqFull_Prune: MessageFns<DecomposeReqFull_Prune> = {
+  encode(message: DecomposeReqFull_Prune, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.d !== undefined) {
+      DecomposeReqFull_Decomp.encode(message.d, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull_Prune {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull_Prune();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.d = DecomposeReqFull_Decomp.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull_Prune {
+    return { d: isSet(object.d) ? DecomposeReqFull_Decomp.fromJSON(object.d) : undefined };
+  },
+
+  toJSON(message: DecomposeReqFull_Prune): unknown {
+    const obj: any = {};
+    if (message.d !== undefined) {
+      obj.d = DecomposeReqFull_Decomp.toJSON(message.d);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull_Prune>, I>>(base?: I): DecomposeReqFull_Prune {
+    return DecomposeReqFull_Prune.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_Prune>, I>>(object: I): DecomposeReqFull_Prune {
+    const message = createBaseDecomposeReqFull_Prune();
+    message.d = (object.d !== undefined && object.d !== null)
+      ? DecomposeReqFull_Decomp.fromPartial(object.d)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseDecomposeReqFull_Combine(): DecomposeReqFull_Combine {
+  return { d: undefined };
+}
+
+export const DecomposeReqFull_Combine: MessageFns<DecomposeReqFull_Combine> = {
+  encode(message: DecomposeReqFull_Combine, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.d !== undefined) {
+      DecomposeReqFull_Decomp.encode(message.d, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull_Combine {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull_Combine();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.d = DecomposeReqFull_Decomp.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull_Combine {
+    return { d: isSet(object.d) ? DecomposeReqFull_Decomp.fromJSON(object.d) : undefined };
+  },
+
+  toJSON(message: DecomposeReqFull_Combine): unknown {
+    const obj: any = {};
+    if (message.d !== undefined) {
+      obj.d = DecomposeReqFull_Decomp.toJSON(message.d);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull_Combine>, I>>(base?: I): DecomposeReqFull_Combine {
+    return DecomposeReqFull_Combine.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_Combine>, I>>(object: I): DecomposeReqFull_Combine {
+    const message = createBaseDecomposeReqFull_Combine();
+    message.d = (object.d !== undefined && object.d !== null)
+      ? DecomposeReqFull_Decomp.fromPartial(object.d)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseDecomposeReqFull_Merge(): DecomposeReqFull_Merge {
+  return { d1: undefined, d2: undefined };
+}
+
+export const DecomposeReqFull_Merge: MessageFns<DecomposeReqFull_Merge> = {
+  encode(message: DecomposeReqFull_Merge, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.d1 !== undefined) {
+      DecomposeReqFull_Decomp.encode(message.d1, writer.uint32(10).fork()).join();
+    }
+    if (message.d2 !== undefined) {
+      DecomposeReqFull_Decomp.encode(message.d2, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull_Merge {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull_Merge();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.d1 = DecomposeReqFull_Decomp.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.d2 = DecomposeReqFull_Decomp.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull_Merge {
+    return {
+      d1: isSet(object.d1) ? DecomposeReqFull_Decomp.fromJSON(object.d1) : undefined,
+      d2: isSet(object.d2) ? DecomposeReqFull_Decomp.fromJSON(object.d2) : undefined,
+    };
+  },
+
+  toJSON(message: DecomposeReqFull_Merge): unknown {
+    const obj: any = {};
+    if (message.d1 !== undefined) {
+      obj.d1 = DecomposeReqFull_Decomp.toJSON(message.d1);
+    }
+    if (message.d2 !== undefined) {
+      obj.d2 = DecomposeReqFull_Decomp.toJSON(message.d2);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull_Merge>, I>>(base?: I): DecomposeReqFull_Merge {
+    return DecomposeReqFull_Merge.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_Merge>, I>>(object: I): DecomposeReqFull_Merge {
+    const message = createBaseDecomposeReqFull_Merge();
+    message.d1 = (object.d1 !== undefined && object.d1 !== null)
+      ? DecomposeReqFull_Decomp.fromPartial(object.d1)
+      : undefined;
+    message.d2 = (object.d2 !== undefined && object.d2 !== null)
+      ? DecomposeReqFull_Decomp.fromPartial(object.d2)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseDecomposeReqFull_CompoundMerge(): DecomposeReqFull_CompoundMerge {
+  return { d1: undefined, d2: undefined };
+}
+
+export const DecomposeReqFull_CompoundMerge: MessageFns<DecomposeReqFull_CompoundMerge> = {
+  encode(message: DecomposeReqFull_CompoundMerge, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.d1 !== undefined) {
+      DecomposeReqFull_Decomp.encode(message.d1, writer.uint32(10).fork()).join();
+    }
+    if (message.d2 !== undefined) {
+      DecomposeReqFull_Decomp.encode(message.d2, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull_CompoundMerge {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull_CompoundMerge();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.d1 = DecomposeReqFull_Decomp.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.d2 = DecomposeReqFull_Decomp.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull_CompoundMerge {
+    return {
+      d1: isSet(object.d1) ? DecomposeReqFull_Decomp.fromJSON(object.d1) : undefined,
+      d2: isSet(object.d2) ? DecomposeReqFull_Decomp.fromJSON(object.d2) : undefined,
+    };
+  },
+
+  toJSON(message: DecomposeReqFull_CompoundMerge): unknown {
+    const obj: any = {};
+    if (message.d1 !== undefined) {
+      obj.d1 = DecomposeReqFull_Decomp.toJSON(message.d1);
+    }
+    if (message.d2 !== undefined) {
+      obj.d2 = DecomposeReqFull_Decomp.toJSON(message.d2);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull_CompoundMerge>, I>>(base?: I): DecomposeReqFull_CompoundMerge {
+    return DecomposeReqFull_CompoundMerge.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_CompoundMerge>, I>>(
+    object: I,
+  ): DecomposeReqFull_CompoundMerge {
+    const message = createBaseDecomposeReqFull_CompoundMerge();
+    message.d1 = (object.d1 !== undefined && object.d1 !== null)
+      ? DecomposeReqFull_Decomp.fromPartial(object.d1)
+      : undefined;
+    message.d2 = (object.d2 !== undefined && object.d2 !== null)
+      ? DecomposeReqFull_Decomp.fromPartial(object.d2)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseDecomposeReqFull_LocalVarBinding(): DecomposeReqFull_LocalVarBinding {
+  return { name: "", d: undefined };
+}
+
+export const DecomposeReqFull_LocalVarBinding: MessageFns<DecomposeReqFull_LocalVarBinding> = {
+  encode(message: DecomposeReqFull_LocalVarBinding, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.d !== undefined) {
+      DecomposeReqFull_Decomp.encode(message.d, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull_LocalVarBinding {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull_LocalVarBinding();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.d = DecomposeReqFull_Decomp.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull_LocalVarBinding {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      d: isSet(object.d) ? DecomposeReqFull_Decomp.fromJSON(object.d) : undefined,
+    };
+  },
+
+  toJSON(message: DecomposeReqFull_LocalVarBinding): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.d !== undefined) {
+      obj.d = DecomposeReqFull_Decomp.toJSON(message.d);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull_LocalVarBinding>, I>>(
+    base?: I,
+  ): DecomposeReqFull_LocalVarBinding {
+    return DecomposeReqFull_LocalVarBinding.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_LocalVarBinding>, I>>(
+    object: I,
+  ): DecomposeReqFull_LocalVarBinding {
+    const message = createBaseDecomposeReqFull_LocalVarBinding();
+    message.name = object.name ?? "";
+    message.d = (object.d !== undefined && object.d !== null)
+      ? DecomposeReqFull_Decomp.fromPartial(object.d)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseDecomposeReqFull_LocalVarLet(): DecomposeReqFull_LocalVarLet {
+  return { bindings: [], andThen: undefined };
+}
+
+export const DecomposeReqFull_LocalVarLet: MessageFns<DecomposeReqFull_LocalVarLet> = {
+  encode(message: DecomposeReqFull_LocalVarLet, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.bindings) {
+      DecomposeReqFull_LocalVarBinding.encode(v!, writer.uint32(10).fork()).join();
+    }
+    if (message.andThen !== undefined) {
+      DecomposeReqFull_Decomp.encode(message.andThen, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull_LocalVarLet {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull_LocalVarLet();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.bindings.push(DecomposeReqFull_LocalVarBinding.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.andThen = DecomposeReqFull_Decomp.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull_LocalVarLet {
+    return {
+      bindings: globalThis.Array.isArray(object?.bindings)
+        ? object.bindings.map((e: any) => DecomposeReqFull_LocalVarBinding.fromJSON(e))
+        : [],
+      andThen: isSet(object.andThen) ? DecomposeReqFull_Decomp.fromJSON(object.andThen) : undefined,
+    };
+  },
+
+  toJSON(message: DecomposeReqFull_LocalVarLet): unknown {
+    const obj: any = {};
+    if (message.bindings?.length) {
+      obj.bindings = message.bindings.map((e) => DecomposeReqFull_LocalVarBinding.toJSON(e));
+    }
+    if (message.andThen !== undefined) {
+      obj.andThen = DecomposeReqFull_Decomp.toJSON(message.andThen);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull_LocalVarLet>, I>>(base?: I): DecomposeReqFull_LocalVarLet {
+    return DecomposeReqFull_LocalVarLet.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_LocalVarLet>, I>>(object: I): DecomposeReqFull_LocalVarLet {
+    const message = createBaseDecomposeReqFull_LocalVarLet();
+    message.bindings = object.bindings?.map((e) => DecomposeReqFull_LocalVarBinding.fromPartial(e)) || [];
+    message.andThen = (object.andThen !== undefined && object.andThen !== null)
+      ? DecomposeReqFull_Decomp.fromPartial(object.andThen)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseDecomposeReqFull_LocalVarGet(): DecomposeReqFull_LocalVarGet {
+  return { name: "" };
+}
+
+export const DecomposeReqFull_LocalVarGet: MessageFns<DecomposeReqFull_LocalVarGet> = {
+  encode(message: DecomposeReqFull_LocalVarGet, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull_LocalVarGet {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull_LocalVarGet();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull_LocalVarGet {
+    return { name: isSet(object.name) ? globalThis.String(object.name) : "" };
+  },
+
+  toJSON(message: DecomposeReqFull_LocalVarGet): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull_LocalVarGet>, I>>(base?: I): DecomposeReqFull_LocalVarGet {
+    return DecomposeReqFull_LocalVarGet.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_LocalVarGet>, I>>(object: I): DecomposeReqFull_LocalVarGet {
+    const message = createBaseDecomposeReqFull_LocalVarGet();
+    message.name = object.name ?? "";
+    return message;
+  },
+};
+
+function createBaseDecomposeReqFull_Decomp(): DecomposeReqFull_Decomp {
+  return {
+    fromArtifact: undefined,
+    byName: undefined,
+    merge: undefined,
+    compoundMerge: undefined,
+    prune: undefined,
+    combine: undefined,
+    get: undefined,
+    set: undefined,
+  };
+}
+
+export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
+  encode(message: DecomposeReqFull_Decomp, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.fromArtifact !== undefined) {
+      Art.encode(message.fromArtifact, writer.uint32(10).fork()).join();
+    }
+    if (message.byName !== undefined) {
+      DecomposeReqFull_ByName.encode(message.byName, writer.uint32(18).fork()).join();
+    }
+    if (message.merge !== undefined) {
+      DecomposeReqFull_Merge.encode(message.merge, writer.uint32(26).fork()).join();
+    }
+    if (message.compoundMerge !== undefined) {
+      DecomposeReqFull_CompoundMerge.encode(message.compoundMerge, writer.uint32(34).fork()).join();
+    }
+    if (message.prune !== undefined) {
+      DecomposeReqFull_Prune.encode(message.prune, writer.uint32(42).fork()).join();
+    }
+    if (message.combine !== undefined) {
+      DecomposeReqFull_Combine.encode(message.combine, writer.uint32(50).fork()).join();
+    }
+    if (message.get !== undefined) {
+      DecomposeReqFull_LocalVarGet.encode(message.get, writer.uint32(82).fork()).join();
+    }
+    if (message.set !== undefined) {
+      DecomposeReqFull_LocalVarLet.encode(message.set, writer.uint32(90).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull_Decomp {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull_Decomp();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.fromArtifact = Art.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.byName = DecomposeReqFull_ByName.decode(reader, reader.uint32());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.merge = DecomposeReqFull_Merge.decode(reader, reader.uint32());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.compoundMerge = DecomposeReqFull_CompoundMerge.decode(reader, reader.uint32());
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.prune = DecomposeReqFull_Prune.decode(reader, reader.uint32());
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.combine = DecomposeReqFull_Combine.decode(reader, reader.uint32());
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.get = DecomposeReqFull_LocalVarGet.decode(reader, reader.uint32());
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.set = DecomposeReqFull_LocalVarLet.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull_Decomp {
+    return {
+      fromArtifact: isSet(object.fromArtifact) ? Art.fromJSON(object.fromArtifact) : undefined,
+      byName: isSet(object.byName) ? DecomposeReqFull_ByName.fromJSON(object.byName) : undefined,
+      merge: isSet(object.merge) ? DecomposeReqFull_Merge.fromJSON(object.merge) : undefined,
+      compoundMerge: isSet(object.compoundMerge)
+        ? DecomposeReqFull_CompoundMerge.fromJSON(object.compoundMerge)
+        : undefined,
+      prune: isSet(object.prune) ? DecomposeReqFull_Prune.fromJSON(object.prune) : undefined,
+      combine: isSet(object.combine) ? DecomposeReqFull_Combine.fromJSON(object.combine) : undefined,
+      get: isSet(object.get) ? DecomposeReqFull_LocalVarGet.fromJSON(object.get) : undefined,
+      set: isSet(object.set) ? DecomposeReqFull_LocalVarLet.fromJSON(object.set) : undefined,
+    };
+  },
+
+  toJSON(message: DecomposeReqFull_Decomp): unknown {
+    const obj: any = {};
+    if (message.fromArtifact !== undefined) {
+      obj.fromArtifact = Art.toJSON(message.fromArtifact);
+    }
+    if (message.byName !== undefined) {
+      obj.byName = DecomposeReqFull_ByName.toJSON(message.byName);
+    }
+    if (message.merge !== undefined) {
+      obj.merge = DecomposeReqFull_Merge.toJSON(message.merge);
+    }
+    if (message.compoundMerge !== undefined) {
+      obj.compoundMerge = DecomposeReqFull_CompoundMerge.toJSON(message.compoundMerge);
+    }
+    if (message.prune !== undefined) {
+      obj.prune = DecomposeReqFull_Prune.toJSON(message.prune);
+    }
+    if (message.combine !== undefined) {
+      obj.combine = DecomposeReqFull_Combine.toJSON(message.combine);
+    }
+    if (message.get !== undefined) {
+      obj.get = DecomposeReqFull_LocalVarGet.toJSON(message.get);
+    }
+    if (message.set !== undefined) {
+      obj.set = DecomposeReqFull_LocalVarLet.toJSON(message.set);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull_Decomp>, I>>(base?: I): DecomposeReqFull_Decomp {
+    return DecomposeReqFull_Decomp.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_Decomp>, I>>(object: I): DecomposeReqFull_Decomp {
+    const message = createBaseDecomposeReqFull_Decomp();
+    message.fromArtifact = (object.fromArtifact !== undefined && object.fromArtifact !== null)
+      ? Art.fromPartial(object.fromArtifact)
+      : undefined;
+    message.byName = (object.byName !== undefined && object.byName !== null)
+      ? DecomposeReqFull_ByName.fromPartial(object.byName)
+      : undefined;
+    message.merge = (object.merge !== undefined && object.merge !== null)
+      ? DecomposeReqFull_Merge.fromPartial(object.merge)
+      : undefined;
+    message.compoundMerge = (object.compoundMerge !== undefined && object.compoundMerge !== null)
+      ? DecomposeReqFull_CompoundMerge.fromPartial(object.compoundMerge)
+      : undefined;
+    message.prune = (object.prune !== undefined && object.prune !== null)
+      ? DecomposeReqFull_Prune.fromPartial(object.prune)
+      : undefined;
+    message.combine = (object.combine !== undefined && object.combine !== null)
+      ? DecomposeReqFull_Combine.fromPartial(object.combine)
+      : undefined;
+    message.get = (object.get !== undefined && object.get !== null)
+      ? DecomposeReqFull_LocalVarGet.fromPartial(object.get)
+      : undefined;
+    message.set = (object.set !== undefined && object.set !== null)
+      ? DecomposeReqFull_LocalVarLet.fromPartial(object.set)
+      : undefined;
     return message;
   },
 };
@@ -2782,6 +3836,8 @@ export interface Simple {
   instance_src(request: InstanceSrcReq): Promise<InstanceRes>;
   instance_name(request: InstanceNameReq): Promise<InstanceRes>;
   decompose(request: DecomposeReq): Promise<DecomposeRes>;
+  /** more expressive variant of DecomposeReq */
+  decompose_full(request: DecomposeReqFull): Promise<DecomposeRes>;
   typecheck(request: TypecheckReq): Promise<TypecheckRes>;
   /** Sessionless, self contained request/response */
   oneshot(request: OneshotReq): Promise<OneshotRes>;
@@ -2804,6 +3860,7 @@ export class SimpleClientImpl implements Simple {
     this.instance_src = this.instance_src.bind(this);
     this.instance_name = this.instance_name.bind(this);
     this.decompose = this.decompose.bind(this);
+    this.decompose_full = this.decompose_full.bind(this);
     this.typecheck = this.typecheck.bind(this);
     this.oneshot = this.oneshot.bind(this);
   }
@@ -2864,6 +3921,12 @@ export class SimpleClientImpl implements Simple {
   decompose(request: DecomposeReq): Promise<DecomposeRes> {
     const data = DecomposeReq.encode(request).finish();
     const promise = this.rpc.request(this.service, "decompose", data);
+    return promise.then((data) => DecomposeRes.decode(new BinaryReader(data)));
+  }
+
+  decompose_full(request: DecomposeReqFull): Promise<DecomposeRes> {
+    const data = DecomposeReqFull.encode(request).finish();
+    const promise = this.rpc.request(this.service, "decompose_full", data);
     return promise.then((data) => DecomposeRes.decode(new BinaryReader(data)));
   }
 

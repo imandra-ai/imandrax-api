@@ -1163,16 +1163,26 @@ pub struct TasksEval_res<'a> {
 
 // clique Imandrax_api_tasks.Decomp_task.decomp_poly
 #[derive(Debug, Clone)]
-pub enum TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term:'a> {
+pub enum TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Decomp(&'a CommonDecompT_<'a>),
   Term(V_tyreg_poly_term),
+  Return(&'a CommonFun_decompT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Prune(&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Merge(&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Compound_merge(&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Combine(&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Get(&'a str),
+  Let {
+    bindings: &'a [(&'a str,&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)],
+    and_then: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  },
 }
 
 // clique Imandrax_api_tasks.Decomp_task.t_poly
 #[derive(Debug, Clone)]
 pub struct TasksDecomp_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub db: &'a CommonDb_serT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
-  pub decomp: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term>,
+  pub decomp: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub anchor: &'a Anchor<'a>,
   pub timeout: Option<BigInt>,
 }
@@ -1211,7 +1221,7 @@ pub struct TasksDecomp_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'
 // clique Imandrax_api_tasks.Decomp_res.full_poly
 #[derive(Debug, Clone)]
 pub struct TasksDecomp_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
-  pub from_: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term>,
+  pub from_: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksDecomp_resError<'a>>,
   pub stats: Stat_time,
   pub report: &'a In_mem_archiveRaw<'a>,

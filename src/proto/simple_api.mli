@@ -30,6 +30,65 @@ type decompose_req = {
   timeout : int32 option;
 }
 
+type decompose_req_full_by_name = {
+  name : string;
+  assuming : string option;
+  basis : string list;
+  rule_specs : string list;
+  prune : bool;
+  ctx_simp : bool option;
+  lift_bool : lift_bool option;
+}
+
+type decompose_req_full_local_var_get = {
+  name : string;
+}
+
+type decompose_req_full_prune = {
+  d : decompose_req_full_decomp option;
+}
+
+and decompose_req_full_decomp =
+  | From_artifact of Artmsg.art
+  | By_name of decompose_req_full_by_name
+  | Merge of decompose_req_full_merge
+  | Compound_merge of decompose_req_full_compound_merge
+  | Prune of decompose_req_full_prune
+  | Combine of decompose_req_full_combine
+  | Get of decompose_req_full_local_var_get
+  | Set of decompose_req_full_local_var_let
+
+and decompose_req_full_merge = {
+  d1 : decompose_req_full_decomp option;
+  d2 : decompose_req_full_decomp option;
+}
+
+and decompose_req_full_compound_merge = {
+  d1 : decompose_req_full_decomp option;
+  d2 : decompose_req_full_decomp option;
+}
+
+and decompose_req_full_combine = {
+  d : decompose_req_full_decomp option;
+}
+
+and decompose_req_full_local_var_let = {
+  bindings : decompose_req_full_local_var_binding list;
+  and_then : decompose_req_full_decomp option;
+}
+
+and decompose_req_full_local_var_binding = {
+  name : string;
+  d : decompose_req_full_decomp option;
+}
+
+type decompose_req_full = {
+  session : Session.session option;
+  decomp : decompose_req_full_decomp option;
+  str : bool option;
+  timeout : int32 option;
+}
+
 type decompose_res_res =
   | Artifact of Artmsg.art
   | Err
@@ -212,6 +271,76 @@ val default_decompose_req :
   unit ->
   decompose_req
 (** [default_decompose_req ()] is the default value for type [decompose_req] *)
+
+val default_decompose_req_full_by_name : 
+  ?name:string ->
+  ?assuming:string option ->
+  ?basis:string list ->
+  ?rule_specs:string list ->
+  ?prune:bool ->
+  ?ctx_simp:bool option ->
+  ?lift_bool:lift_bool option ->
+  unit ->
+  decompose_req_full_by_name
+(** [default_decompose_req_full_by_name ()] is the default value for type [decompose_req_full_by_name] *)
+
+val default_decompose_req_full_local_var_get : 
+  ?name:string ->
+  unit ->
+  decompose_req_full_local_var_get
+(** [default_decompose_req_full_local_var_get ()] is the default value for type [decompose_req_full_local_var_get] *)
+
+val default_decompose_req_full_prune : 
+  ?d:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_prune
+(** [default_decompose_req_full_prune ()] is the default value for type [decompose_req_full_prune] *)
+
+val default_decompose_req_full_decomp : unit -> decompose_req_full_decomp
+(** [default_decompose_req_full_decomp ()] is the default value for type [decompose_req_full_decomp] *)
+
+val default_decompose_req_full_merge : 
+  ?d1:decompose_req_full_decomp option ->
+  ?d2:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_merge
+(** [default_decompose_req_full_merge ()] is the default value for type [decompose_req_full_merge] *)
+
+val default_decompose_req_full_compound_merge : 
+  ?d1:decompose_req_full_decomp option ->
+  ?d2:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_compound_merge
+(** [default_decompose_req_full_compound_merge ()] is the default value for type [decompose_req_full_compound_merge] *)
+
+val default_decompose_req_full_combine : 
+  ?d:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_combine
+(** [default_decompose_req_full_combine ()] is the default value for type [decompose_req_full_combine] *)
+
+val default_decompose_req_full_local_var_let : 
+  ?bindings:decompose_req_full_local_var_binding list ->
+  ?and_then:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_local_var_let
+(** [default_decompose_req_full_local_var_let ()] is the default value for type [decompose_req_full_local_var_let] *)
+
+val default_decompose_req_full_local_var_binding : 
+  ?name:string ->
+  ?d:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_local_var_binding
+(** [default_decompose_req_full_local_var_binding ()] is the default value for type [decompose_req_full_local_var_binding] *)
+
+val default_decompose_req_full : 
+  ?session:Session.session option ->
+  ?decomp:decompose_req_full_decomp option ->
+  ?str:bool option ->
+  ?timeout:int32 option ->
+  unit ->
+  decompose_req_full
+(** [default_decompose_req_full ()] is the default value for type [decompose_req_full] *)
 
 val default_decompose_res_res : unit -> decompose_res_res
 (** [default_decompose_res_res ()] is the default value for type [decompose_res_res] *)
@@ -427,6 +556,74 @@ val make_decompose_req :
   decompose_req
 (** [make_decompose_req … ()] is a builder for type [decompose_req] *)
 
+val make_decompose_req_full_by_name : 
+  name:string ->
+  ?assuming:string option ->
+  basis:string list ->
+  rule_specs:string list ->
+  prune:bool ->
+  ?ctx_simp:bool option ->
+  ?lift_bool:lift_bool option ->
+  unit ->
+  decompose_req_full_by_name
+(** [make_decompose_req_full_by_name … ()] is a builder for type [decompose_req_full_by_name] *)
+
+val make_decompose_req_full_local_var_get : 
+  name:string ->
+  unit ->
+  decompose_req_full_local_var_get
+(** [make_decompose_req_full_local_var_get … ()] is a builder for type [decompose_req_full_local_var_get] *)
+
+val make_decompose_req_full_prune : 
+  ?d:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_prune
+(** [make_decompose_req_full_prune … ()] is a builder for type [decompose_req_full_prune] *)
+
+
+val make_decompose_req_full_merge : 
+  ?d1:decompose_req_full_decomp option ->
+  ?d2:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_merge
+(** [make_decompose_req_full_merge … ()] is a builder for type [decompose_req_full_merge] *)
+
+val make_decompose_req_full_compound_merge : 
+  ?d1:decompose_req_full_decomp option ->
+  ?d2:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_compound_merge
+(** [make_decompose_req_full_compound_merge … ()] is a builder for type [decompose_req_full_compound_merge] *)
+
+val make_decompose_req_full_combine : 
+  ?d:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_combine
+(** [make_decompose_req_full_combine … ()] is a builder for type [decompose_req_full_combine] *)
+
+val make_decompose_req_full_local_var_let : 
+  bindings:decompose_req_full_local_var_binding list ->
+  ?and_then:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_local_var_let
+(** [make_decompose_req_full_local_var_let … ()] is a builder for type [decompose_req_full_local_var_let] *)
+
+val make_decompose_req_full_local_var_binding : 
+  name:string ->
+  ?d:decompose_req_full_decomp option ->
+  unit ->
+  decompose_req_full_local_var_binding
+(** [make_decompose_req_full_local_var_binding … ()] is a builder for type [decompose_req_full_local_var_binding] *)
+
+val make_decompose_req_full : 
+  ?session:Session.session option ->
+  ?decomp:decompose_req_full_decomp option ->
+  ?str:bool option ->
+  ?timeout:int32 option ->
+  unit ->
+  decompose_req_full
+(** [make_decompose_req_full … ()] is a builder for type [decompose_req_full] *)
+
 
 val make_decompose_res : 
   res:decompose_res_res ->
@@ -618,6 +815,36 @@ val pp_lift_bool : Format.formatter -> lift_bool -> unit
 val pp_decompose_req : Format.formatter -> decompose_req -> unit 
 (** [pp_decompose_req v] formats v *)
 
+val pp_decompose_req_full_by_name : Format.formatter -> decompose_req_full_by_name -> unit 
+(** [pp_decompose_req_full_by_name v] formats v *)
+
+val pp_decompose_req_full_local_var_get : Format.formatter -> decompose_req_full_local_var_get -> unit 
+(** [pp_decompose_req_full_local_var_get v] formats v *)
+
+val pp_decompose_req_full_prune : Format.formatter -> decompose_req_full_prune -> unit 
+(** [pp_decompose_req_full_prune v] formats v *)
+
+val pp_decompose_req_full_decomp : Format.formatter -> decompose_req_full_decomp -> unit 
+(** [pp_decompose_req_full_decomp v] formats v *)
+
+val pp_decompose_req_full_merge : Format.formatter -> decompose_req_full_merge -> unit 
+(** [pp_decompose_req_full_merge v] formats v *)
+
+val pp_decompose_req_full_compound_merge : Format.formatter -> decompose_req_full_compound_merge -> unit 
+(** [pp_decompose_req_full_compound_merge v] formats v *)
+
+val pp_decompose_req_full_combine : Format.formatter -> decompose_req_full_combine -> unit 
+(** [pp_decompose_req_full_combine v] formats v *)
+
+val pp_decompose_req_full_local_var_let : Format.formatter -> decompose_req_full_local_var_let -> unit 
+(** [pp_decompose_req_full_local_var_let v] formats v *)
+
+val pp_decompose_req_full_local_var_binding : Format.formatter -> decompose_req_full_local_var_binding -> unit 
+(** [pp_decompose_req_full_local_var_binding v] formats v *)
+
+val pp_decompose_req_full : Format.formatter -> decompose_req_full -> unit 
+(** [pp_decompose_req_full v] formats v *)
+
 val pp_decompose_res_res : Format.formatter -> decompose_res_res -> unit 
 (** [pp_decompose_res_res v] formats v *)
 
@@ -713,6 +940,36 @@ val encode_pb_lift_bool : lift_bool -> Pbrt.Encoder.t -> unit
 
 val encode_pb_decompose_req : decompose_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full_by_name : decompose_req_full_by_name -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_by_name v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full_local_var_get : decompose_req_full_local_var_get -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_local_var_get v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full_prune : decompose_req_full_prune -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_prune v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full_decomp : decompose_req_full_decomp -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_decomp v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full_merge : decompose_req_full_merge -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_merge v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full_compound_merge : decompose_req_full_compound_merge -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_compound_merge v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full_combine : decompose_req_full_combine -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_combine v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full_local_var_let : decompose_req_full_local_var_let -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_local_var_let v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full_local_var_binding : decompose_req_full_local_var_binding -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_local_var_binding v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full : decompose_req_full -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_decompose_res_res : decompose_res_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_res_res v encoder] encodes [v] with the given [encoder] *)
@@ -810,6 +1067,36 @@ val decode_pb_lift_bool : Pbrt.Decoder.t -> lift_bool
 val decode_pb_decompose_req : Pbrt.Decoder.t -> decompose_req
 (** [decode_pb_decompose_req decoder] decodes a [decompose_req] binary value from [decoder] *)
 
+val decode_pb_decompose_req_full_by_name : Pbrt.Decoder.t -> decompose_req_full_by_name
+(** [decode_pb_decompose_req_full_by_name decoder] decodes a [decompose_req_full_by_name] binary value from [decoder] *)
+
+val decode_pb_decompose_req_full_local_var_get : Pbrt.Decoder.t -> decompose_req_full_local_var_get
+(** [decode_pb_decompose_req_full_local_var_get decoder] decodes a [decompose_req_full_local_var_get] binary value from [decoder] *)
+
+val decode_pb_decompose_req_full_prune : Pbrt.Decoder.t -> decompose_req_full_prune
+(** [decode_pb_decompose_req_full_prune decoder] decodes a [decompose_req_full_prune] binary value from [decoder] *)
+
+val decode_pb_decompose_req_full_decomp : Pbrt.Decoder.t -> decompose_req_full_decomp
+(** [decode_pb_decompose_req_full_decomp decoder] decodes a [decompose_req_full_decomp] binary value from [decoder] *)
+
+val decode_pb_decompose_req_full_merge : Pbrt.Decoder.t -> decompose_req_full_merge
+(** [decode_pb_decompose_req_full_merge decoder] decodes a [decompose_req_full_merge] binary value from [decoder] *)
+
+val decode_pb_decompose_req_full_compound_merge : Pbrt.Decoder.t -> decompose_req_full_compound_merge
+(** [decode_pb_decompose_req_full_compound_merge decoder] decodes a [decompose_req_full_compound_merge] binary value from [decoder] *)
+
+val decode_pb_decompose_req_full_combine : Pbrt.Decoder.t -> decompose_req_full_combine
+(** [decode_pb_decompose_req_full_combine decoder] decodes a [decompose_req_full_combine] binary value from [decoder] *)
+
+val decode_pb_decompose_req_full_local_var_let : Pbrt.Decoder.t -> decompose_req_full_local_var_let
+(** [decode_pb_decompose_req_full_local_var_let decoder] decodes a [decompose_req_full_local_var_let] binary value from [decoder] *)
+
+val decode_pb_decompose_req_full_local_var_binding : Pbrt.Decoder.t -> decompose_req_full_local_var_binding
+(** [decode_pb_decompose_req_full_local_var_binding decoder] decodes a [decompose_req_full_local_var_binding] binary value from [decoder] *)
+
+val decode_pb_decompose_req_full : Pbrt.Decoder.t -> decompose_req_full
+(** [decode_pb_decompose_req_full decoder] decodes a [decompose_req_full] binary value from [decoder] *)
+
 val decode_pb_decompose_res_res : Pbrt.Decoder.t -> decompose_res_res
 (** [decode_pb_decompose_res_res decoder] decodes a [decompose_res_res] binary value from [decoder] *)
 
@@ -906,6 +1193,36 @@ val encode_json_lift_bool : lift_bool -> Yojson.Basic.t
 val encode_json_decompose_req : decompose_req -> Yojson.Basic.t
 (** [encode_json_decompose_req v encoder] encodes [v] to to json *)
 
+val encode_json_decompose_req_full_by_name : decompose_req_full_by_name -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_by_name v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req_full_local_var_get : decompose_req_full_local_var_get -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_local_var_get v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req_full_prune : decompose_req_full_prune -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_prune v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req_full_decomp : decompose_req_full_decomp -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_decomp v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req_full_merge : decompose_req_full_merge -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_merge v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req_full_compound_merge : decompose_req_full_compound_merge -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_compound_merge v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req_full_combine : decompose_req_full_combine -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_combine v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req_full_local_var_let : decompose_req_full_local_var_let -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_local_var_let v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req_full_local_var_binding : decompose_req_full_local_var_binding -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_local_var_binding v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req_full : decompose_req_full -> Yojson.Basic.t
+(** [encode_json_decompose_req_full v encoder] encodes [v] to to json *)
+
 val encode_json_decompose_res_res : decompose_res_res -> Yojson.Basic.t
 (** [encode_json_decompose_res_res v encoder] encodes [v] to to json *)
 
@@ -1001,6 +1318,36 @@ val decode_json_lift_bool : Yojson.Basic.t -> lift_bool
 
 val decode_json_decompose_req : Yojson.Basic.t -> decompose_req
 (** [decode_json_decompose_req decoder] decodes a [decompose_req] value from [decoder] *)
+
+val decode_json_decompose_req_full_by_name : Yojson.Basic.t -> decompose_req_full_by_name
+(** [decode_json_decompose_req_full_by_name decoder] decodes a [decompose_req_full_by_name] value from [decoder] *)
+
+val decode_json_decompose_req_full_local_var_get : Yojson.Basic.t -> decompose_req_full_local_var_get
+(** [decode_json_decompose_req_full_local_var_get decoder] decodes a [decompose_req_full_local_var_get] value from [decoder] *)
+
+val decode_json_decompose_req_full_prune : Yojson.Basic.t -> decompose_req_full_prune
+(** [decode_json_decompose_req_full_prune decoder] decodes a [decompose_req_full_prune] value from [decoder] *)
+
+val decode_json_decompose_req_full_decomp : Yojson.Basic.t -> decompose_req_full_decomp
+(** [decode_json_decompose_req_full_decomp decoder] decodes a [decompose_req_full_decomp] value from [decoder] *)
+
+val decode_json_decompose_req_full_merge : Yojson.Basic.t -> decompose_req_full_merge
+(** [decode_json_decompose_req_full_merge decoder] decodes a [decompose_req_full_merge] value from [decoder] *)
+
+val decode_json_decompose_req_full_compound_merge : Yojson.Basic.t -> decompose_req_full_compound_merge
+(** [decode_json_decompose_req_full_compound_merge decoder] decodes a [decompose_req_full_compound_merge] value from [decoder] *)
+
+val decode_json_decompose_req_full_combine : Yojson.Basic.t -> decompose_req_full_combine
+(** [decode_json_decompose_req_full_combine decoder] decodes a [decompose_req_full_combine] value from [decoder] *)
+
+val decode_json_decompose_req_full_local_var_let : Yojson.Basic.t -> decompose_req_full_local_var_let
+(** [decode_json_decompose_req_full_local_var_let decoder] decodes a [decompose_req_full_local_var_let] value from [decoder] *)
+
+val decode_json_decompose_req_full_local_var_binding : Yojson.Basic.t -> decompose_req_full_local_var_binding
+(** [decode_json_decompose_req_full_local_var_binding decoder] decodes a [decompose_req_full_local_var_binding] value from [decoder] *)
+
+val decode_json_decompose_req_full : Yojson.Basic.t -> decompose_req_full
+(** [decode_json_decompose_req_full decoder] decodes a [decompose_req_full] value from [decoder] *)
 
 val decode_json_decompose_res_res : Yojson.Basic.t -> decompose_res_res
 (** [decode_json_decompose_res_res decoder] decodes a [decompose_res_res] value from [decoder] *)
@@ -1116,6 +1463,8 @@ module Simple : sig
     
     val decompose : (decompose_req, unary, decompose_res, unary) Client.rpc
     
+    val decompose_full : (decompose_req_full, unary, decompose_res, unary) Client.rpc
+    
     val typecheck : (typecheck_req, unary, typecheck_res, unary) Client.rpc
     
     val oneshot : (oneshot_req, unary, oneshot_res, unary) Client.rpc
@@ -1134,6 +1483,7 @@ module Simple : sig
       instance_src:((instance_src_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       instance_name:((instance_name_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
+      decompose_full:((decompose_req_full, unary, decompose_res, unary) Server.rpc -> 'handler) ->
       typecheck:((typecheck_req, unary, typecheck_res, unary) Server.rpc -> 'handler) ->
       oneshot:((oneshot_req, unary, oneshot_res, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
@@ -1159,6 +1509,8 @@ module Simple : sig
     val instance_name : (instance_name_req,unary,instance_res,unary) Server.rpc
     
     val decompose : (decompose_req,unary,decompose_res,unary) Server.rpc
+    
+    val decompose_full : (decompose_req_full,unary,decompose_res,unary) Server.rpc
     
     val typecheck : (typecheck_req,unary,typecheck_res,unary) Server.rpc
     

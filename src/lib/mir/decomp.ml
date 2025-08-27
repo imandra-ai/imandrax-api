@@ -9,4 +9,4 @@ type t = Imandrax_api_common.Decomp.t_ = {
   lift_bool: Imandrax_api_common.Decomp.lift_bool;
   prune: bool;
 }
-[@@deriving twine, show, typereg]
+[@@deriving twine, show, typereg, eq]

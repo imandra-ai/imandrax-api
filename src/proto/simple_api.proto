@@ -34,6 +34,9 @@ service Simple {
 
   rpc decompose(DecomposeReq) returns (DecomposeRes);
 
+  // more expressive variant of DecomposeReq
+  rpc decompose_full(DecomposeReqFull) returns (DecomposeRes);
+
   rpc typecheck(TypecheckReq) returns (TypecheckRes);
 
   // Sessionless, self contained request/response
@@ -71,6 +74,90 @@ message DecomposeReq {
 
   optional LiftBool lift_bool = 8;
 
+  // include result as string?
+  optional bool str = 9;
+
+  optional int32 timeout = 10;
+}
+
+/// More detailed decompose task
+message DecomposeReqFull {
+  message ByName {
+    // name of function to decompose
+    string name = 2;
+
+    // name of side condition function
+    optional string assuming = 3;
+
+    repeated string basis = 4;
+
+    repeated string rule_specs = 5;
+
+    bool prune = 6;
+
+    optional bool ctx_simp = 7;
+
+    optional LiftBool lift_bool = 8;
+  }
+
+  message Prune {
+    Decomp d = 1;
+  }
+
+  message Combine {
+    Decomp d = 1;
+  }
+
+  message Merge {
+    Decomp d1 = 1;
+    Decomp d2 = 2;
+  }
+
+  message CompoundMerge {
+    Decomp d1 = 1;
+    Decomp d2 = 2;
+  }
+
+  message LocalVarBinding {
+    // bind local name to the result of `d`
+    string name = 1;
+
+    // the operation to perform and store in the variable
+    Decomp d = 2;
+  }
+
+  message LocalVarLet {
+    // list of let-bindings to do simultaneously (in the same environment)
+    repeated DecomposeReqFull.LocalVarBinding bindings = 1;
+
+    // the decomposition to do after the bindings are evaluated
+    Decomp and_then = 2;
+  }
+
+  message LocalVarGet {
+    // Get the result stored in the variable with the given name
+    string name = 1;
+  }
+
+  // The main description of what to decompose
+  message Decomp {
+    oneof decomp {
+      Art from_artifact = 1;
+      DecomposeReqFull.ByName by_name = 2;
+      DecomposeReqFull.Merge merge = 3;
+      DecomposeReqFull.CompoundMerge compound_merge = 4;
+      DecomposeReqFull.Prune prune = 5;
+      DecomposeReqFull.Combine combine = 6;
+      DecomposeReqFull.LocalVarGet get = 10;
+      DecomposeReqFull.LocalVarLet set = 11;
+    }
+  };
+
+  imandrax.session.Session session = 1;
+
+  Decomp decomp = 2;
+
+  // include result as string?
   optional bool str = 9;
 
   optional int32 timeout = 10;
