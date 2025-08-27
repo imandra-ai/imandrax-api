@@ -11,7 +11,7 @@ type ('term, 'ty) decomp_poly =
   | Compound_merge of ('term, 'ty) decomp_poly * ('term, 'ty) decomp_poly
   | Combine of ('term, 'ty) decomp_poly
   | Get of string
-  | Parallel_set of {
+  | Let of {
       bindings: (string * ('term, 'ty) decomp_poly) list;
       and_then: ('term, 'ty) decomp_poly;
     }

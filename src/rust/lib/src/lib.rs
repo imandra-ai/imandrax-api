@@ -1172,7 +1172,7 @@ pub enum TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a>
   Compound_merge(&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Combine(&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Get(&'a str),
-  Parallel_set {
+  Let {
     bindings: &'a [(&'a str,&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)],
     and_then: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   },
