@@ -35,7 +35,7 @@ service Simple {
   rpc decompose(DecomposeReq) returns (DecomposeRes);
 
   // more expressive variant of DecomposeReq
-  rpc decompose2(DecomposeReq2) returns (DecomposeRes);
+  rpc decompose_full(DecomposeReqFull) returns (DecomposeRes);
 
   rpc typecheck(TypecheckReq) returns (TypecheckRes);
 
@@ -81,7 +81,7 @@ message DecomposeReq {
 }
 
 /// More detailed decompose task
-message DecomposeReq2 {
+message DecomposeReqFull {
   message ByName {
     // name of function to decompose
     string name = 2;
@@ -128,7 +128,7 @@ message DecomposeReq2 {
 
   message LocalVarLet {
     // list of let-bindings to do simultaneously (in the same environment)
-    repeated DecomposeReq2.LocalVarBinding bindings = 1;
+    repeated DecomposeReqFull.LocalVarBinding bindings = 1;
 
     // the decomposition to do after the bindings are evaluated
     Decomp and_then = 2;
@@ -143,13 +143,13 @@ message DecomposeReq2 {
   message Decomp {
     oneof decomp {
       Art from_artifact = 1;
-      DecomposeReq2.ByName by_name = 2;
-      DecomposeReq2.Merge merge = 3;
-      DecomposeReq2.CompoundMerge compound_merge = 4;
-      DecomposeReq2.Prune prune = 5;
-      DecomposeReq2.Combine combine = 6;
-      DecomposeReq2.LocalVarGet get = 10;
-      DecomposeReq2.LocalVarLet set = 11;
+      DecomposeReqFull.ByName by_name = 2;
+      DecomposeReqFull.Merge merge = 3;
+      DecomposeReqFull.CompoundMerge compound_merge = 4;
+      DecomposeReqFull.Prune prune = 5;
+      DecomposeReqFull.Combine combine = 6;
+      DecomposeReqFull.LocalVarGet get = 10;
+      DecomposeReqFull.LocalVarLet set = 11;
     }
   };
 

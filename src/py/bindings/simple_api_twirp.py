@@ -106,9 +106,9 @@ class SimpleClient(TwirpClient):
 			**kwargs,
 		)
 
-	def decompose2(self, *args, ctx, request, **kwargs):
+	def decompose_full(self, *args, ctx, request, **kwargs):
 		return self._make_request(
-			url=F"{self._server_path_prefix}/imandrax.simple.Simple/decompose2",
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/decompose_full",
 			ctx=ctx,
 			request=request,
 			response_obj=_sym_db.GetSymbol("imandrax.simple.DecomposeRes"),
@@ -227,9 +227,9 @@ if _async_available:
 				**kwargs,
 			)
 
-		async def decompose2(self, *, ctx, request, **kwargs):
+		async def decompose_full(self, *, ctx, request, **kwargs):
 			return await self._make_request(
-				url=F"{self._server_path_prefix}/imandrax.simple.Simple/decompose2",
+				url=F"{self._server_path_prefix}/imandrax.simple.Simple/decompose_full",
 				ctx=ctx,
 				request=request,
 				response_obj=_sym_db.GetSymbol("imandrax.simple.DecomposeRes"),
