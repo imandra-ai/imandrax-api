@@ -126,8 +126,8 @@ message DecomposeReq2 {
     Decomp d = 2;
   }
 
-  message LocalVarParallelSet {
-    // list of bindings to do in parallel
+  message LocalVarLet {
+    // list of let-bindings to do simultaneously (in the same environment)
     repeated DecomposeReq2.LocalVarBinding bindings = 1;
 
     // the decomposition to do after the bindings are evaluated
@@ -149,7 +149,7 @@ message DecomposeReq2 {
       DecomposeReq2.Prune prune = 5;
       DecomposeReq2.Combine combine = 6;
       DecomposeReq2.LocalVarGet get = 10;
-      DecomposeReq2.LocalVarParallelSet set = 11;
+      DecomposeReq2.LocalVarLet set = 11;
     }
   };
 
