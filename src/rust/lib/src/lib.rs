@@ -1171,6 +1171,11 @@ pub enum TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a>
   Merge(&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Compound_merge(&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Combine(&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Get(&'a str),
+  Parallel_set {
+    bindings: &'a [(&'a str,&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)],
+    and_then: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  },
 }
 
 // clique Imandrax_api_tasks.Decomp_task.t_poly

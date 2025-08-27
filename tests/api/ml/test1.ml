@@ -1,9 +1,7 @@
 module C = Imandrax_api_client_ezcurl
 module Fmt = CCFormat
 
-let c : C.t =
-  C.create ~tls:false ~auth_token:None ~host:"localhost" ~port:8082 ()
-
+let c : C.t = C.create ~auth_token:None ~url:"http://127.0.0.1:8082" ()
 let () = Fmt.printf "status=%a@." C.API.pp_string_msg @@ C.status c
 let session = C.get_session c
 let x1 = C.eval_src c ~session ~src:"let f x =x+1;;" ()

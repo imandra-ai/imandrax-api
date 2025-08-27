@@ -56,7 +56,7 @@ and decompose_req2_decomp =
   | Prune of decompose_req2_prune
   | Combine of decompose_req2_combine
   | Get of decompose_req2_local_var_get
-  | Set of decompose_req2_local_var_parallel_set
+  | Set of decompose_req2_local_var_let
 
 and decompose_req2_merge = {
   d1 : decompose_req2_decomp option;
@@ -72,7 +72,7 @@ and decompose_req2_combine = {
   d : decompose_req2_decomp option;
 }
 
-and decompose_req2_local_var_parallel_set = {
+and decompose_req2_local_var_let = {
   bindings : decompose_req2_local_var_binding list;
   and_then : decompose_req2_decomp option;
 }
@@ -319,12 +319,12 @@ val default_decompose_req2_combine :
   decompose_req2_combine
 (** [default_decompose_req2_combine ()] is the default value for type [decompose_req2_combine] *)
 
-val default_decompose_req2_local_var_parallel_set : 
+val default_decompose_req2_local_var_let : 
   ?bindings:decompose_req2_local_var_binding list ->
   ?and_then:decompose_req2_decomp option ->
   unit ->
-  decompose_req2_local_var_parallel_set
-(** [default_decompose_req2_local_var_parallel_set ()] is the default value for type [decompose_req2_local_var_parallel_set] *)
+  decompose_req2_local_var_let
+(** [default_decompose_req2_local_var_let ()] is the default value for type [decompose_req2_local_var_let] *)
 
 val default_decompose_req2_local_var_binding : 
   ?name:string ->
@@ -601,12 +601,12 @@ val make_decompose_req2_combine :
   decompose_req2_combine
 (** [make_decompose_req2_combine … ()] is a builder for type [decompose_req2_combine] *)
 
-val make_decompose_req2_local_var_parallel_set : 
+val make_decompose_req2_local_var_let : 
   bindings:decompose_req2_local_var_binding list ->
   ?and_then:decompose_req2_decomp option ->
   unit ->
-  decompose_req2_local_var_parallel_set
-(** [make_decompose_req2_local_var_parallel_set … ()] is a builder for type [decompose_req2_local_var_parallel_set] *)
+  decompose_req2_local_var_let
+(** [make_decompose_req2_local_var_let … ()] is a builder for type [decompose_req2_local_var_let] *)
 
 val make_decompose_req2_local_var_binding : 
   name:string ->
@@ -836,8 +836,8 @@ val pp_decompose_req2_compound_merge : Format.formatter -> decompose_req2_compou
 val pp_decompose_req2_combine : Format.formatter -> decompose_req2_combine -> unit 
 (** [pp_decompose_req2_combine v] formats v *)
 
-val pp_decompose_req2_local_var_parallel_set : Format.formatter -> decompose_req2_local_var_parallel_set -> unit 
-(** [pp_decompose_req2_local_var_parallel_set v] formats v *)
+val pp_decompose_req2_local_var_let : Format.formatter -> decompose_req2_local_var_let -> unit 
+(** [pp_decompose_req2_local_var_let v] formats v *)
 
 val pp_decompose_req2_local_var_binding : Format.formatter -> decompose_req2_local_var_binding -> unit 
 (** [pp_decompose_req2_local_var_binding v] formats v *)
@@ -962,8 +962,8 @@ val encode_pb_decompose_req2_compound_merge : decompose_req2_compound_merge -> P
 val encode_pb_decompose_req2_combine : decompose_req2_combine -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req2_combine v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_decompose_req2_local_var_parallel_set : decompose_req2_local_var_parallel_set -> Pbrt.Encoder.t -> unit
-(** [encode_pb_decompose_req2_local_var_parallel_set v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_decompose_req2_local_var_let : decompose_req2_local_var_let -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req2_local_var_let v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_decompose_req2_local_var_binding : decompose_req2_local_var_binding -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req2_local_var_binding v encoder] encodes [v] with the given [encoder] *)
@@ -1088,8 +1088,8 @@ val decode_pb_decompose_req2_compound_merge : Pbrt.Decoder.t -> decompose_req2_c
 val decode_pb_decompose_req2_combine : Pbrt.Decoder.t -> decompose_req2_combine
 (** [decode_pb_decompose_req2_combine decoder] decodes a [decompose_req2_combine] binary value from [decoder] *)
 
-val decode_pb_decompose_req2_local_var_parallel_set : Pbrt.Decoder.t -> decompose_req2_local_var_parallel_set
-(** [decode_pb_decompose_req2_local_var_parallel_set decoder] decodes a [decompose_req2_local_var_parallel_set] binary value from [decoder] *)
+val decode_pb_decompose_req2_local_var_let : Pbrt.Decoder.t -> decompose_req2_local_var_let
+(** [decode_pb_decompose_req2_local_var_let decoder] decodes a [decompose_req2_local_var_let] binary value from [decoder] *)
 
 val decode_pb_decompose_req2_local_var_binding : Pbrt.Decoder.t -> decompose_req2_local_var_binding
 (** [decode_pb_decompose_req2_local_var_binding decoder] decodes a [decompose_req2_local_var_binding] binary value from [decoder] *)
@@ -1214,8 +1214,8 @@ val encode_json_decompose_req2_compound_merge : decompose_req2_compound_merge ->
 val encode_json_decompose_req2_combine : decompose_req2_combine -> Yojson.Basic.t
 (** [encode_json_decompose_req2_combine v encoder] encodes [v] to to json *)
 
-val encode_json_decompose_req2_local_var_parallel_set : decompose_req2_local_var_parallel_set -> Yojson.Basic.t
-(** [encode_json_decompose_req2_local_var_parallel_set v encoder] encodes [v] to to json *)
+val encode_json_decompose_req2_local_var_let : decompose_req2_local_var_let -> Yojson.Basic.t
+(** [encode_json_decompose_req2_local_var_let v encoder] encodes [v] to to json *)
 
 val encode_json_decompose_req2_local_var_binding : decompose_req2_local_var_binding -> Yojson.Basic.t
 (** [encode_json_decompose_req2_local_var_binding v encoder] encodes [v] to to json *)
@@ -1340,8 +1340,8 @@ val decode_json_decompose_req2_compound_merge : Yojson.Basic.t -> decompose_req2
 val decode_json_decompose_req2_combine : Yojson.Basic.t -> decompose_req2_combine
 (** [decode_json_decompose_req2_combine decoder] decodes a [decompose_req2_combine] value from [decoder] *)
 
-val decode_json_decompose_req2_local_var_parallel_set : Yojson.Basic.t -> decompose_req2_local_var_parallel_set
-(** [decode_json_decompose_req2_local_var_parallel_set decoder] decodes a [decompose_req2_local_var_parallel_set] value from [decoder] *)
+val decode_json_decompose_req2_local_var_let : Yojson.Basic.t -> decompose_req2_local_var_let
+(** [decode_json_decompose_req2_local_var_let decoder] decodes a [decompose_req2_local_var_let] value from [decoder] *)
 
 val decode_json_decompose_req2_local_var_binding : Yojson.Basic.t -> decompose_req2_local_var_binding
 (** [decode_json_decompose_req2_local_var_binding decoder] decodes a [decompose_req2_local_var_binding] value from [decoder] *)

@@ -3981,7 +3981,31 @@ export function Tasks_Decomp_task_decomp_poly_Combine_of_twine<_V_tyreg_poly_ter
   const arg = Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0])
   return new Tasks_Decomp_task_decomp_poly_Combine(arg)
 }
-export type Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> = Tasks_Decomp_task_decomp_poly_Decomp<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Term<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Return<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Prune<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Merge<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Compound_merge<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Combine<_V_tyreg_poly_term,_V_tyreg_poly_ty>
+export class Tasks_Decomp_task_decomp_poly_Get<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public arg: string) {}
+}
+export function Tasks_Decomp_task_decomp_poly_Get_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Get<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
+  checkArrayLength(off, _tw_args, 1)
+  const arg = d.get_str(_tw_args[0])
+  return new Tasks_Decomp_task_decomp_poly_Get(arg)
+}
+export class Tasks_Decomp_task_decomp_poly_Parallel_set<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(
+    public bindings: Array<[string,Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>]>,
+    public and_then: Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>){}
+}
+
+export function Tasks_Decomp_task_decomp_poly_Parallel_set_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_Decomp_task_decomp_poly_Parallel_set<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term
+  decode__tyreg_poly_ty
+  checkArrayLength(off, _tw_args, 2)
+  const bindings = d.get_array(_tw_args[0]).toArray().map(x => ((tup : Array<offset>): [string,Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>] => { checkArrayLength(x, tup, 2); return [d.get_str(tup[0]), Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),tup[1])] })(d.get_array(x).toArray()))
+  const and_then = Tasks_Decomp_task_decomp_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[1])
+  return new Tasks_Decomp_task_decomp_poly_Parallel_set(bindings,and_then)
+}
+export type Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> = Tasks_Decomp_task_decomp_poly_Decomp<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Term<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Return<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Prune<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Merge<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Compound_merge<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Combine<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Get<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_Decomp_task_decomp_poly_Parallel_set<_V_tyreg_poly_term,_V_tyreg_poly_ty>
 
 export function Tasks_Decomp_task_decomp_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Tasks_Decomp_task_decomp_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   const c = d.get_cstor(off)
@@ -4000,6 +4024,10 @@ export function Tasks_Decomp_task_decomp_poly_of_twine<_V_tyreg_poly_term,_V_tyr
       return Tasks_Decomp_task_decomp_poly_Compound_merge_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
    case 6:
       return Tasks_Decomp_task_decomp_poly_Combine_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 7:
+      return Tasks_Decomp_task_decomp_poly_Get_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 8:
+      return Tasks_Decomp_task_decomp_poly_Parallel_set_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
    default:
       throw new twine.TwineError({msg: `expected Tasks_Decomp_task_decomp_poly, got invalid constructor ${c.cstor_idx}`, offset: off})
 
