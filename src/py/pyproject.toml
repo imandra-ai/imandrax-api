@@ -23,3 +23,5 @@ package-dir = {"imandrax_api" = "."}
 [tool.uv]
 dev-dependencies = []
 
+[tool.pyright]
+strict=[**]
