@@ -121,7 +121,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
     | "Error.result", [ x ] -> spf "Error | %s" (gen_type_expr x)
     | "Util_twine.Result.t", [ x; y ] ->
       spf "%s | %s" (gen_type_expr x) (gen_type_expr y)
-    | "Imandrakit_error__Error_core.Data.t", [] -> spf "unit"
+    | "Imandrakit_error__Error_core.Data.t", [] -> spf "None"
     | "option", [ x ] -> spf "None | %s" (gen_type_expr x)
     | "Util_twine.With_tag7.t", [ x ] -> spf "WithTag7[%s]" (gen_type_expr x)
     | "Util_twine.With_tag6.t", [ x ] -> spf "WithTag6[%s]" (gen_type_expr x)
@@ -176,7 +176,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
         off
         (of_twine_of_type_expr x ~off:"off")
         (of_twine_of_type_expr y ~off:"off")
-    | "Imandrakit_error__Error_core.Data.t", [] -> spf "()"
+    | "Imandrakit_error__Error_core.Data.t", [] -> spf "None"
     | "Util_twine.With_tag6.t", [ x ] ->
       spf "decode_with_tag(tag=6, d=d, off=%s, d0=lambda d, off: %s)" off
         (of_twine_of_type_expr x ~off:"off")
