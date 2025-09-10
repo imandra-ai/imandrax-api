@@ -38,7 +38,7 @@ def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Calla
 type WithTag6[T] = T
 type WithTag7[T] = T
 
-def decode_with_tag[T](tag: int, d: twine.Decoder, off: int, d0: [Callable[...,T]]) -> With_tag7[T]:
+def decode_with_tag[T](tag: int, d: twine.Decoder, off: int, d0: Callable[...,T]) -> WithTag7[T]:
     dec_tag = d.get_tag(off=off)
     if dec_tag.tag != tag:
         raise Error(f'Expected tag {tag}, got tag {dec_tag.tag} at off=0x{off:x}')
