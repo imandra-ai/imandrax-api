@@ -4,8 +4,6 @@ import logging
 import structlog
 from structlog.stdlib import LoggerFactory, add_log_level
 
-_configured = False
-
 
 def configure(force = False):
     """
@@ -15,8 +13,7 @@ def configure(force = False):
     force: Force to reconfigure logging.
     """
 
-    global _configured
-    if _configured and not force:
+    if structlog.is_configured() and not force:
         return
 
     # Check whether debug flag is set
@@ -48,8 +45,6 @@ def configure(force = False):
             structlog.processors.JSONRenderer()
         ]
     )
-
-    _configured = True
 
 
 def get_logger(**kwargs):

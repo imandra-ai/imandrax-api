@@ -18,7 +18,7 @@ from __future__ import annotations  # delaying typing: https://peps.python.org/p
 from dataclasses import dataclass
 from zipfile import ZipFile
 import json
-from typing import Callable
+from typing import Callable, Never
 from . import twine
 
 __all__ = ['twine']
@@ -38,10 +38,10 @@ def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Calla
 type WithTag6[T] = T
 type WithTag7[T] = T
 
-def decode_with_tag[T](tag: int, d: twine.Decoder, off: int, d0: [Callable[...,T]]) -> With_tag7[T]:
+def decode_with_tag[T](tag: int, d: twine.Decoder, off: int, d0: Callable[...,T]) -> WithTag7[T]:
     dec_tag = d.get_tag(off=off)
     if dec_tag.tag != tag:
-        raise Error(f'Expected tag {tag}, got tag {dec_tag.tag} at off=0x{off:x}')
+        raise twine.Error(f'Expected tag {tag}, got tag {dec_tag.tag} at off=0x{off:x}')
     return d0(d=d, off=dec_tag.arg)
 
 def decode_q(d: twine.Decoder, off:int) -> tuple[int,int]:
@@ -98,7 +98,7 @@ let mangle_cstor_name ~tyname (c : TR.Ty_def.cstor) : string =
 let rec gen_type_expr (ty : tyexpr) : string =
   match ty with
   | Arrow (_, _, _) -> assert false
-  | Var s -> spf "%S" @@ spf "_V%s" s
+  | Var s -> spf "_V%s" s
   | Tuple l -> spf "tuple[%s]" (String.concat "," @@ List.map gen_type_expr l)
   | Attrs (Cstor ("string", []), attrs)
     when List.mem_assoc "twine.use_bytes" attrs ->
@@ -115,13 +115,14 @@ let rec gen_type_expr (ty : tyexpr) : string =
     | "array", [ x ] | "list", [ x ] -> spf "list[%s]" (gen_type_expr x)
     | "float", [] -> "float"
     | "unit", [] -> "None"
+    | "Void.t", [] -> "Never"
     | "B.t", [] -> "int" (* bllbll bitfield *)
     | "Uid.Set.t", [] -> "set[Uid]"
     | ("Timestamp_s.t" | "Duration_s.t"), [] -> "float"
     | "Error.result", [ x ] -> spf "Error | %s" (gen_type_expr x)
     | "Util_twine.Result.t", [ x; y ] ->
       spf "%s | %s" (gen_type_expr x) (gen_type_expr y)
-    | "Imandrakit_error__Error_core.Data.t", [] -> spf "unit"
+    | "Imandrakit_error__Error_core.Data.t", [] -> spf "None"
     | "option", [ x ] -> spf "None | %s" (gen_type_expr x)
     | "Util_twine.With_tag7.t", [ x ] -> spf "WithTag7[%s]" (gen_type_expr x)
     | "Util_twine.With_tag6.t", [ x ] -> spf "WithTag6[%s]" (gen_type_expr x)
@@ -176,7 +177,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
         off
         (of_twine_of_type_expr x ~off:"off")
         (of_twine_of_type_expr y ~off:"off")
-    | "Imandrakit_error__Error_core.Data.t", [] -> spf "()"
+    | "Imandrakit_error__Error_core.Data.t", [] -> spf "None"
     | "Util_twine.With_tag6.t", [ x ] ->
       spf "decode_with_tag(tag=6, d=d, off=%s, d0=lambda d, off: %s)" off
         (of_twine_of_type_expr x ~off:"off")
