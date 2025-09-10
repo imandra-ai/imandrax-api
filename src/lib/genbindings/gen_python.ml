@@ -18,7 +18,7 @@ from __future__ import annotations  # delaying typing: https://peps.python.org/p
 from dataclasses import dataclass
 from zipfile import ZipFile
 import json
-from typing import Callable
+from typing import Callable, Never
 from . import twine
 
 __all__ = ['twine']
@@ -115,6 +115,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
     | "array", [ x ] | "list", [ x ] -> spf "list[%s]" (gen_type_expr x)
     | "float", [] -> "float"
     | "unit", [] -> "None"
+    | "Void.t", [] -> "Never"
     | "B.t", [] -> "int" (* bllbll bitfield *)
     | "Uid.Set.t", [] -> "set[Uid]"
     | ("Timestamp_s.t" | "Duration_s.t"), [] -> "float"
