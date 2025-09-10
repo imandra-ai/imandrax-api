@@ -98,7 +98,7 @@ let mangle_cstor_name ~tyname (c : TR.Ty_def.cstor) : string =
 let rec gen_type_expr (ty : tyexpr) : string =
   match ty with
   | Arrow (_, _, _) -> assert false
-  | Var s -> spf "%S" @@ spf "_V%s" s
+  | Var s -> spf "_V%s" s
   | Tuple l -> spf "tuple[%s]" (String.concat "," @@ List.map gen_type_expr l)
   | Attrs (Cstor ("string", []), attrs)
     when List.mem_assoc "twine.use_bytes" attrs ->
