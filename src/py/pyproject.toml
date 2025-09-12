@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "imandrax_api"
-version = "0.17.3.1"
+version = "0.18"
 description = "Imandrax API client library"
 requires-python = ">=3.12"
 dependencies = ["protobuf>=5.29.4,<6.0", "requests", "structlog"]
