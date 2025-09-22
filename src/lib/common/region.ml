@@ -3,6 +3,8 @@ module Util_twine = Imandrax_api.Util_twine
 type ('term, 'ty) status =
   | Unknown
   | Feasible of ('term, 'ty) Model.t_poly
+  | Feasibility_check_failed of string
+      (** Trying to assess feasibility failed, eg with a timeout *)
 [@@deriving show, twine, map, iter, typereg]
 
 type 'term meta =
