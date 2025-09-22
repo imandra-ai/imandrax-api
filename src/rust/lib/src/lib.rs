@@ -522,6 +522,7 @@ pub struct CommonModelT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 pub enum CommonRegionStatus<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Unknown,
   Feasible(&'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Feasability_check_failed(&'a str),
 }
 
 // clique Imandrax_api_common.Region.meta
