@@ -1482,16 +1482,16 @@ def Common_Region_status_Feasible_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](
     return Common_Region_status_Feasible(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Common_Region_status_Feasability_check_failed[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+class Common_Region_status_Feasibility_check_failed[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     arg: str
 
-def Common_Region_status_Feasability_check_failed_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Region_status_Feasability_check_failed[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+def Common_Region_status_Feasibility_check_failed_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Region_status_Feasibility_check_failed[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
     arg = d.get_str(off=args[0])
-    return Common_Region_status_Feasability_check_failed(arg=arg)
+    return Common_Region_status_Feasibility_check_failed(arg=arg)
 
-type Common_Region_status[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Region_status_Unknown[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Region_status_Feasible[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Region_status_Feasability_check_failed[_V_tyreg_poly_term,_V_tyreg_poly_ty]
+type Common_Region_status[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Region_status_Unknown[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Region_status_Feasible[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Region_status_Feasibility_check_failed[_V_tyreg_poly_term,_V_tyreg_poly_ty]
 
 def Common_Region_status_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Region_status:
     match d.get_cstor(off=off):
@@ -1502,7 +1502,7 @@ def Common_Region_status_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
              return Common_Region_status_Feasible_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=2, args=args):
              args = tuple(args)
-             return Common_Region_status_Feasability_check_failed_of_twine(d=d, args=args, d0=d0,d1=d1,)
+             return Common_Region_status_Feasibility_check_failed_of_twine(d=d, args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Common_Region_status, got invalid constructor {idx}')
 

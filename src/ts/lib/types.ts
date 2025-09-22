@@ -1584,17 +1584,17 @@ export function Common_Region_status_Feasible_of_twine<_V_tyreg_poly_term,_V_tyr
   const arg = Common_Model_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0])
   return new Common_Region_status_Feasible(arg)
 }
-export class Common_Region_status_Feasability_check_failed<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+export class Common_Region_status_Feasibility_check_failed<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(public arg: string) {}
 }
-export function Common_Region_status_Feasability_check_failed_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Common_Region_status_Feasability_check_failed<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+export function Common_Region_status_Feasibility_check_failed_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Common_Region_status_Feasibility_check_failed<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   decode__tyreg_poly_term; // ignore 
   decode__tyreg_poly_ty; // ignore 
   checkArrayLength(off, _tw_args, 1)
   const arg = d.get_str(_tw_args[0])
-  return new Common_Region_status_Feasability_check_failed(arg)
+  return new Common_Region_status_Feasibility_check_failed(arg)
 }
-export type Common_Region_status<_V_tyreg_poly_term,_V_tyreg_poly_ty> = Common_Region_status_Unknown<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Common_Region_status_Feasible<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Common_Region_status_Feasability_check_failed<_V_tyreg_poly_term,_V_tyreg_poly_ty>
+export type Common_Region_status<_V_tyreg_poly_term,_V_tyreg_poly_ty> = Common_Region_status_Unknown<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Common_Region_status_Feasible<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Common_Region_status_Feasibility_check_failed<_V_tyreg_poly_term,_V_tyreg_poly_ty>
 
 export function Common_Region_status_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Common_Region_status<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   const c = d.get_cstor(off)
@@ -1604,7 +1604,7 @@ export function Common_Region_status_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_t
    case 1:
       return Common_Region_status_Feasible_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
    case 2:
-      return Common_Region_status_Feasability_check_failed_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+      return Common_Region_status_Feasibility_check_failed_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
    default:
       throw new twine.TwineError({msg: `expected Common_Region_status, got invalid constructor ${c.cstor_idx}`, offset: off})
 
