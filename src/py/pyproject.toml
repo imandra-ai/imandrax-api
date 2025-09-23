@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "imandrax_api"
-version = "0.17.2"
+version = "0.17.2.1"
 description = "Imandrax API client library"
 requires-python = ">=3.12"
 dependencies = ["protobuf>=5.29.4,<6.0", "requests", "structlog"]
@@ -13,7 +13,7 @@ dependencies = ["protobuf>=5.29.4,<6.0", "requests", "structlog"]
 async = ["aiohttp"]
 
 [tool.setuptools]
-packages = ["imandrax_api"]
+packages = [ "imandrax_api", "imandrax_api.bindings", "imandrax_api.lib", "imandrax_api.twirp" ]
 package-dir = { "imandrax_api" = "." }
 
 [tool.uv]
