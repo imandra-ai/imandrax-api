@@ -223,8 +223,8 @@ module Ordinal =
       match x with | Int x -> x >= (Z.of_nativeint 0n) | o -> is_valid_rec o
       [@@ocaml.doc " Is this a valid ordinal? "][@@builtin.special
                                                   "ordinal.is_valid"]
-    let (+) = plus[@@macro ]
-    let (~$) = of_int[@@macro ]
+    let (+) = plus[@@macro ][@@no_validate ]
+    let (~$) = of_int[@@macro ][@@no_validate ]
     let omega = of_list [one; zero]
     let omega_omega = shift omega omega
   end[@@ocaml.doc
