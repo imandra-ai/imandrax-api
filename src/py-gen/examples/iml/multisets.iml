@@ -6,15 +6,12 @@ type int_multiset = int Multiset.t
 type string_multiset = LString.t Multiset.t
 type char_multiset = LChar.t Multiset.t
 
-(* Creating multisets *)
-let make_empty_multiset () : int_multiset =
-  Multiset.empty
+(* Modeling multisets *)
+let model_int_multiset (m: int_multiset) = true
 
-let make_multiset_from_list () : int_multiset =
-  Multiset.of_list [1; 2; 2; 3; 3; 3; 4; 4; 4; 4]
+let model_string_multiset (m: string_multiset) = true
 
-let make_string_multiset () : string_multiset =
-  Multiset.of_list [{l|apple|l}; {l|banana|l}; {l|apple|l}; {l|cherry|l}; {l|apple|l}]
+let model_char_multiset (m: char_multiset) = true
 
 (* Adding and removing elements *)
 let add_element (m : int_multiset) : int_multiset =

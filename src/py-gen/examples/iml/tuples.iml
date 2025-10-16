@@ -20,30 +20,44 @@ type tuple_with_option = int * (LString.t option) * bool
 type tuple_with_list = int * (int list) * LString.t
 type large_tuple = int * LString.t * bool * real * int list * (int * int)
 
-let make_int_string_pair () : int_string_pair = (42, {l|hello|l})
+let model_int_string_pair (p: int_string_pair) =
+  let (i, s) = p in
+  i > 0 && LString.length s > 0
 
-let make_triple () : triple = (1, {l|test|l}, true)
+let model_triple (t: triple) =
+  let (i, s, b) = t in
+  i >= 0 && LString.length s > 0
 
-let make_nested_tuple () : nested_tuple = ((10, 20), ({l|foo|l}, {l|bar|l}))
+let model_nested_tuple (t: nested_tuple) =
+  let ((x1, y1), (s1, s2)) = t in
+  x1 >= 0 && y1 >= 0 && LString.length s1 > 0 && LString.length s2 > 0
 
-let make_point_tuple () : point_tuple = (100, 200)
+let model_point_tuple (p: point_tuple) =
+  let (x, y) = p in
+  x >= 0 && y >= 0
 
-let make_coordinate_3d () : coordinate_3d = (1.5, 2.5, 3.5)
+let model_coordinate_3d (c: coordinate_3d) =
+  let (x, y, z) = c in
+  Real.(x >= of_int 0 && y >= of_int 0 && z >= of_int 0)
 
-let make_mixed_tuple () : mixed_tuple = (true, 42, {l|mixed|l}, 3.14)
+let model_mixed_tuple (t: mixed_tuple) =
+  let (b, i, s, r) = t in
+  i > 0 && LString.length s > 0
 
-let make_tuple_option () : tuple_option = Some (1, {l|value|l})
+let model_tuple_option (o: tuple_option) = o <> None
 
-let make_tuple_list () : tuple_list = [(1, 2); (3, 4); (5, 6)]
+let model_tuple_list (l: tuple_list) = List.length l > 0
 
-let make_nested_tuple_list () : nested_tuple_list =
-  [((1, 2), {l|a|l}); ((3, 4), {l|b|l})]
+let model_nested_tuple_list (l: nested_tuple_list) = List.length l > 0
 
-let make_tuple_with_option () : tuple_with_option =
-  (42, Some {l|present|l}, false)
+let model_tuple_with_option (t: tuple_with_option) =
+  let (i, o, b) = t in
+  i > 0
 
-let make_tuple_with_list () : tuple_with_list =
-  (1, [1; 2; 3], {l|list|l})
+let model_tuple_with_list (t: tuple_with_list) =
+  let (i, lst, s) = t in
+  i > 0 && List.length lst > 0 && LString.length s > 0
 
-let make_large_tuple () : large_tuple =
-  (1, {l|large|l}, true, 2.5, [10; 20], (99, 100))
+let model_large_tuple (t: large_tuple) =
+  let (i, s, b, r, lst, (x, y)) = t in
+  i > 0 && LString.length s > 0 && List.length lst > 0

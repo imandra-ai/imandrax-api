@@ -6,18 +6,12 @@ type int_set = int Set.t
 type string_set = LString.t Set.t
 type point_set = (int * int) Set.t
 
-(* Creating sets *)
-let make_empty_set () : int_set =
-  Set.empty
+(* Modeling sets *)
+let model_int_set (s: int_set) = true
 
-let make_full_set () : int_set =
-  Set.full
+let model_string_set (s: string_set) = true
 
-let make_set_from_list () : int_set =
-  Set.of_list [1; 2; 3; 4; 5]
-
-let make_string_set () : string_set =
-  Set.of_list [{l|apple|l}; {l|banana|l}; {l|cherry|l}]
+let model_point_set (s: point_set) = true
 
 (* Set operations *)
 let add_element (s : int_set) : int_set =

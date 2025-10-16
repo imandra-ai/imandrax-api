@@ -12,15 +12,16 @@ type point_to_value_map = ((int * int), real) Map.t
 type string_to_list_map = (LString.t, int list) Map.t
 type int_to_option_map = (int, LString.t option) Map.t
 
-(* Creating maps *)
-let make_empty_int_map () : int_to_string_map =
-  Map.const {l|default|l}
+(* Modeling maps *)
+let model_int_to_string_map (m: int_to_string_map) = true
 
-let make_string_map () : string_to_int_map =
-  Map.of_list 0 [({l|a|l}, 1); ({l|b|l}, 2); ({l|c|l}, 3)]
+let model_string_to_int_map (m: string_to_int_map) = true
 
-let make_point_map () : point_to_value_map =
-  Map.of_list 0.0 [((0, 0), 1.5); ((1, 1), 2.5); ((2, 2), 3.5)]
+let model_point_to_value_map (m: point_to_value_map) = true
+
+let model_string_to_list_map (m: string_to_list_map) = true
+
+let model_int_to_option_map (m: int_to_option_map) = true
 
 (* Adding and updating *)
 let add_to_map (m : int_to_string_map) : int_to_string_map =

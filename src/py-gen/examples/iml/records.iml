@@ -28,29 +28,16 @@ type complex_fields = {
   tuple_field: LString.t * bool;
 }
 
-let make_point () : point = { x = 10; y = 20 }
+let model_point (p: point) = p.x >= 0 && p.y >= 0
 
-let make_person () : person = {
-  name = {l|Alice|l};
-  age = 30;
-  email = Some {l|alice@example.com|l};
-}
+let model_person (p: person) =
+  LString.length p.name > 0 && p.age >= 0
 
-let make_nested_record () : nested_record = {
-  id = 1;
-  location = { x = 100; y = 200 };
-  owner = { name = {l|Bob|l}; age = 25; email = None };
-}
+let model_nested_record (r: nested_record) =
+  r.id > 0 && r.location.x >= 0 && r.location.y >= 0 && LString.length r.owner.name > 0
 
-let make_record_with_collections () : record_with_collections = {
-  tags = [{l|ocaml|l}; {l|types|l}; {l|registry|l}];
-  scores = [9.5; 8.7; 9.2];
-  metadata = Some ({l|version|l}, 1);
-}
+let model_record_with_collections (r: record_with_collections) =
+  List.length r.tags > 0 && List.length r.scores > 0
 
-let make_complex_fields () : complex_fields = {
-  simple = 42;
-  optional = Some 3.14;
-  nested_list = [[1; 2]; [3; 4]];
-  tuple_field = ({l|test|l}, true);
-}
+let model_complex_fields (c: complex_fields) =
+  c.simple <> 0 && List.length c.nested_list > 0

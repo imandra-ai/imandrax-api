@@ -22,21 +22,27 @@ type ('a, 'e) either =
 
 type 'a list_wrapper = 'a list
 
-let make_box () : int box = Box 42
+let model_box (b: int box) =
+  match b with
+  | Box x -> x <> 0
 
-let make_pair () : (LString.t, int) pair = Pair ({l|age|l}, 25)
+let model_pair (p: (LString.t, int) pair) =
+  match p with
+  | Pair (s, i) -> LString.length s > 0 && i > 0
 
-let make_tree () : int tree =
-  Node (5, Node (3, Leaf, Leaf), Node (7, Leaf, Leaf))
+let model_tree (t: int tree) =
+  match t with
+  | Leaf -> false
+  | Node (_, _, _) -> true
 
-let make_map_entry () : (LString.t, int) map_entry = {
-  key = {l|count|l};
-  value = 10;
-  next = None;
-}
+let model_map_entry (e: (LString.t, int) map_entry) =
+  LString.length e.key > 0
 
-let make_result () : int result = Ok 100
+let model_result (r: int result) =
+  match r with
+  | Ok x -> x > 0
+  | Error msg -> LString.length msg > 0
 
-let make_either () : (int, LString.t) either = Left 42
+let model_either (e: (int, LString.t) either) = true
 
-let make_list_wrapper () : int list_wrapper = [1; 2; 3]
+let model_list_wrapper (l: int list_wrapper) = List.length l > 0

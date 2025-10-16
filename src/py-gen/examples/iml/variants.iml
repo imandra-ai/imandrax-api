@@ -33,16 +33,31 @@ type option_like =
   | Nothing
   | Something of int
 
-let make_color () : color = Red
+let model_color (c: color) = true
 
-let make_simple_result () : simple_result = Error {l|not found|l}
+let model_simple_result (r: simple_result) =
+  match r with
+  | Ok -> true
+  | Error msg -> LString.length msg > 0
 
-let make_binary_op () : binary_op = Add (10, 20)
+let model_binary_op (op: binary_op) = true
 
-let make_shape () : shape = Circle 5.0
+let model_shape (s: shape) =
+  match s with
+  | Circle r -> Real.(r > of_int 0)
+  | Rectangle (w, h) -> Real.(w > of_int 0 && h > of_int 0)
+  | Triangle (a, b, c) -> Real.(a > of_int 0 && b > of_int 0 && c > of_int 0)
 
-let make_expr () : expr = Add (Const 1, Mul (Var {l|x|l}, Const 2))
+let model_expr (e: expr) = true
 
-let make_http_method () : http_method = POST {l|body data|l}
+let model_http_method (m: http_method) =
+  match m with
+  | GET -> true
+  | POST body -> LString.length body > 0
+  | PUT (body, headers) -> LString.length body > 0
+  | DELETE -> true
 
-let make_option_like () : option_like = Something 42
+let model_option_like (o: option_like) =
+  match o with
+  | Nothing -> false
+  | Something x -> true

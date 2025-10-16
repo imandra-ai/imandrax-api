@@ -42,44 +42,36 @@ and b_type = A of a_type | Done
 type even = Zero | Succ of odd
 and odd = Succ of even
 
-let make_int_list () : int_list = Cons (1, Cons (2, Cons (3, Nil)))
+let model_int_list (l: int_list) =
+  match l with
+  | Nil -> false
+  | Cons (_, _) -> true
 
-let make_binary_tree () : int binary_tree =
-  Node (5, Node (3, Empty, Empty), Node (7, Empty, Empty))
+let model_binary_tree (t: int binary_tree) =
+  match t with
+  | Empty -> false
+  | Node (_, _, _) -> true
 
-let make_json () : json =
-  Object [
-    ({l|name|l}, String {l|Alice|l});
-    ({l|age|l}, Number 30.0);
-    ({l|active|l}, Bool true)
-  ]
+let model_json (j: json) =
+  match j with
+  | Null -> false
+  | Bool _ -> true
+  | Number _ -> true
+  | String s -> LString.length s > 0
+  | Array lst -> List.length lst > 0
+  | Object lst -> List.length lst > 0
 
-let make_expr () : expr =
-  Let ({l|x|l}, Lit 10, Add (Var {l|x|l}, Mul (Var {l|x|l}, Lit 2)))
+let model_expr (e: expr) = true
 
-let make_node () : node = {
-  id = 1;
-  children = [
-    { id = 2; children = [] };
-    { id = 3; children = [] }
-  ]
-}
+let model_node (n: node) = n.id > 0
 
-let make_tree_node () : tree_node = {
-  value = 10;
-  left = Some { value = 5; left = None; right = None };
-  right = Some { value = 15; left = None; right = None };
-}
+let model_tree_node (n: tree_node) = n.value <> 0
 
-let make_file_system () : file_system =
-  Directory {
-    name = {l|root|l};
-    contents = [
-      File { name = {l|a.txt|l}; size = 100 };
-      Directory { name = {l|subdir|l}; contents = [] }
-    ]
-  }
+let model_file_system (fs: file_system) =
+  match fs with
+  | File {name; size} -> LString.length name > 0 && size > 0
+  | Directory {name; contents} -> LString.length name > 0
 
-let make_a_type () : a_type = B (A (B Done))
+let model_a_type (a: a_type) = true
 
-let make_even () : even = Succ (Succ Zero)
+let model_even (e: even) = true

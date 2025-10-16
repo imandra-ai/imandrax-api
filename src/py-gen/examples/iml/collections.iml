@@ -14,18 +14,22 @@ type user_id = int
 type user_list = user_id list
 type optional_user = user_id option
 
-let make_int_option () : int_option = Some 42
-let make_lstring_list () : lstring_list = [{l|hello|l}; {l|world|l}]
-let make_real_list () : real_list = [1.0; 2.0; 3.0]
+let model_int_option (x: int_option) = x <> None
+let model_lstring_list (x: lstring_list) = List.length x > 0
+let model_real_list (x: real_list) = List.length x > 0
 
-let make_nested_option () : nested_option = Some [1; 2; 3]
-let make_nested_list () : nested_list = [Some {l|a|l}; None; Some {l|b|l}]
-let make_nested_list_bool () : nested_list_bool = [[true; false]; [false; true]]
+let model_nested_option (x: nested_option) =
+  match x with
+  | Some lst -> List.length lst > 0
+  | None -> false
 
-let make_deep_nest () : deep_nest = [Some [1; 2]; None; Some [3]]
-let make_matrix () : matrix = [[1; 2]; [3; 4]; [5; 6]]
-let make_triple_list () : triple_list = [[[{l|a|l}]]]
+let model_nested_list (x: nested_list) = List.length x > 0
+let model_nested_list_bool (x: nested_list_bool) = List.length x > 0
 
-let make_user_id () : user_id = 100
-let make_user_list () : user_list = [1; 2; 3]
-let make_optional_user () : optional_user = Some 42
+let model_deep_nest (x: deep_nest) = List.length x > 0
+let model_matrix (x: matrix) = List.length x > 0
+let model_triple_list (x: triple_list) = List.length x > 0
+
+let model_user_id (x: user_id) = x > 0
+let model_user_list (x: user_list) = List.length x > 0
+let model_optional_user (x: optional_user) = x <> None

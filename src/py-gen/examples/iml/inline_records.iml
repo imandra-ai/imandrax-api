@@ -19,17 +19,27 @@ type database_query =
   | Update of { table: LString.t; set_values: (LString.t * LString.t) list; where_clause: LString.t }
   | Delete of { table: LString.t; where_clause: LString.t }
 
-let make_event () : event = Click { x = 100; y = 200 }
+let model_event (e: event) =
+  match e with
+  | Click {x; y} -> x >= 0 && y >= 0
+  | Keypress {key; modifiers} -> true
+  | Scroll {delta} -> true
 
-let make_user_action () : user_action =
-  Login { username = {l|alice|l}; timestamp = 1234567890 }
+let model_user_action (a: user_action) =
+  match a with
+  | Login {username; timestamp} -> LString.length username > 0 && timestamp > 0
+  | Logout -> true
+  | UpdateProfile {fields; timestamp} -> List.length fields > 0 && timestamp > 0
 
-let make_api_response () : api_response =
-  Success { data = {l|result|l}; code = 200 }
+let model_api_response (r: api_response) =
+  match r with
+  | Success {data; code} -> LString.length data > 0 && code >= 200 && code < 300
+  | Error {message; code; details} -> LString.length message > 0 && code >= 400
+  | Pending -> true
 
-let make_database_query () : database_query =
-  Select {
-    table = {l|users|l};
-    columns = [{l|id|l}; {l|name|l}; {l|email|l}];
-    where_clause = Some {l|age > 18|l}
-  }
+let model_database_query (q: database_query) =
+  match q with
+  | Select {table; columns; where_clause} -> LString.length table > 0 && List.length columns > 0
+  | Insert {table; values} -> LString.length table > 0 && List.length values > 0
+  | Update {table; set_values; where_clause} -> LString.length table > 0 && List.length set_values > 0
+  | Delete {table; where_clause} -> LString.length table > 0 && LString.length where_clause > 0

@@ -6,18 +6,21 @@ type int_result = (int, LString.t) Result.t
 type string_result = (LString.t, LString.t) Result.t
 type parse_result = (int, LString.t) result
 
-(* Creating results *)
-let make_success () : int_result =
-  Result.return 42
+(* Modeling results *)
+let model_int_result (r: int_result) =
+  match r with
+  | Ok x -> x > 0
+  | Error msg -> LString.length msg > 0
 
-let make_failure () : int_result =
-  Result.fail {l|something went wrong|l}
+let model_string_result (r: string_result) =
+  match r with
+  | Ok s -> LString.length s > 0
+  | Error msg -> LString.length msg > 0
 
-let ok_value () : parse_result =
-  Ok 100
-
-let error_value () : parse_result =
-  Error {l|parse error|l}
+let model_parse_result (r: parse_result) =
+  match r with
+  | Ok x -> x >= 0
+  | Error msg -> LString.length msg > 0
 
 (* Mapping over results *)
 let map_success () : (int, LString.t) result =
