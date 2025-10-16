@@ -1,0 +1,18 @@
+; Library definition
+(library
+ (name py_gen)
+ (modules helper)
+ (libraries
+  imandrax-api
+  imandrakit
+  containers))
+
+; Executable
+(executable
+ (name cli)
+ (modules cli)
+ (libraries
+  py_gen
+  imandrax-api
+  imandrakit
+  containers))
