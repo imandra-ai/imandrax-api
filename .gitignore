@@ -12,3 +12,4 @@ build/
 src/py.egg-info
 .DS_Store
 
+*local*
