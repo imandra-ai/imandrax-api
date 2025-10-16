@@ -1,0 +1,68 @@
+(* Multiset: IML-specific type for collections with element counts *)
+(* Multiset.t is implemented as (('a, int) Map.t) *)
+
+(* Basic multisets *)
+type int_multiset = int Multiset.t
+type string_multiset = LString.t Multiset.t
+type char_multiset = LChar.t Multiset.t
+
+(* Creating multisets *)
+let make_empty_multiset () : int_multiset =
+  Multiset.empty
+
+let make_multiset_from_list () : int_multiset =
+  Multiset.of_list [1; 2; 2; 3; 3; 3; 4; 4; 4; 4]
+
+let make_string_multiset () : string_multiset =
+  Multiset.of_list [{l|apple|l}; {l|banana|l}; {l|apple|l}; {l|cherry|l}; {l|apple|l}]
+
+(* Adding and removing elements *)
+let add_element (m : int_multiset) : int_multiset =
+  Multiset.add 42 m
+
+let add_multiple (m : int_multiset) : int_multiset =
+  m |> Multiset.add 5 |> Multiset.add 5 |> Multiset.add 5
+
+let remove_element (m : int_multiset) : int_multiset =
+  Multiset.remove 42 m
+
+(* Querying multisets *)
+let count_occurrences (m : int_multiset) : int =
+  Multiset.find 42 m
+
+let check_membership (m : int_multiset) : bool =
+  Multiset.mem 42 m
+
+(* Example: word frequency counter *)
+let word_frequencies () : string_multiset =
+  Multiset.of_list [
+    {l|the|l}; {l|quick|l}; {l|brown|l}; {l|fox|l};
+    {l|jumps|l}; {l|over|l}; {l|the|l}; {l|lazy|l}; {l|dog|l}
+  ]
+
+let count_word (word : LString.t) : int =
+  Multiset.find word (word_frequencies ())
+
+(* Example: shopping cart with quantities *)
+let shopping_cart () : string_multiset =
+  Multiset.empty
+  |> Multiset.add {l|apple|l}
+  |> Multiset.add {l|apple|l}
+  |> Multiset.add {l|banana|l}
+  |> Multiset.add {l|orange|l}
+  |> Multiset.add {l|orange|l}
+  |> Multiset.add {l|orange|l}
+
+let get_item_quantity (item : LString.t) : int =
+  Multiset.find item (shopping_cart ())
+
+(* Example: remove one item from cart *)
+let remove_one_apple () : string_multiset =
+  Multiset.remove {l|apple|l} (shopping_cart ())
+
+(* Example: character frequency in a string *)
+let char_frequency (s : LString.t) : char_multiset =
+  Multiset.of_list s
+
+let count_char (c : LChar.t) (s : LString.t) : int =
+  Multiset.find c (char_frequency s)

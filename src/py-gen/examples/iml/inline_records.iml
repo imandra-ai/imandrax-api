@@ -1,0 +1,35 @@
+type event =
+  | Click of { x: int; y: int }
+  | Keypress of { key: LChar.t; modifiers: LString.t list }
+  | Scroll of { delta: real }
+
+type user_action =
+  | Login of { username: LString.t; timestamp: int }
+  | Logout
+  | UpdateProfile of { fields: (LString.t * LString.t) list; timestamp: int }
+
+type api_response =
+  | Success of { data: LString.t; code: int }
+  | Error of { message: LString.t; code: int; details: LString.t option }
+  | Pending
+
+type database_query =
+  | Select of { table: LString.t; columns: LString.t list; where_clause: LString.t option }
+  | Insert of { table: LString.t; values: (LString.t * LString.t) list }
+  | Update of { table: LString.t; set_values: (LString.t * LString.t) list; where_clause: LString.t }
+  | Delete of { table: LString.t; where_clause: LString.t }
+
+let make_event () : event = Click { x = 100; y = 200 }
+
+let make_user_action () : user_action =
+  Login { username = {l|alice|l}; timestamp = 1234567890 }
+
+let make_api_response () : api_response =
+  Success { data = {l|result|l}; code = 200 }
+
+let make_database_query () : database_query =
+  Select {
+    table = {l|users|l};
+    columns = [{l|id|l}; {l|name|l}; {l|email|l}];
+    where_clause = Some {l|age > 18|l}
+  }

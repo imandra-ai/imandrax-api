@@ -1,0 +1,42 @@
+type 'a box = Box of 'a
+
+type ('a, 'b) pair = Pair of 'a * 'b
+
+type 'a tree =
+  | Leaf
+  | Node of 'a * 'a tree * 'a tree
+
+type ('k, 'v) map_entry = {
+  key: 'k;
+  value: 'v;
+  next: ('k, 'v) map_entry option;
+}
+
+type 'a result =
+  | Ok of 'a
+  | Error of LString.t
+
+type ('a, 'e) either =
+  | Left of 'a
+  | Right of 'e
+
+type 'a list_wrapper = 'a list
+
+let make_box () : int box = Box 42
+
+let make_pair () : (LString.t, int) pair = Pair ({l|age|l}, 25)
+
+let make_tree () : int tree =
+  Node (5, Node (3, Leaf, Leaf), Node (7, Leaf, Leaf))
+
+let make_map_entry () : (LString.t, int) map_entry = {
+  key = {l|count|l};
+  value = 10;
+  next = None;
+}
+
+let make_result () : int result = Ok 100
+
+let make_either () : (int, LString.t) either = Left 42
+
+let make_list_wrapper () : int list_wrapper = [1; 2; 3]

@@ -1,0 +1,114 @@
+(* Result: IML type for error handling without exceptions *)
+(* Result.t is ('a, 'b) result = Ok of 'a | Error of 'b *)
+
+(* Basic result types *)
+type int_result = (int, LString.t) Result.t
+type string_result = (LString.t, LString.t) Result.t
+type parse_result = (int, LString.t) result
+
+(* Creating results *)
+let make_success () : int_result =
+  Result.return 42
+
+let make_failure () : int_result =
+  Result.fail {l|something went wrong|l}
+
+let ok_value () : parse_result =
+  Ok 100
+
+let error_value () : parse_result =
+  Error {l|parse error|l}
+
+(* Mapping over results *)
+let map_success () : (int, LString.t) result =
+  let r = Result.return 10 in
+  Result.map (fun x -> x * 2) r
+
+let map_with_infix () : (int, LString.t) result =
+  Result.(>|=) (Result.return 5) (fun x -> x + 10)
+
+(* Error mapping *)
+let map_error () : (int, int) result =
+  let r : (int, LString.t) result = Error {l|error|l} in
+  Result.map_err (fun _ -> 404) r
+
+(* Extracting values with defaults *)
+let get_or_default () : int =
+  let r : int_result = Error {l|failed|l} in
+  Result.get_or ~default:0 r
+
+let map_or_default () : int =
+  let r : int_result = Ok 42 in
+  Result.map_or ~default:0 (fun x -> x * 2) r
+
+(* Chaining results with flat_map *)
+let divide (x : int) (y : int) : (int, LString.t) result =
+  if y = 0 then
+    Error {l|division by zero|l}
+  else
+    Ok (x / y)
+
+let chain_operations () : (int, LString.t) result =
+  let open Result in
+  return 100
+  >>= (fun x -> divide x 10)
+  >>= (fun x -> divide x 2)
+
+(* Using let* binding syntax *)
+let compute_with_let_star (x : int) (y : int) (z : int) : (int, LString.t) result =
+  let open Result in
+  let* a = divide x y in
+  let* b = divide a z in
+  return (b + 1)
+
+(* Combining results with monoid_product *)
+let combine_results () : (int * LString.t, LString.t) result =
+  let r1 : (int, LString.t) result = Ok 42 in
+  let r2 : (LString.t, LString.t) result = Ok {l|hello|l} in
+  Result.monoid_product r1 r2
+
+(* Using and+ binding syntax *)
+let combine_with_and_plus () : (int, LString.t) result =
+  let open Result in
+  let+ x = Ok 10
+  and+ y = Ok 20 in
+  x + y
+
+(* Checking result status *)
+let check_ok () : bool =
+  let r : (int, LString.t) result = Ok 42 in
+  Result.is_ok r
+
+let check_error () : bool =
+  let r : (int, LString.t) result = Error {l|failed|l} in
+  Result.is_error r
+
+(* Folding over results *)
+let fold_result () : int =
+  let r : (int, LString.t) result = Ok 42 in
+  Result.fold (fun x -> x) (fun _ -> 0) r
+
+(* Example: parsing and validation pipeline *)
+let parse_int (s : LString.t) : (int, LString.t) result =
+  if s = {l|42|l} then Ok 42
+  else if s = {l|0|l} then Ok 0
+  else Error {l|invalid number|l}
+
+let validate_positive (n : int) : (int, LString.t) result =
+  if n > 0 then Ok n
+  else Error {l|number must be positive|l}
+
+let parse_and_validate (s : LString.t) : (int, LString.t) result =
+  let open Result in
+  let* n = parse_int s in
+  validate_positive n
+
+(* Example: multiple validations with and+ *)
+let validate_range (min_val : int) (max_val : int) : (int * int, LString.t) result =
+  let open Result in
+  let+ min_checked =
+    if min_val >= 0 then Ok min_val else Error {l|min must be non-negative|l}
+  and+ max_checked =
+    if max_val > min_val then Ok max_val else Error {l|max must be greater than min|l}
+  in
+  (min_checked, max_checked)

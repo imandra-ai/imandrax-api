@@ -1,0 +1,49 @@
+(* Tuples: products of multiple types *)
+
+(* Basic tuples *)
+type int_string_pair = int * LString.t
+type triple = int * LString.t * bool
+type nested_tuple = (int * int) * (LString.t * LString.t)
+
+(* Tuples with various types *)
+type point_tuple = int * int
+type coordinate_3d = real * real * real
+type mixed_tuple = bool * int * LString.t * real
+
+(* Tuples in type constructors *)
+type tuple_option = (int * LString.t) option
+type tuple_list = (int * int) list
+type nested_tuple_list = ((int * int) * LString.t) list
+
+(* Complex tuples *)
+type tuple_with_option = int * (LString.t option) * bool
+type tuple_with_list = int * (int list) * LString.t
+type large_tuple = int * LString.t * bool * real * int list * (int * int)
+
+let make_int_string_pair () : int_string_pair = (42, {l|hello|l})
+
+let make_triple () : triple = (1, {l|test|l}, true)
+
+let make_nested_tuple () : nested_tuple = ((10, 20), ({l|foo|l}, {l|bar|l}))
+
+let make_point_tuple () : point_tuple = (100, 200)
+
+let make_coordinate_3d () : coordinate_3d = (1.5, 2.5, 3.5)
+
+let make_mixed_tuple () : mixed_tuple = (true, 42, {l|mixed|l}, 3.14)
+
+let make_tuple_option () : tuple_option = Some (1, {l|value|l})
+
+let make_tuple_list () : tuple_list = [(1, 2); (3, 4); (5, 6)]
+
+let make_nested_tuple_list () : nested_tuple_list =
+  [((1, 2), {l|a|l}); ((3, 4), {l|b|l})]
+
+let make_tuple_with_option () : tuple_with_option =
+  (42, Some {l|present|l}, false)
+
+let make_tuple_with_list () : tuple_with_list =
+  (1, [1; 2; 3], {l|list|l})
+
+let make_large_tuple () : large_tuple =
+  (1, {l|large|l}, true, 2.5, [10; 20], (99, 100))

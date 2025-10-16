@@ -1,0 +1,31 @@
+type int_option = int option
+type lstring_list = LString.t list
+type real_list = real list
+
+type nested_option = int list option
+type nested_list = LString.t option list
+type nested_list_bool = bool list list
+
+type deep_nest = int list option list
+type matrix = int list list
+type triple_list = LString.t list list list
+
+type user_id = int
+type user_list = user_id list
+type optional_user = user_id option
+
+let make_int_option () : int_option = Some 42
+let make_lstring_list () : lstring_list = [{l|hello|l}; {l|world|l}]
+let make_real_list () : real_list = [1.0; 2.0; 3.0]
+
+let make_nested_option () : nested_option = Some [1; 2; 3]
+let make_nested_list () : nested_list = [Some {l|a|l}; None; Some {l|b|l}]
+let make_nested_list_bool () : nested_list_bool = [[true; false]; [false; true]]
+
+let make_deep_nest () : deep_nest = [Some [1; 2]; None; Some [3]]
+let make_matrix () : matrix = [[1; 2]; [3; 4]; [5; 6]]
+let make_triple_list () : triple_list = [[[{l|a|l}]]]
+
+let make_user_id () : user_id = 100
+let make_user_list () : user_list = [1; 2; 3]
+let make_optional_user () : optional_user = Some 42

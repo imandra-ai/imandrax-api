@@ -1,0 +1,3 @@
+(library
+ (name typereg_ocaml_examples)
+ (modules :standard \*.ml))

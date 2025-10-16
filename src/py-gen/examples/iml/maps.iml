@@ -1,0 +1,47 @@
+(* Map: IML-specific type for key-value mappings *)
+
+
+let f x = x + 1
+
+(* Basic maps *)
+type int_to_string_map = (int, LString.t) Map.t
+type string_to_int_map = (LString.t, int) Map.t
+type point_to_value_map = ((int * int), real) Map.t
+
+(* Maps with complex value types *)
+type string_to_list_map = (LString.t, int list) Map.t
+type int_to_option_map = (int, LString.t option) Map.t
+
+(* Creating maps *)
+let make_empty_int_map () : int_to_string_map =
+  Map.const {l|default|l}
+
+let make_string_map () : string_to_int_map =
+  Map.of_list 0 [({l|a|l}, 1); ({l|b|l}, 2); ({l|c|l}, 3)]
+
+let make_point_map () : point_to_value_map =
+  Map.of_list 0.0 [((0, 0), 1.5); ((1, 1), 2.5); ((2, 2), 3.5)]
+
+(* Adding and updating *)
+let add_to_map (m : int_to_string_map) : int_to_string_map =
+  Map.add 42 {l|forty-two|l} m
+
+let add_multiple (m : string_to_int_map) : string_to_int_map =
+  m |> Map.add {l|x|l} 10 |> Map.add {l|y|l} 20
+
+(* Retrieving values *)
+let get_value (m : int_to_string_map) : LString.t =
+  Map.get 42 m
+
+let get_default_value (m : int_to_string_map) : LString.t =
+  Map.get_default m
+
+(* Example with complex workflow *)
+let create_user_scores () : (LString.t, int) Map.t =
+  Map.const 0
+  |> Map.add {l|alice|l} 100
+  |> Map.add {l|bob|l} 85
+  |> Map.add {l|charlie|l} 92
+
+let lookup_score (username : LString.t) : int =
+  Map.get username (create_user_scores ())

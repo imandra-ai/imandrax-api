@@ -1,0 +1,31 @@
+type my_int = int
+type my_real = real
+type my_lstring = LString.t
+type my_bool = bool
+type my_lchar = LChar.t
+type my_unit = unit
+
+type age = int
+type user_age = age
+
+let make_my_int () : my_int = 42
+let make_my_real () : my_real = 3.14
+let make_my_lstring () : my_lstring = {l|hello|l}
+let make_my_bool () : my_bool = true
+let make_my_lchar () : my_lchar = List.hd {l|a|l}
+let make_my_unit () : my_unit = ()
+
+let make_age () : age = 25
+let make_user_age () : user_age = 30
+
+
+let instance_my_int (x: my_int) = true
+
+(* instance (fun (x: my_int) -> true)
+instance (fun (x: my_real) -> true)
+instance (fun (x: my_lstring) -> LString.length x > 0)
+instance (fun (x: my_bool) -> true)
+instance (fun (x: my_lchar) -> true)
+instance (fun (x: my_unit) -> true)
+instance (fun (x: age) -> true)
+instance (fun (x: user_age) -> true) *)

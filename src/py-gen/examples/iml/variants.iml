@@ -1,0 +1,48 @@
+type color =
+  | Red
+  | Green
+  | Blue
+
+type simple_result =
+  | Ok
+  | Error of LString.t
+
+type binary_op =
+  | Add of int * int
+  | Subtract of int * int
+  | Multiply of int * int
+
+type shape =
+  | Circle of real
+  | Rectangle of real * real
+  | Triangle of real * real * real
+
+type expr =
+  | Const of int
+  | Var of LString.t
+  | Add of expr * expr
+  | Mul of expr * expr
+
+type http_method =
+  | GET
+  | POST of LString.t
+  | PUT of LString.t * LString.t list
+  | DELETE
+
+type option_like =
+  | Nothing
+  | Something of int
+
+let make_color () : color = Red
+
+let make_simple_result () : simple_result = Error {l|not found|l}
+
+let make_binary_op () : binary_op = Add (10, 20)
+
+let make_shape () : shape = Circle 5.0
+
+let make_expr () : expr = Add (Const 1, Mul (Var {l|x|l}, Const 2))
+
+let make_http_method () : http_method = POST {l|body data|l}
+
+let make_option_like () : option_like = Something 42
