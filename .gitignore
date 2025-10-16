@@ -13,3 +13,13 @@ src/py.egg-info
 .DS_Store
 
 *local*
+
+# VSCode
+.history/
+
+# Python
+__pycache__/
+*.egg-info/
+build/
+dist/
+*.pyc

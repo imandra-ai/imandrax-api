@@ -1,0 +1,21 @@
+[project]
+name = "py-gen"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "hongyu", email = "hongyu@imandra.ai" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "imandrax-api[async]>=0.17.2.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.0.1",
+]
