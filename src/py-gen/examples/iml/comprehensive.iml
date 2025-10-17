@@ -1,0 +1,123 @@
+(* Comprehensive IML Type Showcase *)
+
+(* 1. Primitives *)
+type user_id = int
+type score = real
+type username = LString.t
+type is_active = bool
+
+(* 2. Records *)
+type user = {
+  id: user_id;
+  name: username;
+  score: score;
+  email: LString.t option;
+}
+
+(* 3. Tuples *)
+type coordinate = int * int
+type rgb_color = int * int * int
+
+(* 4. Variants *)
+type status =
+  | Active
+  | Suspended of LString.t
+  | Deleted
+
+type result =
+  | Success of int
+  | Failure of LString.t
+
+(* 5. Collections *)
+type tags = LString.t list
+type scores = real list
+type optional_value = int option
+type matrix = int list list
+
+(* 6. Polymorphic Types *)
+type 'a box = Box of 'a
+
+type 'a tree =
+  | Leaf
+  | Node of 'a * 'a tree * 'a tree
+
+(* 7. IML-Specific: Sets *)
+type user_set = user_id Set.t
+
+(* 8. IML-Specific: Maps *)
+type user_map = (user_id, user) Map.t
+type score_map = (username, score) Map.t
+
+(* 9. Recursive Types *)
+type expr =
+  | Const of int
+  | Var of LString.t
+  | Add of expr * expr
+  | Mul of expr * expr
+
+(* 10. Complex Composition *)
+type system_state = {
+  users: user_map;
+  active_users: user_set;
+  pending_scores: (user_id * score) list;
+  status: status;
+}
+
+(* Model Functions *)
+
+let model_user (u: user) =
+  u.id > 0 && LString.length u.name > 0 && Real.(u.score >= of_int 0)
+
+let model_coordinate (c: coordinate) =
+  let (x, y) = c in
+  x >= 0 && y >= 0
+
+let model_rgb_color (c: rgb_color) =
+  let (r, g, b) = c in
+  r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255
+
+let model_status (s: status) =
+  match s with
+  | Active -> true
+  | Suspended msg -> LString.length msg > 0
+  | Deleted -> true
+
+let model_result (r: result) =
+  match r with
+  | Success x -> x > 0
+  | Failure msg -> LString.length msg > 0
+
+let model_box (b: int box) =
+  match b with
+  | Box x -> x <> 0
+
+let model_tree (t: int tree) =
+  match t with
+  | Leaf -> false
+  | Node (v, _, _) -> v <> 0
+
+let model_expr (e: expr) =
+  match e with
+  | Const x -> x >= 0
+  | Var name -> LString.length name > 0
+  | Add (_, _) -> true
+  | Mul (_, _) -> true
+
+let model_system_state (s: system_state) = true
+
+(* Example Operations *)
+
+let create_user (id: int) (name: LString.t) (sc: real) : user =
+  { id = id; name = name; score = sc; email = None }
+
+let add_user_to_system (state: system_state) (u: user) : system_state =
+  let new_users = Map.add u.id u state.users in
+  let new_active = Set.add u.id state.active_users in
+  { state with users = new_users; active_users = new_active }
+
+let rec evaluate_expr (e: expr) : int =
+  match e with
+  | Const x -> x
+  | Var _ -> 0
+  | Add (e1, e2) -> evaluate_expr e1 + evaluate_expr e2
+  | Mul (e1, e2) -> evaluate_expr e1 * evaluate_expr e2

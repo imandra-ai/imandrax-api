@@ -8,7 +8,9 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
+    "dotenv>=0.9.9",
     "imandrax-api[async]>=0.17.2.1",
+    "iml-query>=0.3.4",
 ]
 
 [build-system]
@@ -19,3 +21,77 @@ build-backend = "uv_build"
 dev = [
     "ipykernel>=7.0.1",
 ]
+
+[tool.ruff]
+line-length = 80
+fix = true
+show-fixes = true
+src = ["src"]
+exclude = [
+    "*.ipynb",
+    "vendor/",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "RUF", # ruff-specific rules
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "PTH", # flake8-use-pathlib
+    "SIM", # flake8-simplify
+    "C90", # mccabe
+    "D",   # pydocstyle
+]
+ignore = [
+    "SIM102",
+    "SIM108", # if-else-block-instead-of-if-exp
+    "N801",   # Class name should use CapWords
+    # "PTH123", # `open()` should be replaced by `Path.open()`
+    "C417",   # Unnecessary `map()` usage (rewrite using a generator expression)
+    "D100", # ignore missing docstring in module
+    "D101", # ignore missing docstring in public class
+    "D102", # ignore missing docstring in public method
+    "D103", # ignore missing docstring in public function
+    "D104", # ignore missing docstring in public package
+    "D105", # ignore missing docstring in magic methods
+    "D107", # ignore missing docstring in __init__ methods
+    "D203",
+    "D213",
+]
+flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
+mccabe = { max-complexity = 15 }
+pycodestyle.ignore-overlong-task-comments = true
+isort.combine-as-imports = true
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/**/*.py" = ["F401", "RUF100", "D", "E402", "B018"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ty]
+environment.python = "../.venv"
+
+[tool.ty.rules]
+# Handled by pyright
+unsupported-operator = "ignore"
+invalid-argument-type = "ignore"
+invalid-return-type = "ignore"
+possibly-missing-attribute = "ignore"
+unresolved-import = "ignore"
+
+[tool.pyright]
+venvPath = ".."
+venv = ".venv"
+pythonVersion = "3.13"
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+reportUnnecessaryIsInstance = false
+reportUnnecessaryTypeIgnoreComment = true
+reportUnusedImport = "none"
+reportUnusedExpression = false
