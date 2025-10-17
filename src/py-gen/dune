@@ -16,3 +16,19 @@
   imandrax-api
   imandrakit
   containers))
+
+
+; Decode artifacts
+(executable
+  (name decode_art)
+  (modules decode_art)
+  (libraries
+    imandrax-api
+    imandrax-api.artifact
+    imandrax-api.mir
+    yojson
+    containers
+    base64
+    py_gen
+  )
+)

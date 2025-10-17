@@ -45,10 +45,9 @@ instance_res = proto_to_dict(instance_res)
 
 # %%
 art = instance_res['sat']['model']['artifact']
+art
 
-art_path = art_dir / 'movement.json'
-if not art_path.exists():
-    art_path.parent.mkdir(parents=True, exist_ok=True)
-    art_path.touch()
-with art_path.open('w') as f:
+# %%
+
+with (art_dir / 'movement.json').open('w') as f:
     json.dump(art, f, indent=2)
