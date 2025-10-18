@@ -1,0 +1,8 @@
+{ tys = [];
+          consts =
+          [((x/252218 : { view = (Constr (int, [])); generation = 1 }),
+            { view = (Const 0);
+              ty = { view = (Constr (int, [])); generation = 1 };
+              generation = 0; sub_anchor = None })
+            ];
+          funs = []; representable = true; completed = true; ty_subst = [] }

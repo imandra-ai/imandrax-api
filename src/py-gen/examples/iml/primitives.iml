@@ -10,6 +10,7 @@ type user_age = age
 
 let model_my_int (x: my_int) = true
 let model_my_real (x: my_real) = true
+let model_my_bool_list (x: bool list) = List.length x > 1
 let model_my_lstring (x: my_lstring) = LString.length x > 0
 let model_my_bool (x: my_bool) = true
 let model_my_lchar (x: my_lchar) = true

@@ -6,7 +6,9 @@ module Mir = Imandrax_api_mir
 
 let () =
   (* Read the JSON file *)
-  let json_str = CCIO.File.read_exn "examples/art/movement.json" in
+  (* let json_str = CCIO.File.read_exn "examples/art/movement/movement.json" in *)
+  (* let json_str = CCIO.File.read_exn "examples/art/primitives/int.json" in *)
+  let json_str = CCIO.File.read_exn "examples/art/primitives/bool_list.json" in
 
   (* Parse JSON *)
   let json = Yojson.Safe.from_string json_str in
@@ -62,7 +64,7 @@ let () =
     (match Artifact.as_model art with
     | Some model ->
       Printf.printf "Successfully extracted model\n";
-      Format.printf "Model: %a\n%!" Mir.Model.pp model
+      Format.printf "Model: \n%a\n%!" Mir.Model.pp model
     | None ->
       Printf.eprintf "Error: artifact is not a model\n";
       exit 1)

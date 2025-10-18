@@ -17,9 +17,7 @@ The code generation pipeline consists of two main phases:
 
 ### Phase 1: Artifact Loading (Implemented)
 - Load IML model artifacts (stored in Twine binary format)
-- Decode using imandrakit.typereg type registry and Twine decoder
-- Convert to OCaml `Mir.Model.t` representation
-- See `decode_art.ml` for the current implementation
+- Decode to OCaml `Mir.Model.t` representation (see `decode_art.ml`)
 
 ### Phase 2: Python AST Construction (Planned)
 - Traverse the `Mir.Model.t` structure
@@ -44,14 +42,4 @@ Artifacts are IML values serialized in Twine binary format with:
 - `api_version`: Compatibility version
 - `storage`: Additional metadata
 
-See `examples/art/movement.json` for a concrete example.
-
-### Type Registry (typereg)
-The type registry system enables runtime type introspection and serialization:
-- Provides type descriptors for IML types
-- Enables generic decoding of Twine-encoded data
-- Maps OCaml types to their runtime representations
-
-Documentation available in `../../local/docs/typereg_docs/`
-
-## Project Structure
+See `examples/art/movement` for a concrete example.
