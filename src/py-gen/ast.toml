@@ -1,9 +1,9 @@
-# Copied from ruff_python_ast.toml
-# This file is used by generate.py to autogenerate our Python AST data model.
+# Copied and modified from ruff_python_ast.toml
+# This file is used by generate.py to autogenerate OCaml types for Python AST.
 #
-# We have defined a Rust struct for each syntax node in `src/nodes.rs`.  Many of
-# these nodes belong to groups. For instance, there is a `Stmt` group
-# consisting of all of the syntax nodes that represent valid Python statements.
+# We define an OCaml type for each syntax node. Many of these nodes belong to
+# groups. For instance, there is a `Stmt` group consisting of all syntax nodes
+# that represent valid Python statements.
 #
 # There is a special group named `ungrouped` that contains syntax nodes that do
 # not belong to any group.
@@ -11,56 +11,55 @@
 # Each group is defined by two sections below. The `[GROUP]` section defines
 # options that control the auto-generation for that group. The `[GROUP.nodes]`
 # section defines which syntax nodes belong to that group. The name of each
-# entry in the nodes section must match the name of the corresponding Rust
-# struct. The value of each entry defines options that control the
-# auto-generation for that syntax node.
+# entry in the nodes section corresponds to the OCaml variant constructor name.
+# The value of each entry defines options that control the auto-generation for
+# that syntax node.
 #
 # The following group options are available:
 #
 # add_suffix_to_is_methods: [true/false]
-#   Controls the name of the is_foo methods of the group's enums.  If false (the
-#   default), these methods will use the variant name in snake_case.  If true,
-#   then the group prefix will be moved to the end before snake_casing.  (That
-#   is, `StmtIf` will become `if_stmt`.)
+#   Controls the naming convention for type predicates. If false (the default),
+#   predicates use the variant name in snake_case. If true, the group prefix
+#   is moved to the end before snake_casing. (That is, `StmtIf` becomes `if_stmt`.)
 #
 # anynode_is_label: foo_bar
-#   Controls the name of the AnyNodeRef::is_foo_bar method.  The default is the
+#   Controls the label for pattern matching on any node type. The default is the
 #   group name in snake_case.
 #
 # doc:
-#   A doc comment that is added to the group's enums.
+#   A doc comment that is added to the OCaml variant type.
 #
 # The following syntax node options are available:
 #
 # doc:
-#  A doc comment that is added to the syntax node struct.
+#  A doc comment that is added to the OCaml type definition.
 #
 # derives:
-# List of derives to add to the syntax node struct. Clone, Debug, PartialEq are added by default.
+# List of OCaml ppx derivers to add (e.g., show, eq, ord).
 #
 # custom_source_order:
 # A boolean that specifies if this node has a custom source order visitor implementation.
-# generation of visit_source_order will be skipped for this node.
+# Generation of visit_source_order will be skipped for this node.
 #
 # fields:
-# List of fields in the syntax node struct. Each field is a table with the
+# List of fields in the OCaml record or variant constructor. Each field is a table with the
 # following keys:
 # * name - The name of the field.
-# * type - The type of the field.  This can be a simple type name, or a type
-#   type field uses a special syntax to describe the rust type:
+# * type - The type of the field. This uses a special syntax to describe the OCaml type:
 #    * `Expr` - A single expression.
-#    * `Expr?` - Option type.
-#    * `Expr*` - A vector of Expr.
-#    * `&Expr*` - A boxed slice of Expr.
-#    These properties cannot be nested, for example we cannot create a vector of option types.
+#    * `Expr?` - Option type (Expr option).
+#    * `Expr*` - A list of Expr (Expr list).
+#    * `&Expr*` - An array of Expr (Expr array).
+#    * `Box<T>` - A boxed/wrapped value (equivalent to T in OCaml).
+#    These properties cannot be nested, for example we cannot create a list of option types.
 # * is_annotation - If this field is a type annotation.
 #
 # source_order:
 # Defines in what order the fields appear in source
 #
 # variant:
-#   The name of the enum variant for this syntax node.  Defaults to the node
-#   name with the group prefix removed.  (That is, `StmtIf` becomes `If`.)
+#   The name of the variant constructor for this syntax node. Defaults to the node
+#   name with the group prefix removed. (That is, `StmtIf` becomes `If`.)
 
 [Mod]
 anynode_is_label = "module"
