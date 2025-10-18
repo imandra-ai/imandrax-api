@@ -1,0 +1,12 @@
+Wrting style guide
+- Usage of heading level
+    - be thoughtful on heading level.
+    - Use level 6 heading by default for content that is rather self-contained. Higher level heading should be used when hierarchy exists
+    - Exception: Use level 1 heading for the title
+- We use Wikikin to refer to each other. (Obsidian style)
+- We use frontmatter to attach metadata to each page.
+    - `written_by_ai`: This is a boolean value that indicates whether the page was written by AI or not.
+    - `written_for_ai`: This is a boolean value that indicates whether the page was written for AI or not.
+    - `tags`: This is a list of tags that are associated with the page.
+- A note with `written_by_ai` of true should be considered that it may contain inaccuracies or even errors, and a more lenient standard applies when considering whether to modify it.
+    - For AI: when the knowledge in notes conflicts your understanding and needs correction, raise questions and be active in correcting it

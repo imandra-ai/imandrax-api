@@ -1,4 +1,4 @@
-(* Script to load and decode movement.json artifact *)
+(* Script to load and decode artifact *)
 
 open Imandrax_api
 module Artifact = Imandrax_api_artifact.Artifact

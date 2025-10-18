@@ -1,10 +1,13 @@
 # pyright: basic
 # %%
+import base64
 import json
 from pathlib import Path
 
 from imandrax_api import Client, url_prod
+from imandrax_api.lib import read_artifact_data
 from IPython.core.getipython import get_ipython
+from rich import print
 
 if ip := get_ipython():
     ip.run_line_magic('reload_ext', 'autoreload')
@@ -15,6 +18,8 @@ from typing import Any
 import dotenv
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
+
+from py_gen.decode_artifact import decode_artifact, unwrap_model_constants
 
 
 def proto_to_dict(proto_obj: Message) -> dict[Any, Any]:
@@ -46,6 +51,11 @@ instance_res = proto_to_dict(instance_res)
 # %%
 art = instance_res['sat']['model']['artifact']
 art
+
+# %%
+print(read_artifact_data(data=base64.b64decode(art['data']), kind=art['kind']))
+# decode_artifact(art['data'], art['kind'])
+
 
 # %%
 
