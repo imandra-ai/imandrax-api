@@ -1,3 +1,5 @@
 docs/
 .env
 !*.json
+
+*local*
