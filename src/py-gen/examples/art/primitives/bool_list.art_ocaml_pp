@@ -1,104 +1,95 @@
 { tys = [];
-          consts =
-          [((x/252455 : { view =
+  consts =
+  [((x/252455 : { view =
+                  (Constr (list,
+                     [{ view = (Constr (bool, [])); generation = 1 }]));
+                  generation = 1 }),
+    // Term.t
+    { view =
+      // (Term.t, Type.t) Term.view
+      Construct {
+        c =
+        (:: : { view =
+                (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                   { view =
+                     (Arrow ((),
+                        { view =
                           (Constr (list,
                              [{ view = (Constr (bool, [])); generation = 1 }]
                              ));
-                          generation = 1 }),
-            { view =
-              Construct {
-                c =
-                (:: : { view =
-                        (Arrow ((),
-                           { view = (Constr (bool, [])); generation = 1 },
-                           { view =
-                             (Arrow ((),
-                                { view =
-                                  (Constr (list,
-                                     [{ view = (Constr (bool, []));
-                                        generation = 1 }
-                                       ]
-                                     ));
-                                  generation = 1 },
-                                { view =
-                                  (Constr (list,
-                                     [{ view = (Constr (bool, []));
-                                        generation = 1 }
-                                       ]
-                                     ));
-                                  generation = 1 }
-                                ));
-                             generation = 1 }
-                           ));
-                        generation = 1 });
-                args =
-                [{ view = (Const false);
-                   ty = { view = (Constr (bool, [])); generation = 1 };
-                   generation = 0; sub_anchor = None };
-                  { view =
-                    Construct {
-                      c =
-                      (:: : { view =
-                              (Arrow ((),
-                                 { view = (Constr (bool, [])); generation = 1
-                                   },
-                                 { view =
-                                   (Arrow ((),
-                                      { view =
-                                        (Constr (list,
-                                           [{ view = (Constr (bool, []));
-                                              generation = 1 }
-                                             ]
-                                           ));
-                                        generation = 1 },
-                                      { view =
-                                        (Constr (list,
-                                           [{ view = (Constr (bool, []));
-                                              generation = 1 }
-                                             ]
-                                           ));
-                                        generation = 1 }
-                                      ));
-                                   generation = 1 }
-                                 ));
-                              generation = 1 });
-                      args =
-                      [{ view = (Const false);
-                         ty = { view = (Constr (bool, [])); generation = 1 };
-                         generation = 0; sub_anchor = None };
+                          generation = 1 },
                         { view =
-                          Construct {
-                            c =
-                            ([] : { view =
-                                    (Constr (list,
-                                       [{ view = (Constr (bool, []));
-                                          generation = 1 }
-                                         ]
-                                       ));
-                                    generation = 1 });
-                            args = []};
-                          ty =
-                          { view =
+                          (Constr (list,
+                             [{ view = (Constr (bool, [])); generation = 1 }]
+                             ));
+                          generation = 1 }
+                        ));
+                     generation = 1 }
+                   ));
+                generation = 1 });
+        args =
+        [{ view = (Const false);
+           ty = { view = (Constr (bool, [])); generation = 1 };
+           generation = 0; sub_anchor = None };
+          { view =
+            Construct {
+              c =
+              (:: : { view =
+                      (Arrow ((),
+                         { view = (Constr (bool, [])); generation = 1 },
+                         { view =
+                           (Arrow ((),
+                              { view =
+                                (Constr (list,
+                                   [{ view = (Constr (bool, []));
+                                      generation = 1 }
+                                     ]
+                                   ));
+                                generation = 1 },
+                              { view =
+                                (Constr (list,
+                                   [{ view = (Constr (bool, []));
+                                      generation = 1 }
+                                     ]
+                                   ));
+                                generation = 1 }
+                              ));
+                           generation = 1 }
+                         ));
+                      generation = 1 });
+              args =
+              [{ view = (Const false);
+                 ty = { view = (Constr (bool, [])); generation = 1 };
+                 generation = 0; sub_anchor = None };
+                { view =
+                  Construct {
+                    c =
+                    ([] : { view =
                             (Constr (list,
                                [{ view = (Constr (bool, [])); generation = 1
                                   }
                                  ]
                                ));
-                            generation = 1 };
-                          generation = 0; sub_anchor = None }
-                        ]};
-                    ty =
-                    { view =
-                      (Constr (list,
-                         [{ view = (Constr (bool, [])); generation = 1 }]));
-                      generation = 1 };
-                    generation = 0; sub_anchor = None }
-                  ]};
-              ty =
-              { view =
-                (Constr (list,
-                   [{ view = (Constr (bool, [])); generation = 1 }]));
-                generation = 1 };
-              generation = 0; sub_anchor = None })
-            ];
-          funs = []; representable = true; completed = true; ty_subst = [] }
+                            generation = 1 });
+                    args = []};
+                  ty =
+                  { view =
+                    (Constr (list,
+                       [{ view = (Constr (bool, [])); generation = 1 }]));
+                    generation = 1 };
+                  generation = 0; sub_anchor = None }
+                ]};
+            ty =
+            { view =
+              (Constr (list, [{ view = (Constr (bool, [])); generation = 1 }]
+                 ));
+              generation = 1 };
+            generation = 0; sub_anchor = None }
+          ]};
+      ty =
+      { view =
+        (Constr (list, [{ view = (Constr (bool, [])); generation = 1 }]));
+        generation = 1 };
+      generation = 0; sub_anchor = None })
+    ];
+  funs = []; representable = true; completed = true; ty_subst = [] }

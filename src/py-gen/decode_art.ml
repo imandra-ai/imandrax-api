@@ -1,18 +1,11 @@
 (* Script to load and decode artifact *)
 
+open Printf
 open Imandrax_api
 module Artifact = Imandrax_api_artifact.Artifact
 module Mir = Imandrax_api_mir
 
-let () =
-  (* Read the JSON file *)
-  (* let json_str = CCIO.File.read_exn "examples/art/movement/movement.json" in *)
-  (* let json_str = CCIO.File.read_exn "examples/art/primitives/int.json" in *)
-  let json_str = CCIO.File.read_exn "examples/art/primitives/bool_list.json" in
-
-  (* Parse JSON *)
-  let json = Yojson.Safe.from_string json_str in
-
+let json_to_model (json : Yojson.Safe.t) : Mir.Model.t =
   (* Extract fields *)
   let kind_str = Yojson.Safe.Util.(json |> member "kind" |> to_string) in
   let data_b64 = Yojson.Safe.Util.(json |> member "data" |> to_string) in
@@ -20,22 +13,23 @@ let () =
     Yojson.Safe.Util.(json |> member "api_version" |> to_string)
   in
 
-  Printf.printf "Kind: %s\n" kind_str;
-  Printf.printf "API Version: %s\n" api_version;
-  Printf.printf "Data (base64): %s...\n"
-    (String.sub data_b64 0 (min 50 (String.length data_b64)));
+  (* printf "Kind: %s\n" kind_str; *)
+  printf "API Version: %s\n" api_version;
+
+  (* Printf.printf "Data (base64): %s...\n"
+    (String.sub data_b64 0 (min 50 (String.length data_b64))); *)
 
   (* Parse the kind *)
   match Artifact.kind_of_string kind_str with
   | Error err ->
-    Printf.eprintf "Error parsing kind: %s\n" err;
+    eprintf "Error parsing kind: %s\n" err;
     exit 1
   | Ok (Artifact.Any_kind kind) ->
-    Printf.printf "Parsed kind successfully\n";
+    printf "Parsed kind successfully\n";
 
     (* Decode base64 data *)
     let data_bytes = Base64.decode_exn data_b64 in
-    Printf.printf "Decoded %d bytes from base64\n" (String.length data_bytes);
+    printf "Decoded %d bytes from base64\n" (String.length data_bytes);
 
     (* Decode using Twine *)
     let decoder = Artifact.of_twine kind in
@@ -51,7 +45,7 @@ let () =
 
     let art : Artifact.t =
       let decoded_data = decoder twine_decoder entrypoint in
-      Printf.printf "\nSuccessfully decoded artifact\n";
+      printf "\nSuccessfully decoded artifact\n";
 
       let artifact = Artifact.make ~storage:[] ~kind decoded_data in
 
@@ -61,10 +55,22 @@ let () =
       artifact
     in
 
-    (match Artifact.as_model art with
-    | Some model ->
-      Printf.printf "Successfully extracted model\n";
-      Format.printf "Model: \n%a\n%!" Mir.Model.pp model
-    | None ->
-      Printf.eprintf "Error: artifact is not a model\n";
-      exit 1)
+    let model : Mir.Model.t =
+      match Artifact.as_model art with
+      | Some model -> model
+      | None -> raise (Failure "Error: artifact is not a model")
+    in
+    model
+
+let () =
+  (* Read the JSON file *)
+  (* let json_str = CCIO.File.read_exn "examples/art/movement/movement.json" in *)
+  let json_str = CCIO.File.read_exn "examples/art/primitives/int.json" in
+  (* let json_str = CCIO.File.read_exn "examples/art/primitives/bool_list.json" in *)
+
+  (* Parse JSON *)
+  let json = Yojson.Safe.from_string json_str in
+  let model = json_to_model json in
+
+  printf "%s\n" (Mir.Model.show model);
+  ()
