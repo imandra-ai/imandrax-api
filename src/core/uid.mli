@@ -24,6 +24,7 @@ val hash : t -> int
 val pp_debug : t Fmt.printer
 val pp_name : t Fmt.printer
 val pp_full : t Fmt.printer
+val full_suffix : t -> string
 val show_full : t -> string
 
 module Tbl : HashtblCache.S with type key = t

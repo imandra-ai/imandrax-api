@@ -61,7 +61,7 @@ end
 
 let pp_name out self = Fmt.string out self.name
 
-let pp_full out (x : t) : unit =
+let full_suffix (x : t) : string =
   match x.view with
   | Generative { id; gen_kind } ->
     let proc_name =
@@ -69,12 +69,12 @@ let pp_full out (x : t) : unit =
       | Local -> ""
       | To_be_rewritten -> "[temp]"
     in
-    Fmt.fprintf out "%s/%d%s" x.name id proc_name
-  | Cname c -> Cname.pp out c.cname
-  | Persistent -> Fmt.string out x.name
-  | Builtin _ -> Fmt.string out x.name
+    spf "/%d%s" id proc_name
+  | Cname c -> "/" ^ Chash.show c.cname.chash
+  | Persistent | Builtin _ -> ""
 
-let show_full = Fmt.to_string pp_full
+let pp_full out (x : t) : unit = Fmt.fprintf out "%s%s" x.name (full_suffix x)
+let show_full x = spf "%s%s" x.name (full_suffix x)
 
 (* ppx-deriving printer becomes "pp_debug", and "pp" defaults to the full printer *)
 let pp_debug = pp
