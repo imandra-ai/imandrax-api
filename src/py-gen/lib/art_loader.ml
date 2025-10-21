@@ -3,7 +3,14 @@ open Imandrax_api
 module Artifact = Imandrax_api_artifact.Artifact
 module Mir = Imandrax_api_mir
 
-let json_to_model (json : Yojson.Safe.t) : Mir.Model.t =
+let json_to_model ?(debug = false) (json : Yojson.Safe.t) : Mir.Model.t =
+  let log fmt =
+    if debug then
+      printf fmt
+    else
+      ifprintf stdout fmt
+  in
+
   (* Extract fields *)
   let kind_str = Yojson.Safe.Util.(json |> member "kind" |> to_string) in
   let data_b64 = Yojson.Safe.Util.(json |> member "data" |> to_string) in
@@ -11,10 +18,10 @@ let json_to_model (json : Yojson.Safe.t) : Mir.Model.t =
     Yojson.Safe.Util.(json |> member "api_version" |> to_string)
   in
 
-  (* printf "Kind: %s\n" kind_str; *)
-  printf "API Version: %s\n" api_version;
+  (* log "Kind: %s\n" kind_str; *)
+  log "API Version: %s\n" api_version;
 
-  (* Printf.printf "Data (base64): %s...\n"
+  (* log.log "Data (base64): %s...\n"
     (String.sub data_b64 0 (min 50 (String.length data_b64))); *)
 
   (* Parse the kind *)
@@ -23,11 +30,11 @@ let json_to_model (json : Yojson.Safe.t) : Mir.Model.t =
     eprintf "Error parsing kind: %s\n" err;
     exit 1
   | Ok (Artifact.Any_kind kind) ->
-    printf "Parsed kind successfully\n";
+    log "Parsed kind successfully\n";
 
     (* Decode base64 data *)
     let data_bytes = Base64.decode_exn data_b64 in
-    printf "Decoded %d bytes from base64\n" (String.length data_bytes);
+    log "Decoded %d bytes from base64\n" (String.length data_bytes);
 
     (* Decode using Twine *)
     let decoder = Artifact.of_twine kind in
@@ -43,12 +50,12 @@ let json_to_model (json : Yojson.Safe.t) : Mir.Model.t =
 
     let art : Artifact.t =
       let decoded_data = decoder twine_decoder entrypoint in
-      printf "\nSuccessfully decoded artifact\n";
+      log "\nSuccessfully decoded artifact\n";
 
       let artifact = Artifact.make ~storage:[] ~kind decoded_data in
 
       (* Pretty print the decoded data *)
-      (* Printf.printf "\nDecoded artifact:\n";
+      (* log "\nDecoded artifact:\n";
       Format.printf "%a\n%!" Artifact.pp artifact; *)
       artifact
     in
