@@ -1,0 +1,13 @@
+; Library for artifact loading and Python code generation
+(library
+ (name py_gen)
+ (modules art_loader)
+ (libraries
+  imandrax-api
+  imandrax-api.artifact
+  imandrax-api.mir
+  imandrakit
+  imandrakit.twine
+  yojson
+  containers
+  base64))

@@ -1,0 +1,10 @@
+; Executable to decode and inspect artifacts
+(executable
+ (name decode_art)
+ (modules decode_art)
+ (libraries
+  py_gen
+  imandrax-api
+  imandrax-api.mir
+  yojson
+  containers))

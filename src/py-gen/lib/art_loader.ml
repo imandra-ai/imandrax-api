@@ -1,5 +1,3 @@
-(* Script to load and decode artifact *)
-
 open Printf
 open Imandrax_api
 module Artifact = Imandrax_api_artifact.Artifact
@@ -61,16 +59,3 @@ let json_to_model (json : Yojson.Safe.t) : Mir.Model.t =
       | None -> raise (Failure "Error: artifact is not a model")
     in
     model
-
-let () =
-  (* Read the JSON file *)
-  (* let json_str = CCIO.File.read_exn "examples/art/movement/movement.json" in *)
-  let json_str = CCIO.File.read_exn "examples/art/primitives/int.json" in
-  (* let json_str = CCIO.File.read_exn "examples/art/primitives/bool_list.json" in *)
-
-  (* Parse JSON *)
-  let json = Yojson.Safe.from_string json_str in
-  let model = json_to_model json in
-
-  printf "%s\n" (Mir.Model.show model);
-  ()
