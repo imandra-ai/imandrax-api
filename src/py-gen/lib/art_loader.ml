@@ -66,3 +66,25 @@ let json_to_model ?(debug = false) (json : Yojson.Safe.t) : Mir.Model.t =
       | None -> raise (Failure "Error: artifact is not a model")
     in
     model
+
+(* Helper functions for testing *)
+let parse_model model =
+  match model.Mir.Model.consts with
+  | [] -> failwith "No constants\n"
+  | [ const ] ->
+    let app_sym, term = const in
+    app_sym, term
+  | _ ->
+    let s =
+      sprintf "more than 1 const, not supported\n len = %d"
+        (List.length model.Mir.Model.consts)
+    in
+    failwith s
+
+let%expect_test "decode int artifact" =
+  let json_str = CCIO.File.read_exn "examples/art/primitives/int.json" in
+  let json = Yojson.Safe.from_string json_str in
+  let model = json_to_model json in
+  let app_sym, term = parse_model model in
+  print_endline (Imandrax_api_common.Applied_symbol.pp_t_poly app_sym);
+  [%expect {| |}]

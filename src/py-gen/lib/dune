@@ -10,4 +10,7 @@
   imandrakit.twine
   yojson
   containers
-  base64))
+  base64)
+ (inline_tests)
+ (preprocess
+  (pps ppx_expect)))
