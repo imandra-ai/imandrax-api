@@ -541,14 +541,26 @@ module Int =
     let rec for_down_to i j f : unit=
       if i >= j then (f i; for_down_to (i - (Z.of_nativeint 1n)) j f)
       [@@program ]
-    let mod_zero_prod n m x =
-      implies
-        ((n > (Z.of_nativeint 0n)) && ((x mod n) = (Z.of_nativeint 0n)))
-        (((x * m) mod n) = (Z.of_nativeint 0n))[@@imandra_axiom ][@@rw ]
-    let mod_sub_id n m =
-      implies ((m <= n) && (m > (Z.of_nativeint 0n)))
-        (((n + ((Z.of_nativeint (-1n)) * m)) mod m) = (n mod m))[@@imandra_axiom
-                                                                  ][@@rw ]
+    module Euclidean_mod =
+      struct
+        let rec rem_pos (a : int) (b : int) : int=
+          if b <= (Z.of_nativeint 0n)
+          then Z.of_nativeint 0n
+          else
+            if a < (Z.of_nativeint 0n)
+            then rem_pos (a + b) b
+            else if a >= b then rem_pos (a - b) b else a[@@measure
+                                                          Ordinal.of_int
+                                                            (abs a)][@@by
+                                                                    auto]
+        let emod (a : int) (m : int) : int=
+          if m = (Z.of_nativeint 0n)
+          then Z.of_nativeint 0n
+          else rem_pos a (abs m)
+      end
+    let mod_eq_emod x y =
+      implies (y <> (Z.of_nativeint 0n))
+        ((x mod y) = (Euclidean_mod.emod x y))[@@imandra_axiom ]
   end
 module Bool = struct type t = bool[@@deriving (to_iml, of_mir)] end
 module Array =
