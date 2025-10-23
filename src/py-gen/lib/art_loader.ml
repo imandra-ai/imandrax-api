@@ -81,15 +81,25 @@ let parse_model model =
     in
     failwith s
 
+(* <><><><><><><><><><><><><><><><><><><><> *)
+
 let%expect_test "decode int artifact" =
   let json_str = CCIO.File.read_exn "../examples/art/primitives/int.json" in
   let json = Yojson.Safe.from_string json_str in
   let model = json_to_model json in
-  let app_sym, _term = parse_model model in
-  let output =
+  let app_sym, term = parse_model model in
+  let app_sym_str =
     Format.asprintf "%a"
       (Imandrax_api_common.Applied_symbol.pp_t_poly Mir.Type.pp)
       app_sym
   in
-  print_endline output;
-  [%expect {| (x/252218 : { view = (Constr (int, [])); generation = 1 }) |}]
+  print_endline app_sym_str;
+  print_newline ();
+  print_endline (Mir.Term.show term);
+  [%expect
+    {|
+    (x/252218 : { view = (Constr (int, [])); generation = 1 })
+
+    { view = (Const 0); ty = { view = (Constr (int, [])); generation = 1 };
+      generation = 0; sub_anchor = None }
+    |}]

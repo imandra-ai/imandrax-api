@@ -26,7 +26,7 @@ dev = [
 line-length = 80
 fix = true
 show-fixes = true
-src = ["src"]
+# src = ["src"]
 exclude = [
     "*.ipynb",
     "vendor/",
