@@ -1,7 +1,7 @@
 ; Library for artifact loading and Python code generation
 (library
  (name py_gen)
- (modules art_loader)
+ (modules art_loader ast)
  (libraries
   imandrax-api
   imandrax-api.artifact
