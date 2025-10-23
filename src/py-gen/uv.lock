@@ -803,11 +803,13 @@ wheels = [
 [[package]]
 name = "py-gen"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
+    { name = "devtools" },
     { name = "dotenv" },
     { name = "imandrax-api", extra = ["async"] },
     { name = "iml-query" },
+    { name = "rich" },
 ]
 
 [package.dev-dependencies]
@@ -817,9 +819,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "devtools", specifier = ">=0.12.2" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "imandrax-api", extras = ["async"], specifier = ">=0.17.2.1" },
     { name = "iml-query", specifier = ">=0.3.4" },
+    { name = "rich", specifier = ">=14.2.0" },
 ]
 
 [package.metadata.requires-dev]
