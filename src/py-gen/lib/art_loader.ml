@@ -2,6 +2,8 @@ open Printf
 open Imandrax_api
 module Artifact = Imandrax_api_artifact.Artifact
 module Mir = Imandrax_api_mir
+module Type = Imandrax_api_mir.Type
+module Term = Imandrax_api_mir.Term
 
 let json_to_model ?(debug = false) (json : Yojson.Safe.t) : Mir.Model.t =
   let log fmt =
@@ -81,6 +83,21 @@ let parse_model model =
     in
     failwith s
 
+let parse_term (term : Term.term) =
+  let term_view = term.view in
+  let term_ty = term.ty in
+  match term_view with
+  | Term.Const const ->
+    (match const with
+    | Const_bool b -> printf "%b" b
+    | Const_float f -> printf "%f" f
+    | Const_q q -> print_endline (Util_twine.Q.show q)
+    | Const_z z -> print_endline (Z.to_string z)
+    | Const_string s -> print_endline s
+    | c ->
+      print_endline (sprintf "unhandle const %s" (Imandrax_api.Const.show c)))
+  | _ -> print_endline "non-const term"
+
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
 let%expect_test "decode int artifact" =
@@ -93,13 +110,27 @@ let%expect_test "decode int artifact" =
       (Imandrax_api_common.Applied_symbol.pp_t_poly Mir.Type.pp)
       app_sym
   in
+
+  let term_view = term.view in
+
+  let term_ty = term.ty in
+
   print_endline app_sym_str;
   print_newline ();
-  print_endline (Mir.Term.show term);
+  print_endline (Term.show term);
+
+  print_newline ();
+  print_endline (Term.show_view Term.pp Type.pp term_view);
+
+  print_newline ();
+  parse_term term;
   [%expect
     {|
     (x/252218 : { view = (Constr (int, [])); generation = 1 })
 
     { view = (Const 0); ty = { view = (Constr (int, [])); generation = 1 };
       generation = 0; sub_anchor = None }
+
+    (Const 0)
+    0
     |}]
