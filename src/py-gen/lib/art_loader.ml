@@ -24,8 +24,8 @@ let rec parse_term (term : Term.term) : Ast.expr option =
   let term_view = term.view in
   let term_ty = term.ty in
   match term_view, term_ty with
+  (* Constant *)
   | Term.Const const, _ ->
-    (* Constant *)
     (match const with
     | Const_bool b -> Some Ast.(Constant { value = Bool b; kind = None })
     | Const_float f ->
@@ -50,8 +50,9 @@ let rec parse_term (term : Term.term) : Ast.expr option =
       (* Uid and real_approx *)
       print_endline (sprintf "unhandle const %s" (Imandrax_api.Const.show c));
       None)
+  (* Construct *)
   | ( Term.Construct { c = construct; args = (construct_args : Term.term list) },
-      ty ) ->
+      (ty : Type.t) ) ->
     let ty_view = ty.view in
 
     (* Check ty view to see if it's a LChar.t *)
@@ -84,6 +85,14 @@ let rec parse_term (term : Term.term) : Ast.expr option =
     failwith "non-constr ty view";
     let _, _, _ = c, args, ty in
     print_endline "Construct" *)
+  (* Tuple *)
+  | Term.Tuple { l = (terms : Term.term list) }, (_ty : Type.t) ->
+    let expr_opts = List.map (fun term -> parse_term term) terms in
+    let raising_msg = "None found when parsing tuple items" in
+    let exprs =
+      List.map (fun opt -> opt |> CCOption.get_exn_or raising_msg) expr_opts
+    in
+    Some (Ast.tuple_of_exprs exprs)
   | _, _ ->
     print_endline "case other than const or construct";
     None
@@ -183,6 +192,10 @@ let%expect_test "decode artifact" =
     <><><><><><><><><><>
 
     Parsing term:
-    case other than const or construct
-    None
+    2
+    (Ast.Tuple
+       { Ast.elts =
+         [(Ast.Constant { Ast.value = (Ast.Bool true); kind = None });
+           (Ast.Constant { Ast.value = (Ast.Int 2); kind = None })];
+         ctx = Ast.Load; dims = [] })
     |}]

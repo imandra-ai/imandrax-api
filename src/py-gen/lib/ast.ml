@@ -92,6 +92,7 @@ and list_expr = {
 and tuple_expr = {
   elts: expr list;
   ctx: expr_context;
+  (* contains type parameter expressions (like T, U in generic syntax) *)
   dims: expr list;
 }
 
@@ -146,6 +147,9 @@ let bool_list_expr_to_char_expr (exprs : expr list) : expr =
   in
   let char = bools_to_char bools in
   string_expr (String.make 1 char)
+
+let tuple_of_exprs (exprs : expr list) : expr =
+  Tuple { elts = exprs; ctx = Load; dims = [] }
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
