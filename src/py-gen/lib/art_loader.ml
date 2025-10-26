@@ -4,6 +4,8 @@ module Artifact = Imandrax_api_artifact.Artifact
 module Mir = Imandrax_api_mir
 module Type = Imandrax_api_mir.Type
 module Term = Imandrax_api_mir.Term
+module Ty_view = Imandrax_api.Ty_view
+module Ast = Ast
 
 let parse_model model =
   match model.Mir.Model.consts with
@@ -18,23 +20,77 @@ let parse_model model =
     in
     failwith s
 
-let parse_term (term : Term.term) =
+let rec parse_term (term : Term.term) : Ast.expr option =
   let term_view = term.view in
   let term_ty = term.ty in
-  match term_view with
-  | Term.Const const ->
+  match term_view, term_ty with
+  | Term.Const const, _ ->
+    (* Constant *)
     (match const with
-    | Const_bool b -> printf "%b" b
-    | Const_float f -> printf "%f" f
+    | Const_bool b -> Some Ast.(Constant { value = Bool b; kind = None })
+    | Const_float f ->
+      printf "%f" f;
+      Ast.(Some (Constant { value = Float f; kind = None }))
     | Const_q q ->
       let num = Q.num q in
       let den = Q.den q in
-      printf "%s/%s" (Z.to_string num) (Z.to_string den)
-    | Const_z z -> print_endline (Z.to_string z)
-    | Const_string s -> print_endline s
+      printf "%s/%s" (Z.to_string num) (Z.to_string den);
+      let open Ast in
+      (* Should we use Decimal instead? *)
+      Some
+        (Constant
+           {
+             value = Float (float_of_int (Z.to_int num / Z.to_int den));
+             kind = None;
+           })
+    | Const_z z ->
+      print_endline (Z.to_string z);
+      Some (Ast.Constant { value = Int (Z.to_int z); kind = None })
+    | Const_string s ->
+      print_endline s;
+      Some (Ast.Constant { value = String s; kind = None })
     | c ->
-      print_endline (sprintf "unhandle const %s" (Imandrax_api.Const.show c)))
-  | _ -> print_endline "non-const term"
+      (* Uid and real_approx *)
+      print_endline (sprintf "unhandle const %s" (Imandrax_api.Const.show c));
+      None)
+  | ( Term.Construct { c = construct; args = (construct_args : Term.term list) },
+      ty ) ->
+    let ty_view = ty.view in
+
+    (* Check ty view to see if it's a LChar.t *)
+    let is_lchar =
+      match ty_view with
+      | Ty_view.Constr (constr_name_uid, constr_args) ->
+        let name = constr_name_uid.name in
+        (match name, constr_args with
+        | "LChar.t", [] -> true
+        | "LChar.t", _x :: _xs -> failwith "LChar.t shouldn't have args"
+        | _ -> false)
+      | _ -> false
+    in
+
+    let _ = construct in
+
+    if is_lchar then (
+      let unwrap : 'a option -> 'a = function
+        | Some x -> x
+        | None -> failwith "unwrap: None"
+      in
+      let bool_terms =
+        List.map (fun arg -> parse_term arg |> unwrap) construct_args
+      in
+      let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
+      print_endline (Ast.show_expr char_expr);
+      Some char_expr
+    ) else
+      None
+  (* | _ ->
+    failwith "non-constr ty view";
+    let _, _, _ = c, args, ty in
+    print_endline "Construct" *)
+  | _, _ ->
+    print_endline "case other than const or construct";
+    None
 
 let show_term_view : (Term.term, Type.t) Term.view -> string =
   Term.show_view Term.pp Type.pp
@@ -43,12 +99,12 @@ let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
-let%expect_test "decode tuple artifact from yaml" =
+let%expect_test "decode artifact" =
   let yaml_str = CCIO.File.read_exn "../examples/art/art.yaml" in
   let yaml = Yaml.of_string_exn yaml_str in
 
   (* Get item by index *)
-  let index = 0 in
+  let index = 2 in
   let item =
     match yaml with
     | `A items -> List.nth items index
@@ -67,53 +123,95 @@ let%expect_test "decode tuple artifact from yaml" =
 
   let model = Util.yaml_to_model item in
   let app_sym, term = parse_model model in
-  let app_sym_str =
-    Format.asprintf "%a"
-      (Imandrax_api_common.Applied_symbol.pp_t_poly Mir.Type.pp)
-      app_sym
-  in
 
-  let term_view = term.view in
+  (* Create a custom formatter with wider margin *)
+  let fmt = Format.str_formatter in
+  Format.pp_set_margin fmt 200;
+  Format.pp_set_max_indent fmt 190;
+
+  let _term_view = term.view in
 
   print_endline sep;
 
   print_endline "Applied symbol:";
-  print_endline app_sym_str;
+  Format.fprintf fmt "%a@?"
+    (Imandrax_api_common.Applied_symbol.pp_t_poly Mir.Type.pp)
+    app_sym;
+  print_endline (Format.flush_str_formatter ());
   printf "%s\n" sep;
 
   print_endline "Term:";
-  print_endline (Term.show term);
+  Format.fprintf fmt "%a@?" Term.pp term;
+  print_endline (Format.flush_str_formatter ());
   printf "%s\n" sep;
 
-  print_endline "Term view:";
-  print_endline (show_term_view term_view);
-  printf "%s\n" sep;
-
+  (* print_endline "Term view:";
+  Format.fprintf fmt "%a@?" (Term.pp_view Type.pp) term_view;
+  print_endline (Format.flush_str_formatter ());
+  printf "%s\n" sep; *)
   print_endline "Parsing term:";
-  parse_term term;
+  let _ = parse_term term in
+  ();
   [%expect
     {|
-    name: real
+    name: LChar
 
     <><><><><><><><><><>
 
     Applied symbol:
-    (w/317214 : { view = (Constr (real, [])); generation = 1 })
+    (w/317259 : { view = (Constr (LChar.t/xD4foGbj4KvAdafyHCfVt9IpFxUjYJk_NPBBTQgaTX8, [])); generation = 1 })
 
     <><><><><><><><><><>
 
     Term:
-    { view = (Const (157.0 /. 50.0));
-      ty = { view = (Constr (real, [])); generation = 1 }; generation = 0;
-      sub_anchor = None }
-
-    <><><><><><><><><><>
-
-    Term view:
-    (Const (157.0 /. 50.0))
+    { view =
+      Construct {
+        c =
+        (LChar.Char/c82CepJldh-90XXoiLXslRebU8zYQamMXY5l6vlWXz8 : { view =
+                                                                    (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                                       { view =
+                                                                         (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                                            { view =
+                                                                              (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                                                 { view =
+                                                                                   (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                                                      { view =
+                                                                                        (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                                                           { view =
+                                                                                             (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                                                                { view =
+                                                                                                  (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                                                                     { view =
+                                                                                                       (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                                                                          { view = (Constr (LChar.t/xD4foGbj4KvAdafyHCfVt9IpFxUjYJk_NPBBTQgaTX8, [])); generation = 1 }));
+                                                                                                       generation = 1 }
+                                                                                                     ));
+                                                                                                  generation = 1 }
+                                                                                                ));
+                                                                                             generation = 1 }
+                                                                                           ));
+                                                                                        generation = 1 }
+                                                                                      ));
+                                                                                   generation = 1 }
+                                                                                 ));
+                                                                              generation = 1 }
+                                                                            ));
+                                                                         generation = 1 }
+                                                                       ));
+                                                                    generation = 1 });
+        args =
+        [{ view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
+      ty = { view = (Constr (LChar.t/xD4foGbj4KvAdafyHCfVt9IpFxUjYJk_NPBBTQgaTX8, [])); generation = 1 }; generation = 0; sub_anchor = None }
 
     <><><><><><><><><><>
 
     Parsing term:
-    157/50
+    (Ast.Constant { Ast.value = (Ast.String "\000"); kind = None })
     |}]

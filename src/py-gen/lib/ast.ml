@@ -100,4 +100,63 @@ and assign_stmt = {
   value: expr; (* TODO: type_comment: str option *)
 }
 
-and stmt = Assign of assign_stmt
+and stmt = Assign of assign_stmt [@@deriving show]
+
+let bool_expr (b : bool) : expr = Constant { value = Bool b; kind = None }
+let string_expr (s : string) : expr = Constant { value = String s; kind = None }
+
+let bools_to_char (bools : bool list) : char =
+  if List.length bools <> 8 then
+    invalid_arg "bools_to_char: list must contain exactly 8 booleans"
+  else (
+    let rec bools_to_int acc = function
+      | [] -> acc
+      | b :: rest ->
+        let bit =
+          if b then
+            1
+          else
+            0
+        in
+        bools_to_int ((acc lsl 1) lor bit) rest
+    in
+    let ascii_value = bools_to_int 0 bools in
+    Char.chr ascii_value
+  )
+
+let char_to_bools (c : char) : bool list =
+  let ascii_value = Char.code c in
+  let rec int_to_bools acc n bit_pos =
+    if bit_pos < 0 then
+      acc
+    else (
+      let bit = (n lsr bit_pos) land 1 in
+      int_to_bools ((bit = 1) :: acc) n (bit_pos - 1)
+    )
+  in
+  int_to_bools [] ascii_value 7
+
+let bool_list_expr_to_char_expr (exprs : expr list) : expr =
+  let bools =
+    List.map
+      (function
+        | Constant { value = Bool b; _ } -> b
+        | _ -> invalid_arg "bool_list_expr_to_string: expected bool constant")
+      exprs
+  in
+  let char = bools_to_char bools in
+  string_expr (String.make 1 char)
+
+(* <><><><><><><><><><><><><><><><><><><><> *)
+
+let%expect_test "bool list expr to string" =
+  let bools = [ false; true; false; false; false; false; false; true ] in
+  let c = bools_to_char bools in
+  Printf.printf "%c\n" c;
+  [%expect {| A |}]
+
+let%expect_test "char to bools" =
+  let c = '0' in
+  let bools = char_to_bools c in
+  List.iter (Printf.printf "%b ") bools;
+  [%expect {| false false false false true true false false |}]
