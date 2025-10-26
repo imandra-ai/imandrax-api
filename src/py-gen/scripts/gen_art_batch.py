@@ -58,7 +58,7 @@ values: list[tuple[str, str]] = [
     ('int', r'2'),
     ('LChar', r'LChar.zero'),
     ('LString', r'{l|hi|l}'),
-    ('tuple (bool * int)', r'[(true, 2)]'),
+    ('tuple (bool * int)', r'(true, 2)'),
     # Composite
     ('single element int list', r'[1]'),
     ('bool list', r'[true; false]'),

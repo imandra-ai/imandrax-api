@@ -158,53 +158,31 @@ let%expect_test "decode artifact" =
   let expr = parse_term term in
   (match expr with
   | Some expr -> print_endline (Ast.show_expr expr)
-  | None ->
-    print_endline "None";
-    [%expect
-      {|
-      name: tuple (bool * int)
-      code: [(true, 2)]
+  | None -> print_endline "None");
 
-      <><><><><><><><><><>
+  [%expect
+    {|
+    name: tuple (bool * int)
+    code: (true, 2)
 
-      Applied symbol:
-      (w/310199 : { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 })
+    <><><><><><><><><><>
 
-      <><><><><><><><><><>
+    Applied symbol:
+    (w/311234 : { view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 })
 
-      Term:
-      { view =
-        Construct {
-          c =
-          (:: : { view =
-                  (Arrow ((), { view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 },
-                     { view =
-                       (Arrow ((),
-                          { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 },
-                          { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 }));
-                       generation = 1 }
-                     ));
-                  generation = 1 });
-          args =
-          [{ view =
-             Tuple {
-               l =
-               [{ view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
-                 { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
-             ty = { view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }; generation = 0; sub_anchor = None };
-            { view =
-              Construct {
-                c = ([] : { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 });
-                args = []};
-              ty = { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 };
-              generation = 0; sub_anchor = None }
-            ]};
-        ty = { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 };
-        generation = 0; sub_anchor = None }
+    <><><><><><><><><><>
 
-      <><><><><><><><><><>
+    Term:
+    { view =
+      Tuple {
+        l =
+        [{ view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
+      ty = { view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }; generation = 0; sub_anchor = None }
 
-      Parsing term:
-      None
-      |}]);
-  [%expect {| |}]
+    <><><><><><><><><><>
+
+    Parsing term:
+    case other than const or construct
+    None
+    |}]
