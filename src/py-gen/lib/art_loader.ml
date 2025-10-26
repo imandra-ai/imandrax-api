@@ -100,22 +100,31 @@ let%expect_test "decode artifact" =
   let yaml = Yaml.of_string_exn yaml_str in
 
   (* Get item by index *)
-  let index = 0 in
+  let index = 4 in
   let item =
     match yaml with
     | `A items -> List.nth items index
     | _ -> failwith "Expected YAML list"
   in
 
-  let name =
+  let name, code =
     match item with
     | `O assoc ->
-      (match List.assoc_opt "name" assoc with
-      | Some (`String s) -> s
-      | _ -> "unknown")
-    | _ -> "unknown"
+      let name =
+        match List.assoc_opt "name" assoc with
+        | Some (`String s) -> s
+        | _ -> "unknown"
+      in
+      let code =
+        match List.assoc_opt "iml" assoc with
+        | Some (`String s) -> s
+        | _ -> "unknown"
+      in
+      name, code
+    | _ -> "unknown name", "unknown value"
   in
   printf "name: %s\n" name;
+  printf "code: %s\n" code;
 
   let model = Util.yaml_to_model item in
   let app_sym, term = parse_model model in
@@ -151,22 +160,51 @@ let%expect_test "decode artifact" =
   | Some expr -> print_endline (Ast.show_expr expr)
   | None ->
     print_endline "None";
-    [%expect.unreachable]);
-  [%expect {|
-    name: real
+    [%expect
+      {|
+      name: tuple (bool * int)
+      code: [(true, 2)]
 
-    <><><><><><><><><><>
+      <><><><><><><><><><>
 
-    Applied symbol:
-    (w/317214 : { view = (Constr (real, [])); generation = 1 })
+      Applied symbol:
+      (w/310199 : { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 })
 
-    <><><><><><><><><><>
+      <><><><><><><><><><>
 
-    Term:
-    { view = (Const (157.0 /. 50.0)); ty = { view = (Constr (real, [])); generation = 1 }; generation = 0; sub_anchor = None }
+      Term:
+      { view =
+        Construct {
+          c =
+          (:: : { view =
+                  (Arrow ((), { view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 },
+                     { view =
+                       (Arrow ((),
+                          { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 },
+                          { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 }));
+                       generation = 1 }
+                     ));
+                  generation = 1 });
+          args =
+          [{ view =
+             Tuple {
+               l =
+               [{ view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
+                 { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
+             ty = { view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }; generation = 0; sub_anchor = None };
+            { view =
+              Construct {
+                c = ([] : { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 });
+                args = []};
+              ty = { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 };
+              generation = 0; sub_anchor = None }
+            ]};
+        ty = { view = (Constr (list, [{ view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }])); generation = 1 };
+        generation = 0; sub_anchor = None }
 
-    <><><><><><><><><><>
+      <><><><><><><><><><>
 
-    Parsing term:
-    (Ast.Constant { Ast.value = (Ast.Float 3.14); kind = None })
-    |}]
+      Parsing term:
+      None
+      |}]);
+  [%expect {| |}]
