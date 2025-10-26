@@ -54,12 +54,13 @@ art_dir = Path.cwd().parent / 'examples' / 'art'
 # %%
 values: list[tuple[str, str]] = [
     # Primitive
-    ('tuple (bool * int)', r'[(true, 2)]'),
     ('real', r'3.14'),
     ('int', r'2'),
-    ('LString', r'{l|hi|l}'),
     ('LChar', r'LChar.zero'),
+    ('LString', r'{l|hi|l}'),
+    ('tuple (bool * int)', r'[(true, 2)]'),
     # Composite
+    ('single element int list', r'[1]'),
     ('bool list', r'[true; false]'),
     ('int option', r'Some 2'),
     (
