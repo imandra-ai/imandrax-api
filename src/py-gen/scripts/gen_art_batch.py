@@ -1,0 +1,147 @@
+# pyright: basic
+# %%
+import base64
+import json
+from pathlib import Path
+
+import yaml
+from imandrax_api import Client, url_prod
+from imandrax_api.lib import read_artifact_data
+from IPython.core.getipython import get_ipython
+from rich import print
+
+if ip := get_ipython():
+    ip.run_line_magic('reload_ext', 'autoreload')
+    ip.run_line_magic('autoreload', '2')
+import os
+from typing import Any
+
+import dotenv
+from google.protobuf.json_format import MessageToDict
+from google.protobuf.message import Message
+
+
+class LiteralString(str):
+    pass
+
+
+def literal_presenter(dumper, data):
+    if '\n' in data:
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+
+
+yaml.add_representer(LiteralString, literal_presenter)
+
+
+def proto_to_dict(proto_obj: Message) -> dict[Any, Any]:
+    return MessageToDict(
+        proto_obj,
+        preserving_proto_field_name=True,
+        always_print_fields_with_no_presence=True,
+    )
+
+
+dotenv.load_dotenv('../.env')
+
+
+# %%
+c = Client(auth_token=os.environ['IMANDRAX_API_KEY'], url=url_prod)
+
+art_dir = Path.cwd().parent / 'examples' / 'art'
+
+
+# %%
+values: list[tuple[str, str]] = [
+    # Primitive
+    ('tuple (bool * int)', r'[(true, 2)]'),
+    ('real', r'3.14'),
+    ('int', r'2'),
+    ('LString', r'{l|hi|l}'),
+    ('LChar', r'LChar.zero'),
+    # Composite
+    ('bool list', r'[true; false]'),
+    ('int option', r'Some 2'),
+    (
+        'record',
+        """\
+type user = {
+    id: int;
+    active: bool;
+}
+
+let v = {id = 1; active = true}\
+""",
+    ),
+    (
+        'variant1',
+        """\
+type status =
+    | Active
+    | Waitlist of int
+
+let v = Active\
+""",
+    ),
+    (
+        'variant2',
+        """\
+type status =
+    | Active
+    | Waitlist of int
+
+let v = Waitlist 1\
+""",
+    ),
+]
+
+# iml = r"""
+# let v = function
+#   | {v} -> true
+#   | _ -> false
+# """
+
+iml = r"""
+let v =
+  fun w ->
+    if w = {v} then true else false
+"""
+
+
+# %%
+def gen_art(name: str, v: str):
+    eval_res = c.eval_src(iml.format(v=v))
+    instance_res = c.instance_src(src='v')
+    instance_res = proto_to_dict(instance_res)
+    art = instance_res['sat']['model']['artifact']
+    art['iml'] = LiteralString(v)
+    art['name'] = name
+    order = [
+        'name',
+        'iml',
+        'data',
+        'api_version',
+        'kind',
+        'storage',
+    ]
+    return {k: art[k] for k in order}
+
+
+art_data = []
+for name, v in values:
+    art_data_item = gen_art(name, v)
+    art_data.append(art_data_item)
+
+# %%
+with (art_dir / 'art.yaml').open('w') as f:
+    f.write(yaml.dump(art_data, sort_keys=False, default_flow_style=False))
+
+
+# %%
+# with (art_dir / f'{name}.yaml').open('w') as f:
+#     f.write(yaml.dump(art_data, sort_keys=False, default_flow_style=False))
+# print(yaml.dump(art_data, sort_keys=False, default_flow_style=False))
+
+# %%
+# print(read_artifact_data(data=base64.b64decode(art['data']), kind=art['kind']))
+# decode_artifact(art['data'], art['kind'])
