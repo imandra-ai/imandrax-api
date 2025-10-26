@@ -26,12 +26,20 @@ let parse_term (term : Term.term) =
     (match const with
     | Const_bool b -> printf "%b" b
     | Const_float f -> printf "%f" f
-    | Const_q q -> print_endline (Util_twine.Q.show q)
+    | Const_q q ->
+      let num = Q.num q in
+      let den = Q.den q in
+      printf "%s/%s" (Z.to_string num) (Z.to_string den)
     | Const_z z -> print_endline (Z.to_string z)
     | Const_string s -> print_endline s
     | c ->
       print_endline (sprintf "unhandle const %s" (Imandrax_api.Const.show c)))
   | _ -> print_endline "non-const term"
+
+let show_term_view : (Term.term, Type.t) Term.view -> string =
+  Term.show_view Term.pp Type.pp
+
+let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
@@ -67,22 +75,45 @@ let%expect_test "decode tuple artifact from yaml" =
 
   let term_view = term.view in
 
+  print_endline sep;
+
+  print_endline "Applied symbol:";
   print_endline app_sym_str;
-  print_newline ();
+  printf "%s\n" sep;
+
+  print_endline "Term:";
   print_endline (Term.show term);
+  printf "%s\n" sep;
 
-  print_newline ();
-  print_endline (Term.show_view Term.pp Type.pp term_view);
+  print_endline "Term view:";
+  print_endline (show_term_view term_view);
+  printf "%s\n" sep;
 
-  print_newline ();
+  print_endline "Parsing term:";
   parse_term term;
   [%expect
     {|
-    (x/252218 : { view = (Constr (int, [])); generation = 1 })
+    name: real
 
-    { view = (Const 0); ty = { view = (Constr (int, [])); generation = 1 };
-      generation = 0; sub_anchor = None }
+    <><><><><><><><><><>
 
-    (Const 0)
-    0
+    Applied symbol:
+    (w/317214 : { view = (Constr (real, [])); generation = 1 })
+
+    <><><><><><><><><><>
+
+    Term:
+    { view = (Const (157.0 /. 50.0));
+      ty = { view = (Constr (real, [])); generation = 1 }; generation = 0;
+      sub_anchor = None }
+
+    <><><><><><><><><><>
+
+    Term view:
+    (Const (157.0 /. 50.0))
+
+    <><><><><><><><><><>
+
+    Parsing term:
+    157/50
     |}]
