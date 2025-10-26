@@ -29,20 +29,17 @@ let rec parse_term (term : Term.term) : Ast.expr option =
     (match const with
     | Const_bool b -> Some Ast.(Constant { value = Bool b; kind = None })
     | Const_float f ->
-      printf "%f" f;
+      (* printf "%f" f; *)
       Ast.(Some (Constant { value = Float f; kind = None }))
     | Const_q q ->
       let num = Q.num q in
       let den = Q.den q in
-      printf "%s/%s" (Z.to_string num) (Z.to_string den);
+      (* printf "%s/%s" (Z.to_string num) (Z.to_string den); *)
       let open Ast in
       (* Should we use Decimal instead? *)
       Some
         (Constant
-           {
-             value = Float (float_of_int (Z.to_int num / Z.to_int den));
-             kind = None;
-           })
+           { value = Float (Z.to_float num /. Z.to_float den); kind = None })
     | Const_z z ->
       print_endline (Z.to_string z);
       Some (Ast.Constant { value = Int (Z.to_int z); kind = None })
@@ -80,7 +77,6 @@ let rec parse_term (term : Term.term) : Ast.expr option =
         List.map (fun arg -> parse_term arg |> unwrap) construct_args
       in
       let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
-      print_endline (Ast.show_expr char_expr);
       Some char_expr
     ) else
       None
@@ -104,7 +100,7 @@ let%expect_test "decode artifact" =
   let yaml = Yaml.of_string_exn yaml_str in
 
   (* Get item by index *)
-  let index = 2 in
+  let index = 0 in
   let item =
     match yaml with
     | `A items -> List.nth items index
@@ -150,68 +146,27 @@ let%expect_test "decode artifact" =
   print_endline (Format.flush_str_formatter ());
   printf "%s\n" sep; *)
   print_endline "Parsing term:";
-  let _ = parse_term term in
-  ();
-  [%expect
-    {|
-    name: LChar
+  let expr = parse_term term in
+  (match expr with
+  | Some expr -> print_endline (Ast.show_expr expr)
+  | None ->
+    print_endline "None";
+    [%expect.unreachable]);
+  [%expect {|
+    name: real
 
     <><><><><><><><><><>
 
     Applied symbol:
-    (w/317259 : { view = (Constr (LChar.t/xD4foGbj4KvAdafyHCfVt9IpFxUjYJk_NPBBTQgaTX8, [])); generation = 1 })
+    (w/317214 : { view = (Constr (real, [])); generation = 1 })
 
     <><><><><><><><><><>
 
     Term:
-    { view =
-      Construct {
-        c =
-        (LChar.Char/c82CepJldh-90XXoiLXslRebU8zYQamMXY5l6vlWXz8 : { view =
-                                                                    (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
-                                                                       { view =
-                                                                         (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
-                                                                            { view =
-                                                                              (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
-                                                                                 { view =
-                                                                                   (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
-                                                                                      { view =
-                                                                                        (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
-                                                                                           { view =
-                                                                                             (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
-                                                                                                { view =
-                                                                                                  (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
-                                                                                                     { view =
-                                                                                                       (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
-                                                                                                          { view = (Constr (LChar.t/xD4foGbj4KvAdafyHCfVt9IpFxUjYJk_NPBBTQgaTX8, [])); generation = 1 }));
-                                                                                                       generation = 1 }
-                                                                                                     ));
-                                                                                                  generation = 1 }
-                                                                                                ));
-                                                                                             generation = 1 }
-                                                                                           ));
-                                                                                        generation = 1 }
-                                                                                      ));
-                                                                                   generation = 1 }
-                                                                                 ));
-                                                                              generation = 1 }
-                                                                            ));
-                                                                         generation = 1 }
-                                                                       ));
-                                                                    generation = 1 });
-        args =
-        [{ view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
-      ty = { view = (Constr (LChar.t/xD4foGbj4KvAdafyHCfVt9IpFxUjYJk_NPBBTQgaTX8, [])); generation = 1 }; generation = 0; sub_anchor = None }
+    { view = (Const (157.0 /. 50.0)); ty = { view = (Constr (real, [])); generation = 1 }; generation = 0; sub_anchor = None }
 
     <><><><><><><><><><>
 
     Parsing term:
-    (Ast.Constant { Ast.value = (Ast.String "\000"); kind = None })
+    (Ast.Constant { Ast.value = (Ast.Float 3.14); kind = None })
     |}]
