@@ -5,7 +5,7 @@ module Mir = Imandrax_api_mir
 module Type = Imandrax_api_mir.Type
 module Term = Imandrax_api_mir.Term
 
-let json_to_model ?(debug = false) (json : Yojson.Safe.t) : Mir.Model.t =
+let json_to_art ?(debug = false) (json : Yojson.Safe.t) : string * string =
   let log fmt =
     if debug then
       printf fmt
@@ -25,8 +25,17 @@ let json_to_model ?(debug = false) (json : Yojson.Safe.t) : Mir.Model.t =
 
   (* log.log "Data (base64): %s...\n"
     (String.sub data_b64 0 (min 50 (String.length data_b64))); *)
+  data_b64, kind_str
 
-  (* Parse the kind *)
+let art_to_model ?(debug = false) (data_b64 : string) (kind_str : string) :
+    Mir.Model.t =
+  let log fmt =
+    if debug then
+      printf fmt
+    else
+      ifprintf stdout fmt
+  in
+
   match Artifact.kind_of_string kind_str with
   | Error err ->
     eprintf "Error parsing kind: %s\n" err;
@@ -68,6 +77,10 @@ let json_to_model ?(debug = false) (json : Yojson.Safe.t) : Mir.Model.t =
       | None -> raise (Failure "Error: artifact is not a model")
     in
     model
+
+let json_to_model ?(debug = false) (json : Yojson.Safe.t) : Mir.Model.t =
+  let data_b64, kind_str = json_to_art ~debug json in
+  art_to_model ~debug data_b64 kind_str
 
 (* Helper functions for testing *)
 let parse_model model =
