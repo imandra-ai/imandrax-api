@@ -1,23 +1,17 @@
-- name: tuple (bool * int)
-  iml: '[(true, 2)]'
-  data: YGBgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGCwSG1rX3NfaW50s/piQ2ludPbDAvf/BmL/Dvey9GHysUd0eS5saXN0s/liRGxpc3T3wwL4/we2AbDyY/L/MgKyWAQAAAAAAAAAsPpj8v8rAmL/B/e49GPy/y0CYGH/MsACHyegYkFh97D0YfLDAv809WH9YvL4sUVjLm5pbLP3YkJbXfVi9f8DY/T/Hv9LxQL3/yZj9f9UAmL/M/fBAwL/Xv9gwQMC/3v7Yf9/wQMC/zP/NcEDAv8++2H/RmLz+rFGYy5jb25zs/hiQjo69WL1/wRj9P8b/yPFAvf/M2P1/54BAmBgYvH/pgHAAh+CrhOgYkF3+WL0/wJj9P8I/7wBYvf/FWH0YGbx9P+WAgEB/5wCCg==
-  api_version: v17
-  kind: mir.model
-  storage: []
 - name: real
-  iml: '3.14'
+  iml: "3.14"
   data: YGBgsElta19zX3JlYWyz+2JEcmVhbPfDAvj/CGJYOgEAAAAAAABYZAAAAAAAAACz/wSw82Py/w8CYGBi8f8WwAIfj64ToGJBd/li9P8BY/T/B/8rYvb/EmH0YGbx9P9NAQH/Ugg=
   api_version: v17
   kind: mir.model
   storage: []
 - name: int
-  iml: '2'
+  iml: "2"
   data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wayWAQAAAAAAAAAsPpj8v8DAmBgYvH/CsACH5yuE6BiQXf5YvT/AWP0/wf/H2L2/xJh9GBm8fT/PwEB/0QI
   api_version: v17
   kind: mir.model
   storage: []
 - name: LString
-  iml: '{l|hi|l}'
+  iml: "{l|hi|l}"
   data: YGBgXxHEPh+gZuPgq8B1p/IcJ9W30ikXFSNgmT808EFNCBpNf2NHTENoYXIudP8bAYb8svJiR0xDaGFyLnT6wwL7/zBh9bFHdHkubGlzdLP5YkRsaXN098MC+P8HYLBJbWtfc19ib29ss/tiRGJvb2z3wwL4/wi2ALDyY/L6ArYBsPJj8v8DAmj99vf/Afr/BP8G/wjBAwL/Fv9LwQMC/x37wQMC/yP6wQMC/yn6wQMC/y/6wQMC/zX6wQMC/zv6wQMC/0H6YGBi8flfEXPNgnqSZXYfvdF16Ii17JUXm1PM2EGpjF2OZer5Vl8/Y0pMQ2hhci5DaGFy/x4Ahv8AsvNiSkxDaGFyLkNoYXL9Yv3/OGP0/z7/RsUC9/+DAWP2/9EBAmj/mgH/lQH/mAH/owH/ngH/qQH/rAH/pwFgYGLx/3Fi/zP2Y/T7/3rFAvb/G2P1/4QCAmBh/4oCwAIfJ6BiQWH3sPRh8sMC/4oC9mH+YvL5sUVjLm5pbLP3YkJbXfVi9f8DY/T/IP+iAsUC+P8pY/X/rAICYv84+MEDAv+3Av+6AsEDAv/ZAv5h/94CwQMC/zr/PMEDAv9F+2H/TWLz+rFGYy5jb25zs/hiQjo69WL1/wRj9P8c/yXFAvf/N2P1//sCAmL/ugH5Yf+eA2H/gAFi9P8vYv8c9mP0/wL/S8UC9/8OY/X/oQMCYGBi8f+pA8ACH6+uE6BiQXf5YvT/AmP0/wj/vwNi9/8VYfRgZvH0/6MEAQH/qQQK
   api_version: v17
   kind: mir.model
@@ -28,8 +22,14 @@
   api_version: v17
   kind: mir.model
   storage: []
+- name: tuple (bool * int)
+  iml: "[(true, 2)]"
+  data: YGBgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGCwSG1rX3NfaW50s/piQ2ludPbDAvf/BmL/Dvey9GHysUd0eS5saXN0s/liRGxpc3T3wwL4/we2AbDyY/L/MgKyWAQAAAAAAAAAsPpj8v8rAmL/B/e49GPy/y0CYGH/MsACHyegYkFh97D0YfLDAv809WH9YvL4sUVjLm5pbLP3YkJbXfVi9f8DY/T/Hv9LxQL3/yZj9f9UAmL/M/fBAwL/Xv9gwQMC/3v7Yf9/wQMC/zP/NcEDAv8++2H/RmLz+rFGYy5jb25zs/hiQjo69WL1/wRj9P8b/yPFAvf/M2P1/54BAmBgYvH/pgHAAh+CrhOgYkF3+WL0/wJj9P8I/7wBYvf/FWH0YGbx9P+WAgEB/5wCCg==
+  api_version: v17
+  kind: mir.model
+  storage: []
 - name: bool list
-  iml: '[true; false]'
+  iml: "[true; false]"
   data: YGBgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGH1sUd0eS5saXN0s/liRGxpc3T3wwL4/we2AbDyY/L/FAK2ALDyY/L/HQJgYf8iwAIfJ6BiQWH3sPRh8sMC/yH1Yf1i8vixRWMubmlss/diQltd9WL1/wNj9P8e/zjFAvf/JmP1/0ECYv8z98EDAv9L/03BAwL/a/th/2/BAwL/M/81wQMC/z77Yf9GYvP6sUZjLmNvbnOz+GJCOjr1YvX/BGP0/xv/I8UC9/8zY/X/iwECYv+HAflh/64BYf95YvP/LmL/G/Zj9P8B/0jFAvf/DWP1/7ABAmBgYvH/uAHAAh/MrhOgYkF3+WL0/wJj9P8I/84BYvf/FWH0YGbx9P+KAgEB/5ACCg==
   api_version: v17
   kind: mir.model
