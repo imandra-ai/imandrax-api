@@ -7,6 +7,9 @@ module Term = Imandrax_api_mir.Term
 module Ty_view = Imandrax_api.Ty_view
 module Ast = Ast
 
+let show_term_view : (Term.term, Type.t) Term.view -> string =
+  Term.show_view Term.pp Type.pp
+
 let parse_model model =
   match model.Mir.Model.consts with
   | [] -> failwith "No constants\n"
@@ -67,20 +70,50 @@ let rec parse_term (term : Term.term) : Ast.expr option =
       | _ -> false
     in
 
+    (* Check ty view to see if it's a list *)
+    let is_list =
+      match ty_view with
+      | Ty_view.Constr (constr_name_uid, constr_args) ->
+        let name = constr_name_uid.name in
+        (match name, constr_args with
+        | "list", [ arg ] ->
+          print_endline "is list with type arg:";
+          print_endline (Type.show arg);
+          true
+        | "list", args ->
+          let args_str = CCString.concat ", " (List.map Type.show args) in
+          let msg =
+            sprintf "list should have only 1 arg, got %d: %s" (List.length args)
+              args_str
+          in
+          failwith msg
+        | _ -> false)
+      | _ -> false
+    in
+
+    let _ = is_list in
+
     let _ = construct in
 
-    if is_lchar then (
-      let unwrap : 'a option -> 'a = function
-        | Some x -> x
-        | None -> failwith "unwrap: None"
-      in
-      let bool_terms =
-        List.map (fun arg -> parse_term arg |> unwrap) construct_args
-      in
-      let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
-      Some char_expr
-    ) else
-      None
+    let res =
+      match is_lchar, is_list with
+      | false, false ->
+        print_endline "WIP";
+        None
+      | true, false ->
+        let unwrap : 'a option -> 'a = function
+          | Some x -> x
+          | None -> failwith "unwrap: None"
+        in
+        let bool_terms =
+          List.map (fun arg -> parse_term arg |> unwrap) construct_args
+        in
+        let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
+        Some char_expr
+      | false, true -> None
+      | true, true -> failwith "Both is_lchar and is_list"
+    in
+    res
   (* | _ ->
     failwith "non-constr ty view";
     let _, _, _ = c, args, ty in
@@ -97,9 +130,6 @@ let rec parse_term (term : Term.term) : Ast.expr option =
     print_endline "case other than const or construct";
     None
 
-let show_term_view : (Term.term, Type.t) Term.view -> string =
-  Term.show_view Term.pp Type.pp
-
 let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
@@ -109,7 +139,7 @@ let%expect_test "decode artifact" =
   let yaml = Yaml.of_string_exn yaml_str in
 
   (* Get item by index *)
-  let index = 4 in
+  let index = 5 in
   let item =
     match yaml with
     | `A items -> List.nth items index
@@ -171,31 +201,37 @@ let%expect_test "decode artifact" =
 
   [%expect
     {|
-    name: tuple (bool * int)
-    code: (true, 2)
+    name: single element int list
+    code: [1]
 
     <><><><><><><><><><>
 
     Applied symbol:
-    (w/311234 : { view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 })
+    (w/311249 : { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 })
 
     <><><><><><><><><><>
 
     Term:
     { view =
-      Tuple {
-        l =
-        [{ view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
-      ty = { view = (Tuple [{ view = (Constr (bool, [])); generation = 1 }; { view = (Constr (int, [])); generation = 1 }]); generation = 1 }; generation = 0; sub_anchor = None }
+      Construct {
+        c =
+        (:: : { view =
+                (Arrow ((), { view = (Constr (int, [])); generation = 1 },
+                   { view =
+                     (Arrow ((), { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 },
+                        { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 }));
+                     generation = 1 }
+                   ));
+                generation = 1 });
+        args =
+        [{ view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = Construct {c = ([] : { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 }); args = []};
+            ty = { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 }; generation = 0; sub_anchor = None }
+          ]};
+      ty = { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 }; generation = 0; sub_anchor = None }
 
     <><><><><><><><><><>
 
     Parsing term:
-    2
-    (Ast.Tuple
-       { Ast.elts =
-         [(Ast.Constant { Ast.value = (Ast.Bool true); kind = None });
-           (Ast.Constant { Ast.value = (Ast.Int 2); kind = None })];
-         ctx = Ast.Load; dims = [] })
+    None
     |}]
