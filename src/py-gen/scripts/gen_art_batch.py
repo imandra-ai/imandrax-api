@@ -9,6 +9,7 @@ from imandrax_api import Client, url_prod
 from imandrax_api.lib import read_artifact_data
 from IPython.core.getipython import get_ipython
 from rich import print
+from typing_extensions import Format
 
 if ip := get_ipython():
     ip.run_line_magic('reload_ext', 'autoreload')
@@ -52,17 +53,24 @@ art_dir = Path.cwd().parent / 'examples' / 'art'
 
 
 # %%
+iml_v_template = """\
+let v =
+  fun w ->
+    if w = {v} then true else false\
+"""
+
 values: list[tuple[str, str]] = [
     # Primitive
-    ('real', r'3.14'),
-    ('int', r'2'),
-    ('LChar', r'LChar.zero'),
-    ('LString', r'{l|hi|l}'),
-    ('tuple (bool * int)', r'(true, 2)'),
+    ('real', iml_v_template.format(v=r'3.14')),
+    ('int', iml_v_template.format(v=r'2')),
+    ('LChar', iml_v_template.format(v=r'LChar.zero')),
+    ('LString', iml_v_template.format(v=r'{l|hi|l}')),
+    ('tuple (bool * int)', iml_v_template.format(v=r'(true, 2)')),
     # Composite
-    ('single element int list', r'[1]'),
-    ('bool list', r'[true; false]'),
-    ('int option', r'Some 2'),
+    ('empty list', iml_v_template.format(v=r'[]')),
+    ('single element int list', iml_v_template.format(v=r'[1]')),
+    ('bool list', iml_v_template.format(v=r'[true; false]')),
+    ('int option', iml_v_template.format(v=r'Some 2')),
     (
         'record',
         """\
@@ -71,7 +79,11 @@ type user = {
     active: bool;
 }
 
-let v = {id = 1; active = true}\
+let v = {id = 1; active = true}
+
+let v =
+  fun w ->
+    if w = v then true else false\
 """,
     ),
     (
@@ -81,7 +93,11 @@ type status =
     | Active
     | Waitlist of int
 
-let v = Active\
+let v = Active
+
+let v =
+  fun w ->
+    if w = v then true else false\
 """,
     ),
     (
@@ -91,7 +107,11 @@ type status =
     | Active
     | Waitlist of int
 
-let v = Waitlist 1\
+let v = Waitlist 1
+
+let v =
+  fun w ->
+    if w = v then true else false\
 """,
     ),
 ]
@@ -102,20 +122,14 @@ let v = Waitlist 1\
 #   | _ -> false
 # """
 
-iml = r"""
-let v =
-  fun w ->
-    if w = {v} then true else false
-"""
-
 
 # %%
-def gen_art(name: str, v: str):
-    eval_res = c.eval_src(iml.format(v=v))
+def gen_art(name: str, iml: str):
+    _eval_res = c.eval_src(iml)
     instance_res = c.instance_src(src='v')
     instance_res = proto_to_dict(instance_res)
     art = instance_res['sat']['model']['artifact']
-    art['iml'] = LiteralString(v)
+    art['iml'] = LiteralString(iml)
     art['name'] = name
     order = [
         'name',
@@ -129,8 +143,8 @@ def gen_art(name: str, v: str):
 
 
 art_data = []
-for name, v in values:
-    art_data_item = gen_art(name, v)
+for name, iml in values:
+    art_data_item = gen_art(name, iml)
     art_data.append(art_data_item)
 
 # %%
