@@ -54,7 +54,7 @@ let rec parse_term (term : Term.term) : Ast.expr option =
       print_endline (sprintf "unhandle const %s" (Imandrax_api.Const.show c));
       None)
   (* Construct *)
-  | ( Term.Construct { c = construct; args = (construct_args : Term.term list) },
+  | ( Term.Construct { c = _construct; args = (construct_args : Term.term list) },
       (ty : Type.t) ) ->
     let ty_view = ty.view in
 
@@ -76,24 +76,22 @@ let rec parse_term (term : Term.term) : Ast.expr option =
       | Ty_view.Constr (constr_name_uid, constr_args) ->
         let name = constr_name_uid.name in
         (match name, constr_args with
-        | "list", [ arg ] ->
-          print_endline "is list with type arg:";
-          print_endline (Type.show arg);
-          true
+        | "list", [ _ ] -> true
         | "list", args ->
           let args_str = CCString.concat ", " (List.map Type.show args) in
           let msg =
-            sprintf "list should have only 1 arg, got %d: %s" (List.length args)
-              args_str
+            sprintf "Never: list should have only 1 arg, got %d: %s"
+              (List.length args) args_str
           in
           failwith msg
         | _ -> false)
       | _ -> false
     in
 
-    let _ = is_list in
-
-    let _ = construct in
+    let unwrap : 'a option -> 'a = function
+      | Some x -> x
+      | None -> failwith "unwrap: None"
+    in
 
     let res =
       match is_lchar, is_list with
@@ -101,23 +99,40 @@ let rec parse_term (term : Term.term) : Ast.expr option =
         print_endline "WIP";
         None
       | true, false ->
-        let unwrap : 'a option -> 'a = function
-          | Some x -> x
-          | None -> failwith "unwrap: None"
-        in
+        (* LChar *)
         let bool_terms =
           List.map (fun arg -> parse_term arg |> unwrap) construct_args
         in
         let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
         Some char_expr
-      | false, true -> None
-      | true, true -> failwith "Both is_lchar and is_list"
+      | false, true ->
+        (* List
+        For empty list, the construct args is empty.
+        For non-empty list, the construct args is at two terms, with the
+        The first term is the head, the second term is the existing list (tail).
+        *)
+        (* List - check if nil or cons *)
+        let is_nil = construct_args = [] in
+        if is_nil then
+          (* Empty list [] *)
+          Some (Ast.empty_list_expr ())
+        else (
+          let list_elements =
+            List.map (fun arg -> parse_term arg |> unwrap) construct_args
+          in
+          match list_elements with
+          | [] -> failwith "Never: empty constuct arg for non-Nil"
+          | [ _ ] -> failwith "Never: single element list for non-Nil"
+          | [ head; tail ] ->
+            Some (Ast.cons_list_expr head tail)
+            (* let n_elem = CCList.length elems in
+            let except_last = CCList.take (n_elem - 1) elems in
+            Some (Ast.list_of_exprs except_last) *)
+          | _ -> failwith "Never: more than 2 elements list for non-Nil"
+        )
+      | true, true -> failwith "Never: both is_lchar and is_list"
     in
     res
-  (* | _ ->
-    failwith "non-constr ty view";
-    let _, _, _ = c, args, ty in
-    print_endline "Construct" *)
   (* Tuple *)
   | Term.Tuple { l = (terms : Term.term list) }, (_ty : Type.t) ->
     let expr_opts = List.map (fun term -> parse_term term) terms in
@@ -139,7 +154,7 @@ let%expect_test "decode artifact" =
   let yaml = Yaml.of_string_exn yaml_str in
 
   (* Get item by index *)
-  let index = 5 in
+  let index = 6 in
   let item =
     match yaml with
     | `A items -> List.nth items index
@@ -202,12 +217,14 @@ let%expect_test "decode artifact" =
   [%expect
     {|
     name: single element int list
-    code: [1]
+    code: let v =
+      fun w ->
+        if w = [1] then true else false
 
     <><><><><><><><><><>
 
     Applied symbol:
-    (w/311249 : { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 })
+    (w/349567 : { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 })
 
     <><><><><><><><><><>
 
@@ -233,5 +250,8 @@ let%expect_test "decode artifact" =
     <><><><><><><><><><>
 
     Parsing term:
-    None
+    1
+    (Ast.List
+       { Ast.elts = [(Ast.Constant { Ast.value = (Ast.Int 1); kind = None })];
+         ctx = Ast.Load })
     |}]

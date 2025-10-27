@@ -151,6 +151,14 @@ let bool_list_expr_to_char_expr (exprs : expr list) : expr =
 let tuple_of_exprs (exprs : expr list) : expr =
   Tuple { elts = exprs; ctx = Load; dims = [] }
 
+let empty_list_expr () : expr = List { elts = []; ctx = Load }
+let list_of_exprs (exprs : expr list) : expr = List { elts = exprs; ctx = Load }
+
+let cons_list_expr (head : expr) (tail : expr) : expr =
+  match tail with
+  | List { elts; _ } -> List { elts = head :: elts; ctx = Load }
+  | _ -> invalid_arg "cons_list_expr: tail is not a list expr"
+
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
 let%expect_test "bool list expr to string" =
