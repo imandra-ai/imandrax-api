@@ -53,6 +53,20 @@ let rec parse_term (term : Term.term) : Ast.expr option =
       (* Uid and real_approx *)
       print_endline (sprintf "unhandle const %s" (Imandrax_api.Const.show c));
       None)
+  (* Tuple *)
+  | Term.Tuple { l = (terms : Term.term list) }, (_ty : Type.t) ->
+    let expr_opts = List.map (fun term -> parse_term term) terms in
+    let raising_msg = "None found when parsing tuple items" in
+    let exprs =
+      List.map (fun opt -> opt |> CCOption.get_exn_or raising_msg) expr_opts
+    in
+    Some (Ast.tuple_of_exprs exprs)
+  (* Record *)
+  | Term.Record { rows; rest }, (_ty : Type.t) ->
+    print_endline "WIP: record";
+    let _ = rows in
+    let _ = rest in
+    None
   (* Construct *)
   | ( Term.Construct { c = _construct; args = (construct_args : Term.term list) },
       (ty : Type.t) ) ->
@@ -133,14 +147,6 @@ let rec parse_term (term : Term.term) : Ast.expr option =
       | true, true -> failwith "Never: both is_lchar and is_list"
     in
     res
-  (* Tuple *)
-  | Term.Tuple { l = (terms : Term.term list) }, (_ty : Type.t) ->
-    let expr_opts = List.map (fun term -> parse_term term) terms in
-    let raising_msg = "None found when parsing tuple items" in
-    let exprs =
-      List.map (fun opt -> opt |> CCOption.get_exn_or raising_msg) expr_opts
-    in
-    Some (Ast.tuple_of_exprs exprs)
   | _, _ ->
     print_endline "case other than const or construct";
     None
@@ -154,7 +160,7 @@ let%expect_test "decode artifact" =
   let yaml = Yaml.of_string_exn yaml_str in
 
   (* Get item by index *)
-  let index = 6 in
+  let index = 9 in
   let item =
     match yaml with
     | `A items -> List.nth items index
@@ -216,42 +222,46 @@ let%expect_test "decode artifact" =
 
   [%expect
     {|
-    name: single element int list
-    code: let v =
+    name: record
+    code: type user = {
+        id: int;
+        active: bool;
+    }
+
+    let v = {id = 1; active = true}
+
+    let v =
       fun w ->
-        if w = [1] then true else false
+        if w = v then true else false
 
     <><><><><><><><><><>
 
     Applied symbol:
-    (w/349567 : { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 })
+    (w/349617 : { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 })
 
     <><><><><><><><><><>
 
     Term:
     { view =
-      Construct {
-        c =
-        (:: : { view =
-                (Arrow ((), { view = (Constr (int, [])); generation = 1 },
-                   { view =
-                     (Arrow ((), { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 },
-                        { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 }));
-                     generation = 1 }
-                   ));
-                generation = 1 });
-        args =
-        [{ view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = Construct {c = ([] : { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 }); args = []};
-            ty = { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 }; generation = 0; sub_anchor = None }
-          ]};
-      ty = { view = (Constr (list, [{ view = (Constr (int, [])); generation = 1 }])); generation = 1 }; generation = 0; sub_anchor = None }
+      Record {
+        rows =
+        [((id/dW6Xq1VvQEe89X8BPre2ndcIFc8_dKuXiGKM55tMrC0 : { view =
+                                                              (Arrow ((), { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
+                                                                 { view = (Constr (int, [])); generation = 1 }));
+                                                              generation = 1 }),
+          { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
+          ((active/8W7TgFsQ2TyL8dH3GP194mCwP6ECHUjxu2P5NAEVFFM : { view =
+                                                                   (Arrow ((), { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
+                                                                      { view = (Constr (bool, [])); generation = 1 }));
+                                                                   generation = 1 }),
+           { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None })
+          ];
+        rest = None};
+      ty = { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 }; generation = 0; sub_anchor = None }
 
     <><><><><><><><><><>
 
     Parsing term:
-    1
-    (Ast.List
-       { Ast.elts = [(Ast.Constant { Ast.value = (Ast.Int 1); kind = None })];
-         ctx = Ast.Load })
+    WIP: record
+    None
     |}]
