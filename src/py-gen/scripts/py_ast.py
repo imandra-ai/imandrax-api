@@ -12,7 +12,8 @@ from rich import print
 
 # %%
 src = """\
-x = 0
+y = []
+x = [1, 2]
 """
 
 node = ast.parse(src)
