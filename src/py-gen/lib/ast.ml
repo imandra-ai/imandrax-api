@@ -14,7 +14,7 @@ type ast =
 and module_ast = { body: stmt list (* type_ignores: list[TypeIgnore] *) }
 
 and keyword = {
-  location: location;
+  (* location: location; *)
   arg: string option;
   value: expr;
 }
@@ -34,6 +34,7 @@ and expr =
   | Name of name_expr
   | Attribute of attribute_expr
   | Subscript of subscript_expr
+  | Call of call_expr
 
 and constant = {
   value: constant_value;
@@ -261,6 +262,18 @@ let def_dataclass (name : string) (rows : (string * string) list) : stmt =
       keywords = [];
       body;
       decorator_list = [ Name { id = "dataclass"; ctx = mk_ctx () } ];
+    }
+
+let init_dataclass (dataclass_name : string) (kwargs : (string * expr) list) :
+    expr =
+  let keywords : keyword list =
+    List.map (fun (k, v) -> { arg = Some k; value = v }) kwargs
+  in
+  Call
+    {
+      func = Name { id = dataclass_name; ctx = mk_ctx () };
+      args = [];
+      keywords;
     }
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
