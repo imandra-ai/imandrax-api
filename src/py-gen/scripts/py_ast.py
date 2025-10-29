@@ -12,8 +12,14 @@ from rich import print
 
 # %%
 src = """\
-y = []
-x = [1, 2]
+from dataclasses import dataclass
+
+@dataclass
+class User:
+    id: int
+    active: bool
+
+v = User(id=1, active=True)
 """
 
 node = ast.parse(src)

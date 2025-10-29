@@ -245,14 +245,21 @@ let%expect_test "decode artifact" =
     { view =
       Record {
         rows =
-        [((id/dW6Xq1VvQEe89X8BPre2ndcIFc8_dKuXiGKM55tMrC0 : { view =
+        [(
+          (id/dW6Xq1VvQEe89X8BPre2ndcIFc8_dKuXiGKM55tMrC0 : { view =
                                                               (Arrow ((), { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
                                                                  { view = (Constr (int, [])); generation = 1 }));
                                                               generation = 1 }),
-          { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
+          { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None }
+        );
           ((active/8W7TgFsQ2TyL8dH3GP194mCwP6ECHUjxu2P5NAEVFFM : { view =
-                                                                   (Arrow ((), { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
-                                                                      { view = (Constr (bool, [])); generation = 1 }));
+                                                                   (
+                                                                      Arrow (
+                                                                        (),
+                                                                        { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
+                                                                        { view = (Constr (bool, [])); generation = 1 }
+                                                                      )
+                                                                   );
                                                                    generation = 1 }),
            { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None })
           ];
