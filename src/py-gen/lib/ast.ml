@@ -268,17 +268,14 @@ let def_dataclass (name : string) (rows : (string * string) list) : stmt =
       decorator_list = [ Name { id = "dataclass"; ctx = mk_ctx () } ];
     }
 
-let init_dataclass (dataclass_name : string) (kwargs : (string * expr) list) :
-    expr =
+let init_dataclass
+    (dataclass_name : string)
+    ~(args : expr list)
+    ~(kwargs : (string * expr) list) : expr =
   let keywords : keyword list =
     List.map (fun (k, v) -> { arg = Some k; value = v }) kwargs
   in
-  Call
-    {
-      func = Name { id = dataclass_name; ctx = mk_ctx () };
-      args = [];
-      keywords;
-    }
+  Call { func = Name { id = dataclass_name; ctx = mk_ctx () }; args; keywords }
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 

@@ -34,6 +34,10 @@ Return:
 let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
   let term_view = term.view in
   let term_ty = term.ty in
+  let unwrap : 'a option -> 'a = function
+    | Some x -> x
+    | None -> failwith "unwrap: None"
+  in
   match term_view, term_ty with
   (* Constant *)
   | Term.Const const, _ ->
@@ -54,10 +58,8 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
              { value = Float (Z.to_float num /. Z.to_float den); kind = None })
       )
     | Const_z z ->
-      print_endline (Z.to_string z);
       [], Some (Ast.Constant { value = Int (Z.to_int z); kind = None })
     | Const_string s ->
-      print_endline s;
       [], Some (Ast.Constant { value = String s; kind = None })
     | c ->
       (* Uid and real_approx *)
@@ -77,11 +79,45 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
           rows : (Type.t Applied_symbol.t_poly * Term.term) list;
           rest : Term.term option;
         },
-      (_ty : Type.t) ) ->
-    print_endline "WIP: record";
-    let _ = rows in
+      (ty : Type.t) ) ->
     let _ = rest in
-    [], None
+
+    (* Get dataclass name from ty *)
+    let ty_name =
+      match ty.view with
+      | Ty_view.Constr (constr_name_uid, _constr_args) -> constr_name_uid.name
+      | _ -> failwith "Never: ty should be a constr"
+    in
+
+    (* For each row,
+      the first element applied_symbol gives dataclass definition
+      the second element gives the value
+      *)
+    let parse_row
+        (applied_symbol : Type.t Applied_symbol.t_poly)
+        (term : Term.term) =
+      let def_row_var_name = applied_symbol.sym.id.name in
+      let def_row_type_name =
+        match applied_symbol.ty.view with
+        | Ty_view.Arrow (_, _record_view, row_view) ->
+          (match row_view.view with
+          | Ty_view.Constr (constr_name_uid, _constr_args) ->
+            constr_name_uid.name
+          | _ -> failwith "Never: row_view should be a constr")
+        | _ -> failwith "Never: applied_symbol.ty.view should be a arrow"
+      in
+      let row_val_expr = parse_term term |> snd |> unwrap in
+      (* ENH: maybe using kwargs is clearer? *)
+      (def_row_var_name, def_row_type_name), row_val_expr
+    in
+
+    let def_rows, row_val_exprs =
+      List.map (fun (applied_sym, term) -> parse_row applied_sym term) rows
+      |> CCList.split
+    in
+    let open Ast in
+    ( [ def_dataclass ty_name def_rows ],
+      Some (init_dataclass ty_name ~args:row_val_exprs ~kwargs:[]) )
   (* Construct *)
   | ( Term.Construct { c = _construct; args = (construct_args : Term.term list) },
       (ty : Type.t) ) ->
@@ -115,11 +151,6 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
           failwith msg
         | _ -> false)
       | _ -> false
-    in
-
-    let unwrap : 'a option -> 'a = function
-      | Some x -> x
-      | None -> failwith "unwrap: None"
     in
 
     let res =
@@ -229,8 +260,14 @@ let%expect_test "decode artifact" =
   Format.fprintf fmt "%a@?" (Term.pp_view Type.pp) term_view;
   print_endline (Format.flush_str_formatter ());
   printf "%s\n" sep; *)
-  print_endline "Parsing term:";
-  let expr = parse_term term |> snd in
+  print_endline "Parsing term:\n";
+  let ty_defs, expr = parse_term term in
+
+  printf "Type defs:\n";
+  List.iter (fun ty_def -> print_endline (Ast.show_stmt ty_def)) ty_defs;
+
+  printf "\n";
+  printf "Expr:\n";
   (match expr with
   | Some expr -> print_endline (Ast.show_expr expr)
   | None -> print_endline "None");
@@ -260,20 +297,14 @@ let%expect_test "decode artifact" =
     { view =
       Record {
         rows =
-        [(
-          (id/dW6Xq1VvQEe89X8BPre2ndcIFc8_dKuXiGKM55tMrC0 : { view =
+        [((id/dW6Xq1VvQEe89X8BPre2ndcIFc8_dKuXiGKM55tMrC0 : { view =
                                                               (Arrow ((), { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
                                                                  { view = (Constr (int, [])); generation = 1 }));
                                                               generation = 1 }),
-          { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None }
-        );
+          { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
           ((active/8W7TgFsQ2TyL8dH3GP194mCwP6ECHUjxu2P5NAEVFFM : { view =
-                                                                   (
-                                                                      Arrow (
-                                                                        (),
-                                                                        { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
-                                                                        { view = (Constr (bool, [])); generation = 1 }
-                                                                      ));
+                                                                   (Arrow ((), { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
+                                                                      { view = (Constr (bool, [])); generation = 1 }));
                                                                    generation = 1 }),
            { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None })
           ];
@@ -283,6 +314,27 @@ let%expect_test "decode artifact" =
     <><><><><><><><><><>
 
     Parsing term:
-    WIP: record
-    None
+
+    Type defs:
+    (Ast.ClassDef
+       { Ast.name = "user"; bases = []; keywords = [];
+         body =
+         [(Ast.AnnAssign
+             { Ast.target = (Ast.Name { Ast.id = "id"; ctx = Ast.Load });
+               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+               value = None });
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "active"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "bool"; ctx = Ast.Load });
+                value = None })
+           ];
+         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
+
+    Expr:
+    (Ast.Call
+       { Ast.func = (Ast.Name { Ast.id = "user"; ctx = Ast.Load });
+         args =
+         [(Ast.Constant { Ast.value = (Ast.Int 1); kind = None });
+           (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })];
+         keywords = [] })
     |}]
