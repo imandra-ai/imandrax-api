@@ -5,12 +5,15 @@ module Mir = Imandrax_api_mir
 module Type = Imandrax_api_mir.Type
 module Term = Imandrax_api_mir.Term
 module Ty_view = Imandrax_api.Ty_view
+module Applied_symbol = Imandrax_api_common.Applied_symbol
 module Ast = Ast
 
 let show_term_view : (Term.term, Type.t) Term.view -> string =
   Term.show_view Term.pp Type.pp
 
-let parse_model model =
+(* Model to applied symbol and term *)
+let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
+    Type.t Applied_symbol.t_poly * Term.term =
   match model.Mir.Model.consts with
   | [] -> failwith "No constants\n"
   | [ const ] ->
@@ -69,7 +72,12 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
     in
     [], Some (Ast.tuple_of_exprs exprs)
   (* Record *)
-  | Term.Record { rows; rest }, (_ty : Type.t) ->
+  | ( Term.Record
+        {
+          rows : (Type.t Applied_symbol.t_poly * Term.term) list;
+          rest : Term.term option;
+        },
+      (_ty : Type.t) ) ->
     print_endline "WIP: record";
     let _ = rows in
     let _ = rest in

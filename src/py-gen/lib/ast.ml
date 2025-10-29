@@ -159,7 +159,7 @@ and assign_stmt = {
 and ann_assign_stmt = {
   target: stmt_target;
   annotation: expr;
-  value: expr option;
+  value: expr option; (* simple: int *)
 }
 
 and stmt_target =
@@ -180,6 +180,8 @@ and class_def_stmt = {
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
+(* Placeholder for ctx *)
+let mk_ctx () = Load
 let bool_expr (b : bool) : expr = Constant { value = Bool b; kind = None }
 let string_expr (s : string) : expr = Constant { value = String s; kind = None }
 
@@ -228,13 +230,38 @@ let bool_list_expr_to_char_expr (exprs : expr list) : expr =
 let tuple_of_exprs (exprs : expr list) : expr =
   Tuple { elts = exprs; ctx = Load; dims = [] }
 
-let empty_list_expr () : expr = List { elts = []; ctx = Load }
-let list_of_exprs (exprs : expr list) : expr = List { elts = exprs; ctx = Load }
+let empty_list_expr () : expr = List { elts = []; ctx = mk_ctx () }
+
+let list_of_exprs (exprs : expr list) : expr =
+  List { elts = exprs; ctx = mk_ctx () }
 
 let cons_list_expr (head : expr) (tail : expr) : expr =
   match tail with
-  | List { elts; _ } -> List { elts = head :: elts; ctx = Load }
+  | List { elts; _ } -> List { elts = head :: elts; ctx = mk_ctx () }
   | _ -> invalid_arg "cons_list_expr: tail is not a list expr"
+
+(* <><><><><><><><><><><><><><><><><><><><> *)
+
+let def_dataclass (name : string) (rows : (string * string) list) : stmt =
+  let body : stmt list =
+    List.map
+      (fun (tgt, ann) ->
+        AnnAssign
+          {
+            target = Name { id = tgt; ctx = mk_ctx () };
+            annotation = Name { id = ann; ctx = mk_ctx () };
+            value = None;
+          })
+      rows
+  in
+  ClassDef
+    {
+      name;
+      bases = [];
+      keywords = [];
+      body;
+      decorator_list = [ Name { id = "dataclass"; ctx = mk_ctx () } ];
+    }
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
