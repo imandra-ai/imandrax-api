@@ -243,6 +243,10 @@ let cons_list_expr (head : expr) (tail : expr) : expr =
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
+(* Type view constructor name to Python type name *)
+let ty_view_constr_name_mapping : (string * string) list =
+  [ "int", "int"; "bool", "bool" ]
+
 let def_dataclass (name : string) (rows : (string * string) list) : stmt =
   let body : stmt list =
     List.map
