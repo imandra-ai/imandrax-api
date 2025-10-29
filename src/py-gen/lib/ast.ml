@@ -9,6 +9,9 @@ type location = {
 type ast =
   | Keyword of keyword
   | Expr of expr
+  | Module of module_ast
+
+and module_ast = { body: stmt list (* type_ignores: list[TypeIgnore] *) }
 
 and keyword = {
   location: location;
@@ -142,8 +145,7 @@ and call_expr = {
 [@@deriving show]
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
-
-type stmt =
+and stmt =
   | Assign of assign_stmt
   | AnnAssign of ann_assign_stmt
   | ClassDef of class_def_stmt

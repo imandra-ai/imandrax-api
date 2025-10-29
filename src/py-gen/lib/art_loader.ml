@@ -23,50 +23,57 @@ let parse_model model =
     in
     failwith s
 
-let rec parse_term (term : Term.term) : Ast.expr option =
+(*
+Return:
+  type definition statements
+  expression (term)
+*)
+let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
   let term_view = term.view in
   let term_ty = term.ty in
   match term_view, term_ty with
   (* Constant *)
   | Term.Const const, _ ->
     (match const with
-    | Const_bool b -> Some Ast.(Constant { value = Bool b; kind = None })
+    | Const_bool b -> [], Some Ast.(Constant { value = Bool b; kind = None })
     | Const_float f ->
       (* printf "%f" f; *)
-      Ast.(Some (Constant { value = Float f; kind = None }))
+      [], Ast.(Some (Constant { value = Float f; kind = None }))
     | Const_q q ->
       let num = Q.num q in
       let den = Q.den q in
       (* printf "%s/%s" (Z.to_string num) (Z.to_string den); *)
       let open Ast in
       (* Should we use Decimal instead? *)
-      Some
-        (Constant
-           { value = Float (Z.to_float num /. Z.to_float den); kind = None })
+      ( [],
+        Some
+          (Constant
+             { value = Float (Z.to_float num /. Z.to_float den); kind = None })
+      )
     | Const_z z ->
       print_endline (Z.to_string z);
-      Some (Ast.Constant { value = Int (Z.to_int z); kind = None })
+      [], Some (Ast.Constant { value = Int (Z.to_int z); kind = None })
     | Const_string s ->
       print_endline s;
-      Some (Ast.Constant { value = String s; kind = None })
+      [], Some (Ast.Constant { value = String s; kind = None })
     | c ->
       (* Uid and real_approx *)
       print_endline (sprintf "unhandle const %s" (Imandrax_api.Const.show c));
-      None)
+      [], None)
   (* Tuple *)
   | Term.Tuple { l = (terms : Term.term list) }, (_ty : Type.t) ->
-    let expr_opts = List.map (fun term -> parse_term term) terms in
+    let expr_opts = List.map (fun term -> parse_term term |> snd) terms in
     let raising_msg = "None found when parsing tuple items" in
     let exprs =
       List.map (fun opt -> opt |> CCOption.get_exn_or raising_msg) expr_opts
     in
-    Some (Ast.tuple_of_exprs exprs)
+    [], Some (Ast.tuple_of_exprs exprs)
   (* Record *)
   | Term.Record { rows; rest }, (_ty : Type.t) ->
     print_endline "WIP: record";
     let _ = rows in
     let _ = rest in
-    None
+    [], None
   (* Construct *)
   | ( Term.Construct { c = _construct; args = (construct_args : Term.term list) },
       (ty : Type.t) ) ->
@@ -115,7 +122,7 @@ let rec parse_term (term : Term.term) : Ast.expr option =
       | true, false ->
         (* LChar *)
         let bool_terms =
-          List.map (fun arg -> parse_term arg |> unwrap) construct_args
+          List.map (fun arg -> parse_term arg |> snd |> unwrap) construct_args
         in
         let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
         Some char_expr
@@ -132,7 +139,7 @@ let rec parse_term (term : Term.term) : Ast.expr option =
           Some (Ast.empty_list_expr ())
         else (
           let list_elements =
-            List.map (fun arg -> parse_term arg |> unwrap) construct_args
+            List.map (fun arg -> parse_term arg |> snd |> unwrap) construct_args
           in
           match list_elements with
           | [] -> failwith "Never: empty constuct arg for non-Nil"
@@ -146,10 +153,10 @@ let rec parse_term (term : Term.term) : Ast.expr option =
         )
       | true, true -> failwith "Never: both is_lchar and is_list"
     in
-    res
+    [], res
   | _, _ ->
     print_endline "case other than const or construct";
-    None
+    [], None
 
 let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
@@ -215,7 +222,7 @@ let%expect_test "decode artifact" =
   print_endline (Format.flush_str_formatter ());
   printf "%s\n" sep; *)
   print_endline "Parsing term:";
-  let expr = parse_term term in
+  let expr = parse_term term |> snd in
   (match expr with
   | Some expr -> print_endline (Ast.show_expr expr)
   | None -> print_endline "None");
@@ -258,8 +265,7 @@ let%expect_test "decode artifact" =
                                                                         (),
                                                                         { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
                                                                         { view = (Constr (bool, [])); generation = 1 }
-                                                                      )
-                                                                   );
+                                                                      ));
                                                                    generation = 1 }),
            { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None })
           ];
