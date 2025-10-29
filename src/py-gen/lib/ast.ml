@@ -1,4 +1,22 @@
-type expr =
+type location = {
+  lineno: int;
+  col_offset: int;
+  end_lineno: int option;
+  end_col_offset: int option;
+}
+[@@deriving show]
+
+type ast =
+  | Keyword of keyword
+  | Expr of expr
+
+and keyword = {
+  location: location;
+  arg: string option;
+  value: expr;
+}
+
+and expr =
   | Constant of constant
   | BoolOp of bool_op
   | BinOp of bin_op
@@ -10,6 +28,9 @@ type expr =
   | ListComp of list_comp
   | List of list_expr
   | Tuple of tuple_expr
+  | Name of name_expr
+  | Attribute of attribute_expr
+  | Subscript of subscript_expr
 
 and constant = {
   value: constant_value;
@@ -96,12 +117,66 @@ and tuple_expr = {
   dims: expr list;
 }
 
-and assign_stmt = {
-  targets: expr list;
-  value: expr; (* TODO: type_comment: str option *)
+and name_expr = {
+  id: string;
+  ctx: expr_context;
 }
 
-and stmt = Assign of assign_stmt [@@deriving show]
+and attribute_expr = {
+  value: expr;
+  attr: string;
+  ctx: expr_context;
+}
+
+and subscript_expr = {
+  value: expr;
+  slice: expr;
+  ctx: expr_context;
+}
+
+and call_expr = {
+  func: expr;
+  args: expr list;
+  keywords: keyword list;
+}
+[@@deriving show]
+
+(* <><><><><><><><><><><><><><><><><><><><> *)
+
+type stmt =
+  | Assign of assign_stmt
+  | AnnAssign of ann_assign_stmt
+  | ClassDef of class_def_stmt
+
+and assign_stmt = {
+  targets: expr list;
+  value: expr;
+  type_comment: string option;
+}
+
+and ann_assign_stmt = {
+  target: stmt_target;
+  annotation: expr;
+  value: expr option;
+}
+
+and stmt_target =
+  | Name of name_expr
+  | Attribute of attribute_expr
+  | Subscript of subscript_expr
+
+and class_def_stmt = {
+  name: string;
+  bases: expr list;
+  keywords: keyword list;
+  (* capture arguments like metaclass specification and other keyword arguments
+     passed to `__init_sublcass__` or the metaclass
+  *)
+  body: stmt list;
+  decorator_list: expr list;
+}
+
+(* <><><><><><><><><><><><><><><><><><><><> *)
 
 let bool_expr (b : bool) : expr = Constant { value = Bool b; kind = None }
 let string_expr (s : string) : expr = Constant { value = String s; kind = None }
