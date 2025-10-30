@@ -273,18 +273,18 @@ if _async_available:
                 )
             return self
 
-        async def __aexit__(self, *_) -> None:
+        async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
             if self._closed:
                 return
             if not hasattr(self, "_sesh"):
-                await self._session.close()
+                await self._session.__aexit__(exc_type, exc_val, exc_tb)
                 self._closed = True
                 return
             try:
                 await self._client.end_session(
                     ctx=self.mk_context(), request=self._sesh, timeout=None
                 )
-                await self._session.close()
+                await self._session.__aexit__(exc_type, exc_val, exc_tb)
                 self._closed = True
             except TwirpServerException as e:
                 raise Exception("Error while ending session") from e
