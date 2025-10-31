@@ -76,6 +76,7 @@ let hash_view hasht (v : _ view) : int =
       combine4 50 (hasht u)
         (list (pair Applied_symbol.hash hasht) cases)
         (opt hasht default))
+  | Sequence (ts, u) -> CCHash.(combine3 100 (list hasht ts) (hasht u))
 
 module Build_ : sig
   type generation [@@deriving show, eq, twine]
