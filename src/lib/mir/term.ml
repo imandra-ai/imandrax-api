@@ -44,6 +44,9 @@ type ('t, 'ty) view =
       cases: ('ty Imandrax_api_common.Applied_symbol.t_poly * 't) list;
       default: 't option;
     }
+  | Sequence of 't list * 't
+      (** [Sequence (t1...tn, u)] is the same as [u] but with a hint that we
+          evaluate [t1...tn] in order first. *)
 [@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
 
 open struct
