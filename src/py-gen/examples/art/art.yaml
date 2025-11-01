@@ -1,3 +1,4 @@
+# 0
 - name: real
   iml: |-
     let v =
@@ -7,6 +8,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 1
 - name: int
   iml: |-
     let v =
@@ -16,6 +18,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 2
 - name: LChar
   iml: |-
     let v =
@@ -25,6 +28,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 3
 - name: LString
   iml: |-
     let v =
@@ -34,6 +38,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 4
 - name: tuple (bool * int)
   iml: |-
     let v =
@@ -43,6 +48,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 5
 - name: empty list
   iml: |-
     let v =
@@ -52,6 +58,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 6
 - name: single element int list
   iml: |-
     let v =
@@ -61,6 +68,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 7
 - name: bool list
   iml: |-
     let v =
@@ -70,6 +78,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 8
 - name: int option
   iml: |-
     let v =
@@ -79,6 +88,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 9
 - name: record
   iml: |-
     type user = {
@@ -95,6 +105,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 10
 - name: variant1
   iml: |-
     type status =
@@ -110,6 +121,7 @@
   api_version: v17
   kind: mir.model
   storage: []
+# 11
 - name: variant2
   iml: |-
     type status =
@@ -122,6 +134,22 @@
       fun w ->
         if w = v then true else false
   data: YGBgXxHFHfkNPT/MI42krRlVmL/XSPJ50rNQNPOoFkEHXF75MWNGc3RhdHVz/xoBhvuy8mJGc3RhdHVz+cMC+v8uYLBIbWtfc19pbnSz+mJDaW509sMC9/8GslgCAAAAAAAAALD6Y/L/AwJh9cEDAv8L/yVgYGLx+l8R660Y/bgBvqk9Xe1F+l9jcPX5hyd3hCs6mcRM0nhyFQRjSFdhaXRsaXN0/xwAhv2y8mJIV2FpdGxpc3T7Yvv/M2P0/zn/QsUC9/9JY/X/ewJgYGLx/4IBwAIfzqsVoGJBd/li9P8CY/T/CP+YAWL3/xRh9GBm8fT/4QEBAf/nAQo=
+  api_version: v17
+  kind: mir.model
+  storage: []
+# 12
+- name: variant3
+  iml: |-
+    type status =
+        | Active
+        | Waitlist of int * bool
+
+    let v = Waitlist (2, true)
+
+    let v =
+      fun w ->
+        if w = v then true else false
+  data: YGBgXxGqpZllDHstd1PbDmPaPlPeBLDqbSKtD1rbTCpYAuqqcWNGc3RhdHVz/xoBhvuy8mJGc3RhdHVz+cMC+v8uYLBIbWtfc19pbnSz+mJDaW509sMC9/8GslgEAAAAAAAAALD6Y/L/AwJgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CLYBsPJj8voCYv8Y9sEDAv8E/0nBAwL/NvtgYGLx+V8R9Ry2N2hNVo7CogUKiguTwROyoQc8AgV/gR5a/dQglhxjSFdhaXRsaXN0/xwAhv2y8mJIV2FpdGxpc3T7Yvv/M2P0/zn/QcUC9/9RY/X/pQECYGBi8f+tAcACH8OEP6BiQXf5YvT/AmP0/wj/wwFi9/8VYfRgZvH0/4wCAQH/kgIK
   api_version: v17
   kind: mir.model
   storage: []

@@ -114,6 +114,20 @@ let v =
     if w = v then true else false\
 """,
     ),
+    (
+        'variant3',
+        """\
+type status =
+    | Active
+    | Waitlist of int * bool
+
+let v = Waitlist (2, true)
+
+let v =
+  fun w ->
+    if w = v then true else false\
+""",
+    ),
 ]
 
 # iml = r"""
