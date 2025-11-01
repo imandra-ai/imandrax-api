@@ -121,7 +121,7 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
   (* Construct *)
   | ( Term.Construct
         {
-          c = (_construct : Type.t Applied_symbol.t_poly);
+          c = (construct : Type.t Applied_symbol.t_poly);
           args = (construct_args : Term.term list);
         },
       (ty : Type.t) ) ->
@@ -182,7 +182,44 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
         )
       | _ -> None
     in
-    [], term_of_predefined_type
+
+    (* Flatten the arrow type view *)
+    let unpack_arrows (ty_view : (unit, Uid.t, Type.t) Ty_view.view) :
+        string list =
+      let rec helper
+          (types : string list)
+          (ty_view : (unit, Uid.t, Type.t) Ty_view.view) : string list =
+        match ty_view with
+        | Ty_view.Arrow (_, left_t, right_t) ->
+          let left_type =
+            match left_t.view with
+            | Ty_view.Constr (constr_name_uid, _empty_constr_args) ->
+              constr_name_uid.name
+            | _ -> failwith "Never: left of arrow type view should be a constr"
+          in
+          helper (types @ [ left_type ]) right_t.view
+        | Ty_view.Constr (constr_name_uid, _empty_constr_args) ->
+          let final_type = constr_name_uid.name in
+          List.append types [ final_type ]
+        | _ ->
+          failwith
+            "Never: arrow type view should be either a constr or an arrow"
+      in
+      helper [] ty_view
+    in
+
+    let final_expr =
+      match term_of_predefined_type with
+      | Some expr -> Some expr
+      | None ->
+        let v_const_name = construct.sym.id.name in
+        let v_types : string list = unpack_arrows construct.ty.view in
+        print_endline (CCString.concat "->" v_types);
+        printf "variant constructor name: %s\n" v_const_name;
+        None
+    in
+
+    [], final_expr
   | _, _ ->
     print_endline "case other than const or construct";
     [], None
@@ -196,7 +233,7 @@ let%expect_test "decode artifact" =
   let yaml = Yaml.of_string_exn yaml_str in
 
   (* Get item by index *)
-  let index = 10 in
+  let index = 12 in
   let item =
     match yaml with
     | `A items -> List.nth items index
@@ -264,12 +301,12 @@ let%expect_test "decode artifact" =
 
   [%expect
     {|
-    name: variant1
+    name: variant3
     code: type status =
         | Active
-        | Waitlist of int
+        | Waitlist of int * bool
 
-    let v = Active
+    let v = Waitlist (2, true)
 
     let v =
       fun w ->
@@ -278,20 +315,117 @@ let%expect_test "decode artifact" =
     <><><><><><><><><><>
 
     Applied symbol:
-    (w/349639 : { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 })
+    (w/1032786 : { view = (Constr (status/qqWZZQx7LXdT2w5j2j5T3gSw6m0irQ9a20wqWALqqnE, [])); generation = 1 })
 
     <><><><><><><><><><>
 
     Term:
-    { view = Construct {c = (Active/G0qPSm_ZzxxTmDsk2dm1ZUuFNXx8GI2cvepYwMWjAF8 : { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 }); args = []};
-      ty = { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 }; generation = 0; sub_anchor = None }
+    { view =
+      Construct {
+        c =
+        (Waitlist/9Ry2N2hNVo7CogUKiguTwROyoQc8AgV_gR5a_dQglhw : { view =
+                                                                  (Arrow ((), { view = (Constr (int, [])); generation = 1 },
+                                                                     { view =
+                                                                       (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                                          { view = (Constr (status/qqWZZQx7LXdT2w5j2j5T3gSw6m0irQ9a20wqWALqqnE, [])); generation = 1 }));
+                                                                       generation = 1 }
+                                                                     ));
+                                                                  generation = 1 });
+        args =
+        [{ view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
+      ty = { view = (Constr (status/qqWZZQx7LXdT2w5j2j5T3gSw6m0irQ9a20wqWALqqnE, [])); generation = 1 }; generation = 0; sub_anchor = None }
 
     <><><><><><><><><><>
 
     Parsing term:
 
+    int->bool->status
+    variant constructor name: Waitlist
     Type defs:
 
     Expr:
     None
     |}]
+
+(* <><><><><><><><><><><><><><><><><><><><>
+Variant 3
+
+Term:
+{ view =
+    Construct {
+      c =
+      (Waitlist/9Ry2N2hNVo7CogUKiguTwROyoQc8AgV_gR5a_dQglhw : {
+          view = (
+            Arrow (
+              (),
+              { view = (Constr (int, [])); generation = 1 },
+              {
+                view = (
+                  Arrow (
+                    (),
+                    { view = (Constr (bool, [])); generation = 1 },
+                    { view = (Constr (status/qqWZZQx7LXdT2w5j2j5T3gSw6m0irQ9a20wqWALqqnE, [])); generation = 1 }
+                  )
+                );
+                generation = 1
+              }
+            )
+          );
+          generation = 1
+        }
+      );
+      args = [
+        { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None };
+        { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None }
+      ]
+    };
+    ty = { view = (Constr (status/qqWZZQx7LXdT2w5j2j5T3gSw6m0irQ9a20wqWALqqnE, [])); generation = 1 }; generation = 0; sub_anchor = None
+  }
+
+
+Variant 2
+
+Term:
+{
+  view =
+    Construct {
+      c =
+        (
+          Waitlist/660Y_bgBvqk9Xe1F-l9jcPX5hyd3hCs6mcRM0nhyFQQ : {
+            view = (
+              Arrow (
+                (),
+                { view = (Constr (int, [])); generation = 1 },
+                { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 }
+              )
+            );
+            generation = 1
+          }
+        );
+      args = [
+        { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None }
+      ]
+    };
+  ty = { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 }; generation = 0; sub_anchor = None
+}
+
+<><><><><><><><><><><><><><><><><><><><>
+Variant 1
+
+Term:
+{
+  view = Construct {
+    c = (
+      Active/G0qPSm_ZzxxTmDsk2dm1ZUuFNXx8GI2cvepYwMWjAF8 : {
+        view = (
+          Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])
+        );
+        generation = 1
+      }
+    );
+    args = []
+  };
+  ty = { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 }; generation = 0; sub_anchor = None
+}
+<><><><><><><><><><><><><><><><><><><><> *)
