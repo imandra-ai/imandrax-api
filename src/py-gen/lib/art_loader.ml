@@ -119,29 +119,23 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
     ( [ def_dataclass ty_name def_rows ],
       Some (init_dataclass ty_name ~args:row_val_exprs ~kwargs:[]) )
   (* Construct *)
-  | ( Term.Construct { c = _construct; args = (construct_args : Term.term list) },
+  | ( Term.Construct
+        {
+          c = (_construct : Type.t Applied_symbol.t_poly);
+          args = (construct_args : Term.term list);
+        },
       (ty : Type.t) ) ->
-    let ty_view = ty.view in
-
-    (* Check ty view to see if it's a LChar.t *)
-    let is_lchar =
-      match ty_view with
+    (*
+      Check by ty to see it's a predefined type: LChar.t, list
+      *)
+    let is_predefined_type : string =
+      match ty.view with
       | Ty_view.Constr (constr_name_uid, constr_args) ->
         let name = constr_name_uid.name in
         (match name, constr_args with
-        | "LChar.t", [] -> true
+        | "LChar.t", [] -> "LChar.t"
         | "LChar.t", _x :: _xs -> failwith "LChar.t shouldn't have args"
-        | _ -> false)
-      | _ -> false
-    in
-
-    (* Check ty view to see if it's a list *)
-    let is_list =
-      match ty_view with
-      | Ty_view.Constr (constr_name_uid, constr_args) ->
-        let name = constr_name_uid.name in
-        (match name, constr_args with
-        | "list", [ _ ] -> true
+        | "list", [ _ ] -> "list"
         | "list", args ->
           let args_str = CCString.concat ", " (List.map Type.show args) in
           let msg =
@@ -149,23 +143,19 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
               (List.length args) args_str
           in
           failwith msg
-        | _ -> false)
-      | _ -> false
+        | _ -> "_")
+      | _ -> "_"
     in
 
-    let res =
-      match is_lchar, is_list with
-      | false, false ->
-        print_endline "WIP";
-        None
-      | true, false ->
-        (* LChar *)
+    let term_of_predefined_type : Ast.expr option =
+      match is_predefined_type with
+      | "LChar.t" ->
         let bool_terms =
           List.map (fun arg -> parse_term arg |> snd |> unwrap) construct_args
         in
         let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
         Some char_expr
-      | false, true ->
+      | "list" ->
         (* List
         For empty list, the construct args is empty.
         For non-empty list, the construct args is at two terms, with the
@@ -190,9 +180,9 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
             Some (Ast.list_of_exprs except_last) *)
           | _ -> failwith "Never: more than 2 elements list for non-Nil"
         )
-      | true, true -> failwith "Never: both is_lchar and is_list"
+      | _ -> None
     in
-    [], res
+    [], term_of_predefined_type
   | _, _ ->
     print_endline "case other than const or construct";
     [], None
@@ -206,7 +196,7 @@ let%expect_test "decode artifact" =
   let yaml = Yaml.of_string_exn yaml_str in
 
   (* Get item by index *)
-  let index = 9 in
+  let index = 10 in
   let item =
     match yaml with
     | `A items -> List.nth items index
@@ -274,13 +264,12 @@ let%expect_test "decode artifact" =
 
   [%expect
     {|
-    name: record
-    code: type user = {
-        id: int;
-        active: bool;
-    }
+    name: variant1
+    code: type status =
+        | Active
+        | Waitlist of int
 
-    let v = {id = 1; active = true}
+    let v = Active
 
     let v =
       fun w ->
@@ -289,52 +278,20 @@ let%expect_test "decode artifact" =
     <><><><><><><><><><>
 
     Applied symbol:
-    (w/349617 : { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 })
+    (w/349639 : { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 })
 
     <><><><><><><><><><>
 
     Term:
-    { view =
-      Record {
-        rows =
-        [((id/dW6Xq1VvQEe89X8BPre2ndcIFc8_dKuXiGKM55tMrC0 : { view =
-                                                              (Arrow ((), { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
-                                                                 { view = (Constr (int, [])); generation = 1 }));
-                                                              generation = 1 }),
-          { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
-          ((active/8W7TgFsQ2TyL8dH3GP194mCwP6ECHUjxu2P5NAEVFFM : { view =
-                                                                   (Arrow ((), { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 },
-                                                                      { view = (Constr (bool, [])); generation = 1 }));
-                                                                   generation = 1 }),
-           { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None })
-          ];
-        rest = None};
-      ty = { view = (Constr (user/QIIePJC32dnXpa-ApKIloQsQ1Ql77O465AHp8E-VacE, [])); generation = 1 }; generation = 0; sub_anchor = None }
+    { view = Construct {c = (Active/G0qPSm_ZzxxTmDsk2dm1ZUuFNXx8GI2cvepYwMWjAF8 : { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 }); args = []};
+      ty = { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 }; generation = 0; sub_anchor = None }
 
     <><><><><><><><><><>
 
     Parsing term:
 
     Type defs:
-    (Ast.ClassDef
-       { Ast.name = "user"; bases = []; keywords = [];
-         body =
-         [(Ast.AnnAssign
-             { Ast.target = (Ast.Name { Ast.id = "id"; ctx = Ast.Load });
-               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
-               value = None });
-           (Ast.AnnAssign
-              { Ast.target = (Ast.Name { Ast.id = "active"; ctx = Ast.Load });
-                annotation = (Ast.Name { Ast.id = "bool"; ctx = Ast.Load });
-                value = None })
-           ];
-         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
 
     Expr:
-    (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "user"; ctx = Ast.Load });
-         args =
-         [(Ast.Constant { Ast.value = (Ast.Int 1); kind = None });
-           (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })];
-         keywords = [] })
+    None
     |}]

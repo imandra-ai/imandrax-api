@@ -150,6 +150,7 @@ and stmt =
   | Assign of assign_stmt
   | AnnAssign of ann_assign_stmt
   | ClassDef of class_def_stmt
+  | Pass
 
 and assign_stmt = {
   targets: expr list;
