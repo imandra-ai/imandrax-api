@@ -40,9 +40,21 @@ def to_stdlib(node: Any) -> Any:
     return stdlib_class(**kwargs)
 
 
-def unparse(nodes: list[custom_ast.stmt]) -> str:
+def unparse(
+    nodes: list[custom_ast.stmt],
+    add_dataclass_import: bool = True,
+) -> str:
     """Convert custom AST to Python source code using stdlib ast.unparse."""
     stdlib_stmts: list[stdlib_ast.stmt] = to_stdlib(nodes)
-    module = stdlib_ast.Module(body=stdlib_stmts, type_ignores=[])
+    if not add_dataclass_import:
+        body = stdlib_stmts
+    else:
+        from_import = stdlib_ast.ImportFrom(
+            module='dataclasses',
+            names=[stdlib_ast.alias(name='dataclass', asname=None)],
+            level=0,
+        )
+        body = [from_import, *stdlib_stmts]
+    module = stdlib_ast.Module(body=body, type_ignores=[])
     stdlib_ast.fix_missing_locations(module)
     return stdlib_ast.unparse(module)
