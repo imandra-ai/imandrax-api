@@ -217,34 +217,43 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
         let variant_constr_args_and_variant_name : string list =
           unpack_arrows construct.ty.view
         in
-        print_endline
-          (CCString.concat "->" variant_constr_args_and_variant_name);
-        printf "variant constructor name: %s\n" variant_constr_name;
 
+        (* print_endline
+          (CCString.concat "->" variant_constr_args_and_variant_name);
+        printf "variant constructor name: %s\n" variant_constr_name; *)
         let split_last xs =
           match List.rev xs with
           | [] -> failwith "Never: empty list"
           | x :: xs -> List.rev xs, x
         in
 
-        let variant_constr_args_, variant_name =
-          split_last variant_constr_args_and_variant_name
-        in
-
-        let variant_constr_args =
+        let variant_constr_args, variant_name =
+          let constr_args_, name_ =
+            split_last variant_constr_args_and_variant_name
+          in
           (* Map Ocaml type names to Python type names *)
-          List.map
-            (fun caml_type ->
-              List.assoc caml_type Ast.ty_view_constr_name_mapping)
-            variant_constr_args_
+          let constr_args =
+            List.map
+              (fun caml_type ->
+                List.assoc caml_type Ast.ty_view_constr_name_mapping)
+              constr_args_
+          in
+          let name = String.capitalize_ascii name_ in
+          constr_args, name
         in
 
         let ty_defs =
-          Ast.variant_dataclass
-            (String.capitalize_ascii variant_name)
+          Ast.variant_dataclass variant_name
             [ variant_constr_name, variant_constr_args ]
         in
-        ty_defs, None
+
+        let term =
+          let term_constr_args =
+            List.map (fun arg -> parse_term arg |> snd |> unwrap) construct_args
+          in
+          Ast.init_dataclass variant_name ~args:term_constr_args ~kwargs:[]
+        in
+        ty_defs, Some term
     in
 
     res
@@ -368,9 +377,7 @@ let%expect_test "decode artifact" =
 
     Parsing term:
 
-    int->bool->status
-    variant constructor name: Waitlist
-    int bool Type defs:
+    Type defs:
     (Ast.ClassDef
        { Ast.name = "Waitlist"; bases = []; keywords = [];
          body =
@@ -390,7 +397,12 @@ let%expect_test "decode artifact" =
          type_comment = None })
 
     Expr:
-    None
+    (Ast.Call
+       { Ast.func = (Ast.Name { Ast.id = "Status"; ctx = Ast.Load });
+         args =
+         [(Ast.Constant { Ast.value = (Ast.Int 2); kind = None });
+           (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })];
+         keywords = [] })
     |}]
 
 (* <><><><><><><><><><><><><><><><><><><><>
