@@ -143,7 +143,6 @@ and call_expr = {
   args: expr list;
   keywords: keyword list;
 }
-[@@deriving show]
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 and stmt =
@@ -165,9 +164,9 @@ and ann_assign_stmt = {
 }
 
 and stmt_target =
-  | Name of name_expr
-  | Attribute of attribute_expr
-  | Subscript of subscript_expr
+  | TargetName of name_expr
+  | TargetAttribute of attribute_expr
+  | TargetSubscript of subscript_expr
 
 and class_def_stmt = {
   name: string;
@@ -179,6 +178,7 @@ and class_def_stmt = {
   body: stmt list;
   decorator_list: expr list;
 }
+[@@deriving show, yojson]
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
@@ -186,6 +186,14 @@ and class_def_stmt = {
 let mk_ctx () = Load
 let bool_expr (b : bool) : expr = Constant { value = Bool b; kind = None }
 let string_expr (s : string) : expr = Constant { value = String s; kind = None }
+
+(* Convert expr to stmt_target for use in AnnAssign *)
+let expr_to_stmt_target (e : expr) : stmt_target =
+  match e with
+  | Name n -> TargetName n
+  | Attribute a -> TargetAttribute a
+  | Subscript s -> TargetSubscript s
+  | _ -> invalid_arg "expr_to_stmt_target: only Name, Attribute, and Subscript are valid targets"
 
 let bools_to_char (bools : bool list) : char =
   if List.length bools <> 8 then
@@ -258,7 +266,7 @@ let def_dataclass (name : string) (rows : (string * string) list) : stmt =
         (fun (tgt, ann) ->
           AnnAssign
             {
-              target = Name { id = tgt; ctx = mk_ctx () };
+              target = expr_to_stmt_target (Name { id = tgt; ctx = mk_ctx () });
               annotation = Name { id = ann; ctx = mk_ctx () };
               value = None;
             })
