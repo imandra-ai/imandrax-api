@@ -12,8 +12,8 @@ let show_term_view : (Term.term, Type.t) Term.view -> string =
   Term.show_view Term.pp Type.pp
 
 (* Model to applied symbol and term *)
-let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
-    Type.t Applied_symbol.t_poly * Term.term =
+let unpack_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly)
+    : Type.t Applied_symbol.t_poly * Term.term =
   match model.Mir.Model.consts with
   | [] -> failwith "No constants\n"
   | [ const ] ->
@@ -256,6 +256,25 @@ let rec parse_term (term : Term.term) :
     let msg = "case other than const or construct" in
     Error msg
 
+let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
+    Ast.stmt list =
+  let app_sym, term = unpack_model model in
+  let ty_defs, term_expr =
+    match parse_term term with
+    | Ok (ty_defs, term_expr) -> ty_defs, term_expr
+    | Error msg -> failwith msg
+  in
+  let assign_smt =
+    let target = app_sym.sym.id.name in
+    Ast.Assign
+      {
+        Ast.targets = [ Ast.Name { Ast.id = target; ctx = Ast.Load } ];
+        value = term_expr;
+        type_comment = None;
+      }
+  in
+  List.append ty_defs [ assign_smt ]
+
 let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
@@ -292,7 +311,7 @@ let%expect_test "decode artifact" =
   printf "code: %s\n" code;
 
   let model = Util.yaml_to_model item in
-  let app_sym, term = parse_model model in
+  let app_sym, term = unpack_model model in
 
   (* Create a custom formatter with wider margin *)
   let fmt = Format.str_formatter in
