@@ -6,24 +6,26 @@ Location info is NOT deserialized - use ast.fix to add it later.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from . import ast_types as ast
 
 
 def deserialize_constant_value(value: Any) -> Any:
     """Deserialize constant value from OCaml tagged format."""
-    if (
-        isinstance(value, list)
-        and len(value) >= 1
-        and isinstance(value[0], str)
-    ):
-        tag = value[0]
-        if tag == 'Unit':
-            return None
-        elif tag in ('String', 'Bytes', 'Bool', 'Int', 'Float'):
-            return value[1]
-    return value
+    if not isinstance(value, list):
+        return value
+
+    value_list = cast(list[Any], value)
+    if len(value_list) < 1 or not isinstance(value_list[0], str):
+        return cast(Any, value)
+
+    tag: str = value_list[0]
+    if tag == 'Unit':
+        return None
+    elif tag in ('String', 'Bytes', 'Bool', 'Int', 'Float'):
+        return value_list[1]
+    return cast(Any, value)
 
 
 def deserialize(value: Any) -> Any:
@@ -36,34 +38,46 @@ def deserialize(value: Any) -> Any:
 
     if isinstance(value, dict):
         # Recursively deserialize dict values
-        return {k: deserialize(v) for k, v in value.items()}
+        value_dict = cast(dict[str, Any], value)
+        result: dict[str, Any] = {}
+        for k, v in value_dict.items():
+            result[k] = deserialize(v)
+        return result
 
     if isinstance(value, list):
+        value_list = cast(list[Any], value)
         # Check if it's a tagged tuple ["Tag", ...] or just a list
-        if len(value) >= 1 and isinstance(value[0], str):
-            tag = value[0]
+        if len(value_list) >= 1 and isinstance(value_list[0], str):
+            tag: str = value_list[0]
 
             # Empty variant: ["Tag"]
-            if len(value) == 1:
+            if len(value_list) == 1:
                 return getattr(ast, tag)()
 
             # Variant with data: ["Tag", {...}]
-            if len(value) == 2 and isinstance(value[1], dict):
-                data = value[1]
+            if len(value_list) == 2 and isinstance(value_list[1], dict):
+                data: dict[str, Any] = cast(dict[str, Any], value_list[1])
                 cls = getattr(ast, tag)
 
                 # Special handling for Constant.value field
                 if tag == 'Constant' and 'value' in data:
-                    kwargs = {k: deserialize(v) for k, v in data.items()}
+                    kwargs: dict[str, Any] = {}
+                    for k, v in data.items():
+                        kwargs[k] = deserialize(v)
                     kwargs['value'] = deserialize_constant_value(data['value'])
                     return cls(**kwargs)
 
                 # Recursively deserialize all fields
-                kwargs = {k: deserialize(v) for k, v in data.items()}
-                return cls(**kwargs)
+                kwargs2: dict[str, Any] = {}
+                for k, v in data.items():
+                    kwargs2[k] = deserialize(v)
+                return cls(**kwargs2)
 
         # Plain list - recursively deserialize elements
-        return [deserialize(item) for item in value]
+        result_list: list[Any] = []
+        for item in value_list:
+            result_list.append(deserialize(item))
+        return result_list
 
     return value
 
