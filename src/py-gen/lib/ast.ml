@@ -297,8 +297,7 @@ let def_union (name : string) (union_names : string list) : stmt =
       in
       let rec mk_union (components : expr list) : expr =
         match components with
-        | [] -> invalid_arg "mk_union: empty union"
-        | [ _single ] -> invalid_arg "mk_union: singleton union"
+        | [] | [ _ ] -> invalid_arg "mk_union: need at least 2 elements"
         | [ left; right ] -> BinOp { left; op = BitOr; right }
         | left :: right :: rest ->
           let merged_left_and_right = BinOp { left; op = BitOr; right } in
