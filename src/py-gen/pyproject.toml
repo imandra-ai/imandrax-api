@@ -12,6 +12,7 @@ dependencies = [
     "dotenv>=0.9.9",
     "imandrax-api[async]>=0.17.2.1",
     "iml-query>=0.3.4",
+    "pydantic>=2.12.3",
     "pyyaml>=6.0.3",
     "rich>=14.2.0",
 ]
@@ -44,7 +45,7 @@ select = [
     "PTH", # flake8-use-pathlib
     "SIM", # flake8-simplify
     "C90", # mccabe
-    "D",   # pydocstyle
+    # "D",   # pydocstyle
 ]
 ignore = [
     "SIM102",
