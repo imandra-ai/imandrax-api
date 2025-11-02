@@ -193,7 +193,10 @@ let expr_to_stmt_target (e : expr) : stmt_target =
   | Name n -> TargetName n
   | Attribute a -> TargetAttribute a
   | Subscript s -> TargetSubscript s
-  | _ -> invalid_arg "expr_to_stmt_target: only Name, Attribute, and Subscript are valid targets"
+  | _ ->
+    invalid_arg
+      "expr_to_stmt_target: only Name, Attribute, and Subscript are valid \
+       targets"
 
 let bools_to_char (bools : bool list) : char =
   if List.length bools <> 8 then

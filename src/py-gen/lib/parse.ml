@@ -351,6 +351,18 @@ let%expect_test "decode artifact" =
   printf "\n";
   printf "Expr:\n";
   print_endline (Ast.show_expr expr);
+
+  print_endline sep;
+  print_endline "Json:\n";
+
+  let stmts = parse_model model in
+
+  (* Convert each statement to JSON and collect them in a list *)
+  let json_out : Yojson.Safe.t = `List (List.map Ast.stmt_to_yojson stmts) in
+
+  (* Also print to stdout for the test *)
+  Yojson.Safe.pretty_to_string json_out |> print_endline;
+
   [%expect
     {|
     name: variant3
@@ -397,11 +409,11 @@ let%expect_test "decode artifact" =
        { Ast.name = "Waitlist"; bases = []; keywords = [];
          body =
          [(Ast.AnnAssign
-             { Ast.target = (Ast.Name { Ast.id = "arg0"; ctx = Ast.Load });
+             { Ast.target = (Ast.TargetName { Ast.id = "arg0"; ctx = Ast.Load });
                annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
                value = None });
            (Ast.AnnAssign
-              { Ast.target = (Ast.Name { Ast.id = "arg1"; ctx = Ast.Load });
+              { Ast.target = (Ast.TargetName { Ast.id = "arg1"; ctx = Ast.Load });
                 annotation = (Ast.Name { Ast.id = "bool"; ctx = Ast.Load });
                 value = None })
            ];
@@ -418,6 +430,68 @@ let%expect_test "decode artifact" =
          [(Ast.Constant { Ast.value = (Ast.Int 2); kind = None });
            (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })];
          keywords = [] })
+
+    <><><><><><><><><><>
+
+    Json:
+
+    [
+      [
+        "ClassDef",
+        {
+          "name": "Waitlist",
+          "bases": [],
+          "keywords": [],
+          "body": [
+            [
+              "AnnAssign",
+              {
+                "target": [ "TargetName", { "id": "arg0", "ctx": [ "Load" ] } ],
+                "annotation": [ "Name", { "id": "int", "ctx": [ "Load" ] } ],
+                "value": null
+              }
+            ],
+            [
+              "AnnAssign",
+              {
+                "target": [ "TargetName", { "id": "arg1", "ctx": [ "Load" ] } ],
+                "annotation": [ "Name", { "id": "bool", "ctx": [ "Load" ] } ],
+                "value": null
+              }
+            ]
+          ],
+          "decorator_list": [
+            [ "Name", { "id": "dataclass", "ctx": [ "Load" ] } ]
+          ]
+        }
+      ],
+      [
+        "Assign",
+        {
+          "targets": [ [ "Name", { "id": "Status", "ctx": [ "Load" ] } ] ],
+          "value": [ "Name", { "id": "Waitlist", "ctx": [ "Load" ] } ],
+          "type_comment": null
+        }
+      ],
+      [
+        "Assign",
+        {
+          "targets": [ [ "Name", { "id": "w", "ctx": [ "Load" ] } ] ],
+          "value": [
+            "Call",
+            {
+              "func": [ "Name", { "id": "Status", "ctx": [ "Load" ] } ],
+              "args": [
+                [ "Constant", { "value": [ "Int", 2 ], "kind": null } ],
+                [ "Constant", { "value": [ "Bool", true ], "kind": null } ]
+              ],
+              "keywords": []
+            }
+          ],
+          "type_comment": null
+        }
+      ]
+    ]
     |}]
 
 (* <><><><><><><><><><><><><><><><><><><><>
