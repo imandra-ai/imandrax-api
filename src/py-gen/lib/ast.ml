@@ -160,7 +160,8 @@ and assign_stmt = {
 and ann_assign_stmt = {
   target: expr;
   annotation: expr;
-  value: expr option; (* simple: int *)
+  value: expr option;
+  simple: int;
 }
 
 and class_def_stmt = {
@@ -179,6 +180,14 @@ and class_def_stmt = {
 
 (* Placeholder for ctx *)
 let mk_ctx () = Load
+
+(*
+simple: an integer flag that indicates whether the assignment target is a "simple" name or not.
+Specifically:
+- simple = 1 when the target is just a Name (e.g., x: int = 5)
+- simple = 0 when the target is an Attribute or Subscript (e.g., obj.x: int = 5 or list[0]: int = 5)
+*)
+let mk_ann_assign_simple_flat () = 1
 let bool_expr (b : bool) : expr = Constant { value = Bool b; kind = None }
 let string_expr (s : string) : expr = Constant { value = String s; kind = None }
 
@@ -256,6 +265,7 @@ let def_dataclass (name : string) (rows : (string * string) list) : stmt =
               target = Name { id = tgt; ctx = mk_ctx () };
               annotation = Name { id = ann; ctx = mk_ctx () };
               value = None;
+              simple = mk_ann_assign_simple_flat ();
             })
         rows
   in
