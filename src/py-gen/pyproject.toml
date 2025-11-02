@@ -22,11 +22,17 @@ dev = [
     "ipykernel>=7.0.1",
 ]
 
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+py-gen = { path = "python", editable = true }
+
 [tool.ruff]
 line-length = 80
 fix = true
 show-fixes = true
-# src = ["src"]
+src = ["python"]
 exclude = [
     "*.ipynb",
     "vendor/",
@@ -86,8 +92,9 @@ possibly-missing-attribute = "ignore"
 unresolved-import = "ignore"
 
 [tool.pyright]
-venvPath = ".."
+venvPath = "."
 venv = ".venv"
+include = ["python"]
 pythonVersion = "3.13"
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false
