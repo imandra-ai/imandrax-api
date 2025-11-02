@@ -16,4 +16,4 @@
  (inline_tests
   (deps (source_tree ../examples)))
  (preprocess
-  (pps ppx_expect ppx_deriving.show)))
+  (pps ppx_expect ppx_deriving.show ppx_deriving_yojson)))
