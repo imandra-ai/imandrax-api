@@ -15,7 +15,11 @@ dependencies = [
     "pydantic>=2.12.3",
     "pyyaml>=6.0.3",
     "rich>=14.2.0",
+    "ruff>=0.14.3",
 ]
+
+[project.scripts]
+py-gen = "py_gen.__main__:main"
 
 [dependency-groups]
 dev = [
@@ -27,6 +31,12 @@ package = true
 
 [tool.uv.sources]
 py-gen = { path = "python", editable = true }
+
+[tool.setuptools]
+package-dir = {"" = "python"}
+
+[tool.setuptools.packages.find]
+where = ["python"]
 
 [tool.ruff]
 line-length = 80
