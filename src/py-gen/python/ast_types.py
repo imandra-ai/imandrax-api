@@ -72,10 +72,11 @@ class Expr(stmt):
 
 @dc
 class expr(AST):
-    lineno: int
-    col_offset: int
-    end_lineno: int | None
-    end_col_offset: int | None
+    pass
+    # lineno: int
+    # col_offset: int
+    # end_lineno: int | None
+    # end_col_offset: int | None
 
 
 @dc
