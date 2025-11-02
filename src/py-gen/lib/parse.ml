@@ -409,11 +409,11 @@ let%expect_test "decode artifact" =
        { Ast.name = "Waitlist"; bases = []; keywords = [];
          body =
          [(Ast.AnnAssign
-             { Ast.target = (Ast.TargetName { Ast.id = "arg0"; ctx = Ast.Load });
+             { Ast.target = (Ast.Name { Ast.id = "arg0"; ctx = Ast.Load });
                annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
                value = None });
            (Ast.AnnAssign
-              { Ast.target = (Ast.TargetName { Ast.id = "arg1"; ctx = Ast.Load });
+              { Ast.target = (Ast.Name { Ast.id = "arg1"; ctx = Ast.Load });
                 annotation = (Ast.Name { Ast.id = "bool"; ctx = Ast.Load });
                 value = None })
            ];
@@ -446,7 +446,7 @@ let%expect_test "decode artifact" =
             [
               "AnnAssign",
               {
-                "target": [ "TargetName", { "id": "arg0", "ctx": [ "Load" ] } ],
+                "target": [ "Name", { "id": "arg0", "ctx": [ "Load" ] } ],
                 "annotation": [ "Name", { "id": "int", "ctx": [ "Load" ] } ],
                 "value": null
               }
@@ -454,7 +454,7 @@ let%expect_test "decode artifact" =
             [
               "AnnAssign",
               {
-                "target": [ "TargetName", { "id": "arg1", "ctx": [ "Load" ] } ],
+                "target": [ "Name", { "id": "arg1", "ctx": [ "Load" ] } ],
                 "annotation": [ "Name", { "id": "bool", "ctx": [ "Load" ] } ],
                 "value": null
               }
