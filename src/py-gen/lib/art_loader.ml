@@ -183,7 +183,7 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
       | _ -> None
     in
 
-    (* Flatten the arrow type view *)
+    (* Flatten the arrow type view to a list of types *)
     let unpack_arrows (ty_view : (unit, Uid.t, Type.t) Ty_view.view) :
         string list =
       let rec helper
@@ -208,18 +208,46 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
       helper [] ty_view
     in
 
-    let final_expr =
+    let res : Ast.stmt list * Ast.expr option =
       match term_of_predefined_type with
-      | Some expr -> Some expr
+      | Some expr -> [], Some expr
       | None ->
-        let v_const_name = construct.sym.id.name in
-        let v_types : string list = unpack_arrows construct.ty.view in
-        print_endline (CCString.concat "->" v_types);
-        printf "variant constructor name: %s\n" v_const_name;
-        None
+        let variant_constr_name = construct.sym.id.name in
+        (* the last arg is the variant name *)
+        let variant_constr_args_and_variant_name : string list =
+          unpack_arrows construct.ty.view
+        in
+        print_endline
+          (CCString.concat "->" variant_constr_args_and_variant_name);
+        printf "variant constructor name: %s\n" variant_constr_name;
+
+        let split_last xs =
+          match List.rev xs with
+          | [] -> failwith "Never: empty list"
+          | x :: xs -> List.rev xs, x
+        in
+
+        let variant_constr_args_, variant_name =
+          split_last variant_constr_args_and_variant_name
+        in
+
+        let variant_constr_args =
+          (* Map Ocaml type names to Python type names *)
+          List.map
+            (fun caml_type ->
+              List.assoc caml_type Ast.ty_view_constr_name_mapping)
+            variant_constr_args_
+        in
+
+        let ty_defs =
+          Ast.variant_dataclass
+            (String.capitalize_ascii variant_name)
+            [ variant_constr_name, variant_constr_args ]
+        in
+        ty_defs, None
     in
 
-    [], final_expr
+    res
   | _, _ ->
     print_endline "case other than const or construct";
     [], None
@@ -342,7 +370,24 @@ let%expect_test "decode artifact" =
 
     int->bool->status
     variant constructor name: Waitlist
-    Type defs:
+    int bool Type defs:
+    (Ast.ClassDef
+       { Ast.name = "Waitlist"; bases = []; keywords = [];
+         body =
+         [(Ast.AnnAssign
+             { Ast.target = (Ast.Name { Ast.id = "arg0"; ctx = Ast.Load });
+               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+               value = None });
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "arg1"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "bool"; ctx = Ast.Load });
+                value = None })
+           ];
+         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
+    (Ast.Assign
+       { Ast.targets = [(Ast.Name { Ast.id = "Status"; ctx = Ast.Load })];
+         value = (Ast.Name { Ast.id = "Waitlist"; ctx = Ast.Load });
+         type_comment = None })
 
     Expr:
     None
