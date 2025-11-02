@@ -31,48 +31,42 @@ Return:
   type definition statements
   expression (term)
 *)
-let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
-  let term_view = term.view in
-  let term_ty = term.ty in
-  let unwrap : 'a option -> 'a = function
-    | Some x -> x
-    | None -> failwith "unwrap: None"
+let rec parse_term (term : Term.term) :
+    (Ast.stmt list * Ast.expr, string) result =
+  let unwrap : ('a, 'b) result -> 'a = function
+    | Ok x -> x
+    | Error msg -> failwith msg
   in
-  match term_view, term_ty with
+  match (term.view : (Term.term, Type.t) Term.view), (term.ty : Type.t) with
   (* Constant *)
   | Term.Const const, _ ->
     (match const with
-    | Const_bool b -> [], Some Ast.(Constant { value = Bool b; kind = None })
+    | Const_bool b -> Ok ([], Ast.(Constant { value = Bool b; kind = None }))
     | Const_float f ->
       (* printf "%f" f; *)
-      [], Ast.(Some (Constant { value = Float f; kind = None }))
+      Ok ([], Ast.(Constant { value = Float f; kind = None }))
     | Const_q q ->
       let num = Q.num q in
       let den = Q.den q in
       (* printf "%s/%s" (Z.to_string num) (Z.to_string den); *)
       let open Ast in
       (* Should we use Decimal instead? *)
-      ( [],
-        Some
-          (Constant
-             { value = Float (Z.to_float num /. Z.to_float den); kind = None })
-      )
+      Ok
+        ( [],
+          Constant
+            { value = Float (Z.to_float num /. Z.to_float den); kind = None } )
     | Const_z z ->
-      [], Some (Ast.Constant { value = Int (Z.to_int z); kind = None })
-    | Const_string s ->
-      [], Some (Ast.Constant { value = String s; kind = None })
+      Ok ([], Ast.Constant { value = Int (Z.to_int z); kind = None })
+    | Const_string s -> Ok ([], Ast.Constant { value = String s; kind = None })
     | c ->
       (* Uid and real_approx *)
-      print_endline (sprintf "unhandle const %s" (Imandrax_api.Const.show c));
-      [], None)
+      let msg = sprintf "unhandle const %s" (Imandrax_api.Const.show c) in
+      Error msg)
   (* Tuple *)
   | Term.Tuple { l = (terms : Term.term list) }, (_ty : Type.t) ->
-    let expr_opts = List.map (fun term -> parse_term term |> snd) terms in
-    let raising_msg = "None found when parsing tuple items" in
-    let exprs =
-      List.map (fun opt -> opt |> CCOption.get_exn_or raising_msg) expr_opts
-    in
-    [], Some (Ast.tuple_of_exprs exprs)
+    let expr_results = List.map (fun term -> parse_term term) terms in
+    let exprs = List.map (fun res -> res |> unwrap |> snd) expr_results in
+    Ok ([], Ast.tuple_of_exprs exprs)
   (* Record *)
   | ( Term.Record
         {
@@ -106,7 +100,7 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
           | _ -> failwith "Never: row_view should be a constr")
         | _ -> failwith "Never: applied_symbol.ty.view should be a arrow"
       in
-      let row_val_expr = parse_term term |> snd |> unwrap in
+      let row_val_expr = parse_term term |> unwrap |> snd in
       (* ENH: maybe using kwargs is clearer? *)
       (def_row_var_name, def_row_type_name), row_val_expr
     in
@@ -116,8 +110,9 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
       |> CCList.split
     in
     let open Ast in
-    ( [ def_dataclass ty_name def_rows ],
-      Some (init_dataclass ty_name ~args:row_val_exprs ~kwargs:[]) )
+    Ok
+      ( [ def_dataclass ty_name def_rows ],
+        init_dataclass ty_name ~args:row_val_exprs ~kwargs:[] )
   (* Construct *)
   | ( Term.Construct
         {
@@ -147,14 +142,14 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
       | _ -> "_"
     in
 
-    let term_of_predefined_type : Ast.expr option =
+    let term_of_predefined_type : (Ast.expr, string) result =
       match is_predefined_type with
       | "LChar.t" ->
         let bool_terms =
-          List.map (fun arg -> parse_term arg |> snd |> unwrap) construct_args
+          List.map (fun arg -> parse_term arg |> unwrap |> snd) construct_args
         in
         let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
-        Some char_expr
+        Ok char_expr
       | "list" ->
         (* List
         For empty list, the construct args is empty.
@@ -165,22 +160,22 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
         let is_nil = construct_args = [] in
         if is_nil then
           (* Empty list [] *)
-          Some (Ast.empty_list_expr ())
+          Ok (Ast.empty_list_expr ())
         else (
           let list_elements =
-            List.map (fun arg -> parse_term arg |> snd |> unwrap) construct_args
+            List.map (fun arg -> parse_term arg |> unwrap |> snd) construct_args
           in
           match list_elements with
-          | [] -> failwith "Never: empty constuct arg for non-Nil"
-          | [ _ ] -> failwith "Never: single element list for non-Nil"
+          | [] -> Error "Never: empty constuct arg for non-Nil"
+          | [ _ ] -> Error "Never: single element list for non-Nil"
           | [ head; tail ] ->
-            Some (Ast.cons_list_expr head tail)
+            Ok (Ast.cons_list_expr head tail)
             (* let n_elem = CCList.length elems in
             let except_last = CCList.take (n_elem - 1) elems in
             Some (Ast.list_of_exprs except_last) *)
-          | _ -> failwith "Never: more than 2 elements list for non-Nil"
+          | _ -> Error "Never: more than 2 elements list for non-Nil"
         )
-      | _ -> None
+      | _ -> Error "Never: not a predefined type"
     in
 
     (* Flatten the arrow type view to a list of types *)
@@ -208,10 +203,10 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
       helper [] ty_view
     in
 
-    let res : Ast.stmt list * Ast.expr option =
+    let res : (Ast.stmt list * Ast.expr, string) result =
       match term_of_predefined_type with
-      | Some expr -> [], Some expr
-      | None ->
+      | Ok expr -> Ok ([], expr)
+      | Error _ ->
         let variant_constr_name = construct.sym.id.name in
         (* the last arg is the variant name *)
         let variant_constr_args_and_variant_name : string list =
@@ -249,17 +244,17 @@ let rec parse_term (term : Term.term) : Ast.stmt list * Ast.expr option =
 
         let term =
           let term_constr_args =
-            List.map (fun arg -> parse_term arg |> snd |> unwrap) construct_args
+            List.map (fun arg -> parse_term arg |> unwrap |> snd) construct_args
           in
           Ast.init_dataclass variant_name ~args:term_constr_args ~kwargs:[]
         in
-        ty_defs, Some term
+        Ok (ty_defs, term)
     in
 
     res
   | _, _ ->
-    print_endline "case other than const or construct";
-    [], None
+    let msg = "case other than const or construct" in
+    Error msg
 
 let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
@@ -325,17 +320,18 @@ let%expect_test "decode artifact" =
   print_endline (Format.flush_str_formatter ());
   printf "%s\n" sep; *)
   print_endline "Parsing term:\n";
-  let ty_defs, expr = parse_term term in
+  let ty_defs, expr =
+    match parse_term term with
+    | Ok (ty_defs, expr) -> ty_defs, expr
+    | Error msg -> failwith msg
+  in
 
   printf "Type defs:\n";
   List.iter (fun ty_def -> print_endline (Ast.show_stmt ty_def)) ty_defs;
 
   printf "\n";
   printf "Expr:\n";
-  (match expr with
-  | Some expr -> print_endline (Ast.show_expr expr)
-  | None -> print_endline "None");
-
+  print_endline (Ast.show_expr expr);
   [%expect
     {|
     name: variant3
