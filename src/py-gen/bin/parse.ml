@@ -3,12 +3,19 @@ open Printf
 let () =
   (* Parse command line arguments *)
   if Array.length Sys.argv < 3 then (
-    eprintf "Usage: %s <input_file.json|yaml> <output_file.json>\n" Sys.argv.(0);
+    eprintf "Usage: %s <input_file.json|yaml> <output_file.json> [index]\n" Sys.argv.(0);
+    eprintf "  index: optional index for YAML/JSON arrays (0-based, or -1 for last)\n";
     exit 1
   );
 
   let input_file = Sys.argv.(1) in
   let output_file = Sys.argv.(2) in
+  let index_opt =
+    if Array.length Sys.argv > 3 then
+      Some (int_of_string Sys.argv.(3))
+    else
+      None  (* default to whole document *)
+  in
 
   (* Check if input file exists *)
   if not (Sys.file_exists input_file) then (
@@ -38,13 +45,22 @@ let () =
         printf "Parsing YAML file...\n";
         let yaml_str = CCIO.File.read_exn input_file in
         let yaml = Yaml.of_string_exn yaml_str in
-        (* If it's a list, take the first item *)
+        (* If index is specified and it's a list, extract the requested item *)
         let yaml_item =
-          match yaml with
-          | `A (first :: _) ->
-            printf "Found YAML list, using first item\n";
-            first
-          | `O _ -> yaml
+          match index_opt, yaml with
+          | Some index, `A items ->
+            let len = List.length items in
+            let actual_index = if index < 0 then len + index else index in
+            if actual_index < 0 || actual_index >= len then
+              failwith (sprintf "Index %d out of bounds (list has %d items)" index len);
+            printf "Found YAML list with %d items, using index %d\n" len actual_index;
+            List.nth items actual_index
+          | Some index, `O _ ->
+            printf "Warning: index %d ignored for single YAML object\n" index;
+            yaml
+          | None, _ ->
+            printf "Using whole document\n";
+            yaml
           | _ -> failwith "Expected YAML mapping or list"
         in
         Py_gen.Util.yaml_to_model ~debug:true yaml_item
