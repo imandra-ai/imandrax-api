@@ -246,19 +246,23 @@ let cons_list_expr (head : expr) (tail : expr) : expr =
 
 (* Type view constructor name to Python type name *)
 let ty_view_constr_name_mapping : (string * string) list =
-  [ "int", "int"; "bool", "bool" ]
+  [ "int", "int"; "bool", "bool"; "string", "str" ]
 
+(* AST for define a dataclass *)
 let def_dataclass (name : string) (rows : (string * string) list) : stmt =
   let body : stmt list =
-    List.map
-      (fun (tgt, ann) ->
-        AnnAssign
-          {
-            target = Name { id = tgt; ctx = mk_ctx () };
-            annotation = Name { id = ann; ctx = mk_ctx () };
-            value = None;
-          })
-      rows
+    match rows with
+    | [] -> [ Pass ]
+    | _ ->
+      List.map
+        (fun (tgt, ann) ->
+          AnnAssign
+            {
+              target = Name { id = tgt; ctx = mk_ctx () };
+              annotation = Name { id = ann; ctx = mk_ctx () };
+              value = None;
+            })
+        rows
   in
   ClassDef
     {
@@ -269,6 +273,7 @@ let def_dataclass (name : string) (rows : (string * string) list) : stmt =
       decorator_list = [ Name { id = "dataclass"; ctx = mk_ctx () } ];
     }
 
+(* AST for initiate a dataclass instance *)
 let init_dataclass
     (dataclass_name : string)
     ~(args : expr list)
@@ -277,6 +282,56 @@ let init_dataclass
     List.map (fun (k, v) -> { arg = Some k; value = v }) kwargs
   in
   Call { func = Name { id = dataclass_name; ctx = mk_ctx () }; args; keywords }
+
+let def_union (name : string) (union_names : string list) : stmt =
+  let left_targets = [ Name { id = name; ctx = mk_ctx () } ] in
+  let right_value =
+    match union_names with
+    | [] -> invalid_arg "def_union: empty union"
+    | [ single ] -> Name { id = single; ctx = mk_ctx () }
+    | _ ->
+      let component_exprs : expr list =
+        List.map
+          (fun component_name -> Name { id = component_name; ctx = mk_ctx () })
+          union_names
+      in
+      let rec mk_union (components : expr list) : expr =
+        match components with
+        | [] -> invalid_arg "mk_union: empty union"
+        | [ _single ] -> invalid_arg "mk_union: singleton union"
+        | [ left; right ] -> BinOp { left; op = BitOr; right }
+        | left :: right :: rest ->
+          let merged_left_and_right = BinOp { left; op = BitOr; right } in
+          mk_union (merged_left_and_right :: rest)
+      in
+      mk_union component_exprs
+  in
+  Assign { targets = left_targets; value = right_value; type_comment = None }
+
+(* AST for defining types corresponding to variant
+  - Each variant constructor is a dataclass with anonymous fields
+  - The variant is a union of the dataclasses
+
+  variants: A list of variant constructor name, and types of its arguments
+*)
+let variant_dataclass (name : string) (variants : (string * string list) list) :
+    stmt list =
+  let variant_names = List.map fst variants in
+  (* Define a single variant constructor as a dataclass *)
+  let def_variant_constructor_as_dataclass (variant : string * string list) :
+      stmt =
+    let name = fst variant in
+    let rows : (string * string) list =
+      List.mapi
+        (fun i type_name -> "arg" ^ string_of_int i, type_name)
+        (snd variant)
+    in
+    def_dataclass name rows
+  in
+  let constructor_defs =
+    List.map def_variant_constructor_as_dataclass variants
+  in
+  constructor_defs @ [ def_union name variant_names ]
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
@@ -291,3 +346,18 @@ let%expect_test "char to bools" =
   let bools = char_to_bools c in
   List.iter (Printf.printf "%b ") bools;
   [%expect {| false false false false true true false false |}]
+
+let%expect_test "build union" =
+  let union_stmt = def_union "Status" [ "str"; "int" ] in
+  print_endline (show_stmt union_stmt);
+  [%expect
+    {|
+    (Ast.Assign
+       { Ast.targets = [(Ast.Name { Ast.id = "Status"; ctx = Ast.Load })];
+         value =
+         (Ast.BinOp
+            { Ast.left = (Ast.Name { Ast.id = "str"; ctx = Ast.Load });
+              op = Ast.BitOr;
+              right = (Ast.Name { Ast.id = "int"; ctx = Ast.Load }) });
+         type_comment = None })
+    |}]
