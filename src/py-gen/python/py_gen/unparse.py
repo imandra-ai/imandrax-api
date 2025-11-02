@@ -1,11 +1,50 @@
 """Convert custom AST to Python stdlib AST and unparse to source code."""
 
-from __future__ import annotations
-
 import ast as stdlib_ast
+import subprocess
 from typing import Any, cast
 
+from ruff.__main__ import find_ruff_bin
+
 from . import ast_types as custom_ast
+
+ruff_bin = find_ruff_bin()
+
+
+def format_code(code: str) -> str:
+    """Format Python code using ruff."""
+
+    try:
+        result = subprocess.run(
+            [ruff_bin, 'format', '-'],
+            input=code,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # If ruff fails or is not found, return original code
+        return code
+
+
+def remove_unused_import(code: str) -> str:
+    """Lint and fix code with ruff, focusing on F401 (unused imports)."""
+
+    ruff_bin = find_ruff_bin()
+
+    try:
+        result = subprocess.run(
+            [ruff_bin, 'check', '--select', 'F401', '--fix', '-'],
+            input=code,
+            capture_output=True,
+            text=True,
+        )
+        # ruff check outputs fixed code to stdout
+        return result.stdout if result.stdout else code
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # If ruff fails or is not found, return original code
+        return code
 
 
 def to_stdlib(node: Any) -> Any:
@@ -42,19 +81,22 @@ def to_stdlib(node: Any) -> Any:
 
 def unparse(
     nodes: list[custom_ast.stmt],
-    add_dataclass_import: bool = True,
 ) -> str:
     """Convert custom AST to Python source code using stdlib ast.unparse."""
     stdlib_stmts: list[stdlib_ast.stmt] = to_stdlib(nodes)
-    if not add_dataclass_import:
-        body = stdlib_stmts
-    else:
-        from_import = stdlib_ast.ImportFrom(
-            module='dataclasses',
-            names=[stdlib_ast.alias(name='dataclass', asname=None)],
-            level=0,
-        )
-        body = [from_import, *stdlib_stmts]
+
+    dataclass_import = stdlib_ast.ImportFrom(
+        module='dataclasses',
+        names=[stdlib_ast.alias(name='dataclass', asname=None)],
+        level=0,
+    )
+    body = [dataclass_import, *stdlib_stmts]
+
     module = stdlib_ast.Module(body=body, type_ignores=[])
     stdlib_ast.fix_missing_locations(module)
-    return stdlib_ast.unparse(module)
+
+    gen_code = stdlib_ast.unparse(module)
+
+    gen_code = format_code(remove_unused_import(gen_code))
+
+    return gen_code
