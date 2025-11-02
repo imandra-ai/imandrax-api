@@ -8,3 +8,17 @@
   imandrax-api.mir
   yojson
   containers))
+
+; Executable to parse JSON/YAML artifacts to Python AST
+(executable
+ (name parse)
+ (modules parse)
+ (libraries
+  py_gen
+  imandrax-api
+  imandrax-api.mir
+  imandrax-api.artifact
+  yojson
+  yaml
+  containers
+  base64))
