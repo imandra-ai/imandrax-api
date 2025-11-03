@@ -67,7 +67,13 @@ class AnnAssign(stmt):
 
 @dc
 class Expr(stmt):
+    # L792
     value: expr
+
+
+@dc
+class Pass(stmt):
+    pass
 
 
 @dc
@@ -354,6 +360,7 @@ class NotIn(cmpop):
     pass
 
 
+@dc
 class arg(AST):
     # lineno: int
     # col_offset: int
@@ -364,6 +371,7 @@ class arg(AST):
     type_comment: str | None
 
 
+@dc
 class keyword(AST):
     # lineno: int
     # col_offset: int
