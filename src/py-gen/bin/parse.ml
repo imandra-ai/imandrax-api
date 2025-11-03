@@ -3,13 +3,15 @@ open Printf
 let () =
   (* Parse command line arguments *)
   if Array.length Sys.argv < 3 then (
-    eprintf "Usage: %s <input_file.json|yaml> <output_file.json> [index]\n" Sys.argv.(0);
+    eprintf "Usage: %s <input_file.json|yaml> <output_file.json|-> [index]\n" Sys.argv.(0);
+    eprintf "  output_file: output JSON file path, or '-' for stdout\n";
     eprintf "  index: optional index for YAML/JSON arrays (0-based, or -1 for last)\n";
     exit 1
   );
 
   let input_file = Sys.argv.(1) in
   let output_file = Sys.argv.(2) in
+  let use_stdout = output_file = "-" in
   let index_opt =
     if Array.length Sys.argv > 3 then
       Some (int_of_string Sys.argv.(3))
@@ -35,14 +37,16 @@ let () =
     exit 1
   );
 
-  printf "Reading from: %s\n" input_file;
-  printf "Output to: %s\n" output_file;
+  if not use_stdout then (
+    printf "Reading from: %s\n" input_file;
+    printf "Output to: %s\n" output_file
+  );
 
   (* Read and parse the input file *)
   let model =
     try
       if is_yaml then (
-        printf "Parsing YAML file...\n";
+        if not use_stdout then printf "Parsing YAML file...\n";
         let yaml_str = CCIO.File.read_exn input_file in
         let yaml = Yaml.of_string_exn yaml_str in
         (* If index is specified and it's a list, extract the requested item *)
@@ -53,21 +57,21 @@ let () =
             let actual_index = if index < 0 then len + index else index in
             if actual_index < 0 || actual_index >= len then
               failwith (sprintf "Index %d out of bounds (list has %d items)" index len);
-            printf "Found YAML list with %d items, using index %d\n" len actual_index;
+            if not use_stdout then printf "Found YAML list with %d items, using index %d\n" len actual_index;
             List.nth items actual_index
           | Some index, `O _ ->
-            printf "Warning: index %d ignored for single YAML object\n" index;
+            if not use_stdout then printf "Warning: index %d ignored for single YAML object\n" index;
             yaml
           | None, _ ->
-            printf "Using whole document\n";
+            if not use_stdout then printf "Using whole document\n";
             yaml
           | _ -> failwith "Expected YAML mapping or list"
         in
-        Py_gen.Util.yaml_to_model ~debug:true yaml_item
+        Py_gen.Util.yaml_to_model ~debug:false yaml_item
       ) else (
-        printf "Parsing JSON file...\n";
+        if not use_stdout then printf "Parsing JSON file...\n";
         let json = Yojson.Safe.from_file input_file in
-        Py_gen.Util.json_to_model ~debug:true json
+        Py_gen.Util.json_to_model ~debug:false json
       )
     with
     | Failure msg ->
@@ -78,10 +82,10 @@ let () =
       exit 1
   in
 
-  printf "Successfully parsed model\n";
+  if not use_stdout then printf "Successfully parsed model\n";
 
   (* Parse the model to AST statements *)
-  printf "Converting model to Python AST...\n";
+  if not use_stdout then printf "Converting model to Python AST...\n";
   let stmts =
     try Py_gen.Parse.parse_model model with
     | Failure msg ->
@@ -92,16 +96,20 @@ let () =
       exit 1
   in
 
-  printf "Generated %d statements\n" (List.length stmts);
+  if not use_stdout then printf "Generated %d statements\n" (List.length stmts);
 
   (* Convert statements to JSON *)
   let json_out : Yojson.Safe.t =
     `List (List.map Py_gen.Ast.stmt_to_yojson stmts)
   in
 
-  (* Write to output file *)
-  printf "Writing output to: %s\n" output_file;
-  CCIO.with_out output_file (fun out ->
-      Yojson.Safe.pretty_to_channel out json_out);
-
-  printf "Done. Output written to %s\n" output_file
+  (* Write to output file or stdout *)
+  if use_stdout then (
+    Yojson.Safe.to_channel stdout json_out;
+    print_newline ()
+  ) else (
+    printf "Writing output to: %s\n" output_file;
+    CCIO.with_out output_file (fun out ->
+        Yojson.Safe.pretty_to_channel out json_out);
+    printf "Done. Output written to %s\n" output_file
+  )
