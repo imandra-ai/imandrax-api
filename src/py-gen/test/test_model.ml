@@ -7,8 +7,13 @@ module Term = Imandrax_api_mir.Term
 module Model = Imandrax_api_mir.Model
 
 (* Load a Mir.model from a yaml file *)
-let load_artifact (name : string) : Model.t =
-  let yaml_str = CCIO.File.read_exn (sprintf "data/%s.yaml" name) in
+let load_artifact (sub_dir : string option) (name : string) : Model.t =
+  let yaml_str =
+    match sub_dir with
+    | None -> CCIO.File.read_exn (sprintf "data/%s.yaml" name)
+    | Some sub_dir ->
+      CCIO.File.read_exn (sprintf "data/%s/%s.yaml" sub_dir name)
+  in
   let yaml = Yaml.of_string_exn yaml_str in
   let name, iml_code =
     match yaml with
@@ -31,8 +36,8 @@ let load_artifact (name : string) : Model.t =
 
   Util.yaml_to_model yaml
 
-let test_parse_model (name : string) : unit =
-  let model = load_artifact name in
+let test_parse_model (sub_dir : string option) (name : string) : unit =
+  let model = load_artifact sub_dir name in
   let _app_sym, term = unpack_model model in
   let ty_defs, expr =
     match parse_term term with
@@ -48,7 +53,7 @@ let test_parse_model (name : string) : unit =
   ()
 
 let%expect_test "bool list" =
-  test_parse_model "bool_list";
+  test_parse_model (Some "primitive") "bool_list";
 
   [%expect
     {|
@@ -68,8 +73,9 @@ let%expect_test "bool list" =
     |}]
 
 let%expect_test "empty list" =
-  test_parse_model "empty_list";
-  [%expect {|
+  test_parse_model (Some "primitive") "empty_list";
+  [%expect
+    {|
     name: empty list
     iml_code:
     let v =
@@ -82,8 +88,9 @@ let%expect_test "empty list" =
     |}]
 
 let%expect_test "int option" =
-  test_parse_model "int_option";
-  [%expect {|
+  test_parse_model (Some "primitive") "int_option";
+  [%expect
+    {|
     name: int option
     iml_code:
     let v =
@@ -112,8 +119,9 @@ let%expect_test "int option" =
     |}]
 
 let%expect_test "int" =
-  test_parse_model "int";
-  [%expect {|
+  test_parse_model (Some "primitive") "int";
+  [%expect
+    {|
     name: int
     iml_code:
     let v =
@@ -126,8 +134,9 @@ let%expect_test "int" =
     |}]
 
 let%expect_test "LChar" =
-  test_parse_model "LChar";
-  [%expect {|
+  test_parse_model (Some "primitive") "LChar";
+  [%expect
+    {|
     name: LChar
     iml_code:
     let v =
@@ -140,8 +149,9 @@ let%expect_test "LChar" =
     |}]
 
 let%expect_test "LString" =
-  test_parse_model "LString";
-  [%expect {|
+  test_parse_model (Some "primitive") "LString";
+  [%expect
+    {|
     name: LString
     iml_code:
     let v =
@@ -158,8 +168,9 @@ let%expect_test "LString" =
     |}]
 
 let%expect_test "real" =
-  test_parse_model "real";
-  [%expect {|
+  test_parse_model (Some "primitive") "real";
+  [%expect
+    {|
     name: real
     iml_code:
     let v =
@@ -172,8 +183,9 @@ let%expect_test "real" =
     |}]
 
 let%expect_test "record" =
-  test_parse_model "record";
-  [%expect {|
+  test_parse_model (Some "primitive") "record";
+  [%expect
+    {|
     name: record
     iml_code:
     type user = {
@@ -211,8 +223,9 @@ let%expect_test "record" =
     |}]
 
 let%expect_test "single element int list" =
-  test_parse_model "single_element_int_list";
-  [%expect {|
+  test_parse_model (Some "primitive") "single_element_int_list";
+  [%expect
+    {|
     name: single element int list
     iml_code:
     let v =
@@ -227,8 +240,9 @@ let%expect_test "single element int list" =
     |}]
 
 let%expect_test "tuple (bool * int)" =
-  test_parse_model "tuple_(bool_*_int)";
-  [%expect {|
+  test_parse_model (Some "primitive") "tuple_(bool_*_int)";
+  [%expect
+    {|
     name: tuple (bool * int)
     iml_code:
     let v =
@@ -245,8 +259,9 @@ let%expect_test "tuple (bool * int)" =
     |}]
 
 let%expect_test "variant1" =
-  test_parse_model "variant1";
-  [%expect {|
+  test_parse_model (Some "primitive") "variant1";
+  [%expect
+    {|
     name: variant1
     iml_code:
     type status =
@@ -274,8 +289,9 @@ let%expect_test "variant1" =
     |}]
 
 let%expect_test "variant2" =
-  test_parse_model "variant2";
-  [%expect {|
+  test_parse_model (Some "primitive") "variant2";
+  [%expect
+    {|
     name: variant2
     iml_code:
     type status =
@@ -310,8 +326,9 @@ let%expect_test "variant2" =
     |}]
 
 let%expect_test "variant3" =
-  test_parse_model "variant3";
-  [%expect {|
+  test_parse_model (Some "primitive") "variant3";
+  [%expect
+    {|
     name: variant3
     iml_code:
     type status =
