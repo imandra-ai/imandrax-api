@@ -223,17 +223,22 @@ let rec parse_term (term : Term.term) :
         in
 
         let variant_constr_args, variant_name =
-          let constr_args_, name_ =
+          let constr_args_, name =
             split_last variant_constr_args_and_variant_name
           in
           (* Map Ocaml type names to Python type names *)
           let constr_args =
             List.map
-              (fun caml_type ->
-                List.assoc caml_type Ast.ty_view_constr_name_mapping)
+              (fun (caml_type : string) : string ->
+                let py_type_opt =
+                  CCList.assoc_opt ~eq:( = ) caml_type
+                    Ast.ty_view_constr_name_mapping
+                in
+                match py_type_opt with
+                | Some py_type -> py_type
+                | None -> caml_type)
               constr_args_
           in
-          let name = String.capitalize_ascii name_ in
           constr_args, name
         in
 
@@ -280,19 +285,14 @@ let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
 let%expect_test "decode artifact" =
-  let yaml_str = CCIO.File.read_exn "../examples/art/art.yaml" in
+  (* let yaml_str = CCIO.File.read_exn "../examples/art/art.yaml" in *)
+  let yaml_str =
+    CCIO.File.read_exn "../test/data/composite/variant_and_record.yaml"
+  in
   let yaml = Yaml.of_string_exn yaml_str in
 
-  (* Get item by index *)
-  let index = 12 in
-  let item =
-    match yaml with
-    | `A items -> List.nth items index
-    | _ -> failwith "Expected YAML list"
-  in
-
   let name, code =
-    match item with
+    match yaml with
     | `O assoc ->
       let name =
         match List.assoc_opt "name" assoc with
@@ -310,7 +310,7 @@ let%expect_test "decode artifact" =
   printf "name: %s\n" name;
   printf "code: %s\n" code;
 
-  let model = Util.yaml_to_model item in
+  let model = Util.yaml_to_model yaml in
   let app_sym, term = unpack_model model in
 
   (* Create a custom formatter with wider margin *)
@@ -365,21 +365,23 @@ let%expect_test "decode artifact" =
 
   [%expect
     {|
-    name: variant3
-    code: type status =
-        | Active
-        | Waitlist of int * bool
+    name: variant_and_record
+    code: type direction = North | South | East | West
 
-    let v = Waitlist (2, true)
+    type position = { x: int; y: int; z: real }
+
+    type movement =
+      | Stay of position
+      | Move of position * direction
 
     let v =
       fun w ->
-        if w = v then true else false
+          if w = Move ({x=1; y=2; z=3.0}, North) then true else false
 
     <><><><><><><><><><>
 
     Applied symbol:
-    (w/1032786 : { view = (Constr (status/qqWZZQx7LXdT2w5j2j5T3gSw6m0irQ9a20wqWALqqnE, [])); generation = 1 })
+    (w/31296 : { view = (Constr (movement/IVNqXLZ7vYtSQiPA0X-p9GAYfd1K-15XG2NAcz2w3us, [])); generation = 1 })
 
     <><><><><><><><><><>
 
@@ -387,18 +389,40 @@ let%expect_test "decode artifact" =
     { view =
       Construct {
         c =
-        (Waitlist/9Ry2N2hNVo7CogUKiguTwROyoQc8AgV_gR5a_dQglhw : { view =
-                                                                  (Arrow ((), { view = (Constr (int, [])); generation = 1 },
-                                                                     { view =
-                                                                       (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
-                                                                          { view = (Constr (status/qqWZZQx7LXdT2w5j2j5T3gSw6m0irQ9a20wqWALqqnE, [])); generation = 1 }));
-                                                                       generation = 1 }
-                                                                     ));
-                                                                  generation = 1 });
+        (Move/DUoe4PMEF5TwFquD7gV2hBxDT5iPWSwjzYJtuwGEBmI : { view =
+                                                              (Arrow ((), { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
+                                                                 { view =
+                                                                   (Arrow ((), { view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, [])); generation = 1 },
+                                                                      { view = (Constr (movement/IVNqXLZ7vYtSQiPA0X-p9GAYfd1K-15XG2NAcz2w3us, [])); generation = 1 }));
+                                                                   generation = 1 }
+                                                                 ));
+                                                              generation = 1 });
         args =
-        [{ view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
-      ty = { view = (Constr (status/qqWZZQx7LXdT2w5j2j5T3gSw6m0irQ9a20wqWALqqnE, [])); generation = 1 }; generation = 0; sub_anchor = None }
+        [{ view =
+           Record {
+             rows =
+             [((x/yLb3Gv5Rc8ui4FSvlYOnMeUILRI-73nVRtF70bx7j4E : { view =
+                                                                  (Arrow ((), { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
+                                                                     { view = (Constr (int, [])); generation = 1 }));
+                                                                  generation = 1 }),
+               { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
+               ((y/UhO3k0buKLeOppzS3AGAFJ00UyMdZWrKZ9_YeAuiHUA : { view =
+                                                                   (Arrow ((), { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
+                                                                      { view = (Constr (int, [])); generation = 1 }));
+                                                                   generation = 1 }),
+                { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
+               ((z/HYHj-kM60ymWB5FJSndv4i7Fvsm7ZyLcx4ajmbVk1kQ : { view =
+                                                                   (Arrow ((), { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
+                                                                      { view = (Constr (real, [])); generation = 1 }));
+                                                                   generation = 1 }),
+                { view = (Const 3.0); ty = { view = (Constr (real, [])); generation = 1 }; generation = 0; sub_anchor = None })
+               ];
+             rest = None};
+           ty = { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = Construct {c = (North/XOBmr8zKtuYctJNwJkVg5lSXESY5SxLPgFPKXi6aEA8 : { view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, [])); generation = 1 }); args = []};
+            ty = { view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, [])); generation = 1 }; generation = 0; sub_anchor = None }
+          ]};
+      ty = { view = (Constr (movement/IVNqXLZ7vYtSQiPA0X-p9GAYfd1K-15XG2NAcz2w3us, [])); generation = 1 }; generation = 0; sub_anchor = None }
 
     <><><><><><><><><><>
 
@@ -406,29 +430,38 @@ let%expect_test "decode artifact" =
 
     Type defs:
     (Ast.ClassDef
-       { Ast.name = "Waitlist"; bases = []; keywords = [];
+       { Ast.name = "Move"; bases = []; keywords = [];
          body =
          [(Ast.AnnAssign
              { Ast.target = (Ast.Name { Ast.id = "arg0"; ctx = Ast.Load });
-               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+               annotation = (Ast.Name { Ast.id = "position"; ctx = Ast.Load });
                value = None; simple = 1 });
            (Ast.AnnAssign
               { Ast.target = (Ast.Name { Ast.id = "arg1"; ctx = Ast.Load });
-                annotation = (Ast.Name { Ast.id = "bool"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "direction"; ctx = Ast.Load });
                 value = None; simple = 1 })
            ];
          decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
     (Ast.Assign
-       { Ast.targets = [(Ast.Name { Ast.id = "Status"; ctx = Ast.Load })];
-         value = (Ast.Name { Ast.id = "Waitlist"; ctx = Ast.Load });
+       { Ast.targets = [(Ast.Name { Ast.id = "movement"; ctx = Ast.Load })];
+         value = (Ast.Name { Ast.id = "Move"; ctx = Ast.Load });
          type_comment = None })
 
     Expr:
     (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "Status"; ctx = Ast.Load });
+       { Ast.func = (Ast.Name { Ast.id = "movement"; ctx = Ast.Load });
          args =
-         [(Ast.Constant { Ast.value = (Ast.Int 2); kind = None });
-           (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })];
+         [(Ast.Call
+             { Ast.func = (Ast.Name { Ast.id = "position"; ctx = Ast.Load });
+               args =
+               [(Ast.Constant { Ast.value = (Ast.Int 1); kind = None });
+                 (Ast.Constant { Ast.value = (Ast.Int 2); kind = None });
+                 (Ast.Constant { Ast.value = (Ast.Float 3.); kind = None })];
+               keywords = [] });
+           (Ast.Call
+              { Ast.func = (Ast.Name { Ast.id = "direction"; ctx = Ast.Load });
+                args = []; keywords = [] })
+           ];
          keywords = [] })
 
     <><><><><><><><><><>
@@ -439,7 +472,7 @@ let%expect_test "decode artifact" =
       [
         "ClassDef",
         {
-          "name": "Waitlist",
+          "name": "Move",
           "bases": [],
           "keywords": [],
           "body": [
@@ -447,7 +480,7 @@ let%expect_test "decode artifact" =
               "AnnAssign",
               {
                 "target": [ "Name", { "id": "arg0", "ctx": [ "Load" ] } ],
-                "annotation": [ "Name", { "id": "int", "ctx": [ "Load" ] } ],
+                "annotation": [ "Name", { "id": "position", "ctx": [ "Load" ] } ],
                 "value": null,
                 "simple": 1
               }
@@ -456,7 +489,9 @@ let%expect_test "decode artifact" =
               "AnnAssign",
               {
                 "target": [ "Name", { "id": "arg1", "ctx": [ "Load" ] } ],
-                "annotation": [ "Name", { "id": "bool", "ctx": [ "Load" ] } ],
+                "annotation": [
+                  "Name", { "id": "direction", "ctx": [ "Load" ] }
+                ],
                 "value": null,
                 "simple": 1
               }
@@ -470,8 +505,8 @@ let%expect_test "decode artifact" =
       [
         "Assign",
         {
-          "targets": [ [ "Name", { "id": "Status", "ctx": [ "Load" ] } ] ],
-          "value": [ "Name", { "id": "Waitlist", "ctx": [ "Load" ] } ],
+          "targets": [ [ "Name", { "id": "movement", "ctx": [ "Load" ] } ] ],
+          "value": [ "Name", { "id": "Move", "ctx": [ "Load" ] } ],
           "type_comment": null
         }
       ],
@@ -482,10 +517,28 @@ let%expect_test "decode artifact" =
           "value": [
             "Call",
             {
-              "func": [ "Name", { "id": "Status", "ctx": [ "Load" ] } ],
+              "func": [ "Name", { "id": "movement", "ctx": [ "Load" ] } ],
               "args": [
-                [ "Constant", { "value": [ "Int", 2 ], "kind": null } ],
-                [ "Constant", { "value": [ "Bool", true ], "kind": null } ]
+                [
+                  "Call",
+                  {
+                    "func": [ "Name", { "id": "position", "ctx": [ "Load" ] } ],
+                    "args": [
+                      [ "Constant", { "value": [ "Int", 1 ], "kind": null } ],
+                      [ "Constant", { "value": [ "Int", 2 ], "kind": null } ],
+                      [ "Constant", { "value": [ "Float", 3.0 ], "kind": null } ]
+                    ],
+                    "keywords": []
+                  }
+                ],
+                [
+                  "Call",
+                  {
+                    "func": [ "Name", { "id": "direction", "ctx": [ "Load" ] } ],
+                    "args": [],
+                    "keywords": []
+                  }
+                ]
               ],
               "keywords": []
             }
@@ -497,6 +550,67 @@ let%expect_test "decode artifact" =
     |}]
 
 (* <><><><><><><><><><><><><><><><><><><><>
+Record and variant
+
+Term:
+{ view =
+    Construct {
+      c =
+        (Move/DUoe4PMEF5TwFquD7gV2hBxDT5iPWSwjzYJtuwGEBmI : { view =
+                                                                (Arrow (
+                                                                  (),
+                                                                  { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
+                                                                  { view =
+                                                                    (Arrow (
+                                                                        (),
+                                                                        { view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, [])); generation = 1 },
+                                                                        { view = (Constr (movement/IVNqXLZ7vYtSQiPA0X-p9GAYfd1K-15XG2NAcz2w3us, [])); generation = 1 }));
+                                                                    generation = 1}));
+                                                              generation = 1 });
+      args =
+        [{ view = Record {
+              rows =
+                [(
+                    (x/yLb3Gv5Rc8ui4FSvlYOnMeUILRI-73nVRtF70bx7j4E : { view =
+                                                                        (Arrow (
+                                                                          (),
+                                                                          { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
+                                                                          { view = (Constr (int, [])); generation = 1 }));
+                                                                       generation = 1 }),
+                    { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
+                  (
+                    (y/UhO3k0buKLeOppzS3AGAFJ00UyMdZWrKZ9_YeAuiHUA : { view =
+                                                                         (Arrow (
+                                                                            (),
+                                                                            { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
+                                                                            { view = (Constr (int, [])); generation = 1 }));
+                                                                       generation = 1 }),
+                    { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
+                  (
+                    (z/HYHj-kM60ymWB5FJSndv4i7Fvsm7ZyLcx4ajmbVk1kQ : { view =
+                                                                        (Arrow (
+                                                                           (),
+                                                                           { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
+                                                                           { view = (Constr (real, [])); generation = 1 }));
+                                                                       generation = 1 }),
+                    { view = (Const 3.0); ty = { view = (Constr (real, [])); generation = 1 }; generation = 0; sub_anchor = None })
+              ];
+              rest = None};
+            ty = { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 }; generation = 0; sub_anchor = None };
+          { view = Construct {
+              c = (
+                North/XOBmr8zKtuYctJNwJkVg5lSXESY5SxLPgFPKXi6aEA8 : {
+                  view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, []));
+                  generation = 1
+                });
+              args = []};
+            ty = { view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, [])); generation = 1 }; generation = 0; sub_anchor = None }
+          ]};
+  (* The type is movement *)
+  ty = { view = (Constr (movement/IVNqXLZ7vYtSQiPA0X-p9GAYfd1K-15XG2NAcz2w3us, [])); generation = 1 }; generation = 0; sub_anchor = None }
+
+(* <><><><><><><><><><><><><><><><><><><><> *)
+
 Variant 3
 
 Term:
