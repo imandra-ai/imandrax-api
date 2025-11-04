@@ -133,6 +133,26 @@ let v =
     ),
 ]
 
+
+values: list[tuple[str, str]] = [
+    (
+        'variant_and_record',
+        """\
+type direction = North | South | East | West
+
+type position = { x: int; y: int; z: real }
+
+type movement =
+  | Stay of position
+  | Move of position * direction
+
+let v =
+  fun w ->
+      if w = Move ({x=1; y=2; z=3.0}, North) then true else false\
+""",
+    ),
+]
+
 # iml = r"""
 # let v = function
 #   | {v} -> true

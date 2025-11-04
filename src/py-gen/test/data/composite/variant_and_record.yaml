@@ -16,3 +16,143 @@ data: YGBgXxEhU2pctnu9i1JCI8DRf6n0YBh93Ur7XlcbY0BzPbDe62NIbW92ZW1lbnT/HAGG/bLyYk
 api_version: v17
 kind: mir.model
 storage: []
+_python_code: |
+  class North:
+      pass
+
+
+  @dataclass
+  class South:
+      pass
+
+
+  @dataclass
+  class East:
+      pass
+
+
+  @dataclass
+  class West:
+      pass
+
+
+  Direction = North | South | East | West
+
+
+  @dataclass
+  class Position:
+      x: int
+      y: int
+      z: float
+
+
+  @dataclass
+  class Stay:
+      arg0: Position
+
+
+  @dataclass
+  class Move:
+      arg0: Position
+      arg1: Direction
+
+
+  Movement = Stay | Move
+_python_ast: |
+  Module(
+      body=[
+          ClassDef(
+              name='North',
+              body=[
+                  Pass()]),
+          ClassDef(
+              name='South',
+              body=[
+                  Pass()],
+              decorator_list=[
+                  Name(id='dataclass', ctx=Load())]),
+          ClassDef(
+              name='East',
+              body=[
+                  Pass()],
+              decorator_list=[
+                  Name(id='dataclass', ctx=Load())]),
+          ClassDef(
+              name='West',
+              body=[
+                  Pass()],
+              decorator_list=[
+                  Name(id='dataclass', ctx=Load())]),
+          Assign(
+              targets=[
+                  Name(id='Direction', ctx=Store())],
+              value=BinOp(
+                  left=BinOp(
+                      left=BinOp(
+                          left=Name(id='North', ctx=Load()),
+                          op=BitOr(),
+                          right=Name(id='South', ctx=Load())),
+                      op=BitOr(),
+                      right=Name(id='East', ctx=Load())),
+                  op=BitOr(),
+                  right=Name(id='West', ctx=Load()))),
+          ClassDef(
+              name='Position',
+              body=[
+                  AnnAssign(
+                      target=Name(id='x', ctx=Store()),
+                      annotation=Name(id='int', ctx=Load()),
+                      simple=1),
+                  AnnAssign(
+                      target=Name(id='y', ctx=Store()),
+                      annotation=Name(id='int', ctx=Load()),
+                      simple=1),
+                  AnnAssign(
+                      target=Name(id='z', ctx=Store()),
+                      annotation=Name(id='float', ctx=Load()),
+                      simple=1)],
+              decorator_list=[
+                  Name(id='dataclass', ctx=Load())]),
+          ClassDef(
+              name='Stay',
+              body=[
+                  AnnAssign(
+                      target=Name(id='arg0', ctx=Store()),
+                      annotation=Name(id='Position', ctx=Load()),
+                      simple=1)],
+              decorator_list=[
+                  Name(id='dataclass', ctx=Load())]),
+          ClassDef(
+              name='Move',
+              body=[
+                  AnnAssign(
+                      target=Name(id='arg0', ctx=Store()),
+                      annotation=Name(id='Position', ctx=Load()),
+                      simple=1),
+                  AnnAssign(
+                      target=Name(id='arg1', ctx=Store()),
+                      annotation=Name(id='Direction', ctx=Load()),
+                      simple=1)],
+              decorator_list=[
+                  Name(id='dataclass', ctx=Load())]),
+          Assign(
+              targets=[
+                  Name(id='Movement', ctx=Store())],
+              value=BinOp(
+                  left=Name(id='Stay', ctx=Load()),
+                  op=BitOr(),
+                  right=Name(id='Move', ctx=Load()))),
+          Assign(
+              targets=[
+                  Name(id='w', ctx=Store())],
+              value=Call(
+                  func=Name(id='Move', ctx=Load()),
+                  args=[
+                      Call(
+                          func=Name(id='Position', ctx=Load()),
+                          args=[
+                              Constant(value=1),
+                              Constant(value=2),
+                              Constant(value=3.0)]),
+                      Call(
+                          func=Name(id='North', ctx=Load()))]))])
