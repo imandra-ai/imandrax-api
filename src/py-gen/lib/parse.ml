@@ -64,9 +64,10 @@ let rec parse_term (term : Term.term) :
       Error msg)
   (* Tuple *)
   | Term.Tuple { l = (terms : Term.term list) }, (_ty : Type.t) ->
-    let expr_results = List.map (fun term -> parse_term term) terms in
-    let exprs = List.map (fun res -> res |> unwrap |> snd) expr_results in
-    Ok ([], Ast.tuple_of_exprs exprs)
+    let parsed_elems = List.map (fun term -> parse_term term |> unwrap) terms in
+    let type_defs_of_elems, term_of_elems = List.split parsed_elems in
+    let type_def_of_elems = List.flatten type_defs_of_elems in
+    Ok (type_def_of_elems, Ast.tuple_of_exprs term_of_elems)
   (* Record *)
   | ( Term.Record
         {
@@ -100,18 +101,25 @@ let rec parse_term (term : Term.term) :
           | _ -> failwith "Never: row_view should be a constr")
         | _ -> failwith "Never: applied_symbol.ty.view should be a arrow"
       in
-      let row_val_expr = parse_term term |> unwrap |> snd in
-      (* ENH: maybe using kwargs is clearer? *)
-      (def_row_var_name, def_row_type_name), row_val_expr
+      let type_defs_of_row, row_val_expr = parse_term term |> unwrap in
+      (* TODO(ENH): maybe using kwargs is clearer? *)
+      type_defs_of_row, (def_row_var_name, def_row_type_name), row_val_expr
     in
 
-    let def_rows, row_val_exprs =
+    let type_defs_of_rows, def_rows, row_val_exprs =
+      let unzip3 triples =
+        List.fold_right
+          (fun (x, y, z) (xs, ys, zs) -> x :: xs, y :: ys, z :: zs)
+          triples ([], [], [])
+      in
       List.map (fun (applied_sym, term) -> parse_row applied_sym term) rows
-      |> CCList.split
+      |> unzip3
     in
+
+    let type_def_of_rows = List.flatten type_defs_of_rows in
     let open Ast in
     Ok
-      ( [ def_dataclass ty_name def_rows ],
+      ( type_def_of_rows @ [ def_dataclass ty_name def_rows ],
         init_dataclass ty_name ~args:row_val_exprs ~kwargs:[] )
   (* Construct *)
   | ( Term.Construct
