@@ -9,17 +9,22 @@ from imandrax_api import Client, url_prod
 from imandrax_api.lib import read_artifact_data
 from IPython.core.getipython import get_ipython
 from rich import print
-from typing_extensions import Format
 
 if ip := get_ipython():
     ip.run_line_magic('reload_ext', 'autoreload')
     ip.run_line_magic('autoreload', '2')
 import os
-from typing import Any
+from typing import Any, Final
 
 import dotenv
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
+
+curr_dir = Path.cwd() if ip else Path(__file__).parent
+dotenv.load_dotenv()
+
+
+ONE_YAML: Final = False
 
 
 class LiteralString(str):
@@ -43,13 +48,11 @@ def proto_to_dict(proto_obj: Message) -> dict[Any, Any]:
     )
 
 
-dotenv.load_dotenv('../.env')
-
-
 # %%
 c = Client(auth_token=os.environ['IMANDRAX_API_KEY'], url=url_prod)
 
-art_dir = Path.cwd().parent / 'examples' / 'art'
+# out_dir = curr_dir.parent / 'examples' / 'art'
+out_dir = curr_dir
 
 
 # %%
@@ -138,16 +141,18 @@ let v =
 
 
 # %%
-def gen_art(name: str, iml: str):
+def gen_art(name: str, iml: str) -> dict[str, Any]:
     _eval_res = c.eval_src(iml)
     instance_res = c.instance_src(src='v')
     instance_res = proto_to_dict(instance_res)
     art = instance_res['sat']['model']['artifact']
     art['iml'] = LiteralString(iml)
     art['name'] = name
+    art['instance_src'] = 'v'
     order = [
         'name',
         'iml',
+        'instance_src',
         'data',
         'api_version',
         'kind',
@@ -156,21 +161,18 @@ def gen_art(name: str, iml: str):
     return {k: art[k] for k in order}
 
 
-art_data = []
+art_data: list[dict[str, Any]] = []
 for name, iml in values:
     art_data_item = gen_art(name, iml)
     art_data.append(art_data_item)
 
-# %%
-with (art_dir / 'art.yaml').open('w') as f:
-    f.write(yaml.dump(art_data, sort_keys=False, default_flow_style=False))
-
-
-# %%
-# with (art_dir / f'{name}.yaml').open('w') as f:
-#     f.write(yaml.dump(art_data, sort_keys=False, default_flow_style=False))
-# print(yaml.dump(art_data, sort_keys=False, default_flow_style=False))
-
-# %%
-# print(read_artifact_data(data=base64.b64decode(art['data']), kind=art['kind']))
-# decode_artifact(art['data'], art['kind'])
+if ONE_YAML:
+    with (out_dir / 'art.yaml').open('w') as f:
+        f.write(yaml.dump(art_data, sort_keys=False, default_flow_style=False))
+else:
+    out_art_dir = out_dir / 'art'
+    out_art_dir.mkdir(exist_ok=True)
+    for art in art_data:
+        file_name = art['name'].replace(' ', '_')
+        with (out_art_dir / f'{file_name}.yaml').open('w') as f:
+            f.write(yaml.dump(art, sort_keys=False, default_flow_style=False))
