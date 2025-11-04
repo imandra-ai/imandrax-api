@@ -247,13 +247,20 @@ let rec parse_term (term : Term.term) :
             [ variant_constr_name, variant_constr_args ]
         in
 
-        let term =
-          let term_constr_args =
-            List.map (fun arg -> parse_term arg |> unwrap |> snd) construct_args
-          in
-          Ast.init_dataclass variant_name ~args:term_constr_args ~kwargs:[]
+        let parsed_constr_args =
+          List.map (fun arg -> parse_term arg |> unwrap) construct_args
         in
-        Ok (ty_defs, term)
+
+        let constr_arg_type_stmt_lists, constr_arg_terms =
+          List.split parsed_constr_args
+        in
+
+        let constr_arg_type_stmts = List.flatten constr_arg_type_stmt_lists in
+
+        let term =
+          Ast.init_dataclass variant_name ~args:constr_arg_terms ~kwargs:[]
+        in
+        Ok (constr_arg_type_stmts @ ty_defs, term)
     in
 
     res
@@ -430,6 +437,30 @@ let%expect_test "decode artifact" =
 
     Type defs:
     (Ast.ClassDef
+       { Ast.name = "position"; bases = []; keywords = [];
+         body =
+         [(Ast.AnnAssign
+             { Ast.target = (Ast.Name { Ast.id = "x"; ctx = Ast.Load });
+               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+               value = None; simple = 1 });
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "y"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+                value = None; simple = 1 });
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "z"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "real"; ctx = Ast.Load });
+                value = None; simple = 1 })
+           ];
+         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
+    (Ast.ClassDef
+       { Ast.name = "North"; bases = []; keywords = []; body = [Ast.Pass];
+         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
+    (Ast.Assign
+       { Ast.targets = [(Ast.Name { Ast.id = "direction"; ctx = Ast.Load })];
+         value = (Ast.Name { Ast.id = "North"; ctx = Ast.Load });
+         type_comment = None })
+    (Ast.ClassDef
        { Ast.name = "Move"; bases = []; keywords = [];
          body =
          [(Ast.AnnAssign
@@ -469,6 +500,66 @@ let%expect_test "decode artifact" =
     Json:
 
     [
+      [
+        "ClassDef",
+        {
+          "name": "position",
+          "bases": [],
+          "keywords": [],
+          "body": [
+            [
+              "AnnAssign",
+              {
+                "target": [ "Name", { "id": "x", "ctx": [ "Load" ] } ],
+                "annotation": [ "Name", { "id": "int", "ctx": [ "Load" ] } ],
+                "value": null,
+                "simple": 1
+              }
+            ],
+            [
+              "AnnAssign",
+              {
+                "target": [ "Name", { "id": "y", "ctx": [ "Load" ] } ],
+                "annotation": [ "Name", { "id": "int", "ctx": [ "Load" ] } ],
+                "value": null,
+                "simple": 1
+              }
+            ],
+            [
+              "AnnAssign",
+              {
+                "target": [ "Name", { "id": "z", "ctx": [ "Load" ] } ],
+                "annotation": [ "Name", { "id": "real", "ctx": [ "Load" ] } ],
+                "value": null,
+                "simple": 1
+              }
+            ]
+          ],
+          "decorator_list": [
+            [ "Name", { "id": "dataclass", "ctx": [ "Load" ] } ]
+          ]
+        }
+      ],
+      [
+        "ClassDef",
+        {
+          "name": "North",
+          "bases": [],
+          "keywords": [],
+          "body": [ [ "Pass" ] ],
+          "decorator_list": [
+            [ "Name", { "id": "dataclass", "ctx": [ "Load" ] } ]
+          ]
+        }
+      ],
+      [
+        "Assign",
+        {
+          "targets": [ [ "Name", { "id": "direction", "ctx": [ "Load" ] } ] ],
+          "value": [ "Name", { "id": "North", "ctx": [ "Load" ] } ],
+          "type_comment": null
+        }
+      ],
       [
         "ClassDef",
         {
