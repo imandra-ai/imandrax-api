@@ -129,9 +129,9 @@ let rec parse_term (term : Term.term) :
         },
       (ty : Type.t) ) ->
     (*
-      Check by ty to see it's a predefined type: LChar.t, list
+      Check by ty to see it's a type defined in prelude: LChar.t, list
       *)
-    let is_predefined_type : string =
+    let is_prelude_type : string =
       match ty.view with
       | Ty_view.Constr (constr_name_uid, constr_args) ->
         let name = constr_name_uid.name in
@@ -146,18 +146,26 @@ let rec parse_term (term : Term.term) :
               (List.length args) args_str
           in
           failwith msg
+        (* TODO: option *)
         | _ -> "_")
       | _ -> "_"
     in
 
-    let term_of_predefined_type : (Ast.expr, string) result =
-      match is_predefined_type with
+    let parsed_prelude_construct_args :
+        (Ast.stmt list * Ast.expr, string) result =
+      match is_prelude_type with
       | "LChar.t" ->
-        let bool_terms =
-          List.map (fun arg -> parse_term arg |> unwrap |> snd) construct_args
+        let bool_type_defs_s, bool_terms =
+          List.map (fun arg -> parse_term arg |> unwrap) construct_args
+          |> List.split
         in
+        let bool_type_defs = List.flatten bool_type_defs_s in
+        (match bool_type_defs with
+        | [] -> ()
+        (* Why would bool need type def? *)
+        | _ -> failwith "Never: bool_type_defs should be empty");
         let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
-        Ok char_expr
+        Ok ([], char_expr)
       | "list" ->
         (* List
         For empty list, the construct args is empty.
@@ -168,16 +176,18 @@ let rec parse_term (term : Term.term) :
         let is_nil = construct_args = [] in
         if is_nil then
           (* Empty list [] *)
-          Ok (Ast.empty_list_expr ())
+          Ok ([], Ast.empty_list_expr ())
         else (
-          let list_elements =
-            List.map (fun arg -> parse_term arg |> unwrap |> snd) construct_args
+          let type_defs_of_elems, term_of_elems =
+            List.map (fun arg -> parse_term arg |> unwrap) construct_args
+            |> List.split
           in
-          match list_elements with
+          let type_def_of_elems = List.flatten type_defs_of_elems in
+          match term_of_elems with
           | [] -> Error "Never: empty constuct arg for non-Nil"
           | [ _ ] -> Error "Never: single element list for non-Nil"
           | [ head; tail ] ->
-            Ok (Ast.cons_list_expr head tail)
+            Ok (type_def_of_elems, Ast.cons_list_expr head tail)
             (* let n_elem = CCList.length elems in
             let except_last = CCList.take (n_elem - 1) elems in
             Some (Ast.list_of_exprs except_last) *)
@@ -212,8 +222,8 @@ let rec parse_term (term : Term.term) :
     in
 
     let res : (Ast.stmt list * Ast.expr, string) result =
-      match term_of_predefined_type with
-      | Ok expr -> Ok ([], expr)
+      match parsed_prelude_construct_args with
+      | Ok (type_defs, expr) -> Ok (type_defs, expr)
       | Error _ ->
         let variant_constr_name = construct.sym.id.name in
         (* the last arg is the variant name *)
