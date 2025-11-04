@@ -7,8 +7,9 @@
 
 (** {2 Types} *)
 
-type session_create_req = {
-  api_version : string;
+type session_create_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable api_version : string;
 }
 
 type lift_bool =
@@ -17,35 +18,38 @@ type lift_bool =
   | Equalities 
   | All 
 
-type decompose_req = {
-  session : Session.session option;
-  name : string;
-  assuming : string option;
-  basis : string list;
-  rule_specs : string list;
-  prune : bool;
-  ctx_simp : bool option;
-  lift_bool : lift_bool option;
-  str : bool option;
-  timeout : int32 option;
+type decompose_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 7 fields *)
+  mutable session : Session.session option;
+  mutable name : string;
+  mutable assuming : string;
+  mutable basis : string list;
+  mutable rule_specs : string list;
+  mutable prune : bool;
+  mutable ctx_simp : bool;
+  mutable lift_bool : lift_bool;
+  mutable str : bool;
+  mutable timeout : int32;
 }
 
-type decompose_req_full_by_name = {
-  name : string;
-  assuming : string option;
-  basis : string list;
-  rule_specs : string list;
-  prune : bool;
-  ctx_simp : bool option;
-  lift_bool : lift_bool option;
+type decompose_req_full_by_name = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 5 fields *)
+  mutable name : string;
+  mutable assuming : string;
+  mutable basis : string list;
+  mutable rule_specs : string list;
+  mutable prune : bool;
+  mutable ctx_simp : bool;
+  mutable lift_bool : lift_bool;
 }
 
-type decompose_req_full_local_var_get = {
-  name : string;
+type decompose_req_full_local_var_get = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable name : string;
 }
 
-type decompose_req_full_prune = {
-  d : decompose_req_full_decomp option;
+type decompose_req_full_prune = private {
+  mutable d : decompose_req_full_decomp option;
 }
 
 and decompose_req_full_decomp =
@@ -58,79 +62,86 @@ and decompose_req_full_decomp =
   | Get of decompose_req_full_local_var_get
   | Set of decompose_req_full_local_var_let
 
-and decompose_req_full_merge = {
-  d1 : decompose_req_full_decomp option;
-  d2 : decompose_req_full_decomp option;
+and decompose_req_full_merge = private {
+  mutable d1 : decompose_req_full_decomp option;
+  mutable d2 : decompose_req_full_decomp option;
 }
 
-and decompose_req_full_compound_merge = {
-  d1 : decompose_req_full_decomp option;
-  d2 : decompose_req_full_decomp option;
+and decompose_req_full_compound_merge = private {
+  mutable d1 : decompose_req_full_decomp option;
+  mutable d2 : decompose_req_full_decomp option;
 }
 
-and decompose_req_full_combine = {
-  d : decompose_req_full_decomp option;
+and decompose_req_full_combine = private {
+  mutable d : decompose_req_full_decomp option;
 }
 
-and decompose_req_full_local_var_let = {
-  bindings : decompose_req_full_local_var_binding list;
-  and_then : decompose_req_full_decomp option;
+and decompose_req_full_local_var_let = private {
+  mutable bindings : decompose_req_full_local_var_binding list;
+  mutable and_then : decompose_req_full_decomp option;
 }
 
-and decompose_req_full_local_var_binding = {
-  name : string;
-  d : decompose_req_full_decomp option;
+and decompose_req_full_local_var_binding = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable name : string;
+  mutable d : decompose_req_full_decomp option;
 }
 
-type decompose_req_full = {
-  session : Session.session option;
-  decomp : decompose_req_full_decomp option;
-  str : bool option;
-  timeout : int32 option;
+type decompose_req_full = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable decomp : decompose_req_full_decomp option;
+  mutable str : bool;
+  mutable timeout : int32;
 }
 
 type decompose_res_res =
   | Artifact of Artmsg.art
   | Err
 
-and decompose_res = {
-  res : decompose_res_res;
-  errors : Error.error list;
-  task : Task.task option;
+and decompose_res = private {
+  mutable res : decompose_res_res option;
+  mutable errors : Error.error list;
+  mutable task : Task.task option;
 }
 
-type eval_src_req = {
-  session : Session.session option;
-  src : string;
-  async_only : bool option;
+type eval_src_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable src : string;
+  mutable async_only : bool;
 }
 
-type eval_output = {
-  success : bool;
-  value_as_ocaml : string option;
-  errors : Error.error list;
+type eval_output = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable success : bool;
+  mutable value_as_ocaml : string;
+  mutable errors : Error.error list;
 }
 
-type proved = {
-  proof_pp : string option;
+type proved = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable proof_pp : string;
 }
 
 type model_type =
   | Counter_example 
   | Instance 
 
-type model = {
-  m_type : model_type;
-  src : string;
-  artifact : Artmsg.art option;
+type model = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable m_type : model_type;
+  mutable src : string;
+  mutable artifact : Artmsg.art option;
 }
 
-type counter_sat = {
-  model : model option;
+type counter_sat = private {
+  mutable model : model option;
 }
 
-type verified_upto = {
-  msg : string option;
+type verified_upto = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable msg : string;
 }
 
 type po_res_res =
@@ -140,57 +151,63 @@ type po_res_res =
   | Instance of counter_sat
   | Verified_upto of verified_upto
 
-and po_res = {
-  res : po_res_res;
-  errors : Error.error list;
-  task : Task.task option;
-  origin : Task.origin option;
+and po_res = private {
+  mutable res : po_res_res option;
+  mutable errors : Error.error list;
+  mutable task : Task.task option;
+  mutable origin : Task.origin option;
 }
 
-type eval_res = {
-  success : bool;
-  messages : string list;
-  errors : Error.error list;
-  tasks : Task.task list;
-  po_results : po_res list;
-  eval_results : eval_output list;
-  decomp_results : decompose_res list;
+type eval_res = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable success : bool;
+  mutable messages : string list;
+  mutable errors : Error.error list;
+  mutable tasks : Task.task list;
+  mutable po_results : po_res list;
+  mutable eval_results : eval_output list;
+  mutable decomp_results : decompose_res list;
 }
 
-type verify_src_req = {
-  session : Session.session option;
-  src : string;
-  hints : string option;
+type verify_src_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable src : string;
+  mutable hints : string;
 }
 
-type verify_name_req = {
-  session : Session.session option;
-  name : string;
-  hints : string option;
+type verify_name_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable name : string;
+  mutable hints : string;
 }
 
-type instance_src_req = {
-  session : Session.session option;
-  src : string;
-  hints : string option;
+type instance_src_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable src : string;
+  mutable hints : string;
 }
 
-type instance_name_req = {
-  session : Session.session option;
-  name : string;
-  hints : string option;
+type instance_name_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable name : string;
+  mutable hints : string;
 }
 
-type unsat = {
-  proof_pp : string option;
+type unsat = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable proof_pp : string;
 }
 
-type refuted = {
-  model : model option;
+type refuted = private {
+  mutable model : model option;
 }
 
-type sat = {
-  model : model option;
+type sat = private {
+  mutable model : model option;
 }
 
 type verify_res_res =
@@ -200,10 +217,10 @@ type verify_res_res =
   | Refuted of refuted
   | Verified_upto of verified_upto
 
-and verify_res = {
-  res : verify_res_res;
-  errors : Error.error list;
-  task : Task.task option;
+and verify_res = private {
+  mutable res : verify_res_res option;
+  mutable errors : Error.error list;
+  mutable task : Task.task option;
 }
 
 type instance_res_res =
@@ -212,205 +229,589 @@ type instance_res_res =
   | Unsat of unsat
   | Sat of sat
 
-and instance_res = {
-  res : instance_res_res;
-  errors : Error.error list;
-  task : Task.task option;
+and instance_res = private {
+  mutable res : instance_res_res option;
+  mutable errors : Error.error list;
+  mutable task : Task.task option;
 }
 
-type typecheck_req = {
-  session : Session.session option;
-  src : string;
+type typecheck_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable session : Session.session option;
+  mutable src : string;
 }
 
-type typecheck_res = {
-  success : bool;
-  types : string;
-  errors : Error.error list;
+type typecheck_res = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable success : bool;
+  mutable types : string;
+  mutable errors : Error.error list;
 }
 
-type oneshot_req = {
-  input : string;
-  timeout : float option;
+type oneshot_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable input : string;
+  mutable timeout : float;
 }
 
-type oneshot_res_stats = {
-  time : float;
+type oneshot_res_stats = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable time : float;
 }
 
-type oneshot_res = {
-  results : string list;
-  errors : string list;
-  stats : oneshot_res_stats option;
-  detailed_results : string list;
+type oneshot_res = private {
+  mutable results : string list;
+  mutable errors : string list;
+  mutable stats : oneshot_res_stats option;
+  mutable detailed_results : string list;
 }
 
 
 (** {2 Basic values} *)
 
-val default_session_create_req : 
+val default_session_create_req : unit -> session_create_req 
+(** [default_session_create_req ()] is a new empty value for type [session_create_req] *)
+
+val default_lift_bool : unit -> lift_bool
+(** [default_lift_bool ()] is a new empty value for type [lift_bool] *)
+
+val default_decompose_req : unit -> decompose_req 
+(** [default_decompose_req ()] is a new empty value for type [decompose_req] *)
+
+val default_decompose_req_full_by_name : unit -> decompose_req_full_by_name 
+(** [default_decompose_req_full_by_name ()] is a new empty value for type [decompose_req_full_by_name] *)
+
+val default_decompose_req_full_local_var_get : unit -> decompose_req_full_local_var_get 
+(** [default_decompose_req_full_local_var_get ()] is a new empty value for type [decompose_req_full_local_var_get] *)
+
+val default_decompose_req_full_prune : unit -> decompose_req_full_prune 
+(** [default_decompose_req_full_prune ()] is a new empty value for type [decompose_req_full_prune] *)
+
+val default_decompose_req_full_decomp : unit -> decompose_req_full_decomp
+(** [default_decompose_req_full_decomp ()] is a new empty value for type [decompose_req_full_decomp] *)
+
+val default_decompose_req_full_merge : unit -> decompose_req_full_merge 
+(** [default_decompose_req_full_merge ()] is a new empty value for type [decompose_req_full_merge] *)
+
+val default_decompose_req_full_compound_merge : unit -> decompose_req_full_compound_merge 
+(** [default_decompose_req_full_compound_merge ()] is a new empty value for type [decompose_req_full_compound_merge] *)
+
+val default_decompose_req_full_combine : unit -> decompose_req_full_combine 
+(** [default_decompose_req_full_combine ()] is a new empty value for type [decompose_req_full_combine] *)
+
+val default_decompose_req_full_local_var_let : unit -> decompose_req_full_local_var_let 
+(** [default_decompose_req_full_local_var_let ()] is a new empty value for type [decompose_req_full_local_var_let] *)
+
+val default_decompose_req_full_local_var_binding : unit -> decompose_req_full_local_var_binding 
+(** [default_decompose_req_full_local_var_binding ()] is a new empty value for type [decompose_req_full_local_var_binding] *)
+
+val default_decompose_req_full : unit -> decompose_req_full 
+(** [default_decompose_req_full ()] is a new empty value for type [decompose_req_full] *)
+
+val default_decompose_res_res : unit -> decompose_res_res
+(** [default_decompose_res_res ()] is a new empty value for type [decompose_res_res] *)
+
+val default_decompose_res : unit -> decompose_res 
+(** [default_decompose_res ()] is a new empty value for type [decompose_res] *)
+
+val default_eval_src_req : unit -> eval_src_req 
+(** [default_eval_src_req ()] is a new empty value for type [eval_src_req] *)
+
+val default_eval_output : unit -> eval_output 
+(** [default_eval_output ()] is a new empty value for type [eval_output] *)
+
+val default_proved : unit -> proved 
+(** [default_proved ()] is a new empty value for type [proved] *)
+
+val default_model_type : unit -> model_type
+(** [default_model_type ()] is a new empty value for type [model_type] *)
+
+val default_model : unit -> model 
+(** [default_model ()] is a new empty value for type [model] *)
+
+val default_counter_sat : unit -> counter_sat 
+(** [default_counter_sat ()] is a new empty value for type [counter_sat] *)
+
+val default_verified_upto : unit -> verified_upto 
+(** [default_verified_upto ()] is a new empty value for type [verified_upto] *)
+
+val default_po_res_res : unit -> po_res_res
+(** [default_po_res_res ()] is a new empty value for type [po_res_res] *)
+
+val default_po_res : unit -> po_res 
+(** [default_po_res ()] is a new empty value for type [po_res] *)
+
+val default_eval_res : unit -> eval_res 
+(** [default_eval_res ()] is a new empty value for type [eval_res] *)
+
+val default_verify_src_req : unit -> verify_src_req 
+(** [default_verify_src_req ()] is a new empty value for type [verify_src_req] *)
+
+val default_verify_name_req : unit -> verify_name_req 
+(** [default_verify_name_req ()] is a new empty value for type [verify_name_req] *)
+
+val default_instance_src_req : unit -> instance_src_req 
+(** [default_instance_src_req ()] is a new empty value for type [instance_src_req] *)
+
+val default_instance_name_req : unit -> instance_name_req 
+(** [default_instance_name_req ()] is a new empty value for type [instance_name_req] *)
+
+val default_unsat : unit -> unsat 
+(** [default_unsat ()] is a new empty value for type [unsat] *)
+
+val default_refuted : unit -> refuted 
+(** [default_refuted ()] is a new empty value for type [refuted] *)
+
+val default_sat : unit -> sat 
+(** [default_sat ()] is a new empty value for type [sat] *)
+
+val default_verify_res_res : unit -> verify_res_res
+(** [default_verify_res_res ()] is a new empty value for type [verify_res_res] *)
+
+val default_verify_res : unit -> verify_res 
+(** [default_verify_res ()] is a new empty value for type [verify_res] *)
+
+val default_instance_res_res : unit -> instance_res_res
+(** [default_instance_res_res ()] is a new empty value for type [instance_res_res] *)
+
+val default_instance_res : unit -> instance_res 
+(** [default_instance_res ()] is a new empty value for type [instance_res] *)
+
+val default_typecheck_req : unit -> typecheck_req 
+(** [default_typecheck_req ()] is a new empty value for type [typecheck_req] *)
+
+val default_typecheck_res : unit -> typecheck_res 
+(** [default_typecheck_res ()] is a new empty value for type [typecheck_res] *)
+
+val default_oneshot_req : unit -> oneshot_req 
+(** [default_oneshot_req ()] is a new empty value for type [oneshot_req] *)
+
+val default_oneshot_res_stats : unit -> oneshot_res_stats 
+(** [default_oneshot_res_stats ()] is a new empty value for type [oneshot_res_stats] *)
+
+val default_oneshot_res : unit -> oneshot_res 
+(** [default_oneshot_res ()] is a new empty value for type [oneshot_res] *)
+
+
+(** {2 Make functions} *)
+
+val make_session_create_req : 
   ?api_version:string ->
   unit ->
   session_create_req
-(** [default_session_create_req ()] is the default value for type [session_create_req] *)
+(** [make_session_create_req … ()] is a builder for type [session_create_req] *)
 
-val default_lift_bool : unit -> lift_bool
-(** [default_lift_bool ()] is the default value for type [lift_bool] *)
+val copy_session_create_req : session_create_req -> session_create_req
 
-val default_decompose_req : 
-  ?session:Session.session option ->
+val session_create_req_has_api_version : session_create_req -> bool
+  (** presence of field "api_version" in [session_create_req] *)
+
+val session_create_req_set_api_version : session_create_req -> string -> unit
+  (** set field api_version in session_create_req *)
+
+val make_decompose_req : 
+  ?session:Session.session ->
   ?name:string ->
-  ?assuming:string option ->
+  ?assuming:string ->
   ?basis:string list ->
   ?rule_specs:string list ->
   ?prune:bool ->
-  ?ctx_simp:bool option ->
-  ?lift_bool:lift_bool option ->
-  ?str:bool option ->
-  ?timeout:int32 option ->
+  ?ctx_simp:bool ->
+  ?lift_bool:lift_bool ->
+  ?str:bool ->
+  ?timeout:int32 ->
   unit ->
   decompose_req
-(** [default_decompose_req ()] is the default value for type [decompose_req] *)
+(** [make_decompose_req … ()] is a builder for type [decompose_req] *)
 
-val default_decompose_req_full_by_name : 
+val copy_decompose_req : decompose_req -> decompose_req
+
+val decompose_req_set_session : decompose_req -> Session.session -> unit
+  (** set field session in decompose_req *)
+
+val decompose_req_has_name : decompose_req -> bool
+  (** presence of field "name" in [decompose_req] *)
+
+val decompose_req_set_name : decompose_req -> string -> unit
+  (** set field name in decompose_req *)
+
+val decompose_req_has_assuming : decompose_req -> bool
+  (** presence of field "assuming" in [decompose_req] *)
+
+val decompose_req_set_assuming : decompose_req -> string -> unit
+  (** set field assuming in decompose_req *)
+
+val decompose_req_set_basis : decompose_req -> string list -> unit
+  (** set field basis in decompose_req *)
+
+val decompose_req_set_rule_specs : decompose_req -> string list -> unit
+  (** set field rule_specs in decompose_req *)
+
+val decompose_req_has_prune : decompose_req -> bool
+  (** presence of field "prune" in [decompose_req] *)
+
+val decompose_req_set_prune : decompose_req -> bool -> unit
+  (** set field prune in decompose_req *)
+
+val decompose_req_has_ctx_simp : decompose_req -> bool
+  (** presence of field "ctx_simp" in [decompose_req] *)
+
+val decompose_req_set_ctx_simp : decompose_req -> bool -> unit
+  (** set field ctx_simp in decompose_req *)
+
+val decompose_req_has_lift_bool : decompose_req -> bool
+  (** presence of field "lift_bool" in [decompose_req] *)
+
+val decompose_req_set_lift_bool : decompose_req -> lift_bool -> unit
+  (** set field lift_bool in decompose_req *)
+
+val decompose_req_has_str : decompose_req -> bool
+  (** presence of field "str" in [decompose_req] *)
+
+val decompose_req_set_str : decompose_req -> bool -> unit
+  (** set field str in decompose_req *)
+
+val decompose_req_has_timeout : decompose_req -> bool
+  (** presence of field "timeout" in [decompose_req] *)
+
+val decompose_req_set_timeout : decompose_req -> int32 -> unit
+  (** set field timeout in decompose_req *)
+
+val make_decompose_req_full_by_name : 
   ?name:string ->
-  ?assuming:string option ->
+  ?assuming:string ->
   ?basis:string list ->
   ?rule_specs:string list ->
   ?prune:bool ->
-  ?ctx_simp:bool option ->
-  ?lift_bool:lift_bool option ->
+  ?ctx_simp:bool ->
+  ?lift_bool:lift_bool ->
   unit ->
   decompose_req_full_by_name
-(** [default_decompose_req_full_by_name ()] is the default value for type [decompose_req_full_by_name] *)
+(** [make_decompose_req_full_by_name … ()] is a builder for type [decompose_req_full_by_name] *)
 
-val default_decompose_req_full_local_var_get : 
+val copy_decompose_req_full_by_name : decompose_req_full_by_name -> decompose_req_full_by_name
+
+val decompose_req_full_by_name_has_name : decompose_req_full_by_name -> bool
+  (** presence of field "name" in [decompose_req_full_by_name] *)
+
+val decompose_req_full_by_name_set_name : decompose_req_full_by_name -> string -> unit
+  (** set field name in decompose_req_full_by_name *)
+
+val decompose_req_full_by_name_has_assuming : decompose_req_full_by_name -> bool
+  (** presence of field "assuming" in [decompose_req_full_by_name] *)
+
+val decompose_req_full_by_name_set_assuming : decompose_req_full_by_name -> string -> unit
+  (** set field assuming in decompose_req_full_by_name *)
+
+val decompose_req_full_by_name_set_basis : decompose_req_full_by_name -> string list -> unit
+  (** set field basis in decompose_req_full_by_name *)
+
+val decompose_req_full_by_name_set_rule_specs : decompose_req_full_by_name -> string list -> unit
+  (** set field rule_specs in decompose_req_full_by_name *)
+
+val decompose_req_full_by_name_has_prune : decompose_req_full_by_name -> bool
+  (** presence of field "prune" in [decompose_req_full_by_name] *)
+
+val decompose_req_full_by_name_set_prune : decompose_req_full_by_name -> bool -> unit
+  (** set field prune in decompose_req_full_by_name *)
+
+val decompose_req_full_by_name_has_ctx_simp : decompose_req_full_by_name -> bool
+  (** presence of field "ctx_simp" in [decompose_req_full_by_name] *)
+
+val decompose_req_full_by_name_set_ctx_simp : decompose_req_full_by_name -> bool -> unit
+  (** set field ctx_simp in decompose_req_full_by_name *)
+
+val decompose_req_full_by_name_has_lift_bool : decompose_req_full_by_name -> bool
+  (** presence of field "lift_bool" in [decompose_req_full_by_name] *)
+
+val decompose_req_full_by_name_set_lift_bool : decompose_req_full_by_name -> lift_bool -> unit
+  (** set field lift_bool in decompose_req_full_by_name *)
+
+val make_decompose_req_full_local_var_get : 
   ?name:string ->
   unit ->
   decompose_req_full_local_var_get
-(** [default_decompose_req_full_local_var_get ()] is the default value for type [decompose_req_full_local_var_get] *)
+(** [make_decompose_req_full_local_var_get … ()] is a builder for type [decompose_req_full_local_var_get] *)
 
-val default_decompose_req_full_prune : 
-  ?d:decompose_req_full_decomp option ->
+val copy_decompose_req_full_local_var_get : decompose_req_full_local_var_get -> decompose_req_full_local_var_get
+
+val decompose_req_full_local_var_get_has_name : decompose_req_full_local_var_get -> bool
+  (** presence of field "name" in [decompose_req_full_local_var_get] *)
+
+val decompose_req_full_local_var_get_set_name : decompose_req_full_local_var_get -> string -> unit
+  (** set field name in decompose_req_full_local_var_get *)
+
+val make_decompose_req_full_prune : 
+  ?d:decompose_req_full_decomp ->
   unit ->
   decompose_req_full_prune
-(** [default_decompose_req_full_prune ()] is the default value for type [decompose_req_full_prune] *)
+(** [make_decompose_req_full_prune … ()] is a builder for type [decompose_req_full_prune] *)
 
-val default_decompose_req_full_decomp : unit -> decompose_req_full_decomp
-(** [default_decompose_req_full_decomp ()] is the default value for type [decompose_req_full_decomp] *)
+val copy_decompose_req_full_prune : decompose_req_full_prune -> decompose_req_full_prune
 
-val default_decompose_req_full_merge : 
-  ?d1:decompose_req_full_decomp option ->
-  ?d2:decompose_req_full_decomp option ->
+val decompose_req_full_prune_set_d : decompose_req_full_prune -> decompose_req_full_decomp -> unit
+  (** set field d in decompose_req_full_prune *)
+
+val make_decompose_req_full_merge : 
+  ?d1:decompose_req_full_decomp ->
+  ?d2:decompose_req_full_decomp ->
   unit ->
   decompose_req_full_merge
-(** [default_decompose_req_full_merge ()] is the default value for type [decompose_req_full_merge] *)
+(** [make_decompose_req_full_merge … ()] is a builder for type [decompose_req_full_merge] *)
 
-val default_decompose_req_full_compound_merge : 
-  ?d1:decompose_req_full_decomp option ->
-  ?d2:decompose_req_full_decomp option ->
+val copy_decompose_req_full_merge : decompose_req_full_merge -> decompose_req_full_merge
+
+val decompose_req_full_merge_set_d1 : decompose_req_full_merge -> decompose_req_full_decomp -> unit
+  (** set field d1 in decompose_req_full_merge *)
+
+val decompose_req_full_merge_set_d2 : decompose_req_full_merge -> decompose_req_full_decomp -> unit
+  (** set field d2 in decompose_req_full_merge *)
+
+val make_decompose_req_full_compound_merge : 
+  ?d1:decompose_req_full_decomp ->
+  ?d2:decompose_req_full_decomp ->
   unit ->
   decompose_req_full_compound_merge
-(** [default_decompose_req_full_compound_merge ()] is the default value for type [decompose_req_full_compound_merge] *)
+(** [make_decompose_req_full_compound_merge … ()] is a builder for type [decompose_req_full_compound_merge] *)
 
-val default_decompose_req_full_combine : 
-  ?d:decompose_req_full_decomp option ->
+val copy_decompose_req_full_compound_merge : decompose_req_full_compound_merge -> decompose_req_full_compound_merge
+
+val decompose_req_full_compound_merge_set_d1 : decompose_req_full_compound_merge -> decompose_req_full_decomp -> unit
+  (** set field d1 in decompose_req_full_compound_merge *)
+
+val decompose_req_full_compound_merge_set_d2 : decompose_req_full_compound_merge -> decompose_req_full_decomp -> unit
+  (** set field d2 in decompose_req_full_compound_merge *)
+
+val make_decompose_req_full_combine : 
+  ?d:decompose_req_full_decomp ->
   unit ->
   decompose_req_full_combine
-(** [default_decompose_req_full_combine ()] is the default value for type [decompose_req_full_combine] *)
+(** [make_decompose_req_full_combine … ()] is a builder for type [decompose_req_full_combine] *)
 
-val default_decompose_req_full_local_var_let : 
+val copy_decompose_req_full_combine : decompose_req_full_combine -> decompose_req_full_combine
+
+val decompose_req_full_combine_set_d : decompose_req_full_combine -> decompose_req_full_decomp -> unit
+  (** set field d in decompose_req_full_combine *)
+
+val make_decompose_req_full_local_var_let : 
   ?bindings:decompose_req_full_local_var_binding list ->
-  ?and_then:decompose_req_full_decomp option ->
+  ?and_then:decompose_req_full_decomp ->
   unit ->
   decompose_req_full_local_var_let
-(** [default_decompose_req_full_local_var_let ()] is the default value for type [decompose_req_full_local_var_let] *)
+(** [make_decompose_req_full_local_var_let … ()] is a builder for type [decompose_req_full_local_var_let] *)
 
-val default_decompose_req_full_local_var_binding : 
+val copy_decompose_req_full_local_var_let : decompose_req_full_local_var_let -> decompose_req_full_local_var_let
+
+val decompose_req_full_local_var_let_set_bindings : decompose_req_full_local_var_let -> decompose_req_full_local_var_binding list -> unit
+  (** set field bindings in decompose_req_full_local_var_let *)
+
+val decompose_req_full_local_var_let_set_and_then : decompose_req_full_local_var_let -> decompose_req_full_decomp -> unit
+  (** set field and_then in decompose_req_full_local_var_let *)
+
+val make_decompose_req_full_local_var_binding : 
   ?name:string ->
-  ?d:decompose_req_full_decomp option ->
+  ?d:decompose_req_full_decomp ->
   unit ->
   decompose_req_full_local_var_binding
-(** [default_decompose_req_full_local_var_binding ()] is the default value for type [decompose_req_full_local_var_binding] *)
+(** [make_decompose_req_full_local_var_binding … ()] is a builder for type [decompose_req_full_local_var_binding] *)
 
-val default_decompose_req_full : 
-  ?session:Session.session option ->
-  ?decomp:decompose_req_full_decomp option ->
-  ?str:bool option ->
-  ?timeout:int32 option ->
+val copy_decompose_req_full_local_var_binding : decompose_req_full_local_var_binding -> decompose_req_full_local_var_binding
+
+val decompose_req_full_local_var_binding_has_name : decompose_req_full_local_var_binding -> bool
+  (** presence of field "name" in [decompose_req_full_local_var_binding] *)
+
+val decompose_req_full_local_var_binding_set_name : decompose_req_full_local_var_binding -> string -> unit
+  (** set field name in decompose_req_full_local_var_binding *)
+
+val decompose_req_full_local_var_binding_set_d : decompose_req_full_local_var_binding -> decompose_req_full_decomp -> unit
+  (** set field d in decompose_req_full_local_var_binding *)
+
+val make_decompose_req_full : 
+  ?session:Session.session ->
+  ?decomp:decompose_req_full_decomp ->
+  ?str:bool ->
+  ?timeout:int32 ->
   unit ->
   decompose_req_full
-(** [default_decompose_req_full ()] is the default value for type [decompose_req_full] *)
+(** [make_decompose_req_full … ()] is a builder for type [decompose_req_full] *)
 
-val default_decompose_res_res : unit -> decompose_res_res
-(** [default_decompose_res_res ()] is the default value for type [decompose_res_res] *)
+val copy_decompose_req_full : decompose_req_full -> decompose_req_full
 
-val default_decompose_res : 
+val decompose_req_full_set_session : decompose_req_full -> Session.session -> unit
+  (** set field session in decompose_req_full *)
+
+val decompose_req_full_set_decomp : decompose_req_full -> decompose_req_full_decomp -> unit
+  (** set field decomp in decompose_req_full *)
+
+val decompose_req_full_has_str : decompose_req_full -> bool
+  (** presence of field "str" in [decompose_req_full] *)
+
+val decompose_req_full_set_str : decompose_req_full -> bool -> unit
+  (** set field str in decompose_req_full *)
+
+val decompose_req_full_has_timeout : decompose_req_full -> bool
+  (** presence of field "timeout" in [decompose_req_full] *)
+
+val decompose_req_full_set_timeout : decompose_req_full -> int32 -> unit
+  (** set field timeout in decompose_req_full *)
+
+val make_decompose_res : 
   ?res:decompose_res_res ->
   ?errors:Error.error list ->
-  ?task:Task.task option ->
+  ?task:Task.task ->
   unit ->
   decompose_res
-(** [default_decompose_res ()] is the default value for type [decompose_res] *)
+(** [make_decompose_res … ()] is a builder for type [decompose_res] *)
 
-val default_eval_src_req : 
-  ?session:Session.session option ->
+val copy_decompose_res : decompose_res -> decompose_res
+
+val decompose_res_set_res : decompose_res -> decompose_res_res -> unit
+  (** set field res in decompose_res *)
+
+val decompose_res_set_errors : decompose_res -> Error.error list -> unit
+  (** set field errors in decompose_res *)
+
+val decompose_res_set_task : decompose_res -> Task.task -> unit
+  (** set field task in decompose_res *)
+
+val make_eval_src_req : 
+  ?session:Session.session ->
   ?src:string ->
-  ?async_only:bool option ->
+  ?async_only:bool ->
   unit ->
   eval_src_req
-(** [default_eval_src_req ()] is the default value for type [eval_src_req] *)
+(** [make_eval_src_req … ()] is a builder for type [eval_src_req] *)
 
-val default_eval_output : 
+val copy_eval_src_req : eval_src_req -> eval_src_req
+
+val eval_src_req_set_session : eval_src_req -> Session.session -> unit
+  (** set field session in eval_src_req *)
+
+val eval_src_req_has_src : eval_src_req -> bool
+  (** presence of field "src" in [eval_src_req] *)
+
+val eval_src_req_set_src : eval_src_req -> string -> unit
+  (** set field src in eval_src_req *)
+
+val eval_src_req_has_async_only : eval_src_req -> bool
+  (** presence of field "async_only" in [eval_src_req] *)
+
+val eval_src_req_set_async_only : eval_src_req -> bool -> unit
+  (** set field async_only in eval_src_req *)
+
+val make_eval_output : 
   ?success:bool ->
-  ?value_as_ocaml:string option ->
+  ?value_as_ocaml:string ->
   ?errors:Error.error list ->
   unit ->
   eval_output
-(** [default_eval_output ()] is the default value for type [eval_output] *)
+(** [make_eval_output … ()] is a builder for type [eval_output] *)
 
-val default_proved : 
-  ?proof_pp:string option ->
+val copy_eval_output : eval_output -> eval_output
+
+val eval_output_has_success : eval_output -> bool
+  (** presence of field "success" in [eval_output] *)
+
+val eval_output_set_success : eval_output -> bool -> unit
+  (** set field success in eval_output *)
+
+val eval_output_has_value_as_ocaml : eval_output -> bool
+  (** presence of field "value_as_ocaml" in [eval_output] *)
+
+val eval_output_set_value_as_ocaml : eval_output -> string -> unit
+  (** set field value_as_ocaml in eval_output *)
+
+val eval_output_set_errors : eval_output -> Error.error list -> unit
+  (** set field errors in eval_output *)
+
+val make_proved : 
+  ?proof_pp:string ->
   unit ->
   proved
-(** [default_proved ()] is the default value for type [proved] *)
+(** [make_proved … ()] is a builder for type [proved] *)
 
-val default_model_type : unit -> model_type
-(** [default_model_type ()] is the default value for type [model_type] *)
+val copy_proved : proved -> proved
 
-val default_model : 
+val proved_has_proof_pp : proved -> bool
+  (** presence of field "proof_pp" in [proved] *)
+
+val proved_set_proof_pp : proved -> string -> unit
+  (** set field proof_pp in proved *)
+
+val make_model : 
   ?m_type:model_type ->
   ?src:string ->
-  ?artifact:Artmsg.art option ->
+  ?artifact:Artmsg.art ->
   unit ->
   model
-(** [default_model ()] is the default value for type [model] *)
+(** [make_model … ()] is a builder for type [model] *)
 
-val default_counter_sat : 
-  ?model:model option ->
+val copy_model : model -> model
+
+val model_has_m_type : model -> bool
+  (** presence of field "m_type" in [model] *)
+
+val model_set_m_type : model -> model_type -> unit
+  (** set field m_type in model *)
+
+val model_has_src : model -> bool
+  (** presence of field "src" in [model] *)
+
+val model_set_src : model -> string -> unit
+  (** set field src in model *)
+
+val model_set_artifact : model -> Artmsg.art -> unit
+  (** set field artifact in model *)
+
+val make_counter_sat : 
+  ?model:model ->
   unit ->
   counter_sat
-(** [default_counter_sat ()] is the default value for type [counter_sat] *)
+(** [make_counter_sat … ()] is a builder for type [counter_sat] *)
 
-val default_verified_upto : 
-  ?msg:string option ->
+val copy_counter_sat : counter_sat -> counter_sat
+
+val counter_sat_set_model : counter_sat -> model -> unit
+  (** set field model in counter_sat *)
+
+val make_verified_upto : 
+  ?msg:string ->
   unit ->
   verified_upto
-(** [default_verified_upto ()] is the default value for type [verified_upto] *)
+(** [make_verified_upto … ()] is a builder for type [verified_upto] *)
 
-val default_po_res_res : unit -> po_res_res
-(** [default_po_res_res ()] is the default value for type [po_res_res] *)
+val copy_verified_upto : verified_upto -> verified_upto
 
-val default_po_res : 
+val verified_upto_has_msg : verified_upto -> bool
+  (** presence of field "msg" in [verified_upto] *)
+
+val verified_upto_set_msg : verified_upto -> string -> unit
+  (** set field msg in verified_upto *)
+
+val make_po_res : 
   ?res:po_res_res ->
   ?errors:Error.error list ->
-  ?task:Task.task option ->
-  ?origin:Task.origin option ->
+  ?task:Task.task ->
+  ?origin:Task.origin ->
   unit ->
   po_res
-(** [default_po_res ()] is the default value for type [po_res] *)
+(** [make_po_res … ()] is a builder for type [po_res] *)
 
-val default_eval_res : 
+val copy_po_res : po_res -> po_res
+
+val po_res_set_res : po_res -> po_res_res -> unit
+  (** set field res in po_res *)
+
+val po_res_set_errors : po_res -> Error.error list -> unit
+  (** set field errors in po_res *)
+
+val po_res_set_task : po_res -> Task.task -> unit
+  (** set field task in po_res *)
+
+val po_res_set_origin : po_res -> Task.origin -> unit
+  (** set field origin in po_res *)
+
+val make_eval_res : 
   ?success:bool ->
   ?messages:string list ->
   ?errors:Error.error list ->
@@ -420,388 +821,308 @@ val default_eval_res :
   ?decomp_results:decompose_res list ->
   unit ->
   eval_res
-(** [default_eval_res ()] is the default value for type [eval_res] *)
+(** [make_eval_res … ()] is a builder for type [eval_res] *)
 
-val default_verify_src_req : 
-  ?session:Session.session option ->
+val copy_eval_res : eval_res -> eval_res
+
+val eval_res_has_success : eval_res -> bool
+  (** presence of field "success" in [eval_res] *)
+
+val eval_res_set_success : eval_res -> bool -> unit
+  (** set field success in eval_res *)
+
+val eval_res_set_messages : eval_res -> string list -> unit
+  (** set field messages in eval_res *)
+
+val eval_res_set_errors : eval_res -> Error.error list -> unit
+  (** set field errors in eval_res *)
+
+val eval_res_set_tasks : eval_res -> Task.task list -> unit
+  (** set field tasks in eval_res *)
+
+val eval_res_set_po_results : eval_res -> po_res list -> unit
+  (** set field po_results in eval_res *)
+
+val eval_res_set_eval_results : eval_res -> eval_output list -> unit
+  (** set field eval_results in eval_res *)
+
+val eval_res_set_decomp_results : eval_res -> decompose_res list -> unit
+  (** set field decomp_results in eval_res *)
+
+val make_verify_src_req : 
+  ?session:Session.session ->
   ?src:string ->
-  ?hints:string option ->
+  ?hints:string ->
   unit ->
   verify_src_req
-(** [default_verify_src_req ()] is the default value for type [verify_src_req] *)
+(** [make_verify_src_req … ()] is a builder for type [verify_src_req] *)
 
-val default_verify_name_req : 
-  ?session:Session.session option ->
+val copy_verify_src_req : verify_src_req -> verify_src_req
+
+val verify_src_req_set_session : verify_src_req -> Session.session -> unit
+  (** set field session in verify_src_req *)
+
+val verify_src_req_has_src : verify_src_req -> bool
+  (** presence of field "src" in [verify_src_req] *)
+
+val verify_src_req_set_src : verify_src_req -> string -> unit
+  (** set field src in verify_src_req *)
+
+val verify_src_req_has_hints : verify_src_req -> bool
+  (** presence of field "hints" in [verify_src_req] *)
+
+val verify_src_req_set_hints : verify_src_req -> string -> unit
+  (** set field hints in verify_src_req *)
+
+val make_verify_name_req : 
+  ?session:Session.session ->
   ?name:string ->
-  ?hints:string option ->
+  ?hints:string ->
   unit ->
   verify_name_req
-(** [default_verify_name_req ()] is the default value for type [verify_name_req] *)
+(** [make_verify_name_req … ()] is a builder for type [verify_name_req] *)
 
-val default_instance_src_req : 
-  ?session:Session.session option ->
+val copy_verify_name_req : verify_name_req -> verify_name_req
+
+val verify_name_req_set_session : verify_name_req -> Session.session -> unit
+  (** set field session in verify_name_req *)
+
+val verify_name_req_has_name : verify_name_req -> bool
+  (** presence of field "name" in [verify_name_req] *)
+
+val verify_name_req_set_name : verify_name_req -> string -> unit
+  (** set field name in verify_name_req *)
+
+val verify_name_req_has_hints : verify_name_req -> bool
+  (** presence of field "hints" in [verify_name_req] *)
+
+val verify_name_req_set_hints : verify_name_req -> string -> unit
+  (** set field hints in verify_name_req *)
+
+val make_instance_src_req : 
+  ?session:Session.session ->
   ?src:string ->
-  ?hints:string option ->
+  ?hints:string ->
   unit ->
   instance_src_req
-(** [default_instance_src_req ()] is the default value for type [instance_src_req] *)
+(** [make_instance_src_req … ()] is a builder for type [instance_src_req] *)
 
-val default_instance_name_req : 
-  ?session:Session.session option ->
+val copy_instance_src_req : instance_src_req -> instance_src_req
+
+val instance_src_req_set_session : instance_src_req -> Session.session -> unit
+  (** set field session in instance_src_req *)
+
+val instance_src_req_has_src : instance_src_req -> bool
+  (** presence of field "src" in [instance_src_req] *)
+
+val instance_src_req_set_src : instance_src_req -> string -> unit
+  (** set field src in instance_src_req *)
+
+val instance_src_req_has_hints : instance_src_req -> bool
+  (** presence of field "hints" in [instance_src_req] *)
+
+val instance_src_req_set_hints : instance_src_req -> string -> unit
+  (** set field hints in instance_src_req *)
+
+val make_instance_name_req : 
+  ?session:Session.session ->
   ?name:string ->
-  ?hints:string option ->
+  ?hints:string ->
   unit ->
   instance_name_req
-(** [default_instance_name_req ()] is the default value for type [instance_name_req] *)
+(** [make_instance_name_req … ()] is a builder for type [instance_name_req] *)
 
-val default_unsat : 
-  ?proof_pp:string option ->
+val copy_instance_name_req : instance_name_req -> instance_name_req
+
+val instance_name_req_set_session : instance_name_req -> Session.session -> unit
+  (** set field session in instance_name_req *)
+
+val instance_name_req_has_name : instance_name_req -> bool
+  (** presence of field "name" in [instance_name_req] *)
+
+val instance_name_req_set_name : instance_name_req -> string -> unit
+  (** set field name in instance_name_req *)
+
+val instance_name_req_has_hints : instance_name_req -> bool
+  (** presence of field "hints" in [instance_name_req] *)
+
+val instance_name_req_set_hints : instance_name_req -> string -> unit
+  (** set field hints in instance_name_req *)
+
+val make_unsat : 
+  ?proof_pp:string ->
   unit ->
   unsat
-(** [default_unsat ()] is the default value for type [unsat] *)
+(** [make_unsat … ()] is a builder for type [unsat] *)
 
-val default_refuted : 
-  ?model:model option ->
+val copy_unsat : unsat -> unsat
+
+val unsat_has_proof_pp : unsat -> bool
+  (** presence of field "proof_pp" in [unsat] *)
+
+val unsat_set_proof_pp : unsat -> string -> unit
+  (** set field proof_pp in unsat *)
+
+val make_refuted : 
+  ?model:model ->
   unit ->
   refuted
-(** [default_refuted ()] is the default value for type [refuted] *)
+(** [make_refuted … ()] is a builder for type [refuted] *)
 
-val default_sat : 
-  ?model:model option ->
+val copy_refuted : refuted -> refuted
+
+val refuted_set_model : refuted -> model -> unit
+  (** set field model in refuted *)
+
+val make_sat : 
+  ?model:model ->
   unit ->
   sat
-(** [default_sat ()] is the default value for type [sat] *)
+(** [make_sat … ()] is a builder for type [sat] *)
 
-val default_verify_res_res : unit -> verify_res_res
-(** [default_verify_res_res ()] is the default value for type [verify_res_res] *)
+val copy_sat : sat -> sat
 
-val default_verify_res : 
+val sat_set_model : sat -> model -> unit
+  (** set field model in sat *)
+
+val make_verify_res : 
   ?res:verify_res_res ->
   ?errors:Error.error list ->
-  ?task:Task.task option ->
+  ?task:Task.task ->
   unit ->
   verify_res
-(** [default_verify_res ()] is the default value for type [verify_res] *)
+(** [make_verify_res … ()] is a builder for type [verify_res] *)
 
-val default_instance_res_res : unit -> instance_res_res
-(** [default_instance_res_res ()] is the default value for type [instance_res_res] *)
+val copy_verify_res : verify_res -> verify_res
 
-val default_instance_res : 
+val verify_res_set_res : verify_res -> verify_res_res -> unit
+  (** set field res in verify_res *)
+
+val verify_res_set_errors : verify_res -> Error.error list -> unit
+  (** set field errors in verify_res *)
+
+val verify_res_set_task : verify_res -> Task.task -> unit
+  (** set field task in verify_res *)
+
+val make_instance_res : 
   ?res:instance_res_res ->
   ?errors:Error.error list ->
-  ?task:Task.task option ->
+  ?task:Task.task ->
   unit ->
   instance_res
-(** [default_instance_res ()] is the default value for type [instance_res] *)
+(** [make_instance_res … ()] is a builder for type [instance_res] *)
 
-val default_typecheck_req : 
-  ?session:Session.session option ->
+val copy_instance_res : instance_res -> instance_res
+
+val instance_res_set_res : instance_res -> instance_res_res -> unit
+  (** set field res in instance_res *)
+
+val instance_res_set_errors : instance_res -> Error.error list -> unit
+  (** set field errors in instance_res *)
+
+val instance_res_set_task : instance_res -> Task.task -> unit
+  (** set field task in instance_res *)
+
+val make_typecheck_req : 
+  ?session:Session.session ->
   ?src:string ->
   unit ->
   typecheck_req
-(** [default_typecheck_req ()] is the default value for type [typecheck_req] *)
+(** [make_typecheck_req … ()] is a builder for type [typecheck_req] *)
 
-val default_typecheck_res : 
+val copy_typecheck_req : typecheck_req -> typecheck_req
+
+val typecheck_req_set_session : typecheck_req -> Session.session -> unit
+  (** set field session in typecheck_req *)
+
+val typecheck_req_has_src : typecheck_req -> bool
+  (** presence of field "src" in [typecheck_req] *)
+
+val typecheck_req_set_src : typecheck_req -> string -> unit
+  (** set field src in typecheck_req *)
+
+val make_typecheck_res : 
   ?success:bool ->
   ?types:string ->
   ?errors:Error.error list ->
   unit ->
   typecheck_res
-(** [default_typecheck_res ()] is the default value for type [typecheck_res] *)
-
-val default_oneshot_req : 
-  ?input:string ->
-  ?timeout:float option ->
-  unit ->
-  oneshot_req
-(** [default_oneshot_req ()] is the default value for type [oneshot_req] *)
-
-val default_oneshot_res_stats : 
-  ?time:float ->
-  unit ->
-  oneshot_res_stats
-(** [default_oneshot_res_stats ()] is the default value for type [oneshot_res_stats] *)
-
-val default_oneshot_res : 
-  ?results:string list ->
-  ?errors:string list ->
-  ?stats:oneshot_res_stats option ->
-  ?detailed_results:string list ->
-  unit ->
-  oneshot_res
-(** [default_oneshot_res ()] is the default value for type [oneshot_res] *)
-
-
-(** {2 Make functions} *)
-
-val make_session_create_req : 
-  api_version:string ->
-  unit ->
-  session_create_req
-(** [make_session_create_req … ()] is a builder for type [session_create_req] *)
-
-
-val make_decompose_req : 
-  ?session:Session.session option ->
-  name:string ->
-  ?assuming:string option ->
-  basis:string list ->
-  rule_specs:string list ->
-  prune:bool ->
-  ?ctx_simp:bool option ->
-  ?lift_bool:lift_bool option ->
-  ?str:bool option ->
-  ?timeout:int32 option ->
-  unit ->
-  decompose_req
-(** [make_decompose_req … ()] is a builder for type [decompose_req] *)
-
-val make_decompose_req_full_by_name : 
-  name:string ->
-  ?assuming:string option ->
-  basis:string list ->
-  rule_specs:string list ->
-  prune:bool ->
-  ?ctx_simp:bool option ->
-  ?lift_bool:lift_bool option ->
-  unit ->
-  decompose_req_full_by_name
-(** [make_decompose_req_full_by_name … ()] is a builder for type [decompose_req_full_by_name] *)
-
-val make_decompose_req_full_local_var_get : 
-  name:string ->
-  unit ->
-  decompose_req_full_local_var_get
-(** [make_decompose_req_full_local_var_get … ()] is a builder for type [decompose_req_full_local_var_get] *)
-
-val make_decompose_req_full_prune : 
-  ?d:decompose_req_full_decomp option ->
-  unit ->
-  decompose_req_full_prune
-(** [make_decompose_req_full_prune … ()] is a builder for type [decompose_req_full_prune] *)
-
-
-val make_decompose_req_full_merge : 
-  ?d1:decompose_req_full_decomp option ->
-  ?d2:decompose_req_full_decomp option ->
-  unit ->
-  decompose_req_full_merge
-(** [make_decompose_req_full_merge … ()] is a builder for type [decompose_req_full_merge] *)
-
-val make_decompose_req_full_compound_merge : 
-  ?d1:decompose_req_full_decomp option ->
-  ?d2:decompose_req_full_decomp option ->
-  unit ->
-  decompose_req_full_compound_merge
-(** [make_decompose_req_full_compound_merge … ()] is a builder for type [decompose_req_full_compound_merge] *)
-
-val make_decompose_req_full_combine : 
-  ?d:decompose_req_full_decomp option ->
-  unit ->
-  decompose_req_full_combine
-(** [make_decompose_req_full_combine … ()] is a builder for type [decompose_req_full_combine] *)
-
-val make_decompose_req_full_local_var_let : 
-  bindings:decompose_req_full_local_var_binding list ->
-  ?and_then:decompose_req_full_decomp option ->
-  unit ->
-  decompose_req_full_local_var_let
-(** [make_decompose_req_full_local_var_let … ()] is a builder for type [decompose_req_full_local_var_let] *)
-
-val make_decompose_req_full_local_var_binding : 
-  name:string ->
-  ?d:decompose_req_full_decomp option ->
-  unit ->
-  decompose_req_full_local_var_binding
-(** [make_decompose_req_full_local_var_binding … ()] is a builder for type [decompose_req_full_local_var_binding] *)
-
-val make_decompose_req_full : 
-  ?session:Session.session option ->
-  ?decomp:decompose_req_full_decomp option ->
-  ?str:bool option ->
-  ?timeout:int32 option ->
-  unit ->
-  decompose_req_full
-(** [make_decompose_req_full … ()] is a builder for type [decompose_req_full] *)
-
-
-val make_decompose_res : 
-  res:decompose_res_res ->
-  errors:Error.error list ->
-  ?task:Task.task option ->
-  unit ->
-  decompose_res
-(** [make_decompose_res … ()] is a builder for type [decompose_res] *)
-
-val make_eval_src_req : 
-  ?session:Session.session option ->
-  src:string ->
-  ?async_only:bool option ->
-  unit ->
-  eval_src_req
-(** [make_eval_src_req … ()] is a builder for type [eval_src_req] *)
-
-val make_eval_output : 
-  success:bool ->
-  ?value_as_ocaml:string option ->
-  errors:Error.error list ->
-  unit ->
-  eval_output
-(** [make_eval_output … ()] is a builder for type [eval_output] *)
-
-val make_proved : 
-  ?proof_pp:string option ->
-  unit ->
-  proved
-(** [make_proved … ()] is a builder for type [proved] *)
-
-
-val make_model : 
-  m_type:model_type ->
-  src:string ->
-  ?artifact:Artmsg.art option ->
-  unit ->
-  model
-(** [make_model … ()] is a builder for type [model] *)
-
-val make_counter_sat : 
-  ?model:model option ->
-  unit ->
-  counter_sat
-(** [make_counter_sat … ()] is a builder for type [counter_sat] *)
-
-val make_verified_upto : 
-  ?msg:string option ->
-  unit ->
-  verified_upto
-(** [make_verified_upto … ()] is a builder for type [verified_upto] *)
-
-
-val make_po_res : 
-  res:po_res_res ->
-  errors:Error.error list ->
-  ?task:Task.task option ->
-  ?origin:Task.origin option ->
-  unit ->
-  po_res
-(** [make_po_res … ()] is a builder for type [po_res] *)
-
-val make_eval_res : 
-  success:bool ->
-  messages:string list ->
-  errors:Error.error list ->
-  tasks:Task.task list ->
-  po_results:po_res list ->
-  eval_results:eval_output list ->
-  decomp_results:decompose_res list ->
-  unit ->
-  eval_res
-(** [make_eval_res … ()] is a builder for type [eval_res] *)
-
-val make_verify_src_req : 
-  ?session:Session.session option ->
-  src:string ->
-  ?hints:string option ->
-  unit ->
-  verify_src_req
-(** [make_verify_src_req … ()] is a builder for type [verify_src_req] *)
-
-val make_verify_name_req : 
-  ?session:Session.session option ->
-  name:string ->
-  ?hints:string option ->
-  unit ->
-  verify_name_req
-(** [make_verify_name_req … ()] is a builder for type [verify_name_req] *)
-
-val make_instance_src_req : 
-  ?session:Session.session option ->
-  src:string ->
-  ?hints:string option ->
-  unit ->
-  instance_src_req
-(** [make_instance_src_req … ()] is a builder for type [instance_src_req] *)
-
-val make_instance_name_req : 
-  ?session:Session.session option ->
-  name:string ->
-  ?hints:string option ->
-  unit ->
-  instance_name_req
-(** [make_instance_name_req … ()] is a builder for type [instance_name_req] *)
-
-val make_unsat : 
-  ?proof_pp:string option ->
-  unit ->
-  unsat
-(** [make_unsat … ()] is a builder for type [unsat] *)
-
-val make_refuted : 
-  ?model:model option ->
-  unit ->
-  refuted
-(** [make_refuted … ()] is a builder for type [refuted] *)
-
-val make_sat : 
-  ?model:model option ->
-  unit ->
-  sat
-(** [make_sat … ()] is a builder for type [sat] *)
-
-
-val make_verify_res : 
-  res:verify_res_res ->
-  errors:Error.error list ->
-  ?task:Task.task option ->
-  unit ->
-  verify_res
-(** [make_verify_res … ()] is a builder for type [verify_res] *)
-
-
-val make_instance_res : 
-  res:instance_res_res ->
-  errors:Error.error list ->
-  ?task:Task.task option ->
-  unit ->
-  instance_res
-(** [make_instance_res … ()] is a builder for type [instance_res] *)
-
-val make_typecheck_req : 
-  ?session:Session.session option ->
-  src:string ->
-  unit ->
-  typecheck_req
-(** [make_typecheck_req … ()] is a builder for type [typecheck_req] *)
-
-val make_typecheck_res : 
-  success:bool ->
-  types:string ->
-  errors:Error.error list ->
-  unit ->
-  typecheck_res
 (** [make_typecheck_res … ()] is a builder for type [typecheck_res] *)
 
+val copy_typecheck_res : typecheck_res -> typecheck_res
+
+val typecheck_res_has_success : typecheck_res -> bool
+  (** presence of field "success" in [typecheck_res] *)
+
+val typecheck_res_set_success : typecheck_res -> bool -> unit
+  (** set field success in typecheck_res *)
+
+val typecheck_res_has_types : typecheck_res -> bool
+  (** presence of field "types" in [typecheck_res] *)
+
+val typecheck_res_set_types : typecheck_res -> string -> unit
+  (** set field types in typecheck_res *)
+
+val typecheck_res_set_errors : typecheck_res -> Error.error list -> unit
+  (** set field errors in typecheck_res *)
+
 val make_oneshot_req : 
-  input:string ->
-  ?timeout:float option ->
+  ?input:string ->
+  ?timeout:float ->
   unit ->
   oneshot_req
 (** [make_oneshot_req … ()] is a builder for type [oneshot_req] *)
 
+val copy_oneshot_req : oneshot_req -> oneshot_req
+
+val oneshot_req_has_input : oneshot_req -> bool
+  (** presence of field "input" in [oneshot_req] *)
+
+val oneshot_req_set_input : oneshot_req -> string -> unit
+  (** set field input in oneshot_req *)
+
+val oneshot_req_has_timeout : oneshot_req -> bool
+  (** presence of field "timeout" in [oneshot_req] *)
+
+val oneshot_req_set_timeout : oneshot_req -> float -> unit
+  (** set field timeout in oneshot_req *)
+
 val make_oneshot_res_stats : 
-  time:float ->
+  ?time:float ->
   unit ->
   oneshot_res_stats
 (** [make_oneshot_res_stats … ()] is a builder for type [oneshot_res_stats] *)
 
+val copy_oneshot_res_stats : oneshot_res_stats -> oneshot_res_stats
+
+val oneshot_res_stats_has_time : oneshot_res_stats -> bool
+  (** presence of field "time" in [oneshot_res_stats] *)
+
+val oneshot_res_stats_set_time : oneshot_res_stats -> float -> unit
+  (** set field time in oneshot_res_stats *)
+
 val make_oneshot_res : 
-  results:string list ->
-  errors:string list ->
-  ?stats:oneshot_res_stats option ->
-  detailed_results:string list ->
+  ?results:string list ->
+  ?errors:string list ->
+  ?stats:oneshot_res_stats ->
+  ?detailed_results:string list ->
   unit ->
   oneshot_res
 (** [make_oneshot_res … ()] is a builder for type [oneshot_res] *)
+
+val copy_oneshot_res : oneshot_res -> oneshot_res
+
+val oneshot_res_set_results : oneshot_res -> string list -> unit
+  (** set field results in oneshot_res *)
+
+val oneshot_res_set_errors : oneshot_res -> string list -> unit
+  (** set field errors in oneshot_res *)
+
+val oneshot_res_set_stats : oneshot_res -> oneshot_res_stats -> unit
+  (** set field stats in oneshot_res *)
+
+val oneshot_res_set_detailed_results : oneshot_res -> string list -> unit
+  (** set field detailed_results in oneshot_res *)
 
 
 (** {2 Formatters} *)
