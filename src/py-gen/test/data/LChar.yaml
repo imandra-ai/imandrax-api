@@ -1,0 +1,10 @@
+name: LChar
+iml: |-
+  let v =
+    fun w ->
+      if w = LChar.zero then true else false
+instance_src: v
+data: YGBgXxHEPh+gZuPgq8B1p/IcJ9W30ikXFSNgmT808EFNCBpNf2NHTENoYXIudP8bAYb8svJiR0xDaGFyLnT6wwL7/zBgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CLYAsPJj8voCaPT19vf4+fr7wQMC/wn/JcEDAv8Q+8EDAv8W+sEDAv8c+sEDAv8i+sEDAv8o+sEDAv8u+sEDAv80+mBgYvH5XxFzzYJ6kmV2H73RdeiIteyVF5tTzNhBqYxdjmXq+VZfP2NKTENoYXIuQ2hhcv8eAIb/ALLzYkpMQ2hhci5DaGFy/WL9/zhj9P8+/0bFAvf/f2P1/6oBAmBgYvH/sgHAAh+/3AGgYkF3+WL0/wJj9P8I/8gBYvf/FWH0YGbx9P+TAgEB/5kCCg==
+api_version: v17
+kind: mir.model
+storage: []

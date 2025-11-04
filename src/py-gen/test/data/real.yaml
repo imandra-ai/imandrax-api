@@ -1,0 +1,10 @@
+name: real
+iml: |-
+  let v =
+    fun w ->
+      if w = 3.14 then true else false
+instance_src: v
+data: YGBgsElta19zX3JlYWyz+2JEcmVhbPfDAvj/CGJYOgEAAAAAAABYZAAAAAAAAACz/wSw82Py/w8CYGBi8f8WwAIfpdwBoGJBd/li9P8BY/T/B/8rYvb/EmH0YGbx9P9NAQH/Ugg=
+api_version: v17
+kind: mir.model
+storage: []

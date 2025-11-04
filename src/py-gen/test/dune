@@ -1,0 +1,18 @@
+(library
+ (name test)
+ (libraries
+  py_gen
+  imandrax-api
+  imandrax-api.artifact
+  imandrax-api.mir
+  imandrakit
+  imandrakit.twine
+  yojson
+  containers
+  base64
+  yaml
+  fmt)
+ (inline_tests)
+ (preprocess (pps ppx_expect ppx_deriving.show ppx_deriving_yojson)))
+
+(data_only_dirs data)

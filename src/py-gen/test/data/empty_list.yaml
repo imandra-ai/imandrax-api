@@ -1,0 +1,10 @@
+name: empty list
+iml: |-
+  let v =
+    fun w ->
+      if w = [] then true else false
+instance_src: v
+data: YMACEKFiRF9hXzD5wwL4/l8R6vs47frpASL5+M8E8YUTM+U7RfzgPc3rzwVM2XrH0TxjRF9hXzD/GAGG+bLyYkRfYV8w92L3/yxgwwL982L/AfZi/fVgYf88sUd0eS5saXN0s/liRGxpc3T3wwL4/whgYf9XwAIfJ6BiQWH3sPRh8sMC/w/1Yf1i8vixRWMubmlss/diQltd9WL1/wNj9P8e/ybFAvf/JmP1/y8CwAIf8dwBoGJBYfmw9GHywwL/SvVh+WH/AGLz+8ACH/LcAaBiQXf5YvT/AGP0/wn/EGL2/yhh9GCxR3R5LnVuaXSz+WJEdW5pdPfDAvj/BrH1Yv839GBgYGLx/+wBwAIRoWJJQ19kdW1teV8w/mL8/wdj9P8N/4cCxQL4/xZj9f+RAgJh9rDyYv+aAvVi/yz3ZvT/Tf/cAQEB/+QBCw==
+api_version: v17
+kind: mir.model
+storage: []

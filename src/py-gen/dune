@@ -1,2 +1,2 @@
 ; Include subdirectories for library and binaries
-(dirs lib bin examples)
+(dirs lib bin test examples)

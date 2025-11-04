@@ -1,0 +1,10 @@
+name: int option
+iml: |-
+  let v =
+    fun w ->
+      if w = Some 2 then true else false
+instance_src: v
+data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wZh9bFJdHkub3B0aW9us/tiRm9wdGlvbvnDAvr/C7JYBAAAAAAAAACw+mPy/yACYfXBAwL/KP8NYf8twAIfJqBiQWH3sPRh8sMC/yr1wQMC+/hh/wNi8/mxRmMuc29tZbP4YkRTb21l92L3/wZj9P8n/zDFAvf/N2P1/1ECYGBi8f9YwAIfn90BoGJBd/li9P8BY/T/B/9tYvb/EmH0YGbx9P+qAQEB/7ABCg==
+api_version: v17
+kind: mir.model
+storage: []

@@ -1,0 +1,10 @@
+name: int
+iml: |-
+  let v =
+    fun w ->
+      if w = 2 then true else false
+instance_src: v
+data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wayWAQAAAAAAAAAsPpj8v8DAmBgYvH/CsACH7LcAaBiQXf5YvT/AWP0/wf/H2L2/xJh9GBm8fT/PwEB/0QI
+api_version: v17
+kind: mir.model
+storage: []

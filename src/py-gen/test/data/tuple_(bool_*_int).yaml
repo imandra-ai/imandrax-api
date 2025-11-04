@@ -1,0 +1,10 @@
+name: tuple (bool * int)
+iml: |-
+  let v =
+    fun w ->
+      if w = (true, 2) then true else false
+instance_src: v
+data: YGBgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGCwSG1rX3NfaW50s/piQ2ludPbDAvf/BmL/Dvey9LYBsPJj8v8ZArJYBAAAAAAAAACw+mPy/xICYv8H97j0Y/L/FAJgYGLx/xvAAh/h3AGgYkF3+WL0/wFj9P8H/zBi9v8SYfRgZvH0/3MBAf94CA==
+api_version: v17
+kind: mir.model
+storage: []

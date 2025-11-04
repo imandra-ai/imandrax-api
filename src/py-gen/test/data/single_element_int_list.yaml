@@ -1,0 +1,10 @@
+name: single element int list
+iml: |-
+  let v =
+    fun w ->
+      if w = [1] then true else false
+instance_src: v
+data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wZh9bFHdHkubGlzdLP5YkRsaXN098MC+P8HslgCAAAAAAAAALD6Y/L/HAJgYf8hwAIfJ6BiQWH3sPRh8sMC/yD1Yf1i8vixRWMubmlss/diQltd9WL1/wNj9P8e/zfFAvf/JmP1/0ACYv8z98EDAv9K/0zBAwL/avth/27BAwL/M/81wQMC/z77Yf9GYvP6sUZjLmNvbnOz+GJCOjr1YvX/BGP0/xv/I8UC9/8zY/X/igECYGBi8f+SAcACH4HdAaBiQXf5YvT/AmP0/wj/qAFi9/8VYfRgZvH0/+IBAQH/6AEK
+api_version: v17
+kind: mir.model
+storage: []

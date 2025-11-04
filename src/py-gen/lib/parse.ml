@@ -411,11 +411,11 @@ let%expect_test "decode artifact" =
          [(Ast.AnnAssign
              { Ast.target = (Ast.Name { Ast.id = "arg0"; ctx = Ast.Load });
                annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
-               value = None });
+               value = None; simple = 1 });
            (Ast.AnnAssign
               { Ast.target = (Ast.Name { Ast.id = "arg1"; ctx = Ast.Load });
                 annotation = (Ast.Name { Ast.id = "bool"; ctx = Ast.Load });
-                value = None })
+                value = None; simple = 1 })
            ];
          decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
     (Ast.Assign
@@ -448,7 +448,8 @@ let%expect_test "decode artifact" =
               {
                 "target": [ "Name", { "id": "arg0", "ctx": [ "Load" ] } ],
                 "annotation": [ "Name", { "id": "int", "ctx": [ "Load" ] } ],
-                "value": null
+                "value": null,
+                "simple": 1
               }
             ],
             [
@@ -456,7 +457,8 @@ let%expect_test "decode artifact" =
               {
                 "target": [ "Name", { "id": "arg1", "ctx": [ "Load" ] } ],
                 "annotation": [ "Name", { "id": "bool", "ctx": [ "Load" ] } ],
-                "value": null
+                "value": null,
+                "simple": 1
               }
             ]
           ],

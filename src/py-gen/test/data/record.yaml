@@ -1,0 +1,17 @@
+name: record
+iml: |-
+  type user = {
+      id: int;
+      active: bool;
+  }
+
+  let v = {id = 1; active = true}
+
+  let v =
+    fun w ->
+      if w = v then true else false
+instance_src: v
+data: YGBgXxFAgh48kLfZ2delr4CkoiWhCxDVCXvs7jrkAenwT5VpwWNEdXNlcv8YAYb5svJiRHVzZXL3wwL4/ypgsEhta19zX2ludLP6YkNpbnT2wwL3/wayWAIAAAAAAAAAsPpj8v8DAsEDAv8h/wtgYGLx+l8RdW6Xq1VvQEe89X8BPre2ndcIFc8/dKuXiGKM55tMrC1jQmlk/xYAhvey8mJCaWT1YvX/J2P0/y3/NmL2/z9gsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CLYBsPJj8voCwQMC/48B/wNgYGLx+18R8W7TgFsQ2TyL8dH3GP194mCwP6ECHUjxu2P5NAEVFFNjRmFjdGl2Zf8aAIb7svJiRmFjdGl2Zfli+f8vY/T/Nf8/Yvb/R2L/bPbLAvUCY/T/6wECYGBi8f/zAcACH7PdAaBiQXf5YvT/AmP0/wj/iQJi9/8VYfRgZvH0/84CAQH/1AIK
+api_version: v17
+kind: mir.model
+storage: []

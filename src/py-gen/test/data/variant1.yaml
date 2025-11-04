@@ -1,0 +1,16 @@
+name: variant1
+iml: |-
+  type status =
+      | Active
+      | Waitlist of int
+
+  let v = Active
+
+  let v =
+    fun w ->
+      if w = v then true else false
+instance_src: v
+data: YGBgXxHFHfkNPT/MI42krRlVmL/XSPJ50rNQNPOoFkEHXF75MWNGc3RhdHVz/xoBhvuy8mJGc3RhdHVz+cMC+v8uYGBgYvH5XxEbSo9Kb9nPHFOYOyTZ2bVlS4U1fHwYjZy96ljAxaMAX2NGQWN0aXZl/xoAhvuy8mJGQWN0aXZl+WL5/y9j9P81/z3FAvf/PWP1/0YCYGBi8f9NwAIfyd0BoGJBd/li9P8BY/T/B/9iYvb/EmH0YGbx9P+qAQEB/7ABCg==
+api_version: v17
+kind: mir.model
+storage: []
