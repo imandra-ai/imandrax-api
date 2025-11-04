@@ -1,9 +1,3 @@
-; Executable to decode and inspect artifacts
-(executable
- (name decode_art)
- (modules decode_art)
- (libraries py_gen imandrax-api imandrax-api.mir yojson containers)) containers))
-
 ; Executable to parse JSON/YAML artifacts to Python AST
 (executable
  (name parse)
