@@ -1,4 +1,5 @@
 ; Library for artifact loading and Python code generation
+
 (library
  (name py_gen)
  (modules parse ast util)
@@ -14,6 +15,7 @@
   yaml
   fmt)
  (inline_tests
-  (deps (source_tree ../examples)))
+  (deps
+   (source_tree ../examples)))
  (preprocess
   (pps ppx_expect ppx_deriving.show ppx_deriving_yojson)))
