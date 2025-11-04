@@ -90,7 +90,7 @@ module System = struct
 
   let git_version client : string option Lwt.t =
     let+ v = Client.System.version client in
-    v.git_version
+    Some v.git_version
 end
 
 type task_id = Client.API.task_id [@@deriving show { with_path = false }]
@@ -122,7 +122,7 @@ module Eval = struct
     let tasks =
       List.map
         (function
-          | { Client.API.id = Some id; kind } -> { id; kind }
+          | { Client.API.id = Some id; kind; _presence } -> { id; kind }
           | _ ->
             Error.fail ~kind:Error_kinds.rpcError "task does not have an ID")
         r.tasks
