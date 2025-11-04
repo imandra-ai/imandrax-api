@@ -113,7 +113,7 @@ let%expect_test "int option" =
 
     Expr:
     (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "option"; ctx = Ast.Load });
+       { Ast.func = (Ast.Name { Ast.id = "Some"; ctx = Ast.Load });
          args = [(Ast.Constant { Ast.value = (Ast.Int 2); kind = None })];
          keywords = [] })
     |}]
@@ -284,7 +284,7 @@ let%expect_test "variant1" =
 
     Expr:
     (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "status"; ctx = Ast.Load }); args = [];
+       { Ast.func = (Ast.Name { Ast.id = "Active"; ctx = Ast.Load }); args = [];
          keywords = [] })
     |}]
 
@@ -320,7 +320,7 @@ let%expect_test "variant2" =
 
     Expr:
     (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "status"; ctx = Ast.Load });
+       { Ast.func = (Ast.Name { Ast.id = "Waitlist"; ctx = Ast.Load });
          args = [(Ast.Constant { Ast.value = (Ast.Int 1); kind = None })];
          keywords = [] })
     |}]
@@ -361,7 +361,7 @@ let%expect_test "variant3" =
 
     Expr:
     (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "status"; ctx = Ast.Load });
+       { Ast.func = (Ast.Name { Ast.id = "Waitlist"; ctx = Ast.Load });
          args =
          [(Ast.Constant { Ast.value = (Ast.Int 2); kind = None });
            (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })];

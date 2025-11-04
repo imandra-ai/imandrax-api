@@ -276,7 +276,8 @@ let rec parse_term (term : Term.term) :
         let constr_arg_type_stmts = List.flatten constr_arg_type_stmt_lists in
 
         let term =
-          Ast.init_dataclass variant_name ~args:constr_arg_terms ~kwargs:[]
+          Ast.init_dataclass variant_constr_name ~args:constr_arg_terms
+            ~kwargs:[]
         in
         Ok (constr_arg_type_stmts @ ty_defs, term)
     in
@@ -498,7 +499,7 @@ let%expect_test "decode artifact" =
 
     Expr:
     (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "movement"; ctx = Ast.Load });
+       { Ast.func = (Ast.Name { Ast.id = "Move"; ctx = Ast.Load });
          args =
          [(Ast.Call
              { Ast.func = (Ast.Name { Ast.id = "position"; ctx = Ast.Load });
@@ -508,7 +509,7 @@ let%expect_test "decode artifact" =
                  (Ast.Constant { Ast.value = (Ast.Float 3.); kind = None })];
                keywords = [] });
            (Ast.Call
-              { Ast.func = (Ast.Name { Ast.id = "direction"; ctx = Ast.Load });
+              { Ast.func = (Ast.Name { Ast.id = "North"; ctx = Ast.Load });
                 args = []; keywords = [] })
            ];
          keywords = [] })
@@ -626,7 +627,7 @@ let%expect_test "decode artifact" =
           "value": [
             "Call",
             {
-              "func": [ "Name", { "id": "movement", "ctx": [ "Load" ] } ],
+              "func": [ "Name", { "id": "Move", "ctx": [ "Load" ] } ],
               "args": [
                 [
                   "Call",
@@ -643,7 +644,7 @@ let%expect_test "decode artifact" =
                 [
                   "Call",
                   {
-                    "func": [ "Name", { "id": "direction", "ctx": [ "Load" ] } ],
+                    "func": [ "Name", { "id": "North", "ctx": [ "Load" ] } ],
                     "args": [],
                     "keywords": []
                   }
