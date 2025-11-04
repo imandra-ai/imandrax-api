@@ -1,0 +1,18 @@
+name: variant_and_record
+iml: |-
+  type direction = North | South | East | West
+
+  type position = { x: int; y: int; z: real }
+
+  type movement =
+    | Stay of position
+    | Move of position * direction
+
+  let v =
+    fun w ->
+        if w = Move ({x=1; y=2; z=3.0}, North) then true else false
+instance_src: v
+data: YGBgXxEhU2pctnu9i1JCI8DRf6n0YBh93Ur7XlcbY0BzPbDe62NIbW92ZW1lbnT/HAGG/bLyYkhtb3ZlbWVudPvDAvz/MmBfEaS5kaqNNZd0zhCfNZQewHiefa4dtDhwmVIGCGIn4gODY0hwb3NpdGlvbv8cAYb9svJiSHBvc2l0aW9u+8MC/P8yYLBIbWtfc19pbnSz+mJDaW509sMC9/8GslgCAAAAAAAAALD6Y/L/AwLBAwL/If8LYGBi8fpfEci29xr+UXPLouBUr5WDpzHlCC0SPu951UbRe9G8e4+BY0F4/xUAhvay8mJBePRi9P8lY/T/K/80Yvb/PbJYBAAAAAAAAACw+mPy/14CYGBi8f9PXxFSE7eTRu4ot46mnNLcAYAUnTRTIx1laspn39h4C6IdQGNBef8VAIb2svJiQXn0YvT/JmP0/yz/iQFi9/84YLBJbWtfc19yZWFss/tiRHJlYWz3wwL4/whiWAYAAAAAAAAAWAIAAAAAAAAAs/8EsPNj8v8PAsEDAv/4Af8YYGBi8ftfER2B4/pDOtMplgeRSUp3b+Iuxb7Ju2ci3MeGo5m1ZNZEY0F6/xUAhvay8mJBevRi9P8lY/T/K/81Yvb/PmP/zQH/evnLAvgCY/T/zQICYF8RzdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1ZjSWRpcmVjdGlvbv8dAYb+svJiSWRpcmVjdGlvbvzDAv3/NGBgYGLx+V8RXOBmr8zKtuYctJNwJkVg5lSXESY5SxLPgFPKXi6aEA9jRU5vcnRo/xkAhvqy8mJFTm9ydGj4Yvj/LWP0/zP/O8UC9/87Y/X/RAJi/48B+MEDAv9P/7cEwQMC//kD/WBgYvH6XxENSh7g8wQXlPAWq4PuBXaEHENPmI9ZLCPNgm27AYQGYmNETW92Zf8YAIb5svJiRE1vdmX3Yvf/K2P0/zH/OsUC9/9MY/X/jQUCYGBi8f+VBcACH7H0AaBiQXf5YvT/AmP0/wj/qwVi9/8VYfRgZvH0//gFAQH//gUK
+api_version: v17
+kind: mir.model
+storage: []
