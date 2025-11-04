@@ -12,7 +12,9 @@
   base64
   yaml
   fmt)
- (inline_tests)
+ (inline_tests
+  (deps
+   (source_tree data)))
  (preprocess (pps ppx_expect ppx_deriving.show ppx_deriving_yojson)))
 
 (data_only_dirs data)
