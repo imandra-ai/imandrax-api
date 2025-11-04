@@ -32,7 +32,7 @@ let load_artifact (sub_dir : string option) (name : string) : Model.t =
     | _ -> failwith "invalid yaml"
   in
   printf "name: %s\n" name;
-  printf "iml_code:\n%s\n" iml_code;
+  printf "iml_code:\n%s\n\n" iml_code;
 
   Util.yaml_to_model yaml
 
@@ -62,6 +62,7 @@ let%expect_test "bool list" =
     let v =
       fun w ->
         if w = [true; false] then true else false
+
     Type defs:
 
     Expr:
@@ -81,6 +82,7 @@ let%expect_test "empty list" =
     let v =
       fun w ->
         if w = [] then true else false
+
     Type defs:
 
     Expr:
@@ -96,6 +98,7 @@ let%expect_test "int option" =
     let v =
       fun w ->
         if w = Some 2 then true else false
+
     Type defs:
     (Ast.ClassDef
        { Ast.name = "Some"; bases = []; keywords = [];
@@ -127,6 +130,7 @@ let%expect_test "int" =
     let v =
       fun w ->
         if w = 2 then true else false
+
     Type defs:
 
     Expr:
@@ -142,6 +146,7 @@ let%expect_test "LChar" =
     let v =
       fun w ->
         if w = LChar.zero then true else false
+
     Type defs:
 
     Expr:
@@ -157,6 +162,7 @@ let%expect_test "LString" =
     let v =
       fun w ->
         if w = {l|hi|l} then true else false
+
     Type defs:
 
     Expr:
@@ -176,6 +182,7 @@ let%expect_test "real" =
     let v =
       fun w ->
         if w = 3.14 then true else false
+
     Type defs:
 
     Expr:
@@ -198,6 +205,7 @@ let%expect_test "record" =
     let v =
       fun w ->
         if w = v then true else false
+
     Type defs:
     (Ast.ClassDef
        { Ast.name = "user"; bases = []; keywords = [];
@@ -231,6 +239,7 @@ let%expect_test "single element int list" =
     let v =
       fun w ->
         if w = [1] then true else false
+
     Type defs:
 
     Expr:
@@ -248,6 +257,7 @@ let%expect_test "tuple (bool * int)" =
     let v =
       fun w ->
         if w = (true, 2) then true else false
+
     Type defs:
 
     Expr:
@@ -273,6 +283,7 @@ let%expect_test "variant1" =
     let v =
       fun w ->
         if w = v then true else false
+
     Type defs:
     (Ast.ClassDef
        { Ast.name = "Active"; bases = []; keywords = []; body = [Ast.Pass];
@@ -303,6 +314,7 @@ let%expect_test "variant2" =
     let v =
       fun w ->
         if w = v then true else false
+
     Type defs:
     (Ast.ClassDef
        { Ast.name = "Waitlist"; bases = []; keywords = [];
@@ -340,6 +352,7 @@ let%expect_test "variant3" =
     let v =
       fun w ->
         if w = v then true else false
+
     Type defs:
     (Ast.ClassDef
        { Ast.name = "Waitlist"; bases = []; keywords = [];
@@ -365,5 +378,84 @@ let%expect_test "variant3" =
          args =
          [(Ast.Constant { Ast.value = (Ast.Int 2); kind = None });
            (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })];
+         keywords = [] })
+    |}]
+
+let%expect_test "variant_and_record" =
+  test_parse_model (Some "composite") "variant_and_record";
+  [%expect
+    {|
+    name: variant_and_record
+    iml_code:
+    type direction = North | South | East | West
+
+    type position = { x: int; y: int; z: real }
+
+    type movement =
+      | Stay of position
+      | Move of position * direction
+
+    let v =
+      fun w ->
+          if w = Move ({x=1; y=2; z=3.0}, North) then true else false
+
+    Type defs:
+    (Ast.ClassDef
+       { Ast.name = "position"; bases = []; keywords = [];
+         body =
+         [(Ast.AnnAssign
+             { Ast.target = (Ast.Name { Ast.id = "x"; ctx = Ast.Load });
+               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+               value = None; simple = 1 });
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "y"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+                value = None; simple = 1 });
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "z"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "real"; ctx = Ast.Load });
+                value = None; simple = 1 })
+           ];
+         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
+    (Ast.ClassDef
+       { Ast.name = "North"; bases = []; keywords = []; body = [Ast.Pass];
+         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
+    (Ast.Assign
+       { Ast.targets = [(Ast.Name { Ast.id = "direction"; ctx = Ast.Load })];
+         value = (Ast.Name { Ast.id = "North"; ctx = Ast.Load });
+         type_comment = None })
+    (Ast.ClassDef
+       { Ast.name = "Move"; bases = []; keywords = [];
+         body =
+         [(Ast.AnnAssign
+             { Ast.target = (Ast.Name { Ast.id = "arg0"; ctx = Ast.Load });
+               annotation = (Ast.Name { Ast.id = "position"; ctx = Ast.Load });
+               value = None; simple = 1 });
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "arg1"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "direction"; ctx = Ast.Load });
+                value = None; simple = 1 })
+           ];
+         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
+    (Ast.Assign
+       { Ast.targets = [(Ast.Name { Ast.id = "movement"; ctx = Ast.Load })];
+         value = (Ast.Name { Ast.id = "Move"; ctx = Ast.Load });
+         type_comment = None })
+
+    Expr:
+    (Ast.Call
+       { Ast.func = (Ast.Name { Ast.id = "Move"; ctx = Ast.Load });
+         args =
+         [(Ast.Call
+             { Ast.func = (Ast.Name { Ast.id = "position"; ctx = Ast.Load });
+               args =
+               [(Ast.Constant { Ast.value = (Ast.Int 1); kind = None });
+                 (Ast.Constant { Ast.value = (Ast.Int 2); kind = None });
+                 (Ast.Constant { Ast.value = (Ast.Float 3.); kind = None })];
+               keywords = [] });
+           (Ast.Call
+              { Ast.func = (Ast.Name { Ast.id = "North"; ctx = Ast.Load });
+                args = []; keywords = [] })
+           ];
          keywords = [] })
     |}]
