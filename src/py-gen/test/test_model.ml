@@ -107,13 +107,13 @@ let%expect_test "int option" =
            ];
          decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
     (Ast.Assign
-       { Ast.targets = [(Ast.Name { Ast.id = "Option"; ctx = Ast.Load })];
+       { Ast.targets = [(Ast.Name { Ast.id = "option"; ctx = Ast.Load })];
          value = (Ast.Name { Ast.id = "Some"; ctx = Ast.Load });
          type_comment = None })
 
     Expr:
     (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "Option"; ctx = Ast.Load });
+       { Ast.func = (Ast.Name { Ast.id = "option"; ctx = Ast.Load });
          args = [(Ast.Constant { Ast.value = (Ast.Int 2); kind = None })];
          keywords = [] })
     |}]
@@ -278,13 +278,13 @@ let%expect_test "variant1" =
        { Ast.name = "Active"; bases = []; keywords = []; body = [Ast.Pass];
          decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
     (Ast.Assign
-       { Ast.targets = [(Ast.Name { Ast.id = "Status"; ctx = Ast.Load })];
+       { Ast.targets = [(Ast.Name { Ast.id = "status"; ctx = Ast.Load })];
          value = (Ast.Name { Ast.id = "Active"; ctx = Ast.Load });
          type_comment = None })
 
     Expr:
     (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "Status"; ctx = Ast.Load }); args = [];
+       { Ast.func = (Ast.Name { Ast.id = "status"; ctx = Ast.Load }); args = [];
          keywords = [] })
     |}]
 
@@ -314,13 +314,13 @@ let%expect_test "variant2" =
            ];
          decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
     (Ast.Assign
-       { Ast.targets = [(Ast.Name { Ast.id = "Status"; ctx = Ast.Load })];
+       { Ast.targets = [(Ast.Name { Ast.id = "status"; ctx = Ast.Load })];
          value = (Ast.Name { Ast.id = "Waitlist"; ctx = Ast.Load });
          type_comment = None })
 
     Expr:
     (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "Status"; ctx = Ast.Load });
+       { Ast.func = (Ast.Name { Ast.id = "status"; ctx = Ast.Load });
          args = [(Ast.Constant { Ast.value = (Ast.Int 1); kind = None })];
          keywords = [] })
     |}]
@@ -355,13 +355,13 @@ let%expect_test "variant3" =
            ];
          decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
     (Ast.Assign
-       { Ast.targets = [(Ast.Name { Ast.id = "Status"; ctx = Ast.Load })];
+       { Ast.targets = [(Ast.Name { Ast.id = "status"; ctx = Ast.Load })];
          value = (Ast.Name { Ast.id = "Waitlist"; ctx = Ast.Load });
          type_comment = None })
 
     Expr:
     (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "Status"; ctx = Ast.Load });
+       { Ast.func = (Ast.Name { Ast.id = "status"; ctx = Ast.Load });
          args =
          [(Ast.Constant { Ast.value = (Ast.Int 2); kind = None });
            (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })];
