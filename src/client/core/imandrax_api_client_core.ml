@@ -74,21 +74,19 @@ module Make (Fut : FUT) = struct
   let eval_src ?timeout_s (self : t) ~(src : string) ~(session : API.session) ()
       : API.eval_res Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
-    let arg = API.make_eval_src_req ~session:(Some session) ~src () in
+    let arg = API.make_eval_src_req ~session ~src () in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.eval_src arg
 
   let instance_src ?timeout_s (self : t) ~(src : string) ?hints
       ~(session : API.session) () : API.instance_res Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
-    let arg =
-      API.make_instance_src_req ~session:(Some session) ~hints ~src ()
-    in
+    let arg = API.make_instance_src_req ~session ?hints ~src () in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.instance_src arg
 
   let verify_src ?timeout_s (self : t) ~(src : string) ?hints
       ~(session : API.session) () : API.verify_res Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
-    let arg = API.make_verify_src_req ~session:(Some session) ~hints ~src () in
+    let arg = API.make_verify_src_req ~session ?hints ~src () in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.verify_src arg
 
   let decompose ?timeout_s (self : t) ~(name : string) ?assuming ?(basis = [])
@@ -96,27 +94,27 @@ module Make (Fut : FUT) = struct
       ~(session : API.session) () : API.decompose_res Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
     let arg =
-      API.make_decompose_req ~session:(Some session) ~name ?assuming ~basis
-        ?lift_bool ?ctx_simp ~rule_specs ~prune ()
+      API.make_decompose_req ~session ~name ?assuming ~basis ?lift_bool
+        ?ctx_simp ~rule_specs ~prune ()
     in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.decompose arg
 
   let list_artifacts ?timeout_s (self : t) ~(task : API.task_id) () :
       API.artifact_list_result Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
-    let arg = API.make_artifact_list_query ~task_id:(Some task) () in
+    let arg = API.make_artifact_list_query ~task_id:task () in
     self.rpc#rpc_call ~timeout_s API.Eval.Client.list_artifacts arg
 
   let get_artifact_zip ?timeout_s (self : t) ~(task : API.task_id)
       ~(kind : string) () : API.artifact_zip Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
-    let arg = API.make_artifact_get_query ~task_id:(Some task) ~kind () in
+    let arg = API.make_artifact_get_query ~task_id:task ~kind () in
     self.rpc#rpc_call ~timeout_s API.Eval.Client.get_artifact_zip arg
 
   let oneshot ?timeout_s (self : t) ~(input : string) () : API.oneshot_res Fut.t
       =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
-    let arg = API.make_oneshot_req ~input ~timeout:(Some timeout_s) () in
+    let arg = API.make_oneshot_req ~input ~timeout:timeout_s () in
     self.rpc#rpc_call ~timeout_s:(timeout_s +. 2.) API.Simple.Client.oneshot arg
 
   module System = struct
@@ -141,15 +139,14 @@ module Make (Fut : FUT) = struct
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
       self.rpc#rpc_call ~timeout_s API.SessionManager.Client.create_session
       @@ API.make_session_create
-           ~api_version:Imandrax_api.Versioning.api_types_version
-           ~po_check:(Some true) ()
+           ~api_version:Imandrax_api.Versioning.api_types_version ~po_check:true
+           ()
 
     let open_ ?timeout_s (self : client) (sesh : t) : unit Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
       self.rpc#rpc_call ~timeout_s API.SessionManager.Client.open_session
       @@ API.make_session_open
-           ~api_version:Imandrax_api.Versioning.api_types_version
-           ~id:(Some sesh) ()
+           ~api_version:Imandrax_api.Versioning.api_types_version ~id:sesh ()
 
     let delete ?timeout_s (self : client) (sesh : API.session) : unit Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
@@ -167,7 +164,7 @@ module Make (Fut : FUT) = struct
 
     let eval_code ?timeout_s (self : client) ~session ~code () : res Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
-      let code = API.make_code_snippet ~code ~session:(Some session) () in
+      let code = API.make_code_snippet ~code ~session () in
       self.rpc#rpc_call ~timeout_s API.Eval.Client.eval_code_snippet code
   end
 
@@ -175,13 +172,13 @@ module Make (Fut : FUT) = struct
     let list_artifacts ?timeout_s (self : client) (t : API.task_id) :
         API.artifact_list_result Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
-      let q = API.make_artifact_list_query ~task_id:(Some t) () in
+      let q = API.make_artifact_list_query ~task_id:t () in
       self.rpc#rpc_call ~timeout_s API.Eval.Client.list_artifacts q
 
     let get_artifact ?timeout_s (self : client) ~(kind : string)
         (t : API.task_id) : API.artifact Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
-      let q = API.make_artifact_get_query ~task_id:(Some t) ~kind () in
+      let q = API.make_artifact_get_query ~task_id:t ~kind () in
       self.rpc#rpc_call ~timeout_s API.Eval.Client.get_artifact q
   end
 end
