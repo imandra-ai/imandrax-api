@@ -7,58 +7,86 @@
 
 (** {2 Types} *)
 
-type error_message = {
-  msg : string;
-  locs : Locs.location list;
-  backtrace : string option;
+type error_message = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable msg : string;
+  mutable locs : Locs.location list;
+  mutable backtrace : string;
 }
 
-type error = {
-  msg : error_message option;
-  kind : string;
-  stack : error_message list;
-  process : string option;
+type error = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable msg : error_message option;
+  mutable kind : string;
+  mutable stack : error_message list;
+  mutable process : string;
 }
 
 
 (** {2 Basic values} *)
 
-val default_error_message : 
-  ?msg:string ->
-  ?locs:Locs.location list ->
-  ?backtrace:string option ->
-  unit ->
-  error_message
-(** [default_error_message ()] is the default value for type [error_message] *)
+val default_error_message : unit -> error_message 
+(** [default_error_message ()] is a new empty value for type [error_message] *)
 
-val default_error : 
-  ?msg:error_message option ->
-  ?kind:string ->
-  ?stack:error_message list ->
-  ?process:string option ->
-  unit ->
-  error
-(** [default_error ()] is the default value for type [error] *)
+val default_error : unit -> error 
+(** [default_error ()] is a new empty value for type [error] *)
 
 
 (** {2 Make functions} *)
 
 val make_error_message : 
-  msg:string ->
-  locs:Locs.location list ->
-  ?backtrace:string option ->
+  ?msg:string ->
+  ?locs:Locs.location list ->
+  ?backtrace:string ->
   unit ->
   error_message
 (** [make_error_message … ()] is a builder for type [error_message] *)
 
+val copy_error_message : error_message -> error_message
+
+val error_message_has_msg : error_message -> bool
+  (** presence of field "msg" in [error_message] *)
+
+val error_message_set_msg : error_message -> string -> unit
+  (** set field msg in error_message *)
+
+val error_message_set_locs : error_message -> Locs.location list -> unit
+  (** set field locs in error_message *)
+
+val error_message_has_backtrace : error_message -> bool
+  (** presence of field "backtrace" in [error_message] *)
+
+val error_message_set_backtrace : error_message -> string -> unit
+  (** set field backtrace in error_message *)
+
 val make_error : 
-  ?msg:error_message option ->
-  kind:string ->
-  stack:error_message list ->
-  ?process:string option ->
+  ?msg:error_message ->
+  ?kind:string ->
+  ?stack:error_message list ->
+  ?process:string ->
   unit ->
   error
 (** [make_error … ()] is a builder for type [error] *)
+
+val copy_error : error -> error
+
+val error_set_msg : error -> error_message -> unit
+  (** set field msg in error *)
+
+val error_has_kind : error -> bool
+  (** presence of field "kind" in [error] *)
+
+val error_set_kind : error -> string -> unit
+  (** set field kind in error *)
+
+val error_set_stack : error -> error_message list -> unit
+  (** set field stack in error *)
+
+val error_has_process : error -> bool
+  (** presence of field "process" in [error] *)
+
+val error_set_process : error -> string -> unit
+  (** set field process in error *)
 
 
 (** {2 Formatters} *)
