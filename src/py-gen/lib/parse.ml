@@ -261,6 +261,7 @@ let rec parse_term (term : Term.term) :
         in
 
         let ty_defs =
+          (* TODO: use variant_name in type annotation *)
           Ast.variant_dataclass variant_name
             [ variant_constr_name, variant_constr_args ]
         in
@@ -313,7 +314,7 @@ let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 let%expect_test "decode artifact" =
   (* let yaml_str = CCIO.File.read_exn "../examples/art/art.yaml" in *)
   let yaml_str =
-    CCIO.File.read_exn "../test/data/composite/variant_and_record.yaml"
+    CCIO.File.read_exn "../test/data/composite/map_int_bool.yaml"
   in
   let yaml = Yaml.of_string_exn yaml_str in
 
@@ -356,7 +357,7 @@ let%expect_test "decode artifact" =
   printf "%s\n" sep;
 
   print_endline "Term:";
-  Format.fprintf fmt "%a@?" Term.pp term;
+  Format.fprintf fmt "%a@?" Pretty_print.pp_term term;
   print_endline (Format.flush_str_formatter ());
   printf "%s\n" sep;
 
@@ -389,275 +390,167 @@ let%expect_test "decode artifact" =
   (* Also print to stdout for the test *)
   Yojson.Safe.pretty_to_string json_out |> print_endline;
 
-  [%expect
-    {|
-    name: variant_and_record
-    code: type direction = North | South | East | West
+  [%expect.unreachable]
+[@@expect.uncaught_exn {|
+  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
+     This is strongly discouraged as backtraces are fragile.
+     Please change this test to not include a backtrace. *)
+  (Failure "case other than const or construct")
+  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
+  Called from Py_gen__Parse.(fun) in file "src/py-gen/lib/parse.ml", line 372, characters 19-31
+  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
 
-    type position = { x: int; y: int; z: real }
+  Trailing output
+  ---------------
+  name: map_int_bool
+  code: let v : (int, bool) Map.t =
+    Map.const false
+    |> Map.add 2 true
+    |> Map.add 3 false
+    |> Map.add 5 true
 
-    type movement =
-      | Stay of position
-      | Move of position * direction
+  let v = fun w -> if w = v then true else false
 
-    let v =
-      fun w ->
-          if w = Move ({x=1; y=2; z=3.0}, North) then true else false
+  <><><><><><><><><><>
 
-    <><><><><><><><><><>
+  Applied symbol:
+  (w/122084 : { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 })
 
-    Applied symbol:
-    (w/31296 : { view = (Constr (movement/IVNqXLZ7vYtSQiPA0X-p9GAYfd1K-15XG2NAcz2w3us, [])); generation = 1 })
+  <><><><><><><><><><>
 
-    <><><><><><><><><><>
-
-    Term:
-    { view =
-      Construct {
-        c =
-        (Move/DUoe4PMEF5TwFquD7gV2hBxDT5iPWSwjzYJtuwGEBmI : { view =
-                                                              (Arrow ((), { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
-                                                                 { view =
-                                                                   (Arrow ((), { view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, [])); generation = 1 },
-                                                                      { view = (Constr (movement/IVNqXLZ7vYtSQiPA0X-p9GAYfd1K-15XG2NAcz2w3us, [])); generation = 1 }));
-                                                                   generation = 1 }
-                                                                 ));
-                                                              generation = 1 });
-        args =
-        [{ view =
-           Record {
-             rows =
-             [((x/yLb3Gv5Rc8ui4FSvlYOnMeUILRI-73nVRtF70bx7j4E : { view =
-                                                                  (Arrow ((), { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
-                                                                     { view = (Constr (int, [])); generation = 1 }));
-                                                                  generation = 1 }),
-               { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
-               ((y/UhO3k0buKLeOppzS3AGAFJ00UyMdZWrKZ9_YeAuiHUA : { view =
-                                                                   (Arrow ((), { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
-                                                                      { view = (Constr (int, [])); generation = 1 }));
-                                                                   generation = 1 }),
-                { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
-               ((z/HYHj-kM60ymWB5FJSndv4i7Fvsm7ZyLcx4ajmbVk1kQ : { view =
-                                                                   (Arrow ((), { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
-                                                                      { view = (Constr (real, [])); generation = 1 }));
-                                                                   generation = 1 }),
-                { view = (Const 3.0); ty = { view = (Constr (real, [])); generation = 1 }; generation = 0; sub_anchor = None })
-               ];
-             rest = None};
-           ty = { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = Construct {c = (North/XOBmr8zKtuYctJNwJkVg5lSXESY5SxLPgFPKXi6aEA8 : { view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, [])); generation = 1 }); args = []};
-            ty = { view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, [])); generation = 1 }; generation = 0; sub_anchor = None }
-          ]};
-      ty = { view = (Constr (movement/IVNqXLZ7vYtSQiPA0X-p9GAYfd1K-15XG2NAcz2w3us, [])); generation = 1 }; generation = 0; sub_anchor = None }
-
-    <><><><><><><><><><>
-
-    Parsing term:
-
-    Type defs:
-    (Ast.ClassDef
-       { Ast.name = "position"; bases = []; keywords = [];
-         body =
-         [(Ast.AnnAssign
-             { Ast.target = (Ast.Name { Ast.id = "x"; ctx = Ast.Load });
-               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
-               value = None; simple = 1 });
-           (Ast.AnnAssign
-              { Ast.target = (Ast.Name { Ast.id = "y"; ctx = Ast.Load });
-                annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
-                value = None; simple = 1 });
-           (Ast.AnnAssign
-              { Ast.target = (Ast.Name { Ast.id = "z"; ctx = Ast.Load });
-                annotation = (Ast.Name { Ast.id = "real"; ctx = Ast.Load });
-                value = None; simple = 1 })
-           ];
-         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
-    (Ast.ClassDef
-       { Ast.name = "North"; bases = []; keywords = []; body = [Ast.Pass];
-         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
-    (Ast.Assign
-       { Ast.targets = [(Ast.Name { Ast.id = "direction"; ctx = Ast.Load })];
-         value = (Ast.Name { Ast.id = "North"; ctx = Ast.Load });
-         type_comment = None })
-    (Ast.ClassDef
-       { Ast.name = "Move"; bases = []; keywords = [];
-         body =
-         [(Ast.AnnAssign
-             { Ast.target = (Ast.Name { Ast.id = "arg0"; ctx = Ast.Load });
-               annotation = (Ast.Name { Ast.id = "position"; ctx = Ast.Load });
-               value = None; simple = 1 });
-           (Ast.AnnAssign
-              { Ast.target = (Ast.Name { Ast.id = "arg1"; ctx = Ast.Load });
-                annotation = (Ast.Name { Ast.id = "direction"; ctx = Ast.Load });
-                value = None; simple = 1 })
-           ];
-         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
-    (Ast.Assign
-       { Ast.targets = [(Ast.Name { Ast.id = "movement"; ctx = Ast.Load })];
-         value = (Ast.Name { Ast.id = "Move"; ctx = Ast.Load });
-         type_comment = None })
-
-    Expr:
-    (Ast.Call
-       { Ast.func = (Ast.Name { Ast.id = "Move"; ctx = Ast.Load });
-         args =
-         [(Ast.Call
-             { Ast.func = (Ast.Name { Ast.id = "position"; ctx = Ast.Load });
-               args =
-               [(Ast.Constant { Ast.value = (Ast.Int 1); kind = None });
-                 (Ast.Constant { Ast.value = (Ast.Int 2); kind = None });
-                 (Ast.Constant { Ast.value = (Ast.Float 3.); kind = None })];
-               keywords = [] });
-           (Ast.Call
-              { Ast.func = (Ast.Name { Ast.id = "North"; ctx = Ast.Load });
-                args = []; keywords = [] })
-           ];
-         keywords = [] })
-
-    <><><><><><><><><><>
-
-    Json:
-
-    [
-      [
-        "ClassDef",
+  Term:
+  { view =
+      Apply
         {
-          "name": "position",
-          "bases": [],
-          "keywords": [],
-          "body": [
-            [
-              "AnnAssign",
-              {
-                "target": [ "Name", { "id": "x", "ctx": [ "Load" ] } ],
-                "annotation": [ "Name", { "id": "int", "ctx": [ "Load" ] } ],
-                "value": null,
-                "simple": 1
-              }
-            ],
-            [
-              "AnnAssign",
-              {
-                "target": [ "Name", { "id": "y", "ctx": [ "Load" ] } ],
-                "annotation": [ "Name", { "id": "int", "ctx": [ "Load" ] } ],
-                "value": null,
-                "simple": 1
-              }
-            ],
-            [
-              "AnnAssign",
-              {
-                "target": [ "Name", { "id": "z", "ctx": [ "Load" ] } ],
-                "annotation": [ "Name", { "id": "real", "ctx": [ "Load" ] } ],
-                "value": null,
-                "simple": 1
-              }
-            ]
-          ],
-          "decorator_list": [
-            [ "Name", { "id": "dataclass", "ctx": [ "Load" ] } ]
-          ]
-        }
-      ],
-      [
-        "ClassDef",
-        {
-          "name": "North",
-          "bases": [],
-          "keywords": [],
-          "body": [ [ "Pass" ] ],
-          "decorator_list": [
-            [ "Name", { "id": "dataclass", "ctx": [ "Load" ] } ]
-          ]
-        }
-      ],
-      [
-        "Assign",
-        {
-          "targets": [ [ "Name", { "id": "direction", "ctx": [ "Load" ] } ] ],
-          "value": [ "Name", { "id": "North", "ctx": [ "Load" ] } ],
-          "type_comment": null
-        }
-      ],
-      [
-        "ClassDef",
-        {
-          "name": "Move",
-          "bases": [],
-          "keywords": [],
-          "body": [
-            [
-              "AnnAssign",
-              {
-                "target": [ "Name", { "id": "arg0", "ctx": [ "Load" ] } ],
-                "annotation": [ "Name", { "id": "position", "ctx": [ "Load" ] } ],
-                "value": null,
-                "simple": 1
-              }
-            ],
-            [
-              "AnnAssign",
-              {
-                "target": [ "Name", { "id": "arg1", "ctx": [ "Load" ] } ],
-                "annotation": [
-                  "Name", { "id": "direction", "ctx": [ "Load" ] }
-                ],
-                "value": null,
-                "simple": 1
-              }
-            ]
-          ],
-          "decorator_list": [
-            [ "Name", { "id": "dataclass", "ctx": [ "Load" ] } ]
-          ]
-        }
-      ],
-      [
-        "Assign",
-        {
-          "targets": [ [ "Name", { "id": "movement", "ctx": [ "Load" ] } ] ],
-          "value": [ "Name", { "id": "Move", "ctx": [ "Load" ] } ],
-          "type_comment": null
-        }
-      ],
-      [
-        "Assign",
-        {
-          "targets": [ [ "Name", { "id": "w", "ctx": [ "Load" ] } ] ],
-          "value": [
-            "Call",
-            {
-              "func": [ "Name", { "id": "Move", "ctx": [ "Load" ] } ],
-              "args": [
-                [
-                  "Call",
-                  {
-                    "func": [ "Name", { "id": "position", "ctx": [ "Load" ] } ],
-                    "args": [
-                      [ "Constant", { "value": [ "Int", 1 ], "kind": null } ],
-                      [ "Constant", { "value": [ "Int", 2 ], "kind": null } ],
-                      [ "Constant", { "value": [ "Float", 3.0 ], "kind": null } ]
-                    ],
-                    "keywords": []
-                  }
-                ],
-                [
-                  "Call",
-                  {
-                    "func": [ "Name", { "id": "North", "ctx": [ "Load" ] } ],
-                    "args": [],
-                    "keywords": []
-                  }
-                ]
-              ],
-              "keywords": []
-            }
-          ],
-          "type_comment": null
-        }
-      ]
-    ]
-    |}]
+        f =
+          { view =
+            (Sym
+               (Map.add' : { view =
+                             (Arrow ((), { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 },
+                                { view =
+                                  (Arrow ((), { view = (Constr (int, [])); generation = 1 },
+                                     { view =
+                                       (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                          { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }));
+                                       generation = 1 }
+                                     ));
+                                  generation = 1 }
+                                ));
+                             generation = 1 }));
+            ty =
+            { view =
+              (Arrow ((), { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 },
+                 { view =
+                   (Arrow ((), { view = (Constr (int, [])); generation = 1 },
+                      { view =
+                        (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                           { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }));
+                        generation = 1 }
+                      ));
+                   generation = 1 }
+                 ));
+              generation = 1 };
+            generation = 0; sub_anchor = None };
+        l =
+          [{ view =
+             Apply {
+               f =
+               { view =
+                 (Sym
+                    (Map.add' : { view =
+                                  (Arrow ((), { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 },
+                                     { view =
+                                       (Arrow ((), { view = (Constr (int, [])); generation = 1 },
+                                          { view =
+                                            (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                               { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }));
+                                            generation = 1 }
+                                          ));
+                                       generation = 1 }
+                                     ));
+                                  generation = 1 }));
+                 ty =
+                 { view =
+                   (Arrow ((), { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 },
+                      { view =
+                        (Arrow ((), { view = (Constr (int, [])); generation = 1 },
+                           { view =
+                             (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }));
+                             generation = 1 }
+                           ));
+                        generation = 1 }
+                      ));
+                   generation = 1 };
+                 generation = 0; sub_anchor = None };
+               l =
+               [{ view =
+                  Apply {
+                    f =
+                    { view =
+                      (Sym
+                         (Map.add' : { view =
+                                       (Arrow ((), { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 },
+                                          { view =
+                                            (Arrow ((), { view = (Constr (int, [])); generation = 1 },
+                                               { view =
+                                                 (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                    { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }));
+                                                 generation = 1 }
+                                               ));
+                                            generation = 1 }
+                                          ));
+                                       generation = 1 }));
+                      ty =
+                      { view =
+                        (Arrow ((), { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 },
+                           { view =
+                             (Arrow ((), { view = (Constr (int, [])); generation = 1 },
+                                { view =
+                                  (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                     { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }));
+                                  generation = 1 }
+                                ));
+                             generation = 1 }
+                           ));
+                        generation = 1 };
+                      generation = 0; sub_anchor = None };
+                    l =
+                    [{ view =
+                       Apply {
+                         f =
+                         { view =
+                           (Sym
+                              (Map.const : { view =
+                                             (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                                { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }));
+                                             generation = 1 }));
+                           ty =
+                           { view =
+                             (Arrow ((), { view = (Constr (bool, [])); generation = 1 },
+                                { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }));
+                             generation = 1 };
+                           generation = 0; sub_anchor = None };
+                         l = [{ view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
+                       ty = { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }; generation = 0;
+                       sub_anchor = None };
+                      { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None };
+                      { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
+                  ty = { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }; generation = 0; sub_anchor = None };
+                 { view = (Const 3); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None };
+                 { view = (Const false); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None }]};
+             ty = { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 }; generation = 0; sub_anchor = None };
+            { view = (Const 5); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None };
+            { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None }]
+        };
+    ty = { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 };
+    generation = 0;
+    sub_anchor = None }
+
+  <><><><><><><><><><>
+
+  Parsing term:
+  |}]
 
 (* <><><><><><><><><><><><><><><><><><><><>
 Record and variant

@@ -2,7 +2,7 @@
 
 (library
  (name py_gen)
- (modules parse ast util)
+ (modules parse ast util pretty_print)
  (libraries
   imandrax-api
   imandrax-api.artifact
