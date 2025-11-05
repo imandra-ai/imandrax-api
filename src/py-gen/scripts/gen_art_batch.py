@@ -153,6 +153,34 @@ let v =
     ),
 ]
 
+values: list[tuple[str, str]] = [
+    (
+        'inline_record',
+        """\
+type event =
+    | Click of { x: int; y: int }
+    | Keypress of { key: LChar.t; modifiers: LString.t list }
+    | Scroll of { delta: real }
+
+let v = Scroll {delta = 2.0}\
+
+let v = fun w -> if w = v then true else false\
+""",
+    ),
+    (
+        'map_int_bool',
+        """\
+let v : (int, bool) Map.t =
+  Map.const false
+  |> Map.add 2 true
+  |> Map.add 3 false
+  |> Map.add 5 true
+
+let v = fun w -> if w = v then true else false\
+""",
+    ),
+]
+
 # iml = r"""
 # let v = function
 #   | {v} -> true
