@@ -286,7 +286,7 @@ let rec parse_term (term : Term.term) :
     in
 
     res
-  | Term.Apply { f : Term.term; l : Term.term list }, (ty : Type.t) ->
+  | Term.Apply { f = (_ : Term.term); l : Term.term list }, (ty : Type.t) ->
     (try
        (* Extract Map key and value type from ty *)
        let key_ty_name, val_ty_name =
@@ -311,13 +311,108 @@ let rec parse_term (term : Term.term) :
        printf "key_ty_name: %s\n" key_ty_name;
        printf "val_ty_name: %s\n" val_ty_name;
 
-       (match f.view with
-       | Term.Sym { sym = { id = { name; view = _ }; ty = _ }; args; ty = _ } ->
-         let _ = args in
-         printf "name: %s\n" name;
-         print_endline "Map.add'"
-       | _ -> failwith "Never: Map.add' not found");
+       (* Parse the [l] of Map.add'
+        - [Map.add' m k v] adds the pair (k, v) to map m
+        - it should be exactly 3 terms
+        - if the first term is `Map.const`, it contains the default value
+        - if the first term is `Map.add'` again, we recursively call parse_map_add_prime_apply
+
+        Return:
+          - the key-value pairs that have been parsed so far
+          - the default value
+       *)
+       let rec parse_map_add_prime_apply
+           (l1 : Term.term)
+           (l2 : Term.term)
+           (l3 : Term.term)
+           (accu_key_val_pairs : (Term.term * Term.term) list) :
+           (Term.term * Term.term) list * Term.term =
+         let next_accu = accu_key_val_pairs @ [ l2, l3 ] in
+
+         let key_val_pairs, default =
+           match l1.view with
+           | Term.Apply
+               {
+                 f =
+                   ({
+                      view =
+                        Term.Sym
+                          Applied_symbol.
+                            {
+                              sym = { id = Uid.{ name = "Map.add'"; _ }; _ };
+                              _;
+                            };
+                      _;
+                    } :
+                     Term.term);
+                 l : Term.term list;
+               } ->
+             let key_val_pairs, default =
+               match l with
+               | [ inner_l1; inner_l2; inner_l3 ] ->
+                 parse_map_add_prime_apply inner_l1 inner_l2 inner_l3 next_accu
+               | _ ->
+                 let msg =
+                   sprintf
+                     "Never: Map.add' should have exactly 3 terms in the l, \
+                      but got %d"
+                     (List.length l)
+                 in
+                 failwith msg
+             in
+             print_endline "Map.add'";
+             key_val_pairs, default
+           | Term.Apply
+               {
+                 f =
+                   ({
+                      view =
+                        Term.Sym
+                          Applied_symbol.
+                            {
+                              sym = { id = Uid.{ name = "Map.const"; _ }; _ };
+                              _;
+                            };
+                      _;
+                    } :
+                     Term.term);
+                 l : Term.term list;
+               } ->
+             let default_term =
+               match l with
+               | [ default_term ] -> default_term
+               | _ ->
+                 failwith "Never: Map.const should have exactly 1 term in the l"
+             in
+             next_accu, default_term
+           | _ -> failwith "Never: Map.add' or Map.const not found"
+         in
+         key_val_pairs, default
+       in
+
+       let key_val_pairs, default =
+         match l with
+         | [ l1; l2; l3 ] -> parse_map_add_prime_apply l1 l2 l3 []
+         | _ -> failwith "Never: Map.add' should have exactly 3 terms in the l"
+       in
+
+       print_endline "key_val_pairs:";
+       List.iter
+         (fun (k, v) ->
+           let fmt = Format.str_formatter in
+           Format.fprintf fmt "%a@?" Pretty_print.pp_term k;
+           print_endline (Format.flush_str_formatter ());
+           Format.fprintf fmt "%a@?" Pretty_print.pp_term v;
+           print_endline (Format.flush_str_formatter ()))
+         key_val_pairs;
+
+       print_endline "default:";
+       let fmt = Format.str_formatter in
+       Format.fprintf fmt "%a@?" Pretty_print.pp_term default;
+       print_endline (Format.flush_str_formatter ());
+
        let _, _ = ty, l in
+
        Error "WIP"
      with Early_return msg -> Error msg)
   | _, _ ->
@@ -433,7 +528,7 @@ let%expect_test "decode artifact" =
      Please change this test to not include a backtrace. *)
   (Failure WIP)
   Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Py_gen__Parse.(fun) in file "src/py-gen/lib/parse.ml", line 408, characters 19-31
+  Called from Py_gen__Parse.(fun) in file "src/py-gen/lib/parse.ml", line 503, characters 19-31
   Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
 
   Trailing output
@@ -584,12 +679,12 @@ let%expect_test "decode artifact" =
                                        generation = 1 };
                                 generation = 0;
                                 sub_anchor = None };
-                               { view = (Const 2); ty = { view = (Constr (int,[]));
-                                                          generation = 1 };
-                                 generation = 0; sub_anchor = None };
-                               { view = (Const true); ty = { view = (Constr (bool,[]));
-                                                             generation = 1 };
-                                 generation = 0; sub_anchor = None }]
+                              { view = (Const 2); ty = { view = (Constr (int,[]));
+                                                         generation = 1 };
+                                generation = 0; sub_anchor = None };
+                              { view = (Const true); ty = { view = (Constr (bool,[]));
+                                                            generation = 1 };
+                                generation = 0; sub_anchor = None }]
                            };
                   ty = { view = (Constr (Map.t,[{ view = (Constr (int,[]));
                                                   generation = 1 };
@@ -598,12 +693,12 @@ let%expect_test "decode artifact" =
                          generation = 1 };
                   generation = 0;
                   sub_anchor = None };
-                 { view = (Const 3); ty = { view = (Constr (int,[]));
-                                            generation = 1 };
-                   generation = 0; sub_anchor = None };
-                 { view = (Const true); ty = { view = (Constr (bool,[]));
-                                               generation = 1 };
-                   generation = 0; sub_anchor = None }]
+                { view = (Const 3); ty = { view = (Constr (int,[]));
+                                           generation = 1 };
+                  generation = 0; sub_anchor = None };
+                { view = (Const true); ty = { view = (Constr (bool,[]));
+                                              generation = 1 };
+                  generation = 0; sub_anchor = None }]
              };
     ty = { view = (Constr (Map.t,[{ view = (Constr (int,[]));
                                     generation = 1 };
@@ -619,8 +714,24 @@ let%expect_test "decode artifact" =
 
   key_ty_name: int
   val_ty_name: bool
-  name: Map.add'
   Map.add'
+  key_val_pairs:
+  { view = (Const 3); ty = { view = (Constr (int,[]));
+                             generation = 1 };
+    generation = 0; sub_anchor = None }
+  { view = (Const true); ty = { view = (Constr (bool,[]));
+                                generation = 1 };
+    generation = 0; sub_anchor = None }
+  { view = (Const 2); ty = { view = (Constr (int,[]));
+                             generation = 1 };
+    generation = 0; sub_anchor = None }
+  { view = (Const true); ty = { view = (Constr (bool,[]));
+                                generation = 1 };
+    generation = 0; sub_anchor = None }
+  default:
+  { view = (Const false); ty = { view = (Constr (bool,[]));
+                                 generation = 1 };
+    generation = 0; sub_anchor = None }
   |}]
 
 (* <><><><><><><><><><><><><><><><><><><><>
