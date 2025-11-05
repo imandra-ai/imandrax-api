@@ -1,0 +1,58 @@
+name: map_int_bool_2
+iml: |-
+  let v : (int, bool) Map.t =
+    Map.const false
+    |> Map.add 2 true
+    |> Map.add 3 true
+
+  let v = fun w -> if w = v then true else false
+instance_src: v
+data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wZgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGL/EPewSm1rX3NfYXJyYXmz/GJFTWFwLnT4wwL5/w22ALDyY/L/GgJh9cEDAv8i/wVi/0H/KcACH7AcoGJBYfiw9MACH7EcoGJBYviw9GL+88MC/zH2wQMC/Phi/xD/BmL1+7BObWtfYXJyYXlfY29uc3Sz/wFiSU1hcC5jb25zdP1i/P8UY/T/R/9QtPZj8v9WAsIC9v9eY/X/cAKyWAQAAAAAAAAAsPpj8v+6AQK2AbDyY/L/qgECY/8S/wP6wQMC/9EB/4sBwQMC/6EB/mL/3wH/yAHAAh+1HKBiQWH4sPTAAh+2HKBiQWL4sPRi/vPDAv/RAffBAwL9+cEDAv8P+cEDAv8E+mL/Hf8TYvX8sE5ta19hcnJheV9zdG9yZbP/AWJITWFwLmFkZCf8Yvv/E2P0/1X/XrT2Y/L/ZALCAvb/eWP1/5wCArJYBgAAAAAAAACw+mPy/+cCAmP/Cfj/nQHCAv8b+mP1/8ACAmBgYvH/yALAAh+AywSgYkF3+WL0/wJj9P8I/94CYvf/FWH0YGbx9P+4AwEB/74DCg==
+api_version: v17
+kind: mir.model
+storage: []
+_python_code: |
+  from collections import defaultdict
+
+  w: defaultdict[int, bool] = defaultdict(lambda: False)
+  w[2] = True
+  w[3] = True
+_python_ast: |
+  Module(
+      body=[
+          ImportFrom(
+              module='collections',
+              names=[
+                  alias(name='defaultdict')],
+              level=0),
+          AnnAssign(
+              target=Name(id='w', ctx=Store()),
+              annotation=Subscript(
+                  value=Name(id='defaultdict', ctx=Load()),
+                  slice=Tuple(
+                      elts=[
+                          Name(id='int', ctx=Load()),
+                          Name(id='bool', ctx=Load())],
+                      ctx=Load()),
+                  ctx=Load()),
+              value=Call(
+                  func=Name(id='defaultdict', ctx=Load()),
+                  args=[
+                      Lambda(
+                          args=arguments(),
+                          body=Constant(value=False))]),
+              simple=1),
+          Assign(
+              targets=[
+                  Subscript(
+                      value=Name(id='w', ctx=Load()),
+                      slice=Constant(value=2),
+                      ctx=Store())],
+              value=Constant(value=True)),
+          Assign(
+              targets=[
+                  Subscript(
+                      value=Name(id='w', ctx=Load()),
+                      slice=Constant(value=3),
+                      ctx=Store())],
+              value=Constant(value=True))])

@@ -1,4 +1,4 @@
-name: map_int_bool
+name: map_int_bool_3
 iml: |-
   let v : (int, bool) Map.t =
     Map.const false

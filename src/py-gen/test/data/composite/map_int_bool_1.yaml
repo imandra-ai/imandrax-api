@@ -1,0 +1,13 @@
+name: map_int_bool_1
+iml: |-
+  let v : (int, bool) Map.t =
+    Map.const false
+    |> Map.add 2 true
+
+  let v = fun w -> if w = v then true else false
+instance_src: v
+data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wZgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGL/EPewSm1rX3NfYXJyYXmz/GJFTWFwLnT4wwL5/w22ALDyY/L/GgJh9cEDAv8i/wVi/0H/KcACH7AcoGJBYfiw9MACH7EcoGJBYviw9GL+88MC/zH2wQMC/Phi/xD/BmL1+7BObWtfYXJyYXlfY29uc3Sz/wFiSU1hcC5jb25zdP1i/P8UY/T/R/9QtPZj8v9WAsIC9v9eY/X/cAKyWAQAAAAAAAAAsPpj8v+6AQK2AbDyY/L/qgECY/8S/wP6wQMC/9EB/4sBwQMC/6EB/mL/3wH/yAHAAh+1HKBiQWH4sPTAAh+2HKBiQWL4sPRi/vPDAv/RAffBAwL9+cEDAv8P+cEDAv8E+mL/Hf8TYvX8sE5ta19hcnJheV9zdG9yZbP/AWJITWFwLmFkZCf8Yvv/E2P0/1X/XrT2Y/L/ZALCAvb/eWP1/5wCAmBgYvH/pALAAh/2ngSgYkF3+WL0/wJj9P8I/7oCYvf/FWH0YGbx9P+UAwEB/5oDCg==
+api_version: v17
+kind: mir.model
+storage: []
+_python_code: |
