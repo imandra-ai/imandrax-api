@@ -459,3 +459,38 @@ let%expect_test "variant_and_record" =
            ];
          keywords = [] })
     |}]
+
+let%expect_test "inline record" =
+  test_parse_model (Some "composite") "inline_record";
+  [%expect {|
+    name: inline_record
+    iml_code:
+    type event =
+        | Click of { x: int; y: int }
+        | Keypress of { key: LChar.t; modifiers: LString.t list }
+        | Scroll of { delta: real }
+
+    let v = Scroll {delta = 2.0}
+    let v = fun w -> if w = v then true else false
+
+    Type defs:
+    (Ast.ClassDef
+       { Ast.name = "Scroll"; bases = []; keywords = [];
+         body =
+         [(Ast.AnnAssign
+             { Ast.target = (Ast.Name { Ast.id = "arg0"; ctx = Ast.Load });
+               annotation = (Ast.Name { Ast.id = "real"; ctx = Ast.Load });
+               value = None; simple = 1 })
+           ];
+         decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
+    (Ast.Assign
+       { Ast.targets = [(Ast.Name { Ast.id = "event"; ctx = Ast.Load })];
+         value = (Ast.Name { Ast.id = "Scroll"; ctx = Ast.Load });
+         type_comment = None })
+
+    Expr:
+    (Ast.Call
+       { Ast.func = (Ast.Name { Ast.id = "Scroll"; ctx = Ast.Load });
+         args = [(Ast.Constant { Ast.value = (Ast.Float 2.); kind = None })];
+         keywords = [] })
+    |}]
