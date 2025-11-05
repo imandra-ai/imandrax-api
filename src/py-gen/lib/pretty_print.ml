@@ -34,9 +34,9 @@ let pp_term_view pp_t out (v : (_, _) Term.view) =
     fprintf out "@[<hv 2>If@ (@,%a,@ %a,@ %a@,)@]" pp_t a pp_t b pp_t c
   | Term.Apply { f; l } ->
     fprintf out
-      "@[<hv 2>Apply {@\n@[<hv 2>f = %a@];@,@[<hv 2>l =@ @[<hv 2>[%a]@]@]@,}@]"
-      pp_t f
-      (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@ ") pp_t)
+      "Apply {@[<hv>@[<hv 2>f = %a@];@,@[<hv 2>l =@ @[<hv 1>[%a]@]@]@,@]}" pp_t
+      f
+      (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@,") pp_t)
       l
   | Term.Var v ->
     fprintf out "@[<hv 2>(Var@ %a)@]"
