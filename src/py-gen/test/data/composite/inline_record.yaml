@@ -1,0 +1,14 @@
+name: inline_record
+iml: |-
+  type event =
+      | Click of { x: int; y: int }
+      | Keypress of { key: LChar.t; modifiers: LString.t list }
+      | Scroll of { delta: real }
+
+  let v = Scroll {delta = 2.0}
+  let v = fun w -> if w = v then true else false
+instance_src: v
+data: YGBgXxHfdB2s7l+M7lh9o12IzHtzC2F48PJllX1wL9GHeGkkDWNFZXZlbnT/GQGG+rLyYkVldmVudPjDAvn/LGCwSW1rX3NfcmVhbLP7YkRyZWFs98MC+P8IYlgEAAAAAAAAAFgCAAAAAAAAALP/BLDzY/L/DwJh9cEDAv8X/zNgYGLx+l8Ry0oPqhZgx/qBr8hVGw/986ouqDSDFu5ljazblVUuLeBjRlNjcm9sbP8aAIb7svJiRlNjcm9sbPli+f8vY/T/Nf8+xQL3/0Vj9f+FAQJgYGLx/40BwAIfpLkHoGJBd/li9P8CY/T/CP+jAWL3/xVh9GBm8fT/6gEBAf/wAQo=
+api_version: v17
+kind: mir.model
+storage: []
