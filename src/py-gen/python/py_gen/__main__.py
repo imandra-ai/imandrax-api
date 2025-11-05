@@ -14,7 +14,7 @@ def main() -> None:
     )
     parser.add_argument(
         'input',
-        help='Input JSON file (from OCaml yojson), or \'-\' for stdin',
+        help="Input JSON file (from OCaml yojson), or '-' for stdin",
     )
     parser.add_argument(
         '-o',
@@ -28,6 +28,7 @@ def main() -> None:
     # Read and deserialize
     if args.input == '-':
         import sys
+
         json_str = sys.stdin.read()
     else:
         with Path(args.input).open() as f:
