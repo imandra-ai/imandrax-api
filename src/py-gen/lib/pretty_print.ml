@@ -13,14 +13,15 @@ let pp_ty_view pp_lbl pp_var pp_t out (v : ('lbl, 'var, 't) Ty_view.view) =
       (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@ ") pp_t)
       ts
   | Ty_view.Constr (uid, args) ->
-    fprintf out "@[<hv 2>(Constr@ (%a,@ @[<hv 2>[%a]@]))@]" Uid.pp uid
-      (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@ ") pp_t)
+    fprintf out "@[<hv 2>(Constr@ (@[<hv>%a,@,@[<v 1>[%a]@]@]))@]" Uid.pp uid
+      (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@,") pp_t)
       args
 
 (* Custom pretty-printer for Type.t with better Arrow formatting *)
 let rec pp_type out (ty : Type.t) =
   let open Format in
-  fprintf out "@[<hv 2>{ @[<hv 2>view =@ %a@];@ @[<hv 2>generation =@ %a@] }@]"
+  fprintf out
+    "@[<hv 2>{ @[<v>@[<hv 2>view =@ %a@];@ @[<h 2>generation =@ %a@]@] }@]"
     (pp_ty_view (fun out () -> fprintf out "()") Uid.pp pp_type)
     ty.view Type.pp_generation ty.generation
 
@@ -33,7 +34,7 @@ let pp_term_view pp_t out (v : (_, _) Term.view) =
     fprintf out "@[<hv 2>If@ (@,%a,@ %a,@ %a@,)@]" pp_t a pp_t b pp_t c
   | Term.Apply { f; l } ->
     fprintf out
-      "@[<hv 2>Apply@ {@,@[<hv 2>f =@ %a@];@,@[<hv 2>l =@ @[<hv 2>[%a]@]@]@,}@]"
+      "@[<hv 2>Apply {@\n@[<hv 2>f = %a@];@,@[<hv 2>l =@ @[<hv 2>[%a]@]@]@,}@]"
       pp_t f
       (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@ ") pp_t)
       l
@@ -121,8 +122,8 @@ let pp_term_view pp_t out (v : (_, _) Term.view) =
 let rec pp_term out (term : Term.term) =
   let open Format in
   fprintf out
-    "@[<hv 2>{ @[<hv 2>view =@ %a@];@ @[<hv 2>ty =@ %a@];@ @[<hv 2>generation \
-     =@ %a@];@ @[<hv 2>sub_anchor =@ %a@] }@]"
+    "@[<hv 2>{ @[<hv 2>view =@ %a@];@ @[<hv 2>ty =@ %a@];@\n\
+     @[<hv 2>generation =@ %a@];@ @[<hv 2>sub_anchor =@ %a@] }@]"
     (pp_term_view pp_term) term.view pp_type term.ty Term.pp_generation
     term.generation
     (fun out -> function
