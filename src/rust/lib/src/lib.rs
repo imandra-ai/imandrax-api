@@ -577,6 +577,8 @@ pub struct CommonInstantiation_ruleT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_t
 }
 
 
+// clique 
+
 // clique Imandrax_api_common.Fun_decomp.t_poly
 #[derive(Debug, Clone)]
 pub struct CommonFun_decompT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
@@ -696,6 +698,7 @@ pub enum MirTermView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
   Construct {
     c: &'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,
     args: &'a [V_tyreg_poly_t],
+    labels: Option<&'a [&'a Uid<'a>]>,
   },
   Destruct {
     c: &'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,
