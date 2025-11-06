@@ -1992,6 +1992,7 @@ def Mir_Term_view_Sym_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decode
 class Mir_Term_view_Construct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     c: Common_Applied_symbol_t_poly[_V_tyreg_poly_ty]
     args: list[_V_tyreg_poly_t]
+    labels: None | list[Uid]
 
 
 def Mir_Term_view_Construct_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Construct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
@@ -1999,7 +2000,8 @@ def Mir_Term_view_Construct_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.
     decode__tyreg_poly_ty = d1
     c = Common_Applied_symbol_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     args = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])]
-    return Mir_Term_view_Construct(c=c,args=args)
+    labels = twine.optional(d=d, off=args[2], d0=lambda d, off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
+    return Mir_Term_view_Construct(c=c,args=args,labels=labels)
 
 
 @dataclass(slots=True, frozen=True)
