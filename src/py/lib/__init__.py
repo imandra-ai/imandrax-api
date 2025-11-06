@@ -1674,13 +1674,21 @@ def Common_Instantiation_rule_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_t
     ir_kind = Common_Instantiation_rule_kind_of_twine(d=d, off=fields[2])
     return Common_Instantiation_rule_t_poly(ir_from=ir_from,ir_triggers=ir_triggers,ir_kind=ir_kind)
 
+# clique Imandrax_api_common.Fun_decomp.list_with_len (cached: false)
+# def Imandrax_api_common.Fun_decomp.list_with_len (mangled name: "Common_Fun_decomp_list_with_len")
+type Common_Fun_decomp_list_with_len[_V_tyreg_poly_a] = list[_V_tyreg_poly_a]
+
+def Common_Fun_decomp_list_with_len_of_twine(d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_a],off: int) -> Common_Fun_decomp_list_with_len:
+    decode__tyreg_poly_a = d0
+    return [decode__tyreg_poly_a(d=d,off=x) for x in d.get_array(off=off)]
+
 # clique Imandrax_api_common.Fun_decomp.t_poly (cached: false)
 # def Imandrax_api_common.Fun_decomp.t_poly (mangled name: "Common_Fun_decomp_t_poly")
 @dataclass(slots=True, frozen=True)
 class Common_Fun_decomp_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     f_id: Uid
     f_args: list[Common_Var_t_poly[_V_tyreg_poly_ty]]
-    regions: list[Common_Region_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]]
+    regions: Common_Fun_decomp_list_with_len[Common_Region_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]]
 
 def Common_Fun_decomp_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Fun_decomp_t_poly:
     decode__tyreg_poly_term = d0
@@ -1688,7 +1696,7 @@ def Common_Fun_decomp_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: tw
     fields = list(d.get_array(off=off))
     f_id = Uid_of_twine(d=d, off=fields[0])
     f_args = [Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[1])]
-    regions = [Common_Region_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=fields[2])]
+    regions = Common_Fun_decomp_list_with_len_of_twine(d=d,off=fields[2],d0=(lambda d, off: Common_Region_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     return Common_Fun_decomp_t_poly(f_id=f_id,f_args=f_args,regions=regions)
 
 # clique Imandrax_api_common.Elimination_rule.t_poly (cached: false)
@@ -1984,6 +1992,7 @@ def Mir_Term_view_Sym_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decode
 class Mir_Term_view_Construct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     c: Common_Applied_symbol_t_poly[_V_tyreg_poly_ty]
     args: list[_V_tyreg_poly_t]
+    labels: None | list[Uid]
 
 
 def Mir_Term_view_Construct_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Mir_Term_view_Construct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
@@ -1991,7 +2000,8 @@ def Mir_Term_view_Construct_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.
     decode__tyreg_poly_ty = d1
     c = Common_Applied_symbol_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     args = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])]
-    return Mir_Term_view_Construct(c=c,args=args)
+    labels = twine.optional(d=d, off=args[2], d0=lambda d, off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
+    return Mir_Term_view_Construct(c=c,args=args,labels=labels)
 
 
 @dataclass(slots=True, frozen=True)
