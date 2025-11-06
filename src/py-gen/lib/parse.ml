@@ -33,6 +33,10 @@ let unzip3 triples =
     (fun (x, y, z) (xs, ys, zs) -> x :: xs, y :: ys, z :: zs)
     triples ([], [], [])
 
+let unwrap : ('a, 'b) result -> 'a = function
+  | Ok x -> x
+  | Error msg -> failwith msg
+
 (*
 Return:
   type definition statements
@@ -41,10 +45,6 @@ Return:
 *)
 let rec parse_term (term : Term.term) :
     (Ast.stmt list * Ast.expr option * Ast.expr, string) result =
-  let unwrap : ('a, 'b) result -> 'a = function
-    | Ok x -> x
-    | Error msg -> failwith msg
-  in
   match (term.view : (Term.term, Type.t) Term.view), (term.ty : Type.t) with
   (* Constant *)
   | Term.Const const, _ ->
@@ -71,7 +71,7 @@ let rec parse_term (term : Term.term) :
       Ok ([], None, Ast.Constant { value = String s; kind = None })
     | c ->
       (* Uid and real_approx *)
-      let msg = sprintf "unhandle const %s" (Imandrax_api.Const.show c) in
+      let msg = sprintf "unhandled const %s" (Imandrax_api.Const.show c) in
       Error msg)
   (* Tuple *)
   | Term.Tuple { l = (terms : Term.term list) }, (_ty : Type.t) ->
@@ -322,6 +322,10 @@ let rec parse_term (term : Term.term) :
        printf "key_ty_name: %s\n" key_ty_name;
        printf "val_ty_name: %s\n" val_ty_name;
 
+       let type_annot =
+         Ast.defaultdict_type_annotation key_ty_name val_ty_name
+       in
+
        (* Parse the [l] of Map.add'
         - [Map.add' m k v] adds the pair (k, v) to map m
         - it should be exactly 3 terms
@@ -393,6 +397,25 @@ let rec parse_term (term : Term.term) :
        in
        let key_val_pairs, default = parse_map_term_view f l [] in
 
+       let default_val_ty_defs, _default_val_type_annot, default_val_expr =
+         default |> parse_term |> unwrap
+       in
+
+       let key_terms, val_terms = List.split key_val_pairs in
+
+       let keys_ty_defs, _key_type_annots, key_exprs =
+         key_terms |> List.map (fun k -> parse_term k |> unwrap) |> unzip3
+       in
+
+       let vals_ty_defs, _val_type_annots, val_exprs =
+         val_terms |> List.map (fun k -> parse_term k |> unwrap) |> unzip3
+       in
+
+       let defaultdict_expr =
+         Ast.init_defaultdict default_val_expr
+           (CCList.combine key_exprs val_exprs)
+       in
+
        print_endline "key_val_pairs:";
        List.iter
          (fun (k, v) ->
@@ -408,9 +431,11 @@ let rec parse_term (term : Term.term) :
        Format.fprintf fmt "%a@?" Pretty_print.pp_term default;
        print_endline (Format.flush_str_formatter ());
 
-       let _, _ = ty, l in
-
-       Error "WIP"
+       Ok
+         ( default_val_ty_defs @ List.flatten keys_ty_defs
+           @ List.flatten vals_ty_defs,
+           Some type_annot,
+           defaultdict_expr )
      with Early_return msg -> Error msg)
   | _, _ ->
     let msg = "case other than const, construct, or apply" in
@@ -418,7 +443,7 @@ let rec parse_term (term : Term.term) :
 
 let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
     Ast.stmt list =
-  let app_sym, term = unpack_model model in
+  let (app_sym : Type.t Applied_symbol.t_poly), term = unpack_model model in
   let ty_defs, type_annot, term_expr =
     match parse_term term with
     | Ok (ty_defs, type_annot, term_expr) -> ty_defs, type_annot, term_expr
@@ -534,144 +559,59 @@ let%expect_test "decode artifact" =
   (* Also print to stdout for the test *)
   Yojson.Safe.pretty_to_string json_out |> print_endline;
 
-  [%expect.unreachable]
-[@@expect.uncaught_exn
-  {|
-  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
-     This is strongly discouraged as backtraces are fragile.
-     Please change this test to not include a backtrace. *)
-  (Failure WIP)
-  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Py_gen__Parse.(fun) in file "src/py-gen/lib/parse.ml", line 563, characters 19-31
-  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
+  [%expect {|
+    name: map_int_bool_2
+    code: let v : (int, bool) Map.t =
+      Map.const false
+      |> Map.add 2 true
+      |> Map.add 3 true
 
-  Trailing output
-  ---------------
-  name: map_int_bool_2
-  code: let v : (int, bool) Map.t =
-    Map.const false
-    |> Map.add 2 true
-    |> Map.add 3 true
+    let v = fun w -> if w = v then true else false
 
-  let v = fun w -> if w = v then true else false
+    <><><><><><><><><><>
 
-  <><><><><><><><><><>
+    Applied symbol:
+    (w/75151 : { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 })
 
-  Applied symbol:
-  (w/75151 : { view = (Constr (Map.t, [{ view = (Constr (int, [])); generation = 1 }; { view = (Constr (bool, [])); generation = 1 }])); generation = 1 })
+    <><><><><><><><><><>
 
-  <><><><><><><><><><>
-
-  Term:
-  { view =
-      Apply {f = { view =
-                     (Sym
-                       (Map.add' : { view =
-                                       (Arrow ((),
-                                               { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                                          generation = 1 };
-                                                                        { view = (Constr (bool,[]));
-                                                                          generation = 1 }]));
-                                                 generation = 1 },
-                                               { view = (Arrow ((),
-                                                                { view = (Constr (int,[]));
-                                                                  generation = 1 },
-                                                                { view = (Arrow ((),
-                                                                                 { view = (Constr (bool,[]));
-                                                                                   generation = 1 },
-                                                                                 { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                                                                            generation = 1 };
-                                                                                                          { view = (Constr (bool,[]));
-                                                                                                            generation = 1 }]));
-                                                                                   generation = 1 }));
-                                                                  generation = 1 }));
-                                                 generation = 1 }));
-                                     generation = 1 }));
-                   ty =
-                     { view =
-                         (Arrow ((),
-                                 { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                            generation = 1 };
-                                                          { view = (Constr (bool,[]));
-                                                            generation = 1 }]));
-                                   generation = 1 },
-                                 { view = (Arrow ((),
-                                                  { view = (Constr (int,[]));
-                                                    generation = 1 },
-                                                  { view = (Arrow ((),
-                                                                   { view = (Constr (bool,[]));
-                                                                     generation = 1 },
-                                                                   { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                                                              generation = 1 };
-                                                                                            { view = (Constr (bool,[]));
-                                                                                              generation = 1 }]));
-                                                                     generation = 1 }));
-                                                    generation = 1 }));
-                                   generation = 1 }));
-                       generation = 1 };
-                   generation = 0;
-                   sub_anchor = None };
-             l =
-               [{ view =
-                    Apply {f = { view =
-                                   (Sym
-                                     (Map.add' : { view =
-                                                     (Arrow ((),
-                                                             { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                                                        generation = 1 };
-                                                                                      { view = (Constr (bool,[]));
-                                                                                        generation = 1 }]));
-                                                               generation = 1 },
-                                                             { view = (Arrow ((),
-                                                                              { view = (Constr (int,[]));
-                                                                                generation = 1 },
-                                                                              { view = (Arrow ((),
-                                                                                               { view = (Constr (bool,[]));
-                                                                                                 generation = 1 },
-                                                                                               { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                                                                                          generation = 1 };
-                                                                                                                        { view = (Constr (bool,[]));
-                                                                                                                          generation = 1 }]));
-                                                                                                 generation = 1 }));
-                                                                                generation = 1 }));
-                                                               generation = 1 }));
+    Term:
+    { view =
+        Apply {f = { view =
+                       (Sym
+                         (Map.add' : { view =
+                                         (Arrow ((),
+                                                 { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                                            generation = 1 };
+                                                                          { view = (Constr (bool,[]));
+                                                                            generation = 1 }]));
+                                                   generation = 1 },
+                                                 { view = (Arrow ((),
+                                                                  { view = (Constr (int,[]));
+                                                                    generation = 1 },
+                                                                  { view = (Arrow ((),
+                                                                                   { view = (Constr (bool,[]));
+                                                                                     generation = 1 },
+                                                                                   { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                                                                              generation = 1 };
+                                                                                                            { view = (Constr (bool,[]));
+                                                                                                              generation = 1 }]));
+                                                                                     generation = 1 }));
+                                                                    generation = 1 }));
                                                    generation = 1 }));
-                                 ty =
-                                   { view =
-                                       (Arrow ((),
-                                               { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                                          generation = 1 };
-                                                                        { view = (Constr (bool,[]));
-                                                                          generation = 1 }]));
-                                                 generation = 1 },
-                                               { view = (Arrow ((),
-                                                                { view = (Constr (int,[]));
-                                                                  generation = 1 },
-                                                                { view = (Arrow ((),
-                                                                                 { view = (Constr (bool,[]));
-                                                                                   generation = 1 },
-                                                                                 { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                                                                            generation = 1 };
-                                                                                                          { view = (Constr (bool,[]));
-                                                                                                            generation = 1 }]));
-                                                                                   generation = 1 }));
-                                                                  generation = 1 }));
-                                                 generation = 1 }));
-                                     generation = 1 };
-                                 generation = 0;
-                                 sub_anchor = None };
-                           l =
-                             [{ view =
-                                  Apply {f = { view = (Sym (Map.const : { view = (Arrow ((),
-                                                                                         { view = (Constr (bool,[]));
-                                                                                           generation = 1 },
-                                                                                         { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                                                                                    generation = 1 };
-                                                                                                                  { view = (Constr (bool,[]));
-                                                                                                                    generation = 1 }]));
-                                                                                           generation = 1 }));
-                                                                          generation = 1 }));
-                                               ty = { view = (Arrow ((),
+                                       generation = 1 }));
+                     ty =
+                       { view =
+                           (Arrow ((),
+                                   { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                              generation = 1 };
+                                                            { view = (Constr (bool,[]));
+                                                              generation = 1 }]));
+                                     generation = 1 },
+                                   { view = (Arrow ((),
+                                                    { view = (Constr (int,[]));
+                                                      generation = 1 },
+                                                    { view = (Arrow ((),
                                                                      { view = (Constr (bool,[]));
                                                                        generation = 1 },
                                                                      { view = (Constr (Map.t,[{ view = (Constr (int,[]));
@@ -679,73 +619,267 @@ let%expect_test "decode artifact" =
                                                                                               { view = (Constr (bool,[]));
                                                                                                 generation = 1 }]));
                                                                        generation = 1 }));
-                                                      generation = 1 };
-                                               generation = 0;
-                                               sub_anchor = None };
-                                         l = [{ view = (Const false); ty = { view = (Constr (bool,[]));
-                                                                             generation = 1 };
-                                                generation = 0; sub_anchor = None }]
-                                         };
-                                ty = { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                                generation = 1 };
-                                                              { view = (Constr (bool,[]));
-                                                                generation = 1 }]));
-                                       generation = 1 };
-                                generation = 0;
-                                sub_anchor = None };
-                              { view = (Const 2); ty = { view = (Constr (int,[]));
-                                                         generation = 1 };
-                                generation = 0; sub_anchor = None };
-                              { view = (Const true); ty = { view = (Constr (bool,[]));
-                                                            generation = 1 };
-                                generation = 0; sub_anchor = None }]
-                           };
-                  ty = { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                                  generation = 1 };
-                                                { view = (Constr (bool,[]));
-                                                  generation = 1 }]));
+                                                      generation = 1 }));
+                                     generation = 1 }));
                          generation = 1 };
-                  generation = 0;
-                  sub_anchor = None };
-                { view = (Const 3); ty = { view = (Constr (int,[]));
-                                           generation = 1 };
-                  generation = 0; sub_anchor = None };
-                { view = (Const true); ty = { view = (Constr (bool,[]));
-                                              generation = 1 };
-                  generation = 0; sub_anchor = None }]
-             };
-    ty = { view = (Constr (Map.t,[{ view = (Constr (int,[]));
-                                    generation = 1 };
-                                  { view = (Constr (bool,[]));
-                                    generation = 1 }]));
-           generation = 1 };
-    generation = 0;
-    sub_anchor = None }
+                     generation = 0;
+                     sub_anchor = None };
+               l =
+                 [{ view =
+                      Apply {f = { view =
+                                     (Sym
+                                       (Map.add' : { view =
+                                                       (Arrow ((),
+                                                               { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                                                          generation = 1 };
+                                                                                        { view = (Constr (bool,[]));
+                                                                                          generation = 1 }]));
+                                                                 generation = 1 },
+                                                               { view = (Arrow ((),
+                                                                                { view = (Constr (int,[]));
+                                                                                  generation = 1 },
+                                                                                { view = (Arrow ((),
+                                                                                                 { view = (Constr (bool,[]));
+                                                                                                   generation = 1 },
+                                                                                                 { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                                                                                            generation = 1 };
+                                                                                                                          { view = (Constr (bool,[]));
+                                                                                                                            generation = 1 }]));
+                                                                                                   generation = 1 }));
+                                                                                  generation = 1 }));
+                                                                 generation = 1 }));
+                                                     generation = 1 }));
+                                   ty =
+                                     { view =
+                                         (Arrow ((),
+                                                 { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                                            generation = 1 };
+                                                                          { view = (Constr (bool,[]));
+                                                                            generation = 1 }]));
+                                                   generation = 1 },
+                                                 { view = (Arrow ((),
+                                                                  { view = (Constr (int,[]));
+                                                                    generation = 1 },
+                                                                  { view = (Arrow ((),
+                                                                                   { view = (Constr (bool,[]));
+                                                                                     generation = 1 },
+                                                                                   { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                                                                              generation = 1 };
+                                                                                                            { view = (Constr (bool,[]));
+                                                                                                              generation = 1 }]));
+                                                                                     generation = 1 }));
+                                                                    generation = 1 }));
+                                                   generation = 1 }));
+                                       generation = 1 };
+                                   generation = 0;
+                                   sub_anchor = None };
+                             l =
+                               [{ view =
+                                    Apply {f = { view = (Sym (Map.const : { view = (Arrow ((),
+                                                                                           { view = (Constr (bool,[]));
+                                                                                             generation = 1 },
+                                                                                           { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                                                                                      generation = 1 };
+                                                                                                                    { view = (Constr (bool,[]));
+                                                                                                                      generation = 1 }]));
+                                                                                             generation = 1 }));
+                                                                            generation = 1 }));
+                                                 ty = { view = (Arrow ((),
+                                                                       { view = (Constr (bool,[]));
+                                                                         generation = 1 },
+                                                                       { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                                                                  generation = 1 };
+                                                                                                { view = (Constr (bool,[]));
+                                                                                                  generation = 1 }]));
+                                                                         generation = 1 }));
+                                                        generation = 1 };
+                                                 generation = 0;
+                                                 sub_anchor = None };
+                                           l = [{ view = (Const false); ty = { view = (Constr (bool,[]));
+                                                                               generation = 1 };
+                                                  generation = 0; sub_anchor = None }]
+                                           };
+                                  ty = { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                                  generation = 1 };
+                                                                { view = (Constr (bool,[]));
+                                                                  generation = 1 }]));
+                                         generation = 1 };
+                                  generation = 0;
+                                  sub_anchor = None };
+                                { view = (Const 2); ty = { view = (Constr (int,[]));
+                                                           generation = 1 };
+                                  generation = 0; sub_anchor = None };
+                                { view = (Const true); ty = { view = (Constr (bool,[]));
+                                                              generation = 1 };
+                                  generation = 0; sub_anchor = None }]
+                             };
+                    ty = { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                                    generation = 1 };
+                                                  { view = (Constr (bool,[]));
+                                                    generation = 1 }]));
+                           generation = 1 };
+                    generation = 0;
+                    sub_anchor = None };
+                  { view = (Const 3); ty = { view = (Constr (int,[]));
+                                             generation = 1 };
+                    generation = 0; sub_anchor = None };
+                  { view = (Const true); ty = { view = (Constr (bool,[]));
+                                                generation = 1 };
+                    generation = 0; sub_anchor = None }]
+               };
+      ty = { view = (Constr (Map.t,[{ view = (Constr (int,[]));
+                                      generation = 1 };
+                                    { view = (Constr (bool,[]));
+                                      generation = 1 }]));
+             generation = 1 };
+      generation = 0;
+      sub_anchor = None }
 
-  <><><><><><><><><><>
+    <><><><><><><><><><>
 
-  Parsing term:
+    Parsing term:
 
-  key_ty_name: int
-  val_ty_name: bool
-  key_val_pairs:
-  { view = (Const 3); ty = { view = (Constr (int,[]));
-                             generation = 1 };
-    generation = 0; sub_anchor = None }
-  { view = (Const true); ty = { view = (Constr (bool,[]));
-                                generation = 1 };
-    generation = 0; sub_anchor = None }
-  { view = (Const 2); ty = { view = (Constr (int,[]));
-                             generation = 1 };
-    generation = 0; sub_anchor = None }
-  { view = (Const true); ty = { view = (Constr (bool,[]));
-                                generation = 1 };
-    generation = 0; sub_anchor = None }
-  default:
-  { view = (Const false); ty = { view = (Constr (bool,[]));
-                                 generation = 1 };
-    generation = 0; sub_anchor = None }
-  |}]
+    key_ty_name: int
+    val_ty_name: bool
+    key_val_pairs:
+    { view = (Const 3); ty = { view = (Constr (int,[]));
+                               generation = 1 };
+      generation = 0; sub_anchor = None }
+    { view = (Const true); ty = { view = (Constr (bool,[]));
+                                  generation = 1 };
+      generation = 0; sub_anchor = None }
+    { view = (Const 2); ty = { view = (Constr (int,[]));
+                               generation = 1 };
+      generation = 0; sub_anchor = None }
+    { view = (Const true); ty = { view = (Constr (bool,[]));
+                                  generation = 1 };
+      generation = 0; sub_anchor = None }
+    default:
+    { view = (Const false); ty = { view = (Constr (bool,[]));
+                                   generation = 1 };
+      generation = 0; sub_anchor = None }
+    Type defs:
+    Type annot: (Ast.Subscript
+       { Ast.value = (Ast.Name { Ast.id = "defaultdict"; ctx = Ast.Load });
+         slice =
+         (Ast.Tuple
+            { Ast.elts =
+              [(Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+                (Ast.Name { Ast.id = "bool"; ctx = Ast.Load })];
+              ctx = Ast.Load; dims = [] });
+         ctx = Ast.Load })
+
+    Expr:
+    (Ast.Call
+       { Ast.func = (Ast.Name { Ast.id = "defaultdict"; ctx = Ast.Load });
+         args =
+         [(Ast.Lambda
+             { Ast.args =
+               { Ast.posonlyargs = []; args = []; vararg = None; kwonlyargs = [];
+                 kw_defaults = []; kwarg = None; defaults = [] };
+               body =
+               (Ast.Constant { Ast.value = (Ast.Bool false); kind = None }) });
+           (Ast.Dict
+              { Ast.keys =
+                [(Some (Ast.Constant { Ast.value = (Ast.Int 3); kind = None }));
+                  (Some (Ast.Constant { Ast.value = (Ast.Int 2); kind = None }))];
+                values =
+                [(Ast.Constant { Ast.value = (Ast.Bool true); kind = None });
+                  (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })]
+                })
+           ];
+         keywords = [] })
+
+    <><><><><><><><><><>
+
+    Json:
+
+    key_ty_name: int
+    val_ty_name: bool
+    key_val_pairs:
+    { view = (Const 3); ty = { view = (Constr (int,[]));
+                               generation = 1 };
+      generation = 0; sub_anchor = None }
+    { view = (Const true); ty = { view = (Constr (bool,[]));
+                                  generation = 1 };
+      generation = 0; sub_anchor = None }
+    { view = (Const 2); ty = { view = (Constr (int,[]));
+                               generation = 1 };
+      generation = 0; sub_anchor = None }
+    { view = (Const true); ty = { view = (Constr (bool,[]));
+                                  generation = 1 };
+      generation = 0; sub_anchor = None }
+    default:
+    { view = (Const false); ty = { view = (Constr (bool,[]));
+                                   generation = 1 };
+      generation = 0; sub_anchor = None }
+    [
+      [
+        "AnnAssign",
+        {
+          "target": [ "Name", { "id": "w", "ctx": [ "Load" ] } ],
+          "annotation": [
+            "Subscript",
+            {
+              "value": [ "Name", { "id": "defaultdict", "ctx": [ "Load" ] } ],
+              "slice": [
+                "Tuple",
+                {
+                  "elts": [
+                    [ "Name", { "id": "int", "ctx": [ "Load" ] } ],
+                    [ "Name", { "id": "bool", "ctx": [ "Load" ] } ]
+                  ],
+                  "ctx": [ "Load" ],
+                  "dims": []
+                }
+              ],
+              "ctx": [ "Load" ]
+            }
+          ],
+          "value": [
+            "Call",
+            {
+              "func": [ "Name", { "id": "defaultdict", "ctx": [ "Load" ] } ],
+              "args": [
+                [
+                  "Lambda",
+                  {
+                    "args": {
+                      "posonlyargs": [],
+                      "args": [],
+                      "vararg": null,
+                      "kwonlyargs": [],
+                      "kw_defaults": [],
+                      "kwarg": null,
+                      "defaults": []
+                    },
+                    "body": [
+                      "Constant", { "value": [ "Bool", false ], "kind": null }
+                    ]
+                  }
+                ],
+                [
+                  "Dict",
+                  {
+                    "keys": [
+                      [ "Constant", { "value": [ "Int", 3 ], "kind": null } ],
+                      [ "Constant", { "value": [ "Int", 2 ], "kind": null } ]
+                    ],
+                    "values": [
+                      [ "Constant", { "value": [ "Bool", true ], "kind": null } ],
+                      [ "Constant", { "value": [ "Bool", true ], "kind": null } ]
+                    ]
+                  }
+                ]
+              ],
+              "keywords": []
+            }
+          ],
+          "simple": 1
+        }
+      ]
+    ]
+    |}]
 
 (* <><><><><><><><><><><><><><><><><><><><>
 Record and variant

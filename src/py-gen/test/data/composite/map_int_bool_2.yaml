@@ -14,9 +14,7 @@ storage: []
 _python_code: |
   from collections import defaultdict
 
-  w: defaultdict[int, bool] = defaultdict(lambda: False)
-  w[2] = True
-  w[3] = True
+  w: defaultdict[int, bool] = defaultdict(lambda: False, {2: True, 3: True})
 _python_ast: |
   Module(
       body=[
@@ -40,19 +38,12 @@ _python_ast: |
                   args=[
                       Lambda(
                           args=arguments(),
-                          body=Constant(value=False))]),
-              simple=1),
-          Assign(
-              targets=[
-                  Subscript(
-                      value=Name(id='w', ctx=Load()),
-                      slice=Constant(value=2),
-                      ctx=Store())],
-              value=Constant(value=True)),
-          Assign(
-              targets=[
-                  Subscript(
-                      value=Name(id='w', ctx=Load()),
-                      slice=Constant(value=3),
-                      ctx=Store())],
-              value=Constant(value=True))])
+                          body=Constant(value=False)),
+                      Dict(
+                          keys=[
+                              Constant(value=2),
+                              Constant(value=3)],
+                          values=[
+                              Constant(value=True),
+                              Constant(value=True)])]),
+              simple=1)])
