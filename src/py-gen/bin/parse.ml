@@ -2,9 +2,10 @@ open Printf
 
 let () =
   (* Parse command line arguments *)
-  if Array.length Sys.argv < 3 then (
-    eprintf "Usage: %s <input_file.json|yaml> <output_file.json|-> [index]\n"
+  if Array.length Sys.argv < 2 then (
+    eprintf "Usage: %s [input_file.json|yaml|-] <output_file.json|-> [index]\n"
       Sys.argv.(0);
+    eprintf "  input_file: input JSON/YAML file path, or '-' for stdin (defaults to JSON)\n";
     eprintf "  output_file: output JSON file path, or '-' for stdout\n";
     eprintf
       "  index: optional index for YAML/JSON arrays (0-based, or -1 for last)\n";
@@ -12,7 +13,8 @@ let () =
   );
 
   let input_file = Sys.argv.(1) in
-  let output_file = Sys.argv.(2) in
+  let use_stdin = input_file = "-" in
+  let output_file = if Array.length Sys.argv > 2 then Sys.argv.(2) else "-" in
   let use_stdout = output_file = "-" in
   let index_opt =
     if Array.length Sys.argv > 3 then
@@ -22,18 +24,26 @@ let () =
     (* default to whole document *)
   in
 
-  (* Check if input file exists *)
-  if not (Sys.file_exists input_file) then (
+  (* Check if input file exists (skip for stdin) *)
+  if not use_stdin && not (Sys.file_exists input_file) then (
     eprintf "Error: Input file '%s' does not exist\n" input_file;
     exit 1
   );
 
-  (* Determine file type from extension *)
+  (* Determine file type from extension or default to JSON for stdin *)
   let is_yaml =
-    Filename.check_suffix input_file ".yaml"
-    || Filename.check_suffix input_file ".yml"
+    if use_stdin then
+      false  (* default to JSON for stdin *)
+    else
+      Filename.check_suffix input_file ".yaml"
+      || Filename.check_suffix input_file ".yml"
   in
-  let is_json = Filename.check_suffix input_file ".json" in
+  let is_json =
+    if use_stdin then
+      true  (* default to JSON for stdin *)
+    else
+      Filename.check_suffix input_file ".json"
+  in
 
   if not (is_yaml || is_json) then (
     eprintf "Error: Input file must be .json, .yaml, or .yml\n";
@@ -41,16 +51,24 @@ let () =
   );
 
   if not use_stdout then (
-    printf "Reading from: %s\n" input_file;
+    if use_stdin then
+      printf "Reading from: stdin\n"
+    else
+      printf "Reading from: %s\n" input_file;
     printf "Output to: %s\n" output_file
   );
 
-  (* Read and parse the input file *)
+  (* Read and parse the input file or stdin *)
   let model =
     try
       if is_yaml then (
         if not use_stdout then printf "Parsing YAML file...\n";
-        let yaml_str = CCIO.File.read_exn input_file in
+        let yaml_str =
+          if use_stdin then
+            CCIO.read_all stdin
+          else
+            CCIO.File.read_exn input_file
+        in
         let yaml = Yaml.of_string_exn yaml_str in
         (* If index is specified and it's a list, extract the requested item *)
         let yaml_item =
@@ -82,7 +100,12 @@ let () =
         Py_gen.Util.yaml_to_model ~debug:false yaml_item
       ) else (
         if not use_stdout then printf "Parsing JSON file...\n";
-        let json = Yojson.Safe.from_file input_file in
+        let json =
+          if use_stdin then
+            Yojson.Safe.from_channel stdin
+          else
+            Yojson.Safe.from_file input_file
+        in
         Py_gen.Util.json_to_model ~debug:false json
       )
     with
