@@ -14,3 +14,43 @@ data: YGBgXxHFHfkNPT/MI42krRlVmL/XSPJ50rNQNPOoFkEHXF75MWNGc3RhdHVz/xoBhvuy8mJGc3
 api_version: v17
 kind: mir.model
 storage: []
+_python_code: |
+  from dataclasses import dataclass
+
+
+  @dataclass
+  class Waitlist:
+      arg0: int
+
+
+  status = Waitlist
+  w: status = Waitlist(1)
+_python_ast: |
+  Module(
+      body=[
+          ImportFrom(
+              module='dataclasses',
+              names=[
+                  alias(name='dataclass')],
+              level=0),
+          ClassDef(
+              name='Waitlist',
+              body=[
+                  AnnAssign(
+                      target=Name(id='arg0', ctx=Store()),
+                      annotation=Name(id='int', ctx=Load()),
+                      simple=1)],
+              decorator_list=[
+                  Name(id='dataclass', ctx=Load())]),
+          Assign(
+              targets=[
+                  Name(id='status', ctx=Store())],
+              value=Name(id='Waitlist', ctx=Load())),
+          AnnAssign(
+              target=Name(id='w', ctx=Store()),
+              annotation=Name(id='status', ctx=Load()),
+              value=Call(
+                  func=Name(id='Waitlist', ctx=Load()),
+                  args=[
+                      Constant(value=1)]),
+              simple=1)])
