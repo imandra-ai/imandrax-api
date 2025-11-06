@@ -425,18 +425,26 @@ let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
     | Error msg -> failwith msg
   in
 
-  let _todo = type_annot in
-
-  let assign_smt =
+  let assign_stmt =
     let target = app_sym.sym.id.name in
-    Ast.Assign
-      {
-        Ast.targets = [ Ast.Name { Ast.id = target; ctx = Ast.Load } ];
-        value = term_expr;
-        type_comment = None;
-      }
+    match type_annot with
+    | None ->
+      Ast.Assign
+        {
+          targets = [ Ast.Name { Ast.id = target; ctx = Ast.Load } ];
+          value = term_expr;
+          type_comment = None;
+        }
+    | Some type_annot ->
+      Ast.AnnAssign
+        {
+          target = Ast.Name { Ast.id = target; ctx = Ast.Load };
+          annotation = type_annot;
+          value = Some term_expr;
+          simple = 1;
+        }
   in
-  List.append ty_defs [ assign_smt ]
+  List.append ty_defs [ assign_stmt ]
 
 let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
