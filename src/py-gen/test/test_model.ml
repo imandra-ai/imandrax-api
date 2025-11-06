@@ -149,7 +149,7 @@ let%expect_test "int" =
     Type defs:
 
     Type annot:
-    None
+    (Ast.Name { Ast.id = "int"; ctx = Ast.Load })
 
     Expr:
     (Ast.Constant { Ast.value = (Ast.Int 2); kind = None })
@@ -210,7 +210,7 @@ let%expect_test "real" =
     Type defs:
 
     Type annot:
-    None
+    (Ast.Name { Ast.id = "float"; ctx = Ast.Load })
 
     Expr:
     (Ast.Constant { Ast.value = (Ast.Float 3.14); kind = None })

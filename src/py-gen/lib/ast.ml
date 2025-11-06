@@ -220,6 +220,7 @@ Specifically:
 let mk_ann_assign_simple_flat () = 1
 let bool_expr (b : bool) : expr = Constant { value = Bool b; kind = None }
 let string_expr (s : string) : expr = Constant { value = String s; kind = None }
+let mk_name_expr (id : string) : expr = Name { id; ctx = mk_ctx () }
 
 let bools_to_char (bools : bool list) : char =
   if List.length bools <> 8 then

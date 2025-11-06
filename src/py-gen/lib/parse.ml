@@ -50,10 +50,18 @@ let rec parse_term (term : Term.term) :
   | Term.Const const, _ ->
     (match const with
     | Const_bool b ->
-      Ok ([], None, Ast.(Constant { value = Bool b; kind = None }))
+      let open Ast in
+      Ok
+        ( [],
+          Some (mk_name_expr "bool"),
+          Constant { value = Bool b; kind = None } )
     | Const_float f ->
       (* printf "%f" f; *)
-      Ok ([], None, Ast.(Constant { value = Float f; kind = None }))
+      let open Ast in
+      Ok
+        ( [],
+          Some (mk_name_expr "float"),
+          Constant { value = Float f; kind = None } )
     | Const_q q ->
       let num = Q.num q in
       let den = Q.den q in
@@ -62,13 +70,21 @@ let rec parse_term (term : Term.term) :
       (* Should we use Decimal instead? *)
       Ok
         ( [],
-          None,
+          Some (mk_name_expr "float"),
           Constant
             { value = Float (Z.to_float num /. Z.to_float den); kind = None } )
     | Const_z z ->
-      Ok ([], None, Ast.Constant { value = Int (Z.to_int z); kind = None })
+      let open Ast in
+      Ok
+        ( [],
+          Some (mk_name_expr "int"),
+          Ast.Constant { value = Int (Z.to_int z); kind = None } )
     | Const_string s ->
-      Ok ([], None, Ast.Constant { value = String s; kind = None })
+      let open Ast in
+      Ok
+        ( [],
+          Some (mk_name_expr "str"),
+          Constant { value = String s; kind = None } )
     | c ->
       (* Uid and real_approx *)
       let msg = sprintf "unhandled const %s" (Imandrax_api.Const.show c) in
