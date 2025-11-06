@@ -546,3 +546,143 @@ let%expect_test "inline record" =
          args = [(Ast.Constant { Ast.value = (Ast.Float 2.); kind = None })];
          keywords = [] })
     |}]
+
+let%expect_test "map 1" =
+  test_parse_model (Some "composite") "map_int_bool_1";
+  [%expect {|
+    name: map_int_bool_1
+    iml_code:
+    let v : (int, bool) Map.t =
+      Map.const false
+      |> Map.add 2 true
+
+    let v = fun w -> if w = v then true else false
+
+    Type defs:
+
+    Type annot:
+    (Ast.Subscript
+       { Ast.value = (Ast.Name { Ast.id = "defaultdict"; ctx = Ast.Load });
+         slice =
+         (Ast.Tuple
+            { Ast.elts =
+              [(Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+                (Ast.Name { Ast.id = "bool"; ctx = Ast.Load })];
+              ctx = Ast.Load; dims = [] });
+         ctx = Ast.Load })
+
+    Expr:
+    (Ast.Call
+       { Ast.func = (Ast.Name { Ast.id = "defaultdict"; ctx = Ast.Load });
+         args =
+         [(Ast.Lambda
+             { Ast.args =
+               { Ast.posonlyargs = []; args = []; vararg = None; kwonlyargs = [];
+                 kw_defaults = []; kwarg = None; defaults = [] };
+               body =
+               (Ast.Constant { Ast.value = (Ast.Bool false); kind = None }) });
+           (Ast.Dict
+              { Ast.keys =
+                [(Some (Ast.Constant { Ast.value = (Ast.Int 2); kind = None }))];
+                values =
+                [(Ast.Constant { Ast.value = (Ast.Bool true); kind = None })] })
+           ];
+         keywords = [] })
+    |}]
+
+let%expect_test "map 2" =
+  test_parse_model (Some "composite") "map_int_bool_2";
+  [%expect {|
+    name: map_int_bool_2
+    iml_code:
+    let v : (int, bool) Map.t =
+      Map.const false
+      |> Map.add 2 true
+      |> Map.add 3 true
+
+    let v = fun w -> if w = v then true else false
+
+    Type defs:
+
+    Type annot:
+    (Ast.Subscript
+       { Ast.value = (Ast.Name { Ast.id = "defaultdict"; ctx = Ast.Load });
+         slice =
+         (Ast.Tuple
+            { Ast.elts =
+              [(Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+                (Ast.Name { Ast.id = "bool"; ctx = Ast.Load })];
+              ctx = Ast.Load; dims = [] });
+         ctx = Ast.Load })
+
+    Expr:
+    (Ast.Call
+       { Ast.func = (Ast.Name { Ast.id = "defaultdict"; ctx = Ast.Load });
+         args =
+         [(Ast.Lambda
+             { Ast.args =
+               { Ast.posonlyargs = []; args = []; vararg = None; kwonlyargs = [];
+                 kw_defaults = []; kwarg = None; defaults = [] };
+               body =
+               (Ast.Constant { Ast.value = (Ast.Bool false); kind = None }) });
+           (Ast.Dict
+              { Ast.keys =
+                [(Some (Ast.Constant { Ast.value = (Ast.Int 2); kind = None }));
+                  (Some (Ast.Constant { Ast.value = (Ast.Int 3); kind = None }))];
+                values =
+                [(Ast.Constant { Ast.value = (Ast.Bool true); kind = None });
+                  (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })]
+                })
+           ];
+         keywords = [] })
+    |}]
+
+let%expect_test "map 3" =
+  test_parse_model (Some "composite") "map_int_bool_3";
+  [%expect {|
+    name: map_int_bool_3
+    iml_code:
+    let v : (int, bool) Map.t =
+      Map.const false
+      |> Map.add 2 true
+      |> Map.add 3 false
+      |> Map.add 5 true
+
+    let v = fun w -> if w = v then true else false
+
+    Type defs:
+
+    Type annot:
+    (Ast.Subscript
+       { Ast.value = (Ast.Name { Ast.id = "defaultdict"; ctx = Ast.Load });
+         slice =
+         (Ast.Tuple
+            { Ast.elts =
+              [(Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+                (Ast.Name { Ast.id = "bool"; ctx = Ast.Load })];
+              ctx = Ast.Load; dims = [] });
+         ctx = Ast.Load })
+
+    Expr:
+    (Ast.Call
+       { Ast.func = (Ast.Name { Ast.id = "defaultdict"; ctx = Ast.Load });
+         args =
+         [(Ast.Lambda
+             { Ast.args =
+               { Ast.posonlyargs = []; args = []; vararg = None; kwonlyargs = [];
+                 kw_defaults = []; kwarg = None; defaults = [] };
+               body =
+               (Ast.Constant { Ast.value = (Ast.Bool false); kind = None }) });
+           (Ast.Dict
+              { Ast.keys =
+                [(Some (Ast.Constant { Ast.value = (Ast.Int 2); kind = None }));
+                  (Some (Ast.Constant { Ast.value = (Ast.Int 3); kind = None }));
+                  (Some (Ast.Constant { Ast.value = (Ast.Int 5); kind = None }))];
+                values =
+                [(Ast.Constant { Ast.value = (Ast.Bool true); kind = None });
+                  (Ast.Constant { Ast.value = (Ast.Bool false); kind = None });
+                  (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })]
+                })
+           ];
+         keywords = [] })
+    |}]
