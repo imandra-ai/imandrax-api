@@ -152,7 +152,7 @@ let rec parse_term (term : Term.term) :
     let open Ast in
     Ok
       ( type_def_of_rows @ [ def_dataclass ty_name def_rows ],
-        None,
+        Some (Ast.mk_name_expr ty_name),
         init_dataclass ty_name ~args:row_val_exprs ~kwargs:[] )
   (* Construct LChar.t *)
   | ( Term.Construct
@@ -225,7 +225,7 @@ let rec parse_term (term : Term.term) :
         (* Nil *)
         [], None, Ast.empty_list_expr ()
       | _ ->
-        let type_defs_of_elems, _type_annot_of_elems, term_of_elems =
+        let type_defs_of_elems, type_annot_of_elems, term_of_elems =
           List.map (fun arg -> parse_term arg |> unwrap) construct_args
           |> unzip3
         in
@@ -234,12 +234,28 @@ let rec parse_term (term : Term.term) :
         | [] -> failwith "Never: empty constuct arg for non-Nil"
         | [ _ ] -> failwith "Never: single element list for non-Nil"
         | [ head; tail ] ->
-          type_def_of_elems, None, Ast.cons_list_expr head tail
+          let type_annot_of_elem =
+            type_annot_of_elems |> List.hd
+            |> CCOption.get_exn_or
+                 "No type annotation for the first list element"
+          in
+          let type_annot =
+            Ast.(
+              Subscript
+                {
+                  value = Name { id = "list"; ctx = mk_ctx () };
+                  slice = type_annot_of_elem;
+                  ctx = mk_ctx ();
+                })
+          in
+
+          type_def_of_elems, Some type_annot, Ast.cons_list_expr head tail
           (* let n_elem = CCList.length elems in
           let except_last = CCList.take (n_elem - 1) elems in
           Some (Ast.list_of_exprs except_last) *)
         | _ -> failwith "Never: more than 2 elements list for non-Nil")
     in
+
     Ok (type_def_of_elems, type_annot_of_elems, term_of_elems)
   (* Construct - other *)
   | ( Term.Construct

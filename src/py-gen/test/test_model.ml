@@ -72,7 +72,9 @@ let%expect_test "bool list" =
     Type defs:
 
     Type annot:
-    None
+    (Ast.Subscript
+       { Ast.value = (Ast.Name { Ast.id = "list"; ctx = Ast.Load });
+         slice = (Ast.Name { Ast.id = "bool"; ctx = Ast.Load }); ctx = Ast.Load })
 
     Expr:
     (Ast.List
@@ -187,7 +189,9 @@ let%expect_test "LString" =
     Type defs:
 
     Type annot:
-    None
+    (Ast.Subscript
+       { Ast.value = (Ast.Name { Ast.id = "list"; ctx = Ast.Load });
+         slice = (Ast.Name { Ast.id = "str"; ctx = Ast.Load }); ctx = Ast.Load })
 
     Expr:
     (Ast.List
@@ -249,7 +253,7 @@ let%expect_test "record" =
          decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
 
     Type annot:
-    None
+    (Ast.Name { Ast.id = "user"; ctx = Ast.Load })
 
     Expr:
     (Ast.Call
@@ -273,7 +277,9 @@ let%expect_test "single element int list" =
     Type defs:
 
     Type annot:
-    None
+    (Ast.Subscript
+       { Ast.value = (Ast.Name { Ast.id = "list"; ctx = Ast.Load });
+         slice = (Ast.Name { Ast.id = "int"; ctx = Ast.Load }); ctx = Ast.Load })
 
     Expr:
     (Ast.List
