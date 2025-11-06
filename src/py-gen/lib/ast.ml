@@ -10,6 +10,8 @@ type ast =
   | Keyword of keyword
   | Expr of expr
   | Module of module_ast
+  | Arguments of arguments
+  | Arg of arg
 
 and module_ast = { body: stmt list (* type_ignores: list[TypeIgnore] *) }
 
@@ -26,7 +28,6 @@ and expr =
   | UnaryOp of unary_op
   (* | Lambda *)
   | IfExp of (expr * expr * expr)
-  | Dict of (expr option list * expr list)
   | Set of expr list
   | ListComp of list_comp
   | List of list_expr
@@ -35,6 +36,8 @@ and expr =
   | Attribute of attribute_expr
   | Subscript of subscript_expr
   | Call of call_expr
+  | Lambda of lambda_expr
+  | Dict of dict_expr
 
 and constant = {
   value: constant_value;
@@ -144,11 +147,22 @@ and call_expr = {
   keywords: keyword list;
 }
 
+and lambda_expr = {
+  args: arguments;
+  body: expr;
+}
+
+and dict_expr = {
+  keys: expr option list;
+  values: expr list;
+}
+
 (* <><><><><><><><><><><><><><><><><><><><> *)
 and stmt =
   | Assign of assign_stmt
   | AnnAssign of ann_assign_stmt
   | ClassDef of class_def_stmt
+  (* 801 *)
   | Pass
 
 and assign_stmt = {
@@ -173,6 +187,22 @@ and class_def_stmt = {
   *)
   body: stmt list;
   decorator_list: expr list;
+}
+
+and arguments = {
+  posonlyargs: arg list;
+  args: arg list;
+  vararg: arg option;
+  kwonlyargs: arg list;
+  kw_defaults: expr option list;
+  kwarg: arg option;
+  defaults: expr list;
+}
+
+and arg = {
+  arg: string;
+  annotation: expr option;
+  type_comment: string option;
 }
 [@@deriving show, yojson]
 
@@ -245,6 +275,17 @@ let cons_list_expr (head : expr) (tail : expr) : expr =
   match tail with
   | List { elts; _ } -> List { elts = head :: elts; ctx = mk_ctx () }
   | _ -> invalid_arg "cons_list_expr: tail is not a list expr"
+
+let empty_arguments () : arguments =
+  {
+    posonlyargs = [];
+    args = [];
+    vararg = None;
+    kwonlyargs = [];
+    kw_defaults = [];
+    kwarg = None;
+    defaults = [];
+  }
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
@@ -337,13 +378,24 @@ let variant_dataclass (name : string) (variants : (string * string list) list) :
   in
   constructor_defs @ [ def_union name variant_names ]
 
-let init_defaultdict
-    (var_name : string)
-    (key_type_name : string)
-    (val_type_name : string)
-    (default_value : expr)
-    (key_val_pairs : (expr * expr) list) : stmt list =
-  assert false
+let init_defaultdict (default_value : expr) (key_val_pairs : (expr * expr) list)
+    : expr =
+  let mk_no_arg_lambda ret : expr =
+    Lambda { args = empty_arguments (); body = ret }
+  in
+
+  let mk_dict (key_val_pairs : (expr * expr) list) : expr =
+    let keys_, values = CCList.split key_val_pairs in
+    let keys = keys_ |> List.map (fun k -> Some k) in
+    Dict { keys; values }
+  in
+
+  Call
+    {
+      func = Name { id = "defaultdict"; ctx = mk_ctx () };
+      args = [ mk_no_arg_lambda default_value; mk_dict key_val_pairs ];
+      keywords = [];
+    }
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
