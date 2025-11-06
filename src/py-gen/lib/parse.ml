@@ -272,7 +272,6 @@ let rec parse_term (term : Term.term) :
         in
 
         let ty_defs =
-          (* TODO: use variant_name in type annotation *)
           Ast.variant_dataclass variant_name
             [ variant_constr_name, variant_constr_args ]
         in
@@ -293,7 +292,10 @@ let rec parse_term (term : Term.term) :
           Ast.init_dataclass variant_constr_name ~args:constr_arg_terms
             ~kwargs:[]
         in
-        Ok (constr_arg_type_stmts @ ty_defs, None, term)
+        Ok
+          ( constr_arg_type_stmts @ ty_defs,
+            Some Ast.(Name { id = variant_name; ctx = Load }),
+            term )
     in
 
     res
