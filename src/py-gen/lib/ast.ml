@@ -337,6 +337,14 @@ let variant_dataclass (name : string) (variants : (string * string list) list) :
   in
   constructor_defs @ [ def_union name variant_names ]
 
+let init_defaultdict
+    (var_name : string)
+    (key_type_name : string)
+    (val_type_name : string)
+    (default_value : expr)
+    (key_val_pairs : (expr * expr) list) : stmt list =
+  assert false
+
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
 let%expect_test "bool list expr to string" =
