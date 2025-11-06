@@ -8,3 +8,5 @@ data: YGBgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGCwSG1rX3NfaW50s/piQ2ludPbDAvf/BmL/Dv
 api_version: v17
 kind: mir.model
 storage: []
+_python_code: |
+  w: tuple[bool, int] = (True, 2)

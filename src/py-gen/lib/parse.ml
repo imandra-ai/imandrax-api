@@ -92,11 +92,16 @@ let rec parse_term (term : Term.term) :
   (* Tuple *)
   | Term.Tuple { l = (terms : Term.term list) }, (_ty : Type.t) ->
     let parsed_elems = List.map (fun term -> parse_term term |> unwrap) terms in
-    let type_defs_of_elems, _type_annot_of_elems, term_of_elems =
+    let type_defs_of_elems, type_annot_of_elems, term_of_elems =
       unzip3 parsed_elems
     in
+    let tuple_annot =
+      type_annot_of_elems
+      |> List.map (CCOption.get_exn_or "Tuple element has no type annotation")
+      |> Ast.tuple_annot_of_annots
+    in
     let type_def_of_elems = List.flatten type_defs_of_elems in
-    Ok (type_def_of_elems, None, Ast.tuple_of_exprs term_of_elems)
+    Ok (type_def_of_elems, Some tuple_annot, Ast.tuple_of_exprs term_of_elems)
   (* Record *)
   | ( Term.Record
         {
@@ -756,25 +761,6 @@ let%expect_test "decode artifact" =
 
     Parsing term:
 
-    key_ty_name: int
-    val_ty_name: bool
-    key_val_pairs:
-    { view = (Const 3); ty = { view = (Constr (int,[]));
-                               generation = 1 };
-      generation = 0; sub_anchor = None }
-    { view = (Const true); ty = { view = (Constr (bool,[]));
-                                  generation = 1 };
-      generation = 0; sub_anchor = None }
-    { view = (Const 2); ty = { view = (Constr (int,[]));
-                               generation = 1 };
-      generation = 0; sub_anchor = None }
-    { view = (Const true); ty = { view = (Constr (bool,[]));
-                                  generation = 1 };
-      generation = 0; sub_anchor = None }
-    default:
-    { view = (Const false); ty = { view = (Constr (bool,[]));
-                                   generation = 1 };
-      generation = 0; sub_anchor = None }
     Type defs:
     Type annot: (Ast.Subscript
        { Ast.value = (Ast.Name { Ast.id = "defaultdict"; ctx = Ast.Load });
@@ -798,8 +784,8 @@ let%expect_test "decode artifact" =
                (Ast.Constant { Ast.value = (Ast.Bool false); kind = None }) });
            (Ast.Dict
               { Ast.keys =
-                [(Some (Ast.Constant { Ast.value = (Ast.Int 3); kind = None }));
-                  (Some (Ast.Constant { Ast.value = (Ast.Int 2); kind = None }))];
+                [(Some (Ast.Constant { Ast.value = (Ast.Int 2); kind = None }));
+                  (Some (Ast.Constant { Ast.value = (Ast.Int 3); kind = None }))];
                 values =
                 [(Ast.Constant { Ast.value = (Ast.Bool true); kind = None });
                   (Ast.Constant { Ast.value = (Ast.Bool true); kind = None })]
@@ -811,25 +797,6 @@ let%expect_test "decode artifact" =
 
     Json:
 
-    key_ty_name: int
-    val_ty_name: bool
-    key_val_pairs:
-    { view = (Const 3); ty = { view = (Constr (int,[]));
-                               generation = 1 };
-      generation = 0; sub_anchor = None }
-    { view = (Const true); ty = { view = (Constr (bool,[]));
-                                  generation = 1 };
-      generation = 0; sub_anchor = None }
-    { view = (Const 2); ty = { view = (Constr (int,[]));
-                               generation = 1 };
-      generation = 0; sub_anchor = None }
-    { view = (Const true); ty = { view = (Constr (bool,[]));
-                                  generation = 1 };
-      generation = 0; sub_anchor = None }
-    default:
-    { view = (Const false); ty = { view = (Constr (bool,[]));
-                                   generation = 1 };
-      generation = 0; sub_anchor = None }
     [
       [
         "AnnAssign",
@@ -879,8 +846,8 @@ let%expect_test "decode artifact" =
                   "Dict",
                   {
                     "keys": [
-                      [ "Constant", { "value": [ "Int", 3 ], "kind": null } ],
-                      [ "Constant", { "value": [ "Int", 2 ], "kind": null } ]
+                      [ "Constant", { "value": [ "Int", 2 ], "kind": null } ],
+                      [ "Constant", { "value": [ "Int", 3 ], "kind": null } ]
                     ],
                     "values": [
                       [ "Constant", { "value": [ "Bool", true ], "kind": null } ],

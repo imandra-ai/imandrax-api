@@ -267,6 +267,14 @@ let bool_list_expr_to_char_expr (exprs : expr list) : expr =
 let tuple_of_exprs (exprs : expr list) : expr =
   Tuple { elts = exprs; ctx = Load; dims = [] }
 
+let tuple_annot_of_annots (annots : expr list) : expr =
+  Subscript
+    {
+      value = Name { id = "tuple"; ctx = mk_ctx () };
+      slice = tuple_of_exprs annots;
+      ctx = mk_ctx ();
+    }
+
 let empty_list_expr () : expr = List { elts = []; ctx = mk_ctx () }
 
 let list_of_exprs (exprs : expr list) : expr =

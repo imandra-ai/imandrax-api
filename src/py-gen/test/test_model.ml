@@ -294,7 +294,15 @@ let%expect_test "tuple (bool * int)" =
     Type defs:
 
     Type annot:
-    None
+    (Ast.Subscript
+       { Ast.value = (Ast.Name { Ast.id = "tuple"; ctx = Ast.Load });
+         slice =
+         (Ast.Tuple
+            { Ast.elts =
+              [(Ast.Name { Ast.id = "bool"; ctx = Ast.Load });
+                (Ast.Name { Ast.id = "int"; ctx = Ast.Load })];
+              ctx = Ast.Load; dims = [] });
+         ctx = Ast.Load })
 
     Expr:
     (Ast.Tuple
