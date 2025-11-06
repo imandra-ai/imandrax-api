@@ -184,7 +184,7 @@ let rec parse_term (term : Term.term) :
     in
 
     let parsed_prelude_construct_args :
-        (Ast.stmt list * Ast.expr, string) result =
+        (Ast.stmt list * Ast.expr option * Ast.expr, string) result =
       match is_prelude_type with
       | "LChar.t" ->
         let bool_type_defs_s, _bool_type_annot_s, bool_terms =
@@ -197,7 +197,8 @@ let rec parse_term (term : Term.term) :
         (* Why would bool need type def? *)
         | _ -> failwith "Never: bool_type_defs should be empty");
         let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
-        Ok ([], char_expr)
+        (* NOTE: Python has no char type, so we use str *)
+        Ok ([], Some (Ast.mk_name_expr "str"), char_expr)
       | "list" ->
         (* List
         For empty list, the construct args is empty.
@@ -208,7 +209,7 @@ let rec parse_term (term : Term.term) :
         let is_nil = construct_args = [] in
         if is_nil then
           (* Empty list [] *)
-          Ok ([], Ast.empty_list_expr ())
+          Ok ([], None, Ast.empty_list_expr ())
         else (
           let type_defs_of_elems, _type_annot_of_elems, term_of_elems =
             List.map (fun arg -> parse_term arg |> unwrap) construct_args
@@ -219,7 +220,7 @@ let rec parse_term (term : Term.term) :
           | [] -> Error "Never: empty constuct arg for non-Nil"
           | [ _ ] -> Error "Never: single element list for non-Nil"
           | [ head; tail ] ->
-            Ok (type_def_of_elems, Ast.cons_list_expr head tail)
+            Ok (type_def_of_elems, None, Ast.cons_list_expr head tail)
             (* let n_elem = CCList.length elems in
             let except_last = CCList.take (n_elem - 1) elems in
             Some (Ast.list_of_exprs except_last) *)
@@ -255,7 +256,7 @@ let rec parse_term (term : Term.term) :
 
     let res : (Ast.stmt list * Ast.expr option * Ast.expr, string) result =
       match parsed_prelude_construct_args with
-      | Ok (type_defs, expr) -> Ok (type_defs, None, expr)
+      | Ok (type_defs, type_annot, expr) -> Ok (type_defs, type_annot, expr)
       | Error _ ->
         let variant_constr_name = construct.sym.id.name in
         (* the last arg is the variant name *)

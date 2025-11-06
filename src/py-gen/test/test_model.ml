@@ -168,7 +168,7 @@ let%expect_test "LChar" =
     Type defs:
 
     Type annot:
-    None
+    (Ast.Name { Ast.id = "str"; ctx = Ast.Load })
 
     Expr:
     (Ast.Constant { Ast.value = (Ast.String "\000"); kind = None })
