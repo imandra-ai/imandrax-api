@@ -39,13 +39,19 @@ let load_artifact (sub_dir : string option) (name : string) : Model.t =
 let test_parse_model (sub_dir : string option) (name : string) : unit =
   let model = load_artifact sub_dir name in
   let _app_sym, term = unpack_model model in
-  let ty_defs, expr =
+  let ty_defs, type_annot, expr =
     match parse_term term with
-    | Ok (ty_defs, _, expr) -> ty_defs, expr
+    | Ok (ty_defs, type_annot, expr) -> ty_defs, type_annot, expr
     | Error msg -> failwith msg
   in
   printf "Type defs:\n";
   List.iter (fun ty_def -> print_endline (Ast.show_stmt ty_def)) ty_defs;
+  printf "\n";
+
+  printf "Type annot:\n";
+  (match type_annot with
+  | None -> print_endline "None"
+  | Some type_annot -> print_endline (Ast.show_expr type_annot));
   printf "\n";
 
   printf "Expr:\n";
