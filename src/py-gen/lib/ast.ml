@@ -416,7 +416,11 @@ let init_defaultdict (default_value : expr) (key_val_pairs : (expr * expr) list)
   Call
     {
       func = Name { id = "defaultdict"; ctx = mk_ctx () };
-      args = [ mk_no_arg_lambda default_value; mk_dict key_val_pairs ];
+      args =
+        (if List.length key_val_pairs = 0 then
+           [ mk_no_arg_lambda default_value ]
+         else
+           [ mk_no_arg_lambda default_value; mk_dict key_val_pairs ]);
       keywords = [];
     }
 
