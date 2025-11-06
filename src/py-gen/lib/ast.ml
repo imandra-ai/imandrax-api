@@ -378,6 +378,20 @@ let variant_dataclass (name : string) (variants : (string * string list) list) :
   in
   constructor_defs @ [ def_union name variant_names ]
 
+let defaultdict_type_annotation (key_type : string) (value_type : string) : expr
+    =
+  Subscript
+    {
+      value = Name { id = "defaultdict"; ctx = mk_ctx () };
+      slice =
+        tuple_of_exprs
+          [
+            Name { id = key_type; ctx = mk_ctx () };
+            Name { id = value_type; ctx = mk_ctx () };
+          ];
+      ctx = mk_ctx ();
+    }
+
 let init_defaultdict (default_value : expr) (key_val_pairs : (expr * expr) list)
     : expr =
   let mk_no_arg_lambda ret : expr =
