@@ -154,6 +154,7 @@ let rec parse_term (term : Term.term) :
       ( type_def_of_rows @ [ def_dataclass ty_name def_rows ],
         None,
         init_dataclass ty_name ~args:row_val_exprs ~kwargs:[] )
+  (* Construct LChar.t *)
   | ( Term.Construct
         {
           c = (_ : Type.t Applied_symbol.t_poly);
@@ -165,11 +166,10 @@ let rec parse_term (term : Term.term) :
             (Uid.{ name = "LChar.t"; view = _ }, ty_view_constr_args);
         _;
       } ) ->
-    if debug then
-      if List.length ty_view_constr_args <> 0 then
-        failwith "Never: LChar.t should have no args"
-      else
-        ()
+    if not debug then
+      ()
+    else if List.length ty_view_constr_args <> 0 then
+      failwith "Never: LChar.t should have no args"
     else
       ();
 
@@ -178,93 +178,76 @@ let rec parse_term (term : Term.term) :
     in
     let bool_type_defs = List.flatten bool_type_defs_s in
 
-    if debug then (
+    if not debug then
+      ()
+    else (
       match bool_type_defs with
       | [] -> ()
       (* Why would bool need type def? *)
       | _ -> failwith "Never: bool_type_defs should be empty"
-    ) else
-      ();
+    );
 
     let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
     (* NOTE: Python has no char type, so we use str *)
     Ok ([], Some (Ast.mk_name_expr "str"), char_expr)
-  (* Construct *)
+  (* Construct list *)
+  | ( Term.Construct
+        {
+          c = (_ : Type.t Applied_symbol.t_poly);
+          args = (construct_args : Term.term list);
+        },
+      {
+        view =
+          Ty_view.Constr (Uid.{ name = "list"; view = _ }, ty_view_constr_args);
+        _;
+      } ) ->
+    (* For empty list, the construct arg is empty.
+      For non-empty list, the construct arg has two terms, with the first term
+      being the head and the second term being the tail (existing list).
+    *)
+    if not debug then
+      ()
+    else if List.length ty_view_constr_args <> 1 then (
+      let args_str =
+        CCString.concat ", " (List.map Type.show ty_view_constr_args)
+      in
+      let msg =
+        sprintf "Never: list should have only 1 arg, got %d: %s"
+          (List.length ty_view_constr_args)
+          args_str
+      in
+      failwith msg
+    );
+
+    let type_def_of_elems, type_annot_of_elems, term_of_elems =
+      match construct_args with
+      | [] ->
+        (* Nil *)
+        [], None, Ast.empty_list_expr ()
+      | _ ->
+        let type_defs_of_elems, _type_annot_of_elems, term_of_elems =
+          List.map (fun arg -> parse_term arg |> unwrap) construct_args
+          |> unzip3
+        in
+        let type_def_of_elems = List.flatten type_defs_of_elems in
+        (match term_of_elems with
+        | [] -> failwith "Never: empty constuct arg for non-Nil"
+        | [ _ ] -> failwith "Never: single element list for non-Nil"
+        | [ head; tail ] ->
+          type_def_of_elems, None, Ast.cons_list_expr head tail
+          (* let n_elem = CCList.length elems in
+          let except_last = CCList.take (n_elem - 1) elems in
+          Some (Ast.list_of_exprs except_last) *)
+        | _ -> failwith "Never: more than 2 elements list for non-Nil")
+    in
+    Ok (type_def_of_elems, type_annot_of_elems, term_of_elems)
+  (* Construct - other *)
   | ( Term.Construct
         {
           c = (construct : Type.t Applied_symbol.t_poly);
           args = (construct_args : Term.term list);
         },
-      (ty : Type.t) ) ->
-    (*
-      Check by ty to see it's a type defined in prelude: LChar.t, list
-      *)
-    let is_prelude_type : string =
-      match ty.view with
-      | Ty_view.Constr (constr_name_uid, constr_args) ->
-        let name = constr_name_uid.name in
-        (match name, constr_args with
-        | "LChar.t", [] -> "LChar.t"
-        | "LChar.t", _x :: _xs -> failwith "LChar.t shouldn't have args"
-        | "list", [ _ ] -> "list"
-        | "list", args ->
-          let args_str = CCString.concat ", " (List.map Type.show args) in
-          let msg =
-            sprintf "Never: list should have only 1 arg, got %d: %s"
-              (List.length args) args_str
-          in
-          failwith msg
-        (* TODO: option *)
-        | _ -> "_")
-      | _ -> "_"
-    in
-
-    let parsed_prelude_construct_args :
-        (Ast.stmt list * Ast.expr option * Ast.expr, string) result =
-      match is_prelude_type with
-      | "LChar.t" ->
-        let bool_type_defs_s, _bool_type_annot_s, bool_terms =
-          List.map (fun arg -> parse_term arg |> unwrap) construct_args
-          |> unzip3
-        in
-        let bool_type_defs = List.flatten bool_type_defs_s in
-        (match bool_type_defs with
-        | [] -> ()
-        (* Why would bool need type def? *)
-        | _ -> failwith "Never: bool_type_defs should be empty");
-        let char_expr = Ast.bool_list_expr_to_char_expr bool_terms in
-        (* NOTE: Python has no char type, so we use str *)
-        Ok ([], Some (Ast.mk_name_expr "str"), char_expr)
-      | "list" ->
-        (* List
-        For empty list, the construct args is empty.
-        For non-empty list, the construct args is at two terms, with the
-        The first term is the head, the second term is the existing list (tail).
-        *)
-        (* List - check if nil or cons *)
-        let is_nil = construct_args = [] in
-        if is_nil then
-          (* Empty list [] *)
-          Ok ([], None, Ast.empty_list_expr ())
-        else (
-          let type_defs_of_elems, _type_annot_of_elems, term_of_elems =
-            List.map (fun arg -> parse_term arg |> unwrap) construct_args
-            |> unzip3
-          in
-          let type_def_of_elems = List.flatten type_defs_of_elems in
-          match term_of_elems with
-          | [] -> Error "Never: empty constuct arg for non-Nil"
-          | [ _ ] -> Error "Never: single element list for non-Nil"
-          | [ head; tail ] ->
-            Ok (type_def_of_elems, None, Ast.cons_list_expr head tail)
-            (* let n_elem = CCList.length elems in
-            let except_last = CCList.take (n_elem - 1) elems in
-            Some (Ast.list_of_exprs except_last) *)
-          | _ -> Error "Never: more than 2 elements list for non-Nil"
-        )
-      | _ -> Error "Never: not a predefined type"
-    in
-
+      (_ : Type.t) ) ->
     (* Flatten the arrow type view to a list of types *)
     let unpack_arrows (ty_view : (unit, Uid.t, Type.t) Ty_view.view) :
         string list =
@@ -291,69 +274,65 @@ let rec parse_term (term : Term.term) :
     in
 
     let res : (Ast.stmt list * Ast.expr option * Ast.expr, string) result =
-      match parsed_prelude_construct_args with
-      | Ok (type_defs, type_annot, expr) -> Ok (type_defs, type_annot, expr)
-      | Error _ ->
-        let variant_constr_name = construct.sym.id.name in
-        (* the last arg is the variant name *)
-        let variant_constr_args_and_variant_name : string list =
-          unpack_arrows construct.ty.view
-        in
+      let variant_constr_name = construct.sym.id.name in
+      (* the last arg is the variant name *)
+      let variant_constr_args_and_variant_name : string list =
+        unpack_arrows construct.ty.view
+      in
 
-        (* print_endline
+      (* print_endline
           (CCString.concat "->" variant_constr_args_and_variant_name);
         printf "variant constructor name: %s\n" variant_constr_name; *)
-        let split_last xs =
-          match List.rev xs with
-          | [] -> failwith "Never: empty list"
-          | x :: xs -> List.rev xs, x
-        in
+      let split_last xs =
+        match List.rev xs with
+        | [] -> failwith "Never: empty list"
+        | x :: xs -> List.rev xs, x
+      in
 
-        let variant_constr_args, variant_name =
-          let constr_args_, name =
-            split_last variant_constr_args_and_variant_name
-          in
-          (* Map Ocaml type names to Python type names *)
-          let constr_args =
-            List.map
-              (fun (caml_type : string) : string ->
-                let py_type_opt =
-                  CCList.assoc_opt ~eq:( = ) caml_type
-                    Ast.ty_view_constr_name_mapping
-                in
-                match py_type_opt with
-                | Some py_type -> py_type
-                | None -> caml_type)
-              constr_args_
-          in
-          constr_args, name
+      let variant_constr_args, variant_name =
+        let constr_args_, name =
+          split_last variant_constr_args_and_variant_name
         in
-
-        let ty_defs =
-          Ast.variant_dataclass variant_name
-            [ variant_constr_name, variant_constr_args ]
+        (* Map Ocaml type names to Python type names *)
+        let constr_args =
+          List.map
+            (fun (caml_type : string) : string ->
+              let py_type_opt =
+                CCList.assoc_opt ~eq:( = ) caml_type
+                  Ast.ty_view_constr_name_mapping
+              in
+              match py_type_opt with
+              | Some py_type -> py_type
+              | None -> caml_type)
+            constr_args_
         in
+        constr_args, name
+      in
 
-        let parsed_constr_args =
-          List.map (fun arg -> parse_term arg |> unwrap) construct_args
-        in
+      let ty_defs =
+        Ast.variant_dataclass variant_name
+          [ variant_constr_name, variant_constr_args ]
+      in
 
-        let ( constr_arg_type_stmt_lists,
-              _constr_arg_type_annot_lists,
-              constr_arg_terms ) =
-          unzip3 parsed_constr_args
-        in
+      let parsed_constr_args =
+        List.map (fun arg -> parse_term arg |> unwrap) construct_args
+      in
 
-        let constr_arg_type_stmts = List.flatten constr_arg_type_stmt_lists in
+      let ( constr_arg_type_stmt_lists,
+            _constr_arg_type_annot_lists,
+            constr_arg_terms ) =
+        unzip3 parsed_constr_args
+      in
 
-        let term =
-          Ast.init_dataclass variant_constr_name ~args:constr_arg_terms
-            ~kwargs:[]
-        in
-        Ok
-          ( constr_arg_type_stmts @ ty_defs,
-            Some Ast.(Name { id = variant_name; ctx = Load }),
-            term )
+      let constr_arg_type_stmts = List.flatten constr_arg_type_stmt_lists in
+
+      let term =
+        Ast.init_dataclass variant_constr_name ~args:constr_arg_terms ~kwargs:[]
+      in
+      Ok
+        ( constr_arg_type_stmts @ ty_defs,
+          Some Ast.(Name { id = variant_name; ctx = Load }),
+          term )
     in
 
     res
