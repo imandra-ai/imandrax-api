@@ -1,0 +1,7 @@
+name: annotated_list
+iml: "let v =  (fun (w: _ list) -> if w = [] then true else false)"
+instance_src: v
+data: YMACEKFiRF9hXzD5wwL4/l8R6vs47frpASL5+M8E8YUTM+U7RfzgPc3rzwVM2XrH0TxjRF9hXzD/GAGG+bLyYkRfYV8w92L3/yxgwwL982L/AfZi/fVgYf88sUd0eS5saXN0s/liRGxpc3T3wwL4/whgYf9XwAIfJ6BiQWH3sPRh8sMC/w/1Yf1i8vixRWMubmlss/diQltd9WL1/wNj9P8e/ybFAvf/JmP1/y8CwAIf83ygYkFh+LD0YfLDAv9J9WH5Yf8AYvP7wAIf9HygYkF3+GL0/mPz/wf/DmL2/yVh9GCxR3R5LnVuaXSz+WJEdW5pdPfDAvj/BrH1Yv819GBgYGLx/+kBwAIRoWJJQ19kdW1teV8w/mL8/wdj9P8N/4QCxQL4/xZj9f+OAgJh9rDyYv+XAvVi/yz3ZvT/Tf/ZAQEB/+EBCw==
+api_version: v17
+kind: mir.model
+storage: []

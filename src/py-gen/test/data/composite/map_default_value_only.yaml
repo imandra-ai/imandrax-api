@@ -1,0 +1,10 @@
+name: map_default_value_only
+iml: |-
+  let v = Map.const false
+
+  let v = fun w -> if w = v then true else false
+instance_src: v
+data: YMACEKFiRF9hXzD5wwL4/l8R6vs47frpASL5+M8E8YUTM+U7RfzgPc3rzwVM2XrH0TxjRF9hXzD/GAGG+bLyYkRfYV8w92L3/yxgwwL982L/AfZi/fVgYLBJbWtfc19ib29ss/tiRGJvb2z3wwL4/whi/1b3sEpta19zX2FycmF5s/xiRU1hcC50+MMC+f8NtgCw8mPy/xoCYfXBAwL/Iv8FYv+HAf8qwAIfsBygYkFh+LD0wAIfsRygYkFi+LD0Yv7zwwL/MvbBAwL8+GL/EP8GYvX7sE5ta19hcnJheV9jb25zdLP/AWJJTWFwLmNvbnN0/WL8/xRj9P9I/1G09mPy/1cCwgL2/19j9f9xAsACH9V2oGJBYfiw9GLy/6EBwwL/jwH5Yf1h/wRi8/zAAh/DeKBiQXf4YvT+Y/P/B/8PYvb/KWH0YLFHdHkudW5pdLP5YkR1bml098MC+P8GsfVi/zn0YGBgYvH/zgLAAhGhYklDX2R1bW15XzD+Yvz/B2P0/w3/6QLFAvj/FmP1//MCAmH2sPJi//wC9WL/LPdm9P9N/74CAQH/xgIL
+api_version: v17
+kind: mir.model
+storage: []
