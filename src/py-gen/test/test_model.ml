@@ -41,7 +41,7 @@ let test_parse_model (sub_dir : string option) (name : string) : unit =
   let _app_sym, term = unpack_model model in
   let ty_defs, expr =
     match parse_term term with
-    | Ok (ty_defs, expr) -> ty_defs, expr
+    | Ok (ty_defs, _, expr) -> ty_defs, expr
     | Error msg -> failwith msg
   in
   printf "Type defs:\n";
@@ -462,7 +462,8 @@ let%expect_test "variant_and_record" =
 
 let%expect_test "inline record" =
   test_parse_model (Some "composite") "inline_record";
-  [%expect {|
+  [%expect
+    {|
     name: inline_record
     iml_code:
     type event =

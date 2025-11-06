@@ -28,13 +28,19 @@ let unpack_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly)
 
 exception Early_return of string
 
+let unzip3 triples =
+  List.fold_right
+    (fun (x, y, z) (xs, ys, zs) -> x :: xs, y :: ys, z :: zs)
+    triples ([], [], [])
+
 (*
 Return:
   type definition statements
+  expression option (type-annotation)
   expression (term)
 *)
 let rec parse_term (term : Term.term) :
-    (Ast.stmt list * Ast.expr, string) result =
+    (Ast.stmt list * Ast.expr option * Ast.expr, string) result =
   let unwrap : ('a, 'b) result -> 'a = function
     | Ok x -> x
     | Error msg -> failwith msg
@@ -43,10 +49,11 @@ let rec parse_term (term : Term.term) :
   (* Constant *)
   | Term.Const const, _ ->
     (match const with
-    | Const_bool b -> Ok ([], Ast.(Constant { value = Bool b; kind = None }))
+    | Const_bool b ->
+      Ok ([], None, Ast.(Constant { value = Bool b; kind = None }))
     | Const_float f ->
       (* printf "%f" f; *)
-      Ok ([], Ast.(Constant { value = Float f; kind = None }))
+      Ok ([], None, Ast.(Constant { value = Float f; kind = None }))
     | Const_q q ->
       let num = Q.num q in
       let den = Q.den q in
@@ -55,11 +62,13 @@ let rec parse_term (term : Term.term) :
       (* Should we use Decimal instead? *)
       Ok
         ( [],
+          None,
           Constant
             { value = Float (Z.to_float num /. Z.to_float den); kind = None } )
     | Const_z z ->
-      Ok ([], Ast.Constant { value = Int (Z.to_int z); kind = None })
-    | Const_string s -> Ok ([], Ast.Constant { value = String s; kind = None })
+      Ok ([], None, Ast.Constant { value = Int (Z.to_int z); kind = None })
+    | Const_string s ->
+      Ok ([], None, Ast.Constant { value = String s; kind = None })
     | c ->
       (* Uid and real_approx *)
       let msg = sprintf "unhandle const %s" (Imandrax_api.Const.show c) in
@@ -67,9 +76,11 @@ let rec parse_term (term : Term.term) :
   (* Tuple *)
   | Term.Tuple { l = (terms : Term.term list) }, (_ty : Type.t) ->
     let parsed_elems = List.map (fun term -> parse_term term |> unwrap) terms in
-    let type_defs_of_elems, term_of_elems = List.split parsed_elems in
+    let type_defs_of_elems, _type_annot_of_elems, term_of_elems =
+      unzip3 parsed_elems
+    in
     let type_def_of_elems = List.flatten type_defs_of_elems in
-    Ok (type_def_of_elems, Ast.tuple_of_exprs term_of_elems)
+    Ok (type_def_of_elems, None, Ast.tuple_of_exprs term_of_elems)
   (* Record *)
   | ( Term.Record
         {
@@ -103,17 +114,14 @@ let rec parse_term (term : Term.term) :
           | _ -> failwith "Never: row_view should be a constr")
         | _ -> failwith "Never: applied_symbol.ty.view should be a arrow"
       in
-      let type_defs_of_row, row_val_expr = parse_term term |> unwrap in
+      let type_defs_of_row, _type_annot_of_row, row_val_expr =
+        parse_term term |> unwrap
+      in
       (* TODO(ENH): maybe using kwargs is clearer? *)
       type_defs_of_row, (def_row_var_name, def_row_type_name), row_val_expr
     in
 
     let type_defs_of_rows, def_rows, row_val_exprs =
-      let unzip3 triples =
-        List.fold_right
-          (fun (x, y, z) (xs, ys, zs) -> x :: xs, y :: ys, z :: zs)
-          triples ([], [], [])
-      in
       List.map (fun (applied_sym, term) -> parse_row applied_sym term) rows
       |> unzip3
     in
@@ -122,6 +130,7 @@ let rec parse_term (term : Term.term) :
     let open Ast in
     Ok
       ( type_def_of_rows @ [ def_dataclass ty_name def_rows ],
+        None,
         init_dataclass ty_name ~args:row_val_exprs ~kwargs:[] )
   (* Construct *)
   | ( Term.Construct
@@ -157,9 +166,9 @@ let rec parse_term (term : Term.term) :
         (Ast.stmt list * Ast.expr, string) result =
       match is_prelude_type with
       | "LChar.t" ->
-        let bool_type_defs_s, bool_terms =
+        let bool_type_defs_s, _bool_type_annot_s, bool_terms =
           List.map (fun arg -> parse_term arg |> unwrap) construct_args
-          |> List.split
+          |> unzip3
         in
         let bool_type_defs = List.flatten bool_type_defs_s in
         (match bool_type_defs with
@@ -180,9 +189,9 @@ let rec parse_term (term : Term.term) :
           (* Empty list [] *)
           Ok ([], Ast.empty_list_expr ())
         else (
-          let type_defs_of_elems, term_of_elems =
+          let type_defs_of_elems, _type_annot_of_elems, term_of_elems =
             List.map (fun arg -> parse_term arg |> unwrap) construct_args
-            |> List.split
+            |> unzip3
           in
           let type_def_of_elems = List.flatten type_defs_of_elems in
           match term_of_elems with
@@ -223,9 +232,9 @@ let rec parse_term (term : Term.term) :
       helper [] ty_view
     in
 
-    let res : (Ast.stmt list * Ast.expr, string) result =
+    let res : (Ast.stmt list * Ast.expr option * Ast.expr, string) result =
       match parsed_prelude_construct_args with
-      | Ok (type_defs, expr) -> Ok (type_defs, expr)
+      | Ok (type_defs, expr) -> Ok (type_defs, None, expr)
       | Error _ ->
         let variant_constr_name = construct.sym.id.name in
         (* the last arg is the variant name *)
@@ -272,8 +281,10 @@ let rec parse_term (term : Term.term) :
           List.map (fun arg -> parse_term arg |> unwrap) construct_args
         in
 
-        let constr_arg_type_stmt_lists, constr_arg_terms =
-          List.split parsed_constr_args
+        let ( constr_arg_type_stmt_lists,
+              _constr_arg_type_annot_lists,
+              constr_arg_terms ) =
+          unzip3 parsed_constr_args
         in
 
         let constr_arg_type_stmts = List.flatten constr_arg_type_stmt_lists in
@@ -282,7 +293,7 @@ let rec parse_term (term : Term.term) :
           Ast.init_dataclass variant_constr_name ~args:constr_arg_terms
             ~kwargs:[]
         in
-        Ok (constr_arg_type_stmts @ ty_defs, term)
+        Ok (constr_arg_type_stmts @ ty_defs, None, term)
     in
 
     res
@@ -408,11 +419,14 @@ let rec parse_term (term : Term.term) :
 let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
     Ast.stmt list =
   let app_sym, term = unpack_model model in
-  let ty_defs, term_expr =
+  let ty_defs, type_annot, term_expr =
     match parse_term term with
-    | Ok (ty_defs, term_expr) -> ty_defs, term_expr
+    | Ok (ty_defs, type_annot, term_expr) -> ty_defs, type_annot, term_expr
     | Error msg -> failwith msg
   in
+
+  let _todo = type_annot in
+
   let assign_smt =
     let target = app_sym.sym.id.name in
     Ast.Assign
@@ -483,14 +497,19 @@ let%expect_test "decode artifact" =
   print_endline (Format.flush_str_formatter ());
   printf "%s\n" sep; *)
   print_endline "Parsing term:\n";
-  let ty_defs, expr =
+  let ty_defs, type_annot, expr =
     match parse_term term with
-    | Ok (ty_defs, expr) -> ty_defs, expr
+    | Ok (ty_defs, type_annot, expr) -> ty_defs, type_annot, expr
     | Error msg -> failwith msg
   in
 
   printf "Type defs:\n";
   List.iter (fun ty_def -> print_endline (Ast.show_stmt ty_def)) ty_defs;
+
+  printf "Type annot: ";
+  (match type_annot with
+  | None -> print_endline "None"
+  | Some ty_annot -> print_endline (Ast.show_expr ty_annot));
 
   printf "\n";
   printf "Expr:\n";
