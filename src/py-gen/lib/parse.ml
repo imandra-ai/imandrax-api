@@ -319,9 +319,8 @@ let rec parse_term (term : Term.term) :
          | _ -> raise (Early_return "Non-map Apply term view")
        in
 
-       printf "key_ty_name: %s\n" key_ty_name;
-       printf "val_ty_name: %s\n" val_ty_name;
-
+       (* printf "key_ty_name: %s\n" key_ty_name;
+       printf "val_ty_name: %s\n" val_ty_name; *)
        let type_annot =
          Ast.defaultdict_type_annotation key_ty_name val_ty_name
        in
@@ -401,7 +400,7 @@ let rec parse_term (term : Term.term) :
          default |> parse_term |> unwrap
        in
 
-       let key_terms, val_terms = List.split key_val_pairs in
+       let key_terms, val_terms = key_val_pairs |> List.rev |> List.split in
 
        let keys_ty_defs, _key_type_annots, key_exprs =
          key_terms |> List.map (fun k -> parse_term k |> unwrap) |> unzip3
@@ -416,7 +415,7 @@ let rec parse_term (term : Term.term) :
            (CCList.combine key_exprs val_exprs)
        in
 
-       print_endline "key_val_pairs:";
+       (* print_endline "key_val_pairs:";
        List.iter
          (fun (k, v) ->
            let fmt = Format.str_formatter in
@@ -429,8 +428,7 @@ let rec parse_term (term : Term.term) :
        print_endline "default:";
        let fmt = Format.str_formatter in
        Format.fprintf fmt "%a@?" Pretty_print.pp_term default;
-       print_endline (Format.flush_str_formatter ());
-
+       print_endline (Format.flush_str_formatter ()); *)
        Ok
          ( default_val_ty_defs @ List.flatten keys_ty_defs
            @ List.flatten vals_ty_defs,
@@ -559,7 +557,8 @@ let%expect_test "decode artifact" =
   (* Also print to stdout for the test *)
   Yojson.Safe.pretty_to_string json_out |> print_endline;
 
-  [%expect {|
+  [%expect
+    {|
     name: map_int_bool_2
     code: let v : (int, bool) Map.t =
       Map.const false
