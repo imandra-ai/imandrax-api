@@ -71,6 +71,9 @@ let%expect_test "bool list" =
 
     Type defs:
 
+    Type annot:
+    None
+
     Expr:
     (Ast.List
        { Ast.elts =
@@ -90,6 +93,9 @@ let%expect_test "empty list" =
         if w = [] then true else false
 
     Type defs:
+
+    Type annot:
+    None
 
     Expr:
     (Ast.List { Ast.elts = []; ctx = Ast.Load })
@@ -120,6 +126,9 @@ let%expect_test "int option" =
          value = (Ast.Name { Ast.id = "Some"; ctx = Ast.Load });
          type_comment = None })
 
+    Type annot:
+    (Ast.Name { Ast.id = "option"; ctx = Ast.Load })
+
     Expr:
     (Ast.Call
        { Ast.func = (Ast.Name { Ast.id = "Some"; ctx = Ast.Load });
@@ -139,6 +148,9 @@ let%expect_test "int" =
 
     Type defs:
 
+    Type annot:
+    None
+
     Expr:
     (Ast.Constant { Ast.value = (Ast.Int 2); kind = None })
     |}]
@@ -155,6 +167,9 @@ let%expect_test "LChar" =
 
     Type defs:
 
+    Type annot:
+    None
+
     Expr:
     (Ast.Constant { Ast.value = (Ast.String "\000"); kind = None })
     |}]
@@ -170,6 +185,9 @@ let%expect_test "LString" =
         if w = {l|hi|l} then true else false
 
     Type defs:
+
+    Type annot:
+    None
 
     Expr:
     (Ast.List
@@ -190,6 +208,9 @@ let%expect_test "real" =
         if w = 3.14 then true else false
 
     Type defs:
+
+    Type annot:
+    None
 
     Expr:
     (Ast.Constant { Ast.value = (Ast.Float 3.14); kind = None })
@@ -227,6 +248,9 @@ let%expect_test "record" =
            ];
          decorator_list = [(Ast.Name { Ast.id = "dataclass"; ctx = Ast.Load })] })
 
+    Type annot:
+    None
+
     Expr:
     (Ast.Call
        { Ast.func = (Ast.Name { Ast.id = "user"; ctx = Ast.Load });
@@ -248,6 +272,9 @@ let%expect_test "single element int list" =
 
     Type defs:
 
+    Type annot:
+    None
+
     Expr:
     (Ast.List
        { Ast.elts = [(Ast.Constant { Ast.value = (Ast.Int 1); kind = None })];
@@ -265,6 +292,9 @@ let%expect_test "tuple (bool * int)" =
         if w = (true, 2) then true else false
 
     Type defs:
+
+    Type annot:
+    None
 
     Expr:
     (Ast.Tuple
@@ -298,6 +328,9 @@ let%expect_test "variant1" =
        { Ast.targets = [(Ast.Name { Ast.id = "status"; ctx = Ast.Load })];
          value = (Ast.Name { Ast.id = "Active"; ctx = Ast.Load });
          type_comment = None })
+
+    Type annot:
+    (Ast.Name { Ast.id = "status"; ctx = Ast.Load })
 
     Expr:
     (Ast.Call
@@ -335,6 +368,9 @@ let%expect_test "variant2" =
        { Ast.targets = [(Ast.Name { Ast.id = "status"; ctx = Ast.Load })];
          value = (Ast.Name { Ast.id = "Waitlist"; ctx = Ast.Load });
          type_comment = None })
+
+    Type annot:
+    (Ast.Name { Ast.id = "status"; ctx = Ast.Load })
 
     Expr:
     (Ast.Call
@@ -377,6 +413,9 @@ let%expect_test "variant3" =
        { Ast.targets = [(Ast.Name { Ast.id = "status"; ctx = Ast.Load })];
          value = (Ast.Name { Ast.id = "Waitlist"; ctx = Ast.Load });
          type_comment = None })
+
+    Type annot:
+    (Ast.Name { Ast.id = "status"; ctx = Ast.Load })
 
     Expr:
     (Ast.Call
@@ -448,6 +487,9 @@ let%expect_test "variant_and_record" =
          value = (Ast.Name { Ast.id = "Move"; ctx = Ast.Load });
          type_comment = None })
 
+    Type annot:
+    (Ast.Name { Ast.id = "movement"; ctx = Ast.Load })
+
     Expr:
     (Ast.Call
        { Ast.func = (Ast.Name { Ast.id = "Move"; ctx = Ast.Load });
@@ -494,6 +536,9 @@ let%expect_test "inline record" =
        { Ast.targets = [(Ast.Name { Ast.id = "event"; ctx = Ast.Load })];
          value = (Ast.Name { Ast.id = "Scroll"; ctx = Ast.Load });
          type_comment = None })
+
+    Type annot:
+    (Ast.Name { Ast.id = "event"; ctx = Ast.Load })
 
     Expr:
     (Ast.Call
