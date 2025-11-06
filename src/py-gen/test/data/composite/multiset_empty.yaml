@@ -1,0 +1,11 @@
+name: multiset_empty
+iml: |-
+  let v = Multiset.of_list []
+
+  let v = fun w -> if w = v then true else false
+  instance v
+instance_src: v
+data: YMACEqFiRF9hXzD5wwL4/l8R6vs47frpASL5+M8E8YUTM+U7RfzgPc3rzwVM2XrH0TxjRF9hXzD/GAGG+bLyYkRfYV8w92L3/yxgwwL982L/AfZi/fVgYLBIbWtfc19pbnSz+mJDaW509sMC9/8GYv9U97BKbWtfc19hcnJhebP8YkVNYXAudPjDAvn/DbJQsPJj8v8aAmH1wQMC/yL/BWL/hQH/KsACH7AcoGJBYfiw9MACH7EcoGJBYviw9GL+88MC/zL2wQMC/Phi/xD/BmL1+7BObWtfYXJyYXlfY29uc3Sz/wFiSU1hcC5jb25zdP1i/P8UY/T/SP9RtPZj8v9XAsIC9v9fY/X/cQLAAh/AtgGgYkFh+bD0YvL/ogHDAv+QAflh/WH/BGLz/MACH8G2AaBiQXf5YvT/AGP0/wn/EWL2/yxh9GCxR3R5LnVuaXSz+WJEdW5pdPfDAvj/BrH1Yv879GBgYGLx/88CwAIToWJJQ19kdW1teV8w/mL8/wdj9P8N/+oCxQL4/xZj9f/0AgJh9rDyYv/9AvVi/yz3ZvT/Tf+/AgEB/8cCCw==
+api_version: v17
+kind: mir.model
+storage: []

@@ -1,0 +1,10 @@
+name: multiset_nonempty
+iml: |-
+  let v = Multiset.of_list [1; 2; 3; 2; 1]
+
+  let v = fun w -> if w = v then true else false
+instance_src: v
+data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wZi9fawSm1rX3NfYXJyYXmz/GJFTWFwLnT4wwL5/wyyULDyY/L/GQJh9cEDAv8h/wVi/yb/KMACH7AcoGJBYfiw9MACH7EcoGJBYviw9GL+88MC/zH2wQMC/Phi/xD/BmL1+7BObWtfYXJyYXlfY29uc3Sz/wFiSU1hcC5jb25zdP1i/P8UY/T/R/9QtPZj8v9WAsIC9v9eY/X/cAKyWAIAAAAAAAAAsPpj8v+fAQKyWAQAAAAAAAAAsPpj8v+xAQJj/xr/C/rBAwL/vgH/kwHBAwL/qQH+Yv/MAf/PAcACH7UcoGJBYfiw9MACH7YcoGJBYviw9GL+88MC/9kB98EDAv35wQMC/w/5wQMC/wT6Yv8d/xNi9fywTm1rX2FycmF5X3N0b3Jls/8BYkhNYXAuYWRkJ/xi+/8TY/T/Vf9etPZj8v9kAsIC9v95Y/X/pAICslgGAAAAAAAAALD6Y/L/1AICY/8J+P+vAcIC/xv6Y/X/yAICY/b/rQH/sAHCAv8u+2P1/9sCAmBgYvH/4wLAAh+ktgGgYkF3+WL0/wJj9P8I//kCYvf/FWH0YGbx9P+4AwEB/74DCg==
+api_version: v17
+kind: mir.model
+storage: []

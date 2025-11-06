@@ -1,0 +1,11 @@
+name: map_int_bool
+iml: |-
+  let v : (int, bool) Map.t =
+    Map.const false
+
+  let v = fun w -> if w = v then true else false
+instance_src: v
+data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wZgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGL/EPewSm1rX3NfYXJyYXmz/GJFTWFwLnT4wwL5/w22ALDyY/L/GgJh9cEDAv8i/wVi/0H/KcACH7AcoGJBYfiw9MACH7EcoGJBYviw9GL+88MC/zH2wQMC/Phi/xD/BmL1+7BObWtfYXJyYXlfY29uc3Sz/wFiSU1hcC5jb25zdP1i/P8UY/T/R/9QtPZj8v9WAsIC9v9eY/X/cAJgYGLx/3fAAh+MtgGgYkF3+WL0/wFj9P8H/4wBYvf/E2H0YGbx9P/mAQEB/+wBCg==
+api_version: v17
+kind: mir.model
+storage: []

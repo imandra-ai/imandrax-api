@@ -1,0 +1,10 @@
+name: set_empty
+iml: |-
+  let v = Set.of_list []
+
+  let v = fun w -> if w = v then true else false
+instance_src: v
+data: YMACEqFiRF9hXzD5wwL4/l8R6vs47frpASL5+M8E8YUTM+U7RfzgPc3rzwVM2XrH0TxjRF9hXzD/GAGG+bLyYkRfYV8w92L3/yxgwwL982L/AfZi/fVgYLBJbWtfc19ib29ss/tiRGJvb2z3wwL4/whi/1b3sEpta19zX2FycmF5s/xiRU1hcC50+MMC+f8NtgCw8mPy/xoCYfXBAwL/Iv8FYv+HAf8qwAIfsBygYkFh+LD0wAIfsRygYkFi+LD0Yv7zwwL/MvbBAwL8+GL/EP8GYvX7sE5ta19hcnJheV9jb25zdLP/AWJJTWFwLmNvbnN0/WL8/xRj9P9I/1G09mPy/1cCwgL2/19j9f9xAsACH/C2AaBiQWH5sPRi8v+iAcMC/5AB+WH9Yf8EYvP8wAIf8bYBoGJBd/li9P8AY/T/Cf8RYvb/LGH0YLFHdHkudW5pdLP5YkR1bml098MC+P8GsfVi/zv0YGBgYvH/0QLAAhOhYklDX2R1bW15XzD+Yvz/B2P0/w3/7ALFAvj/FmP1//YCAmH2sPJi//8C9WL/LPdm9P9N/8ECAQH/yQIL
+api_version: v17
+kind: mir.model
+storage: []
