@@ -122,7 +122,8 @@ let pp_term_view pp_t out (v : (_, _) Term.view) =
 let rec pp_term out (term : Term.term) =
   let open Format in
   fprintf out
-    "@[<hv 2>{ @[<hv 2>view =@ %a@];@ @[<hv 2>ty =@ %a@];@\n\
+    "@[<hv 2>{ @[<hv 2>view =@ %a@];@\n\
+     @[<hv 2>ty =@ %a@];@\n\
      @[<hv 2>generation =@ %a@];@ @[<hv 2>sub_anchor =@ %a@] }@]"
     (pp_term_view pp_term) term.view pp_type term.ty Term.pp_generation
     term.generation
