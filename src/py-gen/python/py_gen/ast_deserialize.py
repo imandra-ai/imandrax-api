@@ -1,6 +1,7 @@
 """Simple recursive deserializer for OCaml yojson AST format.
 
-OCaml format: ["Tag", {...}] for variants with fields, ["Tag"] for empty variants.
+OCaml format: ["Tag", {...}] for variants with fields, ["Tag"] for empty
+variants.
 Location info is NOT deserialized - use ast.fix to add it later.
 """
 

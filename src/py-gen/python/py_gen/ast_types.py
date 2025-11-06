@@ -379,3 +379,20 @@ class keyword(AST):
     # end_col_offset: int | None
     arg: str | None
     value: expr
+
+
+@dc
+class arguments(AST):
+    posonlyargs: list[arg]
+    args: list[arg]
+    vararg: arg | None
+    kwonlyargs: list[arg]
+    kw_defaults: list[expr | None]
+    kwarg: arg | None
+    defaults: list[expr]
+
+
+@dc
+class Lambda(expr):
+    args: arguments
+    body: expr
