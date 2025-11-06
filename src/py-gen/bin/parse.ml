@@ -69,6 +69,8 @@ let () =
           else
             CCIO.File.read_exn input_file
         in
+        if String.trim yaml_str = "" then
+          failwith "Empty input: stdin contains no data (check if previous command in pipeline failed)";
         let yaml = Yaml.of_string_exn yaml_str in
         (* If index is specified and it's a list, extract the requested item *)
         let yaml_item =
@@ -101,9 +103,13 @@ let () =
       ) else (
         if not use_stdout then printf "Parsing JSON file...\n";
         let json =
-          if use_stdin then
-            Yojson.Safe.from_channel stdin
-          else
+          if use_stdin then (
+            (* Check if stdin has any content *)
+            let content = CCIO.read_all stdin in
+            if String.trim content = "" then
+              failwith "Empty input: stdin contains no data (check if previous command in pipeline failed)";
+            Yojson.Safe.from_string content
+          ) else
             Yojson.Safe.from_file input_file
         in
         Py_gen.Util.json_to_model ~debug:false json
@@ -111,6 +117,11 @@ let () =
     with
     | Failure msg ->
       eprintf "Error parsing input: %s\n" msg;
+      exit 1
+    | Yojson.Json_error msg ->
+      eprintf "JSON parse error: %s\n" msg;
+      if use_stdin then
+        eprintf "Hint: Ensure stdin contains valid JSON (use 'yq -o json' to convert YAML to JSON)\n";
       exit 1
     | e ->
       eprintf "Unexpected error: %s\n" (Printexc.to_string e);
