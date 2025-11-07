@@ -19,6 +19,8 @@ let unzip3 triples =
     (fun (x, y, z) (xs, ys, zs) -> x :: xs, y :: ys, z :: zs)
     triples ([], [], [])
 
+let zip3 xs ys zs = List.map2 (fun x (y, z) -> x, y, z) xs (List.combine ys zs)
+
 let unwrap : ('a, 'b) result -> 'a = function
   | Ok x -> x
   | Error msg -> failwith msg
@@ -541,27 +543,67 @@ let parse_region (region : (Term.term, Type.t) Mir.Region.t_poly) :
 
   [], model_eval_term
 
-let parse_fun_decomp (fun_decomp : Mir.Fun_decomp.t) : unit =
+let uniq_stmts (stmts : Ast.stmt list) : Ast.stmt list =
+  let tbl = Hashtbl.create (List.length stmts) in
+  List.filter
+    (fun x ->
+      if Hashtbl.mem tbl x then
+        false
+      else (
+        Hashtbl.add tbl x ();
+        true
+      ))
+    stmts
+
+let parse_fun_decomp (fun_decomp : Mir.Fun_decomp.t) : Ast.stmt list =
   (* Ast.stmt list  *)
   match fun_decomp with
   | { f_id = Uid.{ name = f_id_name; view = _ }; f_args; regions } ->
-    let f_arg_names = f_args |> List.map (fun { Mir.Var.id; _ } -> id.name) in
+    let (f_arg_names : string list) =
+      f_args |> List.map (fun { Mir.Var.id; _ } -> id.name)
+    in
 
+    (* TODO: this is a place holder, we don't have model yet *)
     let ( (_models_placeholder : Term.term list list),
           (model_evals : Term.term list) ) =
       regions |> List.map parse_region |> List.split
     in
 
-    (* Model is a map from strings (variable names) to terms *)
-    let (models : (string * Term.term) list list) =
-      (* NOTE: this is mock up *)
-      List.combine f_arg_names model_evals
-      |> List.map (fun (f_arg_name, model_eval) -> f_arg_name, model_eval)
-      |> List.map (fun item ->
-             CCList.init (List.length regions) (fun _ -> item))
+    let models_type_defs, _models_type_annots, models_terms =
+      _models_placeholder
+      |> List.map (fun (model : Term.term list) ->
+             List.map (fun model -> parse_term model |> unwrap) model)
+      |> List.map unzip3 |> unzip3
     in
 
-    ()
+    let model_eval_type_defs_s, model_eval_type_annots, model_eval_exprs =
+      model_evals
+      |> List.map (fun model_eval -> parse_term model_eval |> unwrap)
+      |> unzip3
+    in
+
+    (* Deduplicate type definitions *)
+    let type_defs =
+      (models_type_defs |> List.flatten |> List.flatten)
+      @ (model_eval_type_defs_s |> List.flatten)
+      |> uniq_stmts
+    in
+
+    let models : (string * Ast.expr) list list =
+      List.map
+        (fun (model_terms : Ast.expr list) ->
+          List.combine f_arg_names model_terms)
+        models_terms
+    in
+
+    let test_functions : Ast.stmt list =
+      List.map
+        (fun (model, model_eval_type_annot, model_eval) ->
+          Ast.def_test_function ~name:f_id_name ~docstr:None ~args:model
+            ~output_type_annot:model_eval_type_annot ~expected:model_eval)
+        (zip3 models model_eval_type_annots model_eval_exprs)
+    in
+    type_defs @ test_functions
 
 let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 

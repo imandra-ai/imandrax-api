@@ -505,11 +505,11 @@ def name():
 ```
 *)
 let def_test_function
-    (name : string)
-    (docstr : string option)
-    (args : (string * expr) list)
-    (output_type_annot : expr option)
-    (expected : expr) : stmt =
+    ~(name : string)
+    ~(docstr : string option)
+    ~(args : (string * expr) list)
+    ~(output_type_annot : expr option)
+    ~(expected : expr) : stmt =
   let call_keywords : keyword list =
     List.map (fun (k, v) -> { arg = Some k; value = v }) args
   in
