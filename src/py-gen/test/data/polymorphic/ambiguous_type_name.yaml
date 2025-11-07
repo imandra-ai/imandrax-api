@@ -1,0 +1,10 @@
+name: ambiguous_type_name
+iml: |-
+  type _a_0 = My_dummy_0
+
+  let v =  (fun (w: _a_0 list) -> if w = [] then true else false)
+instance_src: v
+data: YGBgXxGHvocJCRsKuKfvHobu9gMPJ9erEuKR5t+V/o/f6ywBu2NEX2FfMP8YAYb5svJiRF9hXzD3wwL4/yph9bFHdHkubGlzdLP5YkRsaXN098MC+P8HYGH/EMACHyegYkFh97D0YfLDAv8P9WH9YvL4sUVjLm5pbLP3YkJbXfVi9f8DY/T/Hv8mxQL3/yZj9f8vAmBgYvH/NsACH4SXAaBiQXf5YvT/AWP0/wf/S2L2/xJh9GBm8fT/qAEBAf+uAQo=
+api_version: v17
+kind: mir.model
+storage: []
