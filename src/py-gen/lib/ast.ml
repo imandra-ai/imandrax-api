@@ -495,6 +495,15 @@ let mk_assert_eq (left : expr) (right : expr) : stmt =
       msg = None;
     }
 
+(*
+```python
+def name():
+    """docstr"""
+    result = f(x)
+    expected = ...
+    assert result == expected
+```
+*)
 let def_test_function
     (name : string)
     (docstr : string option)
@@ -542,7 +551,6 @@ let def_test_function
         assert_eq;
       ]
   in
-
   FunctionDef
     {
       name;
@@ -552,6 +560,33 @@ let def_test_function
       returns = None;
       type_comment = None;
       type_params = [];
+    }
+
+(*
+```python
+{
+    'input_kwargs': {'x': 4},
+    'expected': 5,
+}
+```
+*)
+let mk_test_data_dict (args : (string * expr) list) (expected : expr) : expr =
+  let input_kwargs_dict : expr =
+    let keys, values = List.split args in
+    let key_opt_exprs =
+      keys
+      |> List.map (fun k -> Some (Constant { value = String k; kind = None }))
+    in
+    Dict { keys = key_opt_exprs; values }
+  in
+  Dict
+    {
+      keys =
+        [
+          Some (Constant { value = String "input_kwargs"; kind = None });
+          Some (Constant { value = String "expected"; kind = None });
+        ];
+      values = [ input_kwargs_dict; expected ];
     }
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
