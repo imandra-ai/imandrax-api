@@ -1,0 +1,18 @@
+name: basic
+iml: |
+  let g = fun x -> x + 1
+
+  let f = fun x -> if x > 0 then x + 2 else g x
+decomp_kwargs:
+  name: g
+decomp_res:
+  artifact:
+    kind: mir.fun_decomp
+    data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wayULDyY/L6AmBgYvH/AcACH4rPDaBiQXj5YvT/AWP0/wf/FmL2/xFh9GBm8fT/NgEA/zux+bRBMWJKbW9kZWxfZXZhbP60RXggKyAxYklpbnZhcmlhbnT/ArREdHJ1ZWH2t/JiS2NvbnN0cmFpbnRz/rRBMGJBePVh9LXyYkVtb2RlbPhk/z3/K/8W/rX4YkNzdHL2slgCAAAAAAAAALD6Y/L/lwECtvZiSm1vZGVsX2V2YWz9tE8VMGU0OTdhNzktZDc1ZS00Yzc0LTk1YjItNWQzYzY0Mzk2YWFlYkJpZP8bY/9F/y36Yv/EAf/hAbP3Y/L/6AECYvb/ScEDAv/zAf/2AcEDAv/8Af5gYGLx+rBIbWtfaV9hZGSz+mJBK/Ri9P8FY/T/C/8UtPZj8v8aAsIC9v8tY/X/rQICYLBJbWtfc19ib29ss/tiRGJvb2z3wwL4/wi2AbDyY/L6AmH0ZPL/HP9y/6MCYfli/8cC/+QCYfdfEYUAZl9aOxIqiuqKeDj8w9UM7kO8hYewdvQqau35b1LSY0Fn/xUBhvay8mJBZ/Rj9P8k/y8F
+    api_version: v17
+    storage: []
+  task:
+    id:
+      id: task:decomp:G5IYmPOmnEomNHnqaYR6pYGbi1heunv7AZFdWkBC29I=
+    kind: TASK_DECOMP
+  errors: []

@@ -1,0 +1,7 @@
+- name: basic
+  iml: |
+    let g = fun x -> x + 1
+
+    let f = fun x -> if x > 0 then x + 2 else g x
+  decomp_kwargs:
+    name: g
