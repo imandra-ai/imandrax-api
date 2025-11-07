@@ -253,7 +253,7 @@ and type_var = {
   bound: expr option;
   default_value: expr option;
 }
-[@@deriving show, yojson]
+[@@deriving show, eq, yojson]
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
