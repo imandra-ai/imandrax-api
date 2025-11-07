@@ -12,6 +12,13 @@ type ast =
   | Module of module_ast
   | Arguments of arguments
   | Arg of arg
+  | TypeParam of type_param
+  | Alias of alias
+
+and alias = {
+  name: string;
+  asname: string option;
+}
 
 and module_ast = { body: stmt list (* type_ignores: list[TypeIgnore] *) }
 
@@ -26,7 +33,6 @@ and expr =
   | BoolOp of bool_op
   | BinOp of bin_op
   | UnaryOp of unary_op
-  (* | Lambda *)
   | IfExp of (expr * expr * expr)
   | Set of expr list
   | ListComp of list_comp
@@ -38,6 +44,11 @@ and expr =
   | Call of call_expr
   | Lambda of lambda_expr
   | Dict of dict_expr
+  | Compare of {
+      left: expr;
+      ops: cmpop list;
+      comparators: expr list;
+    }
 
 and constant = {
   value: constant_value;
@@ -84,7 +95,7 @@ and unary_op =
   | UAdd
   | USub
 
-(* and cmpop =
+and cmpop =
   | Eq
   | NotEq
   | Lt
@@ -94,7 +105,8 @@ and unary_op =
   | Is
   | IsNot
   | In
-  | NotIn *)
+  | NotIn
+
 and comprehension = {
   target: expr;
   iter: expr;
@@ -159,11 +171,28 @@ and dict_expr = {
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 and stmt =
+  | FunctionDef of function_def_stmt
   | Assign of assign_stmt
   | AnnAssign of ann_assign_stmt
   | ClassDef of class_def_stmt
   (* 801 *)
   | Pass
+  | Assert of {
+      test: expr;
+      msg: expr option;
+    }
+  | Import of { names: alias list }
+  | ImportFrom of { names: alias list }
+
+and function_def_stmt = {
+  name: string;
+  args: arguments;
+  body: stmt list;
+  decorator_list: expr list;
+  returns: expr option;
+  type_comment: string option;
+  type_params: type_param list;
+}
 
 and assign_stmt = {
   targets: expr list;
@@ -203,6 +232,24 @@ and arg = {
   arg: string;
   annotation: expr option;
   type_comment: string option;
+}
+
+(* <><><><><><><><><><><><><><><><><><><><> *)
+and type_param =
+  | TypeVar of type_var
+  | ParamSepc of {
+      name: string;
+      default_value: expr option;
+    }
+  | TypeVarTuple of {
+      name: string;
+      default_value: expr option;
+    }
+
+and type_var = {
+  name: string;
+  bound: expr option;
+  default_value: expr option;
 }
 [@@deriving show, yojson]
 
