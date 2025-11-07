@@ -81,6 +81,18 @@ let art_data_to_model ?(debug = false) (data_b64 : string) (kind_str : string) :
   in
   model
 
+let art_data_to_fun_decomp
+    ?(debug = false)
+    (data_b64 : string)
+    (kind_str : string) : Mir.Fun_decomp.t =
+  let art = art_data_to_art ~debug data_b64 kind_str in
+  let fun_decomp : Mir.Fun_decomp.t =
+    match Artifact.as_fun_decomp art with
+    | Some fd -> fd
+    | None -> raise (Failure "Error: artifact is not a model")
+  in
+  fun_decomp
+
 let json_to_model ?(debug = false) (json : Yojson.Safe.t) : Mir.Model.t =
   let data_b64, kind_str = json_to_art_data ~debug json in
   art_data_to_model ~debug data_b64 kind_str
@@ -114,3 +126,7 @@ let yaml_to_art ?(debug = false) (yaml : Yaml.value) : string * string =
 let yaml_to_model ?(debug = false) (yaml : Yaml.value) : Mir.Model.t =
   let data_b64, kind_str = yaml_to_art ~debug yaml in
   art_data_to_model ~debug data_b64 kind_str
+
+let yaml_to_fun_decomp ?(debug = false) (yaml : Yaml.value) : Mir.Fun_decomp.t =
+  let data_b64, kind_str = yaml_to_art ~debug yaml in
+  art_data_to_fun_decomp ~debug data_b64 kind_str

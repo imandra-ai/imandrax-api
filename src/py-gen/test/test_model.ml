@@ -742,7 +742,7 @@ let%expect_test "map 3" =
          keywords = [] })
     |}]
 
-let%expect_test " nonempty set" =
+let%expect_test "nonempty set" =
   test_parse_model (Some "composite") "set_nonempty";
   [%expect
     {|

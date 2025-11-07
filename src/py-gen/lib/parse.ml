@@ -529,18 +529,44 @@ let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
 let%expect_test "parse fun decomp art" =
-  let yaml_str = CCIO.File.read_exn "../examples/art/art.yaml" in
-  ()
+  let yaml_str = CCIO.File.read_exn "../test/data/fun_decomp/basic.yaml" in
+  let (yaml : Yaml.value) = Yaml.of_string_exn yaml_str in
+  let name, code, art =
+    match yaml with
+    | `O
+        (("name", `String name)
+        :: ("iml", `String code)
+        :: _
+        :: ("decomp_res", `O (("artifact", art) :: _))
+        :: _) ->
+      name, code, art
+    | _ -> failwith "Invalid yaml"
+  in
+
+  printf "name: %s\n" name;
+  printf "code:\n %s\n" code;
+
+  let fun_decomp = Util.yaml_to_fun_decomp art in
+
+  ();
+  [%expect
+    {|
+    name: basic
+    code:
+     let g = fun x -> x + 1
+
+    let f = fun x -> if x > 0 then x + 2 else g x
+    |}]
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
 let%expect_test "parse model art" =
   (* let yaml_str = CCIO.File.read_exn "../examples/art/art.yaml" in *)
   let yaml_str =
-    (* CCIO.File.read_exn "../test/data/composite/map_default_value_only.yaml" *)
-    (* CCIO.File.read_exn "../test/data/primitive/empty_list.yaml" *)
-    CCIO.File.read_exn "../test/data/polymorphic/annotated_list.yaml"
-    (* CCIO.File.read_exn "../test/data/polymorphic/ambiguous_type_name.yaml" *)
+    (* CCIO.File.read_exn "../test/data/model/composite/map_default_value_only.yaml" *)
+    (* CCIO.File.read_exn "../test/data/model/primitive/empty_list.yaml" *)
+    CCIO.File.read_exn "../test/data/model/polymorphic/annotated_list.yaml"
+    (* CCIO.File.read_exn "../test/data/model/polymorphic/ambiguous_type_name.yaml" *)
   in
   let yaml = Yaml.of_string_exn yaml_str in
 
@@ -629,18 +655,18 @@ let%expect_test "parse model art" =
     <><><><><><><><><><>
 
     Applied symbol:
-    (w/16003 : { view = (Constr (list, [{ view = (Var a/16002); generation = 1 }])); generation = 1 })
+    (w/16003 : { view = (Constr (list, [{ view = (Var a/16002); generation = 3 }])); generation = 3 })
 
     <><><><><><><><><><>
 
     Term:
     { view = Construct {c = ([] : { view = (Constr (list,[{ view = (Constr (_a_0/0[temp],[]));
-                                                            generation = 1 }]));
-                                    generation = 1 });args = []};
+                                                            generation = 3 }]));
+                                    generation = 3 });args = []};
       ty = { view = (Constr (list,[{ view = (Constr (_a_0/0[temp],[]));
-                                     generation = 1 }]));
-             generation = 1 };
-      generation = 0; sub_anchor = None }
+                                     generation = 3 }]));
+             generation = 3 };
+      generation = 1; sub_anchor = None }
 
     <><><><><><><><><><>
 
