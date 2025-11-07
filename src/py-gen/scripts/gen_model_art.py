@@ -167,20 +167,86 @@ let v = Scroll {delta = 2.0}\
 let v = fun w -> if w = v then true else false\
 """,
     ),
+]
+values = [
     (
         'map_int_bool',
         """\
 let v : (int, bool) Map.t =
   Map.const false
-  |> Map.add 2 true
-  |> Map.add 3 false
-  |> Map.add 5 true
 
 let v = fun w -> if w = v then true else false\
 """,
     ),
 ]
 
+values = [
+    (
+        'multiset_nonempty',
+        """\
+let v = Multiset.of_list [1; 2; 3; 2; 1]
+
+let v = fun w -> if w = v then true else false\
+""",
+    ),
+    (
+        'multiset_empty',
+        """\
+let v = Multiset.of_list []
+
+let v = fun w -> if w = v then true else false
+instance v\
+""",
+    ),
+    (
+        'set_nonempty',
+        """\
+let v = Set.of_list [1; 2; 3; 2; 1]
+
+let v = fun w -> if w = v then true else false\
+""",
+    ),
+    (
+        'set_empty',
+        """\
+let v = Set.of_list []
+
+let v = fun w -> if w = v then true else false\
+""",
+    ),
+]
+
+values = [
+    (
+        'map_default_value_only',
+        """\
+let v = Map.const false
+
+let v = fun w -> if w = v then true else false\
+""",
+    )
+]
+
+values = [
+    (
+        'annotated_polymorphic',
+        """\
+let v =  (fun (w: _ list) -> if w = [] then true else false)\
+""",
+    )
+]
+
+
+values = [
+    (
+        'annotated_polymorphic_weird_type_name',
+        """\
+type _a_0 = My_dummy_0
+
+let v =  (fun (w: _a_0 list) -> if w = [] then true else false)\
+""",
+    )
+]
 # iml = r"""
 # let v = function
 #   | {v} -> true
