@@ -529,12 +529,39 @@ let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
-let parse_region (region : (Term.term, Type.t) Mir.Region.t_poly) =
-  let model_evals = region.meta |> CCList.assoc_opt "model_eval" in
+let parse_region (region : (Term.term, Type.t) Mir.Region.t_poly) :
+    Term.term list * Term.term =
+  (* let (model : (string * Term.term) list) = region.meta |> List.assoc "model" in *)
+  let model_eval = region.meta |> List.assoc "model_eval" in
+  let model_eval_term =
+    match model_eval with
+    | Term t -> t
+    | _ -> failwith "Never: model_eval should be a term"
+  in
 
-  ()
+  [], model_eval_term
 
-(* let parse_fun_decomp (fun_decomp : Mir.Fun_decomp.t) : Ast.stmt list = _ *)
+let parse_fun_decomp (fun_decomp : Mir.Fun_decomp.t) : unit =
+  (* Ast.stmt list  *)
+  match fun_decomp with
+  | { f_id = Uid.{ name = f_id_name; view = _ }; f_args; regions } ->
+    let f_arg_names = f_args |> List.map (fun { Mir.Var.id; _ } -> id.name) in
+
+    let ( (_models_placeholder : Term.term list list),
+          (model_evals : Term.term list) ) =
+      regions |> List.map parse_region |> List.split
+    in
+
+    (* Model is a map from strings (variable names) to terms *)
+    let (models : (string * Term.term) list list) =
+      (* NOTE: this is mock up *)
+      List.combine f_arg_names model_evals
+      |> List.map (fun (f_arg_name, model_eval) -> f_arg_name, model_eval)
+      |> List.map (fun item ->
+             CCList.init (List.length regions) (fun _ -> item))
+    in
+
+    ()
 
 let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
