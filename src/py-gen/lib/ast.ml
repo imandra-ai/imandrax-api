@@ -183,7 +183,8 @@ and stmt =
     }
   | Import of { names: alias list }
   | ImportFrom of { names: alias list }
-  | Expr of { value: expr }
+  (* NOTE: the name is different from Python's `Expr :< stmt` statement *)
+  | ExprStmt of { value: expr }
 
 and function_def_stmt = {
   name: string;
@@ -535,7 +536,7 @@ let def_test_function
     | None -> [ assign_call_result; assign_expected; assert_eq ]
     | Some docstr ->
       [
-        Expr { value = Constant { value = String docstr; kind = None } };
+        ExprStmt { value = Constant { value = String docstr; kind = None } };
         assign_call_result;
         assign_expected;
         assert_eq;
