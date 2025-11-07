@@ -4,7 +4,7 @@ module Mir = Imandrax_api_mir
 module Type = Imandrax_api_mir.Type
 module Term = Imandrax_api_mir.Term
 
-let json_to_art ?(debug = false) (json : Yojson.Safe.t) : string * string =
+let json_to_art_data ?(debug = false) (json : Yojson.Safe.t) : string * string =
   let log fmt =
     if debug then
       printf fmt
@@ -26,8 +26,8 @@ let json_to_art ?(debug = false) (json : Yojson.Safe.t) : string * string =
     (String.sub data_b64 0 (min 50 (String.length data_b64))); *)
   data_b64, kind_str
 
-let art_to_model ?(debug = false) (data_b64 : string) (kind_str : string) :
-    Mir.Model.t =
+let art_data_to_art ?(debug = false) (data_b64 : string) (kind_str : string) :
+    Artifact.t =
   let log fmt =
     if debug then
       printf fmt
@@ -69,17 +69,21 @@ let art_to_model ?(debug = false) (data_b64 : string) (kind_str : string) :
       Format.printf "%a\n%!" Artifact.pp artifact; *)
       artifact
     in
+    art
 
-    let model : Mir.Model.t =
-      match Artifact.as_model art with
-      | Some model -> model
-      | None -> raise (Failure "Error: artifact is not a model")
-    in
-    model
+let art_data_to_model ?(debug = false) (data_b64 : string) (kind_str : string) :
+    Mir.Model.t =
+  let art = art_data_to_art ~debug data_b64 kind_str in
+  let model : Mir.Model.t =
+    match Artifact.as_model art with
+    | Some model -> model
+    | None -> raise (Failure "Error: artifact is not a model")
+  in
+  model
 
 let json_to_model ?(debug = false) (json : Yojson.Safe.t) : Mir.Model.t =
-  let data_b64, kind_str = json_to_art ~debug json in
-  art_to_model ~debug data_b64 kind_str
+  let data_b64, kind_str = json_to_art_data ~debug json in
+  art_data_to_model ~debug data_b64 kind_str
 
 let yaml_to_art ?(debug = false) (yaml : Yaml.value) : string * string =
   let log fmt =
@@ -109,4 +113,4 @@ let yaml_to_art ?(debug = false) (yaml : Yaml.value) : string * string =
 
 let yaml_to_model ?(debug = false) (yaml : Yaml.value) : Mir.Model.t =
   let data_b64, kind_str = yaml_to_art ~debug yaml in
-  art_to_model ~debug data_b64 kind_str
+  art_data_to_model ~debug data_b64 kind_str
