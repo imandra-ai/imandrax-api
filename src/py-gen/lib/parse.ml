@@ -4,27 +4,13 @@ module Artifact = Imandrax_api_artifact.Artifact
 module Mir = Imandrax_api_mir
 module Type = Imandrax_api_mir.Type
 module Term = Imandrax_api_mir.Term
+module Region = Imandrax_api_mir.Region
 module Ty_view = Imandrax_api.Ty_view
 module Applied_symbol = Imandrax_api_common.Applied_symbol
 module Ast = Ast
 
 let show_term_view : (Term.term, Type.t) Term.view -> string =
   Term.show_view Term.pp Type.pp
-
-(* Model to applied symbol and term *)
-let unpack_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly)
-    : Type.t Applied_symbol.t_poly * Term.term =
-  match model.Mir.Model.consts with
-  | [] -> failwith "No constants\n"
-  | [ const ] ->
-    let app_sym, term = const in
-    app_sym, term
-  | _ ->
-    let s =
-      sprintf "more than 1 const, not supported\n len = %d"
-        (List.length model.Mir.Model.consts)
-    in
-    failwith s
 
 exception Early_return of string
 
@@ -494,6 +480,23 @@ let rec parse_term (term : Term.term) :
     let msg = "case other than const, construct, or apply" in
     Error msg
 
+(* <><><><><><><><><><><><><><><><><><><><> *)
+
+(* Model to applied symbol and term *)
+let unpack_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly)
+    : Type.t Applied_symbol.t_poly * Term.term =
+  match model.Mir.Model.consts with
+  | [] -> failwith "No constants\n"
+  | [ const ] ->
+    let app_sym, term = const in
+    app_sym, term
+  | _ ->
+    let s =
+      sprintf "more than 1 const, not supported\n len = %d"
+        (List.length model.Mir.Model.consts)
+    in
+    failwith s
+
 let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
     Ast.stmt list =
   let (app_sym : Type.t Applied_symbol.t_poly), term = unpack_model model in
@@ -523,6 +526,15 @@ let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
         }
   in
   List.append ty_defs [ assign_stmt ]
+
+(* <><><><><><><><><><><><><><><><><><><><> *)
+
+let parse_region (region : (Term.term, Type.t) Mir.Region.t_poly) =
+  let model_evals = region.meta |> CCList.assoc_opt "model_eval" in
+
+  ()
+
+(* let parse_fun_decomp (fun_decomp : Mir.Fun_decomp.t) : Ast.stmt list = _ *)
 
 let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
@@ -564,15 +576,68 @@ let%expect_test "parse fun decomp art" =
 
     Fun decomp:
     {
-      f_id = g/hQBmX1o7EiqK6op4OPzD1QzuQ7yFh7B29Cpq7flvUtI;
+      f_id = f/u-V_2hDBsgPLnBVARN3d7lwMjeshy0JEtJSUqjWmJj8;
       f_args =
-        [{ id = x/223129; ty = { view = (Constr (int,[]));
-                                 generation = 1 } }];
+        [{ id = x/80372; ty = { view = (Constr (int,[]));
+                                generation = 1 } }];
       regions =
-        [(1 elements)
+        [(2 elements)
          {
            constraints =
-             [{ view = (Const true);
+             [{ view =
+                  Apply {f = { view =
+                                 (Sym
+                                   (>= : { view =
+                                             (Arrow ((),
+                                                     { view = (Constr (int,[]));
+                                                       generation = 1 },
+                                                     { view =
+                                                         (Arrow ((),
+                                                                 { view =
+                                                                     (Constr
+                                                                       (int,[]));
+                                                                   generation = 1 },
+                                                                 { view =
+                                                                     (Constr
+                                                                       (bool,[]));
+                                                                   generation = 1 }));
+                                                       generation = 1 }));
+                                           generation = 1 }));
+                               ty =
+                                 { view =
+                                     (Arrow ((),
+                                             { view = (Constr (int,[]));
+                                               generation = 1 },
+                                             { view =
+                                                 (Arrow ((),
+                                                         { view =
+                                                             (Constr (int,[]));
+                                                           generation = 1 },
+                                                         { view =
+                                                             (Constr (bool,[]));
+                                                           generation = 1 }));
+                                               generation = 1 }));
+                                   generation = 1 };
+                               generation = 0;
+                               sub_anchor = None };
+                         l =
+                           [{ view =
+                                (Var
+                                  { id = x/80372;
+                                    ty =
+                                    { view = (Constr (int,[]));
+                                      generation = 1 }
+                                    });
+                              ty = { view = (Constr (int,[]));
+                                     generation = 1 };
+                              generation = 0;
+                              sub_anchor = None };
+                            { view = (Const 1);
+                              ty = { view = (Constr (int,[]));
+                                     generation = 1 };
+                              generation = 0;
+                              sub_anchor = None }]
+                         };
                 ty = { view = (Constr (bool,[]));
                        generation = 1 };
                 generation = 0;
@@ -617,7 +682,7 @@ let%expect_test "parse fun decomp art" =
                         l =
                           [{ view =
                                (Var
-                                 { id = x/223129;
+                                 { id = x/80372;
                                    ty =
                                    { view = (Constr (int,[]));
                                      generation = 1 }
@@ -626,7 +691,156 @@ let%expect_test "parse fun decomp art" =
                                     generation = 1 };
                              generation = 0;
                              sub_anchor = None };
-                           { view = (Const 1);
+                           { view = (Const 2);
+                             ty = { view = (Constr (int,[]));
+                                    generation = 1 };
+                             generation = 0;
+                             sub_anchor = None }]
+                        };
+               ty = { view = (Constr (int,[]));
+                      generation = 1 };
+               generation = 0;
+               sub_anchor = None };
+           meta =
+             ["str":
+                Assoc
+                  {"model_eval": String "3";
+                   "invariant": String "x + 2";
+                   "constraints": List [String "x >= 1"];
+                   "model": Assoc {"x": String "1"}};
+              "model_eval":
+                Term
+                  { view = (Const 3);
+                    ty = { view = (Constr (int,[]));
+                           generation = 1 };
+                    generation = 0;
+                    sub_anchor = None };
+              "id": String "3bcc3fbd-f10d-4815-8c5a-b0e00785b854"];
+           status =
+             Feasible
+               { tys = [];
+                 consts =
+                 [((x/80372 : { view = (Constr (int,[]));
+                                generation = 1 }),
+                   { view = (Const 1);
+                     ty = { view = (Constr (int,[]));
+                            generation = 1 };
+                     generation = 0;
+                     sub_anchor = None })
+                   ];
+                 funs = []; representable = true; completed = false;
+                 ty_subst = [] }
+           };
+         {
+           constraints =
+             [{ view =
+                  Apply {f = { view =
+                                 (Sym
+                                   (<= : { view =
+                                             (Arrow ((),
+                                                     { view = (Constr (int,[]));
+                                                       generation = 1 },
+                                                     { view =
+                                                         (Arrow ((),
+                                                                 { view =
+                                                                     (Constr
+                                                                       (int,[]));
+                                                                   generation = 1 },
+                                                                 { view =
+                                                                     (Constr
+                                                                       (bool,[]));
+                                                                   generation = 1 }));
+                                                       generation = 1 }));
+                                           generation = 1 }));
+                               ty =
+                                 { view =
+                                     (Arrow ((),
+                                             { view = (Constr (int,[]));
+                                               generation = 1 },
+                                             { view =
+                                                 (Arrow ((),
+                                                         { view =
+                                                             (Constr (int,[]));
+                                                           generation = 1 },
+                                                         { view =
+                                                             (Constr (bool,[]));
+                                                           generation = 1 }));
+                                               generation = 1 }));
+                                   generation = 1 };
+                               generation = 0;
+                               sub_anchor = None };
+                         l =
+                           [{ view =
+                                (Var
+                                  { id = x/80372;
+                                    ty =
+                                    { view = (Constr (int,[]));
+                                      generation = 1 }
+                                    });
+                              ty = { view = (Constr (int,[]));
+                                     generation = 1 };
+                              generation = 0;
+                              sub_anchor = None };
+                            { view = (Const 0);
+                              ty = { view = (Constr (int,[]));
+                                     generation = 1 };
+                              generation = 0;
+                              sub_anchor = None }]
+                         };
+                ty = { view = (Constr (bool,[]));
+                       generation = 1 };
+                generation = 0;
+                sub_anchor = None }];
+           invariant =
+             { view =
+                 Apply {f = { view =
+                                (Sym
+                                  (+ : { view =
+                                           (Arrow ((),
+                                                   { view = (Constr (int,[]));
+                                                     generation = 1 },
+                                                   { view =
+                                                       (Arrow ((),
+                                                               { view =
+                                                                   (Constr
+                                                                     (int,[]));
+                                                                 generation = 1 },
+                                                               { view =
+                                                                   (Constr
+                                                                     (int,[]));
+                                                                 generation = 1 }));
+                                                     generation = 1 }));
+                                         generation = 1 }));
+                              ty =
+                                { view =
+                                    (Arrow ((),
+                                            { view = (Constr (int,[]));
+                                              generation = 1 },
+                                            { view =
+                                                (Arrow ((),
+                                                        { view =
+                                                            (Constr (int,[]));
+                                                          generation = 1 },
+                                                        { view =
+                                                            (Constr (int,[]));
+                                                          generation = 1 }));
+                                              generation = 1 }));
+                                  generation = 1 };
+                              generation = 0;
+                              sub_anchor = None };
+                        l =
+                          [{ view = (Const 1);
+                             ty = { view = (Constr (int,[]));
+                                    generation = 1 };
+                             generation = 0;
+                             sub_anchor = None };
+                           { view =
+                               (Var
+                                 { id = x/80372;
+                                   ty =
+                                   { view = (Constr (int,[]));
+                                     generation = 1 }
+                                   });
                              ty = { view = (Constr (int,[]));
                                     generation = 1 };
                              generation = 0;
@@ -640,8 +854,8 @@ let%expect_test "parse fun decomp art" =
              ["str":
                 Assoc
                   {"model_eval": String "1";
-                   "invariant": String "x + 1";
-                   "constraints": List [String "true"];
+                   "invariant": String "1 + x";
+                   "constraints": List [String "x <= 0"];
                    "model": Assoc {"x": String "0"}};
               "model_eval":
                 Term
@@ -650,13 +864,13 @@ let%expect_test "parse fun decomp art" =
                            generation = 1 };
                     generation = 0;
                     sub_anchor = None };
-              "id": String "0e497a79-d75e-4c74-95b2-5d3c64396aae"];
+              "id": String "0d285e85-3c62-4019-8450-12ade085b882"];
            status =
              Feasible
                { tys = [];
                  consts =
-                 [((x/223129 : { view = (Constr (int,[]));
-                                 generation = 1 }),
+                 [((x/80372 : { view = (Constr (int,[]));
+                                generation = 1 }),
                    { view = (Const 0);
                      ty = { view = (Constr (int,[]));
                             generation = 1 };

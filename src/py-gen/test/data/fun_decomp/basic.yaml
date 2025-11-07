@@ -4,15 +4,16 @@ iml: |
 
   let f = fun x -> if x > 0 then x + 2 else g x
 decomp_kwargs:
-  name: g
+  name: f
+  prune: true
 decomp_res:
   artifact:
     kind: mir.fun_decomp
-    data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wayULDyY/L6AmBgYvH/AcACH4rPDaBiQXj5YvT/AWP0/wf/FmL2/xFh9GBm8fT/NgEA/zux+bRBMWJKbW9kZWxfZXZhbP60RXggKyAxYklpbnZhcmlhbnT/ArREdHJ1ZWH2t/JiS2NvbnN0cmFpbnRz/rRBMGJBePVh9LXyYkVtb2RlbPhk/z3/K/8W/rX4YkNzdHL2slgCAAAAAAAAALD6Y/L/lwECtvZiSm1vZGVsX2V2YWz9tE8VMGU0OTdhNzktZDc1ZS00Yzc0LTk1YjItNWQzYzY0Mzk2YWFlYkJpZP8bY/9F/y36Yv/EAf/hAbP3Y/L/6AECYvb/ScEDAv/zAf/2AcEDAv/8Af5gYGLx+rBIbWtfaV9hZGSz+mJBK/Ri9P8FY/T/C/8UtPZj8v8aAsIC9v8tY/X/rQICYLBJbWtfc19ib29ss/tiRGJvb2z3wwL4/wi2AbDyY/L6AmH0ZPL/HP9y/6MCYfli/8cC/+QCYfdfEYUAZl9aOxIqiuqKeDj8w9UM7kO8hYewdvQqau35b1LSY0Fn/xUBhvay8mJBZ/Rj9P8k/y8F
+    data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wayWAIAAAAAAAAAsPpj8v8DAmBgYvH/CsACH+XzBKBiQXj5YvT/AWP0/wf/H2L2/xJh9GBm8fT/PwEA/0Sx+bRBM2JKbW9kZWxfZXZhbP60RXggKyAyYklpbnZhcmlhbnT/ArRGeCA+PSAxYfi38mJLY29uc3RyYWludHP+tEExYkF49WH0tfJiRW1vZGVs+GT/P/8t/xb+tfhiQ3N0cvayWAYAAAAAAAAAsPpj8v+iAQK29mJKbW9kZWxfZXZhbP20TxUzYmNjM2ZiZC1mMTBkLTQ4MTUtOGM1YS1iMGUwMDc4NWI4NTRiQmlk/xtj/0X/Lfpi/8YB/+wBs/dj8v/zAQKyWAQAAAAAAAAAsPpj8v+FAgJi/wn4wQMC/5AC/5MCwQMC/5kC/mBgYvH6sEhta19pX2FkZLP6YkEr9GL0/wVj9P8L/xS09mPy/xoCwgL2/y1j9f/KAgJgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGL/aP/aAsEDAv/xAv8BwQMC//kC/WBgYvH6sEdta19pX2dls/liQj499WL1/wVj9P8L/xS09mPy/xoCwgL2/y5j9f83AmH1ZPL/Wf/BAf/1AmBgslCw8mPy/8EDAmBgYvH/yQNi/6oD+GP1/f/UA2L2/wph9GBm8fT/FwEA/xyx+bRBMWJKbW9kZWxfZXZhbP60RTEgKyB4YklpbnZhcmlhbnT/ArRGeCA8PSAwYfi38mJLY29uc3RyYWludHP+tEEwYkF49WH0tfJiRW1vZGVs+GT/P/8t/xb+tfhiQ3N0cva2/7oEYkptb2RlbF9ldmFs/wC0TxUwZDI4NWU4NS0zYzYyLTQwMTktODQ1MC0xMmFkZTA4NWI4ODJiQmlk/xtj/zb/Lvpi//8E/5IDwgL/ygL7Y/b/ngUCYv+iA//XAWBgYvH/pwKwR21rX2lfbGWz+WJCPD31YvX/B2P0/w3/wgK092Py/8kCAsIC9/8kY/X/5wICYfZk8v82/0v/7wFi/6sC/GL/zAX/8gVh918Ru+V/2hDBsgPLnBVARN3d7lwMjeshy0JEtJSUqjWmJj9jQWb/FQGG9rLyYkFm9GP0/yT/MgU=
     api_version: v17
     storage: []
   task:
     id:
-      id: task:decomp:G5IYmPOmnEomNHnqaYR6pYGbi1heunv7AZFdWkBC29I=
+      id: task:decomp:XR5HzzOUZ6EfQn6ES5Wv-mYnthMy4YHtvLIMhqHwHFE=
     kind: TASK_DECOMP
   errors: []
