@@ -183,6 +183,7 @@ and stmt =
     }
   | Import of { names: alias list }
   | ImportFrom of { names: alias list }
+  | Expr of { value: expr }
 
 and function_def_stmt = {
   name: string;
@@ -349,6 +350,19 @@ let empty_arguments () : arguments =
 let ty_view_constr_name_mapping : (string * string) list =
   [ "int", "int"; "bool", "bool"; "string", "str" ]
 
+let mk_assign (target : expr) (type_annotation : expr option) (value : expr) :
+    stmt =
+  match type_annotation with
+  | None -> Assign { targets = [ target ]; value; type_comment = None }
+  | Some type_annotation ->
+    AnnAssign
+      {
+        target;
+        annotation = type_annotation;
+        value = Some value;
+        simple = mk_ann_assign_simple_flat ();
+      }
+
 (* AST for define a dataclass *)
 let def_dataclass (name : string) (rows : (string * string) list) : stmt =
   let body : stmt list =
@@ -469,6 +483,74 @@ let init_defaultdict (default_value : expr) (key_val_pairs : (expr * expr) list)
          else
            [ mk_no_arg_lambda default_value; mk_dict key_val_pairs ]);
       keywords = [];
+    }
+
+(* <><><><><><><><><><><><><><><><><><><><> *)
+
+let mk_assert_eq (left : expr) (right : expr) : stmt =
+  Assert
+    {
+      test = Compare { left; ops = [ Eq ]; comparators = [ right ] };
+      msg = None;
+    }
+
+let def_test_function
+    (name : string)
+    (docstr : string option)
+    (args : (string * expr) list)
+    (output_type_annot : expr option)
+    (expected : expr) : stmt =
+  let call_keywords : keyword list =
+    List.map (fun (k, v) -> { arg = Some k; value = v }) args
+  in
+  (* `f(x)` *)
+  let call : expr =
+    Call
+      {
+        func = Name { id = name; ctx = mk_ctx () };
+        args = [];
+        keywords = call_keywords;
+      }
+  in
+  (* `result = f(x)` *)
+  let assign_call_result : stmt =
+    mk_assign (Name { id = "result"; ctx = mk_ctx () }) output_type_annot call
+  in
+  (* `expected = ...` *)
+  let assign_expected : stmt =
+    mk_assign
+      (Name { id = "expected"; ctx = mk_ctx () })
+      output_type_annot expected
+  in
+
+  (* `assert result == expected` *)
+  let assert_eq : stmt =
+    mk_assert_eq
+      (Name { id = "result"; ctx = mk_ctx () })
+      (Name { id = "expected"; ctx = mk_ctx () })
+  in
+
+  let func_body =
+    match docstr with
+    | None -> [ assign_call_result; assign_expected; assert_eq ]
+    | Some docstr ->
+      [
+        Expr { value = Constant { value = String docstr; kind = None } };
+        assign_call_result;
+        assign_expected;
+        assert_eq;
+      ]
+  in
+
+  FunctionDef
+    {
+      name;
+      args = empty_arguments ();
+      body = func_body;
+      decorator_list = [];
+      returns = None;
+      type_comment = None;
+      type_params = [];
     }
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
