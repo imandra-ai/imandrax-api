@@ -528,12 +528,19 @@ let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
-let%expect_test "decode artifact" =
+let%expect_test "parse fun decomp art" =
+  let yaml_str = CCIO.File.read_exn "../examples/art/art.yaml" in
+  ()
+
+(* <><><><><><><><><><><><><><><><><><><><> *)
+
+let%expect_test "parse model art" =
   (* let yaml_str = CCIO.File.read_exn "../examples/art/art.yaml" in *)
   let yaml_str =
     (* CCIO.File.read_exn "../test/data/composite/map_default_value_only.yaml" *)
     (* CCIO.File.read_exn "../test/data/primitive/empty_list.yaml" *)
     CCIO.File.read_exn "../test/data/polymorphic/annotated_list.yaml"
+    (* CCIO.File.read_exn "../test/data/polymorphic/ambiguous_type_name.yaml" *)
   in
   let yaml = Yaml.of_string_exn yaml_str in
 
@@ -660,146 +667,3 @@ let%expect_test "decode artifact" =
       ]
     ]
     |}]
-
-(* <><><><><><><><><><><><><><><><><><><><>
-Record and variant
-
-Term:
-{ view =
-    Construct {
-      c =
-        (Move/DUoe4PMEF5TwFquD7gV2hBxDT5iPWSwjzYJtuwGEBmI : { view =
-                                                                (Arrow (
-                                                                  (),
-                                                                  { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
-                                                                  { view =
-                                                                    (Arrow (
-                                                                        (),
-                                                                        { view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, [])); generation = 1 },
-                                                                        { view = (Constr (movement/IVNqXLZ7vYtSQiPA0X-p9GAYfd1K-15XG2NAcz2w3us, [])); generation = 1 }));
-                                                                    generation = 1}));
-                                                              generation = 1 });
-      args =
-        [{ view = Record {
-              rows =
-                [(
-                    (x/yLb3Gv5Rc8ui4FSvlYOnMeUILRI-73nVRtF70bx7j4E : { view =
-                                                                        (Arrow (
-                                                                          (),
-                                                                          { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
-                                                                          { view = (Constr (int, [])); generation = 1 }));
-                                                                       generation = 1 }),
-                    { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
-                  (
-                    (y/UhO3k0buKLeOppzS3AGAFJ00UyMdZWrKZ9_YeAuiHUA : { view =
-                                                                         (Arrow (
-                                                                            (),
-                                                                            { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
-                                                                            { view = (Constr (int, [])); generation = 1 }));
-                                                                       generation = 1 }),
-                    { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None });
-                  (
-                    (z/HYHj-kM60ymWB5FJSndv4i7Fvsm7ZyLcx4ajmbVk1kQ : { view =
-                                                                        (Arrow (
-                                                                           (),
-                                                                           { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 },
-                                                                           { view = (Constr (real, [])); generation = 1 }));
-                                                                       generation = 1 }),
-                    { view = (Const 3.0); ty = { view = (Constr (real, [])); generation = 1 }; generation = 0; sub_anchor = None })
-              ];
-              rest = None};
-            ty = { view = (Constr (position/pLmRqo01l3TOEJ81lB7AeJ59rh20OHCZUgYIYifiA4M, [])); generation = 1 }; generation = 0; sub_anchor = None };
-          { view = Construct {
-              c = (
-                North/XOBmr8zKtuYctJNwJkVg5lSXESY5SxLPgFPKXi6aEA8 : {
-                  view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, []));
-                  generation = 1
-                });
-              args = []};
-            ty = { view = (Constr (direction/zdulUP7ixpf3IiFCVbugWcL2oWfLph0304CaNryLp1Y, [])); generation = 1 }; generation = 0; sub_anchor = None }
-          ]};
-  (* The type is movement *)
-  ty = { view = (Constr (movement/IVNqXLZ7vYtSQiPA0X-p9GAYfd1K-15XG2NAcz2w3us, [])); generation = 1 }; generation = 0; sub_anchor = None }
-
-(* <><><><><><><><><><><><><><><><><><><><> *)
-
-Variant 3
-
-Term:
-{ view =
-    Construct {
-      c =
-      (Waitlist/9Ry2N2hNVo7CogUKiguTwROyoQc8AgV_gR5a_dQglhw : {
-          view = (
-            Arrow (
-              (),
-              { view = (Constr (int, [])); generation = 1 },
-              {
-                view = (
-                  Arrow (
-                    (),
-                    { view = (Constr (bool, [])); generation = 1 },
-                    { view = (Constr (status/qqWZZQx7LXdT2w5j2j5T3gSw6m0irQ9a20wqWALqqnE, [])); generation = 1 }
-                  )
-                );
-                generation = 1
-              }
-            )
-          );
-          generation = 1
-        }
-      );
-      args = [
-        { view = (Const 2); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None };
-        { view = (Const true); ty = { view = (Constr (bool, [])); generation = 1 }; generation = 0; sub_anchor = None }
-      ]
-    };
-    ty = { view = (Constr (status/qqWZZQx7LXdT2w5j2j5T3gSw6m0irQ9a20wqWALqqnE, [])); generation = 1 }; generation = 0; sub_anchor = None
-  }
-
-
-Variant 2
-
-Term:
-{
-  view =
-    Construct {
-      c =
-        (
-          Waitlist/660Y_bgBvqk9Xe1F-l9jcPX5hyd3hCs6mcRM0nhyFQQ : {
-            view = (
-              Arrow (
-                (),
-                { view = (Constr (int, [])); generation = 1 },
-                { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 }
-              )
-            );
-            generation = 1
-          }
-        );
-      args = [
-        { view = (Const 1); ty = { view = (Constr (int, [])); generation = 1 }; generation = 0; sub_anchor = None }
-      ]
-    };
-  ty = { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 }; generation = 0; sub_anchor = None
-}
-
-<><><><><><><><><><><><><><><><><><><><>
-Variant 1
-
-Term:
-{
-  view = Construct {
-    c = (
-      Active/G0qPSm_ZzxxTmDsk2dm1ZUuFNXx8GI2cvepYwMWjAF8 : {
-        view = (
-          Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])
-        );
-        generation = 1
-      }
-    );
-    args = []
-  };
-  ty = { view = (Constr (status/xR35DT0_zCONpK0ZVZi_10jyedKzUDTzqBZBB1xe-TE, [])); generation = 1 }; generation = 0; sub_anchor = None
-}
-<><><><><><><><><><><><><><><><><><><><> *)
