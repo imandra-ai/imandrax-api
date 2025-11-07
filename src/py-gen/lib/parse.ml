@@ -546,7 +546,12 @@ let%expect_test "parse fun decomp art" =
   printf "name: %s\n" name;
   printf "code:\n %s\n" code;
 
-  let fun_decomp = Util.yaml_to_fun_decomp art in
+  let (fun_decomp : Mir.Fun_decomp.t) = Util.yaml_to_fun_decomp art in
+
+  printf "Fun decomp:\n";
+  let fmt = Format.str_formatter in
+  Format.fprintf fmt "%a@?" Pretty_print.pp_fun_decomp fun_decomp;
+  print_endline (Format.flush_str_formatter ());
 
   ();
   [%expect
@@ -556,6 +561,112 @@ let%expect_test "parse fun decomp art" =
      let g = fun x -> x + 1
 
     let f = fun x -> if x > 0 then x + 2 else g x
+
+    Fun decomp:
+    {
+      f_id = g/hQBmX1o7EiqK6op4OPzD1QzuQ7yFh7B29Cpq7flvUtI;
+      f_args =
+        [{ id = x/223129; ty = { view = (Constr (int,[]));
+                                 generation = 1 } }];
+      regions =
+        [(1 elements)
+         {
+           constraints =
+             [{ view = (Const true);
+                ty = { view = (Constr (bool,[]));
+                       generation = 1 };
+                generation = 0;
+                sub_anchor = None }];
+           invariant =
+             { view =
+                 Apply {f = { view =
+                                (Sym
+                                  (+ : { view =
+                                           (Arrow ((),
+                                                   { view = (Constr (int,[]));
+                                                     generation = 1 },
+                                                   { view =
+                                                       (Arrow ((),
+                                                               { view =
+                                                                   (Constr
+                                                                     (int,[]));
+                                                                 generation = 1 },
+                                                               { view =
+                                                                   (Constr
+                                                                     (int,[]));
+                                                                 generation = 1 }));
+                                                     generation = 1 }));
+                                         generation = 1 }));
+                              ty =
+                                { view =
+                                    (Arrow ((),
+                                            { view = (Constr (int,[]));
+                                              generation = 1 },
+                                            { view =
+                                                (Arrow ((),
+                                                        { view =
+                                                            (Constr (int,[]));
+                                                          generation = 1 },
+                                                        { view =
+                                                            (Constr (int,[]));
+                                                          generation = 1 }));
+                                              generation = 1 }));
+                                  generation = 1 };
+                              generation = 0;
+                              sub_anchor = None };
+                        l =
+                          [{ view =
+                               (Var
+                                 { id = x/223129;
+                                   ty =
+                                   { view = (Constr (int,[]));
+                                     generation = 1 }
+                                   });
+                             ty = { view = (Constr (int,[]));
+                                    generation = 1 };
+                             generation = 0;
+                             sub_anchor = None };
+                           { view = (Const 1);
+                             ty = { view = (Constr (int,[]));
+                                    generation = 1 };
+                             generation = 0;
+                             sub_anchor = None }]
+                        };
+               ty = { view = (Constr (int,[]));
+                      generation = 1 };
+               generation = 0;
+               sub_anchor = None };
+           meta =
+             ["str":
+                Assoc
+                  {"model_eval": String "1";
+                   "invariant": String "x + 1";
+                   "constraints": List [String "true"];
+                   "model": Assoc {"x": String "0"}};
+              "model_eval":
+                Term
+                  { view = (Const 1);
+                    ty = { view = (Constr (int,[]));
+                           generation = 1 };
+                    generation = 0;
+                    sub_anchor = None };
+              "id": String "0e497a79-d75e-4c74-95b2-5d3c64396aae"];
+           status =
+             Feasible
+               { tys = [];
+                 consts =
+                 [((x/223129 : { view = (Constr (int,[]));
+                                 generation = 1 }),
+                   { view = (Const 0);
+                     ty = { view = (Constr (int,[]));
+                            generation = 1 };
+                     generation = 0;
+                     sub_anchor = None })
+                   ];
+                 funs = []; representable = true; completed = false;
+                 ty_subst = [] }
+           }]
+      }
     |}]
 
 (* <><><><><><><><><><><><><><><><><><><><> *)

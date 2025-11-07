@@ -122,12 +122,75 @@ let pp_term_view pp_t out (v : (_, _) Term.view) =
 let rec pp_term out (term : Term.term) =
   let open Format in
   fprintf out
-    "@[<hv 2>{ @[<hv 2>view =@ %a@];@\n\
-     @[<hv 2>ty =@ %a@];@\n\
-     @[<hv 2>generation =@ %a@];@ @[<hv 2>sub_anchor =@ %a@] }@]"
+    ("@[<hv 2>{ @[<hv 2>view =@ %a@];@\n" ^^ "@[<hv 2>ty =@ %a@];@\n"
+   ^^ "@[<hv 2>generation =@ %a@];@ @[<hv 2>sub_anchor =@ %a@] }@]")
     (pp_term_view pp_term) term.view pp_type term.ty Term.pp_generation
     term.generation
     (fun out -> function
       | None -> fprintf out "None"
       | Some a -> fprintf out "(Some %a)" (fun out _ -> fprintf out "...") a)
     term.sub_anchor
+
+(* Pretty printer for Fun_decomp.t with better formatting *)
+let pp_fun_decomp
+    out
+    (fd : (Term.term, Type.t) Imandrax_api_common.Fun_decomp.t_poly) =
+  let open Format in
+  let open Imandrax_api_common in
+  (* Pretty print a variable *)
+  let pp_var out (v : Type.t Var.t_poly) =
+    fprintf out "@[<hv 2>{ id =@ %a;@ ty =@ %a }@]" Imandrax_api.Uid.pp v.id
+      pp_type v.ty
+  in
+
+  (* Pretty print region status *)
+  let pp_status out = function
+    | Region.Unknown -> fprintf out "Unknown"
+    | Region.Feasible model ->
+      fprintf out "@[<hv 2>Feasible@ %a@]"
+        (Model.pp_t_poly pp_term pp_type)
+        model
+  in
+
+  (* Pretty print meta value *)
+  let rec pp_meta out = function
+    | Region.Null -> fprintf out "Null"
+    | Region.Bool b -> fprintf out "Bool %b" b
+    | Region.Int z -> fprintf out "Int %s" (Z.to_string z)
+    | Region.Real q -> fprintf out "Real %s" (Q.to_string q)
+    | Region.String s -> fprintf out "String %S" s
+    | Region.Term t -> fprintf out "@[<hv 2>Term@ %a@]" pp_term t
+    | Region.List l ->
+      fprintf out "@[<hv 2>List@ [@[<hv>%a@]]@]"
+        (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@ ") pp_meta)
+        l
+    | Region.Assoc assoc ->
+      let pp_pair out (k, v) = fprintf out "@[<hv 2>%S:@ %a@]" k pp_meta v in
+      fprintf out "@[<hv 2>Assoc@ {@[<hv>%a@]}@]"
+        (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@ ") pp_pair)
+        assoc
+  in
+
+  (* Pretty print a region *)
+  let pp_region out (r : (Term.term, Type.t) Region.t_poly) =
+    fprintf out
+      ("@[<v 2>{ @," ^^ "@[<hv 2>constraints =@ [@[<hv>%a@]]@];@,"
+     ^^ "@[<hv 2>invariant =@ %a@];@," ^^ "@[<hv 2>meta =@ [@[<v>%a@]]@];@,"
+     ^^ "@[<hv 2>status =@ %a@]@," ^^ "}@]")
+      (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@ ") pp_term)
+      r.constraints pp_term r.invariant
+      (pp_print_list
+         ~pp_sep:(fun out () -> fprintf out ";@,")
+         (fun out (k, v) -> fprintf out "@[<hv 2>%S:@ %a@]" k pp_meta v))
+      r.meta pp_status r.status
+  in
+
+  fprintf out
+    ("@[<v 2>{ @," ^^ "@[<hv 2>f_id =@ %a@];@,"
+   ^^ "@[<hv 2>f_args =@ [@[<hv>%a@]]@];@,"
+   ^^ "@[<hv 2>regions =@ [(%d elements)@  @[<v>%a@]]@]@," ^^ "}@]")
+    Imandrax_api.Uid.pp fd.f_id
+    (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@ ") pp_var)
+    fd.f_args (List.length fd.regions)
+    (pp_print_list ~pp_sep:(fun out () -> fprintf out ";@,") pp_region)
+    fd.regions
