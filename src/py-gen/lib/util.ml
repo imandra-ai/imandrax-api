@@ -128,5 +128,19 @@ let yaml_to_model ?(debug = false) (yaml : Yaml.value) : Mir.Model.t =
   art_data_to_model ~debug data_b64 kind_str
 
 let yaml_to_fun_decomp ?(debug = false) (yaml : Yaml.value) : Mir.Fun_decomp.t =
-  let data_b64, kind_str = yaml_to_art ~debug yaml in
+  (* Extract artifact from decomp_res if present, otherwise use yaml as-is *)
+  let artifact_yaml =
+    match yaml with
+    | `O assoc -> (
+      match List.assoc_opt "decomp_res" assoc with
+      | Some (`O decomp_res_assoc) -> (
+        match List.assoc_opt "artifact" decomp_res_assoc with
+        | Some artifact -> artifact
+        | None -> yaml (* fall back to root level *)
+      )
+      | _ -> yaml (* fall back to root level *)
+    )
+    | _ -> yaml
+  in
+  let data_b64, kind_str = yaml_to_art ~debug artifact_yaml in
   art_data_to_fun_decomp ~debug data_b64 kind_str
