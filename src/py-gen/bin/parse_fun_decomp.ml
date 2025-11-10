@@ -17,6 +17,7 @@ type config = {
   input: input_source;
   output: output_target;
   format: file_format;
+  output_as_dict: bool;
 }
 
 (* Helper functions *)
@@ -73,9 +74,9 @@ let parse_input config =
   | YAML -> parse_yaml_input config.input use_stdout
   | JSON -> parse_json_input config.input use_stdout
 
-let convert_to_ast parsed_input use_stdout =
+let convert_to_ast parsed_input use_stdout output_as_dict =
   log use_stdout "Converting to Python AST...\n";
-  Py_gen.Parse.parse_fun_decomp ~output_as_dict:true parsed_input
+  Py_gen.Parse.parse_fun_decomp ~output_as_dict parsed_input
 
 let write_output output stmts =
   let json_out = `List (List.map Py_gen.Ast.stmt_to_yojson stmts) in
@@ -109,22 +110,38 @@ let handle_error use_stdin = function
 let () =
   (* Parse command line arguments *)
   if Array.length Sys.argv < 2 then (
-    eprintf "Usage: %s [input_file.json|yaml|-] <output_file.json|->\n"
+    eprintf
+      "Usage: %s [input_file.json|yaml|-] <output_file.json|-> [--as-dict]\n"
       Sys.argv.(0);
     eprintf
       "  input_file: input JSON/YAML file path, or '-' for stdin (defaults to \
        JSON)\n";
     eprintf "  output_file: output JSON file path, or '-' for stdout\n";
+    eprintf
+      "  --as-dict: output tests as dict values instead of functions (optional)\n";
     exit 1
   );
 
   let input_file = Sys.argv.(1) in
-  let output_file =
-    if Array.length Sys.argv > 2 then
-      Sys.argv.(2)
-    else
-      "-"
-  in
+
+  (* Parse remaining arguments *)
+  let output_file = ref "-" in
+  let output_as_dict = ref false in
+
+  for i = 2 to Array.length Sys.argv - 1 do
+    let arg = Sys.argv.(i) in
+    if arg = "--as-dict" then
+      output_as_dict := true
+    else if !output_file = "-" then
+      output_file := arg
+    else (
+      eprintf "Error: Unexpected argument '%s'\n" arg;
+      exit 1
+    )
+  done;
+
+  let output_file = !output_file in
+  let output_as_dict = !output_as_dict in
 
   let input =
     if input_file = "-" then
@@ -153,7 +170,7 @@ let () =
       exit 1
   in
 
-  let config = { input; output; format } in
+  let config = { input; output; format; output_as_dict } in
 
   (* Log configuration *)
   let use_stdout =
@@ -173,7 +190,7 @@ let () =
     let model = parse_input config in
     log use_stdout "Successfully parsed model\n";
 
-    let stmts = convert_to_ast model use_stdout in
+    let stmts = convert_to_ast model use_stdout config.output_as_dict in
     log use_stdout "Generated %d statements\n" (List.length stmts);
 
     write_output output stmts
