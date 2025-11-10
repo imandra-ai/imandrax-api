@@ -97,6 +97,11 @@ let json_to_model ?(debug = false) (json : Yojson.Safe.t) : Mir.Model.t =
   let data_b64, kind_str = json_to_art_data ~debug json in
   art_data_to_model ~debug data_b64 kind_str
 
+let json_to_fun_decomp ?(debug = false) (json : Yojson.Safe.t) :
+    Mir.Fun_decomp.t =
+  let data_b64, kind_str = json_to_art_data ~debug json in
+  art_data_to_fun_decomp ~debug data_b64 kind_str
+
 let yaml_to_art ?(debug = false) (yaml : Yaml.value) : string * string =
   let log fmt =
     if debug then
@@ -131,15 +136,13 @@ let yaml_to_fun_decomp ?(debug = false) (yaml : Yaml.value) : Mir.Fun_decomp.t =
   (* Extract artifact from decomp_res if present, otherwise use yaml as-is *)
   let artifact_yaml =
     match yaml with
-    | `O assoc -> (
-      match List.assoc_opt "decomp_res" assoc with
-      | Some (`O decomp_res_assoc) -> (
-        match List.assoc_opt "artifact" decomp_res_assoc with
+    | `O assoc ->
+      (match List.assoc_opt "decomp_res" assoc with
+      | Some (`O decomp_res_assoc) ->
+        (match List.assoc_opt "artifact" decomp_res_assoc with
         | Some artifact -> artifact
-        | None -> yaml (* fall back to root level *)
-      )
-      | _ -> yaml (* fall back to root level *)
-    )
+        | None -> yaml (* fall back to root level *))
+      | _ -> yaml (* fall back to root level *))
     | _ -> yaml
   in
   let data_b64, kind_str = yaml_to_art ~debug artifact_yaml in
