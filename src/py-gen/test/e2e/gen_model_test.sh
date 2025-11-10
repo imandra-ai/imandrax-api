@@ -8,6 +8,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEST_DATA_DIR="$SCRIPT_DIR/../data/model"
 
+# Directories to exclude (space-separated list)
+EXCLUDE_DIRS="polymorphic"
+
 # Print setup helper
 cat <<'EOF'
 Setup: Define helper function
@@ -21,8 +24,15 @@ Setup: Define helper function
 
 EOF
 
+# Build find command with exclusions
+find_cmd="find \"$TEST_DATA_DIR\""
+for exclude_dir in $EXCLUDE_DIRS; do
+    find_cmd="$find_cmd -path \"$TEST_DATA_DIR/$exclude_dir\" -prune -o"
+done
+find_cmd="$find_cmd -type f -name \"*.yaml\" -print"
+
 # Find all YAML files and generate test cases
-find "$TEST_DATA_DIR" -type f -name "*.yaml" | sort | while read -r yaml_file; do
+eval "$find_cmd" | sort | while read -r yaml_file; do
     # Get relative path from test/data/
     rel_path="${yaml_file#$SCRIPT_DIR/../data/}"
 
@@ -33,6 +43,7 @@ find "$TEST_DATA_DIR" -type f -name "*.yaml" | sort | while read -r yaml_file; d
     cat <<EOF
 ${test_name}
   \$ run_test ${rel_path}
+  expected output
 
 EOF
 done
