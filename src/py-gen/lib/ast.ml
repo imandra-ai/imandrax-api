@@ -571,7 +571,8 @@ let def_test_function
 }
 ```
 *)
-let mk_test_data_dict (args : (string * expr) list) (expected : expr) : expr =
+let mk_test_data_dict_item (args : (string * expr) list) (expected : expr) :
+    expr =
   let input_kwargs_dict : expr =
     let keys, values = List.split args in
     let key_opt_exprs =
@@ -588,6 +589,77 @@ let mk_test_data_dict (args : (string * expr) list) (expected : expr) : expr =
           Some (Constant { value = String "expected"; kind = None });
         ];
       values = [ input_kwargs_dict; expected ];
+    }
+
+(*
+```python
+tests: dict[str, dict[str, Any]] = {
+  "test_1": {
+    'input_kwargs': {'x': 4},
+    'expected': 5,
+  }
+}
+```
+*)
+let mk_test_data_dict
+    ~(test_names : string list)
+    ~(f_args_list : (string * expr) list list)
+    ~(expected_list : expr list) : stmt =
+  let (test_data_dict_items : expr list) =
+    List.map
+      (fun (args, expected) -> mk_test_data_dict_item args expected)
+      (List.combine f_args_list expected_list)
+  in
+  let agg_dict =
+    Dict
+      {
+        keys =
+          List.map
+            (fun test_name ->
+              Some (Constant { value = String test_name; kind = None }))
+            test_names;
+        values = test_data_dict_items;
+      }
+  in
+  let agg_dict_type_annot =
+    Subscript
+      {
+        value = Name { id = "dict"; ctx = mk_ctx () };
+        slice =
+          Tuple
+            {
+              elts =
+                [
+                  Name { id = "str"; ctx = mk_ctx () };
+                  Subscript
+                    {
+                      value = Name { id = "dict"; ctx = mk_ctx () };
+                      slice =
+                        Tuple
+                          {
+                            elts =
+                              [
+                                Name { id = "str"; ctx = mk_ctx () };
+                                Name { id = "Any"; ctx = mk_ctx () };
+                              ];
+                            ctx = mk_ctx ();
+                            dims = [];
+                          };
+                      ctx = mk_ctx ();
+                    };
+                ];
+              ctx = mk_ctx ();
+              dims = [];
+            };
+        ctx = mk_ctx ();
+      }
+  in
+  AnnAssign
+    {
+      target = Name { id = "tests"; ctx = mk_ctx () };
+      annotation = agg_dict_type_annot;
+      value = Some agg_dict;
+      simple = 1;
     }
 
 (* <><><><><><><><><><><><><><><><><><><><> *)

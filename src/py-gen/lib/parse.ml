@@ -560,7 +560,9 @@ let uniq_stmts (stmts : Ast.stmt list) : Ast.stmt list =
       ))
     stmts
 
-let parse_fun_decomp (fun_decomp : Mir.Fun_decomp.t) : Ast.stmt list =
+let parse_fun_decomp
+    ?(output_as_dict : bool = false)
+    (fun_decomp : Mir.Fun_decomp.t) : Ast.stmt list =
   (* Ast.stmt list  *)
   match fun_decomp with
   | { f_id = Uid.{ name = f_id_name; view = _ }; f_args; regions } ->
@@ -612,16 +614,29 @@ let parse_fun_decomp (fun_decomp : Mir.Fun_decomp.t) : Ast.stmt list =
         models_terms
     in
 
-    let test_functions : Ast.stmt list =
-      List.mapi
-        (fun i (model, model_eval_type_annot, model_eval) ->
-          let test_name = Printf.sprintf "test_%d" (i + 1) in
-          Ast.def_test_function ~test_name ~f_name:f_id_name ~docstr:None
-            ~f_args:model ~output_type_annot:model_eval_type_annot
-            ~expected:model_eval)
-        (zip3 models model_eval_type_annots model_eval_exprs)
+    let tests : Ast.stmt list =
+      match output_as_dict with
+      | true ->
+        let test_value : Ast.stmt =
+          Ast.mk_test_data_dict
+            ~test_names:
+              (List.mapi (fun i _ -> Printf.sprintf "test_%d" (i + 1)) models)
+            ~f_args_list:models ~expected_list:model_eval_exprs
+        in
+        [ test_value ]
+      | false ->
+        let test_functions : Ast.stmt list =
+          List.mapi
+            (fun i (model, model_eval_type_annot, model_eval) ->
+              let test_name = Printf.sprintf "test_%d" (i + 1) in
+              Ast.def_test_function ~test_name ~f_name:f_id_name ~docstr:None
+                ~f_args:model ~output_type_annot:model_eval_type_annot
+                ~expected:model_eval)
+            (zip3 models model_eval_type_annots model_eval_exprs)
+        in
+        test_functions
     in
-    type_defs @ test_functions
+    type_defs @ tests
 
 let sep : string = "\n" ^ CCString.repeat "<>" 10 ^ "\n"
 
