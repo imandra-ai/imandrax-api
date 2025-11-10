@@ -58,6 +58,11 @@ def deserialize(value: Any) -> Any:
             # Variant with data: ["Tag", {...}]
             if len(value_list) == 2 and isinstance(value_list[1], dict):
                 data: dict[str, Any] = cast(dict[str, Any], value_list[1])
+
+                # Special handling: OCaml's ExprStmt maps to Python's Expr
+                if tag == 'ExprStmt':
+                    tag = 'Expr'
+
                 cls = getattr(ast, tag)
 
                 # Special handling for Constant.value field
