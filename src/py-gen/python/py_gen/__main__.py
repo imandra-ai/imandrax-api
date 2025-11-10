@@ -1,7 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """CLI tool to convert OCaml AST JSON to Python source code."""
 
 import argparse
+import sys
 from pathlib import Path
 
 from py_gen.ast_deserialize import load_from_json_string
@@ -27,12 +28,14 @@ def main() -> None:
 
     # Read and deserialize
     if args.input == '-':
-        import sys
-
         json_str = sys.stdin.read()
     else:
         with Path(args.input).open() as f:
             json_str = f.read()
+
+    if not json_str:
+        print('Error: Input is empty')
+        sys.exit(1)
 
     stmts = load_from_json_string(json_str)
 
