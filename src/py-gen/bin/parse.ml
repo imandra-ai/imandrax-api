@@ -54,14 +54,24 @@ let parse_yaml_input input use_stdout =
   let yaml_str = read_content input in
   validate_content yaml_str;
   let yaml = Yaml.of_string_exn yaml_str in
-  Py_gen.Util.yaml_to_model ~debug:false yaml
+  try
+    log use_stdout "Attempting to parse as model...\n";
+    `Model (Py_gen.Util.yaml_to_model ~debug:false yaml)
+  with _ ->
+    log use_stdout "Failed to parse as model, trying function decomposition...\n";
+    `FunDecomp (Py_gen.Util.yaml_to_fun_decomp ~debug:false yaml)
 
 let parse_json_input input use_stdout =
   log use_stdout "Parsing JSON file...\n";
   let content = read_content input in
   validate_content content;
   let json = Yojson.Safe.from_string content in
-  Py_gen.Util.json_to_model ~debug:false json
+  try
+    log use_stdout "Attempting to parse as model...\n";
+    `Model (Py_gen.Util.json_to_model ~debug:false json)
+  with _ ->
+    log use_stdout "Failed to parse as model, trying function decomposition...\n";
+    `FunDecomp (Py_gen.Util.json_to_fun_decomp ~debug:false json)
 
 let parse_input config =
   let use_stdout =
@@ -73,9 +83,15 @@ let parse_input config =
   | YAML -> parse_yaml_input config.input use_stdout
   | JSON -> parse_json_input config.input use_stdout
 
-let convert_to_ast model use_stdout =
-  log use_stdout "Converting model to Python AST...\n";
-  Py_gen.Parse.parse_model model
+let convert_to_ast parsed_input use_stdout =
+  log use_stdout "Converting to Python AST...\n";
+  match parsed_input with
+  | `Model model ->
+    log use_stdout "Converting model...\n";
+    Py_gen.Parse.parse_model model
+  | `FunDecomp decomp ->
+    log use_stdout "Converting function decomposition...\n";
+    Py_gen.Parse.parse_fun_decomp decomp
 
 let write_output output stmts =
   let json_out = `List (List.map Py_gen.Ast.stmt_to_yojson stmts) in
