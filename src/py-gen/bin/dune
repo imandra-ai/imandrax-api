@@ -1,6 +1,8 @@
 ; Executable to parse JSON/YAML artifacts to Python AST
 (executable
  (name parse)
+ (public_name py-gen-parse-model)
+ (package imandrax-api)
  (modules parse)
  (libraries
   py_gen
