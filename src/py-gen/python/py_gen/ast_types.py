@@ -396,3 +396,77 @@ class arguments(AST):
 class Lambda(expr):
     args: arguments
     body: expr
+
+
+@dc
+class type_param(AST):
+    # lineno: int
+    # col_offset: int
+    # end_lineno: int
+    # end_col_offset: int
+    pass
+
+
+@dc
+class TypeVar(type_param):
+    name: str
+    bound: expr | None
+    default_value: expr | None
+
+
+@dc
+class ParamSpec(type_param):
+    name: str
+    default_value: expr | None
+
+
+@dc
+class TypeVarTuple(type_param):
+    name: str
+    default_value: expr | None
+
+
+@dc
+class FunctionDef(stmt):
+    name: str
+    args: arguments
+    body: list[stmt]
+    decorator_list: list[expr]
+    returns: expr | None
+    type_comment: str | None
+    type_params: list[type_param]
+
+
+@dc
+class alias(AST):
+    name: str
+    asname: str | None
+    # lineno: int
+    # col_offset: int
+    # end_lineno: int | None
+    # end_col_offset: int | None
+
+
+@dc
+class Assert(stmt):
+    test: expr
+    msg: expr | None
+
+
+@dc
+class Import(stmt):
+    names: list[alias]
+
+
+@dc
+class ImportFrom(stmt):
+    module: str | None
+    names: list[alias]
+    level: int
+
+
+@dc
+class Compare(expr):
+    left: expr
+    ops: list[cmpop]
+    comparators: list[expr]
