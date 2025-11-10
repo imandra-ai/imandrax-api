@@ -664,7 +664,7 @@ let parse_fun_decomp
 
     let docstr_by_region =
       List.map2
-        (fun title body -> sprintf "%s\n\n%s" title (indent 4 body))
+        (fun title body -> sprintf "%s\n\n%s" title body)
         test_names docstr_body_by_region
     in
 
