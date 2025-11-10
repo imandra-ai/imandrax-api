@@ -531,6 +531,10 @@ let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
 
+(* Return a tuple of
+  - a list of model terms
+  - the model eval term
+*)
 let parse_region (region : (Term.term, Type.t) Mir.Region.t_poly) :
     Term.term list * Term.term =
   (* let (model : (string * Term.term) list) = region.meta |> List.assoc "model" in *)
@@ -541,6 +545,7 @@ let parse_region (region : (Term.term, Type.t) Mir.Region.t_poly) :
     | _ -> failwith "Never: model_eval should be a term"
   in
 
+  (* NOTE: for now, we return empty list of model terms *)
   [], model_eval_term
 
 let uniq_stmts (stmts : Ast.stmt list) : Ast.stmt list =
@@ -563,14 +568,25 @@ let parse_fun_decomp (fun_decomp : Mir.Fun_decomp.t) : Ast.stmt list =
       f_args |> List.map (fun { Mir.Var.id; _ } -> id.name)
     in
 
-    (* TODO: this is a place holder, we don't have model yet *)
-    let ( (_models_placeholder : Term.term list list),
-          (model_evals : Term.term list) ) =
-      regions |> List.map parse_region |> List.split
+    (* The last list is the dimension of region
+       The second to last list is the dimension of f_args
+    *)
+    let (models : Term.term list list), (model_evals : Term.term list) =
+      let _todo, model_evals = regions |> List.map parse_region |> List.split in
+      (* TODO: this is a mock, we don't have model in meta yet *)
+      let n_f_args = List.length f_arg_names in
+      let mock_models =
+        model_evals
+        |> List.map (fun (model_eval_term : Term.term) ->
+               List.init n_f_args (fun _ -> model_eval_term))
+      in
+      mock_models, model_evals
     in
 
-    let models_type_defs, _models_type_annots, models_terms =
-      _models_placeholder
+    let ( (models_type_defs : Ast.stmt list list list),
+          (_models_type_annots : Ast.expr option list list),
+          (models_terms : Ast.expr list list) ) =
+      models
       |> List.map (fun (model : Term.term list) ->
              List.map (fun model -> parse_term model |> unwrap) model)
       |> List.map unzip3 |> unzip3
@@ -633,6 +649,11 @@ let%expect_test "parse fun decomp art" =
   let fmt = Format.str_formatter in
   Format.fprintf fmt "%a@?" Pretty_print.pp_fun_decomp fun_decomp;
   print_endline (Format.flush_str_formatter ());
+
+  printf "Parsed AST:\n";
+
+  let parsed = parse_fun_decomp fun_decomp in
+  List.iter (fun stmt -> print_endline (Ast.show_stmt stmt)) parsed;
 
   ();
   [%expect
@@ -950,6 +971,85 @@ let%expect_test "parse fun decomp art" =
                  ty_subst = [] }
            }]
       }
+    Parsed AST:
+    1
+    2
+    (Ast.FunctionDef
+       { Ast.name = "f";
+         args =
+         { Ast.posonlyargs = []; args = []; vararg = None; kwonlyargs = [];
+           kw_defaults = []; kwarg = None; defaults = [] };
+         body =
+         [(Ast.AnnAssign
+             { Ast.target = (Ast.Name { Ast.id = "result"; ctx = Ast.Load });
+               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+               value =
+               (Some (Ast.Call
+                        { Ast.func = (Ast.Name { Ast.id = "f"; ctx = Ast.Load });
+                          args = [];
+                          keywords =
+                          [{ Ast.arg = (Some "x");
+                             value =
+                             (Ast.Constant
+                                { Ast.value = (Ast.Int 3); kind = None })
+                             }
+                            ]
+                          }));
+               simple = 1 });
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "expected"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+                value =
+                (Some (Ast.Constant { Ast.value = (Ast.Int 3); kind = None }));
+                simple = 1 });
+           Ast.Assert {
+             test =
+             Ast.Compare {
+               left = (Ast.Name { Ast.id = "result"; ctx = Ast.Load });
+               ops = [Ast.Eq];
+               comparators = [(Ast.Name { Ast.id = "expected"; ctx = Ast.Load })]};
+             msg = None}
+           ];
+         decorator_list = []; returns = None; type_comment = None;
+         type_params = [] })
+    (Ast.FunctionDef
+       { Ast.name = "f";
+         args =
+         { Ast.posonlyargs = []; args = []; vararg = None; kwonlyargs = [];
+           kw_defaults = []; kwarg = None; defaults = [] };
+         body =
+         [(Ast.AnnAssign
+             { Ast.target = (Ast.Name { Ast.id = "result"; ctx = Ast.Load });
+               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+               value =
+               (Some (Ast.Call
+                        { Ast.func = (Ast.Name { Ast.id = "f"; ctx = Ast.Load });
+                          args = [];
+                          keywords =
+                          [{ Ast.arg = (Some "x");
+                             value =
+                             (Ast.Constant
+                                { Ast.value = (Ast.Int 1); kind = None })
+                             }
+                            ]
+                          }));
+               simple = 1 });
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "expected"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+                value =
+                (Some (Ast.Constant { Ast.value = (Ast.Int 1); kind = None }));
+                simple = 1 });
+           Ast.Assert {
+             test =
+             Ast.Compare {
+               left = (Ast.Name { Ast.id = "result"; ctx = Ast.Load });
+               ops = [Ast.Eq];
+               comparators = [(Ast.Name { Ast.id = "expected"; ctx = Ast.Load })]};
+             msg = None}
+           ];
+         decorator_list = []; returns = None; type_comment = None;
+         type_params = [] })
     |}]
 
 (* <><><><><><><><><><><><><><><><><><><><> *)
