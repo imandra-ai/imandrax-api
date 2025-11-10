@@ -621,6 +621,7 @@ let format_invariant_constraints_as_markdown_list
   let constraints_strs = constraints |> List.map (fun s -> sprintf "- %s" s) in
   invariant_str :: "- constraints:" :: (constraints_strs |> List.map (indent 4))
   |> String.concat "\n"
+  |> fun s -> s ^ "\n"
 
 let parse_fun_decomp
     ?(output_as_dict : bool = false)
