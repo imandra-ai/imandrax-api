@@ -5,8 +5,11 @@ type ('t, 'ty) view =
   | FO_var of 'ty Var.t_poly  (** free variable to match *)
   | FO_app of 'ty Applied_symbol.t_poly * 't list
       (** function applied to args *)
-  | FO_cstor of 'ty Applied_symbol.t_poly option * 't list
-      (** constructor, tuple, record… *)
+  | FO_cstor of {
+      c: 'ty Applied_symbol.t_poly option;
+      args: 't list;
+      labels: Imandrax_api.Uid.t list option;
+    }  (** constructor, tuple, record… *)
   | FO_destruct of {
       c: 'ty Applied_symbol.t_poly option;
       i: int;
