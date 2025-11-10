@@ -505,19 +505,20 @@ def name():
 ```
 *)
 let def_test_function
-    ~(name : string)
+    ~(test_name : string)
+    ~(f_name : string)
     ~(docstr : string option)
-    ~(args : (string * expr) list)
+    ~(f_args : (string * expr) list)
     ~(output_type_annot : expr option)
     ~(expected : expr) : stmt =
   let call_keywords : keyword list =
-    List.map (fun (k, v) -> { arg = Some k; value = v }) args
+    List.map (fun (k, v) -> { arg = Some k; value = v }) f_args
   in
   (* `f(x)` *)
   let call : expr =
     Call
       {
-        func = Name { id = name; ctx = mk_ctx () };
+        func = Name { id = f_name; ctx = mk_ctx () };
         args = [];
         keywords = call_keywords;
       }
@@ -553,7 +554,7 @@ let def_test_function
   in
   FunctionDef
     {
-      name;
+      name = test_name;
       args = empty_arguments ();
       body = func_body;
       decorator_list = [];

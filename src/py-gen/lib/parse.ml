@@ -613,10 +613,12 @@ let parse_fun_decomp (fun_decomp : Mir.Fun_decomp.t) : Ast.stmt list =
     in
 
     let test_functions : Ast.stmt list =
-      List.map
-        (fun (model, model_eval_type_annot, model_eval) ->
-          Ast.def_test_function ~name:f_id_name ~docstr:None ~args:model
-            ~output_type_annot:model_eval_type_annot ~expected:model_eval)
+      List.mapi
+        (fun i (model, model_eval_type_annot, model_eval) ->
+          let test_name = Printf.sprintf "test_%d" (i + 1) in
+          Ast.def_test_function ~test_name ~f_name:f_id_name ~docstr:None
+            ~f_args:model ~output_type_annot:model_eval_type_annot
+            ~expected:model_eval)
         (zip3 models model_eval_type_annots model_eval_exprs)
     in
     type_defs @ test_functions
