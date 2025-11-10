@@ -1,5 +1,6 @@
 open Printf
 open Imandrax_api
+open CCFun
 module Artifact = Imandrax_api_artifact.Artifact
 module Mir = Imandrax_api_mir
 module Type = Imandrax_api_mir.Type
@@ -20,6 +21,10 @@ let unzip3 triples =
     triples ([], [], [])
 
 let zip3 xs ys zs = List.map2 (fun x (y, z) -> x, y, z) xs (List.combine ys zs)
+
+let zip5 l1 l2 l3 l4 l5 =
+  List.combine l1 l2 |> List.combine l3 |> List.combine l4 |> List.combine l5
+  |> List.map (fun (e, (d, (c, (a, b)))) -> a, b, c, d, e)
 
 let unwrap : ('a, 'b) result -> 'a = function
   | Ok x -> x
@@ -534,9 +539,11 @@ let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
 (* Return a tuple of
   - a list of model terms
   - the model eval term
+  - invariant string
+  - constraints string list
 *)
 let parse_region (region : (Term.term, Type.t) Mir.Region.t_poly) :
-    Term.term list * Term.term =
+    Term.term list * Term.term * (string * string list) =
   (* let (model : (string * Term.term) list) = region.meta |> List.assoc "model" in *)
   let model_eval = region.meta |> List.assoc "model_eval" in
   let model_eval_term =
@@ -545,8 +552,33 @@ let parse_region (region : (Term.term, Type.t) Mir.Region.t_poly) :
     | _ -> failwith "Never: model_eval should be a term"
   in
 
+  let meta_str = region.meta |> List.assoc "str" in
+  let (invariant : string), (constraints : string list) =
+    match meta_str with
+    | Assoc assoc ->
+      let extract_string key = function
+        | Region.String s -> s
+        | _ -> failwith (Printf.sprintf "Never: %s should be a meta string" key)
+      in
+      let extract_list key = function
+        | Region.List l -> l
+        | _ -> failwith (Printf.sprintf "Never: %s should be a meta list" key)
+      in
+      let invariant =
+        List.assoc "invariant" assoc |> extract_string "invariant"
+      in
+      let constraints_meta =
+        List.assoc "constraints" assoc |> extract_list "constraints"
+      in
+      let constraints =
+        List.map (extract_string "constraint") constraints_meta
+      in
+      invariant, constraints
+    | _ -> failwith "Never: meta_str should be an Assoc"
+  in
+
   (* NOTE: for now, we return empty list of model terms *)
-  [], model_eval_term
+  [], model_eval_term, (invariant, constraints)
 
 let uniq_stmts (stmts : Ast.stmt list) : Ast.stmt list =
   let tbl = Hashtbl.create (List.length stmts) in
@@ -559,6 +591,36 @@ let uniq_stmts (stmts : Ast.stmt list) : Ast.stmt list =
         true
       ))
     stmts
+
+let format_invariant_constraints_as_yaml_string
+    ?(with_fence : bool = false)
+    (invariant : string)
+    (constraints : string list) : string =
+  let yaml_meta : Yaml.value =
+    `O
+      [
+        "invariant", `String invariant;
+        "constraints", `A (List.map (fun s -> `String s) constraints);
+      ]
+  in
+  let yaml_str = Yaml.to_string_exn yaml_meta in
+  if with_fence then (
+    let fence_yaml = String.trim %> sprintf "```yaml\n%s\n```" in
+    fence_yaml yaml_str
+  ) else
+    yaml_str
+
+let indent i s =
+  let indent_str = String.make i ' ' in
+  indent_str ^ CCString.ltrim s
+
+let format_invariant_constraints_as_markdown_list
+    (invariant : string)
+    (constraints : string list) : string =
+  let invariant_str = sprintf "- invariant: %s" invariant in
+  let constraints_strs = constraints |> List.map (fun s -> sprintf "- %s" s) in
+  invariant_str :: "- constraints:" :: (constraints_strs |> List.map (indent 4))
+  |> String.concat "\n"
 
 let parse_fun_decomp
     ?(output_as_dict : bool = false)
@@ -573,8 +635,13 @@ let parse_fun_decomp
     (* The last list is the dimension of region
        The second to last list is the dimension of f_args
     *)
-    let (models : Term.term list list), (model_evals : Term.term list) =
-      let _todo, model_evals = regions |> List.map parse_region |> List.split in
+    let ( (models : Term.term list list),
+          (model_evals : Term.term list),
+          (invariant_and_constraints_by_region : (string * string list) list) )
+        =
+      let _todo, model_evals, invariant_and_constraints =
+        regions |> List.map parse_region |> unzip3
+      in
       (* TODO: this is a mock, we don't have model in meta yet *)
       let n_f_args = List.length f_arg_names in
       let mock_models =
@@ -582,7 +649,23 @@ let parse_fun_decomp
         |> List.map (fun (model_eval_term : Term.term) ->
                List.init n_f_args (fun _ -> model_eval_term))
       in
-      mock_models, model_evals
+      mock_models, model_evals, invariant_and_constraints
+    in
+
+    let test_names =
+      List.mapi (fun i _ -> Printf.sprintf "test_%d" (i + 1)) models
+    in
+
+    let docstr_body_by_region : string list =
+      invariant_and_constraints_by_region
+      |> List.map (fun (invariant, constraints) ->
+             format_invariant_constraints_as_markdown_list invariant constraints)
+    in
+
+    let docstr_by_region =
+      List.map2
+        (fun title body -> sprintf "%s\n\n%s" title (indent 4 body))
+        test_names docstr_body_by_region
     in
 
     let ( (models_type_defs : Ast.stmt list list list),
@@ -618,21 +701,20 @@ let parse_fun_decomp
       match output_as_dict with
       | true ->
         let test_value : Ast.stmt =
-          Ast.mk_test_data_dict
-            ~test_names:
-              (List.mapi (fun i _ -> Printf.sprintf "test_%d" (i + 1)) models)
-            ~f_args_list:models ~expected_list:model_eval_exprs
+          Ast.mk_test_data_dict ~test_names ~f_args_list:models
+            ~expected_list:model_eval_exprs
         in
         [ test_value ]
       | false ->
         let test_functions : Ast.stmt list =
-          List.mapi
-            (fun i (model, model_eval_type_annot, model_eval) ->
-              let test_name = Printf.sprintf "test_%d" (i + 1) in
-              Ast.def_test_function ~test_name ~f_name:f_id_name ~docstr:None
-                ~f_args:model ~output_type_annot:model_eval_type_annot
-                ~expected:model_eval)
-            (zip3 models model_eval_type_annots model_eval_exprs)
+          List.map
+            (fun (test_name, docstr, model, model_eval_type_annot, model_eval)
+               ->
+              Ast.def_test_function ~test_name ~f_name:f_id_name
+                ~docstr:(Some docstr) ~f_args:model
+                ~output_type_annot:model_eval_type_annot ~expected:model_eval)
+            (zip5 test_names docstr_by_region models model_eval_type_annots
+               model_eval_exprs)
         in
         test_functions
     in
@@ -989,10 +1071,14 @@ let%expect_test "parse fun decomp art" =
            }]
       }
     Parsed AST:
-    1
-    2
+    - invariant: x + 2
+    - constraints:
+        - x >= 1
+    - invariant: 1 + x
+    - constraints:
+        - x <= 0
     (Ast.FunctionDef
-       { Ast.name = "f";
+       { Ast.name = "test_1";
          args =
          { Ast.posonlyargs = []; args = []; vararg = None; kwonlyargs = [];
            kw_defaults = []; kwarg = None; defaults = [] };
@@ -1030,7 +1116,7 @@ let%expect_test "parse fun decomp art" =
          decorator_list = []; returns = None; type_comment = None;
          type_params = [] })
     (Ast.FunctionDef
-       { Ast.name = "f";
+       { Ast.name = "test_2";
          args =
          { Ast.posonlyargs = []; args = []; vararg = None; kwonlyargs = [];
            kw_defaults = []; kwarg = None; defaults = [] };
