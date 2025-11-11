@@ -16,6 +16,7 @@ type ('t, 'ty) view =
   | Construct of {
       c: 'ty Imandrax_api_common.Applied_symbol.t_poly;
       args: 't list;
+      labels: Imandrax_api.Uid.t list option;
     }
   | Destruct of {
       c: 'ty Imandrax_api_common.Applied_symbol.t_poly;
@@ -57,8 +58,10 @@ let hash_view hasht (v : _ view) : int =
   | Apply { f; l = args } -> CCHash.(combine3 4 (hasht f) (list hasht args))
   | Var v -> CCHash.(combine2 10 (Var.hash v))
   | Sym f -> CCHash.(combine2 11 (Applied_symbol.hash f))
-  | Construct { c; args } ->
-    CCHash.(combine3 15 (Applied_symbol.hash c) (list hasht args))
+  | Construct { c; args; labels } ->
+    CCHash.(
+      combine4 15 (Applied_symbol.hash c) (list hasht args)
+        (opt (list Imandrax_api.Uid.hash) labels))
   | Destruct { c; i; t } ->
     CCHash.(combine4 16 (Applied_symbol.hash c) (int i) (hasht t))
   | Is_a { c; t } -> CCHash.(combine3 17 (Applied_symbol.hash c) (hasht t))
