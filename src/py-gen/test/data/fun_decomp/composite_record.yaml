@@ -1,0 +1,23 @@
+name: composite_record
+iml: |
+  type point = { x: int; y: int }
+
+  let distance_category = fun p ->
+    let sum = p.x + p.y in
+    if sum < 0 then "negative"
+    else if sum = 0 then "origin"
+    else "positive"
+decomp_kwargs:
+  name: distance_category
+  prune: true
+decomp_res:
+  artifact:
+    kind: mir.fun_decomp
+    data: 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
+    api_version: v17
+    storage: []
+  task:
+    id:
+      id: task:decomp:sRwKz76fkRI5WgIUrHVJuolwBf3LO_lk14RbE1lMTW8=
+    kind: TASK_DECOMP
+  errors: []

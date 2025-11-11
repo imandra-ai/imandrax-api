@@ -1,0 +1,21 @@
+name: primitive_real
+iml: |
+  let classify_temp = fun temp ->
+    if temp < 0.0 then "freezing"
+    else if temp < 20.0 then "cold"
+    else if temp < 30.0 then "warm"
+    else "hot"
+decomp_kwargs:
+  name: classify_temp
+  prune: true
+decomp_res:
+  artifact:
+    kind: mir.fun_decomp
+    data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wayULDyY/L6AmBgYvH/AcACH66jAaBiRHRlbXD8Yvf/BGP0/wr/GWL2/xRh9GBm8fT/OQEA/z6x+bREdHJ1ZWJKbW9kZWxfZXZhbP8CtER0cnVlYklpbnZhcmlhbnT/AbREdHJ1ZWH2t/JiS2NvbnN0cmFpbnRz/rRBMGJEdGVtcPhh97XyYkVtb2RlbPhk/0D/Lv8Z/rX4YkNzdHL2tv+KAWJEdGVtcPlh97XyYkVtb2RlbPhgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CLYBsPJj8voCtvRiSm1vZGVsX2V2YWz9tE8VNDkwMTYyZjYtNGI0YS00ODY1LWE4ZTUtMGU4MzA0NjQ3YmQ2YkJpZP8bZP9s/1n/L/xh/zlk8/89/v/cAWH4Yv+DAv+gAmH3XxGBerX40dzdUMOU1FG/yfIkTvRfm5wJyNeOBbbxOjVERmNNY2xhc3NpZnlfdGVtcP8hAYb/A7LzYk1jbGFzc2lmeV90ZW1w/wFj/wL/P/9KBg==
+    api_version: v17
+    storage: []
+  task:
+    id:
+      id: task:decomp:t_pjCjEPcLo6lnC9dplBybk2FPEXxqrYMakLUZTyr8E=
+    kind: TASK_DECOMP
+  errors: []
