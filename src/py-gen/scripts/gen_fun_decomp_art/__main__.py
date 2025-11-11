@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 import yaml
-from imandrax_api import Client, url_prod
+from imandrax_api import Client, url_dev, url_prod
 from imandrax_api.lib import read_artifact_data
 from IPython.core.getipython import get_ipython
 from rich import print
@@ -49,7 +49,7 @@ def proto_to_dict(proto_obj: Message) -> dict[Any, Any]:
 
 
 # %%
-c = Client(auth_token=os.environ['IMANDRAX_API_KEY'], url=url_prod)
+c = Client(auth_token=os.environ['IMANDRAX_API_KEY'], url=url_dev)
 
 out_dir = curr_dir
 
