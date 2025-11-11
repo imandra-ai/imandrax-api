@@ -17,3 +17,16 @@ decomp_res:
       id: task:decomp:XR5HzzOUZ6EfQn6ES5Wv-mYnthMy4YHtvLIMhqHwHFE=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    x: '1'
+  model_eval_str: '3'
+  invariant_str: x + 2
+  constraints_str:
+  - x >= 1
+- model_str:
+    x: '0'
+  model_eval_str: '1'
+  invariant_str: 1 + x
+  constraints_str:
+  - x <= 0

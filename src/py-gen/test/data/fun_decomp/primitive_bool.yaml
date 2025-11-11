@@ -18,3 +18,36 @@ decomp_res:
       id: task:decomp:OEbcnyvJV1CKZzdpYrzwMNZd2PYHJ69Wvc-BMK36U_w=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    a: 'false'
+    b: 'false'
+  model_eval_str: '0'
+  invariant_str: '0'
+  constraints_str:
+  - not b
+  - not a
+- model_str:
+    a: 'false'
+    b: 'true'
+  model_eval_str: '2'
+  invariant_str: '2'
+  constraints_str:
+  - b
+  - not a
+- model_str:
+    a: 'true'
+    b: 'false'
+  model_eval_str: '2'
+  invariant_str: '2'
+  constraints_str:
+  - not b
+  - a
+- model_str:
+    a: 'true'
+    b: 'true'
+  model_eval_str: '1'
+  invariant_str: '1'
+  constraints_str:
+  - b
+  - a

@@ -18,3 +18,24 @@ decomp_res:
       id: task:decomp:HEuxhiivGUx1C-PJTyyQNd658Oe2eS-SPFDs64bbIps=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    opt: Some 0
+  model_eval_str: '0'
+  invariant_str: ~- Option.get opt
+  constraints_str:
+  - not Is_a(None, opt)
+  - Option.get opt <= 0
+- model_str:
+    opt: Some 1
+  model_eval_str: '1'
+  invariant_str: Option.get opt
+  constraints_str:
+  - not Is_a(None, opt)
+  - Option.get opt >= 1
+- model_str:
+    opt: None
+  model_eval_str: '0'
+  invariant_str: '0'
+  constraints_str:
+  - Is_a(None, opt)

@@ -25,3 +25,24 @@ decomp_res:
       id: task:decomp:e7GL8Is8hg9wsvwyZSv6LRkdEdVJMGi3e8l-nq1S8O0=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    u: '{id = 0; active = Inactive}'
+  model_eval_str: (-1)
+  invariant_str: (-1)
+  constraints_str:
+  - not (u.active = Active)
+- model_str:
+    u: '{id = 0; active = Active}'
+  model_eval_str: '0'
+  invariant_str: '0'
+  constraints_str:
+  - u.active = Active
+  - u.id <= 0
+- model_str:
+    u: '{id = 1; active = Active}'
+  model_eval_str: '1'
+  invariant_str: u.id
+  constraints_str:
+  - u.active = Active
+  - u.id >= 1

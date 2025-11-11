@@ -21,3 +21,36 @@ decomp_res:
       id: task:decomp:UJ53nu0SNdDMmOI-JSU55PCIAJNDFCouIe0Vzf7pRMI=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    y: '0'
+    x: '0'
+  model_eval_str: '0'
+  invariant_str: ~- x + y
+  constraints_str:
+  - y <= 0
+  - x <= 0
+- model_str:
+    y: '1'
+    x: '0'
+  model_eval_str: '1'
+  invariant_str: y - x
+  constraints_str:
+  - y >= 1
+  - x <= 0
+- model_str:
+    y: '0'
+    x: '1'
+  model_eval_str: '1'
+  invariant_str: x - y
+  constraints_str:
+  - y <= 0
+  - x >= 1
+- model_str:
+    y: '1'
+    x: '1'
+  model_eval_str: '2'
+  invariant_str: x + y
+  constraints_str:
+  - y >= 1
+  - x >= 1

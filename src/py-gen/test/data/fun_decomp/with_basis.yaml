@@ -21,3 +21,16 @@ decomp_res:
       id: task:decomp:8bZDTwK0442MFmivVrtDoLG2zEVig-YA3nUwVe_Mz8Q=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    x: '0'
+  model_eval_str: '0'
+  invariant_str: helper (~- x)
+  constraints_str:
+  - x <= 0
+- model_str:
+    x: '1'
+  model_eval_str: '1'
+  invariant_str: helper x
+  constraints_str:
+  - x >= 1

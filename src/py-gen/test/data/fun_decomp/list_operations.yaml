@@ -19,3 +19,24 @@ decomp_res:
       id: task:decomp:z8UPjxdrDsfDnmO7fFZ_ghRTPpsXBheCQa_cxqIm-wo=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    xs: '[]'
+  model_eval_str: '0'
+  invariant_str: '0'
+  constraints_str:
+  - not (xs <> [])
+- model_str:
+    xs: '[0]'
+  model_eval_str: '0'
+  invariant_str: List.hd xs
+  constraints_str:
+  - not ((List.tl xs) <> [])
+  - xs <> []
+- model_str:
+    xs: '[1; 0]'
+  model_eval_str: '1'
+  invariant_str: List.hd xs + List.hd (List.tl xs)
+  constraints_str:
+  - (List.tl xs) <> []
+  - xs <> []

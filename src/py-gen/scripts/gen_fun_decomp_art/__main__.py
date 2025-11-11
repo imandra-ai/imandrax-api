@@ -17,6 +17,7 @@ import os
 from typing import Any, Final
 
 import dotenv
+from decode_artifact import decode_artifact
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
 
@@ -59,20 +60,29 @@ with (curr_dir / 'data.yaml').open('r') as f:
 
 
 # %%
-decomp_res_s = []
-for item in inputs:
+decomp_res_by_eg = []
+regions_by_eg = []
+for i, item in enumerate(inputs):
     iml = item['iml']
     decomp_kwargs = item['decomp_kwargs']
     _eval_res = c.eval_src(iml)
     decomp_res = c.decompose(**decomp_kwargs)
-    decomp_res_s.append(proto_to_dict(decomp_res))
+    decomp_res_by_eg.append(proto_to_dict(decomp_res))
+    regions = decode_artifact(
+        data=decomp_res.artifact.data, kind=decomp_res.artifact.kind
+    )
+    regions = [r.to_dict() for r in regions]
+    regions_by_eg.append(regions)
+
 
 # %%
 out_dir = curr_dir / 'result'
 out_dir.mkdir(exist_ok=True)
-for item, decomp_res in zip(inputs, decomp_res_s, strict=True):
+for item, decomp_res, regions in zip(
+    inputs, decomp_res_by_eg, regions_by_eg, strict=True
+):
     name = item['name'].replace(' ', '_')
-    out = item | {'decomp_res': decomp_res}
+    out = item | {'decomp_res': decomp_res} | {'regions': regions}
     out['iml'] = LiteralString(item['iml'])  # format IML
     with (out_dir / f'{item["name"]}.yaml').open('w') as f:
         f.write(yaml.dump(out, sort_keys=False, default_flow_style=False))

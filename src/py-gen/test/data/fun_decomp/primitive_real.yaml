@@ -19,3 +19,10 @@ decomp_res:
       id: task:decomp:t_pjCjEPcLo6lnC9dplBybk2FPEXxqrYMakLUZTyr8E=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    temp: '0'
+  model_eval_str: 'true'
+  invariant_str: 'true'
+  constraints_str:
+  - 'true'

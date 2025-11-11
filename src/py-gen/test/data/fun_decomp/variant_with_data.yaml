@@ -22,3 +22,16 @@ decomp_res:
       id: task:decomp:floBgfVxv9ayR_fgmO_nD-0CXfyQdWzLJt8bIWtNNME=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    s: Rectangle (0, 1)
+  model_eval_str: '0'
+  invariant_str: Destruct(Rectangle, 0, s) * Destruct(Rectangle, 1, s)
+  constraints_str:
+  - not Is_a(Circle, s)
+- model_str:
+    s: Circle 0
+  model_eval_str: '0'
+  invariant_str: Destruct(Circle, 0, s) * Destruct(Circle, 0, s)
+  constraints_str:
+  - Is_a(Circle, s)

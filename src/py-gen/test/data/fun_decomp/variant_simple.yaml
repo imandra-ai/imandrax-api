@@ -21,3 +21,24 @@ decomp_res:
       id: task:decomp:k1_MwmDJkNf-h9hfMpfLPDhsBlp3PM3YKvZKgcZuqaA=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    c: Red
+  model_eval_str: '1'
+  invariant_str: '1'
+  constraints_str:
+  - not (c = Green)
+  - not (c = Blue)
+- model_str:
+    c: Green
+  model_eval_str: '2'
+  invariant_str: '2'
+  constraints_str:
+  - c = Green
+  - not (c = Blue)
+- model_str:
+    c: Blue
+  model_eval_str: '3'
+  invariant_str: '3'
+  constraints_str:
+  - c = Blue

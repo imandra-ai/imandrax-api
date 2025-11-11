@@ -19,3 +19,64 @@ decomp_res:
       id: task:decomp:3ORj23CJLHXyJsnlwHlB8yuCHSRZ0MB0_nwfucdoU9k=
     kind: TASK_DECOMP
   errors: []
+regions:
+- model_str:
+    b: '0'
+    c: '1'
+    a: (-1)
+  model_eval_str: '0'
+  invariant_str: '0'
+  constraints_str:
+  - not (b = c)
+  - not (a = b)
+  - a <= b
+- model_str:
+    a: (-1)
+    c: '0'
+    b: '0'
+  model_eval_str: '0'
+  invariant_str: b * a
+  constraints_str:
+  - b = c
+  - not (a = b)
+  - a <= b
+- model_str:
+    b: '0'
+    a: '0'
+    c: '0'
+  model_eval_str: '0'
+  invariant_str: a * c
+  constraints_str:
+  - a = b
+  - a <= b
+- model_str:
+    b: '0'
+    a: '1'
+    c: '1'
+  model_eval_str: '0'
+  invariant_str: '0'
+  constraints_str:
+  - not (b = c)
+  - not (a = b)
+  - b <= c
+  - not (a <= b)
+- model_str:
+    a: '1'
+    c: '0'
+    b: '0'
+  model_eval_str: '0'
+  invariant_str: b * a
+  constraints_str:
+  - b = c
+  - not (a = b)
+  - b <= c
+  - not (a <= b)
+- model_str:
+    c: (-1)
+    a: '1'
+    b: '0'
+  model_eval_str: '0'
+  invariant_str: a + b + c
+  constraints_str:
+  - not (b <= c)
+  - not (a <= b)
