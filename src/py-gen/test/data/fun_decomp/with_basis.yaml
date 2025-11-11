@@ -10,17 +10,6 @@ decomp_kwargs:
   prune: true
   basis:
   - helper
-decomp_res:
-  artifact:
-    kind: mir.fun_decomp
-    data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wayULDyY/L6AmBgYvH/AcACH6GlAaBiQXj5YvT/AWP0/wf/FmL2/xFh9GBm8fT/NgEA/zux+bRBMGJKbW9kZWxfZXZhbP60TWhlbHBlciAofi0geCliSWludmFyaWFudP8KtEZ4IDw9IDBh+LfyYktjb25zdHJhaW50c/60QTBiQXj1YfS18mJFbW9kZWz4ZP9H/y3/Fv61+GJDc3Ry9rb/iwFiQXj2YfS18mJFbW9kZWz4tv+fAWJKbW9kZWxfZXZhbP8AtE8VOGEyOGU4NzMtMjk3Ni00YmViLTliNGQtZjQ2MGIzNmMxNDdlYkJpZP8bZP9K/zr/MPxi/9UB//IBs/dj8v/5AQJh9sEDAv+CAv+FAmBgYvH8sElta19pX3VzdWKz+2JCfi31YvX/B2P0/w3/GLT2Y/L/HgLCAvb/JmP1/7cCAmH2YGBi8f8yXxEmYly6YNnKvHjIBNXMzhwdF16pZkp7vSY9xFcyBUGP02NGaGVscGVy/xoBhvuy8mJGaGVscGVy+WL5/zBj9P82/3a09mPy/3wCwgL2/0Zj9f+VAwJgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGL/rQH/rgPBAwL/vQP/AsEDAv/FA/1gYGLx+rBHbWtfaV9sZbP5YkI8PfVi9f8FY/T/C/8UtPZj8v8aAsIC9v8vY/X/OAJh9WTy/1r/iQL/ygNgYLJYAgAAAAAAAACw+mPy/5UEAmBgYvH/nQRi/4cE+GP1/f+oBGL2/wph9GBm8fT/HwEA/ySx+bRBMWJKbW9kZWxfZXZhbP60SGhlbHBlciB4YklpbnZhcmlhbnT/BbRGeCA+PSAxYfi38mJLY29uc3RyYWludHP+tEExYkF49WH0tfJiRW1vZGVs+GT/Qv8t/xb+tfhiQ3N0cva2/39iQXj1YfS18mJFbW9kZWz4tv+SAWJKbW9kZWxfZXZhbP8AtE8VYzg0MmQ0MzctNTVmZS00NzM5LWI4NTctNGVmYWUxZjNkZGI0YkJpZP8bZP9J/zr/MPxh//UDwgL/6AL4Y/b/hwYCYv+FBP/sAWBgYvH/xAKwR21rX2lfZ2Wz+WJCPj31YvX/B2P0/w3/3wK092Py/+YCAsIC9/8kY/X/hQMCYfZk8v82/0r/hAJi/8gC/GL/vgb/2wZh918R2YtfmKQfVzM3MYABYNcGk5ko/Tbh+Ch9D4Hndb6boDljR2NvbXB1dGX/GwGG/LLyYkdjb21wdXRl+mP6/zD/PgU=
-    api_version: v17
-    storage: []
-  task:
-    id:
-      id: task:decomp:8bZDTwK0442MFmivVrtDoLG2zEVig-YA3nUwVe_Mz8Q=
-    kind: TASK_DECOMP
-  errors: []
 regions:
 - model_str:
     x: '0'
@@ -34,3 +23,14 @@ regions:
   invariant_str: helper x
   constraints_str:
   - x >= 1
+decomp_res:
+  artifact:
+    kind: mir.fun_decomp
+    data: YGBgsEhta19zX2ludLP6YkNpbnT2wwL3/wayULDyY/L6AmBgYvH/AcACH6GlAaBiQXj5YvT/AWP0/wf/FmL2/xFh9GBm8fT/NgEA/zux+bRBMGJKbW9kZWxfZXZhbP60TWhlbHBlciAofi0geCliSWludmFyaWFudP8KtEZ4IDw9IDBh+LfyYktjb25zdHJhaW50c/60QTBiQXj1YfS18mJFbW9kZWz4ZP9H/y3/Fv61+GJDc3Ry9rb/iwFiQXj2YfS18mJFbW9kZWz4tv+fAWJKbW9kZWxfZXZhbP8AtE8VOGEyOGU4NzMtMjk3Ni00YmViLTliNGQtZjQ2MGIzNmMxNDdlYkJpZP8bZP9K/zr/MPxi/9UB//IBs/dj8v/5AQJh9sEDAv+CAv+FAmBgYvH8sElta19pX3VzdWKz+2JCfi31YvX/B2P0/w3/GLT2Y/L/HgLCAvb/JmP1/7cCAmH2YGBi8f8yXxEmYly6YNnKvHjIBNXMzhwdF16pZkp7vSY9xFcyBUGP02NGaGVscGVy/xoBhvuy8mJGaGVscGVy+WL5/zBj9P82/3a09mPy/3wCwgL2/0Zj9f+VAwJgsElta19zX2Jvb2yz+2JEYm9vbPfDAvj/CGL/rQH/rgPBAwL/vQP/AsEDAv/FA/1gYGLx+rBHbWtfaV9sZbP5YkI8PfVi9f8FY/T/C/8UtPZj8v8aAsIC9v8vY/X/OAJh9WTy/1r/iQL/ygNgYLJYAgAAAAAAAACw+mPy/5UEAmBgYvH/nQRi/4cE+GP1/f+oBGL2/wph9GBm8fT/HwEA/ySx+bRBMWJKbW9kZWxfZXZhbP60SGhlbHBlciB4YklpbnZhcmlhbnT/BbRGeCA+PSAxYfi38mJLY29uc3RyYWludHP+tEExYkF49WH0tfJiRW1vZGVs+GT/Qv8t/xb+tfhiQ3N0cva2/39iQXj1YfS18mJFbW9kZWz4tv+SAWJKbW9kZWxfZXZhbP8AtE8VYzg0MmQ0MzctNTVmZS00NzM5LWI4NTctNGVmYWUxZjNkZGI0YkJpZP8bZP9J/zr/MPxh//UDwgL/6AL4Y/b/hwYCYv+FBP/sAWBgYvH/xAKwR21rX2lfZ2Wz+WJCPj31YvX/B2P0/w3/3wK092Py/+YCAsIC9/8kY/X/hQMCYfZk8v82/0r/hAJi/8gC/GL/vgb/2wZh918R2YtfmKQfVzM3MYABYNcGk5ko/Tbh+Ch9D4Hndb6boDljR2NvbXB1dGX/GwGG/LLyYkdjb21wdXRl+mP6/zD/PgU=
+    api_version: v17
+    storage: []
+  task:
+    id:
+      id: task:decomp:8bZDTwK0442MFmivVrtDoLG2zEVig-YA3nUwVe_Mz8Q=
+    kind: TASK_DECOMP
+  errors: []

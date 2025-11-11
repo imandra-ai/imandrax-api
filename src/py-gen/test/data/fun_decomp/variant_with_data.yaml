@@ -11,17 +11,6 @@ iml: |
 decomp_kwargs:
   name: area
   prune: true
-decomp_res:
-  artifact:
-    kind: mir.fun_decomp
-    data: YGBgXxG/+LdsssT64O7MOyrQ8/pmU53cGnFGKElZcqFr5JDlkWNFc2hhcGX/GQGG+rLyYkVzaGFwZfjDAvn/LGCwSG1rX3NfaW50s/piQ2ludPbDAvf/BrJQsPJj8voCslgCAAAAAAAAALD6Y/L/CwJi/wb3wQMC/xX/L8EDAv8c+2BgYvH5XxGuRfdCrc1engQU/kmzZh04JwAp5cuAAw3qCYYATgLteWNJUmVjdGFuZ2xl/x0Ahv6y8mJJUmVjdGFuZ2xl/GL8/zVj9P87/0PFAvf/U2P1/40BAmBgYvH/lQHAAh+BpAGgYkFz+WL0/wJj9P8I/6sBYvf/FWH0YGbx9P/yAQEA//gBsfu0QTBiSm1vZGVsX2V2YWz+tE8mRGVzdHJ1Y3QoUmVjdGFuZ2xlLCAwLCBzKSAqIERlc3RydWN0KFJlY3RhbmdsZSwgMSwgcyliSWludmFyaWFudP8ztE8Ebm90IElzX2EoQ2lyY2xlLCBzKWH/B7fzYktjb25zdHJhaW50c/60TwFSZWN0YW5nbGUgKDAsIDEpYkFz/wZh9bXyYkVtb2RlbPhk/5AB/07/KP8AtfpiQ3N0cva2/9wBYkFz9mH0tfJiRW1vZGVs+Lb/6gJiSm1vZGVsX2V2YWz/ALRPFTIzM2ZjZmFlLTE5NDYtNGEzYi05NjQ1LWRmNTIwMjUzZmVkNmJCaWT/G2T/Sv86/zD8Yv+jAv/VA7P3Y/L/3AMCYGBi8f+jA2L/6AL4Y/X9/64DxgP3EP8MY/b/4gMCYGBi8f/BA2L/hgP4Y/X9/8wDxgP3Ef8qY/b/gAQCYv8V+MEDAv+LBP+OBMEDAv+UBP5gYGLx+rBIbWtfaV9tdWyz+mJBKvRi9P8FY/T/C/8UtPZj8v8aAsIC9v8tY/X/xQQCYLBJbWtfc19ib29ss/tiRGJvb2z3wwL4/whgYGLx/8UEXxFL8KanCiLx3V+gdf2s4mbfNZVCKl4ctYfkeOKYnqgO32NGQ2lyY2xl/xoAhvuy8mJGQ2lyY2xl+WL5/zFj9P83/4oFxwL4/+ABY/b/SQJh9cEDAv9R/1NgYGLx+rBGbWtfbm90s/hiQ25vdPZi9v8FY/T/C/8UtPZj8v8aAsIC9v8iY/X/ggECYfZk8v+lAf+6Av/GBGBgYf/7BWBgYvH/6QVi/2T3Y/T8//MFxQL3/whj9f+3BgJgYGLx/78GYv+UBfhj9f3/ygZi9v8KYfRgZvH0/y0BAP8ysfm0QTBiSm1vZGVsX2V2YWz+tE8gRGVzdHJ1Y3QoQ2lyY2xlLCAwLCBzKSAqIERlc3RydWN0KENpcmNsZSwgMCwgcyliSWludmFyaWFudP8ttE8ASXNfYShDaXJjbGUsIHMpYf8Dt/NiS2NvbnN0cmFpbnRz/rRIQ2lyY2xlIDBiQXP8YfS18mJFbW9kZWz4ZP98/z//Hf61+GJDc3Ry9rb/uQFiQXP2YfS18mJFbW9kZWz4tv/xB2JKbW9kZWxfZXZhbP8AtE8VODc2ODI5ODUtNmMyMi00NWEzLThkZjgtODI4YjRhZjJiMmFmYkJpZP8bZP9K/zr/MPxgYGLx/6IIYv+dA/hj9f3/rQjGA/cQ/4QFY/f/2wgCYvb3wgL/mwT3Y/b/6ggCYf+qA2T0+/8t/6ICYv/1Avti/+kH/5sJYfdfEQQ/qGk3p2yjYF5S6BhxxLkxii9stmit/s+urm4u79twY0RhcmVh/xgBhvmy8mJEYXJlYfdj9/8q/zgF
-    api_version: v17
-    storage: []
-  task:
-    id:
-      id: task:decomp:floBgfVxv9ayR_fgmO_nD-0CXfyQdWzLJt8bIWtNNME=
-    kind: TASK_DECOMP
-  errors: []
 regions:
 - model_str:
     s: Rectangle (0, 1)
@@ -35,3 +24,14 @@ regions:
   invariant_str: Destruct(Circle, 0, s) * Destruct(Circle, 0, s)
   constraints_str:
   - Is_a(Circle, s)
+decomp_res:
+  artifact:
+    kind: mir.fun_decomp
+    data: YGBgXxG/+LdsssT64O7MOyrQ8/pmU53cGnFGKElZcqFr5JDlkWNFc2hhcGX/GQGG+rLyYkVzaGFwZfjDAvn/LGCwSG1rX3NfaW50s/piQ2ludPbDAvf/BrJQsPJj8voCslgCAAAAAAAAALD6Y/L/CwJi/wb3wQMC/xX/L8EDAv8c+2BgYvH5XxGuRfdCrc1engQU/kmzZh04JwAp5cuAAw3qCYYATgLteWNJUmVjdGFuZ2xl/x0Ahv6y8mJJUmVjdGFuZ2xl/GL8/zVj9P87/0PFAvf/U2P1/40BAmBgYvH/lQHAAh+BpAGgYkFz+WL0/wJj9P8I/6sBYvf/FWH0YGbx9P/yAQEA//gBsfu0QTBiSm1vZGVsX2V2YWz+tE8mRGVzdHJ1Y3QoUmVjdGFuZ2xlLCAwLCBzKSAqIERlc3RydWN0KFJlY3RhbmdsZSwgMSwgcyliSWludmFyaWFudP8ztE8Ebm90IElzX2EoQ2lyY2xlLCBzKWH/B7fzYktjb25zdHJhaW50c/60TwFSZWN0YW5nbGUgKDAsIDEpYkFz/wZh9bXyYkVtb2RlbPhk/5AB/07/KP8AtfpiQ3N0cva2/9wBYkFz9mH0tfJiRW1vZGVs+Lb/6gJiSm1vZGVsX2V2YWz/ALRPFTIzM2ZjZmFlLTE5NDYtNGEzYi05NjQ1LWRmNTIwMjUzZmVkNmJCaWT/G2T/Sv86/zD8Yv+jAv/VA7P3Y/L/3AMCYGBi8f+jA2L/6AL4Y/X9/64DxgP3EP8MY/b/4gMCYGBi8f/BA2L/hgP4Y/X9/8wDxgP3Ef8qY/b/gAQCYv8V+MEDAv+LBP+OBMEDAv+UBP5gYGLx+rBIbWtfaV9tdWyz+mJBKvRi9P8FY/T/C/8UtPZj8v8aAsIC9v8tY/X/xQQCYLBJbWtfc19ib29ss/tiRGJvb2z3wwL4/whgYGLx/8UEXxFL8KanCiLx3V+gdf2s4mbfNZVCKl4ctYfkeOKYnqgO32NGQ2lyY2xl/xoAhvuy8mJGQ2lyY2xl+WL5/zFj9P83/4oFxwL4/+ABY/b/SQJh9cEDAv9R/1NgYGLx+rBGbWtfbm90s/hiQ25vdPZi9v8FY/T/C/8UtPZj8v8aAsIC9v8iY/X/ggECYfZk8v+lAf+6Av/GBGBgYf/7BWBgYvH/6QVi/2T3Y/T8//MFxQL3/whj9f+3BgJgYGLx/78GYv+UBfhj9f3/ygZi9v8KYfRgZvH0/y0BAP8ysfm0QTBiSm1vZGVsX2V2YWz+tE8gRGVzdHJ1Y3QoQ2lyY2xlLCAwLCBzKSAqIERlc3RydWN0KENpcmNsZSwgMCwgcyliSWludmFyaWFudP8ttE8ASXNfYShDaXJjbGUsIHMpYf8Dt/NiS2NvbnN0cmFpbnRz/rRIQ2lyY2xlIDBiQXP8YfS18mJFbW9kZWz4ZP98/z//Hf61+GJDc3Ry9rb/uQFiQXP2YfS18mJFbW9kZWz4tv/xB2JKbW9kZWxfZXZhbP8AtE8VODc2ODI5ODUtNmMyMi00NWEzLThkZjgtODI4YjRhZjJiMmFmYkJpZP8bZP9K/zr/MPxgYGLx/6IIYv+dA/hj9f3/rQjGA/cQ/4QFY/f/2wgCYvb3wgL/mwT3Y/b/6ggCYf+qA2T0+/8t/6ICYv/1Avti/+kH/5sJYfdfEQQ/qGk3p2yjYF5S6BhxxLkxii9stmit/s+urm4u79twY0RhcmVh/xgBhvmy8mJEYXJlYfdj9/8q/zgF
+    api_version: v17
+    storage: []
+  task:
+    id:
+      id: task:decomp:floBgfVxv9ayR_fgmO_nD-0CXfyQdWzLJt8bIWtNNME=
+    kind: TASK_DECOMP
+  errors: []

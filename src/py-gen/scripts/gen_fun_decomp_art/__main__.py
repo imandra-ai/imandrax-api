@@ -82,7 +82,7 @@ for item, decomp_res, regions in zip(
     inputs, decomp_res_by_eg, regions_by_eg, strict=True
 ):
     name = item['name'].replace(' ', '_')
-    out = item | {'decomp_res': decomp_res} | {'regions': regions}
+    out = item | {'regions': regions} | {'decomp_res': decomp_res}
     out['iml'] = LiteralString(item['iml'])  # format IML
     with (out_dir / f'{item["name"]}.yaml').open('w') as f:
         f.write(yaml.dump(out, sort_keys=False, default_flow_style=False))
