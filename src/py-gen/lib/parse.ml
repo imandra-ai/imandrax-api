@@ -543,8 +543,16 @@ let parse_model (model : (Term.term, Type.t) Imandrax_api_common.Model.t_poly) :
   - constraints string list
 *)
 let parse_region (region : (Term.term, Type.t) Mir.Region.t_poly) :
-    Term.term list * Term.term * (string * string list) =
-  (* let (model : (string * Term.term) list) = region.meta |> List.assoc "model" in *)
+    (string * Term.term) list * Term.term * (string * string list) =
+  let (model : (string * Term.term) list) =
+    region.meta |> List.assoc "model" |> function
+    | Assoc assoc ->
+      assoc
+      |> List.map (function
+           | arg_name, Region.Term t -> arg_name, t
+           | _ -> failwith "Never: values of model assoc should be a term")
+    | _ -> failwith "Never: model should be an Assoc"
+  in
   let model_eval = region.meta |> List.assoc "model_eval" in
   let model_eval_term =
     match model_eval with
@@ -578,7 +586,7 @@ let parse_region (region : (Term.term, Type.t) Mir.Region.t_poly) :
   in
 
   (* NOTE: for now, we return empty list of model terms *)
-  [], model_eval_term, (invariant, constraints)
+  model, model_eval_term, (invariant, constraints)
 
 let uniq_stmts (stmts : Ast.stmt list) : Ast.stmt list =
   let tbl = Hashtbl.create (List.length stmts) in
@@ -628,33 +636,40 @@ let parse_fun_decomp
     (fun_decomp : Mir.Fun_decomp.t) : Ast.stmt list =
   (* Ast.stmt list  *)
   match fun_decomp with
-  | { f_id = Uid.{ name = f_id_name; view = _ }; f_args; regions } ->
-    let (f_arg_names : string list) =
-      f_args |> List.map (fun { Mir.Var.id; _ } -> id.name)
-    in
+  | { f_id = Uid.{ name = f_id_name; view = _ }; f_args = _; regions } ->
+    let n_region = regions |> List.length in
 
     (* The last list is the dimension of region
        The second to last list is the dimension of f_args
     *)
-    let ( (models : Term.term list list),
+    let ( (model_by_arg_by_region : (string * Term.term) list list),
           (model_evals : Term.term list),
           (invariant_and_constraints_by_region : (string * string list) list) )
         =
-      let _todo, model_evals, invariant_and_constraints =
-        regions |> List.map parse_region |> unzip3
-      in
-      (* TODO: this is a mock, we don't have model in meta yet *)
-      let n_f_args = List.length f_arg_names in
-      let mock_models =
-        model_evals
-        |> List.map (fun (model_eval_term : Term.term) ->
-               List.init n_f_args (fun _ -> model_eval_term))
-      in
-      mock_models, model_evals, invariant_and_constraints
+      regions |> List.map parse_region |> unzip3
+    in
+
+    let ( (models_type_defs : (string * Ast.stmt list) list list),
+          (* We have no place to use type annots for input args*)
+          (_models_type_annots : (string * Ast.expr option) list list),
+          (models_terms : (string * Ast.expr) list list) ) =
+      model_by_arg_by_region
+      |> List.map (fun (model_by_arg : (string * Term.term) list) ->
+             List.map
+               (fun (arg_name, model) ->
+                 let type_defs, type_annot, term_expr =
+                   parse_term model |> unwrap
+                 in
+                 (* bind arg name again *)
+                 ( (arg_name, type_defs),
+                   (arg_name, type_annot),
+                   (arg_name, term_expr) ))
+               model_by_arg)
+      |> List.map unzip3 |> unzip3
     in
 
     let test_names =
-      List.mapi (fun i _ -> Printf.sprintf "test_%d" (i + 1)) models
+      List.map (fun i -> Printf.sprintf "test_%d" i) CCList.(1 -- n_region)
     in
 
     let docstr_body_by_region : string list =
@@ -669,15 +684,6 @@ let parse_fun_decomp
         test_names docstr_body_by_region
     in
 
-    let ( (models_type_defs : Ast.stmt list list list),
-          (_models_type_annots : Ast.expr option list list),
-          (models_terms : Ast.expr list list) ) =
-      models
-      |> List.map (fun (model : Term.term list) ->
-             List.map (fun model -> parse_term model |> unwrap) model)
-      |> List.map unzip3 |> unzip3
-    in
-
     let model_eval_type_defs_s, model_eval_type_annots, model_eval_exprs =
       model_evals
       |> List.map (fun model_eval -> parse_term model_eval |> unwrap)
@@ -685,24 +691,22 @@ let parse_fun_decomp
     in
 
     (* Deduplicate type definitions *)
-    let type_defs =
-      (models_type_defs |> List.flatten |> List.flatten)
-      @ (model_eval_type_defs_s |> List.flatten)
+    let type_defs : Ast.stmt list =
+      let model_type_defs_flattened : Ast.stmt list =
+        let model_type_defs_by_arg = models_type_defs |> List.flatten in
+        model_type_defs_by_arg
+        |> List.map (fun (_, stmts) -> stmts)
+        |> List.flatten
+      in
+      model_type_defs_flattened @ (model_eval_type_defs_s |> List.flatten)
       |> uniq_stmts
-    in
-
-    let models : (string * Ast.expr) list list =
-      List.map
-        (fun (model_terms : Ast.expr list) ->
-          List.combine f_arg_names model_terms)
-        models_terms
     in
 
     let tests : Ast.stmt list =
       match output_as_dict with
       | true ->
         let test_value : Ast.stmt =
-          Ast.mk_test_data_dict ~test_names ~f_args_list:models
+          Ast.mk_test_data_dict ~test_names ~f_args_list:models_terms
             ~expected_list:model_eval_exprs
         in
         [ test_value ]
@@ -714,8 +718,8 @@ let parse_fun_decomp
               Ast.def_test_function ~test_name ~f_name:f_id_name
                 ~docstr:(Some docstr) ~f_args:model
                 ~output_type_annot:model_eval_type_annot ~expected:model_eval)
-            (zip5 test_names docstr_by_region models model_eval_type_annots
-               model_eval_exprs)
+            (zip5 test_names docstr_by_region models_terms
+               model_eval_type_annots model_eval_exprs)
         in
         test_functions
     in
@@ -768,7 +772,7 @@ let%expect_test "parse fun decomp art" =
     {
       f_id = f/u-V_2hDBsgPLnBVARN3d7lwMjeshy0JEtJSUqjWmJj8;
       f_args =
-        [{ id = x/80372; ty = { view = (Constr (int,[]));
+        [{ id = x/16869; ty = { view = (Constr (int,[]));
                                 generation = 1 } }];
       regions =
         [(2 elements)
@@ -813,7 +817,7 @@ let%expect_test "parse fun decomp art" =
                          l =
                            [{ view =
                                 (Var
-                                  { id = x/80372;
+                                  { id = x/16869;
                                     ty =
                                     { view = (Constr (int,[]));
                                       generation = 1 }
@@ -872,7 +876,7 @@ let%expect_test "parse fun decomp art" =
                         l =
                           [{ view =
                                (Var
-                                 { id = x/80372;
+                                 { id = x/16869;
                                    ty =
                                    { view = (Constr (int,[]));
                                      generation = 1 }
@@ -898,6 +902,15 @@ let%expect_test "parse fun decomp art" =
                    "invariant": String "x + 2";
                    "constraints": List [String "x >= 1"];
                    "model": Assoc {"x": String "1"}};
+              "model":
+                Assoc
+                  {"x":
+                     Term
+                       { view = (Const 1);
+                         ty = { view = (Constr (int,[]));
+                                generation = 1 };
+                         generation = 0;
+                         sub_anchor = None }};
               "model_eval":
                 Term
                   { view = (Const 3);
@@ -905,12 +918,12 @@ let%expect_test "parse fun decomp art" =
                            generation = 1 };
                     generation = 0;
                     sub_anchor = None };
-              "id": String "3bcc3fbd-f10d-4815-8c5a-b0e00785b854"];
+              "id": String "d1134cdc-0654-49b8-8a05-1fb763fe9fb3"];
            status =
              Feasible
                { tys = [];
                  consts =
-                 [((x/80372 : { view = (Constr (int,[]));
+                 [((x/16869 : { view = (Constr (int,[]));
                                 generation = 1 }),
                    { view = (Const 1);
                      ty = { view = (Constr (int,[]));
@@ -962,7 +975,7 @@ let%expect_test "parse fun decomp art" =
                          l =
                            [{ view =
                                 (Var
-                                  { id = x/80372;
+                                  { id = x/16869;
                                     ty =
                                     { view = (Constr (int,[]));
                                       generation = 1 }
@@ -1026,7 +1039,7 @@ let%expect_test "parse fun decomp art" =
                              sub_anchor = None };
                            { view =
                                (Var
-                                 { id = x/80372;
+                                 { id = x/16869;
                                    ty =
                                    { view = (Constr (int,[]));
                                      generation = 1 }
@@ -1047,6 +1060,15 @@ let%expect_test "parse fun decomp art" =
                    "invariant": String "1 + x";
                    "constraints": List [String "x <= 0"];
                    "model": Assoc {"x": String "0"}};
+              "model":
+                Assoc
+                  {"x":
+                     Term
+                       { view = (Const 0);
+                         ty = { view = (Constr (int,[]));
+                                generation = 1 };
+                         generation = 0;
+                         sub_anchor = None }};
               "model_eval":
                 Term
                   { view = (Const 1);
@@ -1054,12 +1076,12 @@ let%expect_test "parse fun decomp art" =
                            generation = 1 };
                     generation = 0;
                     sub_anchor = None };
-              "id": String "0d285e85-3c62-4019-8450-12ade085b882"];
+              "id": String "8d762a3d-a005-4489-8dfb-7221823f063c"];
            status =
              Feasible
                { tys = [];
                  consts =
-                 [((x/80372 : { view = (Constr (int,[]));
+                 [((x/16869 : { view = (Constr (int,[]));
                                 generation = 1 }),
                    { view = (Const 0);
                      ty = { view = (Constr (int,[]));
@@ -1072,34 +1094,36 @@ let%expect_test "parse fun decomp art" =
            }]
       }
     Parsed AST:
-    - invariant: x + 2
-    - constraints:
-        - x >= 1
-    - invariant: 1 + x
-    - constraints:
-        - x <= 0
+    test_names: test_1, test_2
     (Ast.FunctionDef
        { Ast.name = "test_1";
          args =
          { Ast.posonlyargs = []; args = []; vararg = None; kwonlyargs = [];
            kw_defaults = []; kwarg = None; defaults = [] };
          body =
-         [(Ast.AnnAssign
-             { Ast.target = (Ast.Name { Ast.id = "result"; ctx = Ast.Load });
-               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
-               value =
-               (Some (Ast.Call
-                        { Ast.func = (Ast.Name { Ast.id = "f"; ctx = Ast.Load });
-                          args = [];
-                          keywords =
-                          [{ Ast.arg = (Some "x");
-                             value =
-                             (Ast.Constant
-                                { Ast.value = (Ast.Int 3); kind = None })
-                             }
-                            ]
-                          }));
-               simple = 1 });
+         [Ast.ExprStmt {
+            value =
+            (Ast.Constant
+               { Ast.value =
+                 (Ast.String
+                    "test_1\n\n- invariant: x + 2\n- constraints:\n    - x >= 1\n");
+                 kind = None })};
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "result"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+                value =
+                (Some (Ast.Call
+                         { Ast.func = (Ast.Name { Ast.id = "f"; ctx = Ast.Load });
+                           args = [];
+                           keywords =
+                           [{ Ast.arg = (Some "x");
+                              value =
+                              (Ast.Constant
+                                 { Ast.value = (Ast.Int 1); kind = None })
+                              }
+                             ]
+                           }));
+                simple = 1 });
            (Ast.AnnAssign
               { Ast.target = (Ast.Name { Ast.id = "expected"; ctx = Ast.Load });
                 annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
@@ -1122,22 +1146,29 @@ let%expect_test "parse fun decomp art" =
          { Ast.posonlyargs = []; args = []; vararg = None; kwonlyargs = [];
            kw_defaults = []; kwarg = None; defaults = [] };
          body =
-         [(Ast.AnnAssign
-             { Ast.target = (Ast.Name { Ast.id = "result"; ctx = Ast.Load });
-               annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
-               value =
-               (Some (Ast.Call
-                        { Ast.func = (Ast.Name { Ast.id = "f"; ctx = Ast.Load });
-                          args = [];
-                          keywords =
-                          [{ Ast.arg = (Some "x");
-                             value =
-                             (Ast.Constant
-                                { Ast.value = (Ast.Int 1); kind = None })
-                             }
-                            ]
-                          }));
-               simple = 1 });
+         [Ast.ExprStmt {
+            value =
+            (Ast.Constant
+               { Ast.value =
+                 (Ast.String
+                    "test_2\n\n- invariant: 1 + x\n- constraints:\n    - x <= 0\n");
+                 kind = None })};
+           (Ast.AnnAssign
+              { Ast.target = (Ast.Name { Ast.id = "result"; ctx = Ast.Load });
+                annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
+                value =
+                (Some (Ast.Call
+                         { Ast.func = (Ast.Name { Ast.id = "f"; ctx = Ast.Load });
+                           args = [];
+                           keywords =
+                           [{ Ast.arg = (Some "x");
+                              value =
+                              (Ast.Constant
+                                 { Ast.value = (Ast.Int 0); kind = None })
+                              }
+                             ]
+                           }));
+                simple = 1 });
            (Ast.AnnAssign
               { Ast.target = (Ast.Name { Ast.id = "expected"; ctx = Ast.Load });
                 annotation = (Ast.Name { Ast.id = "int"; ctx = Ast.Load });
