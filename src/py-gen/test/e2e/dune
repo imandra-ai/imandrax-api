@@ -1,6 +1,7 @@
 (cram
  (deps
   %{bin:py-gen-parse-model}
+  %{bin:py-gen-parse-fun-decomp}
   (source_tree ../data)
   ../../pyproject.toml
   ../../uv.lock

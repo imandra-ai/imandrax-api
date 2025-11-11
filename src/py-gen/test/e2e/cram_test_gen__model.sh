@@ -17,7 +17,7 @@ Setup: Define helper function
   $ fence() { printf '```python\n'; cat; printf '```'; }
   $ run_test() { (
   >    cd $DUNE_SOURCEROOT/src/py-gen && \
-  >    py-gen-parse-model "test/data/$1" - \
+  >    py-gen-parse-model "test/data/model/$1" - \
   >    | uv run py-gen - \
   >    | fence
   > ); }
@@ -34,7 +34,7 @@ find_cmd="$find_cmd -type f -name \"*.yaml\" -print"
 # Find all YAML files and generate test cases
 eval "$find_cmd" | sort | while read -r yaml_file; do
     # Get relative path from test/data/
-    rel_path="${yaml_file#$SCRIPT_DIR/../data/}"
+    rel_path="${yaml_file#$SCRIPT_DIR/../data/model/}"
 
     # Extract test name from YAML and capitalize first letter
     test_name=$(yq -r '.name' "$yaml_file" 2>/dev/null || basename "$yaml_file" .yaml)
