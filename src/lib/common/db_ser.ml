@@ -19,6 +19,7 @@ type ('term, 'ty) t_poly = {
       (** type declarations included here *)
   local_funs: ('term, 'ty) Fun_def.t_poly list;
       (** function declarations included here *)
+  def_depth: (int * int) uid_map;
   rw_rules: ('ty, ('term, 'ty) Rewrite_rule.t_poly ca_ptr list) ph_map;
   inst_rules: ('term, 'ty) Instantiation_rule.t_poly ca_ptr uid_map;
   rule_spec_fc: 'ty Trigger.t_poly ca_ptr list uid_map;
