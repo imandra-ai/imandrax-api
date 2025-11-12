@@ -18,7 +18,7 @@ from __future__ import annotations  # delaying typing: https://peps.python.org/p
 from dataclasses import dataclass
 from zipfile import ZipFile
 import json
-from typing import Callable, Never
+from typing import Any, assert_never, Callable, Never
 from . import twine
 
 __all__ = ['twine']
@@ -67,6 +67,109 @@ def read_artifact_zip(path: str) -> Artifact:
         kind = str(manifest['kind'])
         twine_data = f.read('data.twine')
     return read_artifact_data(data=twine_data, kind=kind)
+
+
+@dataclass
+class RegionStr:
+    constraints_str: list[str] | None
+    invariant_str: str
+    model_str: dict[str, str]
+    model_eval_str: str | None
+
+
+type region_meta_value = (
+    Common_Region_meta_Assoc[Mir_Term]
+    | Common_Region_meta_Term[Mir_Term]
+    | Common_Region_meta_String[Mir_Term]
+)
+
+
+def get_region_str_from_decomp_artifact(
+    data: bytes,
+    kind: str,
+) -> list[RegionStr]:
+    """Get string representation of regions from `Mir_Fun_decomp` artifact."""
+    art: Artifact = read_artifact_data(data=data, kind=kind)
+    match (art, kind):
+        case (
+            Common_Fun_decomp_t_poly(
+                f_id=_f_id,
+                f_args=_f_args,
+                regions=regions,
+            ) as _fun_decomp,
+            'mir.fun_decomp',
+        ):
+            _fun_decomp: Mir_Fun_decomp
+            _f_id: Uid
+            _f_args: list[Common_Var_t_poly[Mir_Type]]
+            regions: list[Common_Region_t_poly[Mir_Term, Mir_Type]]
+
+            return [unwrap_region_str(region) for region in regions]
+        case _:
+            raise Exception(
+                f'Incorrect artifact type: {type(art)}, with {kind = }. Expected "mir.fun_decomp"'
+            )
+
+
+def unwrap_region_str(
+    region: Common_Region_t_poly[Mir_Term, Mir_Type],
+) -> RegionStr:
+    """Get `RegionStr` from `Region.t`."""
+    match region:
+        case Common_Region_t_poly(
+            constraints=_constraints,
+            invariant=_invariant,
+            meta=meta,
+            status=_status,
+        ):
+            # Convert meta list to dict
+            meta_d: dict[Any, Any] = dict(meta)
+
+            # get `str` dict
+            meta_str_raw = meta_d.get('str')
+            assert meta_str_raw is not None, "Never: no 'str' in meta"
+
+            # meta_str should be Common_Region_meta_Assoc[Mir_Term]
+            if not isinstance(meta_str_raw, Common_Region_meta_Assoc):
+                raise ValueError(
+                    f'Expected Common_Region_meta_Assoc, got {type(meta_str_raw)}'
+                )
+
+            meta_str_d: dict[Any, Any] = dict(meta_str_raw.arg)  # type: ignore[arg-type]
+
+            # Extract constraints
+            constraints_raw = meta_str_d.get('constraints')
+            constraints: list[str] | None
+            if constraints_raw is not None:
+                constraints = [c.arg for c in constraints_raw.arg]
+            else:
+                constraints = None
+
+            # Extract invariant
+            invariant_raw = meta_str_d.get('invariant')
+            invariant: str = invariant_raw.arg if invariant_raw is not None else ''
+
+            # Extract model
+            model_raw = meta_str_d.get('model')
+            model: dict[str, str] = {}
+            if model_raw is not None:
+                model = {k: v.arg for (k, v) in model_raw.arg}
+
+            # Extract model_eval (optional)
+            model_eval: str | None = None
+            if 'model_eval' in meta_str_d:
+                model_eval_raw = meta_str_d['model_eval']
+                if model_eval_raw is not None:
+                    model_eval = model_eval_raw.arg
+
+            return RegionStr(
+                invariant_str=invariant,
+                constraints_str=constraints,
+                model_str=model,
+                model_eval_str=model_eval,
+            )
+        case _:
+            assert_never(region)
   |}
 
 let mangle_ty_name (s : string) : string =
