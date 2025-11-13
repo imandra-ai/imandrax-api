@@ -13,6 +13,13 @@ build: clean api_types_version.py
 clean:
 	rm -rf build dist
 
+pre-release-test: build  # Run pre-release tests with built wheel
+	@echo "Running pre-release tests with built wheel..."
+	@WHEEL=$$(ls dist/imandrax_api-*.whl | head -n 1); \
+	echo "Using wheel: $$WHEEL"; \
+	uv run --isolated --no-project --with "$$WHEEL" python ../../tests/api/py/test_cloud_dev.py && \
+	uv run --isolated --no-project --with "$$WHEEL" python ../../tests/api/py/test_extract_region_str.py
+
 PYTHON_REPO_URL = https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/
 
 install-artifact-deps:
