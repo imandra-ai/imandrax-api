@@ -13,6 +13,10 @@ build: clean api_types_version.py
 clean:
 	rm -rf build dist
 
+test:
+	uv run ../../tests/api/py/test_cloud_dev.py
+	uv run ../../tests/api/py/test_extract_region_str.py
+
 pre-release-test: build  # Run pre-release tests with built wheel
 	@echo "Running pre-release tests with built wheel..."
 	@WHEEL=$$(ls dist/imandrax_api-*.whl | head -n 1); \
