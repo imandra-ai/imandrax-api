@@ -32,9 +32,6 @@ def main():
     assert artifact.kind == "mir.fun_decomp", f"unexpected artifact kind: {artifact.kind}"
     assert len(artifact.data) > 0, "artifact data is empty"
 
-    with open("art.decomp.data", "wb") as f:
-        f.write(artifact.data)
-
     region_strs = xtypes.get_region_str_from_decomp_artifact(
         data=artifact.data, kind=artifact.kind
     )

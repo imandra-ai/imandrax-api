@@ -2,8 +2,10 @@
 # pyright: basic
 """Test imandrax_api Python client: eval, artifacts, parsing."""
 
+import io
 import os
 import sys
+import zipfile
 
 import imandrax_api
 import imandrax_api.lib as xtypes
@@ -44,16 +46,17 @@ def main():
     assert len(art_po_task.art_zip) > 0, "po_task artifact is empty"
     assert len(art_po_res.art_zip) > 0, "po_res artifact is empty"
 
-    with open("art.po_task.zip", "wb") as f:
-        f.write(art_po_task.art_zip)
-    with open("art.po_res.zip", "wb") as f:
-        f.write(art_po_res.art_zip)
-
     del c
 
     print("5. parse artifacts")
-    art_task = xtypes.read_artifact_zip("art.po_task.zip")
-    art_res = xtypes.read_artifact_zip("art.po_res.zip")
+    # Extract from zip
+    with zipfile.ZipFile(io.BytesIO(art_po_task.art_zip)) as zf:
+        art_task_data = zf.read(zf.namelist()[0])
+    with zipfile.ZipFile(io.BytesIO(art_po_res.art_zip)) as zf:
+        art_res_data = zf.read(zf.namelist()[0])
+
+    art_task = xtypes.read_artifact_data(data=art_task_data, kind="po_task")
+    art_res = xtypes.read_artifact_data(data=art_res_data, kind="po_res")
     assert art_task is not None, "failed to parse po_task"
     assert art_res is not None, "failed to parse po_res"
 
