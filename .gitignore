@@ -12,3 +12,12 @@ build/
 src/py.egg-info
 .DS_Store
 
+*local*
+
+# Python
+__pycache__
+*.pyc
+.history/
+.env
+*.egg-info/
+*.ipynb
