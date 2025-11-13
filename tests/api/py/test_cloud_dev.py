@@ -13,13 +13,17 @@ import imandrax_api.lib as xtypes
 
 def main():
     url = imandrax_api.url_dev
-    auth_path = os.path.expanduser("~/.config/imandrax/api_key")
+    auth_token = os.environ.get("IMANDRAX_API_KEY")
+    if auth_token is None:
+        auth_path = os.path.expanduser("~/.config/imandrax/api_key")
 
-    try:
-        with open(auth_path, "r") as f:
-            auth_token = f.read().strip()
-    except Exception as e:
-        print(f"ERROR: Could not read auth token from {auth_path}: {e}")
+        try:
+            with open(auth_path, "r") as f:
+                auth_token = f.read().strip()
+        except Exception:
+            pass
+    if auth_token is None:
+        print(f"ERROR: API key is not set and could not be from {auth_path}")
         sys.exit(1)
 
     c = imandrax_api.Client(url, auth_token=auth_token)

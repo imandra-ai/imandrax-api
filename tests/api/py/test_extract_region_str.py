@@ -11,10 +11,18 @@ import imandrax_api.lib as xtypes
 
 def main():
     url = imandrax_api.url_dev
-    auth_path = os.path.expanduser("~/.config/imandrax/api_key")
+    auth_token = os.environ.get("IMANDRAX_API_KEY")
+    if auth_token is None:
+        auth_path = os.path.expanduser("~/.config/imandrax/api_key")
 
-    with open(auth_path, "r") as f:
-        auth_token = f.read().strip()
+        try:
+            with open(auth_path, "r") as f:
+                auth_token = f.read().strip()
+        except Exception:
+            pass
+    if auth_token is None:
+        print(f"ERROR: API key is not set and could not be from {auth_path}")
+        sys.exit(1)
 
     c = imandrax_api.Client(url, auth_token=auth_token)
 
@@ -26,10 +34,14 @@ def main():
     assert result.success, f"eval_src failed: {result.errors}"
 
     decomp_result = c.decompose(name="add_positive", prune=True, str=True, timeout=30.0)
-    assert decomp_result.HasField("artifact"), f"decompose missing artifact: {decomp_result.errors}"
+    assert decomp_result.HasField("artifact"), (
+        f"decompose missing artifact: {decomp_result.errors}"
+    )
 
     artifact = decomp_result.artifact
-    assert artifact.kind == "mir.fun_decomp", f"unexpected artifact kind: {artifact.kind}"
+    assert artifact.kind == "mir.fun_decomp", (
+        f"unexpected artifact kind: {artifact.kind}"
+    )
     assert len(artifact.data) > 0, "artifact data is empty"
 
     region_strs = xtypes.get_region_str_from_decomp_artifact(
