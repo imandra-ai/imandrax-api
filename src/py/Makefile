@@ -36,11 +36,11 @@ publish: build
 	@echo "uploading to $(PYTHON_REPO_URL)"
 	uv run twine upload --non-interactive --repository-url $(PYTHON_REPO_URL) dist/*
 
-publish-pypi-test: build
+publish-pypi-test: pre-release-test build
 	@echo "publish to test PyPI"
 	uv run twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-test-imandrax-api-api-token latest) -r testpypi dist/*
 
-publish-pypi: build
+publish-pypi: pre-release-test build
 	@echo "publish to PyPI"
 	uv run twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-imandrax-api-api-token latest) dist/*
 
