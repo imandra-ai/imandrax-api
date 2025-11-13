@@ -205,7 +205,15 @@ class Client(BaseClient):
             raise Exception("Error while ending session") from e
 
     def __del__(self):
-        self.__exit__()
+        # Avoid errors during interpreter shutdown when modules may already be None
+        # Only attempt cleanup if we're not in shutdown state
+        try:
+            # Check if required modules are still available
+            if requests is not None and hasattr(self, '_session'):
+                self.__exit__()
+        except Exception:
+            # Silently ignore errors during cleanup to avoid spurious error messages
+            pass
 
 try:
 	import aiohttp
