@@ -72,8 +72,8 @@ def read_artifact_zip(path: str) -> Artifact:
 @dataclass
 class RegionStr:
     constraints_str: list[str] | None
-    invariant_str: str
-    model_str: dict[str, str]
+    invariant_str: str | None
+    model_str: dict[str, str] | None
     model_eval_str: str | None
 
 
