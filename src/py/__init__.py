@@ -175,7 +175,10 @@ class Client(BaseClient):
                     timeout=timeout,
                 )
             except TwirpServerException as ex:
-                if ex.meta.get("body", {}).get("code") == Errors.InvalidArgument:
+                status_code = ex.meta.get("status_code")
+                if status_code and status_code == Errors.get_status_code(
+                    Errors.InvalidArgument
+                ):
                     raise Exception(
                         "API version mismatch. Try upgrading the imandrax-api package."
                     ) from ex
