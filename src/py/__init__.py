@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, Optional
 
 import requests
-import requests.cookies
 
 from .twirp.exceptions import TwirpServerException
 from .twirp.errors import Errors
@@ -146,7 +145,7 @@ class Client(BaseClient):
     def __init__(
         self,
         url: str = url_prod,
-        server_path_prefix="/api/v1",
+        server_path_prefix: str = "/api/v1",
         auth_token: str | None = None,
         api_key: str | None = None,
         timeout: int = 30,
@@ -184,7 +183,7 @@ class Client(BaseClient):
                     timeout=timeout,
                 )
             except TwirpServerException as ex:
-                status_code = ex.meta.get("status_code")
+                status_code: int | None = ex.meta.get("status_code")  # type: ignore[attr-defined]
                 if status_code and status_code == Errors.get_status_code(
                     Errors.InvalidArgument
                 ):
@@ -228,17 +227,20 @@ class Client(BaseClient):
             pass
 
 try:
-	import aiohttp 
-	_async_available = True
+    import aiohttp  # type: ignore[import-not-found]
+
+    _async_available = True
 except ModuleNotFoundError:
-	_async_available = False
+    _async_available = False
 
 if _async_available:
+    import aiohttp  # type: ignore[import-not-found]
+
     class AsyncClient(BaseClient):
         def __init__(
             self,
             url: str = url_prod,
-            server_path_prefix="/api/v1",
+            server_path_prefix: str = "/api/v1",
             auth_token: str | None = None,
             api_key: str | None = None,
             timeout: int = 30,
