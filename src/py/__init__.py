@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
 
 import requests
+
+if TYPE_CHECKING:
+    import aiohttp
 
 from .twirp.exceptions import TwirpServerException
 from .twirp.errors import Errors
@@ -247,7 +250,7 @@ if _async_available:
             session_id: str | None = None,
         ) -> None:
             # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
-            self._session = aiohttp.ClientSession()
+            self._session: aiohttp.ClientSession = aiohttp.ClientSession()
             self._session_id = session_id
             self._closed = False
             self._auth_token = api_key if api_key else auth_token

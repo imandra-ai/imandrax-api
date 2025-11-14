@@ -28,4 +28,6 @@ target-version = "py312"
 exclude = ["lib/__init__.py", "bindings/"]
 
 [dependency-groups]
-dev = []
+dev = [
+    "aiohttp>=3.13.2",
+]
