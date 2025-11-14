@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import StrEnum
 
 
@@ -23,7 +25,7 @@ class Errors(StrEnum):
     NoError = ""
 
     @staticmethod
-    def get_status_code(code):
+    def get_status_code(code: Errors) -> int:
         return {
             Errors.Canceled: 408,
             Errors.Unknown: 500,

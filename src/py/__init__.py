@@ -1,6 +1,12 @@
+from __future__ import annotations
+
+from typing import Any, Optional, TYPE_CHECKING
+
 import requests
-import requests.cookies
-from typing import Optional
+
+if TYPE_CHECKING:
+    import aiohttp
+
 from .twirp.exceptions import TwirpServerException
 from .twirp.errors import Errors
 from .twirp.context import Context
@@ -21,6 +27,11 @@ url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
 url_prod = "https://api.imandra.ai/internal/imandrax/"
 
 class BaseClient:
+    _client: Any
+    _api_client: Any
+    _timeout: float
+    _sesh: Any
+
     def mk_context(self) -> Context:
         """Build a request context with the appropriate headers"""
         return Context(headers={"x-api-version": api_types_version.api_types_version})
@@ -137,7 +148,7 @@ class Client(BaseClient):
     def __init__(
         self,
         url: str = url_prod,
-        server_path_prefix="/api/v1",
+        server_path_prefix: str = "/api/v1",
         auth_token: str | None = None,
         api_key: str | None = None,
         timeout: int = 30,
@@ -175,7 +186,7 @@ class Client(BaseClient):
                     timeout=timeout,
                 )
             except TwirpServerException as ex:
-                status_code = ex.meta.get("status_code")
+                status_code: int | None = ex.meta.get("status_code")  # type: ignore[attr-defined]
                 if status_code and status_code == Errors.get_status_code(
                     Errors.InvalidArgument
                 ):
@@ -187,13 +198,13 @@ class Client(BaseClient):
         else:
             # TODO: actually re-open session via RPC
             self._sesh = session_pb2.Session(
-                session_id=session_id,
+                id=session_id,
             )
 
-    def __enter__(self, *_):
+    def __enter__(self, *_: Any) -> Client:
         return self
 
-    def __exit__(self, *_) -> None:
+    def __exit__(self, *_: Any) -> None:
         if self._closed:
             return
         if not hasattr(self, "_sesh"):
@@ -219,24 +230,27 @@ class Client(BaseClient):
             pass
 
 try:
-	import aiohttp
-	_async_available = True
+    import aiohttp  # type: ignore[import-not-found]
+
+    _async_available = True
 except ModuleNotFoundError:
-	_async_available = False
+    _async_available = False
 
 if _async_available:
+    import aiohttp  # type: ignore[import-not-found]
+
     class AsyncClient(BaseClient):
         def __init__(
             self,
             url: str = url_prod,
-            server_path_prefix="/api/v1",
+            server_path_prefix: str = "/api/v1",
             auth_token: str | None = None,
             api_key: str | None = None,
             timeout: int = 30,
             session_id: str | None = None,
         ) -> None:
             # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
-            self._session = aiohttp.ClientSession()
+            self._session: aiohttp.ClientSession = aiohttp.ClientSession()
             self._session_id = session_id
             self._closed = False
             self._auth_token = api_key if api_key else auth_token
@@ -258,7 +272,7 @@ if _async_available:
             )
             self._timeout = timeout
 
-        async def __aenter__(self, *_):
+        async def __aenter__(self, *_: Any) -> AsyncClient:
             await self._session.__aenter__()
             if self._session_id is None:
                 try:
@@ -280,11 +294,11 @@ if _async_available:
             else:
                 # TODO: actually re-open session via RPC
                 self._sesh = session_pb2.Session(
-                    session_id=self._session_id,
+                    id=self._session_id,
                 )
             return self
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+        async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
             if self._closed:
                 return
             if not hasattr(self, "_sesh"):

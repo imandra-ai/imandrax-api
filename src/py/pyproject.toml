@@ -16,14 +16,18 @@ async = ["aiohttp"]
 packages = [ "imandrax_api", "imandrax_api.bindings", "imandrax_api.lib", "imandrax_api.twirp" ]
 package-dir = { "imandrax_api" = "." }
 
-[tool.uv]
-dev-dependencies = []
-
 [tool.pyright]
 strict = ["**"]
+venvPath = "."
+venv = ".venv"
 
 [tool.ruff]
 indent-width = 4
 target-version = "py312"
 
 exclude = ["lib/__init__.py", "bindings/"]
+
+[dependency-groups]
+dev = [
+    "aiohttp>=3.13.2",
+]

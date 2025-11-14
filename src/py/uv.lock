@@ -297,6 +297,11 @@ async = [
     { name = "aiohttp" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "aiohttp" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", marker = "extra == 'async'" },
@@ -307,7 +312,7 @@ requires-dist = [
 provides-extras = ["async"]
 
 [package.metadata.requires-dev]
-dev = []
+dev = [{ name = "aiohttp", specifier = ">=3.13.2" }]
 
 [[package]]
 name = "multidict"
