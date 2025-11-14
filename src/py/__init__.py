@@ -196,7 +196,7 @@ class Client(BaseClient):
         else:
             # TODO: actually re-open session via RPC
             self._sesh = session_pb2.Session(
-                session_id=session_id,
+                id=session_id,
             )
 
     def __enter__(self, *_: Any) -> Client:
@@ -289,7 +289,7 @@ if _async_available:
             else:
                 # TODO: actually re-open session via RPC
                 self._sesh = session_pb2.Session(
-                    session_id=self._session_id,
+                    id=self._session_id,
                 )
             return self
 
