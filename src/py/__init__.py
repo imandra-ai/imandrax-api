@@ -1,6 +1,10 @@
+from __future__ import annotations
+
+from typing import Any, Optional
+
 import requests
 import requests.cookies
-from typing import Optional
+
 from .twirp.exceptions import TwirpServerException
 from .twirp.errors import Errors
 from .twirp.context import Context
@@ -21,6 +25,11 @@ url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
 url_prod = "https://api.imandra.ai/internal/imandrax/"
 
 class BaseClient:
+    _client: Any
+    _api_client: Any
+    _timeout: float
+    _sesh: Any
+
     def mk_context(self) -> Context:
         """Build a request context with the appropriate headers"""
         return Context(headers={"x-api-version": api_types_version.api_types_version})
@@ -190,10 +199,10 @@ class Client(BaseClient):
                 session_id=session_id,
             )
 
-    def __enter__(self, *_):
+    def __enter__(self, *_: Any) -> Client:
         return self
 
-    def __exit__(self, *_) -> None:
+    def __exit__(self, *_: Any) -> None:
         if self._closed:
             return
         if not hasattr(self, "_sesh"):
@@ -219,7 +228,7 @@ class Client(BaseClient):
             pass
 
 try:
-	import aiohttp
+	import aiohttp 
 	_async_available = True
 except ModuleNotFoundError:
 	_async_available = False
@@ -258,7 +267,7 @@ if _async_available:
             )
             self._timeout = timeout
 
-        async def __aenter__(self, *_):
+        async def __aenter__(self, *_: Any) -> AsyncClient:
             await self._session.__aenter__()
             if self._session_id is None:
                 try:
@@ -284,7 +293,7 @@ if _async_available:
                 )
             return self
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+        async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
             if self._closed:
                 return
             if not hasattr(self, "_sesh"):
