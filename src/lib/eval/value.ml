@@ -9,7 +9,8 @@ type cstor_descriptor = {
 
 type record_descriptor = {
   rd_name: Imandrax_api.Uid.t;
-  rd_fields: Imandrax_api.Uid.t array;  (** Labels of fields of the record *)
+  rd_fields: Imandrax_api.Uid.t array; [@opaque]
+      (** Labels of fields of the record *)
 }
 [@@deriving show { with_path = false }, twine, typereg]
 (** Description of a record's fields *)

@@ -16,6 +16,7 @@ type ('t, 'ty) view =
   | Construct of {
       c: 'ty Imandrax_api_common.Applied_symbol.t_poly;
       args: 't list;
+      labels: Imandrax_api.Uid.t list option;
     }
   | Destruct of {
       c: 'ty Imandrax_api_common.Applied_symbol.t_poly;
@@ -44,6 +45,9 @@ type ('t, 'ty) view =
       cases: ('ty Imandrax_api_common.Applied_symbol.t_poly * 't) list;
       default: 't option;
     }
+  | Sequence of 't list * 't
+      (** [Sequence (t1...tn, u)] is the same as [u] but with a hint that we
+          evaluate [t1...tn] in order first. *)
 [@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
 
 open struct
@@ -57,8 +61,10 @@ let hash_view hasht (v : _ view) : int =
   | Apply { f; l = args } -> CCHash.(combine3 4 (hasht f) (list hasht args))
   | Var v -> CCHash.(combine2 10 (Var.hash v))
   | Sym f -> CCHash.(combine2 11 (Applied_symbol.hash f))
-  | Construct { c; args } ->
-    CCHash.(combine3 15 (Applied_symbol.hash c) (list hasht args))
+  | Construct { c; args; labels } ->
+    CCHash.(
+      combine4 15 (Applied_symbol.hash c) (list hasht args)
+        (opt (list Imandrax_api.Uid.hash) labels))
   | Destruct { c; i; t } ->
     CCHash.(combine4 16 (Applied_symbol.hash c) (int i) (hasht t))
   | Is_a { c; t } -> CCHash.(combine3 17 (Applied_symbol.hash c) (hasht t))
@@ -73,6 +79,7 @@ let hash_view hasht (v : _ view) : int =
       combine4 50 (hasht u)
         (list (pair Applied_symbol.hash hasht) cases)
         (opt hasht default))
+  | Sequence (ts, u) -> CCHash.(combine3 100 (list hasht ts) (hasht u))
 
 module Build_ : sig
   type generation [@@deriving show, eq, twine]
