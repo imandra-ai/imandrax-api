@@ -45,6 +45,9 @@ type ('t, 'ty) view =
       cases: ('ty Imandrax_api_common.Applied_symbol.t_poly * 't) list;
       default: 't option;
     }
+  | Sequence of 't list * 't
+      (** [Sequence (t1...tn, u)] is the same as [u] but with a hint that we
+          evaluate [t1...tn] in order first. *)
 [@@deriving map, iter, eq, twine, typereg, show { with_path = false }]
 
 open struct
@@ -76,6 +79,7 @@ let hash_view hasht (v : _ view) : int =
       combine4 50 (hasht u)
         (list (pair Applied_symbol.hash hasht) cases)
         (opt hasht default))
+  | Sequence (ts, u) -> CCHash.(combine3 100 (list hasht ts) (hasht u))
 
 module Build_ : sig
   type generation [@@deriving show, eq, twine]
