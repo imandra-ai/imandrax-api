@@ -175,7 +175,10 @@ class Client(BaseClient):
                     timeout=timeout,
                 )
             except TwirpServerException as ex:
-                if ex.meta.get("body", {}).get("code") == Errors.InvalidArgument:
+                status_code = ex.meta.get("status_code")
+                if status_code and status_code == Errors.get_status_code(
+                    Errors.InvalidArgument
+                ):
                     raise Exception(
                         "API version mismatch. Try upgrading the imandrax-api package."
                     ) from ex
@@ -205,7 +208,15 @@ class Client(BaseClient):
             raise Exception("Error while ending session") from e
 
     def __del__(self):
-        self.__exit__()
+        # Avoid errors during interpreter shutdown when modules may already be None
+        # Only attempt cleanup if we're not in shutdown state
+        try:
+            # Check if required modules are still available
+            if requests is not None and hasattr(self, '_session'):
+                self.__exit__()
+        except Exception:
+            # Silently ignore errors during cleanup to avoid spurious error messages
+            pass
 
 try:
 	import aiohttp

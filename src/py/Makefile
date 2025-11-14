@@ -8,10 +8,21 @@ api_types_version.py:
 	@echo "api_types_version = 'v$(API_TYPES_VERSION)'" > $@
 
 build: clean api_types_version.py
-	python -m build --wheel
+	uv build --wheel
 
 clean:
 	rm -rf build dist
+
+test:
+	uv run ../../tests/api/py/test_cloud_dev.py
+	uv run ../../tests/api/py/test_extract_region_str.py
+
+pre-release-test: build  # Run pre-release tests with built wheel
+	@echo "Running pre-release tests with built wheel..."
+	@WHEEL=$$(ls dist/imandrax_api-*.whl | head -n 1); \
+	echo "Using wheel: $$WHEEL"; \
+	uv run --isolated --no-project --with "$$WHEEL" python ../../tests/api/py/test_cloud_dev.py && \
+	uv run --isolated --no-project --with "$$WHEEL" python ../../tests/api/py/test_extract_region_str.py
 
 PYTHON_REPO_URL = https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/
 
@@ -23,15 +34,15 @@ list-artifacts:
 
 publish: build
 	@echo "uploading to $(PYTHON_REPO_URL)"
-	python -m twine upload --non-interactive --repository-url $(PYTHON_REPO_URL) dist/*
+	uv run twine upload --non-interactive --repository-url $(PYTHON_REPO_URL) dist/*
 
-publish-pypi-test: build
+publish-pypi-test: pre-release-test build
 	@echo "publish to test PyPI"
-	python -m twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-test-imandrax-api-api-token latest) -r testpypi dist/*
+	uv run twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-test-imandrax-api-api-token latest) -r testpypi dist/*
 
-publish-pypi: build
+publish-pypi: pre-release-test build
 	@echo "publish to PyPI"
-	python -m twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-imandrax-api-api-token latest) dist/*
+	uv run twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-imandrax-api-api-token latest) dist/*
 
 GOBIN?=~/.local/bin
 install-go-protobuf-plugin:
