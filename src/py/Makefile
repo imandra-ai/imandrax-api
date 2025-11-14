@@ -34,15 +34,19 @@ list-artifacts:
 
 publish: build
 	@echo "uploading to $(PYTHON_REPO_URL)"
-	uv run twine upload --non-interactive --repository-url $(PYTHON_REPO_URL) dist/*
+	uv run \
+	--with twine \
+	--with keyring \
+	--with keyrings-google-artifactregistry-auth \
+    twine upload --non-interactive --repository-url $(PYTHON_REPO_URL) dist/*
 
 publish-pypi-test: pre-release-test build
 	@echo "publish to test PyPI"
-	uv run twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-test-imandrax-api-api-token latest) -r testpypi dist/*
+	uv run --with twine twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-test-imandrax-api-api-token latest) -r testpypi dist/*
 
 publish-pypi: pre-release-test build
 	@echo "publish to PyPI"
-	uv run twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-imandrax-api-api-token latest) dist/*
+	uv run --with twine twine upload -u __token__ -p $$(gcloud secrets versions access --project imandra-dev --secret pypi-imandrax-api-api-token latest) dist/*
 
 GOBIN?=~/.local/bin
 install-go-protobuf-plugin:
