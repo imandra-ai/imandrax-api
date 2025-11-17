@@ -56,7 +56,6 @@ let show = to_string
 let init () : builder = new_builder_ ()
 
 let make (c : 'a hasher) (x : 'a) : t =
-  let@ _sp = Trace_core.with_span ~__FILE__ ~__LINE__ "chash.make" in
   let ctx = init () in
   c ctx x;
   finalize ctx
