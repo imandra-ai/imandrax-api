@@ -8,9 +8,9 @@ module Make (X : Hashtbl.HashedType) = struct
   include CCHashtbl.Make (X)
 
   let cached cache f t =
-    match find cache t with
-    | u -> u
-    | exception Not_found ->
+    match find_opt cache t with
+    | Some u -> u
+    | None ->
       let u = f t in
       add cache t u;
       u
