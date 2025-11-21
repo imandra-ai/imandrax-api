@@ -933,6 +933,22 @@ export function Ca_store_Ca_ptr_of_twine<_V_tyreg_poly_a>(d: twine.Decoder, deco
   return Ca_store_Ca_ptr_Raw_of_twine(d, off)
 }
 
+// clique Imandrax_api_common.Admission.t (cached: false)
+// def Imandrax_api_common.Admission.t (mangled name: "Common_Admission")
+export class Common_Admission {
+  constructor(
+    public measured_subset:Array<string>,
+    public measure_fun:undefined | Uid) {}
+}
+
+export function Common_Admission_of_twine(d: twine.Decoder, off: offset): Common_Admission {
+  const fields = d.get_array(off).toArray()
+  checkArrayLength(off, fields, 2)
+  const measured_subset = d.get_array(fields[0]).toArray().map(x => d.get_str(x))
+  const measure_fun = twine.optional(d,  ((d:twine.Decoder,off:offset) => Uid_of_twine(d, off)), fields[1])
+  return new Common_Admission(measured_subset, measure_fun)
+}
+
 // clique Imandrax_api_common.Var.t_poly (cached: false)
 // def Imandrax_api_common.Var.t_poly (mangled name: "Common_Var_t_poly")
 export class Common_Var_t_poly<_V_tyreg_poly_ty> {
@@ -950,6 +966,66 @@ export function Common_Var_t_poly_of_twine<_V_tyreg_poly_ty>(d: twine.Decoder, d
   return new Common_Var_t_poly(id, ty)
 }
 
+// clique Imandrax_api_common.Hints.validation_strategy (cached: false)
+// def Imandrax_api_common.Hints.validation_strategy (mangled name: "Common_Hints_validation_strategy")
+export class Common_Hints_validation_strategy_VS_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(
+    public tactic: undefined | [Array<Common_Var_t_poly<_V_tyreg_poly_ty>>,_V_tyreg_poly_term]){}
+}
+
+export function Common_Hints_validation_strategy_VS_validate_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Common_Hints_validation_strategy_VS_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term
+  decode__tyreg_poly_ty
+  checkArrayLength(off, _tw_args, 1)
+  const tactic = twine.optional(d,  ((d:twine.Decoder,off:offset) => ((tup : Array<offset>): [Array<Common_Var_t_poly<_V_tyreg_poly_ty>>,_V_tyreg_poly_term] => { checkArrayLength(off, tup, 2); return [d.get_array(tup[0]).toArray().map(x => Common_Var_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),x)), decode__tyreg_poly_term(d,tup[1])] })(d.get_array(off).toArray())), _tw_args[0])
+  return new Common_Hints_validation_strategy_VS_validate(tactic)
+}
+export class Common_Hints_validation_strategy_VS_no_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(){}
+}
+export type Common_Hints_validation_strategy<_V_tyreg_poly_term,_V_tyreg_poly_ty> = Common_Hints_validation_strategy_VS_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Common_Hints_validation_strategy_VS_no_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty>
+
+export function Common_Hints_validation_strategy_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Common_Hints_validation_strategy<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  const c = d.get_cstor(off)
+  switch (c.cstor_idx) {
+   case 0:
+      return Common_Hints_validation_strategy_VS_validate_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 1:
+     return new Common_Hints_validation_strategy_VS_no_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty>()
+   default:
+      throw new twine.TwineError({msg: `expected Common_Hints_validation_strategy, got invalid constructor ${c.cstor_idx}`, offset: off})
+
+  }
+}
+
+// clique Imandrax_api_common.Hints.t_poly (cached: false)
+// def Imandrax_api_common.Hints.t_poly (mangled name: "Common_Hints_t_poly")
+export class Common_Hints_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(
+    public f_validate_strat:Common_Hints_validation_strategy<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
+    public f_unroll_def:undefined | bigint,
+    public f_enable:Array<Uid>,
+    public f_disable:Array<Uid>,
+    public f_timeout:undefined | bigint,
+    public f_admission:undefined | Common_Admission,
+    public f_decomp:undefined | _V_tyreg_poly_term) {}
+}
+
+export function Common_Hints_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Common_Hints_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+    decode__tyreg_poly_term
+    decode__tyreg_poly_ty
+  const fields = d.get_array(off).toArray()
+  checkArrayLength(off, fields, 7)
+  const f_validate_strat = Common_Hints_validation_strategy_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[0])
+  const f_unroll_def = twine.optional(d,  ((d:twine.Decoder,off:offset) => d.get_int(off)), fields[1])
+  const f_enable = d.get_array(fields[2]).toArray().map(x => Uid_of_twine(d, x))
+  const f_disable = d.get_array(fields[3]).toArray().map(x => Uid_of_twine(d, x))
+  const f_timeout = twine.optional(d,  ((d:twine.Decoder,off:offset) => d.get_int(off)), fields[4])
+  const f_admission = twine.optional(d,  ((d:twine.Decoder,off:offset) => Common_Admission_of_twine(d, off)), fields[5])
+  const f_decomp = twine.optional(d,  ((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), fields[6])
+  return new Common_Hints_t_poly(f_validate_strat, f_unroll_def, f_enable, f_disable, f_timeout, f_admission, f_decomp)
+}
+
 // clique Imandrax_api_common.Type_schema.t_poly (cached: false)
 // def Imandrax_api_common.Type_schema.t_poly (mangled name: "Common_Type_schema_t_poly")
 export class Common_Type_schema_t_poly<_V_tyreg_poly_ty> {
@@ -965,6 +1041,104 @@ export function Common_Type_schema_t_poly_of_twine<_V_tyreg_poly_ty>(d: twine.De
   const params = d.get_array(fields[0]).toArray().map(x => Uid_of_twine(d, x))
   const ty = decode__tyreg_poly_ty(d,fields[1])
   return new Common_Type_schema_t_poly(params, ty)
+}
+
+// clique Imandrax_api_common.Fun_def.fun_kind (cached: false)
+// def Imandrax_api_common.Fun_def.fun_kind (mangled name: "Common_Fun_def_fun_kind")
+export class Common_Fun_def_fun_kind_Fun_defined {
+  constructor(
+    public is_macro: boolean,
+    public from_lambda: boolean){}
+}
+
+export function Common_Fun_def_fun_kind_Fun_defined_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Common_Fun_def_fun_kind_Fun_defined {
+  checkArrayLength(off, _tw_args, 2)
+  const is_macro = d.get_bool(_tw_args[0])
+  const from_lambda = d.get_bool(_tw_args[1])
+  return new Common_Fun_def_fun_kind_Fun_defined(is_macro,from_lambda)
+}
+export class Common_Fun_def_fun_kind_Fun_builtin {
+  constructor(public arg: Builtin_Fun) {}
+}
+export function Common_Fun_def_fun_kind_Fun_builtin_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Common_Fun_def_fun_kind_Fun_builtin {
+  checkArrayLength(off, _tw_args, 1)
+  const arg = Builtin_Fun_of_twine(d, _tw_args[0])
+  return new Common_Fun_def_fun_kind_Fun_builtin(arg)
+}
+export class Common_Fun_def_fun_kind_Fun_opaque {
+  constructor(){}
+}
+export type Common_Fun_def_fun_kind = Common_Fun_def_fun_kind_Fun_defined| Common_Fun_def_fun_kind_Fun_builtin| Common_Fun_def_fun_kind_Fun_opaque
+
+export function Common_Fun_def_fun_kind_of_twine(d: twine.Decoder, off: offset): Common_Fun_def_fun_kind {
+  const c = d.get_cstor(off)
+  switch (c.cstor_idx) {
+   case 0:
+      return Common_Fun_def_fun_kind_Fun_defined_of_twine(d,  c.args, off)
+   case 1:
+      return Common_Fun_def_fun_kind_Fun_builtin_of_twine(d,  c.args, off)
+   case 2:
+     return new Common_Fun_def_fun_kind_Fun_opaque()
+   default:
+      throw new twine.TwineError({msg: `expected Common_Fun_def_fun_kind, got invalid constructor ${c.cstor_idx}`, offset: off})
+
+  }
+}
+
+// clique Imandrax_api_common.Fun_def.t_poly (cached: false)
+// def Imandrax_api_common.Fun_def.t_poly (mangled name: "Common_Fun_def_t_poly")
+export class Common_Fun_def_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(
+    public f_name:Uid,
+    public f_ty:Common_Type_schema_t_poly<_V_tyreg_poly_ty>,
+    public f_args:Array<Common_Var_t_poly<_V_tyreg_poly_ty>>,
+    public f_body:_V_tyreg_poly_term,
+    public f_clique:undefined | Clique,
+    public f_kind:Common_Fun_def_fun_kind,
+    public f_hints:Common_Hints_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
+}
+
+export function Common_Fun_def_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Common_Fun_def_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+    decode__tyreg_poly_term
+    decode__tyreg_poly_ty
+  const fields = d.get_array(off).toArray()
+  checkArrayLength(off, fields, 7)
+  const f_name = Uid_of_twine(d, fields[0])
+  const f_ty = Common_Type_schema_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[1])
+  const f_args = d.get_array(fields[2]).toArray().map(x => Common_Var_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),x))
+  const f_body = decode__tyreg_poly_term(d,fields[3])
+  const f_clique = twine.optional(d,  ((d:twine.Decoder,off:offset) => Clique_of_twine(d, off)), fields[4])
+  const f_kind = Common_Fun_def_fun_kind_of_twine(d, fields[5])
+  const f_hints = Common_Hints_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[6])
+  return new Common_Fun_def_t_poly(f_name, f_ty, f_args, f_body, f_clique, f_kind, f_hints)
+}
+
+// clique Imandrax_api_common.Verify.t_poly (cached: false)
+// def Imandrax_api_common.Verify.t_poly (mangled name: "Common_Verify_t_poly")
+export class Common_Verify_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(
+    public verify_link:Common_Fun_def_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
+    public verify_simplify:boolean,
+    public verify_nonlin:boolean,
+    public verify_upto:undefined | Upto,
+    public verify_is_instance:boolean,
+    public verify_minimize:Array<_V_tyreg_poly_term>,
+    public verify_by:undefined | [Array<Common_Var_t_poly<_V_tyreg_poly_ty>>,_V_tyreg_poly_term]) {}
+}
+
+export function Common_Verify_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Common_Verify_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+    decode__tyreg_poly_term
+    decode__tyreg_poly_ty
+  const fields = d.get_array(off).toArray()
+  checkArrayLength(off, fields, 7)
+  const verify_link = Common_Fun_def_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[0])
+  const verify_simplify = d.get_bool(fields[1])
+  const verify_nonlin = d.get_bool(fields[2])
+  const verify_upto = twine.optional(d,  ((d:twine.Decoder,off:offset) => Upto_of_twine(d, off)), fields[3])
+  const verify_is_instance = d.get_bool(fields[4])
+  const verify_minimize = d.get_array(fields[5]).toArray().map(x => decode__tyreg_poly_term(d,x))
+  const verify_by = twine.optional(d,  ((d:twine.Decoder,off:offset) => ((tup : Array<offset>): [Array<Common_Var_t_poly<_V_tyreg_poly_ty>>,_V_tyreg_poly_term] => { checkArrayLength(off, tup, 2); return [d.get_array(tup[0]).toArray().map(x => Common_Var_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),x)), decode__tyreg_poly_term(d,tup[1])] })(d.get_array(off).toArray())), fields[6])
+  return new Common_Verify_t_poly(verify_link, verify_simplify, verify_nonlin, verify_upto, verify_is_instance, verify_minimize, verify_by)
 }
 
 // clique Imandrax_api_common.Typed_symbol.t_poly (cached: false)
@@ -1191,152 +1365,6 @@ export function Common_Trigger_t_poly_of_twine<_V_tyreg_poly_ty>(d: twine.Decode
   return new Common_Trigger_t_poly(trigger_head, trigger_patterns, trigger_instantiation_rule_name)
 }
 
-// clique Imandrax_api_common.Admission.t (cached: false)
-// def Imandrax_api_common.Admission.t (mangled name: "Common_Admission")
-export class Common_Admission {
-  constructor(
-    public measured_subset:Array<string>,
-    public measure_fun:undefined | Uid) {}
-}
-
-export function Common_Admission_of_twine(d: twine.Decoder, off: offset): Common_Admission {
-  const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 2)
-  const measured_subset = d.get_array(fields[0]).toArray().map(x => d.get_str(x))
-  const measure_fun = twine.optional(d,  ((d:twine.Decoder,off:offset) => Uid_of_twine(d, off)), fields[1])
-  return new Common_Admission(measured_subset, measure_fun)
-}
-
-// clique Imandrax_api_common.Hints.validation_strategy (cached: false)
-// def Imandrax_api_common.Hints.validation_strategy (mangled name: "Common_Hints_validation_strategy")
-export class Common_Hints_validation_strategy_VS_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
-  constructor(
-    public tactic: undefined | [Array<Common_Var_t_poly<_V_tyreg_poly_ty>>,_V_tyreg_poly_term]){}
-}
-
-export function Common_Hints_validation_strategy_VS_validate_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Common_Hints_validation_strategy_VS_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
-  decode__tyreg_poly_term
-  decode__tyreg_poly_ty
-  checkArrayLength(off, _tw_args, 1)
-  const tactic = twine.optional(d,  ((d:twine.Decoder,off:offset) => ((tup : Array<offset>): [Array<Common_Var_t_poly<_V_tyreg_poly_ty>>,_V_tyreg_poly_term] => { checkArrayLength(off, tup, 2); return [d.get_array(tup[0]).toArray().map(x => Common_Var_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),x)), decode__tyreg_poly_term(d,tup[1])] })(d.get_array(off).toArray())), _tw_args[0])
-  return new Common_Hints_validation_strategy_VS_validate(tactic)
-}
-export class Common_Hints_validation_strategy_VS_no_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
-  constructor(){}
-}
-export type Common_Hints_validation_strategy<_V_tyreg_poly_term,_V_tyreg_poly_ty> = Common_Hints_validation_strategy_VS_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Common_Hints_validation_strategy_VS_no_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty>
-
-export function Common_Hints_validation_strategy_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Common_Hints_validation_strategy<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
-  const c = d.get_cstor(off)
-  switch (c.cstor_idx) {
-   case 0:
-      return Common_Hints_validation_strategy_VS_validate_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
-   case 1:
-     return new Common_Hints_validation_strategy_VS_no_validate<_V_tyreg_poly_term,_V_tyreg_poly_ty>()
-   default:
-      throw new twine.TwineError({msg: `expected Common_Hints_validation_strategy, got invalid constructor ${c.cstor_idx}`, offset: off})
-
-  }
-}
-
-// clique Imandrax_api_common.Hints.t_poly (cached: false)
-// def Imandrax_api_common.Hints.t_poly (mangled name: "Common_Hints_t_poly")
-export class Common_Hints_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
-  constructor(
-    public f_validate_strat:Common_Hints_validation_strategy<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
-    public f_unroll_def:undefined | bigint,
-    public f_enable:Array<Uid>,
-    public f_disable:Array<Uid>,
-    public f_timeout:undefined | bigint,
-    public f_admission:undefined | Common_Admission,
-    public f_decomp:undefined | _V_tyreg_poly_term) {}
-}
-
-export function Common_Hints_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Common_Hints_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
-    decode__tyreg_poly_term
-    decode__tyreg_poly_ty
-  const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 7)
-  const f_validate_strat = Common_Hints_validation_strategy_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[0])
-  const f_unroll_def = twine.optional(d,  ((d:twine.Decoder,off:offset) => d.get_int(off)), fields[1])
-  const f_enable = d.get_array(fields[2]).toArray().map(x => Uid_of_twine(d, x))
-  const f_disable = d.get_array(fields[3]).toArray().map(x => Uid_of_twine(d, x))
-  const f_timeout = twine.optional(d,  ((d:twine.Decoder,off:offset) => d.get_int(off)), fields[4])
-  const f_admission = twine.optional(d,  ((d:twine.Decoder,off:offset) => Common_Admission_of_twine(d, off)), fields[5])
-  const f_decomp = twine.optional(d,  ((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), fields[6])
-  return new Common_Hints_t_poly(f_validate_strat, f_unroll_def, f_enable, f_disable, f_timeout, f_admission, f_decomp)
-}
-
-// clique Imandrax_api_common.Fun_def.fun_kind (cached: false)
-// def Imandrax_api_common.Fun_def.fun_kind (mangled name: "Common_Fun_def_fun_kind")
-export class Common_Fun_def_fun_kind_Fun_defined {
-  constructor(
-    public is_macro: boolean,
-    public from_lambda: boolean){}
-}
-
-export function Common_Fun_def_fun_kind_Fun_defined_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Common_Fun_def_fun_kind_Fun_defined {
-  checkArrayLength(off, _tw_args, 2)
-  const is_macro = d.get_bool(_tw_args[0])
-  const from_lambda = d.get_bool(_tw_args[1])
-  return new Common_Fun_def_fun_kind_Fun_defined(is_macro,from_lambda)
-}
-export class Common_Fun_def_fun_kind_Fun_builtin {
-  constructor(public arg: Builtin_Fun) {}
-}
-export function Common_Fun_def_fun_kind_Fun_builtin_of_twine(d: twine.Decoder, _tw_args: Array<offset>, off: offset): Common_Fun_def_fun_kind_Fun_builtin {
-  checkArrayLength(off, _tw_args, 1)
-  const arg = Builtin_Fun_of_twine(d, _tw_args[0])
-  return new Common_Fun_def_fun_kind_Fun_builtin(arg)
-}
-export class Common_Fun_def_fun_kind_Fun_opaque {
-  constructor(){}
-}
-export type Common_Fun_def_fun_kind = Common_Fun_def_fun_kind_Fun_defined| Common_Fun_def_fun_kind_Fun_builtin| Common_Fun_def_fun_kind_Fun_opaque
-
-export function Common_Fun_def_fun_kind_of_twine(d: twine.Decoder, off: offset): Common_Fun_def_fun_kind {
-  const c = d.get_cstor(off)
-  switch (c.cstor_idx) {
-   case 0:
-      return Common_Fun_def_fun_kind_Fun_defined_of_twine(d,  c.args, off)
-   case 1:
-      return Common_Fun_def_fun_kind_Fun_builtin_of_twine(d,  c.args, off)
-   case 2:
-     return new Common_Fun_def_fun_kind_Fun_opaque()
-   default:
-      throw new twine.TwineError({msg: `expected Common_Fun_def_fun_kind, got invalid constructor ${c.cstor_idx}`, offset: off})
-
-  }
-}
-
-// clique Imandrax_api_common.Fun_def.t_poly (cached: false)
-// def Imandrax_api_common.Fun_def.t_poly (mangled name: "Common_Fun_def_t_poly")
-export class Common_Fun_def_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
-  constructor(
-    public f_name:Uid,
-    public f_ty:Common_Type_schema_t_poly<_V_tyreg_poly_ty>,
-    public f_args:Array<Common_Var_t_poly<_V_tyreg_poly_ty>>,
-    public f_body:_V_tyreg_poly_term,
-    public f_clique:undefined | Clique,
-    public f_kind:Common_Fun_def_fun_kind,
-    public f_hints:Common_Hints_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
-}
-
-export function Common_Fun_def_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Common_Fun_def_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
-    decode__tyreg_poly_term
-    decode__tyreg_poly_ty
-  const fields = d.get_array(off).toArray()
-  checkArrayLength(off, fields, 7)
-  const f_name = Uid_of_twine(d, fields[0])
-  const f_ty = Common_Type_schema_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[1])
-  const f_args = d.get_array(fields[2]).toArray().map(x => Common_Var_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),x))
-  const f_body = decode__tyreg_poly_term(d,fields[3])
-  const f_clique = twine.optional(d,  ((d:twine.Decoder,off:offset) => Clique_of_twine(d, off)), fields[4])
-  const f_kind = Common_Fun_def_fun_kind_of_twine(d, fields[5])
-  const f_hints = Common_Hints_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[6])
-  return new Common_Fun_def_t_poly(f_name, f_ty, f_args, f_body, f_clique, f_kind, f_hints)
-}
-
 // clique Imandrax_api_common.Pre_trigger.t_poly (cached: false)
 // def Imandrax_api_common.Pre_trigger.t_poly (mangled name: "Common_Pre_trigger_t_poly")
 export type Common_Pre_trigger_t_poly<_V_tyreg_poly_term> = [_V_tyreg_poly_term,As_trigger];
@@ -1450,6 +1478,30 @@ export function Common_Sequent_t_poly_of_twine<_V_tyreg_poly_term>(d: twine.Deco
   const hyps = d.get_array(fields[0]).toArray().map(x => decode__tyreg_poly_term(d,x))
   const concls = d.get_array(fields[1]).toArray().map(x => decode__tyreg_poly_term(d,x))
   return new Common_Sequent_t_poly(hyps, concls)
+}
+
+// clique Imandrax_api_common.Rule_spec.t_poly (cached: false)
+// def Imandrax_api_common.Rule_spec.t_poly (mangled name: "Common_Rule_spec_t_poly")
+export class Common_Rule_spec_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(
+    public rule_spec_fc:boolean,
+    public rule_spec_rewriting:boolean,
+    public rule_spec_perm_restrict:boolean,
+    public rule_spec_link:Common_Fun_def_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>,
+    public rule_spec_triggers:Array<Common_Pre_trigger_t_poly<_V_tyreg_poly_term>>) {}
+}
+
+export function Common_Rule_spec_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Common_Rule_spec_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+    decode__tyreg_poly_term
+    decode__tyreg_poly_ty
+  const fields = d.get_array(off).toArray()
+  checkArrayLength(off, fields, 5)
+  const rule_spec_fc = d.get_bool(fields[0])
+  const rule_spec_rewriting = d.get_bool(fields[1])
+  const rule_spec_perm_restrict = d.get_bool(fields[2])
+  const rule_spec_link = Common_Fun_def_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),fields[3])
+  const rule_spec_triggers = d.get_array(fields[4]).toArray().map(x => Common_Pre_trigger_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)),x))
+  return new Common_Rule_spec_t_poly(rule_spec_fc, rule_spec_rewriting, rule_spec_perm_restrict, rule_spec_link, rule_spec_triggers)
 }
 
 // clique Imandrax_api_common.Rewrite_rule.t_poly (cached: false)
@@ -1911,6 +1963,79 @@ export function Common_Decomp_t__of_twine(d: twine.Decoder, off: offset): Common
   const lift_bool = Common_Decomp_lift_bool_of_twine(d, fields[5])
   const prune = d.get_bool(fields[6])
   return new Common_Decomp_t_(f_id, assuming, basis, rule_specs, ctx_simp, lift_bool, prune)
+}
+
+// clique Imandrax_api_common.Decl.t_poly (cached: false)
+// def Imandrax_api_common.Decl.t_poly (mangled name: "Common_Decl_t_poly")
+export class Common_Decl_t_poly_Fun<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public arg: Common_Fun_def_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
+}
+export function Common_Decl_t_poly_Fun_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Common_Decl_t_poly_Fun<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
+  checkArrayLength(off, _tw_args, 1)
+  const arg = Common_Fun_def_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0])
+  return new Common_Decl_t_poly_Fun(arg)
+}
+export class Common_Decl_t_poly_Ty<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public arg: Ty_view_def_poly<_V_tyreg_poly_ty>) {}
+}
+export function Common_Decl_t_poly_Ty_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Common_Decl_t_poly_Ty<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
+  checkArrayLength(off, _tw_args, 1)
+  const arg = Ty_view_def_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0])
+  return new Common_Decl_t_poly_Ty(arg)
+}
+export class Common_Decl_t_poly_Theorem<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public arg: Common_Theorem_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
+}
+export function Common_Decl_t_poly_Theorem_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Common_Decl_t_poly_Theorem<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
+  checkArrayLength(off, _tw_args, 1)
+  const arg = Common_Theorem_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0])
+  return new Common_Decl_t_poly_Theorem(arg)
+}
+export class Common_Decl_t_poly_Rule_spec<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public arg: Common_Rule_spec_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
+}
+export function Common_Decl_t_poly_Rule_spec_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Common_Decl_t_poly_Rule_spec<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
+  checkArrayLength(off, _tw_args, 1)
+  const arg = Common_Rule_spec_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0])
+  return new Common_Decl_t_poly_Rule_spec(arg)
+}
+export class Common_Decl_t_poly_Verify<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  constructor(public arg: Common_Verify_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty>) {}
+}
+export function Common_Decl_t_poly_Verify_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Common_Decl_t_poly_Verify<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_term; // ignore 
+  decode__tyreg_poly_ty; // ignore 
+  checkArrayLength(off, _tw_args, 1)
+  const arg = Common_Verify_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_term(d,off)), ((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),_tw_args[0])
+  return new Common_Decl_t_poly_Verify(arg)
+}
+export type Common_Decl_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> = Common_Decl_t_poly_Fun<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Common_Decl_t_poly_Ty<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Common_Decl_t_poly_Theorem<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Common_Decl_t_poly_Rule_spec<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Common_Decl_t_poly_Verify<_V_tyreg_poly_term,_V_tyreg_poly_ty>
+
+export function Common_Decl_t_poly_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Common_Decl_t_poly<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
+  const c = d.get_cstor(off)
+  switch (c.cstor_idx) {
+   case 0:
+      return Common_Decl_t_poly_Fun_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 1:
+      return Common_Decl_t_poly_Ty_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 2:
+      return Common_Decl_t_poly_Theorem_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 3:
+      return Common_Decl_t_poly_Rule_spec_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   case 4:
+      return Common_Decl_t_poly_Verify_of_twine(d, decode__tyreg_poly_term, decode__tyreg_poly_ty, c.args, off)
+   default:
+      throw new twine.TwineError({msg: `expected Common_Decl_t_poly, got invalid constructor ${c.cstor_idx}`, offset: off})
+
+  }
 }
 
 // clique Imandrax_api_common.Db_ser.uid_map (cached: false)
@@ -2502,6 +2627,14 @@ export function Mir_Decomp_of_twine(d: twine.Decoder, off: offset): Mir_Decomp {
   const lift_bool = Common_Decomp_lift_bool_of_twine(d, fields[5])
   const prune = d.get_bool(fields[6])
   return new Mir_Decomp(f_id, assuming, basis, rule_specs, ctx_simp, lift_bool, prune)
+}
+
+// clique Imandrax_api_mir.Decl.t (cached: false)
+// def Imandrax_api_mir.Decl.t (mangled name: "Mir_Decl")
+export type Mir_Decl = Common_Decl_t_poly<Mir_Term,Mir_Type>;
+
+export function Mir_Decl_of_twine(d: twine.Decoder, off: offset): Mir_Decl {
+  return Common_Decl_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => Mir_Term_of_twine(d, off)), ((d:twine.Decoder,off:offset) => Mir_Type_of_twine(d, off)),off)
 }
 
 // clique Imandrax_api_mir.Db_ser.t (cached: false)
@@ -4208,7 +4341,7 @@ export function Tasks_Decomp_res_Full_of_twine(d: twine.Decoder, off: offset): T
 
 // Artifacts
 
-export type Artifact = Mir_Term|Mir_Type|Tasks_PO_task_Mir|Tasks_PO_res_Shallow|Tasks_Eval_task_Mir|Tasks_Eval_res|Mir_Model|string|Mir_Fun_decomp|Tasks_Decomp_task_Mir|Tasks_Decomp_res_Shallow|Report_Report
+export type Artifact = Mir_Term|Mir_Type|Tasks_PO_task_Mir|Tasks_PO_res_Shallow|Tasks_Eval_task_Mir|Tasks_Eval_res|Mir_Model|string|Mir_Fun_decomp|Tasks_Decomp_task_Mir|Tasks_Decomp_res_Shallow|Report_Report|Mir_Decl
 
 /** Artifact decoders */
 export const artifact_decoders = {
@@ -4223,7 +4356,8 @@ export const artifact_decoders = {
   "mir.fun_decomp": ((d:twine.Decoder, off: offset): Mir_Fun_decomp => Mir_Fun_decomp_of_twine(d, off)),
   "decomp_task": ((d:twine.Decoder, off: offset): Tasks_Decomp_task_Mir => Tasks_Decomp_task_Mir_of_twine(d, off)),
   "decomp_res": ((d:twine.Decoder, off: offset): Tasks_Decomp_res_Shallow => Tasks_Decomp_res_Shallow_of_twine(d, off)),
-  "report": ((d:twine.Decoder, off: offset): Report_Report => Report_Report_of_twine(d, off))
+  "report": ((d:twine.Decoder, off: offset): Report_Report => Report_Report_of_twine(d, off)),
+  "mir.decl": ((d:twine.Decoder, off: offset): Mir_Decl => Mir_Decl_of_twine(d, off))
 }
 
 

@@ -302,6 +302,14 @@ pub struct Ca_storeCa_ptrRaw<'a> {
 
 // clique 
 
+// clique Imandrax_api_common.Admission.t
+#[derive(Debug, Clone)]
+pub struct CommonAdmission<'a> {
+  pub measured_subset: &'a [&'a str],
+  pub measure_fun: Option<&'a Uid<'a>>,
+}
+
+
 // clique Imandrax_api_common.Var.t_poly
 #[derive(Debug, Clone)]
 pub struct CommonVarT_poly<'a,V_tyreg_poly_ty:'a> {
@@ -310,11 +318,70 @@ pub struct CommonVarT_poly<'a,V_tyreg_poly_ty:'a> {
 }
 
 
+// clique Imandrax_api_common.Hints.validation_strategy
+#[derive(Debug, Clone)]
+pub enum CommonHintsValidation_strategy<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  VS_validate {
+    tactic: Option<(&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term)>,
+  },
+  VS_no_validate,
+}
+
+// clique Imandrax_api_common.Hints.t_poly
+#[derive(Debug, Clone)]
+pub struct CommonHintsT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub f_validate_strat: &'a CommonHintsValidation_strategy<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  pub f_unroll_def: Option<BigInt>,
+  pub f_enable: &'a [&'a Uid<'a>],
+  pub f_disable: &'a [&'a Uid<'a>],
+  pub f_timeout: Option<BigInt>,
+  pub f_admission: Option<&'a CommonAdmission<'a>>,
+  pub f_decomp: Option<V_tyreg_poly_term>,
+}
+
+
 // clique Imandrax_api_common.Type_schema.t_poly
 #[derive(Debug, Clone)]
 pub struct CommonType_schemaT_poly<'a,V_tyreg_poly_ty:'a> {
   pub params: &'a [&'a Uid<'a>],
   pub ty: V_tyreg_poly_ty,
+}
+
+
+// clique Imandrax_api_common.Fun_def.fun_kind
+#[derive(Debug, Clone)]
+pub enum CommonFun_defFun_kind<'a> {
+  Fun_defined {
+    is_macro: bool,
+    from_lambda: bool,
+  },
+  Fun_builtin(&'a BuiltinFun<'a>),
+  Fun_opaque,
+}
+
+// clique Imandrax_api_common.Fun_def.t_poly
+#[derive(Debug, Clone)]
+pub struct CommonFun_defT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub f_name: &'a Uid<'a>,
+  pub f_ty: &'a CommonType_schemaT_poly<'a,V_tyreg_poly_ty>,
+  pub f_args: &'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],
+  pub f_body: V_tyreg_poly_term,
+  pub f_clique: Option<&'a UidSet<'a>>,
+  pub f_kind: &'a CommonFun_defFun_kind<'a>,
+  pub f_hints: &'a CommonHintsT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+}
+
+
+// clique Imandrax_api_common.Verify.t_poly
+#[derive(Debug, Clone)]
+pub struct CommonVerifyT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub verify_link: &'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  pub verify_simplify: bool,
+  pub verify_nonlin: bool,
+  pub verify_upto: Option<Upto>,
+  pub verify_is_instance: bool,
+  pub verify_minimize: &'a [V_tyreg_poly_term],
+  pub verify_by: Option<(&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term)>,
 }
 
 
@@ -380,60 +447,6 @@ pub struct CommonTriggerT_poly<'a,V_tyreg_poly_ty:'a> {
 }
 
 
-// clique Imandrax_api_common.Admission.t
-#[derive(Debug, Clone)]
-pub struct CommonAdmission<'a> {
-  pub measured_subset: &'a [&'a str],
-  pub measure_fun: Option<&'a Uid<'a>>,
-}
-
-
-// clique Imandrax_api_common.Hints.validation_strategy
-#[derive(Debug, Clone)]
-pub enum CommonHintsValidation_strategy<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
-  VS_validate {
-    tactic: Option<(&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term)>,
-  },
-  VS_no_validate,
-}
-
-// clique Imandrax_api_common.Hints.t_poly
-#[derive(Debug, Clone)]
-pub struct CommonHintsT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
-  pub f_validate_strat: &'a CommonHintsValidation_strategy<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
-  pub f_unroll_def: Option<BigInt>,
-  pub f_enable: &'a [&'a Uid<'a>],
-  pub f_disable: &'a [&'a Uid<'a>],
-  pub f_timeout: Option<BigInt>,
-  pub f_admission: Option<&'a CommonAdmission<'a>>,
-  pub f_decomp: Option<V_tyreg_poly_term>,
-}
-
-
-// clique Imandrax_api_common.Fun_def.fun_kind
-#[derive(Debug, Clone)]
-pub enum CommonFun_defFun_kind<'a> {
-  Fun_defined {
-    is_macro: bool,
-    from_lambda: bool,
-  },
-  Fun_builtin(&'a BuiltinFun<'a>),
-  Fun_opaque,
-}
-
-// clique Imandrax_api_common.Fun_def.t_poly
-#[derive(Debug, Clone)]
-pub struct CommonFun_defT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
-  pub f_name: &'a Uid<'a>,
-  pub f_ty: &'a CommonType_schemaT_poly<'a,V_tyreg_poly_ty>,
-  pub f_args: &'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],
-  pub f_body: V_tyreg_poly_term,
-  pub f_clique: Option<&'a UidSet<'a>>,
-  pub f_kind: &'a CommonFun_defFun_kind<'a>,
-  pub f_hints: &'a CommonHintsT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
-}
-
-
 // clique 
 
 // clique Imandrax_api_common.Theorem.t_poly
@@ -470,6 +483,17 @@ pub enum CommonTacticT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 pub struct CommonSequentT_poly<'a,V_tyreg_poly_term:'a> {
   pub hyps: &'a [V_tyreg_poly_term],
   pub concls: &'a [V_tyreg_poly_term],
+}
+
+
+// clique Imandrax_api_common.Rule_spec.t_poly
+#[derive(Debug, Clone)]
+pub struct CommonRule_specT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  pub rule_spec_fc: bool,
+  pub rule_spec_rewriting: bool,
+  pub rule_spec_perm_restrict: bool,
+  pub rule_spec_link: &'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  pub rule_spec_triggers: &'a [(V_tyreg_poly_term,As_trigger)],
 }
 
 
@@ -623,6 +647,16 @@ pub struct CommonDecompT_<'a> {
   pub prune: bool,
 }
 
+
+// clique Imandrax_api_common.Decl.t_poly
+#[derive(Debug, Clone)]
+pub enum CommonDeclT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  Fun(&'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Ty(&'a Ty_viewDef_poly<'a,V_tyreg_poly_ty>),
+  Theorem(&'a CommonTheoremT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Rule_spec(&'a CommonRule_specT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Verify(&'a CommonVerifyT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+}
 
 // clique 
 
@@ -798,6 +832,8 @@ pub struct MirDecomp<'a> {
   pub prune: bool,
 }
 
+
+// clique 
 
 // clique 
 
