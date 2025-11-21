@@ -8,7 +8,7 @@ type ('term, 'ty) t_poly = {
   rule_spec_triggers: 'term Pre_trigger.t_poly list;
       (** explicit rule triggers *)
 }
-[@@deriving twine, map, iter, show { with_path = false }]
+[@@deriving twine, map, iter, show { with_path = false }, typereg]
 (** A rule_spec_spec, entered with
     [rule_spec_spec foo x y = <formula using x,y>] *)
 
