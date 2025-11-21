@@ -305,7 +305,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", marker = "extra == 'async'" },
-    { name = "protobuf", specifier = ">=5.29.4,<6.0" },
+    { name = "protobuf", specifier = "==5.29.5" },
     { name = "requests" },
     { name = "structlog" },
 ]
