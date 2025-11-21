@@ -1223,14 +1223,20 @@ export function Common_Fo_pattern_view_FO_app_of_twine<_V_tyreg_poly_t,_V_tyreg_
   return new Common_Fo_pattern_view_FO_app(cargs)
 }
 export class Common_Fo_pattern_view_FO_cstor<_V_tyreg_poly_t,_V_tyreg_poly_ty> {
-  constructor(public args: [undefined | Common_Applied_symbol_t_poly<_V_tyreg_poly_ty>,Array<_V_tyreg_poly_t>]){}
+  constructor(
+    public c: undefined | Common_Applied_symbol_t_poly<_V_tyreg_poly_ty>,
+    public args: Array<_V_tyreg_poly_t>,
+    public labels: undefined | Array<Uid>){}
 }
+
 export function Common_Fo_pattern_view_FO_cstor_of_twine<_V_tyreg_poly_t,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_t: (d:twine.Decoder, off:offset) => _V_tyreg_poly_t, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Common_Fo_pattern_view_FO_cstor<_V_tyreg_poly_t,_V_tyreg_poly_ty> {
-  decode__tyreg_poly_t; // ignore
-  decode__tyreg_poly_ty; // ignore
-  checkArrayLength(off, _tw_args, 2)
-  const cargs: [undefined | Common_Applied_symbol_t_poly<_V_tyreg_poly_ty>,Array<_V_tyreg_poly_t>] = [twine.optional(d,  ((d:twine.Decoder,off:offset) => Common_Applied_symbol_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)), _tw_args[0]),d.get_array(_tw_args[1]).toArray().map(x => decode__tyreg_poly_t(d,x))]
-  return new Common_Fo_pattern_view_FO_cstor(cargs)
+  decode__tyreg_poly_t
+  decode__tyreg_poly_ty
+  checkArrayLength(off, _tw_args, 3)
+  const c = twine.optional(d,  ((d:twine.Decoder,off:offset) => Common_Applied_symbol_t_poly_of_twine(d,((d:twine.Decoder,off:offset) => decode__tyreg_poly_ty(d,off)),off)), _tw_args[0])
+  const args = d.get_array(_tw_args[1]).toArray().map(x => decode__tyreg_poly_t(d,x))
+  const labels = twine.optional(d,  ((d:twine.Decoder,off:offset) => d.get_array(off).toArray().map(x => Uid_of_twine(d, x))), _tw_args[2])
+  return new Common_Fo_pattern_view_FO_cstor(c,args,labels)
 }
 export class Common_Fo_pattern_view_FO_destruct<_V_tyreg_poly_t,_V_tyreg_poly_ty> {
   constructor(
@@ -2384,7 +2390,17 @@ export function Mir_Term_view_Case_of_twine<_V_tyreg_poly_t,_V_tyreg_poly_ty>(d:
   const default_ = twine.optional(d,  ((d:twine.Decoder,off:offset) => decode__tyreg_poly_t(d,off)), _tw_args[2])
   return new Mir_Term_view_Case(u,cases,default_)
 }
-export type Mir_Term_view<_V_tyreg_poly_t,_V_tyreg_poly_ty> = Mir_Term_view_Const<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_If<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Apply<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Var<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Sym<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Construct<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Destruct<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Is_a<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Tuple<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Field<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Tuple_field<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Record<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Case<_V_tyreg_poly_t,_V_tyreg_poly_ty>
+export class Mir_Term_view_Sequence<_V_tyreg_poly_t,_V_tyreg_poly_ty> {
+  constructor(public args: [Array<_V_tyreg_poly_t>,_V_tyreg_poly_t]){}
+}
+export function Mir_Term_view_Sequence_of_twine<_V_tyreg_poly_t,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_t: (d:twine.Decoder, off:offset) => _V_tyreg_poly_t, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Mir_Term_view_Sequence<_V_tyreg_poly_t,_V_tyreg_poly_ty> {
+  decode__tyreg_poly_t; // ignore
+  decode__tyreg_poly_ty; // ignore
+  checkArrayLength(off, _tw_args, 2)
+  const cargs: [Array<_V_tyreg_poly_t>,_V_tyreg_poly_t] = [d.get_array(_tw_args[0]).toArray().map(x => decode__tyreg_poly_t(d,x)),decode__tyreg_poly_t(d,_tw_args[1])]
+  return new Mir_Term_view_Sequence(cargs)
+}
+export type Mir_Term_view<_V_tyreg_poly_t,_V_tyreg_poly_ty> = Mir_Term_view_Const<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_If<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Apply<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Var<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Sym<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Construct<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Destruct<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Is_a<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Tuple<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Field<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Tuple_field<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Record<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Case<_V_tyreg_poly_t,_V_tyreg_poly_ty>| Mir_Term_view_Sequence<_V_tyreg_poly_t,_V_tyreg_poly_ty>
 
 export function Mir_Term_view_of_twine<_V_tyreg_poly_t,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_t: (d:twine.Decoder, off:offset) => _V_tyreg_poly_t, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,off: offset): Mir_Term_view<_V_tyreg_poly_t,_V_tyreg_poly_ty> {
   const c = d.get_cstor(off)
@@ -2415,6 +2431,8 @@ export function Mir_Term_view_of_twine<_V_tyreg_poly_t,_V_tyreg_poly_ty>(d: twin
       return Mir_Term_view_Record_of_twine(d, decode__tyreg_poly_t, decode__tyreg_poly_ty, c.args, off)
    case 12:
       return Mir_Term_view_Case_of_twine(d, decode__tyreg_poly_t, decode__tyreg_poly_ty, c.args, off)
+   case 13:
+      return Mir_Term_view_Sequence_of_twine(d, decode__tyreg_poly_t, decode__tyreg_poly_ty, c.args, off)
    default:
       throw new twine.TwineError({msg: `expected Mir_Term_view, got invalid constructor ${c.cstor_idx}`, offset: off})
 
