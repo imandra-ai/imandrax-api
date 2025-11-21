@@ -7,8 +7,7 @@ from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from collections.abc import Iterable as _Iterable, Mapping as _Mapping
-from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -58,7 +57,7 @@ class DecomposeReq(_message.Message):
     lift_bool: LiftBool
     str: bool
     timeout: int
-    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., assuming: _Optional[str] = ..., basis: _Optional[_Iterable[str]] = ..., rule_specs: _Optional[_Iterable[str]] = ..., prune: _Optional[bool] = ..., ctx_simp: _Optional[bool] = ..., lift_bool: _Optional[_Union[LiftBool, str]] = ..., str: _Optional[bool] = ..., timeout: _Optional[int] = ...) -> None: ...
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., assuming: _Optional[str] = ..., basis: _Optional[_Iterable[str]] = ..., rule_specs: _Optional[_Iterable[str]] = ..., prune: bool = ..., ctx_simp: bool = ..., lift_bool: _Optional[_Union[LiftBool, str]] = ..., str: bool = ..., timeout: _Optional[int] = ...) -> None: ...
 
 class DecomposeReqFull(_message.Message):
     __slots__ = ("session", "decomp", "str", "timeout")
@@ -78,7 +77,7 @@ class DecomposeReqFull(_message.Message):
         prune: bool
         ctx_simp: bool
         lift_bool: LiftBool
-        def __init__(self, name: _Optional[str] = ..., assuming: _Optional[str] = ..., basis: _Optional[_Iterable[str]] = ..., rule_specs: _Optional[_Iterable[str]] = ..., prune: _Optional[bool] = ..., ctx_simp: _Optional[bool] = ..., lift_bool: _Optional[_Union[LiftBool, str]] = ...) -> None: ...
+        def __init__(self, name: _Optional[str] = ..., assuming: _Optional[str] = ..., basis: _Optional[_Iterable[str]] = ..., rule_specs: _Optional[_Iterable[str]] = ..., prune: bool = ..., ctx_simp: bool = ..., lift_bool: _Optional[_Union[LiftBool, str]] = ...) -> None: ...
     class Prune(_message.Message):
         __slots__ = ("d",)
         D_FIELD_NUMBER: _ClassVar[int]
@@ -149,7 +148,7 @@ class DecomposeReqFull(_message.Message):
     decomp: DecomposeReqFull.Decomp
     str: bool
     timeout: int
-    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., decomp: _Optional[_Union[DecomposeReqFull.Decomp, _Mapping]] = ..., str: _Optional[bool] = ..., timeout: _Optional[int] = ...) -> None: ...
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., decomp: _Optional[_Union[DecomposeReqFull.Decomp, _Mapping]] = ..., str: bool = ..., timeout: _Optional[int] = ...) -> None: ...
 
 class DecomposeRes(_message.Message):
     __slots__ = ("artifact", "err", "errors", "task")
@@ -171,7 +170,7 @@ class EvalSrcReq(_message.Message):
     session: _session_pb2.Session
     src: str
     async_only: bool
-    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., src: _Optional[str] = ..., async_only: _Optional[bool] = ...) -> None: ...
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., src: _Optional[str] = ..., async_only: bool = ...) -> None: ...
 
 class EvalOutput(_message.Message):
     __slots__ = ("success", "value_as_ocaml", "errors")
@@ -181,7 +180,7 @@ class EvalOutput(_message.Message):
     success: bool
     value_as_ocaml: str
     errors: _containers.RepeatedCompositeFieldContainer[_error_pb2.Error]
-    def __init__(self, success: _Optional[bool] = ..., value_as_ocaml: _Optional[str] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ...) -> None: ...
+    def __init__(self, success: bool = ..., value_as_ocaml: _Optional[str] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ...) -> None: ...
 
 class EvalRes(_message.Message):
     __slots__ = ("success", "messages", "errors", "tasks", "po_results", "eval_results", "decomp_results")
@@ -199,7 +198,7 @@ class EvalRes(_message.Message):
     po_results: _containers.RepeatedCompositeFieldContainer[PO_Res]
     eval_results: _containers.RepeatedCompositeFieldContainer[EvalOutput]
     decomp_results: _containers.RepeatedCompositeFieldContainer[DecomposeRes]
-    def __init__(self, success: _Optional[bool] = ..., messages: _Optional[_Iterable[str]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., tasks: _Optional[_Iterable[_Union[_task_pb2.Task, _Mapping]]] = ..., po_results: _Optional[_Iterable[_Union[PO_Res, _Mapping]]] = ..., eval_results: _Optional[_Iterable[_Union[EvalOutput, _Mapping]]] = ..., decomp_results: _Optional[_Iterable[_Union[DecomposeRes, _Mapping]]] = ...) -> None: ...
+    def __init__(self, success: bool = ..., messages: _Optional[_Iterable[str]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., tasks: _Optional[_Iterable[_Union[_task_pb2.Task, _Mapping]]] = ..., po_results: _Optional[_Iterable[_Union[PO_Res, _Mapping]]] = ..., eval_results: _Optional[_Iterable[_Union[EvalOutput, _Mapping]]] = ..., decomp_results: _Optional[_Iterable[_Union[DecomposeRes, _Mapping]]] = ...) -> None: ...
 
 class VerifySrcReq(_message.Message):
     __slots__ = ("session", "src", "hints")
@@ -357,7 +356,7 @@ class TypecheckRes(_message.Message):
     success: bool
     types: str
     errors: _containers.RepeatedCompositeFieldContainer[_error_pb2.Error]
-    def __init__(self, success: _Optional[bool] = ..., types: _Optional[str] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ...) -> None: ...
+    def __init__(self, success: bool = ..., types: _Optional[str] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ...) -> None: ...
 
 class OneshotReq(_message.Message):
     __slots__ = ("input", "timeout")
@@ -383,3 +382,21 @@ class OneshotRes(_message.Message):
     stats: OneshotRes.Stats
     detailed_results: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, results: _Optional[_Iterable[str]] = ..., errors: _Optional[_Iterable[str]] = ..., stats: _Optional[_Union[OneshotRes.Stats, _Mapping]] = ..., detailed_results: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class GetDeclReq(_message.Message):
+    __slots__ = ("session", "name", "str")
+    SESSION_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    STR_FIELD_NUMBER: _ClassVar[int]
+    session: _session_pb2.Session
+    name: str
+    str: bool
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., str: bool = ...) -> None: ...
+
+class GetDeclRes(_message.Message):
+    __slots__ = ("artifact", "str")
+    ARTIFACT_FIELD_NUMBER: _ClassVar[int]
+    STR_FIELD_NUMBER: _ClassVar[int]
+    artifact: _artmsg_pb2.Art
+    str: str
+    def __init__(self, artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ..., str: _Optional[str] = ...) -> None: ...

@@ -1,8 +1,7 @@
 import utils_pb2 as _utils_pb2
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from collections.abc import Mapping as _Mapping
-from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -18,7 +17,7 @@ class SessionCreate(_message.Message):
     API_VERSION_FIELD_NUMBER: _ClassVar[int]
     po_check: bool
     api_version: str
-    def __init__(self, po_check: _Optional[bool] = ..., api_version: _Optional[str] = ...) -> None: ...
+    def __init__(self, po_check: bool = ..., api_version: _Optional[str] = ...) -> None: ...
 
 class SessionOpen(_message.Message):
     __slots__ = ("id", "api_version")
