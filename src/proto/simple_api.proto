@@ -39,6 +39,8 @@ service Simple {
 
   rpc typecheck(TypecheckReq) returns (TypecheckRes);
 
+  rpc get_decl(GetDeclReq) returns (GetDeclRes);
+
   // Sessionless, self contained request/response
   rpc oneshot(OneshotReq) returns (OneshotRes);
 }
@@ -379,4 +381,22 @@ message OneshotRes {
   Stats stats = 3;
 
   repeated string detailed_results = 10;
+}
+
+message GetDeclReq {
+  imandrax.session.Session session = 1;
+
+  // name of the desired definition
+  string name = 2;
+
+  // if true, include string representation
+  bool str = 10;
+}
+
+message GetDeclRes {
+  // artifact with the decl in it
+  Art artifact = 1;
+
+  // included if `str` was true
+  optional string str = 2;
 }

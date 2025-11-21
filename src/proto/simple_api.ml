@@ -259,6 +259,19 @@ type oneshot_res = {
   mutable detailed_results : string list;
 }
 
+type get_decl_req = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable name : string;
+  mutable str : bool;
+}
+
+type get_decl_res = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable artifact : Artmsg.art option;
+  mutable str : string;
+}
+
 let default_session_create_req (): session_create_req =
 {
   _presence=Pbrt.Bitfield.empty;
@@ -520,6 +533,21 @@ let default_oneshot_res (): oneshot_res =
   errors=[];
   stats=None;
   detailed_results=[];
+}
+
+let default_get_decl_req (): get_decl_req =
+{
+  _presence=Pbrt.Bitfield.empty;
+  session=None;
+  name="";
+  str=false;
+}
+
+let default_get_decl_res (): get_decl_res =
+{
+  _presence=Pbrt.Bitfield.empty;
+  artifact=None;
+  str="";
 }
 
 
@@ -1418,6 +1446,59 @@ let make_oneshot_res
   oneshot_res_set_detailed_results _res detailed_results;
   _res
 
+let[@inline] get_decl_req_has_name (self:get_decl_req) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] get_decl_req_has_str (self:get_decl_req) : bool = (Pbrt.Bitfield.get self._presence 1)
+
+let[@inline] get_decl_req_set_session (self:get_decl_req) (x:Session.session) : unit =
+  self.session <- Some x
+let[@inline] get_decl_req_set_name (self:get_decl_req) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.name <- x
+let[@inline] get_decl_req_set_str (self:get_decl_req) (x:bool) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 1); self.str <- x
+
+let copy_get_decl_req (self:get_decl_req) : get_decl_req =
+  { self with session = self.session }
+
+let make_get_decl_req 
+  ?(session:Session.session option)
+  ?(name:string option)
+  ?(str:bool option)
+  () : get_decl_req  =
+  let _res = default_get_decl_req () in
+  (match session with
+  | None -> ()
+  | Some v -> get_decl_req_set_session _res v);
+  (match name with
+  | None -> ()
+  | Some v -> get_decl_req_set_name _res v);
+  (match str with
+  | None -> ()
+  | Some v -> get_decl_req_set_str _res v);
+  _res
+
+let[@inline] get_decl_res_has_str (self:get_decl_res) : bool = (Pbrt.Bitfield.get self._presence 0)
+
+let[@inline] get_decl_res_set_artifact (self:get_decl_res) (x:Artmsg.art) : unit =
+  self.artifact <- Some x
+let[@inline] get_decl_res_set_str (self:get_decl_res) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.str <- x
+
+let copy_get_decl_res (self:get_decl_res) : get_decl_res =
+  { self with artifact = self.artifact }
+
+let make_get_decl_res 
+  ?(artifact:Artmsg.art option)
+  ?(str:string option)
+  () : get_decl_res  =
+  let _res = default_get_decl_res () in
+  (match artifact with
+  | None -> ()
+  | Some v -> get_decl_res_set_artifact _res v);
+  (match str with
+  | None -> ()
+  | Some v -> get_decl_res_set_str _res v);
+  _res
+
 [@@@ocaml.warning "-23-27-30-39"]
 
 (** {2 Formatters} *)
@@ -1732,6 +1813,21 @@ let rec pp_oneshot_res fmt (v:oneshot_res) =
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.errors;
     Pbrt.Pp.pp_record_field ~first:false "stats" (Pbrt.Pp.pp_option pp_oneshot_res_stats) fmt v.stats;
     Pbrt.Pp.pp_record_field ~first:false "detailed_results" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.detailed_results;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_get_decl_req fmt (v:get_decl_req) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
+    Pbrt.Pp.pp_record_field ~absent:(not (get_decl_req_has_name v)) ~first:false "name" Pbrt.Pp.pp_string fmt v.name;
+    Pbrt.Pp.pp_record_field ~absent:(not (get_decl_req_has_str v)) ~first:false "str" Pbrt.Pp.pp_bool fmt v.str;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_get_decl_res fmt (v:get_decl_res) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "artifact" (Pbrt.Pp.pp_option Artmsg.pp_art) fmt v.artifact;
+    Pbrt.Pp.pp_record_field ~absent:(not (get_decl_res_has_str v)) ~first:false "str" Pbrt.Pp.pp_string fmt v.str;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -2409,6 +2505,36 @@ let rec encode_pb_oneshot_res (v:oneshot_res) encoder =
     Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 10 Pbrt.Bytes encoder; 
   ) v.detailed_results encoder;
+  ()
+
+let rec encode_pb_get_decl_req (v:get_decl_req) encoder = 
+  begin match v.session with
+  | Some x -> 
+    Pbrt.Encoder.nested Session.encode_pb_session x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  if get_decl_req_has_name v then (
+    Pbrt.Encoder.string v.name encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  );
+  if get_decl_req_has_str v then (
+    Pbrt.Encoder.bool v.str encoder;
+    Pbrt.Encoder.key 10 Pbrt.Varint encoder; 
+  );
+  ()
+
+let rec encode_pb_get_decl_res (v:get_decl_res) encoder = 
+  begin match v.artifact with
+  | Some x -> 
+    Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  if get_decl_res_has_str v then (
+    Pbrt.Encoder.string v.str encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  );
   ()
 
 [@@@ocaml.warning "-23-27-30-39"]
@@ -3459,6 +3585,53 @@ let rec decode_pb_oneshot_res d =
   done;
   (v : oneshot_res)
 
+let rec decode_pb_get_decl_req d =
+  let v = default_get_decl_req () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      get_decl_req_set_session v (Session.decode_pb_session (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "get_decl_req" 1 pk
+    | Some (2, Pbrt.Bytes) -> begin
+      get_decl_req_set_name v (Pbrt.Decoder.string d);
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "get_decl_req" 2 pk
+    | Some (10, Pbrt.Varint) -> begin
+      get_decl_req_set_str v (Pbrt.Decoder.bool d);
+    end
+    | Some (10, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "get_decl_req" 10 pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  (v : get_decl_req)
+
+let rec decode_pb_get_decl_res d =
+  let v = default_get_decl_res () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      get_decl_res_set_artifact v (Artmsg.decode_pb_art (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "get_decl_res" 1 pk
+    | Some (2, Pbrt.Bytes) -> begin
+      get_decl_res_set_str v (Pbrt.Decoder.string d);
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "get_decl_res" 2 pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  (v : get_decl_res)
+
 [@@@ocaml.warning "-23-27-30-39"]
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -3964,6 +4137,29 @@ let rec encode_json_oneshot_res (v:oneshot_res) =
   assoc := (
     let l = v.detailed_results |> List.map Pbrt_yojson.make_string in
     ("detailedResults", `List l) :: !assoc 
+  );
+  `Assoc !assoc
+
+let rec encode_json_get_decl_req (v:get_decl_req) = 
+  let assoc = ref [] in
+  assoc := (match v.session with
+    | None -> !assoc
+    | Some v -> ("session", Session.encode_json_session v) :: !assoc);
+  if get_decl_req_has_name v then (
+    assoc := ("name", Pbrt_yojson.make_string v.name) :: !assoc;
+  );
+  if get_decl_req_has_str v then (
+    assoc := ("str", Pbrt_yojson.make_bool v.str) :: !assoc;
+  );
+  `Assoc !assoc
+
+let rec encode_json_get_decl_res (v:get_decl_res) = 
+  let assoc = ref [] in
+  assoc := (match v.artifact with
+    | None -> !assoc
+    | Some v -> ("artifact", Artmsg.encode_json_art v) :: !assoc);
+  if get_decl_res_has_str v then (
+    assoc := ("str", Pbrt_yojson.make_string v.str) :: !assoc;
   );
   `Assoc !assoc
 
@@ -4908,6 +5104,49 @@ let rec decode_json_oneshot_res d =
     detailed_results = v.detailed_results;
   } : oneshot_res)
 
+let rec decode_json_get_decl_req d =
+  let v = default_get_decl_req () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("session", json_value) -> 
+      get_decl_req_set_session v (Session.decode_json_session json_value)
+    | ("name", json_value) -> 
+      get_decl_req_set_name v (Pbrt_yojson.string json_value "get_decl_req" "name")
+    | ("str", json_value) -> 
+      get_decl_req_set_str v (Pbrt_yojson.bool json_value "get_decl_req" "str")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    _presence = v._presence;
+    session = v.session;
+    name = v.name;
+    str = v.str;
+  } : get_decl_req)
+
+let rec decode_json_get_decl_res d =
+  let v = default_get_decl_res () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("artifact", json_value) -> 
+      get_decl_res_set_artifact v (Artmsg.decode_json_art json_value)
+    | ("str", json_value) -> 
+      get_decl_res_set_str v (Pbrt_yojson.string json_value "get_decl_res" "str")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    _presence = v._presence;
+    artifact = v.artifact;
+    str = v.str;
+  } : get_decl_res)
+
 module Simple = struct
   open Pbrt_services.Value_mode
   module Client = struct
@@ -5069,6 +5308,19 @@ module Simple = struct
         () : (typecheck_req, unary, typecheck_res, unary) Client.rpc)
     open Pbrt_services
     
+    let get_decl : (get_decl_req, unary, get_decl_res, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"simple"]
+        ~service_name:"Simple" ~rpc_name:"get_decl"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_get_decl_req
+        ~encode_pb_req:encode_pb_get_decl_req
+        ~decode_json_res:decode_json_get_decl_res
+        ~decode_pb_res:decode_pb_get_decl_res
+        () : (get_decl_req, unary, get_decl_res, unary) Client.rpc)
+    open Pbrt_services
+    
     let oneshot : (oneshot_req, unary, oneshot_res, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"simple"]
@@ -5205,6 +5457,16 @@ module Simple = struct
         ~decode_pb_req:decode_pb_typecheck_req
         () : _ Server.rpc)
     
+    let get_decl : (get_decl_req,unary,get_decl_res,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"get_decl"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_get_decl_res
+        ~encode_pb_res:encode_pb_get_decl_res
+        ~decode_json_req:decode_json_get_decl_req
+        ~decode_pb_req:decode_pb_get_decl_req
+        () : _ Server.rpc)
+    
     let oneshot : (oneshot_req,unary,oneshot_res,unary) Server.rpc = 
       (Server.mk_rpc ~name:"oneshot"
         ~req_mode:Server.Unary
@@ -5228,6 +5490,7 @@ module Simple = struct
       ~decompose:__handler__decompose
       ~decompose_full:__handler__decompose_full
       ~typecheck:__handler__typecheck
+      ~get_decl:__handler__get_decl
       ~oneshot:__handler__oneshot
       () : _ Server.t =
       { Server.
@@ -5246,6 +5509,7 @@ module Simple = struct
            (__handler__decompose decompose);
            (__handler__decompose_full decompose_full);
            (__handler__typecheck typecheck);
+           (__handler__get_decl get_decl);
            (__handler__oneshot oneshot);
         ];
       }
