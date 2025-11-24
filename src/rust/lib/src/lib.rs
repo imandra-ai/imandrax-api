@@ -410,7 +410,11 @@ pub enum CommonFo_patternView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
   FO_const(&'a Const<'a>),
   FO_var(&'a CommonVarT_poly<'a,V_tyreg_poly_ty>),
   FO_app(&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,&'a [V_tyreg_poly_t]),
-  FO_cstor(Option<&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>>,&'a [V_tyreg_poly_t]),
+  FO_cstor {
+    c: Option<&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>>,
+    args: &'a [V_tyreg_poly_t],
+    labels: Option<&'a [&'a Uid<'a>]>,
+  },
   FO_destruct {
     c: Option<&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>>,
     i: BigInt,
@@ -658,32 +662,33 @@ pub enum CommonDeclT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Verify(&'a CommonVerifyT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
 }
 
-// clique 
-
-// clique 
+// clique Imandrax_api_common.Db_op.t_poly
+#[derive(Debug, Clone)]
+pub enum CommonDb_opT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
+  Op_enable(&'a [&'a Uid<'a>]),
+  Op_disable(&'a [&'a Uid<'a>]),
+  Op_add_decls(&'a [&'a CommonDeclT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>]),
+  Op_add_rw(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a CommonRewrite_ruleT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Op_add_fc_trigger(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a CommonTriggerT_poly<'a,V_tyreg_poly_ty>),
+  Op_add_elim(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a CommonElimination_ruleT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Op_add_gen_trigger(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a CommonTriggerT_poly<'a,V_tyreg_poly_ty>),
+  Op_add_count_fun(&'a Uid<'a>,&'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Op_set_admission(&'a Uid<'a>,&'a CommonAdmission<'a>),
+  Op_set_thm_as_rw(&'a Uid<'a>,&'a [&'a CommonRewrite_ruleT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>]),
+  Op_set_thm_as_fc(&'a Uid<'a>,&'a [&'a CommonInstantiation_ruleT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>]),
+  Op_set_thm_as_elim(&'a Uid<'a>,&'a [&'a CommonElimination_ruleT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>]),
+  Op_set_thm_as_gen(&'a Uid<'a>,&'a CommonInstantiation_ruleT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Op_add_instantiation_rule(&'a CommonInstantiation_ruleT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
+  Op_add_rule_spec_fc_triggers(&'a Uid<'a>,&'a [&'a CommonTriggerT_poly<'a,V_tyreg_poly_ty>]),
+  Op_add_rule_spec_rw(&'a Uid<'a>,&'a [&'a CommonRewrite_ruleT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>]),
+}
 
 // clique 
 
 // clique Imandrax_api_common.Db_ser.t_poly
 #[derive(Debug, Clone)]
 pub struct CommonDb_serT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
-  pub cname_decls: &'a UidSet<'a>,
-  pub local_tys: &'a [&'a Ty_viewDef_poly<'a,V_tyreg_poly_ty>],
-  pub local_funs: &'a [&'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>],
-  pub rw_rules: &'a [(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub inst_rules: &'a [(&'a Uid<'a>,&'a Ca_storeCa_ptrRaw<'a>)],
-  pub rule_spec_fc: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub rule_spec_rw_rules: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub fc: &'a [(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub elim: &'a [(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub gen: &'a [(&'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub thm_as_rw: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub thm_as_fc: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub thm_as_elim: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub thm_as_gen: &'a [(&'a Uid<'a>,&'a [&'a Ca_storeCa_ptrRaw<'a>])],
-  pub admission: &'a [(&'a Uid<'a>,&'a Ca_storeCa_ptrRaw<'a>)],
-  pub count_funs_of_ty: &'a [(&'a Uid<'a>,&'a Uid<'a>)],
-  pub disabled: &'a UidSet<'a>,
+  pub ops: &'a [&'a Ca_storeCa_ptrRaw<'a>],
 }
 
 
@@ -764,6 +769,7 @@ pub enum MirTermView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
     cases: &'a [(&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,V_tyreg_poly_t)],
     default: Option<V_tyreg_poly_t>,
   },
+  Sequence(&'a [V_tyreg_poly_t],V_tyreg_poly_t),
 }
 
 // clique 
