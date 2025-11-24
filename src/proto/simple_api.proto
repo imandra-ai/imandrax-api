@@ -386,17 +386,27 @@ message OneshotRes {
 message GetDeclReq {
   imandrax.session.Session session = 1;
 
-  // name of the desired definition
-  string name = 2;
+  // names of the desired definitions
+  repeated string name = 2;
 
   // if true, include string representation
   bool str = 10;
 }
 
-message GetDeclRes {
+message DeclWithName {
+  string name = 1;
+
   // artifact with the decl in it
-  Art artifact = 1;
+  Art artifact = 2;
 
   // included if `str` was true
-  optional string str = 2;
+  optional string str = 3;
+}
+
+message GetDeclRes {
+  // decls that were found
+  repeated DeclWithName decls = 1;
+
+  // decls that were not found
+  repeated string not_found = 2;
 }
