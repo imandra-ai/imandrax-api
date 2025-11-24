@@ -260,16 +260,22 @@ type oneshot_res = {
 }
 
 type get_decl_req = {
-  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable session : Session.session option;
-  mutable name : string;
+  mutable name : string list;
   mutable str : bool;
 }
 
-type get_decl_res = {
-  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+type decl_with_name = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable name : string;
   mutable artifact : Artmsg.art option;
   mutable str : string;
+}
+
+type get_decl_res = {
+  mutable decls : decl_with_name list;
+  mutable not_found : string list;
 }
 
 let default_session_create_req (): session_create_req =
@@ -539,15 +545,22 @@ let default_get_decl_req (): get_decl_req =
 {
   _presence=Pbrt.Bitfield.empty;
   session=None;
-  name="";
+  name=[];
   str=false;
+}
+
+let default_decl_with_name (): decl_with_name =
+{
+  _presence=Pbrt.Bitfield.empty;
+  name="";
+  artifact=None;
+  str="";
 }
 
 let default_get_decl_res (): get_decl_res =
 {
-  _presence=Pbrt.Bitfield.empty;
-  artifact=None;
-  str="";
+  decls=[];
+  not_found=[];
 }
 
 
@@ -1446,57 +1459,79 @@ let make_oneshot_res
   oneshot_res_set_detailed_results _res detailed_results;
   _res
 
-let[@inline] get_decl_req_has_name (self:get_decl_req) : bool = (Pbrt.Bitfield.get self._presence 0)
-let[@inline] get_decl_req_has_str (self:get_decl_req) : bool = (Pbrt.Bitfield.get self._presence 1)
+let[@inline] get_decl_req_has_str (self:get_decl_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 
 let[@inline] get_decl_req_set_session (self:get_decl_req) (x:Session.session) : unit =
   self.session <- Some x
-let[@inline] get_decl_req_set_name (self:get_decl_req) (x:string) : unit =
-  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.name <- x
+let[@inline] get_decl_req_set_name (self:get_decl_req) (x:string list) : unit =
+  self.name <- x
 let[@inline] get_decl_req_set_str (self:get_decl_req) (x:bool) : unit =
-  self._presence <- (Pbrt.Bitfield.set self._presence 1); self.str <- x
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.str <- x
 
 let copy_get_decl_req (self:get_decl_req) : get_decl_req =
   { self with session = self.session }
 
 let make_get_decl_req 
   ?(session:Session.session option)
-  ?(name:string option)
+  ?(name=[])
   ?(str:bool option)
   () : get_decl_req  =
   let _res = default_get_decl_req () in
   (match session with
   | None -> ()
   | Some v -> get_decl_req_set_session _res v);
-  (match name with
-  | None -> ()
-  | Some v -> get_decl_req_set_name _res v);
+  get_decl_req_set_name _res name;
   (match str with
   | None -> ()
   | Some v -> get_decl_req_set_str _res v);
   _res
 
-let[@inline] get_decl_res_has_str (self:get_decl_res) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] decl_with_name_has_name (self:decl_with_name) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] decl_with_name_has_str (self:decl_with_name) : bool = (Pbrt.Bitfield.get self._presence 1)
 
-let[@inline] get_decl_res_set_artifact (self:get_decl_res) (x:Artmsg.art) : unit =
+let[@inline] decl_with_name_set_name (self:decl_with_name) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.name <- x
+let[@inline] decl_with_name_set_artifact (self:decl_with_name) (x:Artmsg.art) : unit =
   self.artifact <- Some x
-let[@inline] get_decl_res_set_str (self:get_decl_res) (x:string) : unit =
-  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.str <- x
+let[@inline] decl_with_name_set_str (self:decl_with_name) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 1); self.str <- x
 
-let copy_get_decl_res (self:get_decl_res) : get_decl_res =
-  { self with artifact = self.artifact }
+let copy_decl_with_name (self:decl_with_name) : decl_with_name =
+  { self with name = self.name }
 
-let make_get_decl_res 
+let make_decl_with_name 
+  ?(name:string option)
   ?(artifact:Artmsg.art option)
   ?(str:string option)
-  () : get_decl_res  =
-  let _res = default_get_decl_res () in
+  () : decl_with_name  =
+  let _res = default_decl_with_name () in
+  (match name with
+  | None -> ()
+  | Some v -> decl_with_name_set_name _res v);
   (match artifact with
   | None -> ()
-  | Some v -> get_decl_res_set_artifact _res v);
+  | Some v -> decl_with_name_set_artifact _res v);
   (match str with
   | None -> ()
-  | Some v -> get_decl_res_set_str _res v);
+  | Some v -> decl_with_name_set_str _res v);
+  _res
+
+
+let[@inline] get_decl_res_set_decls (self:get_decl_res) (x:decl_with_name list) : unit =
+  self.decls <- x
+let[@inline] get_decl_res_set_not_found (self:get_decl_res) (x:string list) : unit =
+  self.not_found <- x
+
+let copy_get_decl_res (self:get_decl_res) : get_decl_res =
+  { self with decls = self.decls }
+
+let make_get_decl_res 
+  ?(decls=[])
+  ?(not_found=[])
+  () : get_decl_res  =
+  let _res = default_get_decl_res () in
+  get_decl_res_set_decls _res decls;
+  get_decl_res_set_not_found _res not_found;
   _res
 
 [@@@ocaml.warning "-23-27-30-39"]
@@ -1819,15 +1854,23 @@ let rec pp_oneshot_res fmt (v:oneshot_res) =
 let rec pp_get_decl_req fmt (v:get_decl_req) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
-    Pbrt.Pp.pp_record_field ~absent:(not (get_decl_req_has_name v)) ~first:false "name" Pbrt.Pp.pp_string fmt v.name;
+    Pbrt.Pp.pp_record_field ~first:false "name" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.name;
     Pbrt.Pp.pp_record_field ~absent:(not (get_decl_req_has_str v)) ~first:false "str" Pbrt.Pp.pp_bool fmt v.str;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_decl_with_name fmt (v:decl_with_name) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~absent:(not (decl_with_name_has_name v)) ~first:true "name" Pbrt.Pp.pp_string fmt v.name;
+    Pbrt.Pp.pp_record_field ~first:false "artifact" (Pbrt.Pp.pp_option Artmsg.pp_art) fmt v.artifact;
+    Pbrt.Pp.pp_record_field ~absent:(not (decl_with_name_has_str v)) ~first:false "str" Pbrt.Pp.pp_string fmt v.str;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
 let rec pp_get_decl_res fmt (v:get_decl_res) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "artifact" (Pbrt.Pp.pp_option Artmsg.pp_art) fmt v.artifact;
-    Pbrt.Pp.pp_record_field ~absent:(not (get_decl_res_has_str v)) ~first:false "str" Pbrt.Pp.pp_string fmt v.str;
+    Pbrt.Pp.pp_record_field ~first:true "decls" (Pbrt.Pp.pp_list pp_decl_with_name) fmt v.decls;
+    Pbrt.Pp.pp_record_field ~first:false "not_found" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.not_found;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -2514,27 +2557,42 @@ let rec encode_pb_get_decl_req (v:get_decl_req) encoder =
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | None -> ();
   end;
-  if get_decl_req_has_name v then (
-    Pbrt.Encoder.string v.name encoder;
+  Pbrt.List_util.rev_iter_with (fun x encoder ->
+    Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
-  );
+  ) v.name encoder;
   if get_decl_req_has_str v then (
     Pbrt.Encoder.bool v.str encoder;
     Pbrt.Encoder.key 10 Pbrt.Varint encoder; 
   );
   ()
 
-let rec encode_pb_get_decl_res (v:get_decl_res) encoder = 
+let rec encode_pb_decl_with_name (v:decl_with_name) encoder = 
+  if decl_with_name_has_name v then (
+    Pbrt.Encoder.string v.name encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  );
   begin match v.artifact with
   | Some x -> 
     Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   | None -> ();
   end;
-  if get_decl_res_has_str v then (
+  if decl_with_name_has_str v then (
     Pbrt.Encoder.string v.str encoder;
-    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
   );
+  ()
+
+let rec encode_pb_get_decl_res (v:get_decl_res) encoder = 
+  Pbrt.List_util.rev_iter_with (fun x encoder ->
+    Pbrt.Encoder.nested encode_pb_decl_with_name x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  ) v.decls encoder;
+  Pbrt.List_util.rev_iter_with (fun x encoder ->
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  ) v.not_found encoder;
   ()
 
 [@@@ocaml.warning "-23-27-30-39"]
@@ -3591,6 +3649,8 @@ let rec decode_pb_get_decl_req d =
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
+      (* put lists in the correct order *)
+      get_decl_req_set_name v (List.rev v.name);
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
       get_decl_req_set_session v (Session.decode_pb_session (Pbrt.Decoder.nested d));
@@ -3598,7 +3658,7 @@ let rec decode_pb_get_decl_req d =
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "get_decl_req" 1 pk
     | Some (2, Pbrt.Bytes) -> begin
-      get_decl_req_set_name v (Pbrt.Decoder.string d);
+      get_decl_req_set_name v ((Pbrt.Decoder.string d) :: v.name);
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "get_decl_req" 2 pk
@@ -3611,20 +3671,49 @@ let rec decode_pb_get_decl_req d =
   done;
   (v : get_decl_req)
 
-let rec decode_pb_get_decl_res d =
-  let v = default_get_decl_res () in
+let rec decode_pb_decl_with_name d =
+  let v = default_decl_with_name () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      get_decl_res_set_artifact v (Artmsg.decode_pb_art (Pbrt.Decoder.nested d));
+      decl_with_name_set_name v (Pbrt.Decoder.string d);
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "decl_with_name" 1 pk
+    | Some (2, Pbrt.Bytes) -> begin
+      decl_with_name_set_artifact v (Artmsg.decode_pb_art (Pbrt.Decoder.nested d));
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "decl_with_name" 2 pk
+    | Some (3, Pbrt.Bytes) -> begin
+      decl_with_name_set_str v (Pbrt.Decoder.string d);
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "decl_with_name" 3 pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  (v : decl_with_name)
+
+let rec decode_pb_get_decl_res d =
+  let v = default_get_decl_res () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      (* put lists in the correct order *)
+      get_decl_res_set_not_found v (List.rev v.not_found);
+      get_decl_res_set_decls v (List.rev v.decls);
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      get_decl_res_set_decls v ((decode_pb_decl_with_name (Pbrt.Decoder.nested d)) :: v.decls);
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "get_decl_res" 1 pk
     | Some (2, Pbrt.Bytes) -> begin
-      get_decl_res_set_str v (Pbrt.Decoder.string d);
+      get_decl_res_set_not_found v ((Pbrt.Decoder.string d) :: v.not_found);
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "get_decl_res" 2 pk
@@ -4145,21 +4234,37 @@ let rec encode_json_get_decl_req (v:get_decl_req) =
   assoc := (match v.session with
     | None -> !assoc
     | Some v -> ("session", Session.encode_json_session v) :: !assoc);
-  if get_decl_req_has_name v then (
-    assoc := ("name", Pbrt_yojson.make_string v.name) :: !assoc;
+  assoc := (
+    let l = v.name |> List.map Pbrt_yojson.make_string in
+    ("name", `List l) :: !assoc 
   );
   if get_decl_req_has_str v then (
     assoc := ("str", Pbrt_yojson.make_bool v.str) :: !assoc;
   );
   `Assoc !assoc
 
-let rec encode_json_get_decl_res (v:get_decl_res) = 
+let rec encode_json_decl_with_name (v:decl_with_name) = 
   let assoc = ref [] in
+  if decl_with_name_has_name v then (
+    assoc := ("name", Pbrt_yojson.make_string v.name) :: !assoc;
+  );
   assoc := (match v.artifact with
     | None -> !assoc
     | Some v -> ("artifact", Artmsg.encode_json_art v) :: !assoc);
-  if get_decl_res_has_str v then (
+  if decl_with_name_has_str v then (
     assoc := ("str", Pbrt_yojson.make_string v.str) :: !assoc;
+  );
+  `Assoc !assoc
+
+let rec encode_json_get_decl_res (v:get_decl_res) = 
+  let assoc = ref [] in
+  assoc := (
+    let l = v.decls |> List.map encode_json_decl_with_name in
+    ("decls", `List l) :: !assoc 
+  );
+  assoc := (
+    let l = v.not_found |> List.map Pbrt_yojson.make_string in
+    ("notFound", `List l) :: !assoc 
   );
   `Assoc !assoc
 
@@ -5113,8 +5218,11 @@ let rec decode_json_get_decl_req d =
   List.iter (function 
     | ("session", json_value) -> 
       get_decl_req_set_session v (Session.decode_json_session json_value)
-    | ("name", json_value) -> 
-      get_decl_req_set_name v (Pbrt_yojson.string json_value "get_decl_req" "name")
+    | ("name", `List l) -> begin
+      get_decl_req_set_name v @@ List.map (function
+        | json_value -> Pbrt_yojson.string json_value "get_decl_req" "name"
+      ) l;
+    end
     | ("str", json_value) -> 
       get_decl_req_set_str v (Pbrt_yojson.bool json_value "get_decl_req" "str")
     
@@ -5127,6 +5235,29 @@ let rec decode_json_get_decl_req d =
     str = v.str;
   } : get_decl_req)
 
+let rec decode_json_decl_with_name d =
+  let v = default_decl_with_name () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("name", json_value) -> 
+      decl_with_name_set_name v (Pbrt_yojson.string json_value "decl_with_name" "name")
+    | ("artifact", json_value) -> 
+      decl_with_name_set_artifact v (Artmsg.decode_json_art json_value)
+    | ("str", json_value) -> 
+      decl_with_name_set_str v (Pbrt_yojson.string json_value "decl_with_name" "str")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    _presence = v._presence;
+    name = v.name;
+    artifact = v.artifact;
+    str = v.str;
+  } : decl_with_name)
+
 let rec decode_json_get_decl_res d =
   let v = default_get_decl_res () in
   let assoc = match d with
@@ -5134,17 +5265,22 @@ let rec decode_json_get_decl_res d =
     | _ -> assert(false)
   in
   List.iter (function 
-    | ("artifact", json_value) -> 
-      get_decl_res_set_artifact v (Artmsg.decode_json_art json_value)
-    | ("str", json_value) -> 
-      get_decl_res_set_str v (Pbrt_yojson.string json_value "get_decl_res" "str")
+    | ("decls", `List l) -> begin
+      get_decl_res_set_decls v @@ List.map (function
+        | json_value -> (decode_json_decl_with_name json_value)
+      ) l;
+    end
+    | ("notFound", `List l) -> begin
+      get_decl_res_set_not_found v @@ List.map (function
+        | json_value -> Pbrt_yojson.string json_value "get_decl_res" "not_found"
+      ) l;
+    end
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
-    _presence = v._presence;
-    artifact = v.artifact;
-    str = v.str;
+    decls = v.decls;
+    not_found = v.not_found;
   } : get_decl_res)
 
 module Simple = struct

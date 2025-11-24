@@ -267,16 +267,22 @@ type oneshot_res = private {
 }
 
 type get_decl_req = private {
-  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable session : Session.session option;
-  mutable name : string;
+  mutable name : string list;
   mutable str : bool;
 }
 
-type get_decl_res = private {
-  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+type decl_with_name = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable name : string;
   mutable artifact : Artmsg.art option;
   mutable str : string;
+}
+
+type get_decl_res = private {
+  mutable decls : decl_with_name list;
+  mutable not_found : string list;
 }
 
 
@@ -407,6 +413,9 @@ val default_oneshot_res : unit -> oneshot_res
 
 val default_get_decl_req : unit -> get_decl_req 
 (** [default_get_decl_req ()] is a new empty value for type [get_decl_req] *)
+
+val default_decl_with_name : unit -> decl_with_name 
+(** [default_decl_with_name ()] is a new empty value for type [decl_with_name] *)
 
 val default_get_decl_res : unit -> get_decl_res 
 (** [default_get_decl_res ()] is a new empty value for type [get_decl_res] *)
@@ -1145,7 +1154,7 @@ val oneshot_res_set_detailed_results : oneshot_res -> string list -> unit
 
 val make_get_decl_req : 
   ?session:Session.session ->
-  ?name:string ->
+  ?name:string list ->
   ?str:bool ->
   unit ->
   get_decl_req
@@ -1156,10 +1165,7 @@ val copy_get_decl_req : get_decl_req -> get_decl_req
 val get_decl_req_set_session : get_decl_req -> Session.session -> unit
   (** set field session in get_decl_req *)
 
-val get_decl_req_has_name : get_decl_req -> bool
-  (** presence of field "name" in [get_decl_req] *)
-
-val get_decl_req_set_name : get_decl_req -> string -> unit
+val get_decl_req_set_name : get_decl_req -> string list -> unit
   (** set field name in get_decl_req *)
 
 val get_decl_req_has_str : get_decl_req -> bool
@@ -1168,23 +1174,45 @@ val get_decl_req_has_str : get_decl_req -> bool
 val get_decl_req_set_str : get_decl_req -> bool -> unit
   (** set field str in get_decl_req *)
 
-val make_get_decl_res : 
+val make_decl_with_name : 
+  ?name:string ->
   ?artifact:Artmsg.art ->
   ?str:string ->
+  unit ->
+  decl_with_name
+(** [make_decl_with_name … ()] is a builder for type [decl_with_name] *)
+
+val copy_decl_with_name : decl_with_name -> decl_with_name
+
+val decl_with_name_has_name : decl_with_name -> bool
+  (** presence of field "name" in [decl_with_name] *)
+
+val decl_with_name_set_name : decl_with_name -> string -> unit
+  (** set field name in decl_with_name *)
+
+val decl_with_name_set_artifact : decl_with_name -> Artmsg.art -> unit
+  (** set field artifact in decl_with_name *)
+
+val decl_with_name_has_str : decl_with_name -> bool
+  (** presence of field "str" in [decl_with_name] *)
+
+val decl_with_name_set_str : decl_with_name -> string -> unit
+  (** set field str in decl_with_name *)
+
+val make_get_decl_res : 
+  ?decls:decl_with_name list ->
+  ?not_found:string list ->
   unit ->
   get_decl_res
 (** [make_get_decl_res … ()] is a builder for type [get_decl_res] *)
 
 val copy_get_decl_res : get_decl_res -> get_decl_res
 
-val get_decl_res_set_artifact : get_decl_res -> Artmsg.art -> unit
-  (** set field artifact in get_decl_res *)
+val get_decl_res_set_decls : get_decl_res -> decl_with_name list -> unit
+  (** set field decls in get_decl_res *)
 
-val get_decl_res_has_str : get_decl_res -> bool
-  (** presence of field "str" in [get_decl_res] *)
-
-val get_decl_res_set_str : get_decl_res -> string -> unit
-  (** set field str in get_decl_res *)
+val get_decl_res_set_not_found : get_decl_res -> string list -> unit
+  (** set field not_found in get_decl_res *)
 
 
 (** {2 Formatters} *)
@@ -1314,6 +1342,9 @@ val pp_oneshot_res : Format.formatter -> oneshot_res -> unit
 
 val pp_get_decl_req : Format.formatter -> get_decl_req -> unit 
 (** [pp_get_decl_req v] formats v *)
+
+val pp_decl_with_name : Format.formatter -> decl_with_name -> unit 
+(** [pp_decl_with_name v] formats v *)
 
 val pp_get_decl_res : Format.formatter -> get_decl_res -> unit 
 (** [pp_get_decl_res v] formats v *)
@@ -1447,6 +1478,9 @@ val encode_pb_oneshot_res : oneshot_res -> Pbrt.Encoder.t -> unit
 val encode_pb_get_decl_req : get_decl_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_get_decl_req v encoder] encodes [v] with the given [encoder] *)
 
+val encode_pb_decl_with_name : decl_with_name -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decl_with_name v encoder] encodes [v] with the given [encoder] *)
+
 val encode_pb_get_decl_res : get_decl_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_get_decl_res v encoder] encodes [v] with the given [encoder] *)
 
@@ -1578,6 +1612,9 @@ val decode_pb_oneshot_res : Pbrt.Decoder.t -> oneshot_res
 
 val decode_pb_get_decl_req : Pbrt.Decoder.t -> get_decl_req
 (** [decode_pb_get_decl_req decoder] decodes a [get_decl_req] binary value from [decoder] *)
+
+val decode_pb_decl_with_name : Pbrt.Decoder.t -> decl_with_name
+(** [decode_pb_decl_with_name decoder] decodes a [decl_with_name] binary value from [decoder] *)
 
 val decode_pb_get_decl_res : Pbrt.Decoder.t -> get_decl_res
 (** [decode_pb_get_decl_res decoder] decodes a [get_decl_res] binary value from [decoder] *)
@@ -1711,6 +1748,9 @@ val encode_json_oneshot_res : oneshot_res -> Yojson.Basic.t
 val encode_json_get_decl_req : get_decl_req -> Yojson.Basic.t
 (** [encode_json_get_decl_req v encoder] encodes [v] to to json *)
 
+val encode_json_decl_with_name : decl_with_name -> Yojson.Basic.t
+(** [encode_json_decl_with_name v encoder] encodes [v] to to json *)
+
 val encode_json_get_decl_res : get_decl_res -> Yojson.Basic.t
 (** [encode_json_get_decl_res v encoder] encodes [v] to to json *)
 
@@ -1842,6 +1882,9 @@ val decode_json_oneshot_res : Yojson.Basic.t -> oneshot_res
 
 val decode_json_get_decl_req : Yojson.Basic.t -> get_decl_req
 (** [decode_json_get_decl_req decoder] decodes a [get_decl_req] value from [decoder] *)
+
+val decode_json_decl_with_name : Yojson.Basic.t -> decl_with_name
+(** [decode_json_decl_with_name decoder] decodes a [decl_with_name] value from [decoder] *)
 
 val decode_json_get_decl_res : Yojson.Basic.t -> get_decl_res
 (** [decode_json_get_decl_res decoder] decodes a [get_decl_res] value from [decoder] *)
