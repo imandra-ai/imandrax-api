@@ -389,14 +389,24 @@ class GetDeclReq(_message.Message):
     NAME_FIELD_NUMBER: _ClassVar[int]
     STR_FIELD_NUMBER: _ClassVar[int]
     session: _session_pb2.Session
-    name: str
+    name: _containers.RepeatedScalarFieldContainer[str]
     str: bool
-    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., str: bool = ...) -> None: ...
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[_Iterable[str]] = ..., str: bool = ...) -> None: ...
 
-class GetDeclRes(_message.Message):
-    __slots__ = ("artifact", "str")
+class DeclWithName(_message.Message):
+    __slots__ = ("name", "artifact", "str")
+    NAME_FIELD_NUMBER: _ClassVar[int]
     ARTIFACT_FIELD_NUMBER: _ClassVar[int]
     STR_FIELD_NUMBER: _ClassVar[int]
+    name: str
     artifact: _artmsg_pb2.Art
     str: str
-    def __init__(self, artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ..., str: _Optional[str] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ..., str: _Optional[str] = ...) -> None: ...
+
+class GetDeclRes(_message.Message):
+    __slots__ = ("decls", "not_found")
+    DECLS_FIELD_NUMBER: _ClassVar[int]
+    NOT_FOUND_FIELD_NUMBER: _ClassVar[int]
+    decls: _containers.RepeatedCompositeFieldContainer[DeclWithName]
+    not_found: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, decls: _Optional[_Iterable[_Union[DeclWithName, _Mapping]]] = ..., not_found: _Optional[_Iterable[str]] = ...) -> None: ...
