@@ -145,11 +145,11 @@ class BaseClient:
 
     def get_decls(
         self, names: list[str], timeout: Optional[float] = None
-    ) -> simple_api_pb2.GetDeclRes:
+    ) -> simple_api_pb2.GetDeclsRes:
         timeout = timeout or self._timeout
-        return self._client.get_decl(
+        return self._client.get_decls(
             ctx=self.mk_context(),
-            request=simple_api_pb2.GetDeclReq(session=self._sesh, name=names),
+            request=simple_api_pb2.GetDeclsReq(session=self._sesh, name=names),
             timeout=timeout,
         )
 
