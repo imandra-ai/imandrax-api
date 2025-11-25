@@ -34,6 +34,8 @@ type _ kind =
 (** Result of decomposing a function *)
 | Report : Imandrax_api_report.Report.t kind
 (** Report from some task *)
+| Decl : Imandrax_api_mir.Decl.t kind
+(** Toplevel declaration *)
 
 
 let kind_to_string : type a. a kind -> string = function
@@ -49,6 +51,7 @@ let kind_to_string : type a. a kind -> string = function
   | Decomp_task -> "decomp_task"
   | Decomp_res -> "decomp_res"
   | Report -> "report"
+  | Decl -> "mir.decl"
 
 
 (** A type erased kind. *)
@@ -69,6 +72,7 @@ let kind_of_string : string -> (any_kind, string) result = function
   | "decomp_task" -> Ok (Any_kind Decomp_task)
   | "decomp_res" -> Ok (Any_kind Decomp_res)
   | "report" -> Ok (Any_kind Report)
+  | "mir.decl" -> Ok (Any_kind Decl)
   | s -> Error (spf {|Unknown artifact kind: %S|} s)
 
 
@@ -84,6 +88,7 @@ let is_fun_decomp : string -> bool = fun str -> str = "mir.fun_decomp"
 let is_decomp_task : string -> bool = fun str -> str = "decomp_task"
 let is_decomp_res : string -> bool = fun str -> str = "decomp_res"
 let is_report : string -> bool = fun str -> str = "report"
+let is_decl : string -> bool = fun str -> str = "mir.decl"
 
 type string_as_bytes = (string[@use_bytes]) [@@deriving twine]
 type storage = (Imandrax_api_ca_store.Key.t * string_as_bytes) list
@@ -176,6 +181,12 @@ let as_report : t -> Imandrax_api_report.Report.t option = function
   | Artifact {kind=Report; data=x; _} -> Some x
   | _ -> None
 
+let[@inline] make_decl ?(storage=[]) : Imandrax_api_mir.Decl.t -> t = fun x -> make ~storage ~kind:Decl x
+
+let as_decl : t -> Imandrax_api_mir.Decl.t option = function
+  | Artifact {kind=Decl; data=x; _} -> Some x
+  | _ -> None
+
 let to_twine : t Imandrakit_twine.Encode.encoder = fun enc (Artifact {kind; data=x; storage=_}) -> match kind with
 |  Term -> Imandrax_api_mir.Term.to_twine enc x
 |  Type -> Imandrax_api_mir.Type.to_twine enc x
@@ -189,6 +200,7 @@ let to_twine : t Imandrakit_twine.Encode.encoder = fun enc (Artifact {kind; data
 |  Decomp_task -> Imandrax_api_tasks.Decomp_task.Mir.to_twine enc x
 |  Decomp_res -> Imandrax_api_tasks.Decomp_res.Shallow.to_twine enc x
 |  Report -> Imandrax_api_report.Report.to_twine enc x
+|  Decl -> Imandrax_api_mir.Decl.to_twine enc x
 
 let term_of_twine : Imandrax_api_mir.Term.t Imandrakit_twine.Decode.decoder = Imandrax_api_mir.Term.of_twine
 
@@ -214,6 +226,8 @@ let decomp_res_of_twine : Imandrax_api_tasks.Decomp_res.Shallow.t Imandrakit_twi
 
 let report_of_twine : Imandrax_api_report.Report.t Imandrakit_twine.Decode.decoder = Imandrax_api_report.Report.of_twine
 
+let decl_of_twine : Imandrax_api_mir.Decl.t Imandrakit_twine.Decode.decoder = Imandrax_api_mir.Decl.of_twine
+
 let of_twine : type a. a kind -> a Imandrakit_twine.Decode.decoder = function
 | Term -> Imandrax_api_mir.Term.of_twine
 | Type -> Imandrax_api_mir.Type.of_twine
@@ -227,6 +241,7 @@ let of_twine : type a. a kind -> a Imandrakit_twine.Decode.decoder = function
 | Decomp_task -> Imandrax_api_tasks.Decomp_task.Mir.of_twine
 | Decomp_res -> Imandrax_api_tasks.Decomp_res.Shallow.of_twine
 | Report -> Imandrax_api_report.Report.of_twine
+| Decl -> Imandrax_api_mir.Decl.of_twine
 
 let pp out (Artifact {kind;data=x;storage=_}) : unit = match kind with
 | Term -> Imandrax_api_mir.Term.pp out x
@@ -241,4 +256,5 @@ let pp out (Artifact {kind;data=x;storage=_}) : unit = match kind with
 | Decomp_task -> Imandrax_api_tasks.Decomp_task.Mir.pp out x
 | Decomp_res -> Imandrax_api_tasks.Decomp_res.Shallow.pp out x
 | Report -> Imandrax_api_report.Report.pp out x
+| Decl -> Imandrax_api_mir.Decl.pp out x
 

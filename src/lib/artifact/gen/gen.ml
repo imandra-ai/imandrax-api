@@ -62,6 +62,8 @@ let all : kind list =
       ~docstring:"Result of decomposing a function";
     mk "Report" "Imandrax_api_report.Report.t" ~tag:"report"
       ~docstring:"Report from some task";
+    mk "Decl" "Imandrax_api_mir.Decl.t" ~tag:"mir.decl"
+      ~docstring:"Toplevel declaration";
   ]
 
 let prelude =
