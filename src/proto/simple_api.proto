@@ -39,7 +39,7 @@ service Simple {
 
   rpc typecheck(TypecheckReq) returns (TypecheckRes);
 
-  rpc get_decl(GetDeclReq) returns (GetDeclRes);
+  rpc get_decls(GetDeclsReq) returns (GetDeclsRes);
 
   // Sessionless, self contained request/response
   rpc oneshot(OneshotReq) returns (OneshotRes);
@@ -383,7 +383,7 @@ message OneshotRes {
   repeated string detailed_results = 10;
 }
 
-message GetDeclReq {
+message GetDeclsReq {
   imandrax.session.Session session = 1;
 
   // names of the desired definitions
@@ -403,7 +403,7 @@ message DeclWithName {
   optional string str = 3;
 }
 
-message GetDeclRes {
+message GetDeclsRes {
   // decls that were found
   repeated DeclWithName decls = 1;
 
