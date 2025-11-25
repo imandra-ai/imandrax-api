@@ -8,7 +8,7 @@ type ('term, 'ty) t_poly = {
   verify_minimize: 'term list;  (** arithmetic terms to minimize in models *)
   verify_by: ('ty Var.t_poly list * 'term) option;
 }
-[@@deriving twine, iter, map, show { with_path = false }]
+[@@deriving twine, iter, map, show { with_path = false }, typereg]
 (** A [verify (fun x y -> <formula using x,y>)] event, for nameless theorems. *)
 
 let name self = self.verify_link.f_name

@@ -28,6 +28,9 @@ print(x3)
 arts = c.list_artifacts(task2)
 print("arts:", arts)
 
+decl_f = c.get_decls(names=["f", "totally_unknown"])
+print("get_decls:", decl_f)
+
 art_show = c.get_artifact_zip(task2, kind="show")
 print(f'art show size={len(art_show.art_zip)}')
 

@@ -22,4 +22,4 @@ type ('term, 'ty) t_poly =
   | Op_add_rule_spec_fc_triggers of Imandrax_api.Uid.t * 'ty Trigger.t_poly list
   | Op_add_rule_spec_rw of
       Imandrax_api.Uid.t * ('term, 'ty) Rewrite_rule.t_poly list
-[@@deriving show { with_path = false }, twine, map, iter]
+[@@deriving show { with_path = false }, twine, map, iter, typereg]
