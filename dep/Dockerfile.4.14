@@ -1,6 +1,6 @@
 FROM ocaml/opam:debian-ocaml-4.14 AS base
 WORKDIR /build/
-RUN cd /home/opam/opam-repository; git fetch origin; git checkout 45f961713f04a0d83218c0eb2706131a40f96d54 -q; opam upd
+RUN cd /home/opam/opam-repository; git fetch origin; git checkout c80b5ac03487baaaf2f482adf2347e782d0b673c  -q; opam upd
 RUN sudo chown -R opam: /build/
 COPY --chown=opam ./src/ ./src/
 COPY --chown=opam ./vendor ./vendor
