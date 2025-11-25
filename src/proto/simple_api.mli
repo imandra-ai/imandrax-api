@@ -266,7 +266,7 @@ type oneshot_res = private {
   mutable detailed_results : string list;
 }
 
-type get_decl_req = private {
+type get_decls_req = private {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable session : Session.session option;
   mutable name : string list;
@@ -280,7 +280,7 @@ type decl_with_name = private {
   mutable str : string;
 }
 
-type get_decl_res = private {
+type get_decls_res = private {
   mutable decls : decl_with_name list;
   mutable not_found : string list;
 }
@@ -411,14 +411,14 @@ val default_oneshot_res_stats : unit -> oneshot_res_stats
 val default_oneshot_res : unit -> oneshot_res 
 (** [default_oneshot_res ()] is a new empty value for type [oneshot_res] *)
 
-val default_get_decl_req : unit -> get_decl_req 
-(** [default_get_decl_req ()] is a new empty value for type [get_decl_req] *)
+val default_get_decls_req : unit -> get_decls_req 
+(** [default_get_decls_req ()] is a new empty value for type [get_decls_req] *)
 
 val default_decl_with_name : unit -> decl_with_name 
 (** [default_decl_with_name ()] is a new empty value for type [decl_with_name] *)
 
-val default_get_decl_res : unit -> get_decl_res 
-(** [default_get_decl_res ()] is a new empty value for type [get_decl_res] *)
+val default_get_decls_res : unit -> get_decls_res 
+(** [default_get_decls_res ()] is a new empty value for type [get_decls_res] *)
 
 
 (** {2 Make functions} *)
@@ -1152,27 +1152,27 @@ val oneshot_res_set_stats : oneshot_res -> oneshot_res_stats -> unit
 val oneshot_res_set_detailed_results : oneshot_res -> string list -> unit
   (** set field detailed_results in oneshot_res *)
 
-val make_get_decl_req : 
+val make_get_decls_req : 
   ?session:Session.session ->
   ?name:string list ->
   ?str:bool ->
   unit ->
-  get_decl_req
-(** [make_get_decl_req … ()] is a builder for type [get_decl_req] *)
+  get_decls_req
+(** [make_get_decls_req … ()] is a builder for type [get_decls_req] *)
 
-val copy_get_decl_req : get_decl_req -> get_decl_req
+val copy_get_decls_req : get_decls_req -> get_decls_req
 
-val get_decl_req_set_session : get_decl_req -> Session.session -> unit
-  (** set field session in get_decl_req *)
+val get_decls_req_set_session : get_decls_req -> Session.session -> unit
+  (** set field session in get_decls_req *)
 
-val get_decl_req_set_name : get_decl_req -> string list -> unit
-  (** set field name in get_decl_req *)
+val get_decls_req_set_name : get_decls_req -> string list -> unit
+  (** set field name in get_decls_req *)
 
-val get_decl_req_has_str : get_decl_req -> bool
-  (** presence of field "str" in [get_decl_req] *)
+val get_decls_req_has_str : get_decls_req -> bool
+  (** presence of field "str" in [get_decls_req] *)
 
-val get_decl_req_set_str : get_decl_req -> bool -> unit
-  (** set field str in get_decl_req *)
+val get_decls_req_set_str : get_decls_req -> bool -> unit
+  (** set field str in get_decls_req *)
 
 val make_decl_with_name : 
   ?name:string ->
@@ -1199,20 +1199,20 @@ val decl_with_name_has_str : decl_with_name -> bool
 val decl_with_name_set_str : decl_with_name -> string -> unit
   (** set field str in decl_with_name *)
 
-val make_get_decl_res : 
+val make_get_decls_res : 
   ?decls:decl_with_name list ->
   ?not_found:string list ->
   unit ->
-  get_decl_res
-(** [make_get_decl_res … ()] is a builder for type [get_decl_res] *)
+  get_decls_res
+(** [make_get_decls_res … ()] is a builder for type [get_decls_res] *)
 
-val copy_get_decl_res : get_decl_res -> get_decl_res
+val copy_get_decls_res : get_decls_res -> get_decls_res
 
-val get_decl_res_set_decls : get_decl_res -> decl_with_name list -> unit
-  (** set field decls in get_decl_res *)
+val get_decls_res_set_decls : get_decls_res -> decl_with_name list -> unit
+  (** set field decls in get_decls_res *)
 
-val get_decl_res_set_not_found : get_decl_res -> string list -> unit
-  (** set field not_found in get_decl_res *)
+val get_decls_res_set_not_found : get_decls_res -> string list -> unit
+  (** set field not_found in get_decls_res *)
 
 
 (** {2 Formatters} *)
@@ -1340,14 +1340,14 @@ val pp_oneshot_res_stats : Format.formatter -> oneshot_res_stats -> unit
 val pp_oneshot_res : Format.formatter -> oneshot_res -> unit 
 (** [pp_oneshot_res v] formats v *)
 
-val pp_get_decl_req : Format.formatter -> get_decl_req -> unit 
-(** [pp_get_decl_req v] formats v *)
+val pp_get_decls_req : Format.formatter -> get_decls_req -> unit 
+(** [pp_get_decls_req v] formats v *)
 
 val pp_decl_with_name : Format.formatter -> decl_with_name -> unit 
 (** [pp_decl_with_name v] formats v *)
 
-val pp_get_decl_res : Format.formatter -> get_decl_res -> unit 
-(** [pp_get_decl_res v] formats v *)
+val pp_get_decls_res : Format.formatter -> get_decls_res -> unit 
+(** [pp_get_decls_res v] formats v *)
 
 
 (** {2 Protobuf Encoding} *)
@@ -1475,14 +1475,14 @@ val encode_pb_oneshot_res_stats : oneshot_res_stats -> Pbrt.Encoder.t -> unit
 val encode_pb_oneshot_res : oneshot_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_oneshot_res v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_get_decl_req : get_decl_req -> Pbrt.Encoder.t -> unit
-(** [encode_pb_get_decl_req v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_get_decls_req : get_decls_req -> Pbrt.Encoder.t -> unit
+(** [encode_pb_get_decls_req v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_decl_with_name : decl_with_name -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decl_with_name v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_get_decl_res : get_decl_res -> Pbrt.Encoder.t -> unit
-(** [encode_pb_get_decl_res v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_get_decls_res : get_decls_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_get_decls_res v encoder] encodes [v] with the given [encoder] *)
 
 
 (** {2 Protobuf Decoding} *)
@@ -1610,14 +1610,14 @@ val decode_pb_oneshot_res_stats : Pbrt.Decoder.t -> oneshot_res_stats
 val decode_pb_oneshot_res : Pbrt.Decoder.t -> oneshot_res
 (** [decode_pb_oneshot_res decoder] decodes a [oneshot_res] binary value from [decoder] *)
 
-val decode_pb_get_decl_req : Pbrt.Decoder.t -> get_decl_req
-(** [decode_pb_get_decl_req decoder] decodes a [get_decl_req] binary value from [decoder] *)
+val decode_pb_get_decls_req : Pbrt.Decoder.t -> get_decls_req
+(** [decode_pb_get_decls_req decoder] decodes a [get_decls_req] binary value from [decoder] *)
 
 val decode_pb_decl_with_name : Pbrt.Decoder.t -> decl_with_name
 (** [decode_pb_decl_with_name decoder] decodes a [decl_with_name] binary value from [decoder] *)
 
-val decode_pb_get_decl_res : Pbrt.Decoder.t -> get_decl_res
-(** [decode_pb_get_decl_res decoder] decodes a [get_decl_res] binary value from [decoder] *)
+val decode_pb_get_decls_res : Pbrt.Decoder.t -> get_decls_res
+(** [decode_pb_get_decls_res decoder] decodes a [get_decls_res] binary value from [decoder] *)
 
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -1745,14 +1745,14 @@ val encode_json_oneshot_res_stats : oneshot_res_stats -> Yojson.Basic.t
 val encode_json_oneshot_res : oneshot_res -> Yojson.Basic.t
 (** [encode_json_oneshot_res v encoder] encodes [v] to to json *)
 
-val encode_json_get_decl_req : get_decl_req -> Yojson.Basic.t
-(** [encode_json_get_decl_req v encoder] encodes [v] to to json *)
+val encode_json_get_decls_req : get_decls_req -> Yojson.Basic.t
+(** [encode_json_get_decls_req v encoder] encodes [v] to to json *)
 
 val encode_json_decl_with_name : decl_with_name -> Yojson.Basic.t
 (** [encode_json_decl_with_name v encoder] encodes [v] to to json *)
 
-val encode_json_get_decl_res : get_decl_res -> Yojson.Basic.t
-(** [encode_json_get_decl_res v encoder] encodes [v] to to json *)
+val encode_json_get_decls_res : get_decls_res -> Yojson.Basic.t
+(** [encode_json_get_decls_res v encoder] encodes [v] to to json *)
 
 
 (** {2 JSON Decoding} *)
@@ -1880,14 +1880,14 @@ val decode_json_oneshot_res_stats : Yojson.Basic.t -> oneshot_res_stats
 val decode_json_oneshot_res : Yojson.Basic.t -> oneshot_res
 (** [decode_json_oneshot_res decoder] decodes a [oneshot_res] value from [decoder] *)
 
-val decode_json_get_decl_req : Yojson.Basic.t -> get_decl_req
-(** [decode_json_get_decl_req decoder] decodes a [get_decl_req] value from [decoder] *)
+val decode_json_get_decls_req : Yojson.Basic.t -> get_decls_req
+(** [decode_json_get_decls_req decoder] decodes a [get_decls_req] value from [decoder] *)
 
 val decode_json_decl_with_name : Yojson.Basic.t -> decl_with_name
 (** [decode_json_decl_with_name decoder] decodes a [decl_with_name] value from [decoder] *)
 
-val decode_json_get_decl_res : Yojson.Basic.t -> get_decl_res
-(** [decode_json_get_decl_res decoder] decodes a [get_decl_res] value from [decoder] *)
+val decode_json_get_decls_res : Yojson.Basic.t -> get_decls_res
+(** [decode_json_get_decls_res decoder] decodes a [get_decls_res] value from [decoder] *)
 
 
 (** {2 Services} *)
@@ -1923,7 +1923,7 @@ module Simple : sig
     
     val typecheck : (typecheck_req, unary, typecheck_res, unary) Client.rpc
     
-    val get_decl : (get_decl_req, unary, get_decl_res, unary) Client.rpc
+    val get_decls : (get_decls_req, unary, get_decls_res, unary) Client.rpc
     
     val oneshot : (oneshot_req, unary, oneshot_res, unary) Client.rpc
   end
@@ -1943,7 +1943,7 @@ module Simple : sig
       decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
       decompose_full:((decompose_req_full, unary, decompose_res, unary) Server.rpc -> 'handler) ->
       typecheck:((typecheck_req, unary, typecheck_res, unary) Server.rpc -> 'handler) ->
-      get_decl:((get_decl_req, unary, get_decl_res, unary) Server.rpc -> 'handler) ->
+      get_decls:((get_decls_req, unary, get_decls_res, unary) Server.rpc -> 'handler) ->
       oneshot:((oneshot_req, unary, oneshot_res, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
     
@@ -1973,7 +1973,7 @@ module Simple : sig
     
     val typecheck : (typecheck_req,unary,typecheck_res,unary) Server.rpc
     
-    val get_decl : (get_decl_req,unary,get_decl_res,unary) Server.rpc
+    val get_decls : (get_decls_req,unary,get_decls_res,unary) Server.rpc
     
     val oneshot : (oneshot_req,unary,oneshot_res,unary) Server.rpc
   end

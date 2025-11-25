@@ -383,7 +383,7 @@ class OneshotRes(_message.Message):
     detailed_results: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, results: _Optional[_Iterable[str]] = ..., errors: _Optional[_Iterable[str]] = ..., stats: _Optional[_Union[OneshotRes.Stats, _Mapping]] = ..., detailed_results: _Optional[_Iterable[str]] = ...) -> None: ...
 
-class GetDeclReq(_message.Message):
+class GetDeclsReq(_message.Message):
     __slots__ = ("session", "name", "str")
     SESSION_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
@@ -403,7 +403,7 @@ class DeclWithName(_message.Message):
     str: str
     def __init__(self, name: _Optional[str] = ..., artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ..., str: _Optional[str] = ...) -> None: ...
 
-class GetDeclRes(_message.Message):
+class GetDeclsRes(_message.Message):
     __slots__ = ("decls", "not_found")
     DECLS_FIELD_NUMBER: _ClassVar[int]
     NOT_FOUND_FIELD_NUMBER: _ClassVar[int]

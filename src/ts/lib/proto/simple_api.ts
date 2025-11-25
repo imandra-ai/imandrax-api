@@ -370,7 +370,7 @@ export interface OneshotRes_Stats {
   time: number;
 }
 
-export interface GetDeclReq {
+export interface GetDeclsReq {
   session:
     | Session
     | undefined;
@@ -390,7 +390,7 @@ export interface DeclWithName {
   str?: string | undefined;
 }
 
-export interface GetDeclRes {
+export interface GetDeclsRes {
   /** decls that were found */
   decls: DeclWithName[];
   /** decls that were not found */
@@ -3848,12 +3848,12 @@ export const OneshotRes_Stats: MessageFns<OneshotRes_Stats> = {
   },
 };
 
-function createBaseGetDeclReq(): GetDeclReq {
+function createBaseGetDeclsReq(): GetDeclsReq {
   return { session: undefined, name: [], str: false };
 }
 
-export const GetDeclReq: MessageFns<GetDeclReq> = {
-  encode(message: GetDeclReq, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const GetDeclsReq: MessageFns<GetDeclsReq> = {
+  encode(message: GetDeclsReq, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.session !== undefined) {
       Session.encode(message.session, writer.uint32(10).fork()).join();
     }
@@ -3866,10 +3866,10 @@ export const GetDeclReq: MessageFns<GetDeclReq> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GetDeclReq {
+  decode(input: BinaryReader | Uint8Array, length?: number): GetDeclsReq {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetDeclReq();
+    const message = createBaseGetDeclsReq();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3906,7 +3906,7 @@ export const GetDeclReq: MessageFns<GetDeclReq> = {
     return message;
   },
 
-  fromJSON(object: any): GetDeclReq {
+  fromJSON(object: any): GetDeclsReq {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
       name: globalThis.Array.isArray(object?.name) ? object.name.map((e: any) => globalThis.String(e)) : [],
@@ -3914,7 +3914,7 @@ export const GetDeclReq: MessageFns<GetDeclReq> = {
     };
   },
 
-  toJSON(message: GetDeclReq): unknown {
+  toJSON(message: GetDeclsReq): unknown {
     const obj: any = {};
     if (message.session !== undefined) {
       obj.session = Session.toJSON(message.session);
@@ -3928,11 +3928,11 @@ export const GetDeclReq: MessageFns<GetDeclReq> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetDeclReq>, I>>(base?: I): GetDeclReq {
-    return GetDeclReq.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetDeclsReq>, I>>(base?: I): GetDeclsReq {
+    return GetDeclsReq.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetDeclReq>, I>>(object: I): GetDeclReq {
-    const message = createBaseGetDeclReq();
+  fromPartial<I extends Exact<DeepPartial<GetDeclsReq>, I>>(object: I): GetDeclsReq {
+    const message = createBaseGetDeclsReq();
     message.session = (object.session !== undefined && object.session !== null)
       ? Session.fromPartial(object.session)
       : undefined;
@@ -4036,12 +4036,12 @@ export const DeclWithName: MessageFns<DeclWithName> = {
   },
 };
 
-function createBaseGetDeclRes(): GetDeclRes {
+function createBaseGetDeclsRes(): GetDeclsRes {
   return { decls: [], notFound: [] };
 }
 
-export const GetDeclRes: MessageFns<GetDeclRes> = {
-  encode(message: GetDeclRes, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const GetDeclsRes: MessageFns<GetDeclsRes> = {
+  encode(message: GetDeclsRes, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.decls) {
       DeclWithName.encode(v!, writer.uint32(10).fork()).join();
     }
@@ -4051,10 +4051,10 @@ export const GetDeclRes: MessageFns<GetDeclRes> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GetDeclRes {
+  decode(input: BinaryReader | Uint8Array, length?: number): GetDeclsRes {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetDeclRes();
+    const message = createBaseGetDeclsRes();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -4083,14 +4083,14 @@ export const GetDeclRes: MessageFns<GetDeclRes> = {
     return message;
   },
 
-  fromJSON(object: any): GetDeclRes {
+  fromJSON(object: any): GetDeclsRes {
     return {
       decls: globalThis.Array.isArray(object?.decls) ? object.decls.map((e: any) => DeclWithName.fromJSON(e)) : [],
       notFound: globalThis.Array.isArray(object?.notFound) ? object.notFound.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
-  toJSON(message: GetDeclRes): unknown {
+  toJSON(message: GetDeclsRes): unknown {
     const obj: any = {};
     if (message.decls?.length) {
       obj.decls = message.decls.map((e) => DeclWithName.toJSON(e));
@@ -4101,11 +4101,11 @@ export const GetDeclRes: MessageFns<GetDeclRes> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetDeclRes>, I>>(base?: I): GetDeclRes {
-    return GetDeclRes.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetDeclsRes>, I>>(base?: I): GetDeclsRes {
+    return GetDeclsRes.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetDeclRes>, I>>(object: I): GetDeclRes {
-    const message = createBaseGetDeclRes();
+  fromPartial<I extends Exact<DeepPartial<GetDeclsRes>, I>>(object: I): GetDeclsRes {
+    const message = createBaseGetDeclsRes();
     message.decls = object.decls?.map((e) => DeclWithName.fromPartial(e)) || [];
     message.notFound = object.notFound?.map((e) => e) || [];
     return message;
@@ -4130,7 +4130,7 @@ export interface Simple {
   /** more expressive variant of DecomposeReq */
   decompose_full(request: DecomposeReqFull): Promise<DecomposeRes>;
   typecheck(request: TypecheckReq): Promise<TypecheckRes>;
-  get_decl(request: GetDeclReq): Promise<GetDeclRes>;
+  get_decls(request: GetDeclsReq): Promise<GetDeclsRes>;
   /** Sessionless, self contained request/response */
   oneshot(request: OneshotReq): Promise<OneshotRes>;
 }
@@ -4154,7 +4154,7 @@ export class SimpleClientImpl implements Simple {
     this.decompose = this.decompose.bind(this);
     this.decompose_full = this.decompose_full.bind(this);
     this.typecheck = this.typecheck.bind(this);
-    this.get_decl = this.get_decl.bind(this);
+    this.get_decls = this.get_decls.bind(this);
     this.oneshot = this.oneshot.bind(this);
   }
   status(request: Empty): Promise<StringMsg> {
@@ -4229,10 +4229,10 @@ export class SimpleClientImpl implements Simple {
     return promise.then((data) => TypecheckRes.decode(new BinaryReader(data)));
   }
 
-  get_decl(request: GetDeclReq): Promise<GetDeclRes> {
-    const data = GetDeclReq.encode(request).finish();
-    const promise = this.rpc.request(this.service, "get_decl", data);
-    return promise.then((data) => GetDeclRes.decode(new BinaryReader(data)));
+  get_decls(request: GetDeclsReq): Promise<GetDeclsRes> {
+    const data = GetDeclsReq.encode(request).finish();
+    const promise = this.rpc.request(this.service, "get_decls", data);
+    return promise.then((data) => GetDeclsRes.decode(new BinaryReader(data)));
   }
 
   oneshot(request: OneshotReq): Promise<OneshotRes> {

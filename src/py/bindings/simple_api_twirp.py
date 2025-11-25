@@ -124,12 +124,12 @@ class SimpleClient(TwirpClient):
 			**kwargs,
 		)
 
-	def get_decl(self, *args, ctx, request, **kwargs):
+	def get_decls(self, *args, ctx, request, **kwargs):
 		return self._make_request(
-			url=F"{self._server_path_prefix}/imandrax.simple.Simple/get_decl",
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/get_decls",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("imandrax.simple.GetDeclRes"),
+			response_obj=_sym_db.GetSymbol("imandrax.simple.GetDeclsRes"),
 			**kwargs,
 		)
 
@@ -254,12 +254,12 @@ if _async_available:
 				**kwargs,
 			)
 
-		async def get_decl(self, *, ctx, request, **kwargs):
+		async def get_decls(self, *, ctx, request, **kwargs):
 			return await self._make_request(
-				url=F"{self._server_path_prefix}/imandrax.simple.Simple/get_decl",
+				url=F"{self._server_path_prefix}/imandrax.simple.Simple/get_decls",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("imandrax.simple.GetDeclRes"),
+				response_obj=_sym_db.GetSymbol("imandrax.simple.GetDeclsRes"),
 				**kwargs,
 			)
 
