@@ -198,6 +198,12 @@ let mangle_cstor_name_str ~tyname (c : string) : string =
 let mangle_cstor_name ~tyname (c : TR.Ty_def.cstor) : string =
   mangle_cstor_name_str ~tyname c.c
 
+let rec is_option_type (ty : tyexpr) : bool =
+  match ty with
+  | Cstor ("option", _) -> true
+  | Attrs (ty, _) -> is_option_type ty
+  | _ -> false
+
 let rec gen_type_expr (ty : tyexpr) : string =
   match ty with
   | Arrow (_, _, _) -> assert false
@@ -459,8 +465,15 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
               List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
               CCList.iteri2
                 (fun i lbl ty ->
-                  bpf buf "    %s = %s\n" (mangle_field_name lbl)
-                    (of_twine_of_type_expr ty ~off:(spf "args[%d]" i)))
+                  (* For optional fields, check if the field exists before accessing it *)
+                  if is_option_type ty then
+                    bpf buf "    %s = %s if len(args) > %d else None\n"
+                      (mangle_field_name lbl)
+                      (of_twine_of_type_expr ty ~off:(spf "args[%d]" i))
+                      i
+                  else
+                    bpf buf "    %s = %s\n" (mangle_field_name lbl)
+                      (of_twine_of_type_expr ty ~off:(spf "args[%d]" i)))
                 labels c.args;
               bpf buf "    return %s(%s)\n" c_pyname
                 (String.concat ","

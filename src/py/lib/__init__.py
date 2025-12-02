@@ -404,7 +404,7 @@ def Ty_view_decl_Alias_of_twine[_V_tyreg_poly_id,_V_tyreg_poly_t,_V_tyreg_poly_a
     decode__tyreg_poly_t = d1
     decode__tyreg_poly_alias = d2
     target = decode__tyreg_poly_alias(d=d,off=args[0])
-    reexport_def = twine.optional(d=d, off=args[1], d0=lambda d, off: Ty_view_decl_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_id(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_t(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_alias(d=d,off=off))))
+    reexport_def = twine.optional(d=d, off=args[1], d0=lambda d, off: Ty_view_decl_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_id(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_t(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_alias(d=d,off=off)))) if len(args) > 1 else None
     return Ty_view_decl_Alias(target=target,reexport_def=reexport_def)
 
 
@@ -912,7 +912,7 @@ class Common_Hints_validation_strategy_VS_validate[_V_tyreg_poly_term,_V_tyreg_p
 def Common_Hints_validation_strategy_VS_validate_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Hints_validation_strategy_VS_validate[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
-    tactic = twine.optional(d=d, off=args[0], d0=lambda d, off: (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=off))))
+    tactic = twine.optional(d=d, off=args[0], d0=lambda d, off: (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=off)))) if len(args) > 0 else None
     return Common_Hints_validation_strategy_VS_validate(tactic=tactic)
 
 
@@ -1148,9 +1148,9 @@ class Common_Fo_pattern_view_FO_cstor[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
 def Common_Fo_pattern_view_FO_cstor_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Fo_pattern_view_FO_cstor[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     decode__tyreg_poly_t = d0
     decode__tyreg_poly_ty = d1
-    c = twine.optional(d=d, off=args[0], d0=lambda d, off: Common_Applied_symbol_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))
+    c = twine.optional(d=d, off=args[0], d0=lambda d, off: Common_Applied_symbol_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))) if len(args) > 0 else None
     args = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])]
-    labels = twine.optional(d=d, off=args[2], d0=lambda d, off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
+    labels = twine.optional(d=d, off=args[2], d0=lambda d, off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)]) if len(args) > 2 else None
     return Common_Fo_pattern_view_FO_cstor(c=c,args=args,labels=labels)
 
 
@@ -1164,7 +1164,7 @@ class Common_Fo_pattern_view_FO_destruct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
 def Common_Fo_pattern_view_FO_destruct_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_t],d1: Callable[...,_V_tyreg_poly_ty],args: tuple[int, ...]) -> Common_Fo_pattern_view_FO_destruct[_V_tyreg_poly_t,_V_tyreg_poly_ty]:
     decode__tyreg_poly_t = d0
     decode__tyreg_poly_ty = d1
-    c = twine.optional(d=d, off=args[0], d0=lambda d, off: Common_Applied_symbol_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))
+    c = twine.optional(d=d, off=args[0], d0=lambda d, off: Common_Applied_symbol_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))) if len(args) > 0 else None
     i = d.get_int(off=args[1])
     u = decode__tyreg_poly_t(d=d,off=args[2])
     return Common_Fo_pattern_view_FO_destruct(c=c,i=i,u=u)
@@ -1346,7 +1346,7 @@ def Common_Tactic_t_poly_Default_thm_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_t
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
     max_steps = d.get_int(off=args[0])
-    upto = twine.optional(d=d, off=args[1], d0=lambda d, off: Upto_of_twine(d=d, off=off))
+    upto = twine.optional(d=d, off=args[1], d0=lambda d, off: Upto_of_twine(d=d, off=off)) if len(args) > 1 else None
     return Common_Tactic_t_poly_Default_thm(max_steps=max_steps,upto=upto)
 
 
@@ -2304,7 +2304,7 @@ def Mir_Term_view_Construct_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.
     decode__tyreg_poly_ty = d1
     c = Common_Applied_symbol_t_poly_of_twine(d=d,off=args[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     args = [decode__tyreg_poly_t(d=d,off=x) for x in d.get_array(off=args[1])]
-    labels = twine.optional(d=d, off=args[2], d0=lambda d, off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)])
+    labels = twine.optional(d=d, off=args[2], d0=lambda d, off: [Uid_of_twine(d=d, off=x) for x in d.get_array(off=off)]) if len(args) > 2 else None
     return Mir_Term_view_Construct(c=c,args=args,labels=labels)
 
 
@@ -2388,7 +2388,7 @@ def Mir_Term_view_Record_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Dec
     decode__tyreg_poly_t = d0
     decode__tyreg_poly_ty = d1
     rows = [(lambda tup: (Common_Applied_symbol_t_poly_of_twine(d=d,off=tup[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),decode__tyreg_poly_t(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[0])]
-    rest = twine.optional(d=d, off=args[1], d0=lambda d, off: decode__tyreg_poly_t(d=d,off=off))
+    rest = twine.optional(d=d, off=args[1], d0=lambda d, off: decode__tyreg_poly_t(d=d,off=off)) if len(args) > 1 else None
     return Mir_Term_view_Record(rows=rows,rest=rest)
 
 
@@ -2404,7 +2404,7 @@ def Mir_Term_view_Case_of_twine[_V_tyreg_poly_t,_V_tyreg_poly_ty](d: twine.Decod
     decode__tyreg_poly_ty = d1
     u = decode__tyreg_poly_t(d=d,off=args[0])
     cases = [(lambda tup: (Common_Applied_symbol_t_poly_of_twine(d=d,off=tup[0],d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))),decode__tyreg_poly_t(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=args[1])]
-    default = twine.optional(d=d, off=args[2], d0=lambda d, off: decode__tyreg_poly_t(d=d,off=off))
+    default = twine.optional(d=d, off=args[2], d0=lambda d, off: decode__tyreg_poly_t(d=d,off=off)) if len(args) > 2 else None
     return Mir_Term_view_Case(u=u,cases=cases,default=default)
 
 
