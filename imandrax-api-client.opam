@@ -13,9 +13,9 @@ depends: [
   "logs"
   "ocaml" {>= "4.14"}
   "moonpool" {>= "0.7" & < "0.11"}
-  "pbrt" {>= "3.0"}
-  "pbrt_yojson" {>= "3.0"}
-  "pbrt_services" {>= "3.0"}
+  "pbrt" {>= "4.0"}
+  "pbrt_yojson" {>= "4.0"}
+  "pbrt_services" {>= "4.0"}
   "odoc" {with-doc}
 ]
 build: [
