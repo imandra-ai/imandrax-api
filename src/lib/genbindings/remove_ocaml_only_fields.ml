@@ -18,15 +18,16 @@ let process (cliques : TR.Ty_def.clique list) : _ list =
                    fields
                in
 
-              (*
+               (*
                 At the time of writing, there are three types that are not marked as unboxed while they have only one field:
                   - Imandrax_api_common.Db_ser.t_poly (only `ops`)
                   - Imandrax_api_mir.Type.t (two fields, but `generation` is @ocaml_only)
                   - Imandrax_api_eval.Value.erased_closure (only `missing`)
                 Of those, we only want to treat Imandrax_api_mir.Type.t as unboxed, the others are generated boxed.
               *)
-
-               let unboxed = d.unboxed || String.equal d.name "Imandrax_api_mir.Type.t" in
+               let unboxed =
+                 d.unboxed || String.equal d.name "Imandrax_api_mir.Type.t"
+               in
                { d with unboxed; decl = TR.Ty_def.Record { fields } }
              | _ -> d)
            defs)
