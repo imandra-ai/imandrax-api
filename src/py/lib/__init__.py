@@ -2149,8 +2149,11 @@ class Common_Db_ser_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     ops: list[Common_Db_ser_ca_ptr[Common_Db_op_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]]]
 
 def Common_Db_ser_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Db_ser_t_poly:
-    x = [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Db_op_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=off)] # single unboxed field
-    return Common_Db_ser_t_poly(ops=x)
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    fields = list(d.get_array(off=off))
+    ops = [Common_Db_ser_ca_ptr_of_twine(d=d,off=x,d0=(lambda d, off: Common_Db_op_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))))) for x in d.get_array(off=fields[0])]
+    return Common_Db_ser_t_poly(ops=ops)
 
 # clique Imandrax_api_mir.Type.var (cached: false)
 # def Imandrax_api_mir.Type.var (mangled name: "Mir_Type_var")
@@ -2889,8 +2892,9 @@ class Eval_Value_erased_closure:
     missing: int
 
 def Eval_Value_erased_closure_of_twine(d: twine.Decoder, off: int) -> Eval_Value_erased_closure:
-    x = d.get_int(off=off) # single unboxed field
-    return Eval_Value_erased_closure(missing=x)
+    fields = list(d.get_array(off=off))
+    missing = d.get_int(off=fields[0])
+    return Eval_Value_erased_closure(missing=missing)
 
 # clique Imandrax_api_eval.Value.t (cached: false)
 # def Imandrax_api_eval.Value.t (mangled name: "Eval_Value")

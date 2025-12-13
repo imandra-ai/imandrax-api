@@ -18,8 +18,8 @@ depends: [
   "imandrakit"
   "imandrakit-log"
   "imandrakit-io"
-  "pbrt" {>= "3.0"}
-  "pbrt_yojson" {>= "3.0"}
+  "pbrt" {>= "4.0"}
+  "pbrt_yojson" {>= "4.0"}
   "ocaml-protoc" {>= "3.1.1" & with-dev-setup}
   "cryptokit" {>= "0.19"}
   "odoc" {with-doc}
