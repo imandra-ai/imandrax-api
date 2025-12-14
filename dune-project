@@ -39,9 +39,9 @@
   imandrakit-log
   imandrakit-io
   (pbrt
-   (>= 3.0))
+   (>= 4.0))
   (pbrt_yojson
-   (>= 3.0))
+   (>= 4.0))
   (ocaml-protoc
    (and
     (>= 3.1.1)
@@ -86,11 +86,11 @@
     (>= 0.7)
     (< 0.11)))
   (pbrt
-   (>= 3.0))
+   (>= 4.0))
   (pbrt_yojson
-   (>= 3.0))
+   (>= 4.0))
   (pbrt_services
-   (>= 3.0))))
+   (>= 4.0))))
 
 (package
  (name imandrax-api-client-ezcurl)
@@ -107,11 +107,11 @@
   (trace
    (>= 0.6))
   (pbrt
-   (>= 3.0))
+   (>= 4.0))
   (pbrt_yojson
-   (>= 3.0))
+   (>= 4.0))
   (pbrt_services
-   (>= 3.0))))
+   (>= 4.0))))
 
 (package
  (name imandrax-api-client-cohttp)
@@ -124,11 +124,11 @@
   (trace
    (>= 0.6))
   (pbrt
-   (>= 3.0))
+   (>= 4.0))
   (pbrt_yojson
-   (>= 3.0))
+   (>= 4.0))
   (pbrt_services
-   (>= 3.0))))
+   (>= 4.0))))
 
 (package
  (name imandrax-api-top)

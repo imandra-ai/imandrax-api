@@ -1,5 +1,5 @@
 
-VERSION=$(shell grep 'version =' pyproject.toml | sed 's/version =//' | tr -d '"')
+VERSION=$(shell grep -e '^version =' pyproject.toml | sed 's/^version =//' | tr -d '"')
 echo-version:
 	@echo version: $(VERSION)
 
