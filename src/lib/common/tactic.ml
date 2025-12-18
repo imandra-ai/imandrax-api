@@ -8,5 +8,9 @@ type ('term, 'ty) t_poly =
       max_steps: int;
       upto: Imandrax_api.Upto.t option;
     }
+  | Default_quickcheck of {
+      num_steps: int option;
+      seed: int option;
+    }
   | Term of ('ty Var.t_poly list * 'term)
 [@@deriving show { with_path = false }, map, iter, twine, typereg]
