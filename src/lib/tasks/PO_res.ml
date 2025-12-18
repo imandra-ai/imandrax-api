@@ -58,7 +58,7 @@ type ('term, 'ty) success =
   | Verified_upto of verified_upto
   | Qcheck_ok of {
       num_steps: int;
-      seed: int;
+      seed: int64;
     }  (** Qcheck didn't find a counter-example *)
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
