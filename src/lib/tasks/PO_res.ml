@@ -56,6 +56,10 @@ type ('term, 'ty) success =
   | Proof of ('term, 'ty) proof_found  (** For verify *)
   | Instance of ('term, 'ty) instance  (** For instance *)
   | Verified_upto of verified_upto
+  | Qcheck_ok of {
+      num_steps: int;
+      seed: int;
+    }  (** Qcheck didn't find a counter-example *)
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
 type ('term, 'ty) error =
