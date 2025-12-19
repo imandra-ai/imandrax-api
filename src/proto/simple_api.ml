@@ -137,12 +137,19 @@ type verified_upto = {
   mutable msg : string;
 }
 
+type qcheck_ok = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable num_steps : int64;
+  mutable seed : int64;
+}
+
 type po_res_res =
   | Unknown of Utils.string_msg
   | Err
   | Proof of proved
   | Instance of counter_sat
   | Verified_upto of verified_upto
+  | Qcheck_ok of qcheck_ok
 
 and po_res = {
   mutable res : po_res_res option;
@@ -415,6 +422,13 @@ let default_verified_upto (): verified_upto =
 {
   _presence=Pbrt.Bitfield.empty;
   msg="";
+}
+
+let default_qcheck_ok (): qcheck_ok =
+{
+  _presence=Pbrt.Bitfield.empty;
+  num_steps=0L;
+  seed=0L;
 }
 
 let default_po_res_res (): po_res_res = Unknown (Utils.default_string_msg ())
@@ -1043,6 +1057,30 @@ let make_verified_upto
   (match msg with
   | None -> ()
   | Some v -> verified_upto_set_msg _res v);
+  _res
+
+let[@inline] qcheck_ok_has_num_steps (self:qcheck_ok) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] qcheck_ok_has_seed (self:qcheck_ok) : bool = (Pbrt.Bitfield.get self._presence 1)
+
+let[@inline] qcheck_ok_set_num_steps (self:qcheck_ok) (x:int64) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.num_steps <- x
+let[@inline] qcheck_ok_set_seed (self:qcheck_ok) (x:int64) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 1); self.seed <- x
+
+let copy_qcheck_ok (self:qcheck_ok) : qcheck_ok =
+  { self with num_steps = self.num_steps }
+
+let make_qcheck_ok 
+  ?(num_steps:int64 option)
+  ?(seed:int64 option)
+  () : qcheck_ok  =
+  let _res = default_qcheck_ok () in
+  (match num_steps with
+  | None -> ()
+  | Some v -> qcheck_ok_set_num_steps _res v);
+  (match seed with
+  | None -> ()
+  | Some v -> qcheck_ok_set_seed _res v);
   _res
 
 
@@ -1704,6 +1742,13 @@ let rec pp_verified_upto fmt (v:verified_upto) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
+let rec pp_qcheck_ok fmt (v:qcheck_ok) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~absent:(not (qcheck_ok_has_num_steps v)) ~first:true "num_steps" Pbrt.Pp.pp_int64 fmt v.num_steps;
+    Pbrt.Pp.pp_record_field ~absent:(not (qcheck_ok_has_seed v)) ~first:false "seed" Pbrt.Pp.pp_int64 fmt v.seed;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
 let rec pp_po_res_res fmt (v:po_res_res) =
   match v with
   | Unknown x -> Format.fprintf fmt "@[<hv2>Unknown(@,%a)@]" Utils.pp_string_msg x
@@ -1711,6 +1756,7 @@ let rec pp_po_res_res fmt (v:po_res_res) =
   | Proof x -> Format.fprintf fmt "@[<hv2>Proof(@,%a)@]" pp_proved x
   | Instance x -> Format.fprintf fmt "@[<hv2>Instance(@,%a)@]" pp_counter_sat x
   | Verified_upto x -> Format.fprintf fmt "@[<hv2>Verified_upto(@,%a)@]" pp_verified_upto x
+  | Qcheck_ok x -> Format.fprintf fmt "@[<hv2>Qcheck_ok(@,%a)@]" pp_qcheck_ok x
 
 and pp_po_res fmt (v:po_res) = 
   let pp_i fmt () =
@@ -2209,6 +2255,17 @@ let rec encode_pb_verified_upto (v:verified_upto) encoder =
   );
   ()
 
+let rec encode_pb_qcheck_ok (v:qcheck_ok) encoder = 
+  if qcheck_ok_has_num_steps v then (
+    Pbrt.Encoder.int64_as_varint v.num_steps encoder;
+    Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
+  );
+  if qcheck_ok_has_seed v then (
+    Pbrt.Encoder.int64_as_varint v.seed encoder;
+    Pbrt.Encoder.key 2 Pbrt.Varint encoder; 
+  );
+  ()
+
 let rec encode_pb_po_res_res (v:po_res_res) encoder = 
   begin match v with
   | Unknown x ->
@@ -2226,6 +2283,9 @@ let rec encode_pb_po_res_res (v:po_res_res) encoder =
   | Verified_upto x ->
     Pbrt.Encoder.nested encode_pb_verified_upto x encoder;
     Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
+  | Qcheck_ok x ->
+    Pbrt.Encoder.nested encode_pb_qcheck_ok x encoder;
+    Pbrt.Encoder.key 6 Pbrt.Bytes encoder; 
   end
 
 and encode_pb_po_res (v:po_res) encoder = 
@@ -2246,6 +2306,9 @@ and encode_pb_po_res (v:po_res) encoder =
   | Some (Verified_upto x) ->
     Pbrt.Encoder.nested encode_pb_verified_upto x encoder;
     Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
+  | Some (Qcheck_ok x) ->
+    Pbrt.Encoder.nested encode_pb_qcheck_ok x encoder;
+    Pbrt.Encoder.key 6 Pbrt.Bytes encoder; 
   end;
   Pbrt.List_util.rev_iter_with (fun x encoder ->
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
@@ -3108,6 +3171,27 @@ let rec decode_pb_verified_upto d =
   done;
   (v : verified_upto)
 
+let rec decode_pb_qcheck_ok d =
+  let v = default_qcheck_ok () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Varint) -> begin
+      qcheck_ok_set_num_steps v (Pbrt.Decoder.int64_as_varint d);
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "qcheck_ok" 1 pk
+    | Some (2, Pbrt.Varint) -> begin
+      qcheck_ok_set_seed v (Pbrt.Decoder.int64_as_varint d);
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "qcheck_ok" 2 pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  (v : qcheck_ok)
+
 let rec decode_pb_po_res_res d = 
   let rec loop () = 
     let ret:po_res_res = match Pbrt.Decoder.key d with
@@ -3120,6 +3204,7 @@ let rec decode_pb_po_res_res d =
       | Some (3, _) -> (Proof (decode_pb_proved (Pbrt.Decoder.nested d)) : po_res_res) 
       | Some (4, _) -> (Instance (decode_pb_counter_sat (Pbrt.Decoder.nested d)) : po_res_res) 
       | Some (5, _) -> (Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d)) : po_res_res) 
+      | Some (6, _) -> (Qcheck_ok (decode_pb_qcheck_ok (Pbrt.Decoder.nested d)) : po_res_res) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -3164,6 +3249,11 @@ and decode_pb_po_res d =
     end
     | Some (5, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "po_res" 5 pk
+    | Some (6, Pbrt.Bytes) -> begin
+      po_res_set_res v (Qcheck_ok (decode_pb_qcheck_ok (Pbrt.Decoder.nested d)));
+    end
+    | Some (6, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "po_res" 6 pk
     | Some (10, Pbrt.Bytes) -> begin
       po_res_set_errors v ((Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors);
     end
@@ -3980,6 +4070,16 @@ let rec encode_json_verified_upto (v:verified_upto) =
   );
   `Assoc !assoc
 
+let rec encode_json_qcheck_ok (v:qcheck_ok) = 
+  let assoc = ref [] in
+  if qcheck_ok_has_num_steps v then (
+    assoc := ("numSteps", Pbrt_yojson.make_string (Int64.to_string v.num_steps)) :: !assoc;
+  );
+  if qcheck_ok_has_seed v then (
+    assoc := ("seed", Pbrt_yojson.make_string (Int64.to_string v.seed)) :: !assoc;
+  );
+  `Assoc !assoc
+
 let rec encode_json_po_res_res (v:po_res_res) = 
   begin match v with
   | Unknown v -> `Assoc [("unknown", Utils.encode_json_string_msg v)]
@@ -3987,6 +4087,7 @@ let rec encode_json_po_res_res (v:po_res_res) =
   | Proof v -> `Assoc [("proof", encode_json_proved v)]
   | Instance v -> `Assoc [("instance", encode_json_counter_sat v)]
   | Verified_upto v -> `Assoc [("verifiedUpto", encode_json_verified_upto v)]
+  | Qcheck_ok v -> `Assoc [("qcheckOk", encode_json_qcheck_ok v)]
   end
 
 and encode_json_po_res (v:po_res) = 
@@ -3998,6 +4099,7 @@ and encode_json_po_res (v:po_res) =
       | Some (Proof v) -> ("proof", encode_json_proved v) :: !assoc
       | Some (Instance v) -> ("instance", encode_json_counter_sat v) :: !assoc
       | Some (Verified_upto v) -> ("verifiedUpto", encode_json_verified_upto v) :: !assoc
+      | Some (Qcheck_ok v) -> ("qcheckOk", encode_json_qcheck_ok v) :: !assoc
   ); (* match v.res *)
   assoc := (
     let l = v.errors |> List.map Error.encode_json_error in
@@ -4740,6 +4842,26 @@ let rec decode_json_verified_upto d =
     msg = v.msg;
   } : verified_upto)
 
+let rec decode_json_qcheck_ok d =
+  let v = default_qcheck_ok () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("numSteps", json_value) -> 
+      qcheck_ok_set_num_steps v (Pbrt_yojson.int64 json_value "qcheck_ok" "num_steps")
+    | ("seed", json_value) -> 
+      qcheck_ok_set_seed v (Pbrt_yojson.int64 json_value "qcheck_ok" "seed")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    _presence = v._presence;
+    num_steps = v.num_steps;
+    seed = v.seed;
+  } : qcheck_ok)
+
 let rec decode_json_po_res_res json =
   let assoc = match json with
     | `Assoc assoc -> assoc
@@ -4756,6 +4878,8 @@ let rec decode_json_po_res_res json =
       (Instance ((decode_json_counter_sat json_value)) : po_res_res)
     | ("verifiedUpto", json_value)::_ -> 
       (Verified_upto ((decode_json_verified_upto json_value)) : po_res_res)
+    | ("qcheckOk", json_value)::_ -> 
+      (Qcheck_ok ((decode_json_qcheck_ok json_value)) : po_res_res)
     
     | _ :: tl -> loop tl
   in
@@ -4777,6 +4901,8 @@ and decode_json_po_res d =
       po_res_set_res v (Instance ((decode_json_counter_sat json_value)))
     | ("verifiedUpto", json_value) -> 
       po_res_set_res v (Verified_upto ((decode_json_verified_upto json_value)))
+    | ("qcheckOk", json_value) -> 
+      po_res_set_res v (Qcheck_ok ((decode_json_qcheck_ok json_value)))
     | ("errors", `List l) -> begin
       po_res_set_errors v @@ List.map (function
         | json_value -> (Error.decode_json_error json_value)

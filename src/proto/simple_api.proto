@@ -262,6 +262,11 @@ message Verified_upto {
   optional string msg = 1;
 }
 
+message Qcheck_ok {
+  int64 num_steps = 1;
+  int64 seed = 2;
+}
+
 message Unsat {
   optional string proof_pp = 1;
 }
@@ -301,6 +306,7 @@ message PO_Res {
     Proved proof = 3;
     CounterSat instance = 4;
     Verified_upto verified_upto = 5;
+    Qcheck_ok qcheck_ok = 6;
   }
 
   repeated Error errors = 10;
