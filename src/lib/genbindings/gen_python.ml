@@ -426,7 +426,8 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
                 cached_decorator c_pyname pyparams pytwine_params c_pyname
                 pyparams;
               List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
-              bpf buf "    arg = %s\n" (of_twine_of_type_expr ~off:"_tw_args[0]" x);
+              bpf buf "    arg = %s\n"
+                (of_twine_of_type_expr ~off:"_tw_args[0]" x);
               bpf buf "    return %s(arg=arg)\n" c_pyname
             | _, None ->
               bpf buf "    args: tuple[%s]\n\n"
@@ -493,7 +494,8 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
             | [] -> bpf buf "             return %s%s()\n" c_pyname pyparams
             | _ ->
               bpf buf "             args = tuple(args)\n";
-              bpf buf "             return %s_of_twine(d=d, _tw_args=args, %s)\n"
+              bpf buf
+                "             return %s_of_twine(d=d, _tw_args=args, %s)\n"
                 c_pyname pytwine_params_kw);
             ())
           cstors;
