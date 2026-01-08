@@ -421,18 +421,18 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
             | [ x ], None ->
               bpf buf "    arg: %s\n\n" (gen_type_expr x);
               bpf buf
-                "%sdef %s_of_twine%s(d: twine.Decoder, %sargs: tuple[int, \
+                "%sdef %s_of_twine%s(d: twine.Decoder, %s_tw_args: tuple[int, \
                  ...]) -> %s%s:\n"
                 cached_decorator c_pyname pyparams pytwine_params c_pyname
                 pyparams;
               List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
-              bpf buf "    arg = %s\n" (of_twine_of_type_expr ~off:"args[0]" x);
+              bpf buf "    arg = %s\n" (of_twine_of_type_expr ~off:"_tw_args[0]" x);
               bpf buf "    return %s(arg=arg)\n" c_pyname
             | _, None ->
               bpf buf "    args: tuple[%s]\n\n"
                 (String.concat "," @@ List.map gen_type_expr c.args);
               bpf buf
-                "%sdef %s_of_twine%s(d: twine.Decoder, %sargs: tuple[int, \
+                "%sdef %s_of_twine%s(d: twine.Decoder, %s_tw_args: tuple[int, \
                  ...]) -> %s%s:\n"
                 cached_decorator c_pyname pyparams pytwine_params c_pyname
                 pyparams;
@@ -441,7 +441,7 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
                 (String.concat ","
                 @@ List.mapi
                      (fun i ty ->
-                       of_twine_of_type_expr ~off:(spf "args[%d]" i) ty)
+                       of_twine_of_type_expr ~off:(spf "_tw_args[%d]" i) ty)
                      c.args);
               bpf buf "    return %s(args=cargs)\n" c_pyname
             | _, Some labels ->
@@ -452,7 +452,7 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
                 labels c.args;
               bpf buf "\n\n";
               bpf buf
-                "%sdef %s_of_twine%s(d: twine.Decoder, %sargs: tuple[int, \
+                "%sdef %s_of_twine%s(d: twine.Decoder, %s_tw_args: tuple[int, \
                  ...]) -> %s%s:\n"
                 cached_decorator c_pyname pyparams pytwine_params c_pyname
                 pyparams;
@@ -460,7 +460,7 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
               CCList.iteri2
                 (fun i lbl ty ->
                   bpf buf "    %s = %s\n" (mangle_field_name lbl)
-                    (of_twine_of_type_expr ty ~off:(spf "args[%d]" i)))
+                    (of_twine_of_type_expr ty ~off:(spf "_tw_args[%d]" i)))
                 labels c.args;
               bpf buf "    return %s(%s)\n" c_pyname
                 (String.concat ","
@@ -493,7 +493,7 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
             | [] -> bpf buf "             return %s%s()\n" c_pyname pyparams
             | _ ->
               bpf buf "             args = tuple(args)\n";
-              bpf buf "             return %s_of_twine(d=d, args=args, %s)\n"
+              bpf buf "             return %s_of_twine(d=d, _tw_args=args, %s)\n"
                 c_pyname pytwine_params_kw);
             ())
           cstors;
