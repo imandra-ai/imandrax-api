@@ -42,6 +42,8 @@
    (>= 4.0))
   (pbrt_yojson
    (>= 4.0))
+  (pbrt_services
+   (>= 4.0))
   (ocaml-protoc
    (and
     (>= 3.1.1)
