@@ -14,6 +14,8 @@ type ('term, 'ty) t_poly = {
   upto: Imandrax_api.Upto.t option;
       (** For a [verify] statement, can be used for bounded verification *)
   verify_kind: Verify.kind option;  (** Original kind, if any *)
+  named_hypotheses: (string * 'term) list;
+      (** Additional hypotheses with names *)
 }
 [@@deriving show { with_path = false }, twine, typereg, map, iter]
 (** Proof obligation.
