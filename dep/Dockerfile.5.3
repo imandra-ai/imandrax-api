@@ -1,4 +1,4 @@
-FROM ocaml/opam:debian-ocaml-5.2 AS base
+FROM ocaml/opam:debian-ocaml-5.3 AS base
 
 WORKDIR /build/
 RUN cd /home/opam/opam-repository; git fetch origin; git checkout c80b5ac03487baaaf2f482adf2347e782d0b673c -q; opam upd

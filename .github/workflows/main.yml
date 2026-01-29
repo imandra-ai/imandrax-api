@@ -6,7 +6,7 @@ on:
   pull_request:
 jobs:
   run-4-14:
-    name: build 4.14
+    name: OCaml 4.14
     timeout-minutes: 10
     runs-on: [ubuntu-latest]
     steps:
@@ -14,13 +14,21 @@ jobs:
       - run: make update-submodules
       - run: docker build . -f dep/Dockerfile.4.14
   run-5-2:
-    name: build 5.2
+    name: OCaml 5.2
     timeout-minutes: 10
     runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@main
       - run: make update-submodules
       - run: docker build . -f dep/Dockerfile.5.2
+  run-5-3:
+    name: OCaml 5.3
+    timeout-minutes: 10
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@main
+      - run: make update-submodules
+      - run: docker build . -f dep/Dockerfile.5.3
   tsc:
     name: tsc
     runs-on: [ubuntu-latest]

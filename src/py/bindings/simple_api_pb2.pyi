@@ -252,6 +252,14 @@ class Verified_upto(_message.Message):
     msg: str
     def __init__(self, msg: _Optional[str] = ...) -> None: ...
 
+class Qcheck_ok(_message.Message):
+    __slots__ = ("num_steps", "seed")
+    NUM_STEPS_FIELD_NUMBER: _ClassVar[int]
+    SEED_FIELD_NUMBER: _ClassVar[int]
+    num_steps: int
+    seed: int
+    def __init__(self, num_steps: _Optional[int] = ..., seed: _Optional[int] = ...) -> None: ...
+
 class Unsat(_message.Message):
     __slots__ = ("proof_pp",)
     PROOF_PP_FIELD_NUMBER: _ClassVar[int]
@@ -287,12 +295,13 @@ class CounterSat(_message.Message):
     def __init__(self, model: _Optional[_Union[Model, _Mapping]] = ...) -> None: ...
 
 class PO_Res(_message.Message):
-    __slots__ = ("unknown", "err", "proof", "instance", "verified_upto", "errors", "task", "origin")
+    __slots__ = ("unknown", "err", "proof", "instance", "verified_upto", "qcheck_ok", "errors", "task", "origin")
     UNKNOWN_FIELD_NUMBER: _ClassVar[int]
     ERR_FIELD_NUMBER: _ClassVar[int]
     PROOF_FIELD_NUMBER: _ClassVar[int]
     INSTANCE_FIELD_NUMBER: _ClassVar[int]
     VERIFIED_UPTO_FIELD_NUMBER: _ClassVar[int]
+    QCHECK_OK_FIELD_NUMBER: _ClassVar[int]
     ERRORS_FIELD_NUMBER: _ClassVar[int]
     TASK_FIELD_NUMBER: _ClassVar[int]
     ORIGIN_FIELD_NUMBER: _ClassVar[int]
@@ -301,10 +310,11 @@ class PO_Res(_message.Message):
     proof: Proved
     instance: CounterSat
     verified_upto: Verified_upto
+    qcheck_ok: Qcheck_ok
     errors: _containers.RepeatedCompositeFieldContainer[_error_pb2.Error]
     task: _task_pb2.Task
     origin: _task_pb2.Origin
-    def __init__(self, unknown: _Optional[_Union[_utils_pb2.StringMsg, _Mapping]] = ..., err: _Optional[_Union[_utils_pb2.Empty, _Mapping]] = ..., proof: _Optional[_Union[Proved, _Mapping]] = ..., instance: _Optional[_Union[CounterSat, _Mapping]] = ..., verified_upto: _Optional[_Union[Verified_upto, _Mapping]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., task: _Optional[_Union[_task_pb2.Task, _Mapping]] = ..., origin: _Optional[_Union[_task_pb2.Origin, _Mapping]] = ...) -> None: ...
+    def __init__(self, unknown: _Optional[_Union[_utils_pb2.StringMsg, _Mapping]] = ..., err: _Optional[_Union[_utils_pb2.Empty, _Mapping]] = ..., proof: _Optional[_Union[Proved, _Mapping]] = ..., instance: _Optional[_Union[CounterSat, _Mapping]] = ..., verified_upto: _Optional[_Union[Verified_upto, _Mapping]] = ..., qcheck_ok: _Optional[_Union[Qcheck_ok, _Mapping]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., task: _Optional[_Union[_task_pb2.Task, _Mapping]] = ..., origin: _Optional[_Union[_task_pb2.Origin, _Mapping]] = ...) -> None: ...
 
 class VerifyRes(_message.Message):
     __slots__ = ("unknown", "err", "proved", "refuted", "verified_upto", "errors", "task")

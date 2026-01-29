@@ -144,12 +144,19 @@ type verified_upto = private {
   mutable msg : string;
 }
 
+type qcheck_ok = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable num_steps : int64;
+  mutable seed : int64;
+}
+
 type po_res_res =
   | Unknown of Utils.string_msg
   | Err
   | Proof of proved
   | Instance of counter_sat
   | Verified_upto of verified_upto
+  | Qcheck_ok of qcheck_ok
 
 and po_res = private {
   mutable res : po_res_res option;
@@ -353,6 +360,9 @@ val default_counter_sat : unit -> counter_sat
 
 val default_verified_upto : unit -> verified_upto 
 (** [default_verified_upto ()] is a new empty value for type [verified_upto] *)
+
+val default_qcheck_ok : unit -> qcheck_ok 
+(** [default_qcheck_ok ()] is a new empty value for type [qcheck_ok] *)
 
 val default_po_res_res : unit -> po_res_res
 (** [default_po_res_res ()] is a new empty value for type [po_res_res] *)
@@ -815,6 +825,27 @@ val verified_upto_has_msg : verified_upto -> bool
 
 val verified_upto_set_msg : verified_upto -> string -> unit
   (** set field msg in verified_upto *)
+
+val make_qcheck_ok : 
+  ?num_steps:int64 ->
+  ?seed:int64 ->
+  unit ->
+  qcheck_ok
+(** [make_qcheck_ok … ()] is a builder for type [qcheck_ok] *)
+
+val copy_qcheck_ok : qcheck_ok -> qcheck_ok
+
+val qcheck_ok_has_num_steps : qcheck_ok -> bool
+  (** presence of field "num_steps" in [qcheck_ok] *)
+
+val qcheck_ok_set_num_steps : qcheck_ok -> int64 -> unit
+  (** set field num_steps in qcheck_ok *)
+
+val qcheck_ok_has_seed : qcheck_ok -> bool
+  (** presence of field "seed" in [qcheck_ok] *)
+
+val qcheck_ok_set_seed : qcheck_ok -> int64 -> unit
+  (** set field seed in qcheck_ok *)
 
 val make_po_res : 
   ?res:po_res_res ->
@@ -1283,6 +1314,9 @@ val pp_counter_sat : Format.formatter -> counter_sat -> unit
 val pp_verified_upto : Format.formatter -> verified_upto -> unit 
 (** [pp_verified_upto v] formats v *)
 
+val pp_qcheck_ok : Format.formatter -> qcheck_ok -> unit 
+(** [pp_qcheck_ok v] formats v *)
+
 val pp_po_res_res : Format.formatter -> po_res_res -> unit 
 (** [pp_po_res_res v] formats v *)
 
@@ -1417,6 +1451,9 @@ val encode_pb_counter_sat : counter_sat -> Pbrt.Encoder.t -> unit
 
 val encode_pb_verified_upto : verified_upto -> Pbrt.Encoder.t -> unit
 (** [encode_pb_verified_upto v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_qcheck_ok : qcheck_ok -> Pbrt.Encoder.t -> unit
+(** [encode_pb_qcheck_ok v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_po_res_res : po_res_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_po_res_res v encoder] encodes [v] with the given [encoder] *)
@@ -1553,6 +1590,9 @@ val decode_pb_counter_sat : Pbrt.Decoder.t -> counter_sat
 val decode_pb_verified_upto : Pbrt.Decoder.t -> verified_upto
 (** [decode_pb_verified_upto decoder] decodes a [verified_upto] binary value from [decoder] *)
 
+val decode_pb_qcheck_ok : Pbrt.Decoder.t -> qcheck_ok
+(** [decode_pb_qcheck_ok decoder] decodes a [qcheck_ok] binary value from [decoder] *)
+
 val decode_pb_po_res_res : Pbrt.Decoder.t -> po_res_res
 (** [decode_pb_po_res_res decoder] decodes a [po_res_res] binary value from [decoder] *)
 
@@ -1688,6 +1728,9 @@ val encode_json_counter_sat : counter_sat -> Yojson.Basic.t
 val encode_json_verified_upto : verified_upto -> Yojson.Basic.t
 (** [encode_json_verified_upto v encoder] encodes [v] to to json *)
 
+val encode_json_qcheck_ok : qcheck_ok -> Yojson.Basic.t
+(** [encode_json_qcheck_ok v encoder] encodes [v] to to json *)
+
 val encode_json_po_res_res : po_res_res -> Yojson.Basic.t
 (** [encode_json_po_res_res v encoder] encodes [v] to to json *)
 
@@ -1822,6 +1865,9 @@ val decode_json_counter_sat : Yojson.Basic.t -> counter_sat
 
 val decode_json_verified_upto : Yojson.Basic.t -> verified_upto
 (** [decode_json_verified_upto decoder] decodes a [verified_upto] value from [decoder] *)
+
+val decode_json_qcheck_ok : Yojson.Basic.t -> qcheck_ok
+(** [decode_json_qcheck_ok decoder] decodes a [qcheck_ok] value from [decoder] *)
 
 val decode_json_po_res_res : Yojson.Basic.t -> po_res_res
 (** [decode_json_po_res_res decoder] decodes a [po_res_res] value from [decoder] *)

@@ -372,6 +372,15 @@ pub struct CommonFun_defT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 }
 
 
+// clique Imandrax_api_common.Verify.kind
+// immediate
+#[derive(Debug, Clone)]
+pub enum CommonVerifyKind {
+  K_verify,
+  K_instance,
+  K_quickcheck,
+}
+
 // clique Imandrax_api_common.Verify.t_poly
 #[derive(Debug, Clone)]
 pub struct CommonVerifyT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
@@ -379,7 +388,7 @@ pub struct CommonVerifyT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub verify_simplify: bool,
   pub verify_nonlin: bool,
   pub verify_upto: Option<Upto>,
-  pub verify_is_instance: bool,
+  pub verify_kind: CommonVerifyKind,
   pub verify_minimize: &'a [V_tyreg_poly_term],
   pub verify_by: Option<(&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term)>,
 }
@@ -478,6 +487,10 @@ pub enum CommonTacticT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Default_thm {
     max_steps: BigInt,
     upto: Option<Upto>,
+  },
+  Default_quickcheck {
+    num_steps: Option<BigInt>,
+    seed: Option<BigInt>,
   },
   Term((&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term)),
 }
@@ -586,6 +599,7 @@ pub struct CommonProof_obligationT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:
   pub anchor: &'a Anchor<'a>,
   pub timeout: Option<BigInt>,
   pub upto: Option<Upto>,
+  pub verify_kind: Option<CommonVerifyKind>,
 }
 
 
@@ -1130,6 +1144,10 @@ pub enum TasksPO_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Proof(&'a TasksPO_resProof_found<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Instance(&'a TasksPO_resInstance<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Verified_upto(&'a TasksPO_resVerified_upto<'a>),
+  Qcheck_ok {
+    num_steps: BigInt,
+    seed: &'a Int64<'a>,
+  },
 }
 
 // clique Imandrax_api_tasks.PO_res.error
