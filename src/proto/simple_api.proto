@@ -28,6 +28,10 @@ service Simple {
 
   rpc verify_name(VerifyNameReq) returns (VerifyRes);
 
+  rpc qcheck_src(QCheckSrcReq) returns (QCheckRes);
+
+  rpc qcheck_name(QCheckNameReq) returns (QCheckRes);
+
   rpc instance_src(InstanceSrcReq) returns (InstanceRes);
 
   rpc instance_name(InstanceNameReq) returns (InstanceRes);
@@ -102,13 +106,9 @@ message DecomposeReqFull {
     optional LiftBool lift_bool = 8;
   }
 
-  message Prune {
-    Decomp d = 1;
-  }
+  message Prune { Decomp d = 1; }
 
-  message Combine {
-    Decomp d = 1;
-  }
+  message Combine { Decomp d = 1; }
 
   message Merge {
     Decomp d1 = 1;
@@ -236,6 +236,20 @@ message VerifyNameReq {
   optional string hints = 10;
 }
 
+message QCheckSrcReq {
+  imandrax.session.Session session = 1;
+
+  string src = 2; // source code
+  int64 seed = 3; // random seed
+}
+
+message QCheckNameReq {
+  imandrax.session.Session session = 1;
+
+  string name = 2; // name of the predicate to analyze
+  int64 seed = 3;  // random seed
+}
+
 message InstanceSrcReq {
   imandrax.session.Session session = 1;
 
@@ -254,9 +268,7 @@ message InstanceNameReq {
   optional string hints = 10;
 }
 
-message Proved {
-  optional string proof_pp = 1;
-}
+message Proved { optional string proof_pp = 1; }
 
 message Verified_upto {
   optional string msg = 1;
@@ -286,17 +298,11 @@ message Model {
   optional Art artifact = 3;
 }
 
-message Refuted {
-  optional Model model = 1;
-}
+message Refuted { optional Model model = 1; }
 
-message Sat {
-  optional Model model = 1;
-}
+message Sat { optional Model model = 1; }
 
-message CounterSat {
-  optional Model model = 1;
-}
+message CounterSat { optional Model model = 1; }
 
 // Result of any PO (theorem, verify, etc)
 message PO_Res {
@@ -318,7 +324,6 @@ message PO_Res {
   imandrax.task.Origin origin = 12;
 }
 
-
 message VerifyRes {
   oneof res {
     StringMsg unknown = 1;
@@ -326,6 +331,18 @@ message VerifyRes {
     Proved proved = 3;
     Refuted refuted = 4;
     Verified_upto verified_upto = 5;
+  }
+
+  repeated Error errors = 10;
+
+  // the ID of the task
+  imandrax.task.Task task = 11;
+}
+
+message QCheckRes {
+  oneof res {
+    Empty err = 1;
+    CounterSat counter_example = 2;
   }
 
   repeated Error errors = 10;
@@ -376,9 +393,7 @@ message OneshotReq {
 }
 
 message OneshotRes {
-  message Stats {
-    double time = 1;
-  }
+  message Stats { double time = 1; }
 
   repeated string results = 1;
 

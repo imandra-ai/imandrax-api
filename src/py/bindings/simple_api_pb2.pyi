@@ -220,6 +220,26 @@ class VerifyNameReq(_message.Message):
     hints: str
     def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., hints: _Optional[str] = ...) -> None: ...
 
+class QCheckSrcReq(_message.Message):
+    __slots__ = ("session", "src", "seed")
+    SESSION_FIELD_NUMBER: _ClassVar[int]
+    SRC_FIELD_NUMBER: _ClassVar[int]
+    SEED_FIELD_NUMBER: _ClassVar[int]
+    session: _session_pb2.Session
+    src: str
+    seed: int
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., src: _Optional[str] = ..., seed: _Optional[int] = ...) -> None: ...
+
+class QCheckNameReq(_message.Message):
+    __slots__ = ("session", "name", "seed")
+    SESSION_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    SEED_FIELD_NUMBER: _ClassVar[int]
+    session: _session_pb2.Session
+    name: str
+    seed: int
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., seed: _Optional[int] = ...) -> None: ...
+
 class InstanceSrcReq(_message.Message):
     __slots__ = ("session", "src", "hints")
     SESSION_FIELD_NUMBER: _ClassVar[int]
@@ -333,6 +353,18 @@ class VerifyRes(_message.Message):
     errors: _containers.RepeatedCompositeFieldContainer[_error_pb2.Error]
     task: _task_pb2.Task
     def __init__(self, unknown: _Optional[_Union[_utils_pb2.StringMsg, _Mapping]] = ..., err: _Optional[_Union[_utils_pb2.Empty, _Mapping]] = ..., proved: _Optional[_Union[Proved, _Mapping]] = ..., refuted: _Optional[_Union[Refuted, _Mapping]] = ..., verified_upto: _Optional[_Union[Verified_upto, _Mapping]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., task: _Optional[_Union[_task_pb2.Task, _Mapping]] = ...) -> None: ...
+
+class QCheckRes(_message.Message):
+    __slots__ = ("err", "counter_example", "errors", "task")
+    ERR_FIELD_NUMBER: _ClassVar[int]
+    COUNTER_EXAMPLE_FIELD_NUMBER: _ClassVar[int]
+    ERRORS_FIELD_NUMBER: _ClassVar[int]
+    TASK_FIELD_NUMBER: _ClassVar[int]
+    err: _utils_pb2.Empty
+    counter_example: CounterSat
+    errors: _containers.RepeatedCompositeFieldContainer[_error_pb2.Error]
+    task: _task_pb2.Task
+    def __init__(self, err: _Optional[_Union[_utils_pb2.Empty, _Mapping]] = ..., counter_example: _Optional[_Union[CounterSat, _Mapping]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., task: _Optional[_Union[_task_pb2.Task, _Mapping]] = ...) -> None: ...
 
 class InstanceRes(_message.Message):
     __slots__ = ("unknown", "err", "unsat", "sat", "errors", "task")

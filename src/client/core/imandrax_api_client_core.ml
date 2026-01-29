@@ -89,6 +89,12 @@ module Make (Fut : FUT) = struct
     let arg = API.make_verify_src_req ~session ?hints ~src () in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.verify_src arg
 
+  let qcheck_src ?timeout_s (self : t) ~(src : string) ?seed
+      ~(session : API.session) () : API.qcheck_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_qcheck_src_req ~session ?seed ~src () in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.qcheck_src arg
+
   let decompose ?timeout_s (self : t) ~(name : string) ?assuming ?(basis = [])
       ?(rule_specs = []) ?(prune = true) ?ctx_simp ?lift_bool
       ~(session : API.session) () : API.decompose_res Fut.t =

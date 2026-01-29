@@ -190,6 +190,20 @@ type verify_name_req = private {
   mutable hints : string;
 }
 
+type qcheck_src_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable src : string;
+  mutable seed : int64;
+}
+
+type qcheck_name_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable name : string;
+  mutable seed : int64;
+}
+
 type instance_src_req = private {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
   mutable session : Session.session option;
@@ -226,6 +240,16 @@ type verify_res_res =
 
 and verify_res = private {
   mutable res : verify_res_res option;
+  mutable errors : Error.error list;
+  mutable task : Task.task option;
+}
+
+type qcheck_res_res =
+  | Err
+  | Counter_example of counter_sat
+
+and qcheck_res = private {
+  mutable res : qcheck_res_res option;
   mutable errors : Error.error list;
   mutable task : Task.task option;
 }
@@ -379,6 +403,12 @@ val default_verify_src_req : unit -> verify_src_req
 val default_verify_name_req : unit -> verify_name_req 
 (** [default_verify_name_req ()] is a new empty value for type [verify_name_req] *)
 
+val default_qcheck_src_req : unit -> qcheck_src_req 
+(** [default_qcheck_src_req ()] is a new empty value for type [qcheck_src_req] *)
+
+val default_qcheck_name_req : unit -> qcheck_name_req 
+(** [default_qcheck_name_req ()] is a new empty value for type [qcheck_name_req] *)
+
 val default_instance_src_req : unit -> instance_src_req 
 (** [default_instance_src_req ()] is a new empty value for type [instance_src_req] *)
 
@@ -399,6 +429,12 @@ val default_verify_res_res : unit -> verify_res_res
 
 val default_verify_res : unit -> verify_res 
 (** [default_verify_res ()] is a new empty value for type [verify_res] *)
+
+val default_qcheck_res_res : unit -> qcheck_res_res
+(** [default_qcheck_res_res ()] is a new empty value for type [qcheck_res_res] *)
+
+val default_qcheck_res : unit -> qcheck_res 
+(** [default_qcheck_res ()] is a new empty value for type [qcheck_res] *)
 
 val default_instance_res_res : unit -> instance_res_res
 (** [default_instance_res_res ()] is a new empty value for type [instance_res_res] *)
@@ -958,6 +994,56 @@ val verify_name_req_has_hints : verify_name_req -> bool
 val verify_name_req_set_hints : verify_name_req -> string -> unit
   (** set field hints in verify_name_req *)
 
+val make_qcheck_src_req : 
+  ?session:Session.session ->
+  ?src:string ->
+  ?seed:int64 ->
+  unit ->
+  qcheck_src_req
+(** [make_qcheck_src_req … ()] is a builder for type [qcheck_src_req] *)
+
+val copy_qcheck_src_req : qcheck_src_req -> qcheck_src_req
+
+val qcheck_src_req_set_session : qcheck_src_req -> Session.session -> unit
+  (** set field session in qcheck_src_req *)
+
+val qcheck_src_req_has_src : qcheck_src_req -> bool
+  (** presence of field "src" in [qcheck_src_req] *)
+
+val qcheck_src_req_set_src : qcheck_src_req -> string -> unit
+  (** set field src in qcheck_src_req *)
+
+val qcheck_src_req_has_seed : qcheck_src_req -> bool
+  (** presence of field "seed" in [qcheck_src_req] *)
+
+val qcheck_src_req_set_seed : qcheck_src_req -> int64 -> unit
+  (** set field seed in qcheck_src_req *)
+
+val make_qcheck_name_req : 
+  ?session:Session.session ->
+  ?name:string ->
+  ?seed:int64 ->
+  unit ->
+  qcheck_name_req
+(** [make_qcheck_name_req … ()] is a builder for type [qcheck_name_req] *)
+
+val copy_qcheck_name_req : qcheck_name_req -> qcheck_name_req
+
+val qcheck_name_req_set_session : qcheck_name_req -> Session.session -> unit
+  (** set field session in qcheck_name_req *)
+
+val qcheck_name_req_has_name : qcheck_name_req -> bool
+  (** presence of field "name" in [qcheck_name_req] *)
+
+val qcheck_name_req_set_name : qcheck_name_req -> string -> unit
+  (** set field name in qcheck_name_req *)
+
+val qcheck_name_req_has_seed : qcheck_name_req -> bool
+  (** presence of field "seed" in [qcheck_name_req] *)
+
+val qcheck_name_req_set_seed : qcheck_name_req -> int64 -> unit
+  (** set field seed in qcheck_name_req *)
+
 val make_instance_src_req : 
   ?session:Session.session ->
   ?src:string ->
@@ -1062,6 +1148,25 @@ val verify_res_set_errors : verify_res -> Error.error list -> unit
 
 val verify_res_set_task : verify_res -> Task.task -> unit
   (** set field task in verify_res *)
+
+val make_qcheck_res : 
+  ?res:qcheck_res_res ->
+  ?errors:Error.error list ->
+  ?task:Task.task ->
+  unit ->
+  qcheck_res
+(** [make_qcheck_res … ()] is a builder for type [qcheck_res] *)
+
+val copy_qcheck_res : qcheck_res -> qcheck_res
+
+val qcheck_res_set_res : qcheck_res -> qcheck_res_res -> unit
+  (** set field res in qcheck_res *)
+
+val qcheck_res_set_errors : qcheck_res -> Error.error list -> unit
+  (** set field errors in qcheck_res *)
+
+val qcheck_res_set_task : qcheck_res -> Task.task -> unit
+  (** set field task in qcheck_res *)
 
 val make_instance_res : 
   ?res:instance_res_res ->
@@ -1332,6 +1437,12 @@ val pp_verify_src_req : Format.formatter -> verify_src_req -> unit
 val pp_verify_name_req : Format.formatter -> verify_name_req -> unit 
 (** [pp_verify_name_req v] formats v *)
 
+val pp_qcheck_src_req : Format.formatter -> qcheck_src_req -> unit 
+(** [pp_qcheck_src_req v] formats v *)
+
+val pp_qcheck_name_req : Format.formatter -> qcheck_name_req -> unit 
+(** [pp_qcheck_name_req v] formats v *)
+
 val pp_instance_src_req : Format.formatter -> instance_src_req -> unit 
 (** [pp_instance_src_req v] formats v *)
 
@@ -1352,6 +1463,12 @@ val pp_verify_res_res : Format.formatter -> verify_res_res -> unit
 
 val pp_verify_res : Format.formatter -> verify_res -> unit 
 (** [pp_verify_res v] formats v *)
+
+val pp_qcheck_res_res : Format.formatter -> qcheck_res_res -> unit 
+(** [pp_qcheck_res_res v] formats v *)
+
+val pp_qcheck_res : Format.formatter -> qcheck_res -> unit 
+(** [pp_qcheck_res v] formats v *)
 
 val pp_instance_res_res : Format.formatter -> instance_res_res -> unit 
 (** [pp_instance_res_res v] formats v *)
@@ -1470,6 +1587,12 @@ val encode_pb_verify_src_req : verify_src_req -> Pbrt.Encoder.t -> unit
 val encode_pb_verify_name_req : verify_name_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_verify_name_req v encoder] encodes [v] with the given [encoder] *)
 
+val encode_pb_qcheck_src_req : qcheck_src_req -> Pbrt.Encoder.t -> unit
+(** [encode_pb_qcheck_src_req v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_qcheck_name_req : qcheck_name_req -> Pbrt.Encoder.t -> unit
+(** [encode_pb_qcheck_name_req v encoder] encodes [v] with the given [encoder] *)
+
 val encode_pb_instance_src_req : instance_src_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_instance_src_req v encoder] encodes [v] with the given [encoder] *)
 
@@ -1490,6 +1613,12 @@ val encode_pb_verify_res_res : verify_res_res -> Pbrt.Encoder.t -> unit
 
 val encode_pb_verify_res : verify_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_verify_res v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_qcheck_res_res : qcheck_res_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_qcheck_res_res v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_qcheck_res : qcheck_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_qcheck_res v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_instance_res_res : instance_res_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_instance_res_res v encoder] encodes [v] with the given [encoder] *)
@@ -1608,6 +1737,12 @@ val decode_pb_verify_src_req : Pbrt.Decoder.t -> verify_src_req
 val decode_pb_verify_name_req : Pbrt.Decoder.t -> verify_name_req
 (** [decode_pb_verify_name_req decoder] decodes a [verify_name_req] binary value from [decoder] *)
 
+val decode_pb_qcheck_src_req : Pbrt.Decoder.t -> qcheck_src_req
+(** [decode_pb_qcheck_src_req decoder] decodes a [qcheck_src_req] binary value from [decoder] *)
+
+val decode_pb_qcheck_name_req : Pbrt.Decoder.t -> qcheck_name_req
+(** [decode_pb_qcheck_name_req decoder] decodes a [qcheck_name_req] binary value from [decoder] *)
+
 val decode_pb_instance_src_req : Pbrt.Decoder.t -> instance_src_req
 (** [decode_pb_instance_src_req decoder] decodes a [instance_src_req] binary value from [decoder] *)
 
@@ -1628,6 +1763,12 @@ val decode_pb_verify_res_res : Pbrt.Decoder.t -> verify_res_res
 
 val decode_pb_verify_res : Pbrt.Decoder.t -> verify_res
 (** [decode_pb_verify_res decoder] decodes a [verify_res] binary value from [decoder] *)
+
+val decode_pb_qcheck_res_res : Pbrt.Decoder.t -> qcheck_res_res
+(** [decode_pb_qcheck_res_res decoder] decodes a [qcheck_res_res] binary value from [decoder] *)
+
+val decode_pb_qcheck_res : Pbrt.Decoder.t -> qcheck_res
+(** [decode_pb_qcheck_res decoder] decodes a [qcheck_res] binary value from [decoder] *)
 
 val decode_pb_instance_res_res : Pbrt.Decoder.t -> instance_res_res
 (** [decode_pb_instance_res_res decoder] decodes a [instance_res_res] binary value from [decoder] *)
@@ -1746,6 +1887,12 @@ val encode_json_verify_src_req : verify_src_req -> Yojson.Basic.t
 val encode_json_verify_name_req : verify_name_req -> Yojson.Basic.t
 (** [encode_json_verify_name_req v encoder] encodes [v] to to json *)
 
+val encode_json_qcheck_src_req : qcheck_src_req -> Yojson.Basic.t
+(** [encode_json_qcheck_src_req v encoder] encodes [v] to to json *)
+
+val encode_json_qcheck_name_req : qcheck_name_req -> Yojson.Basic.t
+(** [encode_json_qcheck_name_req v encoder] encodes [v] to to json *)
+
 val encode_json_instance_src_req : instance_src_req -> Yojson.Basic.t
 (** [encode_json_instance_src_req v encoder] encodes [v] to to json *)
 
@@ -1766,6 +1913,12 @@ val encode_json_verify_res_res : verify_res_res -> Yojson.Basic.t
 
 val encode_json_verify_res : verify_res -> Yojson.Basic.t
 (** [encode_json_verify_res v encoder] encodes [v] to to json *)
+
+val encode_json_qcheck_res_res : qcheck_res_res -> Yojson.Basic.t
+(** [encode_json_qcheck_res_res v encoder] encodes [v] to to json *)
+
+val encode_json_qcheck_res : qcheck_res -> Yojson.Basic.t
+(** [encode_json_qcheck_res v encoder] encodes [v] to to json *)
 
 val encode_json_instance_res_res : instance_res_res -> Yojson.Basic.t
 (** [encode_json_instance_res_res v encoder] encodes [v] to to json *)
@@ -1884,6 +2037,12 @@ val decode_json_verify_src_req : Yojson.Basic.t -> verify_src_req
 val decode_json_verify_name_req : Yojson.Basic.t -> verify_name_req
 (** [decode_json_verify_name_req decoder] decodes a [verify_name_req] value from [decoder] *)
 
+val decode_json_qcheck_src_req : Yojson.Basic.t -> qcheck_src_req
+(** [decode_json_qcheck_src_req decoder] decodes a [qcheck_src_req] value from [decoder] *)
+
+val decode_json_qcheck_name_req : Yojson.Basic.t -> qcheck_name_req
+(** [decode_json_qcheck_name_req decoder] decodes a [qcheck_name_req] value from [decoder] *)
+
 val decode_json_instance_src_req : Yojson.Basic.t -> instance_src_req
 (** [decode_json_instance_src_req decoder] decodes a [instance_src_req] value from [decoder] *)
 
@@ -1904,6 +2063,12 @@ val decode_json_verify_res_res : Yojson.Basic.t -> verify_res_res
 
 val decode_json_verify_res : Yojson.Basic.t -> verify_res
 (** [decode_json_verify_res decoder] decodes a [verify_res] value from [decoder] *)
+
+val decode_json_qcheck_res_res : Yojson.Basic.t -> qcheck_res_res
+(** [decode_json_qcheck_res_res decoder] decodes a [qcheck_res_res] value from [decoder] *)
+
+val decode_json_qcheck_res : Yojson.Basic.t -> qcheck_res
+(** [decode_json_qcheck_res decoder] decodes a [qcheck_res] value from [decoder] *)
 
 val decode_json_instance_res_res : Yojson.Basic.t -> instance_res_res
 (** [decode_json_instance_res_res decoder] decodes a [instance_res_res] value from [decoder] *)
@@ -1959,6 +2124,10 @@ module Simple : sig
     
     val verify_name : (verify_name_req, unary, verify_res, unary) Client.rpc
     
+    val qcheck_src : (qcheck_src_req, unary, qcheck_res, unary) Client.rpc
+    
+    val qcheck_name : (qcheck_name_req, unary, qcheck_res, unary) Client.rpc
+    
     val instance_src : (instance_src_req, unary, instance_res, unary) Client.rpc
     
     val instance_name : (instance_name_req, unary, instance_res, unary) Client.rpc
@@ -1984,6 +2153,8 @@ module Simple : sig
       eval_src:((eval_src_req, unary, eval_res, unary) Server.rpc -> 'handler) ->
       verify_src:((verify_src_req, unary, verify_res, unary) Server.rpc -> 'handler) ->
       verify_name:((verify_name_req, unary, verify_res, unary) Server.rpc -> 'handler) ->
+      qcheck_src:((qcheck_src_req, unary, qcheck_res, unary) Server.rpc -> 'handler) ->
+      qcheck_name:((qcheck_name_req, unary, qcheck_res, unary) Server.rpc -> 'handler) ->
       instance_src:((instance_src_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       instance_name:((instance_name_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
@@ -2008,6 +2179,10 @@ module Simple : sig
     val verify_src : (verify_src_req,unary,verify_res,unary) Server.rpc
     
     val verify_name : (verify_name_req,unary,verify_res,unary) Server.rpc
+    
+    val qcheck_src : (qcheck_src_req,unary,qcheck_res,unary) Server.rpc
+    
+    val qcheck_name : (qcheck_name_req,unary,qcheck_res,unary) Server.rpc
     
     val instance_src : (instance_src_req,unary,instance_res,unary) Server.rpc
     

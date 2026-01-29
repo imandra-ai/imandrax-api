@@ -79,6 +79,24 @@ class SimpleClient(TwirpClient):
 			**kwargs,
 		)
 
+	def qcheck_src(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/qcheck_src",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("imandrax.simple.QCheckRes"),
+			**kwargs,
+		)
+
+	def qcheck_name(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/qcheck_name",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("imandrax.simple.QCheckRes"),
+			**kwargs,
+		)
+
 	def instance_src(self, *args, ctx, request, **kwargs):
 		return self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.simple.Simple/instance_src",
@@ -206,6 +224,24 @@ if _async_available:
 				ctx=ctx,
 				request=request,
 				response_obj=_sym_db.GetSymbol("imandrax.simple.VerifyRes"),
+				**kwargs,
+			)
+
+		async def qcheck_src(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.simple.Simple/qcheck_src",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.simple.QCheckRes"),
+				**kwargs,
+			)
+
+		async def qcheck_name(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.simple.Simple/qcheck_name",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.simple.QCheckRes"),
 				**kwargs,
 			)
 
