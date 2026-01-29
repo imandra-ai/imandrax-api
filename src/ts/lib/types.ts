@@ -4053,7 +4053,7 @@ export function Tasks_PO_res_success_Verified_upto_of_twine<_V_tyreg_poly_term,_
 export class Tasks_PO_res_success_Qcheck_ok<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
     public num_steps: bigint,
-    public seed: Int64){}
+    public seed: bigint){}
 }
 
 export function Tasks_PO_res_success_Qcheck_ok_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_PO_res_success_Qcheck_ok<_V_tyreg_poly_term,_V_tyreg_poly_ty> {

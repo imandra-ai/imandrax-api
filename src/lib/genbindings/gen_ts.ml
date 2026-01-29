@@ -115,7 +115,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
     gen_type_expr ty
   | Cstor (s, args) ->
     (match s, args with
-    | ("int" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] -> "bigint"
+    | ("int" | "Util_twine.Z.t" | "Z.t" | "_Z.t" | "int64"), [] -> "bigint"
     | "string", [] -> "string"
     | "bool", [] -> "boolean"
     | "array", [ x ] | "list", [ x ] -> spf "Array<%s>" (gen_type_expr x)
@@ -229,6 +229,12 @@ function Uid_set_of_twine(d: twine.Decoder, off: offset): Uid_set {
 
 function Chash_of_twine(d: twine.Decoder, off:number): Chash {
     return d.get_bytes(off)
+}|}
+    );
+    ( "int64",
+      {|
+function Int64_of_twine(d: twine.Decoder, off:number): bigint {
+    return d.get_int(off)
 }|}
     );
   ]
