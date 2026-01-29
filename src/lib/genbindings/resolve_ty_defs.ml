@@ -51,6 +51,7 @@ let names_to_exclude : Str_set.t =
       "option";
       "Util_twine.Z.t";
       "Util_twine.Q.t";
+      "int64";
     ]
 
 let names_to_cache : Str_set.t =

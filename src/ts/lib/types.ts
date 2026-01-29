@@ -4053,7 +4053,7 @@ export function Tasks_PO_res_success_Verified_upto_of_twine<_V_tyreg_poly_term,_
 export class Tasks_PO_res_success_Qcheck_ok<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
   constructor(
     public num_steps: bigint,
-    public seed: Tasks_PO_res_int64){}
+    public seed: Int64){}
 }
 
 export function Tasks_PO_res_success_Qcheck_ok_of_twine<_V_tyreg_poly_term,_V_tyreg_poly_ty>(d: twine.Decoder, decode__tyreg_poly_term: (d:twine.Decoder, off:offset) => _V_tyreg_poly_term, decode__tyreg_poly_ty: (d:twine.Decoder, off:offset) => _V_tyreg_poly_ty,_tw_args: Array<offset>, off: offset): Tasks_PO_res_success_Qcheck_ok<_V_tyreg_poly_term,_V_tyreg_poly_ty> {
@@ -4061,7 +4061,7 @@ export function Tasks_PO_res_success_Qcheck_ok_of_twine<_V_tyreg_poly_term,_V_ty
   decode__tyreg_poly_ty
   checkArrayLength(off, _tw_args, 2)
   const num_steps = d.get_int(_tw_args[0])
-  const seed = Tasks_PO_res_int64_of_twine(d, _tw_args[1])
+  const seed = Int64_of_twine(d, _tw_args[1])
   return new Tasks_PO_res_success_Qcheck_ok(num_steps,seed)
 }
 export type Tasks_PO_res_success<_V_tyreg_poly_term,_V_tyreg_poly_ty> = Tasks_PO_res_success_Proof<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_PO_res_success_Instance<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_PO_res_success_Verified_upto<_V_tyreg_poly_term,_V_tyreg_poly_ty>| Tasks_PO_res_success_Qcheck_ok<_V_tyreg_poly_term,_V_tyreg_poly_ty>

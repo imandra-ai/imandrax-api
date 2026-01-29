@@ -3871,14 +3871,14 @@ def Tasks_PO_res_success_Verified_upto_of_twine[_V_tyreg_poly_term,_V_tyreg_poly
 @dataclass(slots=True, frozen=True)
 class Tasks_PO_res_success_Qcheck_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     num_steps: int
-    seed: Tasks_PO_res_int64
+    seed: Int64
 
 
 def Tasks_PO_res_success_Qcheck_ok_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],_tw_args: tuple[int, ...]) -> Tasks_PO_res_success_Qcheck_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
     num_steps = d.get_int(off=_tw_args[0])
-    seed = Tasks_PO_res_int64_of_twine(d=d, off=_tw_args[1])
+    seed = Int64_of_twine(d=d, off=_tw_args[1])
     return Tasks_PO_res_success_Qcheck_ok(num_steps=num_steps,seed=seed)
 
 

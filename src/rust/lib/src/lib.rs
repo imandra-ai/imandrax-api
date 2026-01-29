@@ -1146,7 +1146,7 @@ pub enum TasksPO_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Verified_upto(&'a TasksPO_resVerified_upto<'a>),
   Qcheck_ok {
     num_steps: BigInt,
-    seed: &'a TasksPO_resInt64<'a>,
+    seed: &'a Int64<'a>,
   },
 }
 
