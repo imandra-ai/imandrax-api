@@ -1037,6 +1037,33 @@ def Common_Fun_def_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine
     f_hints = Common_Hints_t_poly_of_twine(d=d,off=fields[6],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     return Common_Fun_def_t_poly(f_name=f_name,f_ty=f_ty,f_args=f_args,f_body=f_body,f_clique=f_clique,f_kind=f_kind,f_hints=f_hints)
 
+# clique Imandrax_api_common.Verify.kind (cached: false)
+# def Imandrax_api_common.Verify.kind (mangled name: "Common_Verify_kind")
+@dataclass(slots=True, frozen=True)
+class Common_Verify_kind_K_verify:
+    pass
+
+@dataclass(slots=True, frozen=True)
+class Common_Verify_kind_K_instance:
+    pass
+
+@dataclass(slots=True, frozen=True)
+class Common_Verify_kind_K_quickcheck:
+    pass
+
+type Common_Verify_kind = Common_Verify_kind_K_verify| Common_Verify_kind_K_instance| Common_Verify_kind_K_quickcheck
+
+def Common_Verify_kind_of_twine(d: twine.Decoder, off: int) -> Common_Verify_kind:
+    match d.get_cstor(off=off):
+         case twine.Constructor(idx=0, args=args):
+             return Common_Verify_kind_K_verify()
+         case twine.Constructor(idx=1, args=args):
+             return Common_Verify_kind_K_instance()
+         case twine.Constructor(idx=2, args=args):
+             return Common_Verify_kind_K_quickcheck()
+         case twine.Constructor(idx=idx):
+             raise twine.Error(f'expected Common_Verify_kind, got invalid constructor {idx}')
+
 # clique Imandrax_api_common.Verify.t_poly (cached: false)
 # def Imandrax_api_common.Verify.t_poly (mangled name: "Common_Verify_t_poly")
 @dataclass(slots=True, frozen=True)
@@ -1045,7 +1072,7 @@ class Common_Verify_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     verify_simplify: bool
     verify_nonlin: bool
     verify_upto: None | Upto
-    verify_is_instance: bool
+    verify_kind: Common_Verify_kind
     verify_minimize: list[_V_tyreg_poly_term]
     verify_by: None | tuple[list[Common_Var_t_poly[_V_tyreg_poly_ty]],_V_tyreg_poly_term]
 
@@ -1057,10 +1084,10 @@ def Common_Verify_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
     verify_simplify = d.get_bool(off=fields[1])
     verify_nonlin = d.get_bool(off=fields[2])
     verify_upto = twine.optional(d=d, off=fields[3], d0=lambda d, off: Upto_of_twine(d=d, off=off))
-    verify_is_instance = d.get_bool(off=fields[4])
+    verify_kind = Common_Verify_kind_of_twine(d=d, off=fields[4])
     verify_minimize = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[5])]
     verify_by = twine.optional(d=d, off=fields[6], d0=lambda d, off: (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=off))))
-    return Common_Verify_t_poly(verify_link=verify_link,verify_simplify=verify_simplify,verify_nonlin=verify_nonlin,verify_upto=verify_upto,verify_is_instance=verify_is_instance,verify_minimize=verify_minimize,verify_by=verify_by)
+    return Common_Verify_t_poly(verify_link=verify_link,verify_simplify=verify_simplify,verify_nonlin=verify_nonlin,verify_upto=verify_upto,verify_kind=verify_kind,verify_minimize=verify_minimize,verify_by=verify_by)
 
 # clique Imandrax_api_common.Typed_symbol.t_poly (cached: false)
 # def Imandrax_api_common.Typed_symbol.t_poly (mangled name: "Common_Typed_symbol_t_poly")
@@ -1351,6 +1378,20 @@ def Common_Tactic_t_poly_Default_thm_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_t
 
 
 @dataclass(slots=True, frozen=True)
+class Common_Tactic_t_poly_Default_quickcheck[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    num_steps: None | int
+    seed: None | int
+
+
+def Common_Tactic_t_poly_Default_quickcheck_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],_tw_args: tuple[int, ...]) -> Common_Tactic_t_poly_Default_quickcheck[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    num_steps = twine.optional(d=d, off=_tw_args[0], d0=lambda d, off: d.get_int(off=off))
+    seed = twine.optional(d=d, off=_tw_args[1], d0=lambda d, off: d.get_int(off=off))
+    return Common_Tactic_t_poly_Default_quickcheck(num_steps=num_steps,seed=seed)
+
+
+@dataclass(slots=True, frozen=True)
 class Common_Tactic_t_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     arg: tuple[list[Common_Var_t_poly[_V_tyreg_poly_ty]],_V_tyreg_poly_term]
 
@@ -1360,7 +1401,7 @@ def Common_Tactic_t_poly_Term_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: t
     arg = (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=_tw_args[0])))
     return Common_Tactic_t_poly_Term(arg=arg)
 
-type Common_Tactic_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Tactic_t_poly_Default_termination[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Default_thm[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]
+type Common_Tactic_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Tactic_t_poly_Default_termination[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Default_thm[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Default_quickcheck[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]
 
 def Common_Tactic_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Tactic_t_poly:
     match d.get_cstor(off=off):
@@ -1371,6 +1412,9 @@ def Common_Tactic_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
              args = tuple(args)
              return Common_Tactic_t_poly_Default_thm_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=2, args=args):
+             args = tuple(args)
+             return Common_Tactic_t_poly_Default_quickcheck_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=3, args=args):
              args = tuple(args)
              return Common_Tactic_t_poly_Term_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=idx):
@@ -1687,6 +1731,7 @@ class Common_Proof_obligation_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     anchor: Anchor
     timeout: None | int
     upto: None | Upto
+    verify_kind: None | Common_Verify_kind
 
 def Common_Proof_obligation_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Proof_obligation_t_poly:
     decode__tyreg_poly_term = d0
@@ -1699,7 +1744,8 @@ def Common_Proof_obligation_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty]
     anchor = Anchor_of_twine(d=d, off=fields[4])
     timeout = twine.optional(d=d, off=fields[5], d0=lambda d, off: d.get_int(off=off))
     upto = twine.optional(d=d, off=fields[6], d0=lambda d, off: Upto_of_twine(d=d, off=off))
-    return Common_Proof_obligation_t_poly(descr=descr,goal=goal,tactic=tactic,is_instance=is_instance,anchor=anchor,timeout=timeout,upto=upto)
+    verify_kind = twine.optional(d=d, off=fields[7], d0=lambda d, off: Common_Verify_kind_of_twine(d=d, off=off))
+    return Common_Proof_obligation_t_poly(descr=descr,goal=goal,tactic=tactic,is_instance=is_instance,anchor=anchor,timeout=timeout,upto=upto,verify_kind=verify_kind)
 
 # clique Imandrax_api_common.Instantiation_rule_kind.t (cached: false)
 # def Imandrax_api_common.Instantiation_rule_kind.t (mangled name: "Common_Instantiation_rule_kind")
@@ -3822,7 +3868,21 @@ def Tasks_PO_res_success_Verified_upto_of_twine[_V_tyreg_poly_term,_V_tyreg_poly
     arg = Tasks_PO_res_verified_upto_of_twine(d=d, off=_tw_args[0])
     return Tasks_PO_res_success_Verified_upto(arg=arg)
 
-type Tasks_PO_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Tasks_PO_res_success_Proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Instance[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Verified_upto[_V_tyreg_poly_term,_V_tyreg_poly_ty]
+@dataclass(slots=True, frozen=True)
+class Tasks_PO_res_success_Qcheck_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    num_steps: int
+    seed: Tasks_PO_res_int64
+
+
+def Tasks_PO_res_success_Qcheck_ok_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],_tw_args: tuple[int, ...]) -> Tasks_PO_res_success_Qcheck_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    decode__tyreg_poly_term = d0
+    decode__tyreg_poly_ty = d1
+    num_steps = d.get_int(off=_tw_args[0])
+    seed = Tasks_PO_res_int64_of_twine(d=d, off=_tw_args[1])
+    return Tasks_PO_res_success_Qcheck_ok(num_steps=num_steps,seed=seed)
+
+
+type Tasks_PO_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Tasks_PO_res_success_Proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Instance[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Verified_upto[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Qcheck_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]
 
 def Tasks_PO_res_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_success:
     match d.get_cstor(off=off):
@@ -3835,6 +3895,9 @@ def Tasks_PO_res_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
          case twine.Constructor(idx=2, args=args):
              args = tuple(args)
              return Tasks_PO_res_success_Verified_upto_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
+         case twine.Constructor(idx=3, args=args):
+             args = tuple(args)
+             return Tasks_PO_res_success_Qcheck_ok_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Tasks_PO_res_success, got invalid constructor {idx}')
 

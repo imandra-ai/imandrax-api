@@ -276,6 +276,11 @@ export interface VerifiedUpto {
   msg?: string | undefined;
 }
 
+export interface QcheckOk {
+  numSteps: number;
+  seed: number;
+}
+
 export interface Unsat {
   proofPp?: string | undefined;
 }
@@ -307,6 +312,7 @@ export interface PORes {
   proof?: Proved | undefined;
   instance?: CounterSat | undefined;
   verifiedUpto?: VerifiedUpto | undefined;
+  qcheckOk?: QcheckOk | undefined;
   errors: Error[];
   /** the ID of the task */
   task:
@@ -2601,6 +2607,82 @@ export const VerifiedUpto: MessageFns<VerifiedUpto> = {
   },
 };
 
+function createBaseQcheckOk(): QcheckOk {
+  return { numSteps: 0, seed: 0 };
+}
+
+export const QcheckOk: MessageFns<QcheckOk> = {
+  encode(message: QcheckOk, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.numSteps !== 0) {
+      writer.uint32(8).int64(message.numSteps);
+    }
+    if (message.seed !== 0) {
+      writer.uint32(16).int64(message.seed);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QcheckOk {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQcheckOk();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.numSteps = longToNumber(reader.int64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.seed = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QcheckOk {
+    return {
+      numSteps: isSet(object.numSteps) ? globalThis.Number(object.numSteps) : 0,
+      seed: isSet(object.seed) ? globalThis.Number(object.seed) : 0,
+    };
+  },
+
+  toJSON(message: QcheckOk): unknown {
+    const obj: any = {};
+    if (message.numSteps !== 0) {
+      obj.numSteps = Math.round(message.numSteps);
+    }
+    if (message.seed !== 0) {
+      obj.seed = Math.round(message.seed);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QcheckOk>, I>>(base?: I): QcheckOk {
+    return QcheckOk.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QcheckOk>, I>>(object: I): QcheckOk {
+    const message = createBaseQcheckOk();
+    message.numSteps = object.numSteps ?? 0;
+    message.seed = object.seed ?? 0;
+    return message;
+  },
+};
+
 function createBaseUnsat(): Unsat {
   return { proofPp: undefined };
 }
@@ -2934,6 +3016,7 @@ function createBasePORes(): PORes {
     proof: undefined,
     instance: undefined,
     verifiedUpto: undefined,
+    qcheckOk: undefined,
     errors: [],
     task: undefined,
     origin: undefined,
@@ -2956,6 +3039,9 @@ export const PORes: MessageFns<PORes> = {
     }
     if (message.verifiedUpto !== undefined) {
       VerifiedUpto.encode(message.verifiedUpto, writer.uint32(42).fork()).join();
+    }
+    if (message.qcheckOk !== undefined) {
+      QcheckOk.encode(message.qcheckOk, writer.uint32(50).fork()).join();
     }
     for (const v of message.errors) {
       Error.encode(v!, writer.uint32(82).fork()).join();
@@ -3016,6 +3102,14 @@ export const PORes: MessageFns<PORes> = {
           message.verifiedUpto = VerifiedUpto.decode(reader, reader.uint32());
           continue;
         }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.qcheckOk = QcheckOk.decode(reader, reader.uint32());
+          continue;
+        }
         case 10: {
           if (tag !== 82) {
             break;
@@ -3056,6 +3150,7 @@ export const PORes: MessageFns<PORes> = {
       proof: isSet(object.proof) ? Proved.fromJSON(object.proof) : undefined,
       instance: isSet(object.instance) ? CounterSat.fromJSON(object.instance) : undefined,
       verifiedUpto: isSet(object.verifiedUpto) ? VerifiedUpto.fromJSON(object.verifiedUpto) : undefined,
+      qcheckOk: isSet(object.qcheckOk) ? QcheckOk.fromJSON(object.qcheckOk) : undefined,
       errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
       task: isSet(object.task) ? Task.fromJSON(object.task) : undefined,
       origin: isSet(object.origin) ? Origin.fromJSON(object.origin) : undefined,
@@ -3078,6 +3173,9 @@ export const PORes: MessageFns<PORes> = {
     }
     if (message.verifiedUpto !== undefined) {
       obj.verifiedUpto = VerifiedUpto.toJSON(message.verifiedUpto);
+    }
+    if (message.qcheckOk !== undefined) {
+      obj.qcheckOk = QcheckOk.toJSON(message.qcheckOk);
     }
     if (message.errors?.length) {
       obj.errors = message.errors.map((e) => Error.toJSON(e));
@@ -3108,6 +3206,9 @@ export const PORes: MessageFns<PORes> = {
       : undefined;
     message.verifiedUpto = (object.verifiedUpto !== undefined && object.verifiedUpto !== null)
       ? VerifiedUpto.fromPartial(object.verifiedUpto)
+      : undefined;
+    message.qcheckOk = (object.qcheckOk !== undefined && object.qcheckOk !== null)
+      ? QcheckOk.fromPartial(object.qcheckOk)
       : undefined;
     message.errors = object.errors?.map((e) => Error.fromPartial(e)) || [];
     message.task = (object.task !== undefined && object.task !== null) ? Task.fromPartial(object.task) : undefined;
@@ -4257,6 +4358,17 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function longToNumber(int64: { toString(): string }): number {
+  const num = globalThis.Number(int64.toString());
+  if (num > globalThis.Number.MAX_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  if (num < globalThis.Number.MIN_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
+  }
+  return num;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
