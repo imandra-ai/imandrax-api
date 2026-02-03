@@ -35,8 +35,7 @@ module Conn = struct
     active: bool Atomic.t;
     addr: Addr.t;
     encoding: [ `JSON | `BINARY ];
-    verbose: bool;
-    client: Curl.t Lock.t;  (** single, sessionfull client *)
+    client: Ezcurl.t Lock.t;  (** single, sessionfull client *)
     auth_token: string option;  (** JWT *)
   }
 
@@ -69,7 +68,6 @@ module Conn = struct
     let headers =
       auth_header @ Imandrax_api_client_core.Standard_endpoints.headers
     in
-    Curl.set_verbose client self.verbose;
 
     C.call_exn ~encoding:self.encoding ~prefix:(Some "api/v1") ~client
       ~base_url:self.addr.url ~headers rpc req
@@ -101,20 +99,14 @@ let create ?(verbose = false) ?(encoding = `JSON) ?(url = url_prod)
   let client =
     let set_opts curl =
       (* enable cookie handling so we always talk to the same server *)
-      Curl.set_cookiefile curl ""
+      Curl.set_cookiefile curl "";
+      Curl.set_verbose curl verbose
     in
     let c = Ezcurl.make ~set_opts () in
     Lock.create c
   in
   let conn =
-    {
-      Conn.active = Atomic.make true;
-      encoding;
-      verbose;
-      addr;
-      client;
-      auth_token;
-    }
+    { Conn.active = Atomic.make true; encoding; addr; client; auth_token }
   in
   create ~addr:(Addr.show addr) ~rpc:(Conn.to_rpc conn) ()
 
