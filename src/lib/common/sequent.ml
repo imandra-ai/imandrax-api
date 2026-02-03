@@ -29,16 +29,16 @@ let iter_conclusion_terms (self : 'term t_poly) : 'term Iter.t =
   iter_conclusions self |> Iter.map snd
 
 let[@inline] num_named_hypotheses (self : 'term t_poly) : int =
-  Iter.of_list self.hyps |> Iter.filter_count (fun (n, t) -> Option.is_some n)
+  Iter.of_list self.hyps |> Iter.filter_count (fun (n, _) -> Option.is_some n)
 
 let[@inline] num_named_conclusions (self : 'term t_poly) : int =
-  Iter.of_list self.concls |> Iter.filter_count (fun (n, t) -> Option.is_some n)
+  Iter.of_list self.concls |> Iter.filter_count (fun (n, _) -> Option.is_some n)
 
 let[@inline] num_unnamed_hypotheses (self : 'term t_poly) : int =
-  Iter.of_list self.hyps |> Iter.filter_count (fun (n, t) -> Option.is_none n)
+  Iter.of_list self.hyps |> Iter.filter_count (fun (n, _) -> Option.is_none n)
 
 let[@inline] num_unnamed_conclusions (self : 'term t_poly) : int =
-  Iter.of_list self.concls |> Iter.filter_count (fun (n, t) -> Option.is_none n)
+  Iter.of_list self.concls |> Iter.filter_count (fun (n, _) -> Option.is_none n)
 
 let[@inline] has_hypotheses x = not (CCList.is_empty x.hyps)
 
