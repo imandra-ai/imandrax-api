@@ -79,7 +79,7 @@
     (>= 3.0)
     :with-test))
   (trace
-   (>= 0.6))
+   (>= 0.11))
   logs
   (ocaml
    (>= 4.14))
@@ -107,7 +107,7 @@
     (>= 0.7)
     (<= 0.11)))
   (trace
-   (>= 0.6))
+   (>= 0.11))
   (pbrt
    (>= 4.0))
   (pbrt_yojson
@@ -124,7 +124,7 @@
   lwt
   twirp_cohttp_lwt_unix
   (trace
-   (>= 0.6))
+   (>= 0.11))
   (pbrt
    (>= 4.0))
   (pbrt_yojson
@@ -145,7 +145,7 @@
   (imandrax-api-client-ezcurl
    (= :version))
   (trace
-   (>= 0.6))
+   (>= 0.11))
   ppx_deriving))
 
 (package
