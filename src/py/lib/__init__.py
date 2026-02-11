@@ -1331,6 +1331,7 @@ class Common_Theorem_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     thm_triggers: list[Common_Pre_trigger_t_poly[_V_tyreg_poly_term]]
     thm_is_axiom: bool
     thm_by: tuple[list[Common_Var_t_poly[_V_tyreg_poly_ty]],_V_tyreg_poly_term]
+    thm_named_hypotheses: list[tuple[str,_V_tyreg_poly_term]]
 
 def Common_Theorem_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Theorem_t_poly:
     decode__tyreg_poly_term = d0
@@ -1345,7 +1346,8 @@ def Common_Theorem_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine
     thm_triggers = [Common_Pre_trigger_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))) for x in d.get_array(off=fields[6])]
     thm_is_axiom = d.get_bool(off=fields[7])
     thm_by = (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=fields[8])))
-    return Common_Theorem_t_poly(thm_link=thm_link,thm_rewriting=thm_rewriting,thm_perm_restrict=thm_perm_restrict,thm_fc=thm_fc,thm_elim=thm_elim,thm_gen=thm_gen,thm_triggers=thm_triggers,thm_is_axiom=thm_is_axiom,thm_by=thm_by)
+    thm_named_hypotheses = [(lambda tup: (d.get_str(off=tup[0]),decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[9])]
+    return Common_Theorem_t_poly(thm_link=thm_link,thm_rewriting=thm_rewriting,thm_perm_restrict=thm_perm_restrict,thm_fc=thm_fc,thm_elim=thm_elim,thm_gen=thm_gen,thm_triggers=thm_triggers,thm_is_axiom=thm_is_axiom,thm_by=thm_by,thm_named_hypotheses=thm_named_hypotheses)
 
 # clique Imandrax_api_common.Tactic.t_poly (cached: false)
 # def Imandrax_api_common.Tactic.t_poly (mangled name: "Common_Tactic_t_poly")
@@ -1424,14 +1426,14 @@ def Common_Tactic_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
 # def Imandrax_api_common.Sequent.t_poly (mangled name: "Common_Sequent_t_poly")
 @dataclass(slots=True, frozen=True)
 class Common_Sequent_t_poly[_V_tyreg_poly_term]:
-    hyps: list[_V_tyreg_poly_term]
-    concls: list[_V_tyreg_poly_term]
+    hyps: list[tuple[None | str,_V_tyreg_poly_term]]
+    concls: list[tuple[None | str,_V_tyreg_poly_term]]
 
 def Common_Sequent_t_poly_of_twine[_V_tyreg_poly_term](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],off: int) -> Common_Sequent_t_poly:
     decode__tyreg_poly_term = d0
     fields = list(d.get_array(off=off))
-    hyps = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[0])]
-    concls = [decode__tyreg_poly_term(d=d,off=x) for x in d.get_array(off=fields[1])]
+    hyps = [(lambda tup: (twine.optional(d=d, off=tup[0], d0=lambda d, off: d.get_str(off=off)),decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[0])]
+    concls = [(lambda tup: (twine.optional(d=d, off=tup[0], d0=lambda d, off: d.get_str(off=off)),decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[1])]
     return Common_Sequent_t_poly(hyps=hyps,concls=concls)
 
 # clique Imandrax_api_common.Rule_spec.t_poly (cached: false)
@@ -1732,6 +1734,7 @@ class Common_Proof_obligation_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     timeout: None | int
     upto: None | Upto
     verify_kind: None | Common_Verify_kind
+    named_hypotheses: list[tuple[str,_V_tyreg_poly_term]]
 
 def Common_Proof_obligation_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: Callable[...,_V_tyreg_poly_term],d1: Callable[...,_V_tyreg_poly_ty],off: int) -> Common_Proof_obligation_t_poly:
     decode__tyreg_poly_term = d0
@@ -1745,7 +1748,8 @@ def Common_Proof_obligation_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty]
     timeout = twine.optional(d=d, off=fields[5], d0=lambda d, off: d.get_int(off=off))
     upto = twine.optional(d=d, off=fields[6], d0=lambda d, off: Upto_of_twine(d=d, off=off))
     verify_kind = twine.optional(d=d, off=fields[7], d0=lambda d, off: Common_Verify_kind_of_twine(d=d, off=off))
-    return Common_Proof_obligation_t_poly(descr=descr,goal=goal,tactic=tactic,is_instance=is_instance,anchor=anchor,timeout=timeout,upto=upto,verify_kind=verify_kind)
+    named_hypotheses = [(lambda tup: (d.get_str(off=tup[0]),decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=fields[8])]
+    return Common_Proof_obligation_t_poly(descr=descr,goal=goal,tactic=tactic,is_instance=is_instance,anchor=anchor,timeout=timeout,upto=upto,verify_kind=verify_kind,named_hypotheses=named_hypotheses)
 
 # clique Imandrax_api_common.Instantiation_rule_kind.t (cached: false)
 # def Imandrax_api_common.Instantiation_rule_kind.t (mangled name: "Common_Instantiation_rule_kind")

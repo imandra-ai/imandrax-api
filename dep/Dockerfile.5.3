@@ -1,7 +1,7 @@
 FROM ocaml/opam:debian-ocaml-5.3 AS base
 
 WORKDIR /build/
-RUN cd /home/opam/opam-repository; git fetch origin; git checkout c80b5ac03487baaaf2f482adf2347e782d0b673c -q; opam upd
+RUN cd /home/opam/opam-repository; git fetch origin; git checkout 8f8aafa90831d3fa3c3655c9bfc730441431aea7 -q; opam upd
 RUN sudo chown -R opam: /build/
 COPY --chown=opam ./src/ ./src/
 COPY --chown=opam ./vendor ./vendor
@@ -21,9 +21,6 @@ RUN sudo apt install curl libcurl4-gnutls-dev -y
 
 RUN opam depext -yt zarith conf-pkg-config camlzip
 RUN opam pin -n .
-
-# Until there's a new release of `moonpool`, we need to pin it.
-RUN opam pin https://github.com/c-cube/moonpool.git -y -n
 
 RUN opam install -t imandrax-api imandrax-api-client \
   imandrax-api-client-ezcurl \
