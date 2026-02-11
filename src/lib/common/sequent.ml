@@ -54,6 +54,13 @@ let find_term (self : 'term t_poly) (name : string) :
     (fun (n, _) -> Option.equal String.equal n (Some name))
     self.hyps
 
+let map (f : string option -> 'term -> string option * 'term)
+    (self : 'term t_poly) : 'term t_poly =
+  {
+    hyps = List.map (fun (n, t) -> f n t) self.hyps;
+    concls = List.map (fun (n, t) -> f n t) self.concls;
+  }
+
 let rename (self : 'term t_poly) (old_name : string) (new_name : string) :
     'term t_poly option =
   let found = ref false in
