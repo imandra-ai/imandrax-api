@@ -95,7 +95,7 @@ let name (self : 'term t_poly) (i : int) (new_name : string) :
       n, t
     else (
       match n with
-      | None when i = j ->
+      | (None | Some _) when i = j ->
         found := true;
         Some new_name, t
       | _ -> n, t
@@ -103,9 +103,10 @@ let name (self : 'term t_poly) (i : int) (new_name : string) :
   in
   let hyps = List.mapi aux self.hyps in
   let concls =
-    if not !found then
-      List.mapi aux self.concls
-    else
+    if not !found then (
+      let nh = List.length self.hyps in
+      List.mapi (fun i c -> aux (nh + i) c) self.concls
+    ) else
       self.concls
   in
   if not !found then
