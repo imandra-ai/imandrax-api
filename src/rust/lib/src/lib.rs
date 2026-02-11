@@ -474,6 +474,7 @@ pub struct CommonTheoremT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub thm_triggers: &'a [(V_tyreg_poly_term,As_trigger)],
   pub thm_is_axiom: bool,
   pub thm_by: (&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term),
+  pub thm_named_hypotheses: &'a [(&'a str,V_tyreg_poly_term)],
 }
 
 
@@ -498,8 +499,8 @@ pub enum CommonTacticT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 // clique Imandrax_api_common.Sequent.t_poly
 #[derive(Debug, Clone)]
 pub struct CommonSequentT_poly<'a,V_tyreg_poly_term:'a> {
-  pub hyps: &'a [V_tyreg_poly_term],
-  pub concls: &'a [V_tyreg_poly_term],
+  pub hyps: &'a [(Option<&'a str>,V_tyreg_poly_term)],
+  pub concls: &'a [(Option<&'a str>,V_tyreg_poly_term)],
 }
 
 
@@ -600,6 +601,7 @@ pub struct CommonProof_obligationT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:
   pub timeout: Option<BigInt>,
   pub upto: Option<Upto>,
   pub verify_kind: Option<CommonVerifyKind>,
+  pub named_hypotheses: &'a [(&'a str,V_tyreg_poly_term)],
 }
 
 
