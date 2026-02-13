@@ -103,8 +103,7 @@
   (imandrax-api-client
    (= :version))
   imandrakit-thread
-  (ezcurl
-   (>= 0.3))
+  (ezcurl (and (>= 0.2.4) (< 0.3)))
   (moonpool
    (and
     (>= 0.7)
