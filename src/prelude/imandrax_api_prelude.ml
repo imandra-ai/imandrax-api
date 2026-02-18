@@ -33,7 +33,7 @@ type int = Z.t[@@deriving (to_iml, of_mir)][@@builtin.logic_core "mk_s_int"]
   " Builtin integer type, using arbitrary precision integers.\n\n    This type is an alias to {!Z.t} (using\n    {{:https://github.com/ocaml/Zarith} Zarith}).\n\n    {b NOTE}: here Imandra diverges from normal OCaml, where integers width is\n    bounded by native machine integers. \"Normal\" OCaml integers have type\n    {!Caml.Int.t} and can be entered using the 'i' suffix: [0i] "]
 type nonrec bool = bool[@@deriving (to_iml, of_mir)][@@builtin.logic_core
                                                       "mk_s_bool"][@@ocaml.doc
-                                                                    " Builtin boolean type. "]
+                                                                    " Builtin Boolean type. "]
 (* skip *)
 (* skip *)
 type nonrec unit = unit =
