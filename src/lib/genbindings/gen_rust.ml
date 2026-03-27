@@ -109,6 +109,7 @@ let special_types : special_type Str_map.t =
     mk0 "Util_twine_.Z.t" true "BigInt";
     mk0 "Z.t" true "BigInt";
     mk0 "_Z.t" true "BigInt";
+    mk0 "int64" true "i64";
     mk0 "string" false "&'a str";
     mk0 "bool" true "bool";
     mk1 "array" false (spf "&'a [%s]");
@@ -130,6 +131,8 @@ let special_types : special_type Str_map.t =
     mk1 "option" true (spf "Option<%s>");
     mk0 "Void.t" true "Void";
     mk0 "Util_twine_.Q.t" true "Rational";
+    mk1 "Util_twine.With_tag6.t" true Fun.id;
+    mk1 "Util_twine.With_tag7.t" true Fun.id;
   ]
   |> List.map (fun ((name, _, _, _) as r) -> name, r)
   |> Str_map.of_list
@@ -182,6 +185,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
     (match s, args with
     | ("int" | "Util_twine_.Z.t" | "Z.t" | "_Z.t"), [] ->
       spf "d.get_int(off=%s)" off
+    | "int64", [] -> spf "d.get_i64(off=%s)" off
     | "string", [] -> spf "d.get_str(off=%s)" off
     | "bool", [] -> spf "d.get_bool(off=%s)" off
     | "array", [ x ] | "list", [ x ] ->
@@ -211,6 +215,12 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
         (of_twine_of_type_expr ~off:"off" x)
     | "Util_twine_.Q.t", [] ->
       "string" (* TODO: add a decode_q function in prelude, use it *)
+    | "Util_twine.With_tag6.t", [ x ] ->
+      spf "decode_with_tag(6, d=d, off=%s, d0=|d,off| %s)" off
+        (of_twine_of_type_expr x ~off:"off")
+    | "Util_twine.With_tag7.t", [ x ] ->
+      spf "decode_with_tag(7, d=d, off=%s, d0=|d,off| %s)" off
+        (of_twine_of_type_expr x ~off:"off")
     | s, [] -> spf "%s(d=d, off=%s)" (of_twine_of_ty_name s) off
     | _ ->
       let args =
