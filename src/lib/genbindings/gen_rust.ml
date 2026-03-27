@@ -261,7 +261,9 @@ let rec collect_vars (ty : tyexpr) : Str_set.t =
   match ty with
   | Var s -> Str_set.singleton s
   | Cstor (_, args) | Tuple args ->
-    List.fold_left (fun acc ty -> Str_set.union acc (collect_vars ty)) Str_set.empty args
+    List.fold_left
+      (fun acc ty -> Str_set.union acc (collect_vars ty))
+      Str_set.empty args
   | Arrow (_, a, b) -> Str_set.union (collect_vars a) (collect_vars b)
   | Attrs (ty, _) -> collect_vars ty
 
@@ -327,8 +329,11 @@ let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
           r.fields;
         List.iter
           (fun v ->
-            let field_name = String.lowercase_ascii @@ CCString.drop_while (fun c -> c = '_') v in
-            bpf buf "  pub _phantom_%s: std::marker::PhantomData<V%s>,\n" field_name v)
+            let field_name =
+              String.lowercase_ascii @@ CCString.drop_while (fun c -> c = '_') v
+            in
+            bpf buf "  pub _phantom_%s: std::marker::PhantomData<V%s>,\n"
+              field_name v)
           unused_params;
         bpf buf "}\n\n"
         (* bpf buf "fn %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s {\n" *)
