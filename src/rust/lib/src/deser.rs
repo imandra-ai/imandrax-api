@@ -1,10 +1,6 @@
 use anyhow::Result;
 use bumpalo::Bump;
-use num_bigint::BigInt;
-use num_rational::BigRational as Rational;
 use twine::{types::Offset, Immediate};
-
-use crate::Chash;
 
 /// Trait for reading from twine.
 pub trait FromTwine<'a>: Sized + 'a {
@@ -42,18 +38,3 @@ where
         Ok(res)
     }
 }
-
-impl<'a> FromTwine<'a> for Chash<'a> {
-    fn read(d: &twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Chash<'a>> {
-        let bs = d.get_bytes(off)?;
-        let res = bump.alloc_slice_copy(bs);
-        Ok(Chash(res))
-    }
-}
-
-impl<'a> FromTwine<'a> for BigInt {
-    fn read(d: &Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
-        todo!()
-    }
-}
-impl<'a> FromTwine<'a> for Rational {}
