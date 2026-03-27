@@ -257,6 +257,14 @@ let is_flat_def ~immediate_types (d : tydef) : bool =
     List.for_all (fun (_, ty) -> is_immediate_ty ~immediate_types ty) fields
   | Alias _ -> false
 
+let rec collect_vars (ty : tyexpr) : Str_set.t =
+  match ty with
+  | Var s -> Str_set.singleton s
+  | Cstor (_, args) | Tuple args ->
+    List.fold_left (fun acc ty -> Str_set.union acc (collect_vars ty)) Str_set.empty args
+  | Arrow (_, a, b) -> Str_set.union (collect_vars a) (collect_vars b)
+  | Attrs (ty, _) -> collect_vars ty
+
 let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
   fpf oc "\n// clique %s\n"
     (String.concat "," @@ List.map (fun (d : tydef) -> d.name) clique);
@@ -302,6 +310,14 @@ let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
       match def.decl with
       | Alias _ -> assert false (* expanded *)
       | Record r ->
+        let used_vars =
+          List.fold_left
+            (fun acc (_, ty) -> Str_set.union acc (collect_vars ty))
+            Str_set.empty r.fields
+        in
+        let unused_params =
+          List.filter (fun v -> not (Str_set.mem v used_vars)) def.params
+        in
         bpf buf "#[derive(Debug, Clone)]\n";
         bpf buf "pub struct %s%s {\n" rsname rsparams;
         List.iter
@@ -309,6 +325,11 @@ let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
             bpf buf "  pub %s: %s,\n" (mangle_field_name field)
               (gen_type_expr self ty))
           r.fields;
+        List.iter
+          (fun v ->
+            let field_name = String.lowercase_ascii @@ CCString.drop_while (fun c -> c = '_') v in
+            bpf buf "  pub _phantom_%s: std::marker::PhantomData<V%s>,\n" field_name v)
+          unused_params;
         bpf buf "}\n\n"
         (* bpf buf "fn %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s {\n" *)
         (*   rsname rsparams rs_twine_params rsname; *)
