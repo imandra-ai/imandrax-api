@@ -2,7 +2,6 @@ use std::marker::PhantomData;
 
 use crate::deser::FromTwine;
 
-use anyhow::bail;
 use anyhow::Result;
 use bumpalo::Bump;
 use num_bigint::BigInt;
@@ -28,7 +27,7 @@ impl<T, Raw> std::ops::Deref for Alias<T, Raw> {
 pub struct Ignored;
 
 impl<'a> FromTwine<'a> for Ignored {
-    fn read(d: &Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(_d: &Decoder<'a>, _bump: &'a Bump, _off: Offset) -> Result<Self> {
         Ok(Self)
     }
 }
@@ -38,9 +37,9 @@ pub enum Void {}
 
 impl<'a> FromTwine<'a> for Void {
     fn read(
-        d: &twine::Decoder<'a>,
-        bump: &'a bumpalo::Bump,
-        off: twine::types::Offset,
+        _d: &twine::Decoder<'a>,
+        _bump: &'a bumpalo::Bump,
+        _off: twine::types::Offset,
     ) -> anyhow::Result<Self> {
         unreachable!()
     }
@@ -58,8 +57,19 @@ impl<'a> FromTwine<'a> for Chash<'a> {
 }
 
 impl<'a> FromTwine<'a> for BigInt {
-    fn read(d: &Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
-        todo!()
+    fn read(d: &Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+        let i = d.get_i64(off)?;
+        Ok(BigInt::from(i))
     }
 }
-impl<'a> FromTwine<'a> for Rational {}
+
+impl<'a> FromTwine<'a> for Rational {
+    fn read(d: &Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+        let mut offsets = vec![];
+        d.get_array(off, &mut offsets)?;
+        anyhow::ensure!(offsets.len() == 2, "expected 2-element array for rational");
+        let num = BigInt::from(d.get_i64(offsets[0])?);
+        let denom = BigInt::from(d.get_i64(offsets[1])?);
+        Ok(Rational::new(num, denom))
+    }
+}
