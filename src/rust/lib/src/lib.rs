@@ -112,7 +112,7 @@ pub enum UidView<'a> {
   },
   Persistent,
   Cname {
-    cname: &'a Util_twineWith_tag6<'a,&'a CnameT_<'a>>,
+    cname: &'a CnameT_<'a>,
   },
   Builtin {
     kind: &'a Builtin_dataKind<'a>,
@@ -255,8 +255,8 @@ pub struct In_mem_archiveRaw<'a> {
 pub enum Const<'a> {
   Const_float(f64),
   Const_string(&'a str),
-  Const_z(&'a Util_twineZ<'a>),
-  Const_q(&'a Util_twineQ<'a>),
+  Const_z(BigInt),
+  Const_q(Rational),
   Const_real_approx(&'a str),
   Const_uid(&'a Uid<'a>),
   Const_bool(bool),
@@ -285,7 +285,7 @@ pub enum As_trigger {
 // clique Imandrax_api.Anchor.t
 #[derive(Debug, Clone)]
 pub enum Anchor<'a> {
-  Named(&'a Util_twineWith_tag6<'a,&'a CnameT_<'a>>),
+  Named(&'a CnameT_<'a>),
   Eval(BigInt),
   Proof_check(&'a Anchor<'a>),
   Decomp(&'a Anchor<'a>),
@@ -296,7 +296,7 @@ pub enum Anchor<'a> {
 // clique Imandrax_api_ca_store.Ca_ptr.Raw.t
 #[derive(Debug, Clone)]
 pub struct Ca_storeCa_ptrRaw<'a> {
-  pub key: &'a Util_twineWith_tag7<'a,&'a str>,
+  pub key: &'a str,
 }
 
 
@@ -572,8 +572,8 @@ pub enum CommonRegionStatus<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 pub enum CommonRegionMeta<'a,V_tyreg_poly_term:'a> {
   Null,
   Bool(bool),
-  Int(&'a Util_twineZ<'a>),
-  Real(&'a Util_twineQ<'a>),
+  Int(BigInt),
+  Real(Rational),
   String(&'a str),
   Assoc(&'a [(&'a str,&'a CommonRegionMeta<'a,V_tyreg_poly_term>)]),
   Term(V_tyreg_poly_term),
@@ -705,6 +705,8 @@ pub enum CommonDb_opT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 #[derive(Debug, Clone)]
 pub struct CommonDb_serT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub ops: &'a [&'a Ca_storeCa_ptrRaw<'a>],
+  pub _phantom_tyreg_poly_term: std::marker::PhantomData<V_tyreg_poly_term>,
+  pub _phantom_tyreg_poly_ty: std::marker::PhantomData<V_tyreg_poly_ty>,
 }
 
 
@@ -862,8 +864,8 @@ pub struct MirDecomp<'a> {
 // clique Imandrax_api_eval.Ordinal.t
 #[derive(Debug, Clone)]
 pub enum EvalOrdinal<'a> {
-  Int(&'a Util_twineZ<'a>),
-  Cons(&'a EvalOrdinal<'a>,&'a Util_twineZ<'a>,&'a EvalOrdinal<'a>),
+  Int(BigInt),
+  Cons(&'a EvalOrdinal<'a>,BigInt,&'a EvalOrdinal<'a>),
 }
 
 // clique Imandrax_api_eval.Value.cstor_descriptor
@@ -887,8 +889,8 @@ pub struct EvalValueRecord_descriptor<'a> {
 pub enum EvalValueView<'a,V_tyreg_poly_v:'a,V_tyreg_poly_closure:'a> {
   V_true,
   V_false,
-  V_int(&'a Util_twineZ<'a>),
-  V_real(&'a Util_twineQ<'a>),
+  V_int(BigInt),
+  V_real(Rational),
   V_string(&'a str),
   V_cstor(&'a EvalValueCstor_descriptor<'a>,&'a [V_tyreg_poly_v]),
   V_tuple(&'a [V_tyreg_poly_v]),
@@ -1148,7 +1150,7 @@ pub enum TasksPO_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Verified_upto(&'a TasksPO_resVerified_upto<'a>),
   Qcheck_ok {
     num_steps: BigInt,
-    seed: &'a Int64<'a>,
+    seed: i64,
   },
 }
 
