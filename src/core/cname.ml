@@ -62,7 +62,7 @@ let unslugify (str : string) : t option =
         else
           name, true
       in
-      let hash = String.sub str (i + 1) (String.length str - i - 2) in
+      let hash = String.sub str (i + 1) (String.length str - i - 1) in
       (match Chash.unslugify hash with
       | chash -> Some { name; chash; is_key }
       | exception Invalid_argument _ -> None)
