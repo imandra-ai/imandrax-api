@@ -1,42 +1,60 @@
 use anyhow::Result;
 use bumpalo::Bump;
-use twine::{types::Offset, Immediate};
+use twine_data::{types::Offset, Immediate};
+
+/// Resolve an offset past any Tag wrappers to the underlying value.
+pub fn deref_tag(
+    d: &twine_data::Decoder<'_>,
+    mut off: Offset,
+) -> twine_data::types::Result<Offset> {
+    loop {
+        match d.get_shallow_value(off)? {
+            twine_data::shallow_value::ShallowValue::Tag(_, inner) => off = inner,
+            _ => return Ok(off),
+        }
+    }
+}
 
 /// Trait for reading from twine.
 pub trait FromTwine<'a>: Sized + 'a {
-    fn read(d: &'_ twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self>;
+    fn read(d: &'_ twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self>;
 }
 
 // Blanket impls for primitive types
 // ====================
 
 impl<'a> FromTwine<'a> for bool {
-    fn read(d: &'_ twine::Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         Ok(d.get_bool(off)?)
     }
 }
 
 impl<'a> FromTwine<'a> for f64 {
-    fn read(d: &'_ twine::Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         Ok(d.get_float(off)?)
     }
 }
 
 impl<'a> FromTwine<'a> for i64 {
-    fn read(d: &'_ twine::Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         Ok(d.get_i64(off)?)
     }
 }
 
 impl<'a> FromTwine<'a> for usize {
-    fn read(d: &'_ twine::Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         let i = d.get_i64(off)?;
         Ok(i as usize)
     }
 }
 
 impl<'a> FromTwine<'a> for () {
-    fn read(d: &'_ twine::Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         d.get_null(off)?;
         Ok(())
     }
@@ -46,14 +64,16 @@ impl<'a> FromTwine<'a> for () {
 // ====================
 
 impl<'a> FromTwine<'a> for &'a str {
-    fn read(d: &'_ twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         let s = d.get_str(off)?;
         Ok(bump.alloc_str(s))
     }
 }
 
 impl<'a> FromTwine<'a> for &'a [u8] {
-    fn read(d: &'_ twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         let bs = d.get_bytes(off)?;
         Ok(bump.alloc_slice_copy(bs))
     }
@@ -63,7 +83,8 @@ impl<'a, T> FromTwine<'a> for &'a T
 where
     T: FromTwine<'a>,
 {
-    fn read(d: &'_ twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         let val = T::read(d, bump, off)?;
         Ok(bump.alloc(val))
     }
@@ -73,7 +94,8 @@ impl<'a, T> FromTwine<'a> for &'a [T]
 where
     T: FromTwine<'a>,
 {
-    fn read(d: &'_ twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         let mut offsets = vec![];
         d.get_array(off, &mut offsets)?;
         let items: Vec<T> = offsets
@@ -92,7 +114,8 @@ where
     A: FromTwine<'a>,
     B: FromTwine<'a>,
 {
-    fn read(d: &'_ twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         let mut offsets = vec![];
         d.get_array(off, &mut offsets)?;
         anyhow::ensure!(
@@ -110,7 +133,8 @@ where
     B: FromTwine<'a>,
     C: FromTwine<'a>,
 {
-    fn read(d: &'_ twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         let mut offsets = vec![];
         d.get_array(off, &mut offsets)?;
         anyhow::ensure!(
@@ -134,9 +158,10 @@ where
     T: FromTwine<'a>,
     E: FromTwine<'a>,
 {
-    fn read(d: &'_ twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         let mut args = vec![];
-        let idx = d.get_cstor(off, &mut args)?;
+        let idx = d.get_variant(off, &mut args)?;
         match idx.0 {
             0 => {
                 anyhow::ensure!(args.len() == 1, "Result::Ok expected 1 arg");
@@ -158,8 +183,9 @@ impl<'a, T> FromTwine<'a> for Option<T>
 where
     T: FromTwine<'a>,
 {
-    fn read(d: &'_ twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
-        use twine::shallow_value::ShallowValue::*;
+    fn read(d: &'_ twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+        use twine_data::shallow_value::ShallowValue::*;
+        let off = deref_tag(d, off)?;
         let r = match d.get_shallow_value(off)? {
             Imm(Immediate::Null) => None,
             _ => {
@@ -175,7 +201,8 @@ impl<'a, T> FromTwine<'a> for Vec<T>
 where
     T: FromTwine<'a>,
 {
-    fn read(d: &'_ twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+    fn read(d: &'_ twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = deref_tag(d, off)?;
         let mut offsets = vec![];
         d.get_array(off, &mut offsets)?;
         let res = offsets

@@ -38,7 +38,7 @@ dependencies = [
  "from-twine-derive",
  "num-bigint",
  "num-rational",
- "twine",
+ "twine-data",
 ]
 
 [[package]]
@@ -110,7 +110,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "twine"
+name = "twine-data"
 version = "0.1.0"
 
 [[package]]

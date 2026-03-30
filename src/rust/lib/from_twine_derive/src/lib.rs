@@ -69,9 +69,9 @@ fn derive_impl(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
         Ok(quote! {
             impl #impl_generics crate::deser::FromTwine<'a> for #name #ty_generics #where_clause {
                 fn read(
-                    d: &'_ twine::Decoder<'a>,
+                    d: &'_ twine_data::Decoder<'a>,
                     bump: &'a bumpalo::Bump,
-                    off: twine::types::Offset,
+                    off: twine_data::types::Offset,
                 ) -> anyhow::Result<Self> {
                     #body
                 }
@@ -97,9 +97,9 @@ fn derive_impl(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
             Ok(quote! {
                 impl<#lifetime_a> crate::deser::FromTwine<#lifetime_a> for #name #ty_generics {
                     fn read(
-                        d: &'_ twine::Decoder<#lifetime_a>,
+                        d: &'_ twine_data::Decoder<#lifetime_a>,
                         bump: &#lifetime_a bumpalo::Bump,
-                        off: twine::types::Offset,
+                        off: twine_data::types::Offset,
                     ) -> anyhow::Result<Self> {
                         #body
                     }
@@ -118,9 +118,9 @@ fn derive_impl(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
                     where #existing_where #(#extra_bounds),*
                 {
                     fn read(
-                        d: &'_ twine::Decoder<#lifetime_a>,
+                        d: &'_ twine_data::Decoder<#lifetime_a>,
                         bump: &#lifetime_a bumpalo::Bump,
-                        off: twine::types::Offset,
+                        off: twine_data::types::Offset,
                     ) -> anyhow::Result<Self> {
                         #body
                     }
@@ -187,6 +187,7 @@ fn gen_struct(_name: &syn::Ident, data: &syn::DataStruct) -> syn::Result<proc_ma
                     .collect();
 
                 Ok(quote! {
+                    let off = crate::deser::deref_tag(d, off)?;
                     let mut offsets = vec![];
                     d.get_array(off, &mut offsets)?;
                     anyhow::ensure!(
@@ -220,6 +221,7 @@ fn gen_struct(_name: &syn::Ident, data: &syn::DataStruct) -> syn::Result<proc_ma
                     .collect();
 
                 Ok(quote! {
+                    let off = crate::deser::deref_tag(d, off)?;
                     let mut offsets = vec![];
                     d.get_array(off, &mut offsets)?;
                     anyhow::ensure!(
@@ -336,8 +338,9 @@ fn gen_enum(name: &syn::Ident, data: &syn::DataEnum) -> syn::Result<proc_macro2:
     let name_str = name.to_string();
 
     Ok(quote! {
+        let off = crate::deser::deref_tag(d, off)?;
         let mut args = vec![];
-        let idx = d.get_cstor(off, &mut args)?;
+        let idx = d.get_variant(off, &mut args)?;
         match idx.0 {
             #(#arms)*
             other => anyhow::bail!(
