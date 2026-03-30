@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Data, Fields, GenericParam, Lifetime};
+use syn::{parse_macro_input, Data, DeriveInput, Fields, GenericParam, Lifetime};
 
 /// Derive macro for `FromTwine<'a>` trait.
 ///
@@ -21,7 +21,10 @@ fn derive_impl(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
     let name = &input.ident;
 
     // Check if the type already has a lifetime 'a
-    let has_lifetime_a = input.generics.lifetimes().any(|lt| lt.lifetime.ident == "a");
+    let has_lifetime_a = input
+        .generics
+        .lifetimes()
+        .any(|lt| lt.lifetime.ident == "a");
 
     // Build the impl generics:
     // - If type has 'a, use it directly and add FromTwine<'a> bounds on type params
@@ -138,10 +141,7 @@ fn is_phantom_data(ty: &syn::Type) -> bool {
     }
 }
 
-fn gen_struct(
-    _name: &syn::Ident,
-    data: &syn::DataStruct,
-) -> syn::Result<proc_macro2::TokenStream> {
+fn gen_struct(_name: &syn::Ident, data: &syn::DataStruct) -> syn::Result<proc_macro2::TokenStream> {
     match &data.fields {
         Fields::Named(fields) => {
             // Filter out PhantomData fields for deserialization
@@ -156,18 +156,6 @@ fn gen_struct(
                 .filter(|f| is_phantom_data(&f.ty))
                 .collect();
 
-            let n = real_fields.len();
-            let field_reads: Vec<_> = real_fields
-                .iter()
-                .enumerate()
-                .map(|(i, f)| {
-                    let fname = f.ident.as_ref().unwrap();
-                    quote! {
-                        #fname: crate::deser::FromTwine::read(d, bump, offsets[#i])?
-                    }
-                })
-                .collect();
-
             let phantom_inits: Vec<_> = phantom_fields
                 .iter()
                 .map(|f| {
@@ -176,42 +164,73 @@ fn gen_struct(
                 })
                 .collect();
 
-            Ok(quote! {
-                let mut offsets = vec![];
-                d.get_array(off, &mut offsets)?;
-                anyhow::ensure!(
-                    offsets.len() == #n,
-                    "expected {} fields, got {}",
-                    #n,
-                    offsets.len()
-                );
-                Ok(Self {
-                    #(#field_reads,)*
-                    #(#phantom_inits,)*
+            // Single-field structs are serialized as the field directly (transparent/newtype)
+            if real_fields.len() == 1 {
+                let fname = real_fields[0].ident.as_ref().unwrap();
+                Ok(quote! {
+                    Ok(Self {
+                        #fname: crate::deser::FromTwine::read(d, bump, off)?,
+                        #(#phantom_inits,)*
+                    })
                 })
-            })
+            } else {
+                let n = real_fields.len();
+                let field_reads: Vec<_> = real_fields
+                    .iter()
+                    .enumerate()
+                    .map(|(i, f)| {
+                        let fname = f.ident.as_ref().unwrap();
+                        quote! {
+                            #fname: crate::deser::FromTwine::read(d, bump, offsets[#i])?
+                        }
+                    })
+                    .collect();
+
+                Ok(quote! {
+                    let mut offsets = vec![];
+                    d.get_array(off, &mut offsets)?;
+                    anyhow::ensure!(
+                        offsets.len() == #n,
+                        "expected {} fields, got {}",
+                        #n,
+                        offsets.len()
+                    );
+                    Ok(Self {
+                        #(#field_reads,)*
+                        #(#phantom_inits,)*
+                    })
+                })
+            }
         }
         Fields::Unnamed(fields) => {
             let n = fields.unnamed.len();
-            let field_reads: Vec<_> = (0..n)
-                .map(|i| {
-                    quote! {
-                        crate::deser::FromTwine::read(d, bump, offsets[#i])?
-                    }
-                })
-                .collect();
 
-            Ok(quote! {
-                let mut offsets = vec![];
-                d.get_array(off, &mut offsets)?;
-                anyhow::ensure!(
-                    offsets.len() == #n,
-                    "expected {} fields, got {}",
-                    #n,
-                    offsets.len()
-                );
-                Ok(Self(#(#field_reads),*))
-            })
+            // Single-field tuple structs are serialized as the field directly
+            if n == 1 {
+                Ok(quote! {
+                    Ok(Self(crate::deser::FromTwine::read(d, bump, off)?))
+                })
+            } else {
+                let field_reads: Vec<_> = (0..n)
+                    .map(|i| {
+                        quote! {
+                            crate::deser::FromTwine::read(d, bump, offsets[#i])?
+                        }
+                    })
+                    .collect();
+
+                Ok(quote! {
+                    let mut offsets = vec![];
+                    d.get_array(off, &mut offsets)?;
+                    anyhow::ensure!(
+                        offsets.len() == #n,
+                        "expected {} fields, got {}",
+                        #n,
+                        offsets.len()
+                    );
+                    Ok(Self(#(#field_reads),*))
+                })
+            }
         }
         Fields::Unit => Ok(quote! {
             d.get_null(off)?;
@@ -220,10 +239,7 @@ fn gen_struct(
     }
 }
 
-fn gen_enum(
-    name: &syn::Ident,
-    data: &syn::DataEnum,
-) -> syn::Result<proc_macro2::TokenStream> {
+fn gen_enum(name: &syn::Ident, data: &syn::DataEnum) -> syn::Result<proc_macro2::TokenStream> {
     let arms: Vec<_> = data
         .variants
         .iter()
