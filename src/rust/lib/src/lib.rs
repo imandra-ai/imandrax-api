@@ -83,13 +83,11 @@ pub enum Builtin_dataKind<'a> {
   },
 }
 
-// clique 
-
 // clique Imandrax_api.Cname.t_
 #[derive(Debug, Clone, FromTwine)]
 pub struct CnameT_<'a> {
   pub name: &'a str,
-  pub chash: &'a str,
+  pub chash: Chash<'a>,
   pub is_key: bool,
 }
 
@@ -127,8 +125,6 @@ pub struct Uid<'a> {
   pub view: &'a UidView<'a>,
 }
 
-
-// clique 
 
 // clique Imandrax_api.Builtin.Fun.t
 #[derive(Debug, Clone, FromTwine)]
