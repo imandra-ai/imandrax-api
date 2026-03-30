@@ -1,18 +1,22 @@
 [package]
-name = "twine"
+name = "twine-data"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+repository = "https://github.com/c-cube/twine-data.rs.git"
+description = "Codec for the twine-data binary serialization format"
+homepage = "https://twine-data.dev/"
+categories = ["encoding"]
 
 [dependencies]
-
 bumpalo = {version="3.16", optional=true}
 
 [dev-dependencies]
-
-anyhow = "1"
 bumpalo = "3.16"
-insta = "1.39.0"
-pretty-hex = "0.4.1"
+proptest = "1.0"
+leb128 = "0.2"
+serde_json = { version = "1.0.135", default-features = false, features = ["preserve_order", "std"] }
 
+[features]
+
+bumpalo = ["dep:bumpalo"]

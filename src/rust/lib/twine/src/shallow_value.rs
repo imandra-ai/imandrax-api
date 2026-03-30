@@ -1,7 +1,7 @@
 //! Shallow values.
 
 use crate::{
-    types::{CstorIdx, Offset, Tag},
+    types::{VariantIdx, Offset, Tag},
     Decoder, Immediate, Result,
 };
 
@@ -13,8 +13,8 @@ pub enum ShallowValue<'a> {
     Imm(Immediate<'a>),
     Tag(Tag, Offset),
     Array(ArrayCursor<'a>),
-    Dict(DictCursor<'a>),
-    Cstor(CstorIdx, ArrayCursor<'a>),
+    Map(MapCursor<'a>),
+    Variant(VariantIdx, ArrayCursor<'a>),
 }
 
 #[derive(Debug, Clone)]
@@ -55,19 +55,19 @@ impl<'a> Iterator for ArrayCursor<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub struct DictCursor<'a> {
+pub struct MapCursor<'a> {
     pub(crate) dec: Decoder<'a>,
     pub(crate) off: Offset,
     pub(crate) n_items: u32,
 }
 
-impl<'a> DictCursor<'a> {
+impl<'a> MapCursor<'a> {
     pub fn len(&self) -> usize {
         self.n_items as usize
     }
 }
 
-impl<'a> Iterator for DictCursor<'a> {
+impl<'a> Iterator for MapCursor<'a> {
     type Item = Result<(Offset, Offset)>;
 
     fn next(&mut self) -> Option<Self::Item> {

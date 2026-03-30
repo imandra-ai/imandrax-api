@@ -1,9 +1,13 @@
-use crate::shallow_value::{ArrayCursor, DictCursor};
+//! Deserialization.
+//!
+//! Reading data from `twine` is done by offset.
+
+use crate::shallow_value::{ArrayCursor, MapCursor};
 
 pub use super::shallow_value::ShallowValue;
 use super::types::*;
 
-/// A decoder for a twine bytestring.
+/// A decoder for a twine blob.
 #[derive(Clone)]
 pub struct Decoder<'a> {
     bs: &'a [u8],
@@ -16,6 +20,7 @@ impl<'a> std::fmt::Debug for Decoder<'a> {
 }
 
 impl<'a> Decoder<'a> {
+    /// Create a new decoder reading from these bytes.
     pub fn new(bs: &'a [u8]) -> Result<Self> {
         if bs.len() > u32::MAX as usize {
             return Err(Error {
@@ -35,7 +40,7 @@ impl<'a> Decoder<'a> {
         (high, low)
     }
 
-    /// read an integer
+    /// read an integer in LEB128
     fn leb128(&self, mut off: Offset) -> Result<(u64, u8)> {
         let mut res: u64 = 0;
         let mut shift = 0;
@@ -71,7 +76,15 @@ impl<'a> Decoder<'a> {
         Ok((rest + 15, consumed as Offset))
     }
 
-    pub(crate) fn deref(&self, mut off: Offset) -> Result<Offset> {
+    /// Dereference the offset.
+    ///
+    /// If the value at this offset is a pointer, follow the pointer;
+    /// repeat until it's not. This is done implicitly by most
+    /// other functions in this module, but it can be useful to do it
+    /// by hand in case there is caching done on decoding (eg. to memoize the
+    /// value decoded at a particular offset, it's better to dereference
+    /// the offset first).
+    pub fn deref(&self, mut off: Offset) -> Result<Offset> {
         loop {
             let (high, low) = self.first_byte(off);
             if high == 15 {
@@ -148,12 +161,6 @@ impl<'a> Decoder<'a> {
 
     fn tag(&'_ self, mut off: Offset, low: u8) -> Result<(Tag, Offset)> {
         let (tag, n_bytes) = self.u64_with_low(off, low)?;
-        if tag > u32::MAX as u64 {
-            return Err(Error {
-                msg: "tag overflow",
-                off,
-            });
-        }
         off = off + 1 + n_bytes;
         Ok((tag as Tag, off))
     }
@@ -175,7 +182,7 @@ impl<'a> Decoder<'a> {
         })
     }
 
-    fn dict_cursor(&'_ self, mut off: Offset, low: u8) -> Result<DictCursor<'a>> {
+    fn map_cursor(&'_ self, mut off: Offset, low: u8) -> Result<MapCursor<'a>> {
         let (len, n_bytes) = self.u64_with_low(off, low)?;
         if len > u32::MAX as u64 {
             return Err(Error {
@@ -185,23 +192,28 @@ impl<'a> Decoder<'a> {
         }
         off = off + 1 + n_bytes;
         let dec = self.clone();
-        Ok(DictCursor {
+        Ok(MapCursor {
             dec,
             off,
             n_items: len as u32,
         })
     }
 
-    fn cstor(&'_ self, mut off: Offset, high: u8, low: u8) -> Result<(CstorIdx, ArrayCursor<'a>)> {
-        macro_rules! mk_cstor {
+    fn variant(
+        &'_ self,
+        mut off: Offset,
+        high: u8,
+        low: u8,
+    ) -> Result<(VariantIdx, ArrayCursor<'a>)> {
+        macro_rules! mk_variant {
             ($idx: expr) => {{
                 if $idx > u32::MAX as u64 {
                     return Err(Error {
-                        msg: "cstor overflow",
+                        msg: "variant overflow",
                         off,
                     });
                 }
-                CstorIdx($idx as u32)
+                VariantIdx($idx as u32)
             }};
         }
 
@@ -209,7 +221,7 @@ impl<'a> Decoder<'a> {
         if high == 10 {
             let (idx, _) = self.u64_with_low(off, low)?;
             Ok((
-                mk_cstor!(idx),
+                mk_variant!(idx),
                 ArrayCursor {
                     dec,
                     off,
@@ -223,25 +235,25 @@ impl<'a> Decoder<'a> {
                 off: off + 1 + n_bytes_idx,
                 n_items: 1,
             };
-            Ok((mk_cstor!(idx), arr))
+            Ok((mk_variant!(idx), arr))
         } else if high == 12 {
             let (idx, n_bytes_idx) = self.u64_with_low(off, low)?;
             off = off + 1 + n_bytes_idx;
             let (n_items, n_bytes_n_items) = self.leb128(off)?;
             if n_items > u32::MAX as u64 {
                 return Err(Error {
-                    msg: "overflow in cstor arguments",
+                    msg: "overflow in variant arguments",
                     off,
                 });
             }
             let n_items = n_items as u32;
 
-            off = off + n_bytes_n_items as u32;
+            off = off + n_bytes_n_items as Offset;
             let arr = ArrayCursor { off, n_items, dec };
-            Ok((mk_cstor!(idx), arr))
+            Ok((mk_variant!(idx), arr))
         } else {
             Err(Error {
-                msg: "expected cstor",
+                msg: "expected variant",
                 off,
             })
         }
@@ -280,7 +292,7 @@ impl<'a> Decoder<'a> {
                 })
             }
 
-            9 | 13 | 14 => {
+            9 | 13 => {
                 return Err(Error {
                     msg: "tag is reserved",
                     off,
@@ -292,11 +304,11 @@ impl<'a> Decoder<'a> {
             }
             11 | 12 => {
                 return Err(Error {
-                    msg: "cannot skip over constructor",
+                    msg: "cannot skip over variant",
                     off,
                 })
             }
-            15 => {
+            14 | 15 => {
                 let (_, n_bytes) = self.u64_with_low(off, low)?;
                 off + 1 + n_bytes
             }
@@ -308,6 +320,11 @@ impl<'a> Decoder<'a> {
     }
 
     /// Read one value at the given offset.
+    ///
+    /// This does not recurse into subvalues, so it is fairly fast. The main way of
+    /// deserializing from twine is through this function.
+    /// If the value at `off` is a pointer, it is implicitly followed.
+    /// As a consequence, this never returns a `Immediate::Pointer` value.
     pub fn get_shallow_value(&'_ self, mut off: Offset) -> Result<ShallowValue<'a>> {
         use ShallowValue::*;
 
@@ -338,16 +355,25 @@ impl<'a> Decoder<'a> {
                 Array(arr)
             }
             7 => {
-                let dict = self.dict_cursor(off, low)?;
-                Dict(dict)
+                let map = self.map_cursor(off, low)?;
+                Map(map)
             }
             8 => {
                 let (tag, off) = self.tag(off, low)?;
                 Tag(tag, off)
             }
             10 | 11 | 12 => {
-                let (cstor_idx, args) = self.cstor(off, high, low)?;
-                Cstor(cstor_idx, args)
+                let (variant_idx, args) = self.variant(off, high, low)?;
+                Variant(variant_idx, args)
+            }
+            14 => {
+                let (p, _) = self.u64_with_low(off, low)?;
+                // checked sub
+                let p = off.checked_sub(p as Offset + 1).ok_or_else(|| Error {
+                    msg: "ref underflow",
+                    off,
+                })?;
+                Imm(Immediate::Ref(p))
             }
             15 => unreachable!(), // we did deref!
             _ => {
@@ -438,11 +464,13 @@ impl<'a> Decoder<'a> {
         }
     }
 
-    /// Read a dictionary of offsets into `res`
+    /// Read a dictionary of offsets into `res`.
+    ///
+    /// `res` is cleared before reading.
     pub fn get_dict(&self, off: Offset, res: &mut Vec<(Offset, Offset)>) -> Result<()> {
         res.clear();
         match self.get_shallow_value(off)? {
-            ShallowValue::Dict(d) => {
+            ShallowValue::Map(d) => {
                 for pair in d {
                     let (k, v) = pair?;
                     res.push((k, v))
@@ -456,6 +484,9 @@ impl<'a> Decoder<'a> {
         }
     }
 
+    /// Read a tagged value.
+    ///
+    /// The value itself is not read, only an offset to it is returned.
     pub fn get_tag(&self, off: Offset) -> Result<(Tag, Offset)> {
         match self.get_shallow_value(off)? {
             ShallowValue::Tag(tag, off) => Ok((tag, off)),
@@ -466,27 +497,66 @@ impl<'a> Decoder<'a> {
         }
     }
 
-    pub fn get_cstor(&self, off: Offset, args: &mut Vec<Offset>) -> Result<CstorIdx> {
+    /// Read a variant value. The variant index is returned,
+    /// and (the offsets of the) arguments are pushed into `args`.
+    ///
+    /// `args` is cleared first.
+    pub fn get_variant(&self, off: Offset, args: &mut Vec<Offset>) -> Result<VariantIdx> {
         args.clear();
 
         match self.get_shallow_value(off)? {
-            ShallowValue::Cstor(cstor_idx, c_args) => {
+            ShallowValue::Variant(variant_idx, c_args) => {
                 for off in c_args {
                     args.push(off?)
                 }
-                Ok(cstor_idx)
+                Ok(variant_idx)
             }
             _ => Err(Error {
-                msg: "expected cstor",
+                msg: "expected variant",
                 off,
             }),
         }
     }
 
     /// Find the entrypoint.
+    ///
+    /// A twine blob is terminated with a postfix (in essence, a pointer to the actual
+    /// toplevel value). This reads the postfix and returns the offset of the toplevel value.
     pub fn entrypoint(&self) -> Result<Offset> {
-        let last = self.bs.len() as u32 - 1;
-        let off = last - self.bs[last as usize] as u32 - 1;
+        let last = self.bs.len() as Offset - 1;
+        let off = last - self.bs[last as usize] as Offset - 1;
         self.deref(off)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    #[test]
+    fn test_dec_leb128() {
+        {
+            let dec = Decoder::new(&[17]).unwrap();
+            assert_eq!(Some((17, 1)), dec.leb128(0).ok());
+        }
+
+        {
+            let dec = Decoder::new(&[0x88, 0x85, 0x09]).unwrap();
+            assert_eq!(Some(((9 << (7 + 7)) + (5 << 7) + 8, 3)), dec.leb128(0).ok());
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn decode_from_leb128_crate(n: u64){
+            let mut ref_v = vec![];
+            let ref_len = leb128::write::unsigned( &mut ref_v,n).unwrap();
+
+            let dec = Decoder::new(&ref_v).unwrap();
+            let (n2, len) = dec.leb128(0).unwrap();
+            assert_eq!(n2, n);
+            assert_eq!(ref_len, len as usize);
+        }
     }
 }
