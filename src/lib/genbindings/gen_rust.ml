@@ -415,6 +415,23 @@ let gen ~out ~artifacts:_ ~types:(cliques : Ty_set.t list) () : unit =
 
   (* aliases are complicated because sometimes they erase type
      variables, which in rust requires a phantom data *)
+  (* Remove alias definitions for types handled via special_types,
+     so they are not expanded away and gen_type_expr can match them. *)
+  let cliques =
+    List.map
+      (fun (set : Ty_set.t) ->
+        {
+          set with
+          clique =
+            List.filter
+              (fun (d : TR.Ty_def.t) ->
+                match d.decl with
+                | Alias _ -> not (Str_map.mem d.name special_types)
+                | _ -> true)
+              set.clique;
+        })
+      cliques
+  in
   let cliques = Expand_aliases.expand_aliases cliques in
 
   fpf oc "%s\n" prelude;
