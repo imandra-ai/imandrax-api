@@ -23,6 +23,7 @@ pub use deser::FromTwine;
 pub mod utils;
 use utils::*;
 
+use from_twine_derive::FromTwine;
 //use bumpalo::Bump;
 use num_bigint::BigInt;
 use num_rational::BigRational as Rational;
@@ -320,7 +321,7 @@ let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
         let unused_params =
           List.filter (fun v -> not (Str_set.mem v used_vars)) def.params
         in
-        bpf buf "#[derive(Debug, Clone)]\n";
+        bpf buf "#[derive(Debug, Clone, FromTwine)]\n";
         bpf buf "pub struct %s%s {\n" rsname rsparams;
         List.iter
           (fun (field, ty) ->
@@ -353,7 +354,7 @@ let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
         (* bpf buf "}\n" *)
       | TR.Ty_def.Alg cstors ->
         (* declare type *)
-        bpf buf "#[derive(Debug, Clone)]\n";
+        bpf buf "#[derive(Debug, Clone, FromTwine)]\n";
         bpf buf "pub enum %s%s {\n" rsname rsparams;
         List.iter
           (fun (c : TR.Ty_def.cstor) ->

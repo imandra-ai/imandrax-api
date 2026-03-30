@@ -12,3 +12,4 @@ bumpalo = "3.16.0"
 num-bigint = "0.4.6"
 num-rational = "0.4.2"
 twine = { version = "*", path = "twine" }
+from-twine-derive = { version = "*", path = "from_twine_derive" }
