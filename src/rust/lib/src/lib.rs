@@ -12,6 +12,7 @@ pub use deser::FromTwine;
 pub mod utils;
 use utils::*;
 
+use from_twine_derive::FromTwine;
 //use bumpalo::Bump;
 use num_bigint::BigInt;
 use num_rational::BigRational as Rational;
@@ -27,14 +28,14 @@ pub type Var_set<'a> = UidSet<'a>;
 
 
 // clique Imandrakit_error.Kind.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct ErrorKind<'a> {
   pub name: &'a str,
 }
 
 
 // clique Imandrakit_error.Error_core.message
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct ErrorError_coreMessage<'a> {
   pub msg: &'a str,
   pub data: Ignored /* data */,
@@ -45,7 +46,7 @@ pub struct ErrorError_coreMessage<'a> {
 // clique 
 
 // clique Imandrakit_error.Error_core.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct ErrorError_core<'a> {
   pub process: &'a str,
   pub kind: &'a ErrorKind<'a>,
@@ -60,13 +61,13 @@ pub struct ErrorError_core<'a> {
 
 // clique Imandrax_api.Upto.t
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum Upto {
   N_steps(BigInt),
 }
 
 // clique Imandrax_api.Builtin_data.kind
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum Builtin_dataKind<'a> {
   Logic_core {
     logic_core_name: &'a str,
@@ -85,7 +86,7 @@ pub enum Builtin_dataKind<'a> {
 // clique 
 
 // clique Imandrax_api.Cname.t_
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CnameT_<'a> {
   pub name: &'a str,
   pub chash: &'a str,
@@ -97,14 +98,14 @@ pub struct CnameT_<'a> {
 
 // clique Imandrax_api.Uid.gen_kind
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum UidGen_kind {
   Local,
   To_be_rewritten,
 }
 
 // clique Imandrax_api.Uid.view
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum UidView<'a> {
   Generative {
     id: BigInt,
@@ -120,7 +121,7 @@ pub enum UidView<'a> {
 }
 
 // clique Imandrax_api.Uid.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct Uid<'a> {
   pub name: &'a str,
   pub view: &'a UidView<'a>,
@@ -130,7 +131,7 @@ pub struct Uid<'a> {
 // clique 
 
 // clique Imandrax_api.Builtin.Fun.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct BuiltinFun<'a> {
   pub id: &'a Uid<'a>,
   pub kind: &'a Builtin_dataKind<'a>,
@@ -141,7 +142,7 @@ pub struct BuiltinFun<'a> {
 
 
 // clique Imandrax_api.Builtin.Ty.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct BuiltinTy<'a> {
   pub id: &'a Uid<'a>,
   pub kind: &'a Builtin_dataKind<'a>,
@@ -151,7 +152,7 @@ pub struct BuiltinTy<'a> {
 // clique 
 
 // clique Imandrax_api.Ty_view.adt_row
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct Ty_viewAdt_row<'a,V_tyreg_poly_id:'a,V_tyreg_poly_t:'a> {
   pub c: V_tyreg_poly_id,
   pub labels: Option<&'a [V_tyreg_poly_id]>,
@@ -161,7 +162,7 @@ pub struct Ty_viewAdt_row<'a,V_tyreg_poly_id:'a,V_tyreg_poly_t:'a> {
 
 
 // clique Imandrax_api.Ty_view.rec_row
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct Ty_viewRec_row<'a,V_tyreg_poly_id:'a,V_tyreg_poly_t:'a> {
   pub f: V_tyreg_poly_id,
   pub ty: V_tyreg_poly_t,
@@ -170,7 +171,7 @@ pub struct Ty_viewRec_row<'a,V_tyreg_poly_id:'a,V_tyreg_poly_t:'a> {
 
 
 // clique Imandrax_api.Ty_view.decl
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum Ty_viewDecl<'a,V_tyreg_poly_id:'a,V_tyreg_poly_t:'a,V_tyreg_poly_alias:'a> {
   Algebraic(&'a [&'a Ty_viewAdt_row<'a,V_tyreg_poly_id,V_tyreg_poly_t>]),
   Record(&'a [&'a Ty_viewRec_row<'a,V_tyreg_poly_id,V_tyreg_poly_t>]),
@@ -184,7 +185,7 @@ pub enum Ty_viewDecl<'a,V_tyreg_poly_id:'a,V_tyreg_poly_t:'a,V_tyreg_poly_alias:
 }
 
 // clique Imandrax_api.Ty_view.view
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum Ty_viewView<'a,V_tyreg_poly_lbl:'a,V_tyreg_poly_var:'a,V_tyreg_poly_t:'a> {
   Var(V_tyreg_poly_var),
   Arrow(V_tyreg_poly_lbl,V_tyreg_poly_t,V_tyreg_poly_t),
@@ -193,7 +194,7 @@ pub enum Ty_viewView<'a,V_tyreg_poly_lbl:'a,V_tyreg_poly_var:'a,V_tyreg_poly_t:'
 }
 
 // clique Imandrax_api.Ty_view.def_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct Ty_viewDef_poly<'a,V_tyreg_poly_ty:'a> {
   pub name: &'a Uid<'a>,
   pub params: &'a [&'a Uid<'a>],
@@ -206,7 +207,7 @@ pub struct Ty_viewDef_poly<'a,V_tyreg_poly_ty:'a> {
 // clique 
 
 // clique Imandrax_api.Sub_anchor.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct Sub_anchor<'a> {
   pub fname: &'a str,
   pub anchor: BigInt,
@@ -215,7 +216,7 @@ pub struct Sub_anchor<'a> {
 
 // clique Imandrax_api.Stat_time.t
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct Stat_time {
   pub time_s: f64,
 }
@@ -223,14 +224,14 @@ pub struct Stat_time {
 
 // clique Imandrax_api.Misc_types.rec_flag
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum Misc_typesRec_flag {
   Recursive,
   Nonrecursive,
 }
 
 // clique Imandrax_api.Misc_types.apply_label
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum Misc_typesApply_label<'a> {
   Nolabel,
   Label(&'a str),
@@ -240,7 +241,7 @@ pub enum Misc_typesApply_label<'a> {
 // clique 
 
 // clique Imandrax_api.In_mem_archive.raw
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct In_mem_archiveRaw<'a> {
   pub ty: &'a str,
   pub compressed: bool,
@@ -251,7 +252,7 @@ pub struct In_mem_archiveRaw<'a> {
 // clique 
 
 // clique Imandrax_api.Const.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum Const<'a> {
   Const_float(f64),
   Const_string(&'a str),
@@ -263,7 +264,7 @@ pub enum Const<'a> {
 }
 
 // clique Imandrax_api.Case_poly.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct Case_polyT_poly<'a,V_tyreg_poly_t:'a,V_tyreg_poly_var:'a,V_tyreg_poly_sym:'a> {
   pub case_cstor: V_tyreg_poly_sym,
   pub case_vars: &'a [V_tyreg_poly_var],
@@ -274,7 +275,7 @@ pub struct Case_polyT_poly<'a,V_tyreg_poly_t:'a,V_tyreg_poly_var:'a,V_tyreg_poly
 
 // clique Imandrax_api.As_trigger.t
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum As_trigger {
   Trig_none,
   Trig_anon,
@@ -283,7 +284,7 @@ pub enum As_trigger {
 }
 
 // clique Imandrax_api.Anchor.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum Anchor<'a> {
   Named(&'a CnameT_<'a>),
   Eval(BigInt),
@@ -294,7 +295,7 @@ pub enum Anchor<'a> {
 // clique 
 
 // clique Imandrax_api_ca_store.Ca_ptr.Raw.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct Ca_storeCa_ptrRaw<'a> {
   pub key: &'a str,
 }
@@ -303,7 +304,7 @@ pub struct Ca_storeCa_ptrRaw<'a> {
 // clique 
 
 // clique Imandrax_api_common.Admission.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonAdmission<'a> {
   pub measured_subset: &'a [&'a str],
   pub measure_fun: Option<&'a Uid<'a>>,
@@ -311,7 +312,7 @@ pub struct CommonAdmission<'a> {
 
 
 // clique Imandrax_api_common.Var.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonVarT_poly<'a,V_tyreg_poly_ty:'a> {
   pub id: &'a Uid<'a>,
   pub ty: V_tyreg_poly_ty,
@@ -319,7 +320,7 @@ pub struct CommonVarT_poly<'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Hints.validation_strategy
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonHintsValidation_strategy<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   VS_validate {
     tactic: Option<(&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term)>,
@@ -328,7 +329,7 @@ pub enum CommonHintsValidation_strategy<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:
 }
 
 // clique Imandrax_api_common.Hints.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonHintsT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub f_validate_strat: &'a CommonHintsValidation_strategy<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub f_unroll_def: Option<BigInt>,
@@ -341,7 +342,7 @@ pub struct CommonHintsT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Type_schema.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonType_schemaT_poly<'a,V_tyreg_poly_ty:'a> {
   pub params: &'a [&'a Uid<'a>],
   pub ty: V_tyreg_poly_ty,
@@ -349,7 +350,7 @@ pub struct CommonType_schemaT_poly<'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Fun_def.fun_kind
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonFun_defFun_kind<'a> {
   Fun_defined {
     is_macro: bool,
@@ -360,7 +361,7 @@ pub enum CommonFun_defFun_kind<'a> {
 }
 
 // clique Imandrax_api_common.Fun_def.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonFun_defT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub f_name: &'a Uid<'a>,
   pub f_ty: &'a CommonType_schemaT_poly<'a,V_tyreg_poly_ty>,
@@ -374,7 +375,7 @@ pub struct CommonFun_defT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 // clique Imandrax_api_common.Verify.kind
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonVerifyKind {
   K_verify,
   K_instance,
@@ -382,7 +383,7 @@ pub enum CommonVerifyKind {
 }
 
 // clique Imandrax_api_common.Verify.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonVerifyT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub verify_link: &'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub verify_simplify: bool,
@@ -395,7 +396,7 @@ pub struct CommonVerifyT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Typed_symbol.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonTyped_symbolT_poly<'a,V_tyreg_poly_ty:'a> {
   pub id: &'a Uid<'a>,
   pub ty: &'a CommonType_schemaT_poly<'a,V_tyreg_poly_ty>,
@@ -403,7 +404,7 @@ pub struct CommonTyped_symbolT_poly<'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Applied_symbol.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty:'a> {
   pub sym: &'a CommonTyped_symbolT_poly<'a,V_tyreg_poly_ty>,
   pub args: &'a [V_tyreg_poly_ty],
@@ -412,7 +413,7 @@ pub struct CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Fo_pattern.view
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonFo_patternView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
   FO_any,
   FO_bool(bool),
@@ -436,7 +437,7 @@ pub enum CommonFo_patternView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
 }
 
 // clique Imandrax_api_common.Fo_pattern.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonFo_patternT_poly<'a,V_tyreg_poly_ty:'a> {
   pub view: &'a CommonFo_patternView<'a,&'a CommonFo_patternT_poly<'a,V_tyreg_poly_ty>,V_tyreg_poly_ty>,
   pub ty: V_tyreg_poly_ty,
@@ -444,7 +445,7 @@ pub struct CommonFo_patternT_poly<'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Pattern_head.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonPattern_headT_poly<'a,V_tyreg_poly_ty:'a> {
   PH_id(&'a Uid<'a>),
   PH_ty(V_tyreg_poly_ty),
@@ -452,7 +453,7 @@ pub enum CommonPattern_headT_poly<'a,V_tyreg_poly_ty:'a> {
 }
 
 // clique Imandrax_api_common.Trigger.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonTriggerT_poly<'a,V_tyreg_poly_ty:'a> {
   pub trigger_head: &'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,
   pub trigger_patterns: &'a [&'a CommonFo_patternT_poly<'a,V_tyreg_poly_ty>],
@@ -463,7 +464,7 @@ pub struct CommonTriggerT_poly<'a,V_tyreg_poly_ty:'a> {
 // clique 
 
 // clique Imandrax_api_common.Theorem.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonTheoremT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub thm_link: &'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub thm_rewriting: bool,
@@ -479,7 +480,7 @@ pub struct CommonTheoremT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Tactic.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonTacticT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Default_termination {
     max_steps: BigInt,
@@ -497,7 +498,7 @@ pub enum CommonTacticT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 }
 
 // clique Imandrax_api_common.Sequent.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonSequentT_poly<'a,V_tyreg_poly_term:'a> {
   pub hyps: &'a [(Option<&'a str>,V_tyreg_poly_term)],
   pub concls: &'a [(Option<&'a str>,V_tyreg_poly_term)],
@@ -505,7 +506,7 @@ pub struct CommonSequentT_poly<'a,V_tyreg_poly_term:'a> {
 
 
 // clique Imandrax_api_common.Rule_spec.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonRule_specT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub rule_spec_fc: bool,
   pub rule_spec_rewriting: bool,
@@ -516,7 +517,7 @@ pub struct CommonRule_specT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Rewrite_rule.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonRewrite_ruleT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub rw_name: &'a Uid<'a>,
   pub rw_head: &'a CommonPattern_headT_poly<'a,V_tyreg_poly_ty>,
@@ -531,14 +532,14 @@ pub struct CommonRewrite_ruleT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> 
 
 
 // clique Imandrax_api_common.Model.ty_def
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonModelTy_def<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Ty_finite(&'a [V_tyreg_poly_term]),
   Ty_alias_unit(V_tyreg_poly_ty),
 }
 
 // clique Imandrax_api_common.Model.fi
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonModelFi<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub fi_args: &'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],
   pub fi_ty_ret: V_tyreg_poly_ty,
@@ -548,7 +549,7 @@ pub struct CommonModelFi<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Model.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonModelT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub tys: &'a [(V_tyreg_poly_ty,&'a CommonModelTy_def<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)],
   pub consts: &'a [(&'a CommonApplied_symbolT_poly<'a,V_tyreg_poly_ty>,V_tyreg_poly_term)],
@@ -560,7 +561,7 @@ pub struct CommonModelT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Region.status
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonRegionStatus<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Unknown,
   Feasible(&'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
@@ -568,7 +569,7 @@ pub enum CommonRegionStatus<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 }
 
 // clique Imandrax_api_common.Region.meta
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonRegionMeta<'a,V_tyreg_poly_term:'a> {
   Null,
   Bool(bool),
@@ -581,7 +582,7 @@ pub enum CommonRegionMeta<'a,V_tyreg_poly_term:'a> {
 }
 
 // clique Imandrax_api_common.Region.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonRegionT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub constraints: &'a [V_tyreg_poly_term],
   pub invariant: V_tyreg_poly_term,
@@ -591,7 +592,7 @@ pub struct CommonRegionT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Proof_obligation.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonProof_obligationT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub descr: &'a str,
   pub goal: (&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term),
@@ -607,14 +608,14 @@ pub struct CommonProof_obligationT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:
 
 // clique Imandrax_api_common.Instantiation_rule_kind.t
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonInstantiation_rule_kind {
   IR_forward_chaining,
   IR_generalization,
 }
 
 // clique Imandrax_api_common.Instantiation_rule.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonInstantiation_ruleT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub ir_from: &'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub ir_triggers: &'a [&'a CommonTriggerT_poly<'a,V_tyreg_poly_ty>],
@@ -625,7 +626,7 @@ pub struct CommonInstantiation_ruleT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_t
 // clique 
 
 // clique Imandrax_api_common.Fun_decomp.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonFun_decompT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub f_id: &'a Uid<'a>,
   pub f_args: &'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],
@@ -634,7 +635,7 @@ pub struct CommonFun_decompT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_common.Elimination_rule.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonElimination_ruleT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub er_name: &'a Uid<'a>,
   pub er_guard: &'a [V_tyreg_poly_term],
@@ -647,7 +648,7 @@ pub struct CommonElimination_ruleT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:
 
 // clique Imandrax_api_common.Decomp.lift_bool
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonDecompLift_bool {
   Default,
   Nested_equalities,
@@ -656,7 +657,7 @@ pub enum CommonDecompLift_bool {
 }
 
 // clique Imandrax_api_common.Decomp.t_
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonDecompT_<'a> {
   pub f_id: &'a Uid<'a>,
   pub assuming: Option<&'a Uid<'a>>,
@@ -669,7 +670,7 @@ pub struct CommonDecompT_<'a> {
 
 
 // clique Imandrax_api_common.Decl.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonDeclT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Fun(&'a CommonFun_defT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Ty(&'a Ty_viewDef_poly<'a,V_tyreg_poly_ty>),
@@ -679,7 +680,7 @@ pub enum CommonDeclT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 }
 
 // clique Imandrax_api_common.Db_op.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum CommonDb_opT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Op_enable(&'a [&'a Uid<'a>]),
   Op_disable(&'a [&'a Uid<'a>]),
@@ -702,7 +703,7 @@ pub enum CommonDb_opT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 // clique 
 
 // clique Imandrax_api_common.Db_ser.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct CommonDb_serT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub ops: &'a [&'a Ca_storeCa_ptrRaw<'a>],
   pub _phantom_tyreg_poly_term: std::marker::PhantomData<V_tyreg_poly_term>,
@@ -717,14 +718,14 @@ pub struct CommonDb_serT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 // clique 
 
 // clique Imandrax_api_mir.Type.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct MirType<'a> {
   pub view: &'a Ty_viewView<'a,(),&'a Uid<'a>,&'a MirType<'a>>,
 }
 
 
 // clique Imandrax_api_mir.Type.ser
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct MirTypeSer<'a> {
   pub view: &'a Ty_viewView<'a,(),&'a Uid<'a>,&'a MirType<'a>>,
 }
@@ -743,7 +744,7 @@ pub struct MirTypeSer<'a> {
 // clique 
 
 // clique Imandrax_api_mir.Term.view
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum MirTermView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
   Const(&'a Const<'a>),
   If(V_tyreg_poly_t,V_tyreg_poly_t,V_tyreg_poly_t),
@@ -793,7 +794,7 @@ pub enum MirTermView<'a,V_tyreg_poly_t:'a,V_tyreg_poly_ty:'a> {
 // clique 
 
 // clique Imandrax_api_mir.Term.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct MirTerm<'a> {
   pub view: &'a MirTermView<'a,&'a MirTerm<'a>,&'a MirType<'a>>,
   pub ty: &'a MirType<'a>,
@@ -802,7 +803,7 @@ pub struct MirTerm<'a> {
 
 
 // clique Imandrax_api_mir.Term.ser
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct MirTermSer<'a> {
   pub view: &'a MirTermView<'a,&'a MirTerm<'a>,&'a MirType<'a>>,
   pub ty: &'a MirType<'a>,
@@ -845,7 +846,7 @@ pub struct MirTermSer<'a> {
 // clique 
 
 // clique Imandrax_api_mir.Decomp.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct MirDecomp<'a> {
   pub f_id: &'a Uid<'a>,
   pub assuming: Option<&'a Uid<'a>>,
@@ -862,14 +863,14 @@ pub struct MirDecomp<'a> {
 // clique 
 
 // clique Imandrax_api_eval.Ordinal.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum EvalOrdinal<'a> {
   Int(BigInt),
   Cons(&'a EvalOrdinal<'a>,BigInt,&'a EvalOrdinal<'a>),
 }
 
 // clique Imandrax_api_eval.Value.cstor_descriptor
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct EvalValueCstor_descriptor<'a> {
   pub cd_idx: BigInt,
   pub cd_name: &'a Uid<'a>,
@@ -877,7 +878,7 @@ pub struct EvalValueCstor_descriptor<'a> {
 
 
 // clique Imandrax_api_eval.Value.record_descriptor
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct EvalValueRecord_descriptor<'a> {
   pub rd_name: &'a Uid<'a>,
   pub rd_fields: &'a [&'a Uid<'a>],
@@ -885,7 +886,7 @@ pub struct EvalValueRecord_descriptor<'a> {
 
 
 // clique Imandrax_api_eval.Value.view
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum EvalValueView<'a,V_tyreg_poly_v:'a,V_tyreg_poly_closure:'a> {
   V_true,
   V_false,
@@ -904,21 +905,21 @@ pub enum EvalValueView<'a,V_tyreg_poly_v:'a,V_tyreg_poly_closure:'a> {
 
 // clique Imandrax_api_eval.Value.erased_closure
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct EvalValueErased_closure {
   pub missing: BigInt,
 }
 
 
 // clique Imandrax_api_eval.Value.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct EvalValue<'a> {
   pub v: &'a EvalValueView<'a,&'a EvalValue<'a>,EvalValueErased_closure>,
 }
 
 
 // clique Imandrax_api_report.Expansion.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct ReportExpansion<'a,V_tyreg_poly_term:'a> {
   pub f_name: &'a Uid<'a>,
   pub lhs: V_tyreg_poly_term,
@@ -927,7 +928,7 @@ pub struct ReportExpansion<'a,V_tyreg_poly_term:'a> {
 
 
 // clique Imandrax_api_report.Instantiation.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct ReportInstantiation<'a,V_tyreg_poly_term:'a> {
   pub assertion: V_tyreg_poly_term,
   pub from_rule: &'a Uid<'a>,
@@ -935,7 +936,7 @@ pub struct ReportInstantiation<'a,V_tyreg_poly_term:'a> {
 
 
 // clique Imandrax_api_report.Smt_proof.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct ReportSmt_proof<'a,V_tyreg_poly_term:'a> {
   pub logic: usize,
   pub unsat_core: &'a [V_tyreg_poly_term],
@@ -945,7 +946,7 @@ pub struct ReportSmt_proof<'a,V_tyreg_poly_term:'a> {
 
 
 // clique Imandrax_api_report.Rtext.item
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum ReportRtextItem<'a,V_tyreg_poly_term:'a> {
   S(&'a str),
   B(&'a str),
@@ -962,7 +963,7 @@ pub enum ReportRtextItem<'a,V_tyreg_poly_term:'a> {
 // clique 
 
 // clique Imandrax_api_report.Atomic_event.poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum ReportAtomic_eventPoly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_term2:'a,V_tyreg_poly_ty2:'a> {
   E_message(&'a [&'a ReportRtextItem<'a,V_tyreg_poly_term>]),
   E_title(&'a str),
@@ -992,7 +993,7 @@ pub enum ReportAtomic_eventPoly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyr
 
 // clique Imandrax_api_report.Event.t_linear
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum ReportEventT_linear<V_tyreg_poly_atomic_ev> {
   EL_atomic {
     ts: f64,
@@ -1009,7 +1010,7 @@ pub enum ReportEventT_linear<V_tyreg_poly_atomic_ev> {
 
 // clique Imandrax_api_report.Event.t_tree
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum ReportEventT_tree<V_tyreg_poly_atomic_ev,V_tyreg_poly_sub> {
   ET_atomic {
     ts: f64,
@@ -1026,14 +1027,14 @@ pub enum ReportEventT_tree<V_tyreg_poly_atomic_ev,V_tyreg_poly_sub> {
 // clique 
 
 // clique Imandrax_api_report.Report.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct ReportReport<'a> {
   pub events: &'a [&'a ReportEventT_linear<&'a ReportAtomic_eventPoly<'a,&'a MirTerm<'a>,&'a MirType<'a>,&'a MirTerm<'a>,&'a MirType<'a>>>],
 }
 
 
 // clique Imandrax_api_proof.Arg.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum ProofArg<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   A_term(V_tyreg_poly_term),
   A_ty(V_tyreg_poly_ty),
@@ -1047,7 +1048,7 @@ pub enum ProofArg<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 // clique 
 
 // clique Imandrax_api_proof.View.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum ProofView<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_proof:'a> {
   T_assume,
   T_subst {
@@ -1065,7 +1066,7 @@ pub enum ProofView<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a,V_tyreg_poly_proof
 }
 
 // clique Imandrax_api_proof.Proof_term.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct ProofProof_termT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub id: BigInt,
   pub concl: &'a CommonSequentT_poly<'a,V_tyreg_poly_term>,
@@ -1074,7 +1075,7 @@ pub struct ProofProof_termT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_tasks.PO_task.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksPO_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_sym: &'a str,
   pub count: BigInt,
@@ -1088,7 +1089,7 @@ pub struct TasksPO_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 // clique 
 
 // clique Imandrax_api_tasks.PO_res.sub_res
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksPO_resSub_res<'a,V_tyreg_poly_term:'a> {
   pub sub_anchor: &'a Sub_anchor<'a>,
   pub goal: &'a CommonSequentT_poly<'a,V_tyreg_poly_term>,
@@ -1098,7 +1099,7 @@ pub struct TasksPO_resSub_res<'a,V_tyreg_poly_term:'a> {
 
 
 // clique Imandrax_api_tasks.PO_res.proof_found
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksPO_resProof_found<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub anchor: &'a Anchor<'a>,
   pub proof: &'a ProofProof_termT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
@@ -1107,7 +1108,7 @@ pub struct TasksPO_resProof_found<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_tasks.PO_res.verified_upto
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksPO_resVerified_upto<'a> {
   pub anchor: &'a Anchor<'a>,
   pub upto: Upto,
@@ -1115,7 +1116,7 @@ pub struct TasksPO_resVerified_upto<'a> {
 
 
 // clique Imandrax_api_tasks.PO_res.instance
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksPO_resInstance<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub anchor: &'a Anchor<'a>,
   pub model: &'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
@@ -1123,7 +1124,7 @@ pub struct TasksPO_resInstance<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_tasks.PO_res.no_proof
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksPO_resNo_proof<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub err: &'a ErrorError_core<'a>,
   pub counter_model: Option<&'a CommonModelT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
@@ -1133,7 +1134,7 @@ pub struct TasksPO_resNo_proof<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_tasks.PO_res.unsat
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksPO_resUnsat<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub anchor: &'a Anchor<'a>,
   pub err: &'a ErrorError_core<'a>,
@@ -1143,7 +1144,7 @@ pub struct TasksPO_resUnsat<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_tasks.PO_res.success
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum TasksPO_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Proof(&'a TasksPO_resProof_found<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Instance(&'a TasksPO_resInstance<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
@@ -1155,7 +1156,7 @@ pub enum TasksPO_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 }
 
 // clique Imandrax_api_tasks.PO_res.error
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum TasksPO_resError<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   No_proof(&'a TasksPO_resNo_proof<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Unsat(&'a TasksPO_resUnsat<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
@@ -1166,7 +1167,7 @@ pub enum TasksPO_resError<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 // clique 
 
 // clique Imandrax_api_tasks.PO_res.shallow_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksPO_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_: &'a Ca_storeCa_ptrRaw<'a>,
   pub res: &'a core::result::Result<&'a TasksPO_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksPO_resError<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
@@ -1177,7 +1178,7 @@ pub struct TasksPO_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_tasks.PO_res.full_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksPO_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_: &'a CommonProof_obligationT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub res: &'a core::result::Result<&'a TasksPO_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksPO_resError<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
@@ -1192,7 +1193,7 @@ pub struct TasksPO_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 // clique 
 
 // clique Imandrax_api_tasks.Eval_task.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksEval_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub db: &'a CommonDb_serT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub term: (&'a [&'a CommonVarT_poly<'a,V_tyreg_poly_ty>],V_tyreg_poly_term),
@@ -1207,7 +1208,7 @@ pub struct TasksEval_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 // clique Imandrax_api_tasks.Eval_res.stats
 // immediate
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksEval_resStats {
   pub compile_time: f64,
   pub exec_time: f64,
@@ -1215,14 +1216,14 @@ pub struct TasksEval_resStats {
 
 
 // clique Imandrax_api_tasks.Eval_res.success
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksEval_resSuccess<'a> {
   pub v: &'a EvalValue<'a>,
 }
 
 
 // clique Imandrax_api_tasks.Eval_res.t
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksEval_res<'a> {
   pub res: &'a core::result::Result<&'a TasksEval_resSuccess<'a>,Error<'a>>,
   pub stats: TasksEval_resStats,
@@ -1230,7 +1231,7 @@ pub struct TasksEval_res<'a> {
 
 
 // clique Imandrax_api_tasks.Decomp_task.decomp_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Decomp(&'a CommonDecompT_<'a>),
   Term(V_tyreg_poly_term),
@@ -1247,7 +1248,7 @@ pub enum TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a>
 }
 
 // clique Imandrax_api_tasks.Decomp_task.t_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksDecomp_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub db: &'a CommonDb_serT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub decomp: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
@@ -1261,7 +1262,7 @@ pub struct TasksDecomp_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 // clique 
 
 // clique Imandrax_api_tasks.Decomp_res.success
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksDecomp_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub anchor: &'a Anchor<'a>,
   pub decomp: &'a CommonFun_decompT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
@@ -1269,7 +1270,7 @@ pub struct TasksDecomp_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 
 // clique Imandrax_api_tasks.Decomp_res.error
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub enum TasksDecomp_resError<'a> {
   Error(&'a ErrorError_core<'a>),
 }
@@ -1277,7 +1278,7 @@ pub enum TasksDecomp_resError<'a> {
 // clique 
 
 // clique Imandrax_api_tasks.Decomp_res.shallow_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksDecomp_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_: &'a Ca_storeCa_ptrRaw<'a>,
   pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksDecomp_resError<'a>>,
@@ -1287,7 +1288,7 @@ pub struct TasksDecomp_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'
 
 
 // clique Imandrax_api_tasks.Decomp_res.full_poly
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromTwine)]
 pub struct TasksDecomp_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksDecomp_resError<'a>>,
