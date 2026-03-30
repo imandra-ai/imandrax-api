@@ -1,104 +1,191 @@
-//! Values that rely on a bump allocator.
+//! Full, nested values, with individual allocations.
+//!
+//! Such values are useful for various tools that need a global view of the
+//! data, or for manipulating twine data as if it were JSON.
+
+use std::io;
+
+use crate::{shallow_value::ShallowValue, Encoder};
 
 use super::{
-    types::{CstorIdx, Offset, Tag},
-    Decoder, Error, Immediate, Result,
+    types::{Offset, Tag, VariantIdx},
+    Decoder, Immediate, Result,
 };
-use bumpalo::Bump;
 
-/// A value, potentially containing other values.
-#[derive(Debug, Clone, Copy)]
-pub enum Value<'a, 'tmp> {
-    Imm(Immediate<'a>),
-    Tag(Tag, &'tmp Value<'a, 'tmp>),
-    Array(&'tmp [Value<'a, 'tmp>]),
-    Dict(&'tmp [(Value<'a, 'tmp>, Value<'a, 'tmp>)]),
-    Cstor(CstorIdx, &'tmp [Value<'a, 'tmp>]),
+/// A value, potentially containing other values. All the sub-values live in the same allocator.
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub enum Value {
+    Null,
+    Bool(bool),
+    Int64(i64),
+    Float(f64),
+    /// Text, in UTF8
+    String(String),
+    /// Binary blob.
+    Bytes(Vec<u8>),
+    /// A variant with 0 arguments.
+    Variant0(VariantIdx),
+    /// A reference to a full value (which comes at an earlier offset).
+    Ref(Offset),
+    /// An implicitly followed reference to a full value (which comes at an earlier offset).
+    Pointer(Offset),
+    Tag(Tag, Box<Value>),
+    Array(Vec<Value>),
+    Map(Vec<(Value, Value)>),
+    Variant(VariantIdx, Vec<Value>),
 }
 
-/// Read a value
-pub fn get_value<'a, 'tmp>(
-    d: &'a Decoder<'a>,
-    bump: &'tmp Bump,
-    off: Offset,
-) -> Result<Value<'a, 'tmp>> {
-    use Value::*;
+impl Default for Value {
+    fn default() -> Self {
+        Value::Null
+    }
+}
 
-    println!("get value at off={off:x}");
-    let off = d.deref(off)?;
-    let (high, low) = d.first_byte(off);
-    let v: Value = match high {
-        0 => {
-            if low == 2 {
-                Imm(Immediate::Null)
-            } else if low == 0 {
-                Imm(Immediate::Bool(false))
-            } else if low == 1 {
-                Imm(Immediate::Bool(true))
-            } else {
-                return Err(Error {
-                    msg: "invalid value with high=0",
-                    off,
-                });
+impl<'a> From<Immediate<'a>> for Value {
+    fn from(v: Immediate<'a>) -> Self {
+        match v {
+            Immediate::Null => Value::Null,
+            Immediate::Bool(b) => Value::Bool(b),
+            Immediate::Int64(i) => Value::Int64(i),
+            Immediate::Float(f) => Value::Float(f),
+            Immediate::String(s) => Value::String(s.to_string()),
+            Immediate::Bytes(bs) => Value::Bytes(bs.to_vec()),
+            Immediate::Variant0(variant_idx) => Value::Variant0(variant_idx),
+            Immediate::Ref(p) => Value::Ref(p),
+            Immediate::Pointer(p) => Value::Pointer(p),
+        }
+    }
+}
+
+/// Read a value from a decoder, starting at given offset.
+pub fn read_value(d: &Decoder, off: Offset) -> Result<Value> {
+    let v: Value = match d.get_shallow_value(off)? {
+        ShallowValue::Imm(v) => Value::from(v),
+        ShallowValue::Tag(tag, off) => Value::Tag(tag, Box::new(read_value(d, off)?)),
+        ShallowValue::Array(arr) => {
+            let mut arr_v = Vec::with_capacity(arr.len());
+            for off in arr {
+                let off = off?;
+                arr_v.push(read_value(d, off)?)
             }
+            Value::Array(arr_v)
         }
-        1 | 2 => Imm(Immediate::Int64(d.get_i64(off)?)),
-        3 => Imm(Immediate::Float(d.get_float(off)?)),
-        4 => Imm(Immediate::String(d.get_str(off)?)),
-        5 => Imm(Immediate::Bytes(d.get_bytes(off)?)),
-        6 => {
-            let mut offsets = vec![];
-            d.get_array(off, &mut offsets)?;
-            let res: &'tmp mut [Value] =
-                bump.alloc_slice_fill_copy(offsets.len(), Imm(Immediate::Null));
-            for (idx, off) in offsets.into_iter().enumerate() {
-                res[idx] = get_value(d, bump, off)?;
+        ShallowValue::Map(map) => {
+            let mut map_v = Vec::with_capacity(map.len());
+            for kv in map {
+                let (k, v) = kv?;
+                map_v.push((read_value(d, k)?, read_value(d, v)?))
             }
-            Array(res)
+            Value::Map(map_v)
         }
-        7 => {
-            let mut offsets_kv = vec![];
-            d.get_dict(off, &mut offsets_kv)?;
-            let res: &'tmp mut [(Value, Value)] = bump.alloc_slice_fill_copy(
-                offsets_kv.len(),
-                (Imm(Immediate::Null), Imm(Immediate::Null)),
-            );
-            for (idx, (k, v)) in offsets_kv.into_iter().enumerate() {
-                res[idx] = (get_value(d, bump, k)?, get_value(d, bump, v)?);
+        ShallowValue::Variant(variant_idx, args) => {
+            let mut args_v = Vec::with_capacity(args.len());
+            for a in args {
+                let a = a?;
+                args_v.push(read_value(d, a)?)
             }
-            Dict(res)
-        }
-        8 => {
-            let (tag, off) = d.get_tag(off)?;
-            let v = bump.alloc(get_value(d, bump, off)?);
-            Tag(tag, v)
-        }
-        10 | 11 | 12 => {
-            let mut offset_args = vec![];
-            let cstor_idx = d.get_cstor(off, &mut offset_args)?;
-            let args: &'tmp mut [Value] =
-                bump.alloc_slice_fill_copy(offset_args.len(), Imm(Immediate::Null));
-            for (idx, off) in offset_args.into_iter().enumerate() {
-                args[idx] = get_value(d, bump, off)?;
-            }
-            Cstor(cstor_idx, args)
-        }
-        15 => unreachable!(), // we did deref
-        _ => {
-            return Err(Error {
-                msg: "invalid value",
-                off,
-            })
+            Value::Variant(variant_idx, args_v)
         }
     };
     Ok(v)
 }
 
 /// Find the entrypoint and read a value from it.
-pub fn get_value_from_entrypoint<'a, 'tmp>(
-    d: &'a Decoder<'a>,
-    bump: &'tmp Bump,
-) -> Result<Value<'a, 'tmp>> {
+pub fn read_value_from_entrypoint(d: &Decoder) -> Result<Value> {
     let off = d.entrypoint()?;
-    get_value(d, bump, off)
+    read_value(d, off)
+}
+
+fn write_value_or_imm<'a, W: io::Write>(
+    enc: &'_ mut Encoder<W>,
+    v: &'a Value,
+) -> io::Result<Immediate<'a>> {
+    let imm = match v {
+        Value::Null => Immediate::Null,
+        Value::Bool(b) => Immediate::Bool(*b),
+        Value::Int64(i) => Immediate::Int64(*i),
+        Value::Float(f) => Immediate::Float(*f),
+        Value::String(s) => Immediate::String(&s),
+        Value::Bytes(vec) => Immediate::Bytes(&vec),
+        Value::Variant0(variant_idx) => Immediate::Variant0(*variant_idx),
+        Value::Ref(p) => Immediate::Ref(*p),
+        Value::Pointer(p) => Immediate::Pointer(*p),
+        Value::Tag(tag, v) => {
+            let v = write_value_or_imm(enc, v)?;
+            enc.write_tag(*tag, v)?.into()
+        }
+        Value::Array(arr) => {
+            // locally gather immediates
+            let mut res = Vec::with_capacity(arr.len());
+            for x in arr {
+                res.push(write_value_or_imm(enc, x)?);
+            }
+            enc.write_array(&res)?.into()
+        }
+        Value::Map(map) => {
+            // locally gather immediates
+            let mut res = Vec::with_capacity(map.len());
+            for (k, v) in map {
+                let k = write_value_or_imm(enc, k)?;
+                let v = write_value_or_imm(enc, v)?;
+                res.push((k, v));
+            }
+            enc.write_map(&res)?.into()
+        }
+        Value::Variant(variant_idx, args) => {
+            let mut args_res = Vec::with_capacity(args.len());
+            for x in args {
+                args_res.push(write_value_or_imm(enc, x)?);
+            }
+            enc.write_variant(*variant_idx, &args_res)?.into()
+        }
+    };
+    Ok(imm)
+}
+
+/// Write a value, return an offset to it.
+pub fn write_value<'a, W: io::Write>(enc: &mut Encoder<W>, v: &Value) -> io::Result<Offset> {
+    let imm = write_value_or_imm(enc, v)?;
+    enc.write_immediate_or_return_pointer(imm)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    fn arb_values() -> impl Strategy<Value = Value> {
+        // https://proptest-rs.github.io/proptest/proptest/tutorial/recursive.html heck yeah
+        let leaf = prop_oneof![
+            Just(Value::Null),
+            any::<bool>().prop_map(|b| Value::Bool(b)),
+            any::<i64>().prop_map(|b| Value::Int64(b)),
+            any::<f64>().prop_map(|b| Value::Float(b)),
+            ".*".prop_map(|s| Value::String(s)),
+            prop::collection::vec(any::<u8>(), 0..100).prop_map(|v| Value::Bytes(v)),
+        ];
+        leaf.prop_recursive(8, 384, 100, |inner| {
+            prop_oneof![
+                prop::collection::vec(inner.clone(), 0..129).prop_map(|v| Value::Array(v)),
+                prop::collection::vec((inner.clone(), inner.clone()), 0..129)
+                    .prop_map(|map| Value::Map(map)),
+                (any::<u64>(), inner.clone()).prop_map(|(tag, sub)| Value::Tag(tag, Box::new(sub))),
+                (any::<u32>(), prop::collection::vec(inner.clone(), 0..6))
+                    .prop_map(|(c, args)| Value::Variant(VariantIdx(c), args)),
+            ]
+        })
+        .boxed()
+    }
+
+    proptest! {
+        #[test]
+        fn encode_then_decode(v in arb_values()) {
+            let mut res = vec![];
+            let mut enc= crate::Encoder::new(&mut res);
+            let offset = write_value(&mut enc, &v).unwrap();
+
+            let v2 = read_value(&Decoder::new(&res[..]).unwrap(), offset).unwrap();
+            assert_eq!(v, v2);
+        }
+    }
 }
