@@ -35,23 +35,8 @@ pub type UidSet<'a> = [Uid<'a>];
 pub type Var_set<'a> = UidSet<'a>;
 
 // def Uid_set_of_twine(d, off:int) -> UidSet:
-//      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off)) 
+//      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off))
 |}
-
-(* TODO:
-   - find which types are immediate, in advance (build a set of them).
-       that includes some the special primitives below (bool, f64, etc.)
-       as well as nullary struct, true enums, etc.
-
-       we must carry around some state with all the immediate types in it, because we
-       need that info even deep in a typeexpr.
-   - a struct/enum gets a 'a lifetime if >= 1 argument/cstor is not immediate
-   - non immediate types in fields/cstors are stored via &'a (which takes care of
-    recursive types)
-
-   - ALSO: expand aliases eagerly, so we don't have to worry about phantom types in aliases.
-   - for structs we might need phantom markers in a few places
-*)
 
 module State = struct
   type t = { immediate_types: Str_set.t } [@@deriving make]
