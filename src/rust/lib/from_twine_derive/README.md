@@ -52,3 +52,13 @@ Enums are decoded from a twine variant (constructor). The variant index is match
 ### Tag handling
 
 Generated code calls `crate::deser::deref_tag(d, off)` before reading arrays or variants. This transparently skips twine tag wrappers (used for hash-consing annotations in artifacts).
+
+## Limitations
+
+### `crate::` path restriction
+
+The macro generates code that references `crate::deser::FromTwine` and `crate::deser::deref_tag`. This means `#[derive(FromTwine)]` only works inside the crate that defines the `deser` module (i.e. `imandrax-api`). It will not compile in external crates or integration tests (`tests/*.rs`), because `crate::` resolves to the wrong crate in those contexts.
+
+To add a `#[from_twine(crate = "...")]` attribute (like serde's `#[serde(crate = "...")]`) that overrides the path, the proc macro would need to parse a custom attribute and substitute the path prefix in the generated code. This is not implemented yet.
+
+For now, tests that use `#[derive(FromTwine)]` on test-local types must live inside the crate as `#[cfg(test)]` modules (see `src/deser.rs`).
