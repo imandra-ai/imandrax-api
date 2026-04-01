@@ -375,10 +375,10 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
       match def.decl with
       | Alias ty ->
         bpf buf "type %s%s = %s\n\n" pyname pyparams (gen_type_expr ty);
-        bpf buf "%sdef %s(d: twine.Decoder, %soff: int) -> %s:\n"
+        bpf buf "%sdef %s%s(d: twine.Decoder, %soff: int) -> %s:\n"
           cached_decorator
           (of_twine_of_ty_name def.name)
-          pytwine_params pyname;
+          pyparams pytwine_params pyname;
         List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
         bpf buf "    return %s\n" (of_twine_of_type_expr ty ~off:"off")
       | Record r ->
