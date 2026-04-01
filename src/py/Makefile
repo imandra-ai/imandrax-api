@@ -24,6 +24,11 @@ pre-release-test: build  # Run pre-release tests with built wheel
 	uv run --isolated --no-project --with "$$WHEEL" python ../../tests/api/py/test_cloud_dev.py && \
 	uv run --isolated --no-project --with "$$WHEEL" python ../../tests/api/py/test_extract_region_str.py
 
+test-setup-py-install:
+	@echo "Testing setup.py install (with pyproject.toml removed) in Docker (Python 3.12)..."
+	docker run --rm -v "$(CURDIR):/src:ro" python:3.12-slim \
+		sh -c 'cp -r /src /tmp/pkg && cd /tmp/pkg && rm pyproject.toml && pip install --no-cache-dir . && python -c "from imandrax_api.lib import twine; print(\"setup.py install: OK\")"'
+
 PYTHON_REPO_URL = https://europe-west1-python.pkg.dev/imandra-dev/imandrax-api/
 
 install-artifact-deps:
@@ -53,4 +58,4 @@ install-go-protobuf-plugin:
 	@echo "installing twirp plugin for protoc into `echo $(GOBIN)`"
 	cd protoc-gen-twirpy && GOBIN="`echo $(GOBIN)`" go install ./
 
-.PHONY: remove-wheels build genversion api_types_version.py
+.PHONY: remove-wheels build genversion api_types_version.py test-setup-py-install
