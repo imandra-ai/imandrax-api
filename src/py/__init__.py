@@ -125,7 +125,7 @@ class Client(_ClientBase):
             # Silently ignore errors during cleanup to avoid spurious error messages
             pass
 
-    def status(self) -> utils_pb2.StatusRes:
+    def status(self) -> utils_pb2.StringMsg:
         return self._client.status(
             ctx=self.mk_context(),
             request=utils_pb2.Empty(),
@@ -358,7 +358,7 @@ if _async_available:
             except TwirpServerException as e:
                 raise Exception("Error while ending session") from e
 
-        async def status(self) -> utils_pb2.StatusRes:
+        async def status(self) -> utils_pb2.StringMsg:
             return await self._client.status(
                 ctx=self.mk_context(),
                 request=utils_pb2.Empty(),
