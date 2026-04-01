@@ -43,3 +43,10 @@ jobs:
     - name: cargo build
       run: cargo build
       working-directory: src/rust/lib
+  pyright:
+    name: pyright
+    runs-on: [ubuntu-latest]
+    steps:
+    - uses: actions/checkout@main
+    - uses: astral-sh/setup-uv@v5
+    - run: cd src/py && uv run pyright -p pyproject.toml lib
