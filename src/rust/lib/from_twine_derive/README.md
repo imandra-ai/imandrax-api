@@ -62,3 +62,7 @@ The macro generates code that references `crate::deser::FromTwine` and `crate::d
 To add a `#[from_twine(crate = "...")]` attribute (like serde's `#[serde(crate = "...")]`) that overrides the path, the proc macro would need to parse a custom attribute and substitute the path prefix in the generated code. This is not implemented yet.
 
 For now, tests that use `#[derive(FromTwine)]` on test-local types must live inside the crate as `#[cfg(test)]` modules (see `src/deser.rs`).
+
+## TODO
+
+- [ ] explore potential usage of `twine_data::value`
