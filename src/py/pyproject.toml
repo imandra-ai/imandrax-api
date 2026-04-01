@@ -34,4 +34,5 @@ exclude = ["lib/__init__.py", "bindings/"]
 [dependency-groups]
 dev = [
     "aiohttp>=3.13.2",
+    "pyright>=1.1.408",
 ]
