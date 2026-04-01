@@ -220,7 +220,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
     gen_type_expr ty
   | Cstor (s, args) ->
     (match s, args with
-    | ("int" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] -> "int"
+    | ("int" | "int64" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] -> "int"
     | "string", [] -> "str"
     | "bool", [] -> "bool"
     | "array", [ x ] | "list", [ x ] -> spf "list[%s]" (gen_type_expr x)
@@ -260,7 +260,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
   | Attrs (ty, _) -> of_twine_of_type_expr ty ~off
   | Cstor (s, args) ->
     (match s, args with
-    | ("int" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] ->
+    | ("int" | "int64" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] ->
       spf "d.get_int(off=%s)" off
     | "string", [] -> spf "d.get_str(off=%s)" off
     | "bool", [] -> spf "d.get_bool(off=%s)" off
