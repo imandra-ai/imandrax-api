@@ -1,8 +1,10 @@
+# pyright: reportPrivateUsage=false
 from __future__ import annotations  # https://peps.python.org/pep-0563/
-from dataclasses import dataclass
-import struct
+
 import json
-from typing import Callable, Any
+import struct
+from dataclasses import dataclass
+from typing import Any, Callable, Protocol
 
 offset = int
 
@@ -79,14 +81,18 @@ class Decoder:
                 len, n_bytes = self.__getint64(off=off, low=low)
                 return off + 1 + n_bytes + len
             case 6 | 7 | 8:
-                raise Error(f"cannot skip over array/dict/tag (high={high}) at off=0x{off:x}")
+                raise Error(
+                    f"cannot skip over array/dict/tag (high={high}) at off=0x{off:x}"
+                )
             case 9 | 13 | 14:
                 raise Error(f"tag {high} is reserved")
             case 10:
                 _, n_bytes = self.__getint64(off=off, low=low)
                 return off + 1 + n_bytes
             case 11 | 12:
-                raise Error(f"cannot skip over constructor (high={high}) at off=0x{off:x}")
+                raise Error(
+                    f"cannot skip over constructor (high={high}) at off=0x{off:x}"
+                )
             case 15:
                 _, n_bytes = self.__getint64(off=off, low=low)
                 return off + 1 + n_bytes
@@ -106,8 +112,8 @@ class Decoder:
         elif high == 5:
             # bigint
             bytes = self.get_bytes(off)
-            sign = 1 if bytes == b'' or bytes[0] & 0b1 == 0 else -1
-            absvalue = int.from_bytes(bytes, byteorder='little', signed=False) >> 1
+            sign = 1 if bytes == b"" or bytes[0] & 0b1 == 0 else -1
+            absvalue = int.from_bytes(bytes, byteorder="little", signed=False) >> 1
             return sign * absvalue
         else:
             raise Error(f"expected integer, but high={high} at off=0x{off:x}")
@@ -305,19 +311,24 @@ class Decoder:
         # print(f"offset = 0x{offset:x}")
         return self._deref(off=offset)
 
-def cached(name: str) -> Any:
-    def decorator(f) -> Any:
+
+def cached(name: str) -> Callable[[DecoderFn[Any]], DecoderFn[Any]]:
+    def decorator(f: DecoderFn[Any]) -> DecoderFn[Any]:
         """Decorator for cached functions"""
-        def cached_f(d: Decoder, off: offset):
+
+        def cached_f(d: Decoder, off: offset) -> Any:
             cache = d.caches.setdefault(name, {})
             if off in cache:
                 return cache[off]
             else:
-                value = f(d, off)
+                value = f(d=d, off=off)
                 cache[off] = value
                 return value
+
         return cached_f
+
     return decorator
+
 
 @dataclass(slots=True, frozen=True)
 class Tag[Arg]:
@@ -397,7 +408,11 @@ class DictCursor(Cursor):
         return off_key, off_value
 
 
-def optional[T](d: Decoder, d0: Callable[..., T], off: offset) -> T | None:
+class DecoderFn[T](Protocol):
+    def __call__(self, d: Decoder, off: int) -> T: ...
+
+
+def optional[T](d: Decoder, d0: DecoderFn[T], off: offset) -> T | None:
     match d.shallow_value(off=off):
         case None:
             return None
