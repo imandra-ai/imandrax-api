@@ -112,6 +112,11 @@ dependencies = [
 [[package]]
 name = "twine-data"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06573f7fad542e66ece39eaa14dd26088cbf2712a0a1907c881c4903c343167e"
+dependencies = [
+ "bumpalo",
+]
 
 [[package]]
 name = "unicode-ident"
