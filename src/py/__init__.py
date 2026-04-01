@@ -212,9 +212,7 @@ class Client(_ClientBase):
         timeout = timeout or self._timeout
         return self._client.qcheck_src(
             ctx=self.mk_context(),
-            request=simple_api_pb2.QCheckSrcReq(
-                src=src, session=self._sesh, seed=seed
-            ),
+            request=simple_api_pb2.QCheckSrcReq(src=src, session=self._sesh, seed=seed),
             timeout=timeout,
         )
 
@@ -447,7 +445,7 @@ if _async_available:
             timeout = timeout or self._timeout
             return await self._client.qcheck_src(
                 ctx=self.mk_context(),
-                request=simple_api_pb2.QcheckSrcReq(
+                request=simple_api_pb2.QCheckSrcReq(
                     src=src, session=self._sesh, seed=seed
                 ),
                 timeout=timeout,
@@ -463,7 +461,7 @@ if _async_available:
             timeout = timeout or self._timeout
             return await self._client.qcheck_name(
                 ctx=self.mk_context(),
-                request=simple_api_pb2.QcheckNameReq(
+                request=simple_api_pb2.QCheckNameReq(
                     name=name, session=self._sesh, seed=seed
                 ),
                 timeout=timeout,
