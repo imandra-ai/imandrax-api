@@ -24,7 +24,7 @@ from . import twine
 __all__ = ['twine']
 
 type Error = Error_Error_core
-def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
+def twine_result[T,E](d: twine.Decoder, off: int, d0: twine.DecoderFn[T], d1: twine.DecoderFn[E]) -> T | E:
     match d.get_cstor(off=off):
         case twine.Constructor(idx=0, args=args):
             args = tuple(args)
@@ -38,7 +38,7 @@ def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Calla
 type WithTag6[T] = T
 type WithTag7[T] = T
 
-def decode_with_tag[T](tag: int, d: twine.Decoder, off: int, d0: Callable[...,T]) -> WithTag7[T]:
+def decode_with_tag[T](tag: int, d: twine.Decoder, off: int, d0: twine.DecoderFn[T]) -> WithTag7[T]:
     dec_tag = d.get_tag(off=off)
     if dec_tag.tag != tag:
         raise twine.Error(f'Expected tag {tag}, got tag {dec_tag.tag} at off=0x{off:x}')
@@ -312,13 +312,13 @@ let special_defs =
     ( "Imandrax_api.Uid_set.t",
       {|type Uid_set = set[Uid]
 
-def Uid_set_of_twine(d, off:int) -> Uid_set:
+def Uid_set_of_twine(d: twine.Decoder, off:int) -> Uid_set:
       return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off))|}
     );
     ( "Imandrax_api.Chash.t",
       {|type Chash = bytes
 
-def Chash_of_twine(d, off:int) -> Chash:
+def Chash_of_twine(d: twine.Decoder, off:int) -> Chash:
     return d.get_bytes(off=off)|}
     );
   ]
@@ -344,7 +344,7 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
           spf "%s,"
             (String.concat ","
             @@ List.mapi
-                 (fun i v -> spf "d%d: Callable[...,_V%s]" i v)
+                 (fun i v -> spf "d%d: twine.DecoderFn[_V%s]" i v)
                  def.params)
         and params_decls =
           List.mapi (fun i v -> spf "decode_%s = d%d" v i) def.params
@@ -528,7 +528,7 @@ let gen_artifacts (artifacts : Artifact.t list) : string =
   @@ String.concat "|"
   @@ List.map (fun (a : Artifact.t) -> gen_type_expr a.ty) artifacts;
 
-  bpf buf "artifact_decoders = {\\\n";
+  bpf buf "artifact_decoders: dict[str, twine.DecoderFn[Artifact]] = {\\\n";
   List.iter
     (fun (a : Artifact.t) ->
       bpf buf "  '%s': (lambda d, off: %s),\n" a.tag
