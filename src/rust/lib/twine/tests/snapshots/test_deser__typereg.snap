@@ -1,5 +1,0 @@
----
-source: tests/test_deser.rs
-expression: data.len()
----
-22529

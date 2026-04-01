@@ -23,6 +23,7 @@ pub use deser::FromTwine;
 pub mod utils;
 use utils::*;
 
+use from_twine_derive::FromTwine;
 //use bumpalo::Bump;
 use num_bigint::BigInt;
 use num_rational::BigRational as Rational;
@@ -34,23 +35,8 @@ pub type UidSet<'a> = [Uid<'a>];
 pub type Var_set<'a> = UidSet<'a>;
 
 // def Uid_set_of_twine(d, off:int) -> UidSet:
-//      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off)) 
+//      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off))
 |}
-
-(* TODO:
-   - find which types are immediate, in advance (build a set of them).
-       that includes some the special primitives below (bool, f64, etc.)
-       as well as nullary struct, true enums, etc.
-
-       we must carry around some state with all the immediate types in it, because we
-       need that info even deep in a typeexpr.
-   - a struct/enum gets a 'a lifetime if >= 1 argument/cstor is not immediate
-   - non immediate types in fields/cstors are stored via &'a (which takes care of
-    recursive types)
-
-   - ALSO: expand aliases eagerly, so we don't have to worry about phantom types in aliases.
-   - for structs we might need phantom markers in a few places
-*)
 
 module State = struct
   type t = { immediate_types: Str_set.t } [@@deriving make]
@@ -320,7 +306,7 @@ let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
         let unused_params =
           List.filter (fun v -> not (Str_set.mem v used_vars)) def.params
         in
-        bpf buf "#[derive(Debug, Clone)]\n";
+        bpf buf "#[derive(Debug, Clone, FromTwine)]\n";
         bpf buf "pub struct %s%s {\n" rsname rsparams;
         List.iter
           (fun (field, ty) ->
@@ -353,7 +339,7 @@ let gen_clique (self : State.t) ~oc (clique : TR.Ty_def.clique) : unit =
         (* bpf buf "}\n" *)
       | TR.Ty_def.Alg cstors ->
         (* declare type *)
-        bpf buf "#[derive(Debug, Clone)]\n";
+        bpf buf "#[derive(Debug, Clone, FromTwine)]\n";
         bpf buf "pub enum %s%s {\n" rsname rsparams;
         List.iter
           (fun (c : TR.Ty_def.cstor) ->
@@ -414,6 +400,23 @@ let gen ~out ~artifacts:_ ~types:(cliques : Ty_set.t list) () : unit =
 
   (* aliases are complicated because sometimes they erase type
      variables, which in rust requires a phantom data *)
+  (* Remove alias definitions for types handled via special_types,
+     so they are not expanded away and gen_type_expr can match them. *)
+  let cliques =
+    List.map
+      (fun (set : Ty_set.t) ->
+        {
+          set with
+          clique =
+            List.filter
+              (fun (d : TR.Ty_def.t) ->
+                match d.decl with
+                | Alias _ -> not (Str_map.mem d.name special_types)
+                | _ -> true)
+              set.clique;
+        })
+      cliques
+  in
   let cliques = Expand_aliases.expand_aliases cliques in
 
   fpf oc "%s\n" prelude;

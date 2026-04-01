@@ -6,7 +6,7 @@ use anyhow::Result;
 use bumpalo::Bump;
 use num_bigint::BigInt;
 use num_rational::BigRational as Rational;
-use twine::{types::Offset, Decoder};
+use twine_data::{types::Offset, Decoder};
 
 /// Used for type-erasing aliases
 pub struct Alias<T, Raw> {
@@ -37,9 +37,9 @@ pub enum Void {}
 
 impl<'a> FromTwine<'a> for Void {
     fn read(
-        _d: &twine::Decoder<'a>,
+        _d: &twine_data::Decoder<'a>,
         _bump: &'a bumpalo::Bump,
-        _off: twine::types::Offset,
+        _off: twine_data::types::Offset,
     ) -> anyhow::Result<Self> {
         unreachable!()
     }
@@ -49,7 +49,8 @@ impl<'a> FromTwine<'a> for Void {
 pub struct Chash<'a>(pub &'a [u8]);
 
 impl<'a> FromTwine<'a> for Chash<'a> {
-    fn read(d: &twine::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Chash<'a>> {
+    fn read(d: &twine_data::Decoder<'a>, bump: &'a Bump, off: Offset) -> Result<Chash<'a>> {
+        let off = crate::deser::deref_tag(d, off)?;
         let bs = d.get_bytes(off)?;
         let res = bump.alloc_slice_copy(bs);
         Ok(Chash(res))
@@ -58,6 +59,7 @@ impl<'a> FromTwine<'a> for Chash<'a> {
 
 impl<'a> FromTwine<'a> for BigInt {
     fn read(d: &Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = crate::deser::deref_tag(d, off)?;
         let i = d.get_i64(off)?;
         Ok(BigInt::from(i))
     }
@@ -65,6 +67,7 @@ impl<'a> FromTwine<'a> for BigInt {
 
 impl<'a> FromTwine<'a> for Rational {
     fn read(d: &Decoder<'a>, _bump: &'a Bump, off: Offset) -> Result<Self> {
+        let off = crate::deser::deref_tag(d, off)?;
         let mut offsets = vec![];
         d.get_array(off, &mut offsets)?;
         anyhow::ensure!(offsets.len() == 2, "expected 2-element array for rational");
