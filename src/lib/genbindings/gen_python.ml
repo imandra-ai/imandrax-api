@@ -375,10 +375,10 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
       match def.decl with
       | Alias ty ->
         bpf buf "type %s%s = %s\n\n" pyname pyparams (gen_type_expr ty);
-        bpf buf "%sdef %s%s(d: twine.Decoder, %soff: int) -> %s:\n"
+        bpf buf "%sdef %s%s(d: twine.Decoder, %soff: int) -> %s%s:\n"
           cached_decorator
           (of_twine_of_ty_name def.name)
-          pyparams pytwine_params pyname;
+          pyparams pytwine_params pyname pyparams;
         List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
         bpf buf "    return %s\n" (of_twine_of_type_expr ty ~off:"off")
       | Record r ->
@@ -390,8 +390,8 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
           r.fields;
         bpf buf "\n";
 
-        bpf buf "%sdef %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s:\n"
-          cached_decorator pyname pyparams pytwine_params pyname;
+        bpf buf "%sdef %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s%s:\n"
+          cached_decorator pyname pyparams pytwine_params pyname pyparams;
         if def.unboxed then (
           let field_name, field_ty =
             match r.fields with
@@ -491,8 +491,8 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
           cstors;
         bpf buf "\n\n";
 
-        bpf buf "%sdef %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s:\n"
-          cached_decorator pyname pyparams pytwine_params pyname;
+        bpf buf "%sdef %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s%s:\n"
+          cached_decorator pyname pyparams pytwine_params pyname pyparams;
         bpf buf "    match d.get_cstor(off=off):\n";
         List.iteri
           (fun i (c : TR.Ty_def.cstor) ->
