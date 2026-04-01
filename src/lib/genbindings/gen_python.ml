@@ -50,6 +50,13 @@ def decode_q(d: twine.Decoder, off:int) -> tuple[int,int]:
     num = d.get_int(off=num)
     denum = d.get_int(off=denum)
     return num, denum
+
+def Void_of_twine(d: twine.Decoder, off: int) -> Never:
+    raise twine.Error(f'Cannot decode Void at off=0x{off:x}')
+
+type Eval__Value_Custom_value = Any
+def Eval__Value_Custom_value_of_twine(d: twine.Decoder, off: int) -> Eval__Value_Custom_value:
+    raise twine.Error(f'Cannot decode Eval__Value_Custom_value at off=0x{off:x}')
   |}
 
 let footer =
