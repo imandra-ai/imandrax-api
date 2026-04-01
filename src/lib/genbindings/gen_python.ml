@@ -13,12 +13,13 @@ type tydef = TR.Ty_def.t
 let prelude =
   {|
 # automatically generated using genbindings.ml, do not edit
+# pyright: reportPrivateUsage=false, reportUnusedVariable=false
 
 from __future__ import annotations  # delaying typing: https://peps.python.org/pep-0563/
 from dataclasses import dataclass
 from zipfile import ZipFile
 import json
-from typing import Any, assert_never, Callable, Never
+from typing import Any, assert_never, Callable, Never  # pyright: ignore[reportUnusedImport]
 from . import twine
 
 __all__ = ['twine']
