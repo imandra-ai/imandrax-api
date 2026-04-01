@@ -4,10 +4,10 @@ from . import twine
 
 def test_leb128():
     c = twine.Decoder(b'\x07')
-    assert c._leb128(off=0)[0] == 7
+    assert c._leb128(off=0)[0] == 7  # pyright: ignore[reportPrivateUsage]
 
     c = twine.Decoder(b'\x81\x42')
-    assert c._leb128(off=0)[0] == ((0x42 << 7) + 1)
+    assert c._leb128(off=0)[0] == ((0x42 << 7) + 1)  # pyright: ignore[reportPrivateUsage]
 
 def _get_testdata1() -> twine.Decoder:
     with open('test_data/typereg.twine', 'rb') as f:

@@ -13,18 +13,19 @@ type tydef = TR.Ty_def.t
 let prelude =
   {|
 # automatically generated using genbindings.ml, do not edit
+# pyright: reportPrivateUsage=false, reportUnusedVariable=false
 
 from __future__ import annotations  # delaying typing: https://peps.python.org/pep-0563/
 from dataclasses import dataclass
 from zipfile import ZipFile
 import json
-from typing import Any, assert_never, Callable, Never
+from typing import Any, assert_never, Callable, Never  # pyright: ignore[reportUnusedImport]
 from . import twine
 
 __all__ = ['twine']
 
 type Error = Error_Error_core
-def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Callable[...,E]) -> T | E:
+def twine_result[T,E](d: twine.Decoder, off: int, d0: twine.DecoderFn[T], d1: twine.DecoderFn[E]) -> T | E:
     match d.get_cstor(off=off):
         case twine.Constructor(idx=0, args=args):
             args = tuple(args)
@@ -38,7 +39,7 @@ def twine_result[T,E](d: twine.Decoder, off: int, d0: Callable[...,T], d1: Calla
 type WithTag6[T] = T
 type WithTag7[T] = T
 
-def decode_with_tag[T](tag: int, d: twine.Decoder, off: int, d0: Callable[...,T]) -> WithTag7[T]:
+def decode_with_tag[T](tag: int, d: twine.Decoder, off: int, d0: twine.DecoderFn[T]) -> WithTag7[T]:
     dec_tag = d.get_tag(off=off)
     if dec_tag.tag != tag:
         raise twine.Error(f'Expected tag {tag}, got tag {dec_tag.tag} at off=0x{off:x}')
@@ -49,6 +50,13 @@ def decode_q(d: twine.Decoder, off:int) -> tuple[int,int]:
     num = d.get_int(off=num)
     denum = d.get_int(off=denum)
     return num, denum
+
+def Void_of_twine(d: twine.Decoder, off: int) -> Never:
+    raise twine.Error(f'Cannot decode Void at off=0x{off:x}')
+
+type Eval__Value_Custom_value = Any
+def Eval__Value_Custom_value_of_twine(d: twine.Decoder, off: int) -> Eval__Value_Custom_value:
+    raise twine.Error(f'Cannot decode Eval__Value_Custom_value at off=0x{off:x}')
   |}
 
 let footer =
@@ -212,7 +220,7 @@ let rec gen_type_expr (ty : tyexpr) : string =
     gen_type_expr ty
   | Cstor (s, args) ->
     (match s, args with
-    | ("int" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] -> "int"
+    | ("int" | "int64" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] -> "int"
     | "string", [] -> "str"
     | "bool", [] -> "bool"
     | "array", [ x ] | "list", [ x ] -> spf "list[%s]" (gen_type_expr x)
@@ -252,7 +260,7 @@ let rec of_twine_of_type_expr (ty : tyexpr) ~off : string =
   | Attrs (ty, _) -> of_twine_of_type_expr ty ~off
   | Cstor (s, args) ->
     (match s, args with
-    | ("int" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] ->
+    | ("int" | "int64" | "Util_twine.Z.t" | "Z.t" | "_Z.t"), [] ->
       spf "d.get_int(off=%s)" off
     | "string", [] -> spf "d.get_str(off=%s)" off
     | "bool", [] -> spf "d.get_bool(off=%s)" off
@@ -312,13 +320,13 @@ let special_defs =
     ( "Imandrax_api.Uid_set.t",
       {|type Uid_set = set[Uid]
 
-def Uid_set_of_twine(d, off:int) -> Uid_set:
+def Uid_set_of_twine(d: twine.Decoder, off:int) -> Uid_set:
       return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off))|}
     );
     ( "Imandrax_api.Chash.t",
       {|type Chash = bytes
 
-def Chash_of_twine(d, off:int) -> Chash:
+def Chash_of_twine(d: twine.Decoder, off:int) -> Chash:
     return d.get_bytes(off=off)|}
     );
   ]
@@ -344,7 +352,7 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
           spf "%s,"
             (String.concat ","
             @@ List.mapi
-                 (fun i v -> spf "d%d: Callable[...,_V%s]" i v)
+                 (fun i v -> spf "d%d: twine.DecoderFn[_V%s]" i v)
                  def.params)
         and params_decls =
           List.mapi (fun i v -> spf "decode_%s = d%d" v i) def.params
@@ -367,10 +375,10 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
       match def.decl with
       | Alias ty ->
         bpf buf "type %s%s = %s\n\n" pyname pyparams (gen_type_expr ty);
-        bpf buf "%sdef %s(d: twine.Decoder, %soff: int) -> %s:\n"
+        bpf buf "%sdef %s%s(d: twine.Decoder, %soff: int) -> %s%s:\n"
           cached_decorator
           (of_twine_of_ty_name def.name)
-          pytwine_params pyname;
+          pyparams pytwine_params pyname pyparams;
         List.iter (fun s -> bpf buf "    %s\n" s) params_decls;
         bpf buf "    return %s\n" (of_twine_of_type_expr ty ~off:"off")
       | Record r ->
@@ -382,8 +390,8 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
           r.fields;
         bpf buf "\n";
 
-        bpf buf "%sdef %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s:\n"
-          cached_decorator pyname pyparams pytwine_params pyname;
+        bpf buf "%sdef %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s%s:\n"
+          cached_decorator pyname pyparams pytwine_params pyname pyparams;
         if def.unboxed then (
           let field_name, field_ty =
             match r.fields with
@@ -483,8 +491,8 @@ let gen_clique ~oc (tys : Ty_set.t) : unit =
           cstors;
         bpf buf "\n\n";
 
-        bpf buf "%sdef %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s:\n"
-          cached_decorator pyname pyparams pytwine_params pyname;
+        bpf buf "%sdef %s_of_twine%s(d: twine.Decoder, %soff: int) -> %s%s:\n"
+          cached_decorator pyname pyparams pytwine_params pyname pyparams;
         bpf buf "    match d.get_cstor(off=off):\n";
         List.iteri
           (fun i (c : TR.Ty_def.cstor) ->
@@ -528,7 +536,7 @@ let gen_artifacts (artifacts : Artifact.t list) : string =
   @@ String.concat "|"
   @@ List.map (fun (a : Artifact.t) -> gen_type_expr a.ty) artifacts;
 
-  bpf buf "artifact_decoders = {\\\n";
+  bpf buf "artifact_decoders: dict[str, twine.DecoderFn[Artifact]] = {\\\n";
   List.iter
     (fun (a : Artifact.t) ->
       bpf buf "  '%s': (lambda d, off: %s),\n" a.tag
