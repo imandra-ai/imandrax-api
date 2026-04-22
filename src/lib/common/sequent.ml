@@ -48,11 +48,29 @@ let nth_hypothesis (self : 'term t_poly) i : string option * 'term =
 let nth_conclusion (self : 'term t_poly) i : string option * 'term =
   List.nth self.concls i
 
-let find_term (self : 'term t_poly) (name : string) :
+let find_hypothesis (self : 'term t_poly) (name : string) :
     (string option * 'term) option =
   CCList.find_opt
     (fun (n, _) -> Option.equal String.equal n (Some name))
     self.hyps
+
+let find_conclusion (self : 'term t_poly) (name : string) :
+    (string option * 'term) option =
+  CCList.find_opt
+    (fun (n, _) -> Option.equal String.equal n (Some name))
+    self.concls
+
+let find_term (self : 'term t_poly) (name : string) :
+    (string option * 'term) option =
+  match find_hypothesis self name with
+  | Some x -> Some x
+  | None -> find_conclusion self name
+
+let contains_hypothesis (self : 'term t_poly) (t : 'term) : bool =
+  Option.is_some (CCList.find_opt (fun (_, h) -> h = t) self.hyps)
+
+let contains_conclusion (self : 'term t_poly) (t : 'term) : bool =
+  Option.is_some (CCList.find_opt (fun (_, c) -> c = t) self.concls)
 
 let map (f : string option -> 'term -> string option * 'term)
     (self : 'term t_poly) : 'term t_poly =
