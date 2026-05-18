@@ -24,17 +24,17 @@ func Generate(r *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResponse {
 			return resp
 		}
 
-		twirpFile, err := GenerateTwirpFile(fd)
+		syncFile, asyncFile, err := GenerateTwirpFiles(fd)
 		if err != nil {
 			resp.Error = proto.String("File[" + fileName + "][generate]: " + err.Error())
 			return resp
 		}
-		resp.File = append(resp.File, twirpFile)
+		resp.File = append(resp.File, syncFile, asyncFile)
 	}
 	return resp
 }
 
-func GenerateTwirpFile(fd *descriptor.FileDescriptorProto) (*plugin.CodeGeneratorResponse_File, error) {
+func GenerateTwirpFiles(fd *descriptor.FileDescriptorProto) (*plugin.CodeGeneratorResponse_File, *plugin.CodeGeneratorResponse_File, error) {
 
 	name := fd.GetName()
 
@@ -64,18 +64,27 @@ func GenerateTwirpFile(fd *descriptor.FileDescriptorProto) (*plugin.CodeGenerato
 		vars.Services = append(vars.Services, twirpSvc)
 	}
 
-	var buf = &bytes.Buffer{}
-	err := TwirpTemplate.Execute(buf, vars)
-	if err != nil {
-		return nil, err
+	stem := strings.TrimSuffix(name, path.Ext(name))
+
+	var syncBuf = &bytes.Buffer{}
+	if err := TwirpTemplate.Execute(syncBuf, vars); err != nil {
+		return nil, nil, err
+	}
+	syncResp := &plugin.CodeGeneratorResponse_File{
+		Name:    proto.String(stem + "_twirp.py"),
+		Content: proto.String(syncBuf.String()),
 	}
 
-	resp := &plugin.CodeGeneratorResponse_File{
-		Name:    proto.String(strings.TrimSuffix(name, path.Ext(name)) + "_twirp.py"),
-		Content: proto.String(buf.String()),
+	var asyncBuf = &bytes.Buffer{}
+	if err := TwirpAsyncTemplate.Execute(asyncBuf, vars); err != nil {
+		return nil, nil, err
+	}
+	asyncResp := &plugin.CodeGeneratorResponse_File{
+		Name:    proto.String(stem + "_twirp_async.py"),
+		Content: proto.String(asyncBuf.String()),
 	}
 
-	return resp, nil
+	return syncResp, asyncResp, nil
 }
 
 func getSymbol(name string) string {

@@ -4,6 +4,6 @@
 
 from google.protobuf import symbol_database as _symbol_database
 
-from ..twirp.client import TwirpClient
+from ..twirp.async_client import AsyncTwirpClient
 
 _sym_db = _symbol_database.Default()
