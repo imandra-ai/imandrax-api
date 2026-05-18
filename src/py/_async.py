@@ -1,3 +1,4 @@
+# pyright: basic
 from __future__ import annotations
 
 from typing import Any, Optional
@@ -117,26 +118,32 @@ class AsyncClient:
         assuming: Optional[str] = None,
         basis: Optional[list[str]] = [],
         rule_specs: Optional[list[str]] = [],
-        prune: Optional[bool] = True,
+        prune: bool = True,
         ctx_simp: Optional[bool] = None,
         lift_bool: Optional[simple_api_pb2.LiftBool] = None,
         timeout: Optional[float] = None,
         str: Optional[bool] = True,
     ) -> simple_api_pb2.DecomposeRes:
         timeout = timeout or self._timeout
+        req = simple_api_pb2.DecomposeReq(
+            name=name,
+            assuming=assuming,
+            basis=basis,
+            rule_specs=rule_specs,
+            prune=prune,
+            session=self._sesh,
+        )
+        # If None, keep it as unset
+        if ctx_simp is not None:
+            req.ctx_simp = ctx_simp
+        if lift_bool is not None:
+            req.lift_bool = lift_bool
+        if str is not None:
+            req.str = str
+
         return await self._client.decompose(
             ctx=self.mk_context(),
-            request=simple_api_pb2.DecomposeReq(
-                name=name,
-                assuming=assuming,
-                basis=basis,
-                rule_specs=rule_specs,
-                prune=prune,
-                ctx_simp=ctx_simp,
-                lift_bool=lift_bool,
-                str=str,
-                session=self._sesh,
-            ),
+            request=req,
             timeout=timeout,
         )
 
