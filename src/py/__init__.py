@@ -132,8 +132,8 @@ class Client:
         self,
         name: str,
         assuming: Optional[str] = None,
-        basis: Optional[list[str]] = [],
-        rule_specs: Optional[list[str]] = [],
+        basis: Optional[list[str]] = None,
+        rule_specs: Optional[list[str]] = None,
         prune: bool = True,
         ctx_simp: Optional[bool] = None,
         lift_bool: Optional[simple_api_pb2.LiftBool] = None,
@@ -142,6 +142,11 @@ class Client:
         str: Optional[bool] = True,
     ) -> simple_api_pb2.DecomposeRes:
         timeout = timeout or self._timeout
+        if basis is None:
+            basis = []
+        if rule_specs is None:
+            rule_specs = []
+
         req = simple_api_pb2.DecomposeReq(
             name=name,
             assuming=assuming,
