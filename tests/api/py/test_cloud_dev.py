@@ -50,8 +50,6 @@ def main():
     assert len(art_po_task.art_zip) > 0, "po_task artifact is empty"
     assert len(art_po_res.art_zip) > 0, "po_res artifact is empty"
 
-    del c
-
     print("5. parse artifacts")
     # Extract from zip
     with zipfile.ZipFile(io.BytesIO(art_po_task.art_zip)) as zf:
@@ -63,6 +61,11 @@ def main():
     art_res = xtypes.read_artifact_data(data=art_res_data, kind="po_res")
     assert art_task is not None, "failed to parse po_task"
     assert art_res is not None, "failed to parse po_res"
+
+    print("6. decomp")
+    x4 = c.decompose(name="f", basis=None, ctx_simp=True, prune=False)
+    assert x4.err == imandrax_api.bindings.utils_pb2.Empty()
+    assert x4.errors == []
 
     print("PASSED")
 
