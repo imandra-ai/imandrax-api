@@ -52,7 +52,9 @@ def main():
 
     print("5. test request")
     x1 = c.test_src(src="fun x -> x = 42")
-    assert len(x1.counter_example.model.src) > 0, f"expected a non-empty counter-example"
+    assert (
+        len(x1.counter_example.model.src) > 0
+    ), f"expected a non-empty counter-example"
 
     x2 = c.test_src(src="fun x -> x = 42 || x <> 42")
     assert x2.WhichOneof("res") == "err", f"expected err result"
@@ -71,6 +73,11 @@ def main():
     art_res = xtypes.read_artifact_data(data=art_res_data, kind="po_res")
     assert art_task is not None, "failed to parse po_task"
     assert art_res is not None, "failed to parse po_res"
+
+    print("6. decomp")
+    x4 = c.decompose(name="f", basis=None, ctx_simp=True, prune=False)
+    assert x4.err == imandrax_api.bindings.utils_pb2.Empty()
+    assert x4.errors == []
 
     print("PASSED")
 
