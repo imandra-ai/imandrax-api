@@ -563,15 +563,18 @@ def Sub_anchor_of_twine(d: twine.Decoder, off: int) -> Sub_anchor:
     anchor = d.get_int(off=fields[1])
     return Sub_anchor(fname=fname,anchor=anchor)
 
-# clique Imandrax_api.Stat_time.t (cached: false)
-# def Imandrax_api.Stat_time.t (mangled name: "Stat_time")
+# clique Imandrax_api.Statistics.t (cached: false)
+# def Imandrax_api.Statistics.t (mangled name: "Statistics")
 @dataclass(slots=True, frozen=True)
-class Stat_time:
+class Statistics:
     time_s: float
+    tactic: None | list[tuple[str,str]]
 
-def Stat_time_of_twine(d: twine.Decoder, off: int) -> Stat_time:
-    x = d.get_float(off=off) # single unboxed field
-    return Stat_time(time_s=x)
+def Statistics_of_twine(d: twine.Decoder, off: int) -> Statistics:
+    fields = list(d.get_array(off=off))
+    time_s = d.get_float(off=fields[0])
+    tactic = twine.optional(d=d, off=fields[1], d0=lambda d, off: [(lambda tup: (d.get_str(off=tup[0]),d.get_str(off=tup[1])))(tuple(d.get_array(off=x))) for x in d.get_array(off=off)])
+    return Statistics(time_s=time_s,tactic=tactic)
 
 # clique Imandrax_api.Misc_types.rec_flag (cached: false)
 # def Imandrax_api.Misc_types.rec_flag (mangled name: "Misc_types_rec_flag")
@@ -1056,10 +1059,10 @@ class Common_Verify_kind_K_instance:
     pass
 
 @dataclass(slots=True, frozen=True)
-class Common_Verify_kind_K_quickcheck:
+class Common_Verify_kind_K_test:
     pass
 
-type Common_Verify_kind = Common_Verify_kind_K_verify| Common_Verify_kind_K_instance| Common_Verify_kind_K_quickcheck
+type Common_Verify_kind = Common_Verify_kind_K_verify| Common_Verify_kind_K_instance| Common_Verify_kind_K_test
 
 def Common_Verify_kind_of_twine(d: twine.Decoder, off: int) -> Common_Verify_kind:
     match d.get_cstor(off=off):
@@ -1068,7 +1071,7 @@ def Common_Verify_kind_of_twine(d: twine.Decoder, off: int) -> Common_Verify_kin
          case twine.Constructor(idx=1, args=args):
              return Common_Verify_kind_K_instance()
          case twine.Constructor(idx=2, args=args):
-             return Common_Verify_kind_K_quickcheck()
+             return Common_Verify_kind_K_test()
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Common_Verify_kind, got invalid constructor {idx}')
 
@@ -1388,17 +1391,17 @@ def Common_Tactic_t_poly_Default_thm_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_t
 
 
 @dataclass(slots=True, frozen=True)
-class Common_Tactic_t_poly_Default_quickcheck[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+class Common_Tactic_t_poly_Default_test[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     num_steps: None | int
     seed: None | int
 
 
-def Common_Tactic_t_poly_Default_quickcheck_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: twine.DecoderFn[_V_tyreg_poly_term],d1: twine.DecoderFn[_V_tyreg_poly_ty],_tw_args: tuple[int, ...]) -> Common_Tactic_t_poly_Default_quickcheck[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+def Common_Tactic_t_poly_Default_test_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: twine.DecoderFn[_V_tyreg_poly_term],d1: twine.DecoderFn[_V_tyreg_poly_ty],_tw_args: tuple[int, ...]) -> Common_Tactic_t_poly_Default_test[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     decode__tyreg_poly_term = d0
     decode__tyreg_poly_ty = d1
     num_steps = twine.optional(d=d, off=_tw_args[0], d0=lambda d, off: d.get_int(off=off))
     seed = twine.optional(d=d, off=_tw_args[1], d0=lambda d, off: d.get_int(off=off))
-    return Common_Tactic_t_poly_Default_quickcheck(num_steps=num_steps,seed=seed)
+    return Common_Tactic_t_poly_Default_test(num_steps=num_steps,seed=seed)
 
 
 @dataclass(slots=True, frozen=True)
@@ -1411,7 +1414,7 @@ def Common_Tactic_t_poly_Term_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: t
     arg = (lambda tup: ([Common_Var_t_poly_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off))) for x in d.get_array(off=tup[0])],decode__tyreg_poly_term(d=d,off=tup[1])))(tuple(d.get_array(off=_tw_args[0])))
     return Common_Tactic_t_poly_Term(arg=arg)
 
-type Common_Tactic_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Tactic_t_poly_Default_termination[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Default_thm[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Default_quickcheck[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]
+type Common_Tactic_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Common_Tactic_t_poly_Default_termination[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Default_thm[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Default_test[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Common_Tactic_t_poly_Term[_V_tyreg_poly_term,_V_tyreg_poly_ty]
 
 def Common_Tactic_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: twine.DecoderFn[_V_tyreg_poly_term],d1: twine.DecoderFn[_V_tyreg_poly_ty],off: int) -> Common_Tactic_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     match d.get_cstor(off=off):
@@ -1423,7 +1426,7 @@ def Common_Tactic_t_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
              return Common_Tactic_t_poly_Default_thm_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=2, args=args):
              args = tuple(args)
-             return Common_Tactic_t_poly_Default_quickcheck_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
+             return Common_Tactic_t_poly_Default_test_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=3, args=args):
              args = tuple(args)
              return Common_Tactic_t_poly_Term_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
@@ -3740,13 +3743,6 @@ type Tasks_PO_task_Mir = Tasks_PO_task_t_poly[Mir_Term,Mir_Type]
 def Tasks_PO_task_Mir_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_task_Mir:
     return Tasks_PO_task_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: Mir_Term_of_twine(d=d, off=off)),d1=(lambda d, off: Mir_Type_of_twine(d=d, off=off)))
 
-# clique Imandrax_api_tasks.PO_res.stats (cached: false)
-# def Imandrax_api_tasks.PO_res.stats (mangled name: "Tasks_PO_res_stats")
-type Tasks_PO_res_stats = Stat_time
-
-def Tasks_PO_res_stats_of_twine(d: twine.Decoder, off: int) -> Tasks_PO_res_stats:
-    return Stat_time_of_twine(d=d, off=off)
-
 # clique Imandrax_api_tasks.PO_res.sub_res (cached: false)
 # def Imandrax_api_tasks.PO_res.sub_res (mangled name: "Tasks_PO_res_sub_res")
 @dataclass(slots=True, frozen=True)
@@ -3881,20 +3877,10 @@ def Tasks_PO_res_success_Verified_upto_of_twine[_V_tyreg_poly_term,_V_tyreg_poly
     return Tasks_PO_res_success_Verified_upto(arg=arg)
 
 @dataclass(slots=True, frozen=True)
-class Tasks_PO_res_success_Qcheck_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    num_steps: int
-    seed: int
+class Tasks_PO_res_success_Test_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
+    pass
 
-
-def Tasks_PO_res_success_Qcheck_ok_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: twine.DecoderFn[_V_tyreg_poly_term],d1: twine.DecoderFn[_V_tyreg_poly_ty],_tw_args: tuple[int, ...]) -> Tasks_PO_res_success_Qcheck_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
-    decode__tyreg_poly_term = d0
-    decode__tyreg_poly_ty = d1
-    num_steps = d.get_int(off=_tw_args[0])
-    seed = d.get_int(off=_tw_args[1])
-    return Tasks_PO_res_success_Qcheck_ok(num_steps=num_steps,seed=seed)
-
-
-type Tasks_PO_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Tasks_PO_res_success_Proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Instance[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Verified_upto[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Qcheck_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]
+type Tasks_PO_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty] = Tasks_PO_res_success_Proof[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Instance[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Verified_upto[_V_tyreg_poly_term,_V_tyreg_poly_ty]| Tasks_PO_res_success_Test_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]
 
 def Tasks_PO_res_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: twine.DecoderFn[_V_tyreg_poly_term],d1: twine.DecoderFn[_V_tyreg_poly_ty],off: int) -> Tasks_PO_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     match d.get_cstor(off=off):
@@ -3908,8 +3894,7 @@ def Tasks_PO_res_success_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.
              args = tuple(args)
              return Tasks_PO_res_success_Verified_upto_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
          case twine.Constructor(idx=3, args=args):
-             args = tuple(args)
-             return Tasks_PO_res_success_Qcheck_ok_of_twine(d=d, _tw_args=args, d0=d0,d1=d1,)
+             return Tasks_PO_res_success_Test_ok[_V_tyreg_poly_term,_V_tyreg_poly_ty]()
          case twine.Constructor(idx=idx):
              raise twine.Error(f'expected Tasks_PO_res_success, got invalid constructor {idx}')
 
@@ -3990,7 +3975,7 @@ def Tasks_PO_res_result_of_twine[_V_tyreg_poly_a,_V_tyreg_poly_term,_V_tyreg_pol
 class Tasks_PO_res_shallow_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     from_: Ca_store_Ca_ptr[Common_Proof_obligation_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]]
     res: Tasks_PO_res_result[Tasks_PO_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty],_V_tyreg_poly_term,_V_tyreg_poly_ty]
-    stats: Tasks_PO_res_stats
+    stats: Statistics
     report: In_mem_archive[Report_Report]
     sub_res: list[list[Tasks_PO_res_sub_res[_V_tyreg_poly_term]]]
 
@@ -4000,7 +3985,7 @@ def Tasks_PO_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: t
     fields = list(d.get_array(off=off))
     from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Common_Proof_obligation_t_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     res = Tasks_PO_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_PO_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))),d1=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
-    stats = Tasks_PO_res_stats_of_twine(d=d, off=fields[2])
+    stats = Statistics_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
     sub_res = [[Tasks_PO_res_sub_res_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))) for x in d.get_array(off=x)] for x in d.get_array(off=fields[4])]
     return Tasks_PO_res_shallow_poly(from_=from_,res=res,stats=stats,report=report,sub_res=sub_res)
@@ -4011,7 +3996,7 @@ def Tasks_PO_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: t
 class Tasks_PO_res_full_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     from_: Common_Proof_obligation_t_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]
     res: Tasks_PO_res_result[Tasks_PO_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty],_V_tyreg_poly_term,_V_tyreg_poly_ty]
-    stats: Tasks_PO_res_stats
+    stats: Statistics
     report: In_mem_archive[Report_Report]
     sub_res: list[list[Tasks_PO_res_sub_res[_V_tyreg_poly_term]]]
 
@@ -4021,7 +4006,7 @@ def Tasks_PO_res_full_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twin
     fields = list(d.get_array(off=off))
     from_ = Common_Proof_obligation_t_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     res = Tasks_PO_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_PO_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))),d1=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d2=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
-    stats = Tasks_PO_res_stats_of_twine(d=d, off=fields[2])
+    stats = Statistics_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
     sub_res = [[Tasks_PO_res_sub_res_of_twine(d=d,off=x,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off))) for x in d.get_array(off=x)] for x in d.get_array(off=fields[4])]
     return Tasks_PO_res_full_poly(from_=from_,res=res,stats=stats,report=report,sub_res=sub_res)
@@ -4321,7 +4306,7 @@ def Tasks_Decomp_res_result_of_twine[_V_tyreg_poly_a](d: twine.Decoder, d0: twin
 class Tasks_Decomp_res_shallow_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     from_: Ca_store_Ca_ptr[Tasks_Decomp_task_decomp_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]]
     res: Tasks_Decomp_res_result[Tasks_Decomp_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty]]
-    stats: Stat_time
+    stats: Statistics
     report: In_mem_archive[Report_Report]
 
 def Tasks_Decomp_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: twine.DecoderFn[_V_tyreg_poly_term],d1: twine.DecoderFn[_V_tyreg_poly_ty],off: int) -> Tasks_Decomp_res_shallow_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
@@ -4330,7 +4315,7 @@ def Tasks_Decomp_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](
     fields = list(d.get_array(off=off))
     from_ = Ca_store_Ca_ptr_of_twine(d=d,off=fields[0],d0=(lambda d, off: Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
     res = Tasks_Decomp_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_Decomp_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
-    stats = Stat_time_of_twine(d=d, off=fields[2])
+    stats = Statistics_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
     return Tasks_Decomp_res_shallow_poly(from_=from_,res=res,stats=stats,report=report)
 
@@ -4340,7 +4325,7 @@ def Tasks_Decomp_res_shallow_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](
 class Tasks_Decomp_res_full_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
     from_: Tasks_Decomp_task_decomp_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]
     res: Tasks_Decomp_res_result[Tasks_Decomp_res_success[_V_tyreg_poly_term,_V_tyreg_poly_ty]]
-    stats: Stat_time
+    stats: Statistics
     report: In_mem_archive[Report_Report]
 
 def Tasks_Decomp_res_full_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: twine.Decoder, d0: twine.DecoderFn[_V_tyreg_poly_term],d1: twine.DecoderFn[_V_tyreg_poly_ty],off: int) -> Tasks_Decomp_res_full_poly[_V_tyreg_poly_term,_V_tyreg_poly_ty]:
@@ -4349,7 +4334,7 @@ def Tasks_Decomp_res_full_poly_of_twine[_V_tyreg_poly_term,_V_tyreg_poly_ty](d: 
     fields = list(d.get_array(off=off))
     from_ = Tasks_Decomp_task_decomp_poly_of_twine(d=d,off=fields[0],d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))
     res = Tasks_Decomp_res_result_of_twine(d=d,off=fields[1],d0=(lambda d, off: Tasks_Decomp_res_success_of_twine(d=d,off=off,d0=(lambda d, off: decode__tyreg_poly_term(d=d,off=off)),d1=(lambda d, off: decode__tyreg_poly_ty(d=d,off=off)))))
-    stats = Stat_time_of_twine(d=d, off=fields[2])
+    stats = Statistics_of_twine(d=d, off=fields[2])
     report = In_mem_archive_of_twine(d=d,off=fields[3],d0=(lambda d, off: Report_Report_of_twine(d=d, off=off)))
     return Tasks_Decomp_res_full_poly(from_=from_,res=res,stats=stats,report=report)
 

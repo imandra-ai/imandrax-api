@@ -137,11 +137,7 @@ type verified_upto = {
   mutable msg : string;
 }
 
-type qcheck_ok = {
-  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
-  mutable num_steps : int64;
-  mutable seed : int64;
-}
+type test_ok = unit
 
 type po_res_res =
   | Unknown of Utils.string_msg
@@ -149,7 +145,7 @@ type po_res_res =
   | Proof of proved
   | Instance of counter_sat
   | Verified_upto of verified_upto
-  | Qcheck_ok of qcheck_ok
+  | Test_ok
 
 and po_res = {
   mutable res : po_res_res option;
@@ -183,10 +179,24 @@ type verify_name_req = {
   mutable hints : string;
 }
 
+type test_src_req = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable src : string;
+  mutable seed : int64;
+}
+
 type qcheck_src_req = {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
   mutable session : Session.session option;
   mutable src : string;
+  mutable seed : int64;
+}
+
+type test_name_req = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable name : string;
   mutable seed : int64;
 }
 
@@ -237,12 +247,12 @@ and verify_res = {
   mutable task : Task.task option;
 }
 
-type qcheck_res_res =
+type test_res_res =
   | Err
   | Counter_example of counter_sat
 
-and qcheck_res = {
-  mutable res : qcheck_res_res option;
+and test_res = {
+  mutable res : test_res_res option;
   mutable errors : Error.error list;
   mutable task : Task.task option;
 }
@@ -448,12 +458,7 @@ let default_verified_upto (): verified_upto =
   msg="";
 }
 
-let default_qcheck_ok (): qcheck_ok =
-{
-  _presence=Pbrt.Bitfield.empty;
-  num_steps=0L;
-  seed=0L;
-}
+let default_test_ok : test_ok = ()
 
 let default_po_res_res (): po_res_res = Unknown (Utils.default_string_msg ())
 
@@ -493,11 +498,27 @@ let default_verify_name_req (): verify_name_req =
   hints="";
 }
 
+let default_test_src_req (): test_src_req =
+{
+  _presence=Pbrt.Bitfield.empty;
+  session=None;
+  src="";
+  seed=0L;
+}
+
 let default_qcheck_src_req (): qcheck_src_req =
 {
   _presence=Pbrt.Bitfield.empty;
   session=None;
   src="";
+  seed=0L;
+}
+
+let default_test_name_req (): test_name_req =
+{
+  _presence=Pbrt.Bitfield.empty;
+  session=None;
+  name="";
   seed=0L;
 }
 
@@ -550,9 +571,9 @@ let default_verify_res (): verify_res =
   task=None;
 }
 
-let default_qcheck_res_res (): qcheck_res_res = Err
+let default_test_res_res (): test_res_res = Err
 
-let default_qcheck_res (): qcheck_res =
+let default_test_res (): test_res =
 {
   res=None;
   errors=[];
@@ -1108,30 +1129,6 @@ let make_verified_upto
   | Some v -> verified_upto_set_msg _res v);
   _res
 
-let[@inline] qcheck_ok_has_num_steps (self:qcheck_ok) : bool = (Pbrt.Bitfield.get self._presence 0)
-let[@inline] qcheck_ok_has_seed (self:qcheck_ok) : bool = (Pbrt.Bitfield.get self._presence 1)
-
-let[@inline] qcheck_ok_set_num_steps (self:qcheck_ok) (x:int64) : unit =
-  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.num_steps <- x
-let[@inline] qcheck_ok_set_seed (self:qcheck_ok) (x:int64) : unit =
-  self._presence <- (Pbrt.Bitfield.set self._presence 1); self.seed <- x
-
-let copy_qcheck_ok (self:qcheck_ok) : qcheck_ok =
-  { self with num_steps = self.num_steps }
-
-let make_qcheck_ok 
-  ?(num_steps:int64 option)
-  ?(seed:int64 option)
-  () : qcheck_ok  =
-  let _res = default_qcheck_ok () in
-  (match num_steps with
-  | None -> ()
-  | Some v -> qcheck_ok_set_num_steps _res v);
-  (match seed with
-  | None -> ()
-  | Some v -> qcheck_ok_set_seed _res v);
-  _res
-
 
 let[@inline] po_res_set_res (self:po_res) (x:po_res_res) : unit =
   self.res <- Some x
@@ -1265,6 +1262,36 @@ let make_verify_name_req
   | Some v -> verify_name_req_set_hints _res v);
   _res
 
+let[@inline] test_src_req_has_src (self:test_src_req) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] test_src_req_has_seed (self:test_src_req) : bool = (Pbrt.Bitfield.get self._presence 1)
+
+let[@inline] test_src_req_set_session (self:test_src_req) (x:Session.session) : unit =
+  self.session <- Some x
+let[@inline] test_src_req_set_src (self:test_src_req) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.src <- x
+let[@inline] test_src_req_set_seed (self:test_src_req) (x:int64) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 1); self.seed <- x
+
+let copy_test_src_req (self:test_src_req) : test_src_req =
+  { self with session = self.session }
+
+let make_test_src_req 
+  ?(session:Session.session option)
+  ?(src:string option)
+  ?(seed:int64 option)
+  () : test_src_req  =
+  let _res = default_test_src_req () in
+  (match session with
+  | None -> ()
+  | Some v -> test_src_req_set_session _res v);
+  (match src with
+  | None -> ()
+  | Some v -> test_src_req_set_src _res v);
+  (match seed with
+  | None -> ()
+  | Some v -> test_src_req_set_seed _res v);
+  _res
+
 let[@inline] qcheck_src_req_has_src (self:qcheck_src_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] qcheck_src_req_has_seed (self:qcheck_src_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -1293,6 +1320,36 @@ let make_qcheck_src_req
   (match seed with
   | None -> ()
   | Some v -> qcheck_src_req_set_seed _res v);
+  _res
+
+let[@inline] test_name_req_has_name (self:test_name_req) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] test_name_req_has_seed (self:test_name_req) : bool = (Pbrt.Bitfield.get self._presence 1)
+
+let[@inline] test_name_req_set_session (self:test_name_req) (x:Session.session) : unit =
+  self.session <- Some x
+let[@inline] test_name_req_set_name (self:test_name_req) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.name <- x
+let[@inline] test_name_req_set_seed (self:test_name_req) (x:int64) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 1); self.seed <- x
+
+let copy_test_name_req (self:test_name_req) : test_name_req =
+  { self with session = self.session }
+
+let make_test_name_req 
+  ?(session:Session.session option)
+  ?(name:string option)
+  ?(seed:int64 option)
+  () : test_name_req  =
+  let _res = default_test_name_req () in
+  (match session with
+  | None -> ()
+  | Some v -> test_name_req_set_session _res v);
+  (match name with
+  | None -> ()
+  | Some v -> test_name_req_set_name _res v);
+  (match seed with
+  | None -> ()
+  | Some v -> test_name_req_set_seed _res v);
   _res
 
 let[@inline] qcheck_name_req_has_name (self:qcheck_name_req) : bool = (Pbrt.Bitfield.get self._presence 0)
@@ -1461,29 +1518,29 @@ let make_verify_res
   _res
 
 
-let[@inline] qcheck_res_set_res (self:qcheck_res) (x:qcheck_res_res) : unit =
+let[@inline] test_res_set_res (self:test_res) (x:test_res_res) : unit =
   self.res <- Some x
-let[@inline] qcheck_res_set_errors (self:qcheck_res) (x:Error.error list) : unit =
+let[@inline] test_res_set_errors (self:test_res) (x:Error.error list) : unit =
   self.errors <- x
-let[@inline] qcheck_res_set_task (self:qcheck_res) (x:Task.task) : unit =
+let[@inline] test_res_set_task (self:test_res) (x:Task.task) : unit =
   self.task <- Some x
 
-let copy_qcheck_res (self:qcheck_res) : qcheck_res =
+let copy_test_res (self:test_res) : test_res =
   { self with res = self.res }
 
-let make_qcheck_res 
-  ?(res:qcheck_res_res option)
+let make_test_res 
+  ?(res:test_res_res option)
   ?(errors=[])
   ?(task:Task.task option)
-  () : qcheck_res  =
-  let _res = default_qcheck_res () in
+  () : test_res  =
+  let _res = default_test_res () in
   (match res with
   | None -> ()
-  | Some v -> qcheck_res_set_res _res v);
-  qcheck_res_set_errors _res errors;
+  | Some v -> test_res_set_res _res v);
+  test_res_set_errors _res errors;
   (match task with
   | None -> ()
-  | Some v -> qcheck_res_set_task _res v);
+  | Some v -> test_res_set_task _res v);
   _res
 
 
@@ -1877,10 +1934,9 @@ let rec pp_verified_upto fmt (v:verified_upto) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_qcheck_ok fmt (v:qcheck_ok) = 
+let rec pp_test_ok fmt (v:test_ok) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~absent:(not (qcheck_ok_has_num_steps v)) ~first:true "num_steps" Pbrt.Pp.pp_int64 fmt v.num_steps;
-    Pbrt.Pp.pp_record_field ~absent:(not (qcheck_ok_has_seed v)) ~first:false "seed" Pbrt.Pp.pp_int64 fmt v.seed;
+    Pbrt.Pp.pp_unit fmt ()
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1891,7 +1947,7 @@ let rec pp_po_res_res fmt (v:po_res_res) =
   | Proof x -> Format.fprintf fmt "@[<hv2>Proof(@,%a)@]" pp_proved x
   | Instance x -> Format.fprintf fmt "@[<hv2>Instance(@,%a)@]" pp_counter_sat x
   | Verified_upto x -> Format.fprintf fmt "@[<hv2>Verified_upto(@,%a)@]" pp_verified_upto x
-  | Qcheck_ok x -> Format.fprintf fmt "@[<hv2>Qcheck_ok(@,%a)@]" pp_qcheck_ok x
+  | Test_ok  -> Format.fprintf fmt "Test_ok"
 
 and pp_po_res fmt (v:po_res) = 
   let pp_i fmt () =
@@ -1930,11 +1986,27 @@ let rec pp_verify_name_req fmt (v:verify_name_req) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
+let rec pp_test_src_req fmt (v:test_src_req) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
+    Pbrt.Pp.pp_record_field ~absent:(not (test_src_req_has_src v)) ~first:false "src" Pbrt.Pp.pp_string fmt v.src;
+    Pbrt.Pp.pp_record_field ~absent:(not (test_src_req_has_seed v)) ~first:false "seed" Pbrt.Pp.pp_int64 fmt v.seed;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
 let rec pp_qcheck_src_req fmt (v:qcheck_src_req) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~absent:(not (qcheck_src_req_has_src v)) ~first:false "src" Pbrt.Pp.pp_string fmt v.src;
     Pbrt.Pp.pp_record_field ~absent:(not (qcheck_src_req_has_seed v)) ~first:false "seed" Pbrt.Pp.pp_int64 fmt v.seed;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_test_name_req fmt (v:test_name_req) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
+    Pbrt.Pp.pp_record_field ~absent:(not (test_name_req_has_name v)) ~first:false "name" Pbrt.Pp.pp_string fmt v.name;
+    Pbrt.Pp.pp_record_field ~absent:(not (test_name_req_has_seed v)) ~first:false "seed" Pbrt.Pp.pp_int64 fmt v.seed;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -1996,14 +2068,14 @@ and pp_verify_res fmt (v:verify_res) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_qcheck_res_res fmt (v:qcheck_res_res) =
+let rec pp_test_res_res fmt (v:test_res_res) =
   match v with
   | Err  -> Format.fprintf fmt "Err"
   | Counter_example x -> Format.fprintf fmt "@[<hv2>Counter_example(@,%a)@]" pp_counter_sat x
 
-and pp_qcheck_res fmt (v:qcheck_res) = 
+and pp_test_res fmt (v:test_res) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "res" (Pbrt.Pp.pp_option pp_qcheck_res_res) fmt v.res;
+    Pbrt.Pp.pp_record_field ~first:true "res" (Pbrt.Pp.pp_option pp_test_res_res) fmt v.res;
     Pbrt.Pp.pp_record_field ~first:false "errors" (Pbrt.Pp.pp_list Error.pp_error) fmt v.errors;
     Pbrt.Pp.pp_record_field ~first:false "task" (Pbrt.Pp.pp_option Task.pp_task) fmt v.task;
   in
@@ -2419,16 +2491,8 @@ let rec encode_pb_verified_upto (v:verified_upto) encoder =
   );
   ()
 
-let rec encode_pb_qcheck_ok (v:qcheck_ok) encoder = 
-  if qcheck_ok_has_num_steps v then (
-    Pbrt.Encoder.int64_as_varint v.num_steps encoder;
-    Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
-  );
-  if qcheck_ok_has_seed v then (
-    Pbrt.Encoder.int64_as_varint v.seed encoder;
-    Pbrt.Encoder.key 2 Pbrt.Varint encoder; 
-  );
-  ()
+let rec encode_pb_test_ok (v:test_ok) encoder = 
+()
 
 let rec encode_pb_po_res_res (v:po_res_res) encoder = 
   begin match v with
@@ -2447,9 +2511,9 @@ let rec encode_pb_po_res_res (v:po_res_res) encoder =
   | Verified_upto x ->
     Pbrt.Encoder.nested encode_pb_verified_upto x encoder;
     Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
-  | Qcheck_ok x ->
-    Pbrt.Encoder.nested encode_pb_qcheck_ok x encoder;
+  | Test_ok ->
     Pbrt.Encoder.key 6 Pbrt.Bytes encoder; 
+    Pbrt.Encoder.empty_nested encoder
   end
 
 and encode_pb_po_res (v:po_res) encoder = 
@@ -2470,8 +2534,8 @@ and encode_pb_po_res (v:po_res) encoder =
   | Some (Verified_upto x) ->
     Pbrt.Encoder.nested encode_pb_verified_upto x encoder;
     Pbrt.Encoder.key 5 Pbrt.Bytes encoder; 
-  | Some (Qcheck_ok x) ->
-    Pbrt.Encoder.nested encode_pb_qcheck_ok x encoder;
+  | Some Test_ok ->
+    Pbrt.Encoder.empty_nested encoder;
     Pbrt.Encoder.key 6 Pbrt.Bytes encoder; 
   end;
   Pbrt.List_util.rev_iter_with (fun x encoder ->
@@ -2557,6 +2621,23 @@ let rec encode_pb_verify_name_req (v:verify_name_req) encoder =
   );
   ()
 
+let rec encode_pb_test_src_req (v:test_src_req) encoder = 
+  begin match v.session with
+  | Some x -> 
+    Pbrt.Encoder.nested Session.encode_pb_session x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  if test_src_req_has_src v then (
+    Pbrt.Encoder.string v.src encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  );
+  if test_src_req_has_seed v then (
+    Pbrt.Encoder.int64_as_varint v.seed encoder;
+    Pbrt.Encoder.key 3 Pbrt.Varint encoder; 
+  );
+  ()
+
 let rec encode_pb_qcheck_src_req (v:qcheck_src_req) encoder = 
   begin match v.session with
   | Some x -> 
@@ -2569,6 +2650,23 @@ let rec encode_pb_qcheck_src_req (v:qcheck_src_req) encoder =
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   );
   if qcheck_src_req_has_seed v then (
+    Pbrt.Encoder.int64_as_varint v.seed encoder;
+    Pbrt.Encoder.key 3 Pbrt.Varint encoder; 
+  );
+  ()
+
+let rec encode_pb_test_name_req (v:test_name_req) encoder = 
+  begin match v.session with
+  | Some x -> 
+    Pbrt.Encoder.nested Session.encode_pb_session x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  if test_name_req_has_name v then (
+    Pbrt.Encoder.string v.name encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  );
+  if test_name_req_has_seed v then (
     Pbrt.Encoder.int64_as_varint v.seed encoder;
     Pbrt.Encoder.key 3 Pbrt.Varint encoder; 
   );
@@ -2700,7 +2798,7 @@ and encode_pb_verify_res (v:verify_res) encoder =
   end;
   ()
 
-let rec encode_pb_qcheck_res_res (v:qcheck_res_res) encoder = 
+let rec encode_pb_test_res_res (v:test_res_res) encoder = 
   begin match v with
   | Err ->
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
@@ -2710,7 +2808,7 @@ let rec encode_pb_qcheck_res_res (v:qcheck_res_res) encoder =
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   end
 
-and encode_pb_qcheck_res (v:qcheck_res) encoder = 
+and encode_pb_test_res (v:test_res) encoder = 
   begin match v.res with
   | None -> ()
   | Some Err ->
@@ -3401,26 +3499,11 @@ let rec decode_pb_verified_upto d =
   done;
   (v : verified_upto)
 
-let rec decode_pb_qcheck_ok d =
-  let v = default_qcheck_ok () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (1, Pbrt.Varint) -> begin
-      qcheck_ok_set_num_steps v (Pbrt.Decoder.int64_as_varint d);
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload_message "qcheck_ok" 1 pk
-    | Some (2, Pbrt.Varint) -> begin
-      qcheck_ok_set_seed v (Pbrt.Decoder.int64_as_varint d);
-    end
-    | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload_message "qcheck_ok" 2 pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  (v : qcheck_ok)
+let rec decode_pb_test_ok d =
+  match Pbrt.Decoder.key d with
+  | None -> ();
+  | Some (_, pk) -> 
+    Pbrt.Decoder.unexpected_payload "Unexpected fields in empty message(test_ok)" pk
 
 let rec decode_pb_po_res_res d = 
   let rec loop () = 
@@ -3434,7 +3517,10 @@ let rec decode_pb_po_res_res d =
       | Some (3, _) -> (Proof (decode_pb_proved (Pbrt.Decoder.nested d)) : po_res_res) 
       | Some (4, _) -> (Instance (decode_pb_counter_sat (Pbrt.Decoder.nested d)) : po_res_res) 
       | Some (5, _) -> (Verified_upto (decode_pb_verified_upto (Pbrt.Decoder.nested d)) : po_res_res) 
-      | Some (6, _) -> (Qcheck_ok (decode_pb_qcheck_ok (Pbrt.Decoder.nested d)) : po_res_res) 
+      | Some (6, _) -> begin 
+        Pbrt.Decoder.empty_nested d ;
+        (Test_ok : po_res_res)
+      end
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -3480,7 +3566,8 @@ and decode_pb_po_res d =
     | Some (5, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "po_res" 5 pk
     | Some (6, Pbrt.Bytes) -> begin
-      po_res_set_res v (Qcheck_ok (decode_pb_qcheck_ok (Pbrt.Decoder.nested d)));
+      Pbrt.Decoder.empty_nested d;
+      po_res_set_res v Test_ok;
     end
     | Some (6, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "po_res" 6 pk
@@ -3608,6 +3695,32 @@ let rec decode_pb_verify_name_req d =
   done;
   (v : verify_name_req)
 
+let rec decode_pb_test_src_req d =
+  let v = default_test_src_req () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      test_src_req_set_session v (Session.decode_pb_session (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "test_src_req" 1 pk
+    | Some (2, Pbrt.Bytes) -> begin
+      test_src_req_set_src v (Pbrt.Decoder.string d);
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "test_src_req" 2 pk
+    | Some (3, Pbrt.Varint) -> begin
+      test_src_req_set_seed v (Pbrt.Decoder.int64_as_varint d);
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "test_src_req" 3 pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  (v : test_src_req)
+
 let rec decode_pb_qcheck_src_req d =
   let v = default_qcheck_src_req () in
   let continue__= ref true in
@@ -3633,6 +3746,32 @@ let rec decode_pb_qcheck_src_req d =
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   (v : qcheck_src_req)
+
+let rec decode_pb_test_name_req d =
+  let v = default_test_name_req () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      test_name_req_set_session v (Session.decode_pb_session (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "test_name_req" 1 pk
+    | Some (2, Pbrt.Bytes) -> begin
+      test_name_req_set_name v (Pbrt.Decoder.string d);
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "test_name_req" 2 pk
+    | Some (3, Pbrt.Varint) -> begin
+      test_name_req_set_seed v (Pbrt.Decoder.int64_as_varint d);
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "test_name_req" 3 pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  (v : test_name_req)
 
 let rec decode_pb_qcheck_name_req d =
   let v = default_qcheck_name_req () in
@@ -3830,15 +3969,15 @@ and decode_pb_verify_res d =
   done;
   (v : verify_res)
 
-let rec decode_pb_qcheck_res_res d = 
+let rec decode_pb_test_res_res d = 
   let rec loop () = 
-    let ret:qcheck_res_res = match Pbrt.Decoder.key d with
-      | None -> Pbrt.Decoder.malformed_variant "qcheck_res_res"
+    let ret:test_res_res = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "test_res_res"
       | Some (1, _) -> begin 
         Pbrt.Decoder.empty_nested d ;
-        (Err : qcheck_res_res)
+        (Err : test_res_res)
       end
-      | Some (2, _) -> (Counter_example (decode_pb_counter_sat (Pbrt.Decoder.nested d)) : qcheck_res_res) 
+      | Some (2, _) -> (Counter_example (decode_pb_counter_sat (Pbrt.Decoder.nested d)) : test_res_res) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -3848,39 +3987,39 @@ let rec decode_pb_qcheck_res_res d =
   in
   loop ()
 
-and decode_pb_qcheck_res d =
-  let v = default_qcheck_res () in
+and decode_pb_test_res d =
+  let v = default_test_res () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
       (* put lists in the correct order *)
-      qcheck_res_set_errors v (List.rev v.errors);
+      test_res_set_errors v (List.rev v.errors);
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
       Pbrt.Decoder.empty_nested d;
-      qcheck_res_set_res v Err;
+      test_res_set_res v Err;
     end
     | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload_message "qcheck_res" 1 pk
+      Pbrt.Decoder.unexpected_payload_message "test_res" 1 pk
     | Some (2, Pbrt.Bytes) -> begin
-      qcheck_res_set_res v (Counter_example (decode_pb_counter_sat (Pbrt.Decoder.nested d)));
+      test_res_set_res v (Counter_example (decode_pb_counter_sat (Pbrt.Decoder.nested d)));
     end
     | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload_message "qcheck_res" 2 pk
+      Pbrt.Decoder.unexpected_payload_message "test_res" 2 pk
     | Some (10, Pbrt.Bytes) -> begin
-      qcheck_res_set_errors v ((Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors);
+      test_res_set_errors v ((Error.decode_pb_error (Pbrt.Decoder.nested d)) :: v.errors);
     end
     | Some (10, pk) -> 
-      Pbrt.Decoder.unexpected_payload_message "qcheck_res" 10 pk
+      Pbrt.Decoder.unexpected_payload_message "test_res" 10 pk
     | Some (11, Pbrt.Bytes) -> begin
-      qcheck_res_set_task v (Task.decode_pb_task (Pbrt.Decoder.nested d));
+      test_res_set_task v (Task.decode_pb_task (Pbrt.Decoder.nested d));
     end
     | Some (11, pk) -> 
-      Pbrt.Decoder.unexpected_payload_message "qcheck_res" 11 pk
+      Pbrt.Decoder.unexpected_payload_message "test_res" 11 pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
-  (v : qcheck_res)
+  (v : test_res)
 
 let rec decode_pb_instance_res_res d = 
   let rec loop () = 
@@ -4404,15 +4543,8 @@ let rec encode_json_verified_upto (v:verified_upto) =
   );
   `Assoc !assoc
 
-let rec encode_json_qcheck_ok (v:qcheck_ok) = 
-  let assoc = ref [] in
-  if qcheck_ok_has_num_steps v then (
-    assoc := ("numSteps", Pbrt_yojson.make_string (Int64.to_string v.num_steps)) :: !assoc;
-  );
-  if qcheck_ok_has_seed v then (
-    assoc := ("seed", Pbrt_yojson.make_string (Int64.to_string v.seed)) :: !assoc;
-  );
-  `Assoc !assoc
+let rec encode_json_test_ok (v:test_ok) = 
+Pbrt_yojson.make_unit v
 
 let rec encode_json_po_res_res (v:po_res_res) = 
   begin match v with
@@ -4421,7 +4553,7 @@ let rec encode_json_po_res_res (v:po_res_res) =
   | Proof v -> `Assoc [("proof", encode_json_proved v)]
   | Instance v -> `Assoc [("instance", encode_json_counter_sat v)]
   | Verified_upto v -> `Assoc [("verifiedUpto", encode_json_verified_upto v)]
-  | Qcheck_ok v -> `Assoc [("qcheckOk", encode_json_qcheck_ok v)]
+  | Test_ok -> `Assoc [("testOk", `Null)]
   end
 
 and encode_json_po_res (v:po_res) = 
@@ -4433,7 +4565,7 @@ and encode_json_po_res (v:po_res) =
       | Some (Proof v) -> ("proof", encode_json_proved v) :: !assoc
       | Some (Instance v) -> ("instance", encode_json_counter_sat v) :: !assoc
       | Some (Verified_upto v) -> ("verifiedUpto", encode_json_verified_upto v) :: !assoc
-      | Some (Qcheck_ok v) -> ("qcheckOk", encode_json_qcheck_ok v) :: !assoc
+      | Some Test_ok -> ("testOk", `Null) :: !assoc
   ); (* match v.res *)
   assoc := (
     let l = v.errors |> List.map Error.encode_json_error in
@@ -4504,6 +4636,19 @@ let rec encode_json_verify_name_req (v:verify_name_req) =
   );
   `Assoc !assoc
 
+let rec encode_json_test_src_req (v:test_src_req) = 
+  let assoc = ref [] in
+  assoc := (match v.session with
+    | None -> !assoc
+    | Some v -> ("session", Session.encode_json_session v) :: !assoc);
+  if test_src_req_has_src v then (
+    assoc := ("src", Pbrt_yojson.make_string v.src) :: !assoc;
+  );
+  if test_src_req_has_seed v then (
+    assoc := ("seed", Pbrt_yojson.make_string (Int64.to_string v.seed)) :: !assoc;
+  );
+  `Assoc !assoc
+
 let rec encode_json_qcheck_src_req (v:qcheck_src_req) = 
   let assoc = ref [] in
   assoc := (match v.session with
@@ -4513,6 +4658,19 @@ let rec encode_json_qcheck_src_req (v:qcheck_src_req) =
     assoc := ("src", Pbrt_yojson.make_string v.src) :: !assoc;
   );
   if qcheck_src_req_has_seed v then (
+    assoc := ("seed", Pbrt_yojson.make_string (Int64.to_string v.seed)) :: !assoc;
+  );
+  `Assoc !assoc
+
+let rec encode_json_test_name_req (v:test_name_req) = 
+  let assoc = ref [] in
+  assoc := (match v.session with
+    | None -> !assoc
+    | Some v -> ("session", Session.encode_json_session v) :: !assoc);
+  if test_name_req_has_name v then (
+    assoc := ("name", Pbrt_yojson.make_string v.name) :: !assoc;
+  );
+  if test_name_req_has_seed v then (
     assoc := ("seed", Pbrt_yojson.make_string (Int64.to_string v.seed)) :: !assoc;
   );
   `Assoc !assoc
@@ -4605,13 +4763,13 @@ and encode_json_verify_res (v:verify_res) =
     | Some v -> ("task", Task.encode_json_task v) :: !assoc);
   `Assoc !assoc
 
-let rec encode_json_qcheck_res_res (v:qcheck_res_res) = 
+let rec encode_json_test_res_res (v:test_res_res) = 
   begin match v with
   | Err -> `Assoc [("err", `Null)]
   | Counter_example v -> `Assoc [("counterExample", encode_json_counter_sat v)]
   end
 
-and encode_json_qcheck_res (v:qcheck_res) = 
+and encode_json_test_res (v:test_res) = 
   let assoc = ref [] in
   assoc := (match v.res with
       | None -> !assoc
@@ -5224,25 +5382,8 @@ let rec decode_json_verified_upto d =
     msg = v.msg;
   } : verified_upto)
 
-let rec decode_json_qcheck_ok d =
-  let v = default_qcheck_ok () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("numSteps", json_value) -> 
-      qcheck_ok_set_num_steps v (Pbrt_yojson.int64 json_value "qcheck_ok" "num_steps")
-    | ("seed", json_value) -> 
-      qcheck_ok_set_seed v (Pbrt_yojson.int64 json_value "qcheck_ok" "seed")
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    _presence = v._presence;
-    num_steps = v.num_steps;
-    seed = v.seed;
-  } : qcheck_ok)
+let rec decode_json_test_ok d =
+Pbrt_yojson.unit d "test_ok" "empty record"
 
 let rec decode_json_po_res_res json =
   let assoc = match json with
@@ -5260,8 +5401,7 @@ let rec decode_json_po_res_res json =
       (Instance ((decode_json_counter_sat json_value)) : po_res_res)
     | ("verifiedUpto", json_value)::_ -> 
       (Verified_upto ((decode_json_verified_upto json_value)) : po_res_res)
-    | ("qcheckOk", json_value)::_ -> 
-      (Qcheck_ok ((decode_json_qcheck_ok json_value)) : po_res_res)
+    | ("testOk", _)::_-> (Test_ok : po_res_res)
     
     | _ :: tl -> loop tl
   in
@@ -5283,8 +5423,7 @@ and decode_json_po_res d =
       po_res_set_res v (Instance ((decode_json_counter_sat json_value)))
     | ("verifiedUpto", json_value) -> 
       po_res_set_res v (Verified_upto ((decode_json_verified_upto json_value)))
-    | ("qcheckOk", json_value) -> 
-      po_res_set_res v (Qcheck_ok ((decode_json_qcheck_ok json_value)))
+    | ("testOk", _) -> po_res_set_res v Test_ok
     | ("errors", `List l) -> begin
       po_res_set_errors v @@ List.map (function
         | json_value -> (Error.decode_json_error json_value)
@@ -5403,6 +5542,29 @@ let rec decode_json_verify_name_req d =
     hints = v.hints;
   } : verify_name_req)
 
+let rec decode_json_test_src_req d =
+  let v = default_test_src_req () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("session", json_value) -> 
+      test_src_req_set_session v (Session.decode_json_session json_value)
+    | ("src", json_value) -> 
+      test_src_req_set_src v (Pbrt_yojson.string json_value "test_src_req" "src")
+    | ("seed", json_value) -> 
+      test_src_req_set_seed v (Pbrt_yojson.int64 json_value "test_src_req" "seed")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    _presence = v._presence;
+    session = v.session;
+    src = v.src;
+    seed = v.seed;
+  } : test_src_req)
+
 let rec decode_json_qcheck_src_req d =
   let v = default_qcheck_src_req () in
   let assoc = match d with
@@ -5425,6 +5587,29 @@ let rec decode_json_qcheck_src_req d =
     src = v.src;
     seed = v.seed;
   } : qcheck_src_req)
+
+let rec decode_json_test_name_req d =
+  let v = default_test_name_req () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("session", json_value) -> 
+      test_name_req_set_session v (Session.decode_json_session json_value)
+    | ("name", json_value) -> 
+      test_name_req_set_name v (Pbrt_yojson.string json_value "test_name_req" "name")
+    | ("seed", json_value) -> 
+      test_name_req_set_seed v (Pbrt_yojson.int64 json_value "test_name_req" "seed")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    _presence = v._presence;
+    session = v.session;
+    name = v.name;
+    seed = v.seed;
+  } : test_name_req)
 
 let rec decode_json_qcheck_name_req d =
   let v = default_qcheck_name_req () in
@@ -5597,38 +5782,38 @@ and decode_json_verify_res d =
     task = v.task;
   } : verify_res)
 
-let rec decode_json_qcheck_res_res json =
+let rec decode_json_test_res_res json =
   let assoc = match json with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
   in
   let rec loop = function
-    | [] -> Pbrt_yojson.E.malformed_variant "qcheck_res_res"
-    | ("err", _)::_-> (Err : qcheck_res_res)
+    | [] -> Pbrt_yojson.E.malformed_variant "test_res_res"
+    | ("err", _)::_-> (Err : test_res_res)
     | ("counterExample", json_value)::_ -> 
-      (Counter_example ((decode_json_counter_sat json_value)) : qcheck_res_res)
+      (Counter_example ((decode_json_counter_sat json_value)) : test_res_res)
     
     | _ :: tl -> loop tl
   in
   loop assoc
 
-and decode_json_qcheck_res d =
-  let v = default_qcheck_res () in
+and decode_json_test_res d =
+  let v = default_test_res () in
   let assoc = match d with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
   in
   List.iter (function 
-    | ("err", _) -> qcheck_res_set_res v Err
+    | ("err", _) -> test_res_set_res v Err
     | ("counterExample", json_value) -> 
-      qcheck_res_set_res v (Counter_example ((decode_json_counter_sat json_value)))
+      test_res_set_res v (Counter_example ((decode_json_counter_sat json_value)))
     | ("errors", `List l) -> begin
-      qcheck_res_set_errors v @@ List.map (function
+      test_res_set_errors v @@ List.map (function
         | json_value -> (Error.decode_json_error json_value)
       ) l;
     end
     | ("task", json_value) -> 
-      qcheck_res_set_task v (Task.decode_json_task json_value)
+      test_res_set_task v (Task.decode_json_task json_value)
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -5636,7 +5821,7 @@ and decode_json_qcheck_res d =
     res = v.res;
     errors = v.errors;
     task = v.task;
-  } : qcheck_res)
+  } : test_res)
 
 let rec decode_json_instance_res_res json =
   let assoc = match json with
@@ -5974,7 +6159,33 @@ module Simple = struct
         () : (verify_name_req, unary, verify_res, unary) Client.rpc)
     open Pbrt_services
     
-    let qcheck_src : (qcheck_src_req, unary, qcheck_res, unary) Client.rpc =
+    let test_src : (test_src_req, unary, test_res, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"simple"]
+        ~service_name:"Simple" ~rpc_name:"test_src"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_test_src_req
+        ~encode_pb_req:encode_pb_test_src_req
+        ~decode_json_res:decode_json_test_res
+        ~decode_pb_res:decode_pb_test_res
+        () : (test_src_req, unary, test_res, unary) Client.rpc)
+    open Pbrt_services
+    
+    let test_name : (test_name_req, unary, test_res, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"simple"]
+        ~service_name:"Simple" ~rpc_name:"test_name"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_test_name_req
+        ~encode_pb_req:encode_pb_test_name_req
+        ~decode_json_res:decode_json_test_res
+        ~decode_pb_res:decode_pb_test_res
+        () : (test_name_req, unary, test_res, unary) Client.rpc)
+    open Pbrt_services
+    
+    let qcheck_src : (qcheck_src_req, unary, test_res, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"qcheck_src"
@@ -5982,12 +6193,12 @@ module Simple = struct
         ~res_mode:Client.Unary
         ~encode_json_req:encode_json_qcheck_src_req
         ~encode_pb_req:encode_pb_qcheck_src_req
-        ~decode_json_res:decode_json_qcheck_res
-        ~decode_pb_res:decode_pb_qcheck_res
-        () : (qcheck_src_req, unary, qcheck_res, unary) Client.rpc)
+        ~decode_json_res:decode_json_test_res
+        ~decode_pb_res:decode_pb_test_res
+        () : (qcheck_src_req, unary, test_res, unary) Client.rpc)
     open Pbrt_services
     
-    let qcheck_name : (qcheck_name_req, unary, qcheck_res, unary) Client.rpc =
+    let qcheck_name : (qcheck_name_req, unary, test_res, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"simple"]
         ~service_name:"Simple" ~rpc_name:"qcheck_name"
@@ -5995,9 +6206,9 @@ module Simple = struct
         ~res_mode:Client.Unary
         ~encode_json_req:encode_json_qcheck_name_req
         ~encode_pb_req:encode_pb_qcheck_name_req
-        ~decode_json_res:decode_json_qcheck_res
-        ~decode_pb_res:decode_pb_qcheck_res
-        () : (qcheck_name_req, unary, qcheck_res, unary) Client.rpc)
+        ~decode_json_res:decode_json_test_res
+        ~decode_pb_res:decode_pb_test_res
+        () : (qcheck_name_req, unary, test_res, unary) Client.rpc)
     open Pbrt_services
     
     let instance_src : (instance_src_req, unary, instance_res, unary) Client.rpc =
@@ -6164,22 +6375,42 @@ module Simple = struct
         ~decode_pb_req:decode_pb_verify_name_req
         () : _ Server.rpc)
     
-    let qcheck_src : (qcheck_src_req,unary,qcheck_res,unary) Server.rpc = 
+    let test_src : (test_src_req,unary,test_res,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"test_src"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_test_res
+        ~encode_pb_res:encode_pb_test_res
+        ~decode_json_req:decode_json_test_src_req
+        ~decode_pb_req:decode_pb_test_src_req
+        () : _ Server.rpc)
+    
+    let test_name : (test_name_req,unary,test_res,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"test_name"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_test_res
+        ~encode_pb_res:encode_pb_test_res
+        ~decode_json_req:decode_json_test_name_req
+        ~decode_pb_req:decode_pb_test_name_req
+        () : _ Server.rpc)
+    
+    let qcheck_src : (qcheck_src_req,unary,test_res,unary) Server.rpc = 
       (Server.mk_rpc ~name:"qcheck_src"
         ~req_mode:Server.Unary
         ~res_mode:Server.Unary
-        ~encode_json_res:encode_json_qcheck_res
-        ~encode_pb_res:encode_pb_qcheck_res
+        ~encode_json_res:encode_json_test_res
+        ~encode_pb_res:encode_pb_test_res
         ~decode_json_req:decode_json_qcheck_src_req
         ~decode_pb_req:decode_pb_qcheck_src_req
         () : _ Server.rpc)
     
-    let qcheck_name : (qcheck_name_req,unary,qcheck_res,unary) Server.rpc = 
+    let qcheck_name : (qcheck_name_req,unary,test_res,unary) Server.rpc = 
       (Server.mk_rpc ~name:"qcheck_name"
         ~req_mode:Server.Unary
         ~res_mode:Server.Unary
-        ~encode_json_res:encode_json_qcheck_res
-        ~encode_pb_res:encode_pb_qcheck_res
+        ~encode_json_res:encode_json_test_res
+        ~encode_pb_res:encode_pb_test_res
         ~decode_json_req:decode_json_qcheck_name_req
         ~decode_pb_req:decode_pb_qcheck_name_req
         () : _ Server.rpc)
@@ -6262,6 +6493,8 @@ module Simple = struct
       ~eval_src:__handler__eval_src
       ~verify_src:__handler__verify_src
       ~verify_name:__handler__verify_name
+      ~test_src:__handler__test_src
+      ~test_name:__handler__test_name
       ~qcheck_src:__handler__qcheck_src
       ~qcheck_name:__handler__qcheck_name
       ~instance_src:__handler__instance_src
@@ -6283,6 +6516,8 @@ module Simple = struct
            (__handler__eval_src eval_src);
            (__handler__verify_src verify_src);
            (__handler__verify_name verify_name);
+           (__handler__test_src test_src);
+           (__handler__test_name test_name);
            (__handler__qcheck_src qcheck_src);
            (__handler__qcheck_name qcheck_name);
            (__handler__instance_src instance_src);
