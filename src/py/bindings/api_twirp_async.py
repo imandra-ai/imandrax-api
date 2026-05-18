@@ -4,15 +4,15 @@
 
 from google.protobuf import symbol_database as _symbol_database
 
-from ..twirp.client import TwirpClient
+from ..twirp.async_client import AsyncTwirpClient
 
 _sym_db = _symbol_database.Default()
 
 
-class EvalClient(TwirpClient):
+class AsyncEvalClient(AsyncTwirpClient):
 
-	def eval_code_snippet(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def eval_code_snippet(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.api.Eval/eval_code_snippet",
 			ctx=ctx,
 			request=request,
@@ -20,8 +20,8 @@ class EvalClient(TwirpClient):
 			**kwargs,
 		)
 
-	def parse_term(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def parse_term(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.api.Eval/parse_term",
 			ctx=ctx,
 			request=request,
@@ -29,8 +29,8 @@ class EvalClient(TwirpClient):
 			**kwargs,
 		)
 
-	def parse_type(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def parse_type(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.api.Eval/parse_type",
 			ctx=ctx,
 			request=request,
@@ -38,8 +38,8 @@ class EvalClient(TwirpClient):
 			**kwargs,
 		)
 
-	def list_artifacts(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def list_artifacts(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.api.Eval/list_artifacts",
 			ctx=ctx,
 			request=request,
@@ -47,8 +47,8 @@ class EvalClient(TwirpClient):
 			**kwargs,
 		)
 
-	def get_artifact(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def get_artifact(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.api.Eval/get_artifact",
 			ctx=ctx,
 			request=request,
@@ -56,8 +56,8 @@ class EvalClient(TwirpClient):
 			**kwargs,
 		)
 
-	def get_artifact_zip(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def get_artifact_zip(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.api.Eval/get_artifact_zip",
 			ctx=ctx,
 			request=request,

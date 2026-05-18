@@ -4,15 +4,15 @@
 
 from google.protobuf import symbol_database as _symbol_database
 
-from ..twirp.client import TwirpClient
+from ..twirp.async_client import AsyncTwirpClient
 
 _sym_db = _symbol_database.Default()
 
 
-class SessionManagerClient(TwirpClient):
+class AsyncSessionManagerClient(AsyncTwirpClient):
 
-	def create_session(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def create_session(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.session.SessionManager/create_session",
 			ctx=ctx,
 			request=request,
@@ -20,8 +20,8 @@ class SessionManagerClient(TwirpClient):
 			**kwargs,
 		)
 
-	def open_session(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def open_session(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.session.SessionManager/open_session",
 			ctx=ctx,
 			request=request,
@@ -29,8 +29,8 @@ class SessionManagerClient(TwirpClient):
 			**kwargs,
 		)
 
-	def end_session(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def end_session(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.session.SessionManager/end_session",
 			ctx=ctx,
 			request=request,
@@ -38,8 +38,8 @@ class SessionManagerClient(TwirpClient):
 			**kwargs,
 		)
 
-	def keep_session_alive(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def keep_session_alive(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.session.SessionManager/keep_session_alive",
 			ctx=ctx,
 			request=request,
