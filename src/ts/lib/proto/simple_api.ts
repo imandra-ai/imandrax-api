@@ -250,12 +250,32 @@ export interface VerifyNameReq {
   hints?: string | undefined;
 }
 
+export interface TestSrcReq {
+  session:
+    | Session
+    | undefined;
+  /** source code */
+  src: string;
+  /** random seed */
+  seed: number;
+}
+
 export interface QCheckSrcReq {
   session:
     | Session
     | undefined;
   /** source code */
   src: string;
+  /** random seed */
+  seed: number;
+}
+
+export interface TestNameReq {
+  session:
+    | Session
+    | undefined;
+  /** name of the predicate to analyze */
+  name: string;
   /** random seed */
   seed: number;
 }
@@ -296,9 +316,7 @@ export interface VerifiedUpto {
   msg?: string | undefined;
 }
 
-export interface QcheckOk {
-  numSteps: number;
-  seed: number;
+export interface TestOk {
 }
 
 export interface Unsat {
@@ -332,7 +350,7 @@ export interface PORes {
   proof?: Proved | undefined;
   instance?: CounterSat | undefined;
   verifiedUpto?: VerifiedUpto | undefined;
-  qcheckOk?: QcheckOk | undefined;
+  testOk?: TestOk | undefined;
   errors: Error[];
   /** the ID of the task */
   task:
@@ -353,7 +371,7 @@ export interface VerifyRes {
   task: Task | undefined;
 }
 
-export interface QCheckRes {
+export interface TestRes {
   err?: Empty | undefined;
   counterExample?: CounterSat | undefined;
   errors: Error[];
@@ -2331,6 +2349,100 @@ export const VerifyNameReq: MessageFns<VerifyNameReq> = {
   },
 };
 
+function createBaseTestSrcReq(): TestSrcReq {
+  return { session: undefined, src: "", seed: 0 };
+}
+
+export const TestSrcReq: MessageFns<TestSrcReq> = {
+  encode(message: TestSrcReq, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.session !== undefined) {
+      Session.encode(message.session, writer.uint32(10).fork()).join();
+    }
+    if (message.src !== "") {
+      writer.uint32(18).string(message.src);
+    }
+    if (message.seed !== 0) {
+      writer.uint32(24).int64(message.seed);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TestSrcReq {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTestSrcReq();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.session = Session.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.src = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.seed = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TestSrcReq {
+    return {
+      session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
+      src: isSet(object.src) ? globalThis.String(object.src) : "",
+      seed: isSet(object.seed) ? globalThis.Number(object.seed) : 0,
+    };
+  },
+
+  toJSON(message: TestSrcReq): unknown {
+    const obj: any = {};
+    if (message.session !== undefined) {
+      obj.session = Session.toJSON(message.session);
+    }
+    if (message.src !== "") {
+      obj.src = message.src;
+    }
+    if (message.seed !== 0) {
+      obj.seed = Math.round(message.seed);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TestSrcReq>, I>>(base?: I): TestSrcReq {
+    return TestSrcReq.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TestSrcReq>, I>>(object: I): TestSrcReq {
+    const message = createBaseTestSrcReq();
+    message.session = (object.session !== undefined && object.session !== null)
+      ? Session.fromPartial(object.session)
+      : undefined;
+    message.src = object.src ?? "";
+    message.seed = object.seed ?? 0;
+    return message;
+  },
+};
+
 function createBaseQCheckSrcReq(): QCheckSrcReq {
   return { session: undefined, src: "", seed: 0 };
 }
@@ -2420,6 +2532,100 @@ export const QCheckSrcReq: MessageFns<QCheckSrcReq> = {
       ? Session.fromPartial(object.session)
       : undefined;
     message.src = object.src ?? "";
+    message.seed = object.seed ?? 0;
+    return message;
+  },
+};
+
+function createBaseTestNameReq(): TestNameReq {
+  return { session: undefined, name: "", seed: 0 };
+}
+
+export const TestNameReq: MessageFns<TestNameReq> = {
+  encode(message: TestNameReq, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.session !== undefined) {
+      Session.encode(message.session, writer.uint32(10).fork()).join();
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.seed !== 0) {
+      writer.uint32(24).int64(message.seed);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TestNameReq {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTestNameReq();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.session = Session.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.seed = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TestNameReq {
+    return {
+      session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      seed: isSet(object.seed) ? globalThis.Number(object.seed) : 0,
+    };
+  },
+
+  toJSON(message: TestNameReq): unknown {
+    const obj: any = {};
+    if (message.session !== undefined) {
+      obj.session = Session.toJSON(message.session);
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.seed !== 0) {
+      obj.seed = Math.round(message.seed);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TestNameReq>, I>>(base?: I): TestNameReq {
+    return TestNameReq.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TestNameReq>, I>>(object: I): TestNameReq {
+    const message = createBaseTestNameReq();
+    message.session = (object.session !== undefined && object.session !== null)
+      ? Session.fromPartial(object.session)
+      : undefined;
+    message.name = object.name ?? "";
     message.seed = object.seed ?? 0;
     return message;
   },
@@ -2823,44 +3029,22 @@ export const VerifiedUpto: MessageFns<VerifiedUpto> = {
   },
 };
 
-function createBaseQcheckOk(): QcheckOk {
-  return { numSteps: 0, seed: 0 };
+function createBaseTestOk(): TestOk {
+  return {};
 }
 
-export const QcheckOk: MessageFns<QcheckOk> = {
-  encode(message: QcheckOk, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.numSteps !== 0) {
-      writer.uint32(8).int64(message.numSteps);
-    }
-    if (message.seed !== 0) {
-      writer.uint32(16).int64(message.seed);
-    }
+export const TestOk: MessageFns<TestOk> = {
+  encode(_: TestOk, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): QcheckOk {
+  decode(input: BinaryReader | Uint8Array, length?: number): TestOk {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQcheckOk();
+    const message = createBaseTestOk();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.numSteps = longToNumber(reader.int64());
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.seed = longToNumber(reader.int64());
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2870,31 +3054,20 @@ export const QcheckOk: MessageFns<QcheckOk> = {
     return message;
   },
 
-  fromJSON(object: any): QcheckOk {
-    return {
-      numSteps: isSet(object.numSteps) ? globalThis.Number(object.numSteps) : 0,
-      seed: isSet(object.seed) ? globalThis.Number(object.seed) : 0,
-    };
+  fromJSON(_: any): TestOk {
+    return {};
   },
 
-  toJSON(message: QcheckOk): unknown {
+  toJSON(_: TestOk): unknown {
     const obj: any = {};
-    if (message.numSteps !== 0) {
-      obj.numSteps = Math.round(message.numSteps);
-    }
-    if (message.seed !== 0) {
-      obj.seed = Math.round(message.seed);
-    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<QcheckOk>, I>>(base?: I): QcheckOk {
-    return QcheckOk.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<TestOk>, I>>(base?: I): TestOk {
+    return TestOk.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<QcheckOk>, I>>(object: I): QcheckOk {
-    const message = createBaseQcheckOk();
-    message.numSteps = object.numSteps ?? 0;
-    message.seed = object.seed ?? 0;
+  fromPartial<I extends Exact<DeepPartial<TestOk>, I>>(_: I): TestOk {
+    const message = createBaseTestOk();
     return message;
   },
 };
@@ -3232,7 +3405,7 @@ function createBasePORes(): PORes {
     proof: undefined,
     instance: undefined,
     verifiedUpto: undefined,
-    qcheckOk: undefined,
+    testOk: undefined,
     errors: [],
     task: undefined,
     origin: undefined,
@@ -3256,8 +3429,8 @@ export const PORes: MessageFns<PORes> = {
     if (message.verifiedUpto !== undefined) {
       VerifiedUpto.encode(message.verifiedUpto, writer.uint32(42).fork()).join();
     }
-    if (message.qcheckOk !== undefined) {
-      QcheckOk.encode(message.qcheckOk, writer.uint32(50).fork()).join();
+    if (message.testOk !== undefined) {
+      TestOk.encode(message.testOk, writer.uint32(50).fork()).join();
     }
     for (const v of message.errors) {
       Error.encode(v!, writer.uint32(82).fork()).join();
@@ -3323,7 +3496,7 @@ export const PORes: MessageFns<PORes> = {
             break;
           }
 
-          message.qcheckOk = QcheckOk.decode(reader, reader.uint32());
+          message.testOk = TestOk.decode(reader, reader.uint32());
           continue;
         }
         case 10: {
@@ -3366,7 +3539,7 @@ export const PORes: MessageFns<PORes> = {
       proof: isSet(object.proof) ? Proved.fromJSON(object.proof) : undefined,
       instance: isSet(object.instance) ? CounterSat.fromJSON(object.instance) : undefined,
       verifiedUpto: isSet(object.verifiedUpto) ? VerifiedUpto.fromJSON(object.verifiedUpto) : undefined,
-      qcheckOk: isSet(object.qcheckOk) ? QcheckOk.fromJSON(object.qcheckOk) : undefined,
+      testOk: isSet(object.testOk) ? TestOk.fromJSON(object.testOk) : undefined,
       errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
       task: isSet(object.task) ? Task.fromJSON(object.task) : undefined,
       origin: isSet(object.origin) ? Origin.fromJSON(object.origin) : undefined,
@@ -3390,8 +3563,8 @@ export const PORes: MessageFns<PORes> = {
     if (message.verifiedUpto !== undefined) {
       obj.verifiedUpto = VerifiedUpto.toJSON(message.verifiedUpto);
     }
-    if (message.qcheckOk !== undefined) {
-      obj.qcheckOk = QcheckOk.toJSON(message.qcheckOk);
+    if (message.testOk !== undefined) {
+      obj.testOk = TestOk.toJSON(message.testOk);
     }
     if (message.errors?.length) {
       obj.errors = message.errors.map((e) => Error.toJSON(e));
@@ -3423,8 +3596,8 @@ export const PORes: MessageFns<PORes> = {
     message.verifiedUpto = (object.verifiedUpto !== undefined && object.verifiedUpto !== null)
       ? VerifiedUpto.fromPartial(object.verifiedUpto)
       : undefined;
-    message.qcheckOk = (object.qcheckOk !== undefined && object.qcheckOk !== null)
-      ? QcheckOk.fromPartial(object.qcheckOk)
+    message.testOk = (object.testOk !== undefined && object.testOk !== null)
+      ? TestOk.fromPartial(object.testOk)
       : undefined;
     message.errors = object.errors?.map((e) => Error.fromPartial(e)) || [];
     message.task = (object.task !== undefined && object.task !== null) ? Task.fromPartial(object.task) : undefined;
@@ -3607,12 +3780,12 @@ export const VerifyRes: MessageFns<VerifyRes> = {
   },
 };
 
-function createBaseQCheckRes(): QCheckRes {
+function createBaseTestRes(): TestRes {
   return { err: undefined, counterExample: undefined, errors: [], task: undefined };
 }
 
-export const QCheckRes: MessageFns<QCheckRes> = {
-  encode(message: QCheckRes, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const TestRes: MessageFns<TestRes> = {
+  encode(message: TestRes, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.err !== undefined) {
       Empty.encode(message.err, writer.uint32(10).fork()).join();
     }
@@ -3628,10 +3801,10 @@ export const QCheckRes: MessageFns<QCheckRes> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): QCheckRes {
+  decode(input: BinaryReader | Uint8Array, length?: number): TestRes {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQCheckRes();
+    const message = createBaseTestRes();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3676,7 +3849,7 @@ export const QCheckRes: MessageFns<QCheckRes> = {
     return message;
   },
 
-  fromJSON(object: any): QCheckRes {
+  fromJSON(object: any): TestRes {
     return {
       err: isSet(object.err) ? Empty.fromJSON(object.err) : undefined,
       counterExample: isSet(object.counterExample) ? CounterSat.fromJSON(object.counterExample) : undefined,
@@ -3685,7 +3858,7 @@ export const QCheckRes: MessageFns<QCheckRes> = {
     };
   },
 
-  toJSON(message: QCheckRes): unknown {
+  toJSON(message: TestRes): unknown {
     const obj: any = {};
     if (message.err !== undefined) {
       obj.err = Empty.toJSON(message.err);
@@ -3702,11 +3875,11 @@ export const QCheckRes: MessageFns<QCheckRes> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<QCheckRes>, I>>(base?: I): QCheckRes {
-    return QCheckRes.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<TestRes>, I>>(base?: I): TestRes {
+    return TestRes.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<QCheckRes>, I>>(object: I): QCheckRes {
-    const message = createBaseQCheckRes();
+  fromPartial<I extends Exact<DeepPartial<TestRes>, I>>(object: I): TestRes {
+    const message = createBaseTestRes();
     message.err = (object.err !== undefined && object.err !== null) ? Empty.fromPartial(object.err) : undefined;
     message.counterExample = (object.counterExample !== undefined && object.counterExample !== null)
       ? CounterSat.fromPartial(object.counterExample)
@@ -4551,8 +4724,10 @@ export interface Simple {
   eval_src(request: EvalSrcReq): Promise<EvalRes>;
   verify_src(request: VerifySrcReq): Promise<VerifyRes>;
   verify_name(request: VerifyNameReq): Promise<VerifyRes>;
-  qcheck_src(request: QCheckSrcReq): Promise<QCheckRes>;
-  qcheck_name(request: QCheckNameReq): Promise<QCheckRes>;
+  test_src(request: TestSrcReq): Promise<TestRes>;
+  test_name(request: TestNameReq): Promise<TestRes>;
+  qcheck_src(request: QCheckSrcReq): Promise<TestRes>;
+  qcheck_name(request: QCheckNameReq): Promise<TestRes>;
   instance_src(request: InstanceSrcReq): Promise<InstanceRes>;
   instance_name(request: InstanceNameReq): Promise<InstanceRes>;
   decompose(request: DecomposeReq): Promise<DecomposeRes>;
@@ -4578,6 +4753,8 @@ export class SimpleClientImpl implements Simple {
     this.eval_src = this.eval_src.bind(this);
     this.verify_src = this.verify_src.bind(this);
     this.verify_name = this.verify_name.bind(this);
+    this.test_src = this.test_src.bind(this);
+    this.test_name = this.test_name.bind(this);
     this.qcheck_src = this.qcheck_src.bind(this);
     this.qcheck_name = this.qcheck_name.bind(this);
     this.instance_src = this.instance_src.bind(this);
@@ -4630,16 +4807,28 @@ export class SimpleClientImpl implements Simple {
     return promise.then((data) => VerifyRes.decode(new BinaryReader(data)));
   }
 
-  qcheck_src(request: QCheckSrcReq): Promise<QCheckRes> {
-    const data = QCheckSrcReq.encode(request).finish();
-    const promise = this.rpc.request(this.service, "qcheck_src", data);
-    return promise.then((data) => QCheckRes.decode(new BinaryReader(data)));
+  test_src(request: TestSrcReq): Promise<TestRes> {
+    const data = TestSrcReq.encode(request).finish();
+    const promise = this.rpc.request(this.service, "test_src", data);
+    return promise.then((data) => TestRes.decode(new BinaryReader(data)));
   }
 
-  qcheck_name(request: QCheckNameReq): Promise<QCheckRes> {
+  test_name(request: TestNameReq): Promise<TestRes> {
+    const data = TestNameReq.encode(request).finish();
+    const promise = this.rpc.request(this.service, "test_name", data);
+    return promise.then((data) => TestRes.decode(new BinaryReader(data)));
+  }
+
+  qcheck_src(request: QCheckSrcReq): Promise<TestRes> {
+    const data = QCheckSrcReq.encode(request).finish();
+    const promise = this.rpc.request(this.service, "qcheck_src", data);
+    return promise.then((data) => TestRes.decode(new BinaryReader(data)));
+  }
+
+  qcheck_name(request: QCheckNameReq): Promise<TestRes> {
     const data = QCheckNameReq.encode(request).finish();
     const promise = this.rpc.request(this.service, "qcheck_name", data);
-    return promise.then((data) => QCheckRes.decode(new BinaryReader(data)));
+    return promise.then((data) => TestRes.decode(new BinaryReader(data)));
   }
 
   instance_src(request: InstanceSrcReq): Promise<InstanceRes> {

@@ -79,12 +79,30 @@ class SimpleClient(TwirpClient):
 			**kwargs,
 		)
 
+	def test_src(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/test_src",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("imandrax.simple.TestRes"),
+			**kwargs,
+		)
+
+	def test_name(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/test_name",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("imandrax.simple.TestRes"),
+			**kwargs,
+		)
+
 	def qcheck_src(self, *args, ctx, request, **kwargs):
 		return self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.simple.Simple/qcheck_src",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("imandrax.simple.QCheckRes"),
+			response_obj=_sym_db.GetSymbol("imandrax.simple.TestRes"),
 			**kwargs,
 		)
 
@@ -93,7 +111,7 @@ class SimpleClient(TwirpClient):
 			url=F"{self._server_path_prefix}/imandrax.simple.Simple/qcheck_name",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("imandrax.simple.QCheckRes"),
+			response_obj=_sym_db.GetSymbol("imandrax.simple.TestRes"),
 			**kwargs,
 		)
 
@@ -227,12 +245,30 @@ if _async_available:
 				**kwargs,
 			)
 
+		async def test_src(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.simple.Simple/test_src",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.simple.TestRes"),
+				**kwargs,
+			)
+
+		async def test_name(self, *, ctx, request, **kwargs):
+			return await self._make_request(
+				url=F"{self._server_path_prefix}/imandrax.simple.Simple/test_name",
+				ctx=ctx,
+				request=request,
+				response_obj=_sym_db.GetSymbol("imandrax.simple.TestRes"),
+				**kwargs,
+			)
+
 		async def qcheck_src(self, *, ctx, request, **kwargs):
 			return await self._make_request(
 				url=F"{self._server_path_prefix}/imandrax.simple.Simple/qcheck_src",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("imandrax.simple.QCheckRes"),
+				response_obj=_sym_db.GetSymbol("imandrax.simple.TestRes"),
 				**kwargs,
 			)
 
@@ -241,7 +277,7 @@ if _async_available:
 				url=F"{self._server_path_prefix}/imandrax.simple.Simple/qcheck_name",
 				ctx=ctx,
 				request=request,
-				response_obj=_sym_db.GetSymbol("imandrax.simple.QCheckRes"),
+				response_obj=_sym_db.GetSymbol("imandrax.simple.TestRes"),
 				**kwargs,
 			)
 

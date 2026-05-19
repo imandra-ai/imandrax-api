@@ -8,7 +8,7 @@ type ('term, 'ty) t_poly =
       max_steps: int;
       upto: Imandrax_api.Upto.t option;
     }
-  | Default_quickcheck of {
+  | Default_test of {
       num_steps: int option;
       seed: int option;
     }

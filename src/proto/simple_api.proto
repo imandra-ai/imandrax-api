@@ -28,9 +28,13 @@ service Simple {
 
   rpc verify_name(VerifyNameReq) returns (VerifyRes);
 
-  rpc qcheck_src(QCheckSrcReq) returns (QCheckRes);
+  rpc test_src(TestSrcReq) returns (TestRes);
 
-  rpc qcheck_name(QCheckNameReq) returns (QCheckRes);
+  rpc test_name(TestNameReq) returns (TestRes);
+
+  rpc qcheck_src(QCheckSrcReq) returns (TestRes);
+
+  rpc qcheck_name(QCheckNameReq) returns (TestRes);
 
   rpc instance_src(InstanceSrcReq) returns (InstanceRes);
 
@@ -236,11 +240,25 @@ message VerifyNameReq {
   optional string hints = 10;
 }
 
+message TestSrcReq {
+  imandrax.session.Session session = 1;
+
+  string src = 2; // source code
+  int64 seed = 3; // random seed
+}
+
 message QCheckSrcReq {
   imandrax.session.Session session = 1;
 
   string src = 2; // source code
   int64 seed = 3; // random seed
+}
+
+message TestNameReq {
+  imandrax.session.Session session = 1;
+
+  string name = 2; // name of the predicate to analyze
+  int64 seed = 3;  // random seed
 }
 
 message QCheckNameReq {
@@ -270,18 +288,11 @@ message InstanceNameReq {
 
 message Proved { optional string proof_pp = 1; }
 
-message Verified_upto {
-  optional string msg = 1;
-}
+message Verified_upto { optional string msg = 1; }
 
-message Qcheck_ok {
-  int64 num_steps = 1;
-  int64 seed = 2;
-}
+message Test_ok {}
 
-message Unsat {
-  optional string proof_pp = 1;
-}
+message Unsat { optional string proof_pp = 1; }
 
 enum ModelType {
   Counter_example = 0;
@@ -312,7 +323,7 @@ message PO_Res {
     Proved proof = 3;
     CounterSat instance = 4;
     Verified_upto verified_upto = 5;
-    Qcheck_ok qcheck_ok = 6;
+    Test_ok test_ok = 6;
   }
 
   repeated Error errors = 10;
@@ -339,7 +350,7 @@ message VerifyRes {
   imandrax.task.Task task = 11;
 }
 
-message QCheckRes {
+message TestRes {
   oneof res {
     Empty err = 1;
     CounterSat counter_example = 2;

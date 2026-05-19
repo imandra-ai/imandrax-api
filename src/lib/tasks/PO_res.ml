@@ -1,7 +1,5 @@
 (** Result of evaluating the PO *)
 
-type stats = Imandrax_api.Stat_time.t [@@deriving show, twine, typereg]
-
 type 'term sub_res = {
   sub_anchor: Imandrax_api.Sub_anchor.t;
   goal: 'term Imandrax_api_common.Sequent.t_poly;
@@ -56,10 +54,7 @@ type ('term, 'ty) success =
   | Proof of ('term, 'ty) proof_found  (** For verify *)
   | Instance of ('term, 'ty) instance  (** For instance *)
   | Verified_upto of verified_upto
-  | Qcheck_ok of {
-      num_steps: int;
-      seed: int64;
-    }  (** Qcheck didn't find a counter-example *)
+  | Test_ok  (** Test didn't find a counter-example *)
 [@@deriving twine, typereg, map, iter, show { with_path = false }]
 
 type ('term, 'ty) error =
@@ -81,7 +76,7 @@ type ('term, 'ty) shallow_poly = {
      Imandrax_api_ca_store.Ca_ptr.t
     [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
   res: (('term, 'ty) success, 'term, 'ty) result;
-  stats: stats;
+  stats: Imandrax_api.Statistics.t;
   report:
     (Imandrax_api_report.Report.t Imandrax_api.In_mem_archive.t
     [@twine.encode In_mem_archive.to_twine]
@@ -96,7 +91,7 @@ type ('term, 'ty) shallow_poly = {
 type ('term, 'ty) full_poly = {
   from: ('term, 'ty) Imandrax_api_common.Proof_obligation.t_poly;
   res: (('term, 'ty) success, 'term, 'ty) result;
-  stats: stats;
+  stats: Imandrax_api.Statistics.t;
   report:
     (Imandrax_api_report.Report.t Imandrax_api.In_mem_archive.t
     [@twine.encode In_mem_archive.to_twine]

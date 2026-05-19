@@ -50,9 +50,17 @@ def main():
     assert len(art_po_task.art_zip) > 0, "po_task artifact is empty"
     assert len(art_po_res.art_zip) > 0, "po_res artifact is empty"
 
+    print("5. test request")
+    x1 = c.test_src(src="fun x -> x = 42")
+    assert len(x1.counter_example.model.src) > 0, f"expected a non-empty counter-example"
+
+    x2 = c.test_src(src="fun x -> x = 42 || x <> 42")
+    assert x2.WhichOneof("res") == "err", f"expected err result"
+    assert x2.errors[0].msg.msg.startswith("Did not find")
+
     del c
 
-    print("5. parse artifacts")
+    print("6. parse artifacts")
     # Extract from zip
     with zipfile.ZipFile(io.BytesIO(art_po_task.art_zip)) as zf:
         art_task_data = zf.read(zf.namelist()[0])

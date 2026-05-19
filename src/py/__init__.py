@@ -202,17 +202,41 @@ class Client(_ClientBase):
             timeout=timeout,
         )
 
+    def test_src(
+        self,
+        src: str,
+        seed: Optional[int] = None,
+        timeout: Optional[float] = None,
+    ) -> simple_api_pb2.TestRes:
+        seed = seed or 0
+        timeout = timeout or self._timeout
+        return self._client.test_src(
+            ctx=self.mk_context(),
+            request=simple_api_pb2.TestSrcReq(src=src, session=self._sesh, seed=seed),
+            timeout=timeout,
+        )
+
     def qcheck_src(
         self,
         src: str,
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
-    ) -> simple_api_pb2.QCheckRes:
+    ) -> simple_api_pb2.TestRes:
+        return self.test_src(src, seed, timeout)
+
+    def test_name(
+        self,
+        name: str,
+        seed: Optional[int] = None,
+        timeout: Optional[float] = None,
+    ) -> simple_api_pb2.TestRes:
         seed = seed or 0
         timeout = timeout or self._timeout
-        return self._client.qcheck_src(
+        return self._client.test_name(
             ctx=self.mk_context(),
-            request=simple_api_pb2.QCheckSrcReq(src=src, session=self._sesh, seed=seed),
+            request=simple_api_pb2.TestNameReq(
+                name=name, session=self._sesh, seed=seed
+            ),
             timeout=timeout,
         )
 
@@ -221,16 +245,8 @@ class Client(_ClientBase):
         name: str,
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
-    ) -> simple_api_pb2.QCheckRes:
-        seed = seed or 0
-        timeout = timeout or self._timeout
-        return self._client.qcheck_name(
-            ctx=self.mk_context(),
-            request=simple_api_pb2.QCheckNameReq(
-                name=name, session=self._sesh, seed=seed
-            ),
-            timeout=timeout,
-        )
+    ) -> simple_api_pb2.TestRes:
+        return self.test_name(name, seed, timeout)
 
     def list_artifacts(
         self, task: task_pb2.Task, timeout: Optional[float] = None
@@ -435,18 +451,42 @@ if _async_available:
                 timeout=timeout,
             )
 
+        async def test_src(
+            self,
+            src: str,
+            seed: Optional[int] = None,
+            timeout: Optional[float] = None,
+        ) -> simple_api_pb2.TestRes:
+            seed = seed or 0
+            timeout = timeout or self._timeout
+            return await self._client.test_src(
+                ctx=self.mk_context(),
+                request=simple_api_pb2.TestSrcReq(
+                    src=src, session=self._sesh, seed=seed
+                ),
+                timeout=timeout,
+            )
+
         async def qcheck_src(
             self,
             src: str,
             seed: Optional[int] = None,
             timeout: Optional[float] = None,
-        ) -> simple_api_pb2.QCheckRes:
+        ) -> simple_api_pb2.TestRes:
+            return await self.test_src(src, seed, timeout)
+
+        async def test_name(
+            self,
+            name: str,
+            seed: Optional[int] = None,
+            timeout: Optional[float] = None,
+        ) -> simple_api_pb2.TestRes:
             seed = seed or 0
             timeout = timeout or self._timeout
-            return await self._client.qcheck_src(
+            return await self._client.test_name(
                 ctx=self.mk_context(),
-                request=simple_api_pb2.QCheckSrcReq(
-                    src=src, session=self._sesh, seed=seed
+                request=simple_api_pb2.TestNameReq(
+                    name=name, session=self._sesh, seed=seed
                 ),
                 timeout=timeout,
             )
@@ -456,16 +496,8 @@ if _async_available:
             name: str,
             seed: Optional[int] = None,
             timeout: Optional[float] = None,
-        ) -> simple_api_pb2.QCheckRes:
-            seed = seed or 0
-            timeout = timeout or self._timeout
-            return await self._client.qcheck_name(
-                ctx=self.mk_context(),
-                request=simple_api_pb2.QCheckNameReq(
-                    name=name, session=self._sesh, seed=seed
-                ),
-                timeout=timeout,
-            )
+        ) -> simple_api_pb2.TestRes:
+            return await self.test_name(name, seed, timeout)
 
         async def list_artifacts(
             self, task: task_pb2.Task, timeout: Optional[float] = None
