@@ -36,7 +36,7 @@ class SessionCreateReq(_message.Message):
     def __init__(self, api_version: _Optional[str] = ...) -> None: ...
 
 class DecomposeReq(_message.Message):
-    __slots__ = ("session", "name", "assuming", "basis", "rule_specs", "prune", "ctx_simp", "lift_bool", "str", "timeout")
+    __slots__ = ("session", "name", "assuming", "basis", "rule_specs", "prune", "ctx_simp", "lift_bool", "string_results", "timeout")
     SESSION_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     ASSUMING_FIELD_NUMBER: _ClassVar[int]
@@ -45,7 +45,7 @@ class DecomposeReq(_message.Message):
     PRUNE_FIELD_NUMBER: _ClassVar[int]
     CTX_SIMP_FIELD_NUMBER: _ClassVar[int]
     LIFT_BOOL_FIELD_NUMBER: _ClassVar[int]
-    STR_FIELD_NUMBER: _ClassVar[int]
+    STRING_RESULTS_FIELD_NUMBER: _ClassVar[int]
     TIMEOUT_FIELD_NUMBER: _ClassVar[int]
     session: _session_pb2.Session
     name: str
@@ -55,12 +55,12 @@ class DecomposeReq(_message.Message):
     prune: bool
     ctx_simp: bool
     lift_bool: LiftBool
-    str: bool
+    string_results: bool
     timeout: int
-    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., assuming: _Optional[str] = ..., basis: _Optional[_Iterable[str]] = ..., rule_specs: _Optional[_Iterable[str]] = ..., prune: bool = ..., ctx_simp: bool = ..., lift_bool: _Optional[_Union[LiftBool, str]] = ..., str: bool = ..., timeout: _Optional[int] = ...) -> None: ...
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., assuming: _Optional[str] = ..., basis: _Optional[_Iterable[str]] = ..., rule_specs: _Optional[_Iterable[str]] = ..., prune: bool = ..., ctx_simp: bool = ..., lift_bool: _Optional[_Union[LiftBool, str]] = ..., string_results: bool = ..., timeout: _Optional[int] = ...) -> None: ...
 
 class DecomposeReqFull(_message.Message):
-    __slots__ = ("session", "decomp", "str", "timeout")
+    __slots__ = ("session", "decomp", "string_results", "timeout")
     class ByName(_message.Message):
         __slots__ = ("name", "assuming", "basis", "rule_specs", "prune", "ctx_simp", "lift_bool")
         NAME_FIELD_NUMBER: _ClassVar[int]
@@ -142,13 +142,13 @@ class DecomposeReqFull(_message.Message):
         def __init__(self, from_artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ..., by_name: _Optional[_Union[DecomposeReqFull.ByName, _Mapping]] = ..., merge: _Optional[_Union[DecomposeReqFull.Merge, _Mapping]] = ..., compound_merge: _Optional[_Union[DecomposeReqFull.CompoundMerge, _Mapping]] = ..., prune: _Optional[_Union[DecomposeReqFull.Prune, _Mapping]] = ..., combine: _Optional[_Union[DecomposeReqFull.Combine, _Mapping]] = ..., get: _Optional[_Union[DecomposeReqFull.LocalVarGet, _Mapping]] = ..., set: _Optional[_Union[DecomposeReqFull.LocalVarLet, _Mapping]] = ...) -> None: ...
     SESSION_FIELD_NUMBER: _ClassVar[int]
     DECOMP_FIELD_NUMBER: _ClassVar[int]
-    STR_FIELD_NUMBER: _ClassVar[int]
+    STRING_RESULTS_FIELD_NUMBER: _ClassVar[int]
     TIMEOUT_FIELD_NUMBER: _ClassVar[int]
     session: _session_pb2.Session
     decomp: DecomposeReqFull.Decomp
-    str: bool
+    string_results: bool
     timeout: int
-    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., decomp: _Optional[_Union[DecomposeReqFull.Decomp, _Mapping]] = ..., str: bool = ..., timeout: _Optional[int] = ...) -> None: ...
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., decomp: _Optional[_Union[DecomposeReqFull.Decomp, _Mapping]] = ..., string_results: bool = ..., timeout: _Optional[int] = ...) -> None: ...
 
 class DecomposeRes(_message.Message):
     __slots__ = ("artifact", "err", "errors", "task")

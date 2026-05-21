@@ -21,7 +21,7 @@ type decompose_req = {
   mutable prune : bool;
   mutable ctx_simp : bool;
   mutable lift_bool : lift_bool;
-  mutable str : bool;
+  mutable string_results : bool;
   mutable timeout : int32;
 }
 
@@ -84,7 +84,7 @@ type decompose_req_full = {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
   mutable session : Session.session option;
   mutable decomp : decompose_req_full_decomp option;
-  mutable str : bool;
+  mutable string_results : bool;
   mutable timeout : int32;
 }
 
@@ -338,7 +338,7 @@ let default_decompose_req (): decompose_req =
   prune=false;
   ctx_simp=false;
   lift_bool=default_lift_bool ();
-  str=false;
+  string_results=false;
   timeout=0l;
 }
 
@@ -402,7 +402,7 @@ let default_decompose_req_full (): decompose_req_full =
   _presence=Pbrt.Bitfield.empty;
   session=None;
   decomp=None;
-  str=false;
+  string_results=false;
   timeout=0l;
 }
 
@@ -672,7 +672,7 @@ let[@inline] decompose_req_has_assuming (self:decompose_req) : bool = (Pbrt.Bitf
 let[@inline] decompose_req_has_prune (self:decompose_req) : bool = (Pbrt.Bitfield.get self._presence 2)
 let[@inline] decompose_req_has_ctx_simp (self:decompose_req) : bool = (Pbrt.Bitfield.get self._presence 3)
 let[@inline] decompose_req_has_lift_bool (self:decompose_req) : bool = (Pbrt.Bitfield.get self._presence 4)
-let[@inline] decompose_req_has_str (self:decompose_req) : bool = (Pbrt.Bitfield.get self._presence 5)
+let[@inline] decompose_req_has_string_results (self:decompose_req) : bool = (Pbrt.Bitfield.get self._presence 5)
 let[@inline] decompose_req_has_timeout (self:decompose_req) : bool = (Pbrt.Bitfield.get self._presence 6)
 
 let[@inline] decompose_req_set_session (self:decompose_req) (x:Session.session) : unit =
@@ -691,8 +691,8 @@ let[@inline] decompose_req_set_ctx_simp (self:decompose_req) (x:bool) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 3); self.ctx_simp <- x
 let[@inline] decompose_req_set_lift_bool (self:decompose_req) (x:lift_bool) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 4); self.lift_bool <- x
-let[@inline] decompose_req_set_str (self:decompose_req) (x:bool) : unit =
-  self._presence <- (Pbrt.Bitfield.set self._presence 5); self.str <- x
+let[@inline] decompose_req_set_string_results (self:decompose_req) (x:bool) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 5); self.string_results <- x
 let[@inline] decompose_req_set_timeout (self:decompose_req) (x:int32) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 6); self.timeout <- x
 
@@ -708,7 +708,7 @@ let make_decompose_req
   ?(prune:bool option)
   ?(ctx_simp:bool option)
   ?(lift_bool:lift_bool option)
-  ?(str:bool option)
+  ?(string_results:bool option)
   ?(timeout:int32 option)
   () : decompose_req  =
   let _res = default_decompose_req () in
@@ -732,9 +732,9 @@ let make_decompose_req
   (match lift_bool with
   | None -> ()
   | Some v -> decompose_req_set_lift_bool _res v);
-  (match str with
+  (match string_results with
   | None -> ()
-  | Some v -> decompose_req_set_str _res v);
+  | Some v -> decompose_req_set_string_results _res v);
   (match timeout with
   | None -> ()
   | Some v -> decompose_req_set_timeout _res v);
@@ -929,15 +929,15 @@ let make_decompose_req_full_local_var_binding
   | Some v -> decompose_req_full_local_var_binding_set_d _res v);
   _res
 
-let[@inline] decompose_req_full_has_str (self:decompose_req_full) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] decompose_req_full_has_string_results (self:decompose_req_full) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] decompose_req_full_has_timeout (self:decompose_req_full) : bool = (Pbrt.Bitfield.get self._presence 1)
 
 let[@inline] decompose_req_full_set_session (self:decompose_req_full) (x:Session.session) : unit =
   self.session <- Some x
 let[@inline] decompose_req_full_set_decomp (self:decompose_req_full) (x:decompose_req_full_decomp) : unit =
   self.decomp <- Some x
-let[@inline] decompose_req_full_set_str (self:decompose_req_full) (x:bool) : unit =
-  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.str <- x
+let[@inline] decompose_req_full_set_string_results (self:decompose_req_full) (x:bool) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.string_results <- x
 let[@inline] decompose_req_full_set_timeout (self:decompose_req_full) (x:int32) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 1); self.timeout <- x
 
@@ -947,7 +947,7 @@ let copy_decompose_req_full (self:decompose_req_full) : decompose_req_full =
 let make_decompose_req_full 
   ?(session:Session.session option)
   ?(decomp:decompose_req_full_decomp option)
-  ?(str:bool option)
+  ?(string_results:bool option)
   ?(timeout:int32 option)
   () : decompose_req_full  =
   let _res = default_decompose_req_full () in
@@ -957,9 +957,9 @@ let make_decompose_req_full
   (match decomp with
   | None -> ()
   | Some v -> decompose_req_full_set_decomp _res v);
-  (match str with
+  (match string_results with
   | None -> ()
-  | Some v -> decompose_req_full_set_str _res v);
+  | Some v -> decompose_req_full_set_string_results _res v);
   (match timeout with
   | None -> ()
   | Some v -> decompose_req_full_set_timeout _res v);
@@ -1791,7 +1791,7 @@ let rec pp_decompose_req fmt (v:decompose_req) =
     Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_has_prune v)) ~first:false "prune" Pbrt.Pp.pp_bool fmt v.prune;
     Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_has_ctx_simp v)) ~first:false "ctx_simp" Pbrt.Pp.pp_bool fmt v.ctx_simp;
     Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_has_lift_bool v)) ~first:false "lift_bool" pp_lift_bool fmt v.lift_bool;
-    Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_has_str v)) ~first:false "str" Pbrt.Pp.pp_bool fmt v.str;
+    Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_has_string_results v)) ~first:false "string_results" Pbrt.Pp.pp_bool fmt v.string_results;
     Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_has_timeout v)) ~first:false "timeout" Pbrt.Pp.pp_int32 fmt v.timeout;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
@@ -1869,7 +1869,7 @@ let rec pp_decompose_req_full fmt (v:decompose_req_full) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~first:false "decomp" (Pbrt.Pp.pp_option pp_decompose_req_full_decomp) fmt v.decomp;
-    Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_full_has_str v)) ~first:false "str" Pbrt.Pp.pp_bool fmt v.str;
+    Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_full_has_string_results v)) ~first:false "string_results" Pbrt.Pp.pp_bool fmt v.string_results;
     Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_full_has_timeout v)) ~first:false "timeout" Pbrt.Pp.pp_int32 fmt v.timeout;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
@@ -2209,8 +2209,8 @@ let rec encode_pb_decompose_req (v:decompose_req) encoder =
     encode_pb_lift_bool v.lift_bool encoder;
     Pbrt.Encoder.key 8 Pbrt.Varint encoder; 
   );
-  if decompose_req_has_str v then (
-    Pbrt.Encoder.bool v.str encoder;
+  if decompose_req_has_string_results v then (
+    Pbrt.Encoder.bool v.string_results encoder;
     Pbrt.Encoder.key 9 Pbrt.Varint encoder; 
   );
   if decompose_req_has_timeout v then (
@@ -2372,8 +2372,8 @@ let rec encode_pb_decompose_req_full (v:decompose_req_full) encoder =
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   | None -> ();
   end;
-  if decompose_req_full_has_str v then (
-    Pbrt.Encoder.bool v.str encoder;
+  if decompose_req_full_has_string_results v then (
+    Pbrt.Encoder.bool v.string_results encoder;
     Pbrt.Encoder.key 9 Pbrt.Varint encoder; 
   );
   if decompose_req_full_has_timeout v then (
@@ -3065,7 +3065,7 @@ let rec decode_pb_decompose_req d =
     | Some (8, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "decompose_req" 8 pk
     | Some (9, Pbrt.Varint) -> begin
-      decompose_req_set_str v (Pbrt.Decoder.bool d);
+      decompose_req_set_string_results v (Pbrt.Decoder.bool d);
     end
     | Some (9, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "decompose_req" 9 pk
@@ -3300,7 +3300,7 @@ let rec decode_pb_decompose_req_full d =
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "decompose_req_full" 2 pk
     | Some (9, Pbrt.Varint) -> begin
-      decompose_req_full_set_str v (Pbrt.Decoder.bool d);
+      decompose_req_full_set_string_results v (Pbrt.Decoder.bool d);
     end
     | Some (9, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "decompose_req_full" 9 pk
@@ -4330,8 +4330,8 @@ let rec encode_json_decompose_req (v:decompose_req) =
   if decompose_req_has_lift_bool v then (
     assoc := ("liftBool", encode_json_lift_bool v.lift_bool) :: !assoc;
   );
-  if decompose_req_has_str v then (
-    assoc := ("str", Pbrt_yojson.make_bool v.str) :: !assoc;
+  if decompose_req_has_string_results v then (
+    assoc := ("stringResults", Pbrt_yojson.make_bool v.string_results) :: !assoc;
   );
   if decompose_req_has_timeout v then (
     assoc := ("timeout", Pbrt_yojson.make_int (Int32.to_int v.timeout)) :: !assoc;
@@ -4447,8 +4447,8 @@ let rec encode_json_decompose_req_full (v:decompose_req_full) =
   assoc := (match v.decomp with
     | None -> !assoc
     | Some v -> ("decomp", encode_json_decompose_req_full_decomp v) :: !assoc);
-  if decompose_req_full_has_str v then (
-    assoc := ("str", Pbrt_yojson.make_bool v.str) :: !assoc;
+  if decompose_req_full_has_string_results v then (
+    assoc := ("stringResults", Pbrt_yojson.make_bool v.string_results) :: !assoc;
   );
   if decompose_req_full_has_timeout v then (
     assoc := ("timeout", Pbrt_yojson.make_int (Int32.to_int v.timeout)) :: !assoc;
@@ -4968,8 +4968,8 @@ let rec decode_json_decompose_req d =
       decompose_req_set_ctx_simp v (Pbrt_yojson.bool json_value "decompose_req" "ctx_simp")
     | ("liftBool", json_value) -> 
       decompose_req_set_lift_bool v ((decode_json_lift_bool json_value))
-    | ("str", json_value) -> 
-      decompose_req_set_str v (Pbrt_yojson.bool json_value "decompose_req" "str")
+    | ("stringResults", json_value) -> 
+      decompose_req_set_string_results v (Pbrt_yojson.bool json_value "decompose_req" "string_results")
     | ("timeout", json_value) -> 
       decompose_req_set_timeout v (Pbrt_yojson.int32 json_value "decompose_req" "timeout")
     
@@ -4985,7 +4985,7 @@ let rec decode_json_decompose_req d =
     prune = v.prune;
     ctx_simp = v.ctx_simp;
     lift_bool = v.lift_bool;
-    str = v.str;
+    string_results = v.string_results;
     timeout = v.timeout;
   } : decompose_req)
 
@@ -5198,8 +5198,8 @@ let rec decode_json_decompose_req_full d =
       decompose_req_full_set_session v (Session.decode_json_session json_value)
     | ("decomp", json_value) -> 
       decompose_req_full_set_decomp v (decode_json_decompose_req_full_decomp json_value)
-    | ("str", json_value) -> 
-      decompose_req_full_set_str v (Pbrt_yojson.bool json_value "decompose_req_full" "str")
+    | ("stringResults", json_value) -> 
+      decompose_req_full_set_string_results v (Pbrt_yojson.bool json_value "decompose_req_full" "string_results")
     | ("timeout", json_value) -> 
       decompose_req_full_set_timeout v (Pbrt_yojson.int32 json_value "decompose_req_full" "timeout")
     
@@ -5209,7 +5209,7 @@ let rec decode_json_decompose_req_full d =
     _presence = v._presence;
     session = v.session;
     decomp = v.decomp;
-    str = v.str;
+    string_results = v.string_results;
     timeout = v.timeout;
   } : decompose_req_full)
 

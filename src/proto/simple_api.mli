@@ -28,7 +28,7 @@ type decompose_req = private {
   mutable prune : bool;
   mutable ctx_simp : bool;
   mutable lift_bool : lift_bool;
-  mutable str : bool;
+  mutable string_results : bool;
   mutable timeout : int32;
 }
 
@@ -91,7 +91,7 @@ type decompose_req_full = private {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
   mutable session : Session.session option;
   mutable decomp : decompose_req_full_decomp option;
-  mutable str : bool;
+  mutable string_results : bool;
   mutable timeout : int32;
 }
 
@@ -508,7 +508,7 @@ val make_decompose_req :
   ?prune:bool ->
   ?ctx_simp:bool ->
   ?lift_bool:lift_bool ->
-  ?str:bool ->
+  ?string_results:bool ->
   ?timeout:int32 ->
   unit ->
   decompose_req
@@ -555,11 +555,11 @@ val decompose_req_has_lift_bool : decompose_req -> bool
 val decompose_req_set_lift_bool : decompose_req -> lift_bool -> unit
   (** set field lift_bool in decompose_req *)
 
-val decompose_req_has_str : decompose_req -> bool
-  (** presence of field "str" in [decompose_req] *)
+val decompose_req_has_string_results : decompose_req -> bool
+  (** presence of field "string_results" in [decompose_req] *)
 
-val decompose_req_set_str : decompose_req -> bool -> unit
-  (** set field str in decompose_req *)
+val decompose_req_set_string_results : decompose_req -> bool -> unit
+  (** set field string_results in decompose_req *)
 
 val decompose_req_has_timeout : decompose_req -> bool
   (** presence of field "timeout" in [decompose_req] *)
@@ -719,7 +719,7 @@ val decompose_req_full_local_var_binding_set_d : decompose_req_full_local_var_bi
 val make_decompose_req_full : 
   ?session:Session.session ->
   ?decomp:decompose_req_full_decomp ->
-  ?str:bool ->
+  ?string_results:bool ->
   ?timeout:int32 ->
   unit ->
   decompose_req_full
@@ -733,11 +733,11 @@ val decompose_req_full_set_session : decompose_req_full -> Session.session -> un
 val decompose_req_full_set_decomp : decompose_req_full -> decompose_req_full_decomp -> unit
   (** set field decomp in decompose_req_full *)
 
-val decompose_req_full_has_str : decompose_req_full -> bool
-  (** presence of field "str" in [decompose_req_full] *)
+val decompose_req_full_has_string_results : decompose_req_full -> bool
+  (** presence of field "string_results" in [decompose_req_full] *)
 
-val decompose_req_full_set_str : decompose_req_full -> bool -> unit
-  (** set field str in decompose_req_full *)
+val decompose_req_full_set_string_results : decompose_req_full -> bool -> unit
+  (** set field string_results in decompose_req_full *)
 
 val decompose_req_full_has_timeout : decompose_req_full -> bool
   (** presence of field "timeout" in [decompose_req_full] *)

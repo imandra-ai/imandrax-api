@@ -33,15 +33,17 @@ def main():
     result = c.eval_src(src=src)
     assert result.success, f"eval_src failed: {result.errors}"
 
-    decomp_result = c.decompose(name="add_positive", prune=True, str=True, timeout=30.0)
-    assert decomp_result.HasField("artifact"), (
-        f"decompose missing artifact: {decomp_result.errors}"
+    decomp_result = c.decompose(
+        name="add_positive", prune=True, string_results=True, timeout=30.0
     )
+    assert decomp_result.HasField(
+        "artifact"
+    ), f"decompose missing artifact: {decomp_result.errors}"
 
     artifact = decomp_result.artifact
-    assert artifact.kind == "mir.fun_decomp", (
-        f"unexpected artifact kind: {artifact.kind}"
-    )
+    assert (
+        artifact.kind == "mir.fun_decomp"
+    ), f"unexpected artifact kind: {artifact.kind}"
     assert len(artifact.data) > 0, "artifact data is empty"
 
     region_strs = xtypes.get_region_str_from_decomp_artifact(

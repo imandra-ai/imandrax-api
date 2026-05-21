@@ -4,15 +4,15 @@
 
 from google.protobuf import symbol_database as _symbol_database
 
-from ..twirp.client import TwirpClient
+from ..twirp.async_client import AsyncTwirpClient
 
 _sym_db = _symbol_database.Default()
 
 
-class SystemClient(TwirpClient):
+class AsyncSystemClient(AsyncTwirpClient):
 
-	def version(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def version(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.system.System/version",
 			ctx=ctx,
 			request=request,
@@ -20,8 +20,8 @@ class SystemClient(TwirpClient):
 			**kwargs,
 		)
 
-	def gc_stats(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def gc_stats(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.system.System/gc_stats",
 			ctx=ctx,
 			request=request,
@@ -29,8 +29,8 @@ class SystemClient(TwirpClient):
 			**kwargs,
 		)
 
-	def release_memory(self, *args, ctx, request, **kwargs):
-		return self._make_request(
+	async def release_memory(self, *, ctx, request, **kwargs):
+		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.system.System/release_memory",
 			ctx=ctx,
 			request=request,

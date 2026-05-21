@@ -1,18 +1,18 @@
 # pyright: basic
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import Any, Optional
 
-import requests
+import aiohttp  # type: ignore[import-not-found]
 
 from . import api_types_version
-from ._common import mk_context, url_dev, url_prod
+from ._common import mk_context, url_prod
 from .bindings import (
     api_pb2,
-    api_twirp,
+    api_twirp_async,
     session_pb2,
     simple_api_pb2,
-    simple_api_twirp,
+    simple_api_twirp_async,
     task_pb2,
     utils_pb2,
 )
@@ -20,19 +20,13 @@ from .twirp.context import Context
 from .twirp.errors import Errors
 from .twirp.exceptions import TwirpServerException
 
-if TYPE_CHECKING:
-    from ._async import AsyncClient
 
-__all__ = ["Client", "AsyncClient", "url_dev", "url_prod"]
-
-# TODO: https://requests.readthedocs.io/en/latest/user/advanced/#example-automatic-retries (for calls that are idempotent, maybe we pass `idempotent=True` for them
-
-
-class Client:
-    _client: simple_api_twirp.SimpleClient
-    _api_client: api_twirp.EvalClient
+class AsyncClient:
+    _client: simple_api_twirp_async.AsyncSimpleClient
+    _api_client: api_twirp_async.AsyncEvalClient
     _timeout: float
     _sesh: session_pb2.Session
+    _session_id: str | None
 
     @staticmethod
     def mk_context() -> Context:
@@ -48,20 +42,21 @@ class Client:
         session_id: str | None = None,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
-        self._session = requests.Session()
+        self._session: aiohttp.ClientSession = aiohttp.ClientSession()
+        self._session_id = session_id
         self._closed = False
         self._auth_token = api_key if api_key else auth_token
         if self._auth_token:
             self._session.headers["Authorization"] = f"Bearer {auth_token}"
         self._url = url
         self._server_path_prefix = server_path_prefix
-        self._client = simple_api_twirp.SimpleClient(
+        self._client = simple_api_twirp_async.AsyncSimpleClient(
             url,
             timeout=timeout,
             server_path_prefix=server_path_prefix,
             session=self._session,
         )
-        self._api_client = api_twirp.EvalClient(
+        self._api_client = api_twirp_async.AsyncEvalClient(
             url,
             timeout=timeout,
             server_path_prefix=server_path_prefix,
@@ -69,20 +64,20 @@ class Client:
         )
         self._timeout = timeout
 
-        if session_id is None:
+    async def __aenter__(self, *_: Any) -> AsyncClient:
+        await self._session.__aenter__()
+        if self._session_id is None:
             try:
-                self._sesh = self._client.create_session(
+                session = await self._client.create_session(
                     ctx=self.mk_context(),
                     request=simple_api_pb2.SessionCreateReq(
                         api_version=api_types_version.api_types_version
                     ),
-                    timeout=timeout,
                 )
+                self._sesh = session
+                self._session_id = self._sesh.id
             except TwirpServerException as ex:
-                status_code: int | None = ex.meta.get("status_code")  # type: ignore[attr-defined]
-                if status_code and status_code == Errors.get_status_code(
-                    Errors.InvalidArgument
-                ):
+                if ex.code == Errors.InvalidArgument:
                     raise Exception(
                         "API version mismatch. Try upgrading the imandrax-api package."
                     ) from ex
@@ -91,54 +86,43 @@ class Client:
         else:
             # TODO: actually re-open session via RPC
             self._sesh = session_pb2.Session(
-                id=session_id,
+                id=self._session_id,
             )
-
-    def __enter__(self, *_: Any) -> Client:
         return self
 
-    def __exit__(self, *_: Any) -> None:
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if self._closed:
             return
         if not hasattr(self, "_sesh"):
+            await self._session.__aexit__(exc_type, exc_val, exc_tb)
+            self._closed = True
             return
         try:
-            self._client.end_session(
+            await self._client.end_session(
                 ctx=self.mk_context(), request=self._sesh, timeout=None
             )
-            self._session.close()
+            await self._session.__aexit__(exc_type, exc_val, exc_tb)
             self._closed = True
         except TwirpServerException as e:
             raise Exception("Error while ending session") from e
 
-    def __del__(self):
-        # Avoid errors during interpreter shutdown when modules may already be None
-        # Only attempt cleanup if we're not in shutdown state
-        try:
-            # Check if required modules are still available
-            if requests is not None and hasattr(self, "_session"):
-                self.__exit__()
-        except Exception:
-            # Silently ignore errors during cleanup to avoid spurious error messages
-            pass
-
-    def status(self) -> utils_pb2.StringMsg:
-        return self._client.status(
+    async def status(self) -> utils_pb2.StringMsg:
+        return await self._client.status(
             ctx=self.mk_context(),
             request=utils_pb2.Empty(),
         )
 
-    def decompose(
+    async def decompose(
         self,
         name: str,
         assuming: Optional[str] = None,
         basis: Optional[list[str]] = None,
         rule_specs: Optional[list[str]] = None,
-        prune: Optional[bool] = None,
+        prune: bool = False,
         ctx_simp: Optional[bool] = None,
         lift_bool: Optional[simple_api_pb2.LiftBool] = None,
         timeout: Optional[float] = None,
-        string_results: Optional[bool] = None,
+        str: Optional[bool] = None,
     ) -> simple_api_pb2.DecomposeRes:
         timeout = timeout or self._timeout
 
@@ -148,38 +132,42 @@ class Client:
             basis=basis,
             rule_specs=rule_specs,
             prune=prune,
-            ctx_simp=ctx_simp,
-            lift_bool=lift_bool,
-            string_results=string_results,
             session=self._sesh,
         )
+        # If None, keep it as unset
+        if ctx_simp is not None:
+            req.ctx_simp = ctx_simp
+        if lift_bool is not None:
+            req.lift_bool = lift_bool
+        if str is not None:
+            req.str = str
 
-        return self._client.decompose(
+        return await self._client.decompose(
             ctx=self.mk_context(),
             request=req,
             timeout=timeout,
         )
 
-    def eval_src(
+    async def eval_src(
         self,
         src: str,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.EvalRes:
         timeout = timeout or self._timeout
-        return self._client.eval_src(
+        return await self._client.eval_src(
             ctx=self.mk_context(),
             request=simple_api_pb2.EvalSrcReq(src=src, session=self._sesh),
             timeout=timeout,
         )
 
-    def verify_src(
+    async def verify_src(
         self,
         src: str,
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.VerifyRes:
         timeout = timeout or self._timeout
-        return self._client.verify_src(
+        return await self._client.verify_src(
             ctx=self.mk_context(),
             request=simple_api_pb2.VerifySrcReq(
                 src=src, session=self._sesh, hints=hints
@@ -187,14 +175,14 @@ class Client:
             timeout=timeout,
         )
 
-    def instance_src(
+    async def instance_src(
         self,
         src: str,
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.InstanceRes:
         timeout = timeout or self._timeout
-        return self._client.instance_src(
+        return await self._client.instance_src(
             ctx=self.mk_context(),
             request=simple_api_pb2.InstanceSrcReq(
                 src=src, session=self._sesh, hints=hints
@@ -202,106 +190,72 @@ class Client:
             timeout=timeout,
         )
 
-    def test_src(
+    async def qcheck_src(
         self,
         src: str,
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
-    ) -> simple_api_pb2.TestRes:
+    ) -> simple_api_pb2.QCheckRes:
         seed = seed or 0
         timeout = timeout or self._timeout
-        return self._client.test_src(
+        return await self._client.qcheck_src(
             ctx=self.mk_context(),
-            request=simple_api_pb2.TestSrcReq(src=src, session=self._sesh, seed=seed),
+            request=simple_api_pb2.QCheckSrcReq(src=src, session=self._sesh, seed=seed),
             timeout=timeout,
         )
 
-    def qcheck_src(
-        self,
-        src: str,
-        seed: Optional[int] = None,
-        timeout: Optional[float] = None,
-    ) -> simple_api_pb2.TestRes:
-        return self.test_src(src, seed, timeout)
-
-    def test_name(
+    async def qcheck_name(
         self,
         name: str,
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
-    ) -> simple_api_pb2.TestRes:
+    ) -> simple_api_pb2.QCheckRes:
         seed = seed or 0
         timeout = timeout or self._timeout
-        return self._client.test_name(
+        return await self._client.qcheck_name(
             ctx=self.mk_context(),
-            request=simple_api_pb2.TestNameReq(
+            request=simple_api_pb2.QCheckNameReq(
                 name=name, session=self._sesh, seed=seed
             ),
             timeout=timeout,
         )
 
-    def qcheck_name(
-        self,
-        name: str,
-        seed: Optional[int] = None,
-        timeout: Optional[float] = None,
-    ) -> simple_api_pb2.TestRes:
-        return self.test_name(name, seed, timeout)
-
-    def list_artifacts(
+    async def list_artifacts(
         self, task: task_pb2.Task, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactListResult:
         timeout = timeout or self._timeout
-        return self._api_client.list_artifacts(
+        return await self._api_client.list_artifacts(
             ctx=self.mk_context(),
             request=api_pb2.ArtifactListQuery(task_id=task.id),
             timeout=timeout,
         )
 
-    def get_artifact_zip(
+    async def get_artifact_zip(
         self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactZip:
         timeout = timeout or self._timeout
-        return self._api_client.get_artifact_zip(
+        return await self._api_client.get_artifact_zip(
             ctx=self.mk_context(),
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
             timeout=timeout,
         )
 
-    def typecheck(
+    async def typecheck(
         self, src: str, timeout: Optional[float] = None
     ) -> simple_api_pb2.TypecheckRes:
         timeout = timeout or self._timeout
-        return self._client.typecheck(
+        return await self._client.typecheck(
             ctx=self.mk_context(),
             request=simple_api_pb2.TypecheckReq(src=src, session=self._sesh),
             timeout=timeout,
         )
 
-    def get_decls(
+    async def get_decls(
         self, names: list[str], timeout: Optional[float] = None
     ) -> simple_api_pb2.GetDeclsRes:
         timeout = timeout or self._timeout
-        return self._client.get_decls(
+        return await self._client.get_decls(
             ctx=self.mk_context(),
             request=simple_api_pb2.GetDeclsReq(session=self._sesh, name=names),
             timeout=timeout,
         )
-
-
-def __getattr__(name: str) -> Any:
-    # Lazily expose ``AsyncClient`` so importing this package does not require
-    # the optional ``aiohttp`` dependency. The import raises ``ImportError``
-    # with a clear message if aiohttp is not installed.
-    #
-    # See PEP 562
-    if name == "AsyncClient":
-        try:
-            from ._async import AsyncClient
-        except ImportError as e:
-            raise ImportError(
-                "AsyncClient requires the optional 'aiohttp' dependency. "
-                "Install it with: pip install aiohttp"
-            ) from e
-        return AsyncClient
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
