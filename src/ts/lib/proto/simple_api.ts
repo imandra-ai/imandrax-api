@@ -254,6 +254,11 @@ export interface TestSrcReq {
   seed: number;
 }
 
+/**
+ * Deprecated: use TestSrcReq
+ *
+ * @deprecated
+ */
 export interface QCheckSrcReq {
   session:
     | Session
@@ -274,6 +279,7 @@ export interface TestNameReq {
   seed: number;
 }
 
+/** @deprecated */
 export interface QCheckNameReq {
   session:
     | Session
@@ -4720,7 +4726,9 @@ export interface Simple {
   verify_name(request: VerifyNameReq): Promise<VerifyRes>;
   test_src(request: TestSrcReq): Promise<TestRes>;
   test_name(request: TestNameReq): Promise<TestRes>;
+  /** @deprecated */
   qcheck_src(request: QCheckSrcReq): Promise<TestRes>;
+  /** @deprecated */
   qcheck_name(request: QCheckNameReq): Promise<TestRes>;
   instance_src(request: InstanceSrcReq): Promise<InstanceRes>;
   instance_name(request: InstanceNameReq): Promise<InstanceRes>;

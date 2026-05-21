@@ -32,9 +32,13 @@ service Simple {
 
   rpc test_name(TestNameReq) returns (TestRes);
 
-  rpc qcheck_src(QCheckSrcReq) returns (TestRes);
+  rpc qcheck_src(QCheckSrcReq) returns (TestRes) {
+    option deprecated = true; /* Deprecated: use test_src instead */
+  };
 
-  rpc qcheck_name(QCheckNameReq) returns (TestRes);
+  rpc qcheck_name(QCheckNameReq) returns (TestRes) {
+    option deprecated = true; /* Deprecated: use test_name instead */
+  };
 
   rpc instance_src(InstanceSrcReq) returns (InstanceRes);
 
@@ -245,7 +249,8 @@ message TestSrcReq {
   int64 seed = 3; // random seed
 }
 
-message QCheckSrcReq {
+message QCheckSrcReq { // Deprecated: use TestSrcReq
+  option deprecated = true;
   imandrax.session.Session session = 1;
 
   string src = 2; // source code
@@ -260,6 +265,7 @@ message TestNameReq {
 }
 
 message QCheckNameReq {
+  option deprecated = true; // Deprecated: use TestNameReq
   imandrax.session.Session session = 1;
 
   string name = 2; // name of the predicate to analyze
