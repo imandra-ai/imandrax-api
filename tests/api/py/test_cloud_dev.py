@@ -60,8 +60,6 @@ def main():
     assert x2.WhichOneof("res") == "err", f"expected err result"
     assert x2.errors[0].msg.msg.startswith("Did not find")
 
-    del c
-
     print("6. parse artifacts")
     # Extract from zip
     with zipfile.ZipFile(io.BytesIO(art_po_task.art_zip)) as zf:
@@ -80,6 +78,8 @@ def main():
     assert x4.errors == []
 
     print("PASSED")
+
+    del c
 
 
 if __name__ == "__main__":

@@ -107,24 +107,18 @@ export interface DecomposeReq {
   assuming?: string | undefined;
   basis: string[];
   ruleSpecs: string[];
-  prune: boolean;
+  prune?: boolean | undefined;
   ctxSimp?: boolean | undefined;
-  liftBool?:
-    | LiftBool
-    | undefined;
-  /** include result as string? */
-  str?: boolean | undefined;
+  liftBool?: LiftBool | undefined;
+  stringResults?: boolean | undefined;
   timeout?: number | undefined;
 }
 
 /** / More detailed decompose task */
 export interface DecomposeReqFull {
   session: Session | undefined;
-  decomp:
-    | DecomposeReqFull_Decomp
-    | undefined;
-  /** include result as string? */
-  str?: boolean | undefined;
+  decomp: DecomposeReqFull_Decomp | undefined;
+  stringResults?: boolean | undefined;
   timeout?: number | undefined;
 }
 
@@ -135,7 +129,7 @@ export interface DecomposeReqFull_ByName {
   assuming?: string | undefined;
   basis: string[];
   ruleSpecs: string[];
-  prune: boolean;
+  prune?: boolean | undefined;
   ctxSimp?: boolean | undefined;
   liftBool?: LiftBool | undefined;
 }
@@ -514,10 +508,10 @@ function createBaseDecomposeReq(): DecomposeReq {
     assuming: undefined,
     basis: [],
     ruleSpecs: [],
-    prune: false,
+    prune: undefined,
     ctxSimp: undefined,
     liftBool: undefined,
-    str: undefined,
+    stringResults: undefined,
     timeout: undefined,
   };
 }
@@ -539,7 +533,7 @@ export const DecomposeReq: MessageFns<DecomposeReq> = {
     for (const v of message.ruleSpecs) {
       writer.uint32(42).string(v!);
     }
-    if (message.prune !== false) {
+    if (message.prune !== undefined) {
       writer.uint32(48).bool(message.prune);
     }
     if (message.ctxSimp !== undefined) {
@@ -548,8 +542,8 @@ export const DecomposeReq: MessageFns<DecomposeReq> = {
     if (message.liftBool !== undefined) {
       writer.uint32(64).int32(message.liftBool);
     }
-    if (message.str !== undefined) {
-      writer.uint32(72).bool(message.str);
+    if (message.stringResults !== undefined) {
+      writer.uint32(72).bool(message.stringResults);
     }
     if (message.timeout !== undefined) {
       writer.uint32(80).int32(message.timeout);
@@ -633,7 +627,7 @@ export const DecomposeReq: MessageFns<DecomposeReq> = {
             break;
           }
 
-          message.str = reader.bool();
+          message.stringResults = reader.bool();
           continue;
         }
         case 10: {
@@ -662,10 +656,10 @@ export const DecomposeReq: MessageFns<DecomposeReq> = {
       ruleSpecs: globalThis.Array.isArray(object?.ruleSpecs)
         ? object.ruleSpecs.map((e: any) => globalThis.String(e))
         : [],
-      prune: isSet(object.prune) ? globalThis.Boolean(object.prune) : false,
+      prune: isSet(object.prune) ? globalThis.Boolean(object.prune) : undefined,
       ctxSimp: isSet(object.ctxSimp) ? globalThis.Boolean(object.ctxSimp) : undefined,
       liftBool: isSet(object.liftBool) ? liftBoolFromJSON(object.liftBool) : undefined,
-      str: isSet(object.str) ? globalThis.Boolean(object.str) : undefined,
+      stringResults: isSet(object.stringResults) ? globalThis.Boolean(object.stringResults) : undefined,
       timeout: isSet(object.timeout) ? globalThis.Number(object.timeout) : undefined,
     };
   },
@@ -687,7 +681,7 @@ export const DecomposeReq: MessageFns<DecomposeReq> = {
     if (message.ruleSpecs?.length) {
       obj.ruleSpecs = message.ruleSpecs;
     }
-    if (message.prune !== false) {
+    if (message.prune !== undefined) {
       obj.prune = message.prune;
     }
     if (message.ctxSimp !== undefined) {
@@ -696,8 +690,8 @@ export const DecomposeReq: MessageFns<DecomposeReq> = {
     if (message.liftBool !== undefined) {
       obj.liftBool = liftBoolToJSON(message.liftBool);
     }
-    if (message.str !== undefined) {
-      obj.str = message.str;
+    if (message.stringResults !== undefined) {
+      obj.stringResults = message.stringResults;
     }
     if (message.timeout !== undefined) {
       obj.timeout = Math.round(message.timeout);
@@ -717,17 +711,17 @@ export const DecomposeReq: MessageFns<DecomposeReq> = {
     message.assuming = object.assuming ?? undefined;
     message.basis = object.basis?.map((e) => e) || [];
     message.ruleSpecs = object.ruleSpecs?.map((e) => e) || [];
-    message.prune = object.prune ?? false;
+    message.prune = object.prune ?? undefined;
     message.ctxSimp = object.ctxSimp ?? undefined;
     message.liftBool = object.liftBool ?? undefined;
-    message.str = object.str ?? undefined;
+    message.stringResults = object.stringResults ?? undefined;
     message.timeout = object.timeout ?? undefined;
     return message;
   },
 };
 
 function createBaseDecomposeReqFull(): DecomposeReqFull {
-  return { session: undefined, decomp: undefined, str: undefined, timeout: undefined };
+  return { session: undefined, decomp: undefined, stringResults: undefined, timeout: undefined };
 }
 
 export const DecomposeReqFull: MessageFns<DecomposeReqFull> = {
@@ -738,8 +732,8 @@ export const DecomposeReqFull: MessageFns<DecomposeReqFull> = {
     if (message.decomp !== undefined) {
       DecomposeReqFull_Decomp.encode(message.decomp, writer.uint32(18).fork()).join();
     }
-    if (message.str !== undefined) {
-      writer.uint32(72).bool(message.str);
+    if (message.stringResults !== undefined) {
+      writer.uint32(72).bool(message.stringResults);
     }
     if (message.timeout !== undefined) {
       writer.uint32(80).int32(message.timeout);
@@ -775,7 +769,7 @@ export const DecomposeReqFull: MessageFns<DecomposeReqFull> = {
             break;
           }
 
-          message.str = reader.bool();
+          message.stringResults = reader.bool();
           continue;
         }
         case 10: {
@@ -799,7 +793,7 @@ export const DecomposeReqFull: MessageFns<DecomposeReqFull> = {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
       decomp: isSet(object.decomp) ? DecomposeReqFull_Decomp.fromJSON(object.decomp) : undefined,
-      str: isSet(object.str) ? globalThis.Boolean(object.str) : undefined,
+      stringResults: isSet(object.stringResults) ? globalThis.Boolean(object.stringResults) : undefined,
       timeout: isSet(object.timeout) ? globalThis.Number(object.timeout) : undefined,
     };
   },
@@ -812,8 +806,8 @@ export const DecomposeReqFull: MessageFns<DecomposeReqFull> = {
     if (message.decomp !== undefined) {
       obj.decomp = DecomposeReqFull_Decomp.toJSON(message.decomp);
     }
-    if (message.str !== undefined) {
-      obj.str = message.str;
+    if (message.stringResults !== undefined) {
+      obj.stringResults = message.stringResults;
     }
     if (message.timeout !== undefined) {
       obj.timeout = Math.round(message.timeout);
@@ -832,7 +826,7 @@ export const DecomposeReqFull: MessageFns<DecomposeReqFull> = {
     message.decomp = (object.decomp !== undefined && object.decomp !== null)
       ? DecomposeReqFull_Decomp.fromPartial(object.decomp)
       : undefined;
-    message.str = object.str ?? undefined;
+    message.stringResults = object.stringResults ?? undefined;
     message.timeout = object.timeout ?? undefined;
     return message;
   },
@@ -844,7 +838,7 @@ function createBaseDecomposeReqFull_ByName(): DecomposeReqFull_ByName {
     assuming: undefined,
     basis: [],
     ruleSpecs: [],
-    prune: false,
+    prune: undefined,
     ctxSimp: undefined,
     liftBool: undefined,
   };
@@ -864,7 +858,7 @@ export const DecomposeReqFull_ByName: MessageFns<DecomposeReqFull_ByName> = {
     for (const v of message.ruleSpecs) {
       writer.uint32(42).string(v!);
     }
-    if (message.prune !== false) {
+    if (message.prune !== undefined) {
       writer.uint32(48).bool(message.prune);
     }
     if (message.ctxSimp !== undefined) {
@@ -956,7 +950,7 @@ export const DecomposeReqFull_ByName: MessageFns<DecomposeReqFull_ByName> = {
       ruleSpecs: globalThis.Array.isArray(object?.ruleSpecs)
         ? object.ruleSpecs.map((e: any) => globalThis.String(e))
         : [],
-      prune: isSet(object.prune) ? globalThis.Boolean(object.prune) : false,
+      prune: isSet(object.prune) ? globalThis.Boolean(object.prune) : undefined,
       ctxSimp: isSet(object.ctxSimp) ? globalThis.Boolean(object.ctxSimp) : undefined,
       liftBool: isSet(object.liftBool) ? liftBoolFromJSON(object.liftBool) : undefined,
     };
@@ -976,7 +970,7 @@ export const DecomposeReqFull_ByName: MessageFns<DecomposeReqFull_ByName> = {
     if (message.ruleSpecs?.length) {
       obj.ruleSpecs = message.ruleSpecs;
     }
-    if (message.prune !== false) {
+    if (message.prune !== undefined) {
       obj.prune = message.prune;
     }
     if (message.ctxSimp !== undefined) {
@@ -997,7 +991,7 @@ export const DecomposeReqFull_ByName: MessageFns<DecomposeReqFull_ByName> = {
     message.assuming = object.assuming ?? undefined;
     message.basis = object.basis?.map((e) => e) || [];
     message.ruleSpecs = object.ruleSpecs?.map((e) => e) || [];
-    message.prune = object.prune ?? false;
+    message.prune = object.prune ?? undefined;
     message.ctxSimp = object.ctxSimp ?? undefined;
     message.liftBool = object.liftBool ?? undefined;
     return message;

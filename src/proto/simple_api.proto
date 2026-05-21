@@ -78,14 +78,13 @@ message DecomposeReq {
 
   repeated string rule_specs = 5;
 
-  bool prune = 6;
+  optional bool prune = 6;
 
   optional bool ctx_simp = 7;
 
   optional LiftBool lift_bool = 8;
 
-  // include result as string?
-  optional bool str = 9;
+  optional bool string_results = 9;
 
   optional int32 timeout = 10;
 }
@@ -103,7 +102,7 @@ message DecomposeReqFull {
 
     repeated string rule_specs = 5;
 
-    bool prune = 6;
+    optional bool prune = 6;
 
     optional bool ctx_simp = 7;
 
@@ -163,8 +162,7 @@ message DecomposeReqFull {
 
   Decomp decomp = 2;
 
-  // include result as string?
-  optional bool str = 9;
+  optional bool string_results = 9;
 
   optional int32 timeout = 10;
 }
