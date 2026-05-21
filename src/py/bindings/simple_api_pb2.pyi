@@ -36,7 +36,7 @@ class SessionCreateReq(_message.Message):
     def __init__(self, api_version: _Optional[str] = ...) -> None: ...
 
 class DecomposeReq(_message.Message):
-    __slots__ = ("session", "name", "assuming", "basis", "rule_specs", "prune", "ctx_simp", "lift_bool", "str", "timeout")
+    __slots__ = ("session", "name", "assuming", "basis", "rule_specs", "prune", "ctx_simp", "lift_bool", "string_results", "timeout")
     SESSION_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     ASSUMING_FIELD_NUMBER: _ClassVar[int]
@@ -45,7 +45,7 @@ class DecomposeReq(_message.Message):
     PRUNE_FIELD_NUMBER: _ClassVar[int]
     CTX_SIMP_FIELD_NUMBER: _ClassVar[int]
     LIFT_BOOL_FIELD_NUMBER: _ClassVar[int]
-    STR_FIELD_NUMBER: _ClassVar[int]
+    STRING_RESULTS_FIELD_NUMBER: _ClassVar[int]
     TIMEOUT_FIELD_NUMBER: _ClassVar[int]
     session: _session_pb2.Session
     name: str
@@ -55,12 +55,12 @@ class DecomposeReq(_message.Message):
     prune: bool
     ctx_simp: bool
     lift_bool: LiftBool
-    str: bool
+    string_results: bool
     timeout: int
-    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., assuming: _Optional[str] = ..., basis: _Optional[_Iterable[str]] = ..., rule_specs: _Optional[_Iterable[str]] = ..., prune: bool = ..., ctx_simp: bool = ..., lift_bool: _Optional[_Union[LiftBool, str]] = ..., str: bool = ..., timeout: _Optional[int] = ...) -> None: ...
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., assuming: _Optional[str] = ..., basis: _Optional[_Iterable[str]] = ..., rule_specs: _Optional[_Iterable[str]] = ..., prune: bool = ..., ctx_simp: bool = ..., lift_bool: _Optional[_Union[LiftBool, str]] = ..., string_results: bool = ..., timeout: _Optional[int] = ...) -> None: ...
 
 class DecomposeReqFull(_message.Message):
-    __slots__ = ("session", "decomp", "str", "timeout")
+    __slots__ = ("session", "decomp", "string_results", "timeout")
     class ByName(_message.Message):
         __slots__ = ("name", "assuming", "basis", "rule_specs", "prune", "ctx_simp", "lift_bool")
         NAME_FIELD_NUMBER: _ClassVar[int]
@@ -142,13 +142,13 @@ class DecomposeReqFull(_message.Message):
         def __init__(self, from_artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ..., by_name: _Optional[_Union[DecomposeReqFull.ByName, _Mapping]] = ..., merge: _Optional[_Union[DecomposeReqFull.Merge, _Mapping]] = ..., compound_merge: _Optional[_Union[DecomposeReqFull.CompoundMerge, _Mapping]] = ..., prune: _Optional[_Union[DecomposeReqFull.Prune, _Mapping]] = ..., combine: _Optional[_Union[DecomposeReqFull.Combine, _Mapping]] = ..., get: _Optional[_Union[DecomposeReqFull.LocalVarGet, _Mapping]] = ..., set: _Optional[_Union[DecomposeReqFull.LocalVarLet, _Mapping]] = ...) -> None: ...
     SESSION_FIELD_NUMBER: _ClassVar[int]
     DECOMP_FIELD_NUMBER: _ClassVar[int]
-    STR_FIELD_NUMBER: _ClassVar[int]
+    STRING_RESULTS_FIELD_NUMBER: _ClassVar[int]
     TIMEOUT_FIELD_NUMBER: _ClassVar[int]
     session: _session_pb2.Session
     decomp: DecomposeReqFull.Decomp
-    str: bool
+    string_results: bool
     timeout: int
-    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., decomp: _Optional[_Union[DecomposeReqFull.Decomp, _Mapping]] = ..., str: bool = ..., timeout: _Optional[int] = ...) -> None: ...
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., decomp: _Optional[_Union[DecomposeReqFull.Decomp, _Mapping]] = ..., string_results: bool = ..., timeout: _Optional[int] = ...) -> None: ...
 
 class DecomposeRes(_message.Message):
     __slots__ = ("artifact", "err", "errors", "task")
@@ -220,6 +220,16 @@ class VerifyNameReq(_message.Message):
     hints: str
     def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., hints: _Optional[str] = ...) -> None: ...
 
+class TestSrcReq(_message.Message):
+    __slots__ = ("session", "src", "seed")
+    SESSION_FIELD_NUMBER: _ClassVar[int]
+    SRC_FIELD_NUMBER: _ClassVar[int]
+    SEED_FIELD_NUMBER: _ClassVar[int]
+    session: _session_pb2.Session
+    src: str
+    seed: int
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., src: _Optional[str] = ..., seed: _Optional[int] = ...) -> None: ...
+
 class QCheckSrcReq(_message.Message):
     __slots__ = ("session", "src", "seed")
     SESSION_FIELD_NUMBER: _ClassVar[int]
@@ -229,6 +239,16 @@ class QCheckSrcReq(_message.Message):
     src: str
     seed: int
     def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., src: _Optional[str] = ..., seed: _Optional[int] = ...) -> None: ...
+
+class TestNameReq(_message.Message):
+    __slots__ = ("session", "name", "seed")
+    SESSION_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    SEED_FIELD_NUMBER: _ClassVar[int]
+    session: _session_pb2.Session
+    name: str
+    seed: int
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., name: _Optional[str] = ..., seed: _Optional[int] = ...) -> None: ...
 
 class QCheckNameReq(_message.Message):
     __slots__ = ("session", "name", "seed")
@@ -272,13 +292,9 @@ class Verified_upto(_message.Message):
     msg: str
     def __init__(self, msg: _Optional[str] = ...) -> None: ...
 
-class Qcheck_ok(_message.Message):
-    __slots__ = ("num_steps", "seed")
-    NUM_STEPS_FIELD_NUMBER: _ClassVar[int]
-    SEED_FIELD_NUMBER: _ClassVar[int]
-    num_steps: int
-    seed: int
-    def __init__(self, num_steps: _Optional[int] = ..., seed: _Optional[int] = ...) -> None: ...
+class Test_ok(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
 
 class Unsat(_message.Message):
     __slots__ = ("proof_pp",)
@@ -315,13 +331,13 @@ class CounterSat(_message.Message):
     def __init__(self, model: _Optional[_Union[Model, _Mapping]] = ...) -> None: ...
 
 class PO_Res(_message.Message):
-    __slots__ = ("unknown", "err", "proof", "instance", "verified_upto", "qcheck_ok", "errors", "task", "origin")
+    __slots__ = ("unknown", "err", "proof", "instance", "verified_upto", "test_ok", "errors", "task", "origin")
     UNKNOWN_FIELD_NUMBER: _ClassVar[int]
     ERR_FIELD_NUMBER: _ClassVar[int]
     PROOF_FIELD_NUMBER: _ClassVar[int]
     INSTANCE_FIELD_NUMBER: _ClassVar[int]
     VERIFIED_UPTO_FIELD_NUMBER: _ClassVar[int]
-    QCHECK_OK_FIELD_NUMBER: _ClassVar[int]
+    TEST_OK_FIELD_NUMBER: _ClassVar[int]
     ERRORS_FIELD_NUMBER: _ClassVar[int]
     TASK_FIELD_NUMBER: _ClassVar[int]
     ORIGIN_FIELD_NUMBER: _ClassVar[int]
@@ -330,11 +346,11 @@ class PO_Res(_message.Message):
     proof: Proved
     instance: CounterSat
     verified_upto: Verified_upto
-    qcheck_ok: Qcheck_ok
+    test_ok: Test_ok
     errors: _containers.RepeatedCompositeFieldContainer[_error_pb2.Error]
     task: _task_pb2.Task
     origin: _task_pb2.Origin
-    def __init__(self, unknown: _Optional[_Union[_utils_pb2.StringMsg, _Mapping]] = ..., err: _Optional[_Union[_utils_pb2.Empty, _Mapping]] = ..., proof: _Optional[_Union[Proved, _Mapping]] = ..., instance: _Optional[_Union[CounterSat, _Mapping]] = ..., verified_upto: _Optional[_Union[Verified_upto, _Mapping]] = ..., qcheck_ok: _Optional[_Union[Qcheck_ok, _Mapping]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., task: _Optional[_Union[_task_pb2.Task, _Mapping]] = ..., origin: _Optional[_Union[_task_pb2.Origin, _Mapping]] = ...) -> None: ...
+    def __init__(self, unknown: _Optional[_Union[_utils_pb2.StringMsg, _Mapping]] = ..., err: _Optional[_Union[_utils_pb2.Empty, _Mapping]] = ..., proof: _Optional[_Union[Proved, _Mapping]] = ..., instance: _Optional[_Union[CounterSat, _Mapping]] = ..., verified_upto: _Optional[_Union[Verified_upto, _Mapping]] = ..., test_ok: _Optional[_Union[Test_ok, _Mapping]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., task: _Optional[_Union[_task_pb2.Task, _Mapping]] = ..., origin: _Optional[_Union[_task_pb2.Origin, _Mapping]] = ...) -> None: ...
 
 class VerifyRes(_message.Message):
     __slots__ = ("unknown", "err", "proved", "refuted", "verified_upto", "errors", "task")
@@ -354,7 +370,7 @@ class VerifyRes(_message.Message):
     task: _task_pb2.Task
     def __init__(self, unknown: _Optional[_Union[_utils_pb2.StringMsg, _Mapping]] = ..., err: _Optional[_Union[_utils_pb2.Empty, _Mapping]] = ..., proved: _Optional[_Union[Proved, _Mapping]] = ..., refuted: _Optional[_Union[Refuted, _Mapping]] = ..., verified_upto: _Optional[_Union[Verified_upto, _Mapping]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., task: _Optional[_Union[_task_pb2.Task, _Mapping]] = ...) -> None: ...
 
-class QCheckRes(_message.Message):
+class TestRes(_message.Message):
     __slots__ = ("err", "counter_example", "errors", "task")
     ERR_FIELD_NUMBER: _ClassVar[int]
     COUNTER_EXAMPLE_FIELD_NUMBER: _ClassVar[int]

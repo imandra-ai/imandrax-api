@@ -28,9 +28,17 @@ service Simple {
 
   rpc verify_name(VerifyNameReq) returns (VerifyRes);
 
-  rpc qcheck_src(QCheckSrcReq) returns (QCheckRes);
+  rpc test_src(TestSrcReq) returns (TestRes);
 
-  rpc qcheck_name(QCheckNameReq) returns (QCheckRes);
+  rpc test_name(TestNameReq) returns (TestRes);
+
+  rpc qcheck_src(QCheckSrcReq) returns (TestRes) {
+    option deprecated = true; /* Deprecated: use test_src instead */
+  };
+
+  rpc qcheck_name(QCheckNameReq) returns (TestRes) {
+    option deprecated = true; /* Deprecated: use test_name instead */
+  };
 
   rpc instance_src(InstanceSrcReq) returns (InstanceRes);
 
@@ -74,14 +82,13 @@ message DecomposeReq {
 
   repeated string rule_specs = 5;
 
-  bool prune = 6;
+  optional bool prune = 6;
 
   optional bool ctx_simp = 7;
 
   optional LiftBool lift_bool = 8;
 
-  // include result as string?
-  optional bool str = 9;
+  optional bool string_results = 9;
 
   optional int32 timeout = 10;
 }
@@ -99,7 +106,7 @@ message DecomposeReqFull {
 
     repeated string rule_specs = 5;
 
-    bool prune = 6;
+    optional bool prune = 6;
 
     optional bool ctx_simp = 7;
 
@@ -159,8 +166,7 @@ message DecomposeReqFull {
 
   Decomp decomp = 2;
 
-  // include result as string?
-  optional bool str = 9;
+  optional bool string_results = 9;
 
   optional int32 timeout = 10;
 }
@@ -236,14 +242,30 @@ message VerifyNameReq {
   optional string hints = 10;
 }
 
-message QCheckSrcReq {
+message TestSrcReq {
   imandrax.session.Session session = 1;
 
   string src = 2; // source code
   int64 seed = 3; // random seed
 }
 
+message QCheckSrcReq { // Deprecated: use TestSrcReq
+  option deprecated = true;
+  imandrax.session.Session session = 1;
+
+  string src = 2; // source code
+  int64 seed = 3; // random seed
+}
+
+message TestNameReq {
+  imandrax.session.Session session = 1;
+
+  string name = 2; // name of the predicate to analyze
+  int64 seed = 3;  // random seed
+}
+
 message QCheckNameReq {
+  option deprecated = true; // Deprecated: use TestNameReq
   imandrax.session.Session session = 1;
 
   string name = 2; // name of the predicate to analyze
@@ -270,18 +292,11 @@ message InstanceNameReq {
 
 message Proved { optional string proof_pp = 1; }
 
-message Verified_upto {
-  optional string msg = 1;
-}
+message Verified_upto { optional string msg = 1; }
 
-message Qcheck_ok {
-  int64 num_steps = 1;
-  int64 seed = 2;
-}
+message Test_ok {}
 
-message Unsat {
-  optional string proof_pp = 1;
-}
+message Unsat { optional string proof_pp = 1; }
 
 enum ModelType {
   Counter_example = 0;
@@ -312,7 +327,7 @@ message PO_Res {
     Proved proof = 3;
     CounterSat instance = 4;
     Verified_upto verified_upto = 5;
-    Qcheck_ok qcheck_ok = 6;
+    Test_ok test_ok = 6;
   }
 
   repeated Error errors = 10;
@@ -339,7 +354,7 @@ message VerifyRes {
   imandrax.task.Task task = 11;
 }
 
-message QCheckRes {
+message TestRes {
   oneof res {
     Empty err = 1;
     CounterSat counter_example = 2;

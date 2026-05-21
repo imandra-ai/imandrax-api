@@ -1,7 +1,7 @@
 type kind =
   | K_verify
   | K_instance
-  | K_quickcheck
+  | K_test
 [@@deriving show { with_path = false }, eq, ord, enum, twine, typereg]
 
 type ('term, 'ty) t_poly = {

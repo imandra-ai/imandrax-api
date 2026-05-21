@@ -24,7 +24,7 @@ pub type UidSet<'a> = [Uid<'a>];
 pub type Var_set<'a> = UidSet<'a>;
 
 // def Uid_set_of_twine(d, off:int) -> UidSet:
-//      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off)) 
+//      return set(Uid_of_twine(d,off=x) for x in d.get_array(off=off))
 
 
 // clique Imandrakit_error.Kind.t
@@ -210,11 +210,11 @@ pub struct Sub_anchor<'a> {
 }
 
 
-// clique Imandrax_api.Stat_time.t
-// immediate
+// clique Imandrax_api.Statistics.t
 #[derive(Debug, Clone, FromTwine)]
-pub struct Stat_time {
+pub struct Statistics<'a> {
   pub time_s: f64,
+  pub tactic: Option<&'a [(&'a str,&'a str)]>,
 }
 
 
@@ -375,7 +375,7 @@ pub struct CommonFun_defT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 pub enum CommonVerifyKind {
   K_verify,
   K_instance,
-  K_quickcheck,
+  K_test,
 }
 
 // clique Imandrax_api_common.Verify.t_poly
@@ -486,7 +486,7 @@ pub enum CommonTacticT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
     max_steps: BigInt,
     upto: Option<Upto>,
   },
-  Default_quickcheck {
+  Default_test {
     num_steps: Option<BigInt>,
     seed: Option<BigInt>,
   },
@@ -1082,8 +1082,6 @@ pub struct TasksPO_taskT_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 
 // clique 
 
-// clique 
-
 // clique Imandrax_api_tasks.PO_res.sub_res
 #[derive(Debug, Clone, FromTwine)]
 pub struct TasksPO_resSub_res<'a,V_tyreg_poly_term:'a> {
@@ -1145,10 +1143,7 @@ pub enum TasksPO_resSuccess<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   Proof(&'a TasksPO_resProof_found<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Instance(&'a TasksPO_resInstance<'a,V_tyreg_poly_term,V_tyreg_poly_ty>),
   Verified_upto(&'a TasksPO_resVerified_upto<'a>),
-  Qcheck_ok {
-    num_steps: BigInt,
-    seed: i64,
-  },
+  Test_ok,
 }
 
 // clique Imandrax_api_tasks.PO_res.error
@@ -1167,7 +1162,7 @@ pub enum TasksPO_resError<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 pub struct TasksPO_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_: &'a Ca_storeCa_ptrRaw<'a>,
   pub res: &'a core::result::Result<&'a TasksPO_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksPO_resError<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
-  pub stats: Stat_time,
+  pub stats: &'a Statistics<'a>,
   pub report: &'a In_mem_archiveRaw<'a>,
   pub sub_res: &'a [&'a [&'a TasksPO_resSub_res<'a,V_tyreg_poly_term>]],
 }
@@ -1178,7 +1173,7 @@ pub struct TasksPO_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
 pub struct TasksPO_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_: &'a CommonProof_obligationT_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub res: &'a core::result::Result<&'a TasksPO_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksPO_resError<'a,V_tyreg_poly_term,V_tyreg_poly_ty>>,
-  pub stats: Stat_time,
+  pub stats: &'a Statistics<'a>,
   pub report: &'a In_mem_archiveRaw<'a>,
   pub sub_res: &'a [&'a [&'a TasksPO_resSub_res<'a,V_tyreg_poly_term>]],
 }
@@ -1278,7 +1273,7 @@ pub enum TasksDecomp_resError<'a> {
 pub struct TasksDecomp_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_: &'a Ca_storeCa_ptrRaw<'a>,
   pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksDecomp_resError<'a>>,
-  pub stats: Stat_time,
+  pub stats: &'a Statistics<'a>,
   pub report: &'a In_mem_archiveRaw<'a>,
 }
 
@@ -1288,7 +1283,7 @@ pub struct TasksDecomp_resShallow_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'
 pub struct TasksDecomp_resFull_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
   pub from_: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
   pub res: &'a core::result::Result<&'a TasksDecomp_resSuccess<'a,V_tyreg_poly_term,V_tyreg_poly_ty>, &'a TasksDecomp_resError<'a>>,
-  pub stats: Stat_time,
+  pub stats: &'a Statistics<'a>,
   pub report: &'a In_mem_archiveRaw<'a>,
 }
 

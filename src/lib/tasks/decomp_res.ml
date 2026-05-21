@@ -15,7 +15,7 @@ type ('term, 'ty) shallow_poly = {
     (('term, 'ty) Decomp_task.decomp_poly Imandrax_api_ca_store.Ca_ptr.t
     [@printer Imandrax_api_ca_store.Ca_ptr.pp]);
   res: ('term, 'ty) success result;
-  stats: Imandrax_api.Stat_time.t;
+  stats: Imandrax_api.Statistics.t;
   report:
     (Imandrax_api_report.Report.t Imandrax_api.In_mem_archive.t
     [@twine.encode In_mem_archive.to_twine]
@@ -29,7 +29,7 @@ type ('term, 'ty) shallow_poly = {
 type ('term, 'ty) full_poly = {
   from: ('term, 'ty) Decomp_task.decomp_poly;
   res: ('term, 'ty) success result;
-  stats: Imandrax_api.Stat_time.t;
+  stats: Imandrax_api.Statistics.t;
   report:
     (Imandrax_api_report.Report.t Imandrax_api.In_mem_archive.t
     [@twine.encode In_mem_archive.to_twine]

@@ -28,7 +28,7 @@ type decompose_req = private {
   mutable prune : bool;
   mutable ctx_simp : bool;
   mutable lift_bool : lift_bool;
-  mutable str : bool;
+  mutable string_results : bool;
   mutable timeout : int32;
 }
 
@@ -91,7 +91,7 @@ type decompose_req_full = private {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
   mutable session : Session.session option;
   mutable decomp : decompose_req_full_decomp option;
-  mutable str : bool;
+  mutable string_results : bool;
   mutable timeout : int32;
 }
 
@@ -144,11 +144,7 @@ type verified_upto = private {
   mutable msg : string;
 }
 
-type qcheck_ok = private {
-  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
-  mutable num_steps : int64;
-  mutable seed : int64;
-}
+type test_ok = unit
 
 type po_res_res =
   | Unknown of Utils.string_msg
@@ -156,7 +152,7 @@ type po_res_res =
   | Proof of proved
   | Instance of counter_sat
   | Verified_upto of verified_upto
-  | Qcheck_ok of qcheck_ok
+  | Test_ok
 
 and po_res = private {
   mutable res : po_res_res option;
@@ -190,10 +186,24 @@ type verify_name_req = private {
   mutable hints : string;
 }
 
+type test_src_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable src : string;
+  mutable seed : int64;
+}
+
 type qcheck_src_req = private {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
   mutable session : Session.session option;
   mutable src : string;
+  mutable seed : int64;
+}
+
+type test_name_req = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable session : Session.session option;
+  mutable name : string;
   mutable seed : int64;
 }
 
@@ -244,12 +254,12 @@ and verify_res = private {
   mutable task : Task.task option;
 }
 
-type qcheck_res_res =
+type test_res_res =
   | Err
   | Counter_example of counter_sat
 
-and qcheck_res = private {
-  mutable res : qcheck_res_res option;
+and test_res = private {
+  mutable res : test_res_res option;
   mutable errors : Error.error list;
   mutable task : Task.task option;
 }
@@ -385,8 +395,8 @@ val default_counter_sat : unit -> counter_sat
 val default_verified_upto : unit -> verified_upto 
 (** [default_verified_upto ()] is a new empty value for type [verified_upto] *)
 
-val default_qcheck_ok : unit -> qcheck_ok 
-(** [default_qcheck_ok ()] is a new empty value for type [qcheck_ok] *)
+val default_test_ok : unit
+(** [default_test_ok] is the default value for type [test_ok] *)
 
 val default_po_res_res : unit -> po_res_res
 (** [default_po_res_res ()] is a new empty value for type [po_res_res] *)
@@ -403,8 +413,14 @@ val default_verify_src_req : unit -> verify_src_req
 val default_verify_name_req : unit -> verify_name_req 
 (** [default_verify_name_req ()] is a new empty value for type [verify_name_req] *)
 
+val default_test_src_req : unit -> test_src_req 
+(** [default_test_src_req ()] is a new empty value for type [test_src_req] *)
+
 val default_qcheck_src_req : unit -> qcheck_src_req 
 (** [default_qcheck_src_req ()] is a new empty value for type [qcheck_src_req] *)
+
+val default_test_name_req : unit -> test_name_req 
+(** [default_test_name_req ()] is a new empty value for type [test_name_req] *)
 
 val default_qcheck_name_req : unit -> qcheck_name_req 
 (** [default_qcheck_name_req ()] is a new empty value for type [qcheck_name_req] *)
@@ -430,11 +446,11 @@ val default_verify_res_res : unit -> verify_res_res
 val default_verify_res : unit -> verify_res 
 (** [default_verify_res ()] is a new empty value for type [verify_res] *)
 
-val default_qcheck_res_res : unit -> qcheck_res_res
-(** [default_qcheck_res_res ()] is a new empty value for type [qcheck_res_res] *)
+val default_test_res_res : unit -> test_res_res
+(** [default_test_res_res ()] is a new empty value for type [test_res_res] *)
 
-val default_qcheck_res : unit -> qcheck_res 
-(** [default_qcheck_res ()] is a new empty value for type [qcheck_res] *)
+val default_test_res : unit -> test_res 
+(** [default_test_res ()] is a new empty value for type [test_res] *)
 
 val default_instance_res_res : unit -> instance_res_res
 (** [default_instance_res_res ()] is a new empty value for type [instance_res_res] *)
@@ -492,7 +508,7 @@ val make_decompose_req :
   ?prune:bool ->
   ?ctx_simp:bool ->
   ?lift_bool:lift_bool ->
-  ?str:bool ->
+  ?string_results:bool ->
   ?timeout:int32 ->
   unit ->
   decompose_req
@@ -539,11 +555,11 @@ val decompose_req_has_lift_bool : decompose_req -> bool
 val decompose_req_set_lift_bool : decompose_req -> lift_bool -> unit
   (** set field lift_bool in decompose_req *)
 
-val decompose_req_has_str : decompose_req -> bool
-  (** presence of field "str" in [decompose_req] *)
+val decompose_req_has_string_results : decompose_req -> bool
+  (** presence of field "string_results" in [decompose_req] *)
 
-val decompose_req_set_str : decompose_req -> bool -> unit
-  (** set field str in decompose_req *)
+val decompose_req_set_string_results : decompose_req -> bool -> unit
+  (** set field string_results in decompose_req *)
 
 val decompose_req_has_timeout : decompose_req -> bool
   (** presence of field "timeout" in [decompose_req] *)
@@ -703,7 +719,7 @@ val decompose_req_full_local_var_binding_set_d : decompose_req_full_local_var_bi
 val make_decompose_req_full : 
   ?session:Session.session ->
   ?decomp:decompose_req_full_decomp ->
-  ?str:bool ->
+  ?string_results:bool ->
   ?timeout:int32 ->
   unit ->
   decompose_req_full
@@ -717,11 +733,11 @@ val decompose_req_full_set_session : decompose_req_full -> Session.session -> un
 val decompose_req_full_set_decomp : decompose_req_full -> decompose_req_full_decomp -> unit
   (** set field decomp in decompose_req_full *)
 
-val decompose_req_full_has_str : decompose_req_full -> bool
-  (** presence of field "str" in [decompose_req_full] *)
+val decompose_req_full_has_string_results : decompose_req_full -> bool
+  (** presence of field "string_results" in [decompose_req_full] *)
 
-val decompose_req_full_set_str : decompose_req_full -> bool -> unit
-  (** set field str in decompose_req_full *)
+val decompose_req_full_set_string_results : decompose_req_full -> bool -> unit
+  (** set field string_results in decompose_req_full *)
 
 val decompose_req_full_has_timeout : decompose_req_full -> bool
   (** presence of field "timeout" in [decompose_req_full] *)
@@ -862,27 +878,6 @@ val verified_upto_has_msg : verified_upto -> bool
 val verified_upto_set_msg : verified_upto -> string -> unit
   (** set field msg in verified_upto *)
 
-val make_qcheck_ok : 
-  ?num_steps:int64 ->
-  ?seed:int64 ->
-  unit ->
-  qcheck_ok
-(** [make_qcheck_ok … ()] is a builder for type [qcheck_ok] *)
-
-val copy_qcheck_ok : qcheck_ok -> qcheck_ok
-
-val qcheck_ok_has_num_steps : qcheck_ok -> bool
-  (** presence of field "num_steps" in [qcheck_ok] *)
-
-val qcheck_ok_set_num_steps : qcheck_ok -> int64 -> unit
-  (** set field num_steps in qcheck_ok *)
-
-val qcheck_ok_has_seed : qcheck_ok -> bool
-  (** presence of field "seed" in [qcheck_ok] *)
-
-val qcheck_ok_set_seed : qcheck_ok -> int64 -> unit
-  (** set field seed in qcheck_ok *)
-
 val make_po_res : 
   ?res:po_res_res ->
   ?errors:Error.error list ->
@@ -994,6 +989,31 @@ val verify_name_req_has_hints : verify_name_req -> bool
 val verify_name_req_set_hints : verify_name_req -> string -> unit
   (** set field hints in verify_name_req *)
 
+val make_test_src_req : 
+  ?session:Session.session ->
+  ?src:string ->
+  ?seed:int64 ->
+  unit ->
+  test_src_req
+(** [make_test_src_req … ()] is a builder for type [test_src_req] *)
+
+val copy_test_src_req : test_src_req -> test_src_req
+
+val test_src_req_set_session : test_src_req -> Session.session -> unit
+  (** set field session in test_src_req *)
+
+val test_src_req_has_src : test_src_req -> bool
+  (** presence of field "src" in [test_src_req] *)
+
+val test_src_req_set_src : test_src_req -> string -> unit
+  (** set field src in test_src_req *)
+
+val test_src_req_has_seed : test_src_req -> bool
+  (** presence of field "seed" in [test_src_req] *)
+
+val test_src_req_set_seed : test_src_req -> int64 -> unit
+  (** set field seed in test_src_req *)
+
 val make_qcheck_src_req : 
   ?session:Session.session ->
   ?src:string ->
@@ -1018,6 +1038,31 @@ val qcheck_src_req_has_seed : qcheck_src_req -> bool
 
 val qcheck_src_req_set_seed : qcheck_src_req -> int64 -> unit
   (** set field seed in qcheck_src_req *)
+
+val make_test_name_req : 
+  ?session:Session.session ->
+  ?name:string ->
+  ?seed:int64 ->
+  unit ->
+  test_name_req
+(** [make_test_name_req … ()] is a builder for type [test_name_req] *)
+
+val copy_test_name_req : test_name_req -> test_name_req
+
+val test_name_req_set_session : test_name_req -> Session.session -> unit
+  (** set field session in test_name_req *)
+
+val test_name_req_has_name : test_name_req -> bool
+  (** presence of field "name" in [test_name_req] *)
+
+val test_name_req_set_name : test_name_req -> string -> unit
+  (** set field name in test_name_req *)
+
+val test_name_req_has_seed : test_name_req -> bool
+  (** presence of field "seed" in [test_name_req] *)
+
+val test_name_req_set_seed : test_name_req -> int64 -> unit
+  (** set field seed in test_name_req *)
 
 val make_qcheck_name_req : 
   ?session:Session.session ->
@@ -1149,24 +1194,24 @@ val verify_res_set_errors : verify_res -> Error.error list -> unit
 val verify_res_set_task : verify_res -> Task.task -> unit
   (** set field task in verify_res *)
 
-val make_qcheck_res : 
-  ?res:qcheck_res_res ->
+val make_test_res : 
+  ?res:test_res_res ->
   ?errors:Error.error list ->
   ?task:Task.task ->
   unit ->
-  qcheck_res
-(** [make_qcheck_res … ()] is a builder for type [qcheck_res] *)
+  test_res
+(** [make_test_res … ()] is a builder for type [test_res] *)
 
-val copy_qcheck_res : qcheck_res -> qcheck_res
+val copy_test_res : test_res -> test_res
 
-val qcheck_res_set_res : qcheck_res -> qcheck_res_res -> unit
-  (** set field res in qcheck_res *)
+val test_res_set_res : test_res -> test_res_res -> unit
+  (** set field res in test_res *)
 
-val qcheck_res_set_errors : qcheck_res -> Error.error list -> unit
-  (** set field errors in qcheck_res *)
+val test_res_set_errors : test_res -> Error.error list -> unit
+  (** set field errors in test_res *)
 
-val qcheck_res_set_task : qcheck_res -> Task.task -> unit
-  (** set field task in qcheck_res *)
+val test_res_set_task : test_res -> Task.task -> unit
+  (** set field task in test_res *)
 
 val make_instance_res : 
   ?res:instance_res_res ->
@@ -1419,8 +1464,8 @@ val pp_counter_sat : Format.formatter -> counter_sat -> unit
 val pp_verified_upto : Format.formatter -> verified_upto -> unit 
 (** [pp_verified_upto v] formats v *)
 
-val pp_qcheck_ok : Format.formatter -> qcheck_ok -> unit 
-(** [pp_qcheck_ok v] formats v *)
+val pp_test_ok : Format.formatter -> test_ok -> unit 
+(** [pp_test_ok v] formats v *)
 
 val pp_po_res_res : Format.formatter -> po_res_res -> unit 
 (** [pp_po_res_res v] formats v *)
@@ -1437,8 +1482,14 @@ val pp_verify_src_req : Format.formatter -> verify_src_req -> unit
 val pp_verify_name_req : Format.formatter -> verify_name_req -> unit 
 (** [pp_verify_name_req v] formats v *)
 
+val pp_test_src_req : Format.formatter -> test_src_req -> unit 
+(** [pp_test_src_req v] formats v *)
+
 val pp_qcheck_src_req : Format.formatter -> qcheck_src_req -> unit 
 (** [pp_qcheck_src_req v] formats v *)
+
+val pp_test_name_req : Format.formatter -> test_name_req -> unit 
+(** [pp_test_name_req v] formats v *)
 
 val pp_qcheck_name_req : Format.formatter -> qcheck_name_req -> unit 
 (** [pp_qcheck_name_req v] formats v *)
@@ -1464,11 +1515,11 @@ val pp_verify_res_res : Format.formatter -> verify_res_res -> unit
 val pp_verify_res : Format.formatter -> verify_res -> unit 
 (** [pp_verify_res v] formats v *)
 
-val pp_qcheck_res_res : Format.formatter -> qcheck_res_res -> unit 
-(** [pp_qcheck_res_res v] formats v *)
+val pp_test_res_res : Format.formatter -> test_res_res -> unit 
+(** [pp_test_res_res v] formats v *)
 
-val pp_qcheck_res : Format.formatter -> qcheck_res -> unit 
-(** [pp_qcheck_res v] formats v *)
+val pp_test_res : Format.formatter -> test_res -> unit 
+(** [pp_test_res v] formats v *)
 
 val pp_instance_res_res : Format.formatter -> instance_res_res -> unit 
 (** [pp_instance_res_res v] formats v *)
@@ -1569,8 +1620,8 @@ val encode_pb_counter_sat : counter_sat -> Pbrt.Encoder.t -> unit
 val encode_pb_verified_upto : verified_upto -> Pbrt.Encoder.t -> unit
 (** [encode_pb_verified_upto v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_qcheck_ok : qcheck_ok -> Pbrt.Encoder.t -> unit
-(** [encode_pb_qcheck_ok v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_test_ok : test_ok -> Pbrt.Encoder.t -> unit
+(** [encode_pb_test_ok v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_po_res_res : po_res_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_po_res_res v encoder] encodes [v] with the given [encoder] *)
@@ -1587,8 +1638,14 @@ val encode_pb_verify_src_req : verify_src_req -> Pbrt.Encoder.t -> unit
 val encode_pb_verify_name_req : verify_name_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_verify_name_req v encoder] encodes [v] with the given [encoder] *)
 
+val encode_pb_test_src_req : test_src_req -> Pbrt.Encoder.t -> unit
+(** [encode_pb_test_src_req v encoder] encodes [v] with the given [encoder] *)
+
 val encode_pb_qcheck_src_req : qcheck_src_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_qcheck_src_req v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_test_name_req : test_name_req -> Pbrt.Encoder.t -> unit
+(** [encode_pb_test_name_req v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_qcheck_name_req : qcheck_name_req -> Pbrt.Encoder.t -> unit
 (** [encode_pb_qcheck_name_req v encoder] encodes [v] with the given [encoder] *)
@@ -1614,11 +1671,11 @@ val encode_pb_verify_res_res : verify_res_res -> Pbrt.Encoder.t -> unit
 val encode_pb_verify_res : verify_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_verify_res v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_qcheck_res_res : qcheck_res_res -> Pbrt.Encoder.t -> unit
-(** [encode_pb_qcheck_res_res v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_test_res_res : test_res_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_test_res_res v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_qcheck_res : qcheck_res -> Pbrt.Encoder.t -> unit
-(** [encode_pb_qcheck_res v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_test_res : test_res -> Pbrt.Encoder.t -> unit
+(** [encode_pb_test_res v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_instance_res_res : instance_res_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_instance_res_res v encoder] encodes [v] with the given [encoder] *)
@@ -1719,8 +1776,8 @@ val decode_pb_counter_sat : Pbrt.Decoder.t -> counter_sat
 val decode_pb_verified_upto : Pbrt.Decoder.t -> verified_upto
 (** [decode_pb_verified_upto decoder] decodes a [verified_upto] binary value from [decoder] *)
 
-val decode_pb_qcheck_ok : Pbrt.Decoder.t -> qcheck_ok
-(** [decode_pb_qcheck_ok decoder] decodes a [qcheck_ok] binary value from [decoder] *)
+val decode_pb_test_ok : Pbrt.Decoder.t -> test_ok
+(** [decode_pb_test_ok decoder] decodes a [test_ok] binary value from [decoder] *)
 
 val decode_pb_po_res_res : Pbrt.Decoder.t -> po_res_res
 (** [decode_pb_po_res_res decoder] decodes a [po_res_res] binary value from [decoder] *)
@@ -1737,8 +1794,14 @@ val decode_pb_verify_src_req : Pbrt.Decoder.t -> verify_src_req
 val decode_pb_verify_name_req : Pbrt.Decoder.t -> verify_name_req
 (** [decode_pb_verify_name_req decoder] decodes a [verify_name_req] binary value from [decoder] *)
 
+val decode_pb_test_src_req : Pbrt.Decoder.t -> test_src_req
+(** [decode_pb_test_src_req decoder] decodes a [test_src_req] binary value from [decoder] *)
+
 val decode_pb_qcheck_src_req : Pbrt.Decoder.t -> qcheck_src_req
 (** [decode_pb_qcheck_src_req decoder] decodes a [qcheck_src_req] binary value from [decoder] *)
+
+val decode_pb_test_name_req : Pbrt.Decoder.t -> test_name_req
+(** [decode_pb_test_name_req decoder] decodes a [test_name_req] binary value from [decoder] *)
 
 val decode_pb_qcheck_name_req : Pbrt.Decoder.t -> qcheck_name_req
 (** [decode_pb_qcheck_name_req decoder] decodes a [qcheck_name_req] binary value from [decoder] *)
@@ -1764,11 +1827,11 @@ val decode_pb_verify_res_res : Pbrt.Decoder.t -> verify_res_res
 val decode_pb_verify_res : Pbrt.Decoder.t -> verify_res
 (** [decode_pb_verify_res decoder] decodes a [verify_res] binary value from [decoder] *)
 
-val decode_pb_qcheck_res_res : Pbrt.Decoder.t -> qcheck_res_res
-(** [decode_pb_qcheck_res_res decoder] decodes a [qcheck_res_res] binary value from [decoder] *)
+val decode_pb_test_res_res : Pbrt.Decoder.t -> test_res_res
+(** [decode_pb_test_res_res decoder] decodes a [test_res_res] binary value from [decoder] *)
 
-val decode_pb_qcheck_res : Pbrt.Decoder.t -> qcheck_res
-(** [decode_pb_qcheck_res decoder] decodes a [qcheck_res] binary value from [decoder] *)
+val decode_pb_test_res : Pbrt.Decoder.t -> test_res
+(** [decode_pb_test_res decoder] decodes a [test_res] binary value from [decoder] *)
 
 val decode_pb_instance_res_res : Pbrt.Decoder.t -> instance_res_res
 (** [decode_pb_instance_res_res decoder] decodes a [instance_res_res] binary value from [decoder] *)
@@ -1869,8 +1932,8 @@ val encode_json_counter_sat : counter_sat -> Yojson.Basic.t
 val encode_json_verified_upto : verified_upto -> Yojson.Basic.t
 (** [encode_json_verified_upto v encoder] encodes [v] to to json *)
 
-val encode_json_qcheck_ok : qcheck_ok -> Yojson.Basic.t
-(** [encode_json_qcheck_ok v encoder] encodes [v] to to json *)
+val encode_json_test_ok : test_ok -> Yojson.Basic.t
+(** [encode_json_test_ok v encoder] encodes [v] to to json *)
 
 val encode_json_po_res_res : po_res_res -> Yojson.Basic.t
 (** [encode_json_po_res_res v encoder] encodes [v] to to json *)
@@ -1887,8 +1950,14 @@ val encode_json_verify_src_req : verify_src_req -> Yojson.Basic.t
 val encode_json_verify_name_req : verify_name_req -> Yojson.Basic.t
 (** [encode_json_verify_name_req v encoder] encodes [v] to to json *)
 
+val encode_json_test_src_req : test_src_req -> Yojson.Basic.t
+(** [encode_json_test_src_req v encoder] encodes [v] to to json *)
+
 val encode_json_qcheck_src_req : qcheck_src_req -> Yojson.Basic.t
 (** [encode_json_qcheck_src_req v encoder] encodes [v] to to json *)
+
+val encode_json_test_name_req : test_name_req -> Yojson.Basic.t
+(** [encode_json_test_name_req v encoder] encodes [v] to to json *)
 
 val encode_json_qcheck_name_req : qcheck_name_req -> Yojson.Basic.t
 (** [encode_json_qcheck_name_req v encoder] encodes [v] to to json *)
@@ -1914,11 +1983,11 @@ val encode_json_verify_res_res : verify_res_res -> Yojson.Basic.t
 val encode_json_verify_res : verify_res -> Yojson.Basic.t
 (** [encode_json_verify_res v encoder] encodes [v] to to json *)
 
-val encode_json_qcheck_res_res : qcheck_res_res -> Yojson.Basic.t
-(** [encode_json_qcheck_res_res v encoder] encodes [v] to to json *)
+val encode_json_test_res_res : test_res_res -> Yojson.Basic.t
+(** [encode_json_test_res_res v encoder] encodes [v] to to json *)
 
-val encode_json_qcheck_res : qcheck_res -> Yojson.Basic.t
-(** [encode_json_qcheck_res v encoder] encodes [v] to to json *)
+val encode_json_test_res : test_res -> Yojson.Basic.t
+(** [encode_json_test_res v encoder] encodes [v] to to json *)
 
 val encode_json_instance_res_res : instance_res_res -> Yojson.Basic.t
 (** [encode_json_instance_res_res v encoder] encodes [v] to to json *)
@@ -2019,8 +2088,8 @@ val decode_json_counter_sat : Yojson.Basic.t -> counter_sat
 val decode_json_verified_upto : Yojson.Basic.t -> verified_upto
 (** [decode_json_verified_upto decoder] decodes a [verified_upto] value from [decoder] *)
 
-val decode_json_qcheck_ok : Yojson.Basic.t -> qcheck_ok
-(** [decode_json_qcheck_ok decoder] decodes a [qcheck_ok] value from [decoder] *)
+val decode_json_test_ok : Yojson.Basic.t -> test_ok
+(** [decode_json_test_ok decoder] decodes a [test_ok] value from [decoder] *)
 
 val decode_json_po_res_res : Yojson.Basic.t -> po_res_res
 (** [decode_json_po_res_res decoder] decodes a [po_res_res] value from [decoder] *)
@@ -2037,8 +2106,14 @@ val decode_json_verify_src_req : Yojson.Basic.t -> verify_src_req
 val decode_json_verify_name_req : Yojson.Basic.t -> verify_name_req
 (** [decode_json_verify_name_req decoder] decodes a [verify_name_req] value from [decoder] *)
 
+val decode_json_test_src_req : Yojson.Basic.t -> test_src_req
+(** [decode_json_test_src_req decoder] decodes a [test_src_req] value from [decoder] *)
+
 val decode_json_qcheck_src_req : Yojson.Basic.t -> qcheck_src_req
 (** [decode_json_qcheck_src_req decoder] decodes a [qcheck_src_req] value from [decoder] *)
+
+val decode_json_test_name_req : Yojson.Basic.t -> test_name_req
+(** [decode_json_test_name_req decoder] decodes a [test_name_req] value from [decoder] *)
 
 val decode_json_qcheck_name_req : Yojson.Basic.t -> qcheck_name_req
 (** [decode_json_qcheck_name_req decoder] decodes a [qcheck_name_req] value from [decoder] *)
@@ -2064,11 +2139,11 @@ val decode_json_verify_res_res : Yojson.Basic.t -> verify_res_res
 val decode_json_verify_res : Yojson.Basic.t -> verify_res
 (** [decode_json_verify_res decoder] decodes a [verify_res] value from [decoder] *)
 
-val decode_json_qcheck_res_res : Yojson.Basic.t -> qcheck_res_res
-(** [decode_json_qcheck_res_res decoder] decodes a [qcheck_res_res] value from [decoder] *)
+val decode_json_test_res_res : Yojson.Basic.t -> test_res_res
+(** [decode_json_test_res_res decoder] decodes a [test_res_res] value from [decoder] *)
 
-val decode_json_qcheck_res : Yojson.Basic.t -> qcheck_res
-(** [decode_json_qcheck_res decoder] decodes a [qcheck_res] value from [decoder] *)
+val decode_json_test_res : Yojson.Basic.t -> test_res
+(** [decode_json_test_res decoder] decodes a [test_res] value from [decoder] *)
 
 val decode_json_instance_res_res : Yojson.Basic.t -> instance_res_res
 (** [decode_json_instance_res_res decoder] decodes a [instance_res_res] value from [decoder] *)
@@ -2124,9 +2199,13 @@ module Simple : sig
     
     val verify_name : (verify_name_req, unary, verify_res, unary) Client.rpc
     
-    val qcheck_src : (qcheck_src_req, unary, qcheck_res, unary) Client.rpc
+    val test_src : (test_src_req, unary, test_res, unary) Client.rpc
     
-    val qcheck_name : (qcheck_name_req, unary, qcheck_res, unary) Client.rpc
+    val test_name : (test_name_req, unary, test_res, unary) Client.rpc
+    
+    val qcheck_src : (qcheck_src_req, unary, test_res, unary) Client.rpc
+    
+    val qcheck_name : (qcheck_name_req, unary, test_res, unary) Client.rpc
     
     val instance_src : (instance_src_req, unary, instance_res, unary) Client.rpc
     
@@ -2153,8 +2232,10 @@ module Simple : sig
       eval_src:((eval_src_req, unary, eval_res, unary) Server.rpc -> 'handler) ->
       verify_src:((verify_src_req, unary, verify_res, unary) Server.rpc -> 'handler) ->
       verify_name:((verify_name_req, unary, verify_res, unary) Server.rpc -> 'handler) ->
-      qcheck_src:((qcheck_src_req, unary, qcheck_res, unary) Server.rpc -> 'handler) ->
-      qcheck_name:((qcheck_name_req, unary, qcheck_res, unary) Server.rpc -> 'handler) ->
+      test_src:((test_src_req, unary, test_res, unary) Server.rpc -> 'handler) ->
+      test_name:((test_name_req, unary, test_res, unary) Server.rpc -> 'handler) ->
+      qcheck_src:((qcheck_src_req, unary, test_res, unary) Server.rpc -> 'handler) ->
+      qcheck_name:((qcheck_name_req, unary, test_res, unary) Server.rpc -> 'handler) ->
       instance_src:((instance_src_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       instance_name:((instance_name_req, unary, instance_res, unary) Server.rpc -> 'handler) ->
       decompose:((decompose_req, unary, decompose_res, unary) Server.rpc -> 'handler) ->
@@ -2180,9 +2261,13 @@ module Simple : sig
     
     val verify_name : (verify_name_req,unary,verify_res,unary) Server.rpc
     
-    val qcheck_src : (qcheck_src_req,unary,qcheck_res,unary) Server.rpc
+    val test_src : (test_src_req,unary,test_res,unary) Server.rpc
     
-    val qcheck_name : (qcheck_name_req,unary,qcheck_res,unary) Server.rpc
+    val test_name : (test_name_req,unary,test_res,unary) Server.rpc
+    
+    val qcheck_src : (qcheck_src_req,unary,test_res,unary) Server.rpc
+    
+    val qcheck_name : (qcheck_name_req,unary,test_res,unary) Server.rpc
     
     val instance_src : (instance_src_req,unary,instance_res,unary) Server.rpc
     
