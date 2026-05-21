@@ -16,6 +16,8 @@ COPY --chown=opam \
   Makefile dune-project .ocamlformat .ocamlformat-ignore \
   ./
 
+RUN sudo apt update
+
 # for ezcurl
 RUN sudo apt install curl libcurl4-gnutls-dev -y
 
