@@ -147,12 +147,16 @@ class Client:
             assuming=assuming,
             basis=basis,
             rule_specs=rule_specs,
-            prune=prune,
-            ctx_simp=ctx_simp,
             lift_bool=lift_bool,
-            string_results=string_results,
             session=self._sesh,
         )
+        # If None, keep it as unset
+        if prune is not None:
+            req.prune = prune
+        if ctx_simp is not None:
+            req.ctx_simp = ctx_simp
+        if string_results is not None:
+            req.string_results = string_results
 
         return self._client.decompose(
             ctx=self.mk_context(),

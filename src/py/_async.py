@@ -118,11 +118,11 @@ class AsyncClient:
         assuming: Optional[str] = None,
         basis: Optional[list[str]] = None,
         rule_specs: Optional[list[str]] = None,
-        prune: bool = False,
+        prune: Optional[bool] = None,
         ctx_simp: Optional[bool] = None,
         lift_bool: Optional[simple_api_pb2.LiftBool] = None,
         timeout: Optional[float] = None,
-        str: Optional[bool] = None,
+        string_results: Optional[bool] = None,
     ) -> simple_api_pb2.DecomposeRes:
         timeout = timeout or self._timeout
 
@@ -131,16 +131,16 @@ class AsyncClient:
             assuming=assuming,
             basis=basis,
             rule_specs=rule_specs,
-            prune=prune,
+            lift_bool=lift_bool,
             session=self._sesh,
         )
         # If None, keep it as unset
+        if prune is not None:
+            req.prune = prune
         if ctx_simp is not None:
             req.ctx_simp = ctx_simp
-        if lift_bool is not None:
-            req.lift_bool = lift_bool
-        if str is not None:
-            req.str = str
+        if string_results is not None:
+            req.string_results = string_results
 
         return await self._client.decompose(
             ctx=self.mk_context(),
@@ -195,7 +195,7 @@ class AsyncClient:
         src: str,
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
-    ) -> simple_api_pb2.QCheckRes:
+    ) -> simple_api_pb2.TestRes:
         seed = seed or 0
         timeout = timeout or self._timeout
         return await self._client.qcheck_src(
@@ -209,7 +209,7 @@ class AsyncClient:
         name: str,
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
-    ) -> simple_api_pb2.QCheckRes:
+    ) -> simple_api_pb2.TestRes:
         seed = seed or 0
         timeout = timeout or self._timeout
         return await self._client.qcheck_name(
