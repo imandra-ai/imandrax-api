@@ -17,7 +17,13 @@ dependencies = [
 async = ["aiohttp"]
 
 [tool.setuptools]
-packages = [ "imandrax_api", "imandrax_api.bindings", "imandrax_api.lib", "imandrax_api.twirp" ]
+packages = [
+    "imandrax_api",
+    "imandrax_api.bindings",
+    "imandrax_api.client",
+    "imandrax_api.lib",
+    "imandrax_api.twirp",
+]
 package-dir = { "imandrax_api" = "." }
 
 [tool.pyright]

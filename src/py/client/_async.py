@@ -5,9 +5,8 @@ from typing import Any, Optional
 
 import aiohttp  # type: ignore[import-not-found]
 
-from . import api_types_version
-from ._common import mk_context, url_prod
-from .bindings import (
+from .. import api_types_version
+from ..bindings import (
     api_pb2,
     api_twirp_async,
     session_pb2,
@@ -16,9 +15,10 @@ from .bindings import (
     task_pb2,
     utils_pb2,
 )
-from .twirp.context import Context
-from .twirp.errors import Errors
-from .twirp.exceptions import TwirpServerException
+from ..twirp.context import Context
+from ..twirp.errors import Errors
+from ..twirp.exceptions import TwirpServerException
+from ._common import mk_context, url_prod
 
 
 class AsyncClient:

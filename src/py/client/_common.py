@@ -1,5 +1,5 @@
-from . import api_types_version
-from .twirp.context import Context
+from .. import api_types_version
+from ..twirp.context import Context
 
 url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
 url_prod = "https://api.imandra.ai/internal/imandrax/"
