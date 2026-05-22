@@ -1,4 +1,4 @@
-# pyright: basic
+# pyright: strict, reportUnknownMemberType=false, reportUnknownVariableType=false
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional
@@ -116,7 +116,10 @@ class Client:
         # Only attempt cleanup if we're not in shutdown state
         try:
             # Check if required modules are still available
-            if requests is not None and hasattr(self, "_session"):
+            if (
+                requests is not None  # pyright: ignore[reportUnnecessaryComparison]
+                and hasattr(self, "_session")
+            ):
                 self.__exit__()
         except Exception:
             # Silently ignore errors during cleanup to avoid spurious error messages

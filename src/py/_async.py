@@ -1,4 +1,4 @@
-# pyright: basic
+# pyright: strict, reportUnknownMemberType=false, reportUnknownVariableType=false
 from __future__ import annotations
 
 from typing import Any, Optional
