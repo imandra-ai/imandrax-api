@@ -13,6 +13,9 @@ build: clean api_types_version.py
 clean:
 	rm -rf build dist
 
+typecheck:
+	uv run pyright -p pyproject.toml __init__.py client/ lib/
+
 test:
 	uv run ../../tests/api/py/test_cloud_dev.py
 	uv run ../../tests/api/py/test_cloud_dev_async.py
