@@ -10,6 +10,7 @@ from ..bindings import (
     api_pb2,
     api_twirp,
     session_pb2,
+    session_twirp,
     simple_api_pb2,
     simple_api_twirp,
     task_pb2,
@@ -18,7 +19,7 @@ from ..bindings import (
 from ..twirp.context import Context
 from ..twirp.errors import Errors
 from ..twirp.exceptions import TwirpServerException
-from ._common import mk_context, url_dev, url_prod
+from ._common import is_session_not_found, mk_context, url_dev, url_prod
 
 if TYPE_CHECKING:
     from ._async import AsyncClient
@@ -31,6 +32,7 @@ __all__ = ["Client", "AsyncClient", "url_dev", "url_prod"]
 class Client:
     _client: simple_api_twirp.SimpleClient
     _api_client: api_twirp.EvalClient
+    _session_mgr: session_twirp.SessionManagerClient
     _timeout: float
     _sesh: session_pb2.Session
 
@@ -56,6 +58,12 @@ class Client:
         self._url = url
         self._server_path_prefix = server_path_prefix
         self._client = simple_api_twirp.SimpleClient(
+            url,
+            timeout=timeout,
+            server_path_prefix=server_path_prefix,
+            session=self._session,
+        )
+        self._session_mgr = session_twirp.SessionManagerClient(
             url,
             timeout=timeout,
             server_path_prefix=server_path_prefix,
@@ -89,10 +97,30 @@ class Client:
                 else:
                     raise ex
         else:
-            # TODO: actually re-open session via RPC
-            self._sesh = session_pb2.Session(
-                id=session_id,
-            )
+            # Reopen the supplied session via the SessionManager.open_session
+            # RPC. If the server reports it as missing/expired, fall back to
+            # creating a fresh session.
+            self._sesh = session_pb2.Session(id=session_id)
+            try:
+                self._session_mgr.open_session(
+                    ctx=self.mk_context(),
+                    request=session_pb2.SessionOpen(
+                        id=self._sesh,
+                        api_version=api_types_version.api_types_version,
+                    ),
+                    timeout=timeout,
+                )
+            except TwirpServerException as ex:
+                if is_session_not_found(ex):
+                    self._sesh = self._client.create_session(
+                        ctx=self.mk_context(),
+                        request=simple_api_pb2.SessionCreateReq(
+                            api_version=api_types_version.api_types_version
+                        ),
+                        timeout=timeout,
+                    )
+                else:
+                    raise
 
     def __enter__(self, *_: Any) -> Client:
         return self
