@@ -48,6 +48,7 @@ class Client:
         api_key: str | None = None,
         timeout: int = 30,
         session_id: str | None = None,
+        create_if_not_found: bool = False,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session = requests.Session()
@@ -111,7 +112,7 @@ class Client:
                     timeout=timeout,
                 )
             except TwirpServerException as ex:
-                if is_session_not_found(ex):
+                if is_session_not_found(ex) and create_if_not_found:
                     self._sesh = self._client.create_session(
                         ctx=self.mk_context(),
                         request=simple_api_pb2.SessionCreateReq(

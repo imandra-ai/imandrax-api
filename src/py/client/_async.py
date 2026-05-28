@@ -29,6 +29,7 @@ class AsyncClient:
     _timeout: float
     _sesh: session_pb2.Session
     _session_id: str | None
+    _create_if_not_found: bool
 
     @staticmethod
     def mk_context() -> Context:
@@ -42,10 +43,12 @@ class AsyncClient:
         api_key: str | None = None,
         timeout: int = 30,
         session_id: str | None = None,
+        create_if_not_found: bool = False,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session: aiohttp.ClientSession = aiohttp.ClientSession()
         self._session_id = session_id
+        self._create_if_not_found = create_if_not_found
         self._closed = False
         self._auth_token = api_key if api_key else auth_token
         if self._auth_token:
@@ -102,7 +105,7 @@ class AsyncClient:
                     ),
                 )
             except TwirpServerException as ex:
-                if is_session_not_found(ex):
+                if is_session_not_found(ex) and self._create_if_not_found:
                     self._sesh = await self._client.create_session(
                         ctx=self.mk_context(),
                         request=simple_api_pb2.SessionCreateReq(
