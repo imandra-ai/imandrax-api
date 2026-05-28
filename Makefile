@@ -24,7 +24,7 @@ check-format:
 	$(DUNE) build $(DUNE_OPTS) @fmt --ignore-promoted-rules
 
 genproto:
-	FORCE_GENPROTO=true $(DUNE) build @genproto --auto-promote
+	FORCE_GENPROTO=true $(DUNE) build @genproto --auto-promote --root=.
 
 genpython:
 	@make -s	install-go-protobuf-plugin -C src/py

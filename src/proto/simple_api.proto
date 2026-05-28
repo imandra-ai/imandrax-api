@@ -193,6 +193,11 @@ message EvalSrcReq {
   // if true, do not wait for tasks results, only return the task list
   // and not the task results. Use `get_artifact` to get the results.
   optional bool async_only = 3;
+
+  // Regular expression for verification tasks to be started during evaluation.
+  // The default is to start all tasks, but e.g. task_filter="*xyz*" would start
+  // only tasks pertaining to top-level definitions with 'xyz' in their name.
+  repeated string task_filter = 4;
 }
 
 // Output of an "eval" statement

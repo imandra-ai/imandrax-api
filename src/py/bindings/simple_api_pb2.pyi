@@ -163,14 +163,16 @@ class DecomposeRes(_message.Message):
     def __init__(self, artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ..., err: _Optional[_Union[_utils_pb2.Empty, _Mapping]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., task: _Optional[_Union[_task_pb2.Task, _Mapping]] = ...) -> None: ...
 
 class EvalSrcReq(_message.Message):
-    __slots__ = ("session", "src", "async_only")
+    __slots__ = ("session", "src", "async_only", "task_filter")
     SESSION_FIELD_NUMBER: _ClassVar[int]
     SRC_FIELD_NUMBER: _ClassVar[int]
     ASYNC_ONLY_FIELD_NUMBER: _ClassVar[int]
+    TASK_FILTER_FIELD_NUMBER: _ClassVar[int]
     session: _session_pb2.Session
     src: str
     async_only: bool
-    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., src: _Optional[str] = ..., async_only: bool = ...) -> None: ...
+    task_filter: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., src: _Optional[str] = ..., async_only: bool = ..., task_filter: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class EvalOutput(_message.Message):
     __slots__ = ("success", "value_as_ocaml", "errors")

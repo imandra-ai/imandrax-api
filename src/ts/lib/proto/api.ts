@@ -52,6 +52,12 @@ export interface CodeSnippet {
     | undefined;
   /** / Code snippet. */
   code: string;
+  /**
+   * Regular expression for verification tasks to be started during evaluation.
+   * The default is to start all tasks, but e.g. task_filter="*xyz*" would start
+   * only tasks pertaining to top-level definitions with 'xyz' in their name.
+   */
+  taskFilter: string[];
 }
 
 export interface CodeSnippetEvalResult {
@@ -100,7 +106,7 @@ export interface ArtifactZip {
 }
 
 function createBaseCodeSnippet(): CodeSnippet {
-  return { session: undefined, code: "" };
+  return { session: undefined, code: "", taskFilter: [] };
 }
 
 export const CodeSnippet: MessageFns<CodeSnippet> = {
@@ -110,6 +116,9 @@ export const CodeSnippet: MessageFns<CodeSnippet> = {
     }
     if (message.code !== "") {
       writer.uint32(18).string(message.code);
+    }
+    for (const v of message.taskFilter) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -137,6 +146,14 @@ export const CodeSnippet: MessageFns<CodeSnippet> = {
           message.code = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.taskFilter.push(reader.string());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -150,6 +167,9 @@ export const CodeSnippet: MessageFns<CodeSnippet> = {
     return {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
       code: isSet(object.code) ? globalThis.String(object.code) : "",
+      taskFilter: globalThis.Array.isArray(object?.taskFilter)
+        ? object.taskFilter.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -160,6 +180,9 @@ export const CodeSnippet: MessageFns<CodeSnippet> = {
     }
     if (message.code !== "") {
       obj.code = message.code;
+    }
+    if (message.taskFilter?.length) {
+      obj.taskFilter = message.taskFilter;
     }
     return obj;
   },
@@ -173,6 +196,7 @@ export const CodeSnippet: MessageFns<CodeSnippet> = {
       ? Session.fromPartial(object.session)
       : undefined;
     message.code = object.code ?? "";
+    message.taskFilter = object.taskFilter?.map((e) => e) || [];
     return message;
   },
 };

@@ -110,6 +110,7 @@ type eval_src_req = private {
   mutable session : Session.session option;
   mutable src : string;
   mutable async_only : bool;
+  mutable task_filter : string list;
 }
 
 type eval_output = private {
@@ -768,6 +769,7 @@ val make_eval_src_req :
   ?session:Session.session ->
   ?src:string ->
   ?async_only:bool ->
+  ?task_filter:string list ->
   unit ->
   eval_src_req
 (** [make_eval_src_req … ()] is a builder for type [eval_src_req] *)
@@ -788,6 +790,9 @@ val eval_src_req_has_async_only : eval_src_req -> bool
 
 val eval_src_req_set_async_only : eval_src_req -> bool -> unit
   (** set field async_only in eval_src_req *)
+
+val eval_src_req_set_task_filter : eval_src_req -> string list -> unit
+  (** set field task_filter in eval_src_req *)
 
 val make_eval_output : 
   ?success:bool ->

@@ -4,6 +4,7 @@ type code_snippet = {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable session : Session.session option;
   mutable code : string;
+  mutable task_filter : string list;
 }
 
 type eval_result =
@@ -51,6 +52,7 @@ let default_code_snippet (): code_snippet =
   _presence=Pbrt.Bitfield.empty;
   session=None;
   code="";
+  task_filter=[];
 }
 
 let default_eval_result () = (Eval_ok:eval_result)
@@ -107,6 +109,8 @@ let[@inline] code_snippet_set_session (self:code_snippet) (x:Session.session) : 
   self.session <- Some x
 let[@inline] code_snippet_set_code (self:code_snippet) (x:string) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 0); self.code <- x
+let[@inline] code_snippet_set_task_filter (self:code_snippet) (x:string list) : unit =
+  self.task_filter <- x
 
 let copy_code_snippet (self:code_snippet) : code_snippet =
   { self with session = self.session }
@@ -114,6 +118,7 @@ let copy_code_snippet (self:code_snippet) : code_snippet =
 let make_code_snippet 
   ?(session:Session.session option)
   ?(code:string option)
+  ?(task_filter=[])
   () : code_snippet  =
   let _res = default_code_snippet () in
   (match session with
@@ -122,6 +127,7 @@ let make_code_snippet
   (match code with
   | None -> ()
   | Some v -> code_snippet_set_code _res v);
+  code_snippet_set_task_filter _res task_filter;
   _res
 
 let[@inline] code_snippet_eval_result_has_res (self:code_snippet_eval_result) : bool = (Pbrt.Bitfield.get self._presence 0)
@@ -267,6 +273,7 @@ let rec pp_code_snippet fmt (v:code_snippet) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~absent:(not (code_snippet_has_code v)) ~first:false "code" Pbrt.Pp.pp_string fmt v.code;
+    Pbrt.Pp.pp_record_field ~first:false "task_filter" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.task_filter;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -336,6 +343,10 @@ let rec encode_pb_code_snippet (v:code_snippet) encoder =
     Pbrt.Encoder.string v.code encoder;
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   );
+  Pbrt.List_util.rev_iter_with (fun x encoder ->
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  ) v.task_filter encoder;
   ()
 
 let rec encode_pb_eval_result (v:eval_result) encoder =
@@ -424,6 +435,8 @@ let rec decode_pb_code_snippet d =
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
+      (* put lists in the correct order *)
+      code_snippet_set_task_filter v (List.rev v.task_filter);
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
       code_snippet_set_session v (Session.decode_pb_session (Pbrt.Decoder.nested d));
@@ -435,6 +448,11 @@ let rec decode_pb_code_snippet d =
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "code_snippet" 2 pk
+    | Some (4, Pbrt.Bytes) -> begin
+      code_snippet_set_task_filter v ((Pbrt.Decoder.string d) :: v.task_filter);
+    end
+    | Some (4, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "code_snippet" 4 pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   (v : code_snippet)
@@ -594,6 +612,10 @@ let rec encode_json_code_snippet (v:code_snippet) =
   if code_snippet_has_code v then (
     assoc := ("code", Pbrt_yojson.make_string v.code) :: !assoc;
   );
+  assoc := (
+    let l = v.task_filter |> List.map Pbrt_yojson.make_string in
+    ("taskFilter", `List l) :: !assoc 
+  );
   `Assoc !assoc
 
 let rec encode_json_eval_result (v:eval_result) = 
@@ -680,6 +702,11 @@ let rec decode_json_code_snippet d =
       code_snippet_set_session v (Session.decode_json_session json_value)
     | ("code", json_value) -> 
       code_snippet_set_code v (Pbrt_yojson.string json_value "code_snippet" "code")
+    | ("taskFilter", `List l) -> begin
+      code_snippet_set_task_filter v @@ List.map (function
+        | json_value -> Pbrt_yojson.string json_value "code_snippet" "task_filter"
+      ) l;
+    end
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -687,6 +714,7 @@ let rec decode_json_code_snippet d =
     _presence = v._presence;
     session = v.session;
     code = v.code;
+    task_filter = v.task_filter;
   } : code_snippet)
 
 let rec decode_json_eval_result json =
