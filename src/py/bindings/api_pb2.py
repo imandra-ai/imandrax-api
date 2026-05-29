@@ -28,31 +28,31 @@ import task_pb2 as task__pb2
 import artmsg_pb2 as artmsg__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tapi.proto\x12\x0cimandrax.api\x1a\x0b\x65rror.proto\x1a\rsession.proto\x1a\ntask.proto\x1a\x0c\x61rtmsg.proto\"G\n\x0b\x43odeSnippet\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04\x63ode\x18\x02 \x01(\t\"\x8e\x01\n\x15\x43odeSnippetEvalResult\x12%\n\x03res\x18\x01 \x01(\x0e\x32\x18.imandrax.api.EvalResult\x12\x12\n\nduration_s\x18\x03 \x01(\x02\x12\"\n\x05tasks\x18\t \x03(\x0b\x32\x13.imandrax.task.Task\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\"\x1a\n\nParseQuery\x12\x0c\n\x04\x63ode\x18\x01 \x01(\t\";\n\x11\x41rtifactListQuery\x12&\n\x07task_id\x18\x01 \x01(\x0b\x32\x15.imandrax.task.TaskID\"#\n\x12\x41rtifactListResult\x12\r\n\x05kinds\x18\x01 \x03(\t\"H\n\x10\x41rtifactGetQuery\x12&\n\x07task_id\x18\x01 \x01(\x0b\x32\x15.imandrax.task.TaskID\x12\x0c\n\x04kind\x18\x02 \x01(\t\"\x1d\n\x08\x41rtifact\x12\x11\n\x03\x61rt\x18\x01 \x01(\x0b\x32\x04.Art\"\x1e\n\x0b\x41rtifactZip\x12\x0f\n\x07\x61rt_zip\x18\x01 \x01(\x0c**\n\nEvalResult\x12\x0b\n\x07\x45VAL_OK\x10\x00\x12\x0f\n\x0b\x45VAL_ERRORS\x10\x01\x32\xc9\x03\n\x04\x45val\x12S\n\x11\x65val_code_snippet\x12\x19.imandrax.api.CodeSnippet\x1a#.imandrax.api.CodeSnippetEvalResult\x12?\n\nparse_term\x12\x19.imandrax.api.CodeSnippet\x1a\x16.imandrax.api.Artifact\x12?\n\nparse_type\x12\x19.imandrax.api.CodeSnippet\x1a\x16.imandrax.api.Artifact\x12S\n\x0elist_artifacts\x12\x1f.imandrax.api.ArtifactListQuery\x1a .imandrax.api.ArtifactListResult\x12\x46\n\x0cget_artifact\x12\x1e.imandrax.api.ArtifactGetQuery\x1a\x16.imandrax.api.Artifact\x12M\n\x10get_artifact_zip\x12\x1e.imandrax.api.ArtifactGetQuery\x1a\x19.imandrax.api.ArtifactZipb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tapi.proto\x12\x0cimandrax.api\x1a\x0b\x65rror.proto\x1a\rsession.proto\x1a\ntask.proto\x1a\x0c\x61rtmsg.proto\"\\\n\x0b\x43odeSnippet\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04\x63ode\x18\x02 \x01(\t\x12\x13\n\x0btask_filter\x18\x04 \x03(\t\"\x8e\x01\n\x15\x43odeSnippetEvalResult\x12%\n\x03res\x18\x01 \x01(\x0e\x32\x18.imandrax.api.EvalResult\x12\x12\n\nduration_s\x18\x03 \x01(\x02\x12\"\n\x05tasks\x18\t \x03(\x0b\x32\x13.imandrax.task.Task\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\"\x1a\n\nParseQuery\x12\x0c\n\x04\x63ode\x18\x01 \x01(\t\";\n\x11\x41rtifactListQuery\x12&\n\x07task_id\x18\x01 \x01(\x0b\x32\x15.imandrax.task.TaskID\"#\n\x12\x41rtifactListResult\x12\r\n\x05kinds\x18\x01 \x03(\t\"H\n\x10\x41rtifactGetQuery\x12&\n\x07task_id\x18\x01 \x01(\x0b\x32\x15.imandrax.task.TaskID\x12\x0c\n\x04kind\x18\x02 \x01(\t\"\x1d\n\x08\x41rtifact\x12\x11\n\x03\x61rt\x18\x01 \x01(\x0b\x32\x04.Art\"\x1e\n\x0b\x41rtifactZip\x12\x0f\n\x07\x61rt_zip\x18\x01 \x01(\x0c**\n\nEvalResult\x12\x0b\n\x07\x45VAL_OK\x10\x00\x12\x0f\n\x0b\x45VAL_ERRORS\x10\x01\x32\xc9\x03\n\x04\x45val\x12S\n\x11\x65val_code_snippet\x12\x19.imandrax.api.CodeSnippet\x1a#.imandrax.api.CodeSnippetEvalResult\x12?\n\nparse_term\x12\x19.imandrax.api.CodeSnippet\x1a\x16.imandrax.api.Artifact\x12?\n\nparse_type\x12\x19.imandrax.api.CodeSnippet\x1a\x16.imandrax.api.Artifact\x12S\n\x0elist_artifacts\x12\x1f.imandrax.api.ArtifactListQuery\x1a .imandrax.api.ArtifactListResult\x12\x46\n\x0cget_artifact\x12\x1e.imandrax.api.ArtifactGetQuery\x1a\x16.imandrax.api.Artifact\x12M\n\x10get_artifact_zip\x12\x1e.imandrax.api.ArtifactGetQuery\x1a\x19.imandrax.api.ArtifactZipb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'api_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_EVALRESULT']._serialized_start=562
-  _globals['_EVALRESULT']._serialized_end=604
+  _globals['_EVALRESULT']._serialized_start=583
+  _globals['_EVALRESULT']._serialized_end=625
   _globals['_CODESNIPPET']._serialized_start=81
-  _globals['_CODESNIPPET']._serialized_end=152
-  _globals['_CODESNIPPETEVALRESULT']._serialized_start=155
-  _globals['_CODESNIPPETEVALRESULT']._serialized_end=297
-  _globals['_PARSEQUERY']._serialized_start=299
-  _globals['_PARSEQUERY']._serialized_end=325
-  _globals['_ARTIFACTLISTQUERY']._serialized_start=327
-  _globals['_ARTIFACTLISTQUERY']._serialized_end=386
-  _globals['_ARTIFACTLISTRESULT']._serialized_start=388
-  _globals['_ARTIFACTLISTRESULT']._serialized_end=423
-  _globals['_ARTIFACTGETQUERY']._serialized_start=425
-  _globals['_ARTIFACTGETQUERY']._serialized_end=497
-  _globals['_ARTIFACT']._serialized_start=499
-  _globals['_ARTIFACT']._serialized_end=528
-  _globals['_ARTIFACTZIP']._serialized_start=530
-  _globals['_ARTIFACTZIP']._serialized_end=560
-  _globals['_EVAL']._serialized_start=607
-  _globals['_EVAL']._serialized_end=1064
+  _globals['_CODESNIPPET']._serialized_end=173
+  _globals['_CODESNIPPETEVALRESULT']._serialized_start=176
+  _globals['_CODESNIPPETEVALRESULT']._serialized_end=318
+  _globals['_PARSEQUERY']._serialized_start=320
+  _globals['_PARSEQUERY']._serialized_end=346
+  _globals['_ARTIFACTLISTQUERY']._serialized_start=348
+  _globals['_ARTIFACTLISTQUERY']._serialized_end=407
+  _globals['_ARTIFACTLISTRESULT']._serialized_start=409
+  _globals['_ARTIFACTLISTRESULT']._serialized_end=444
+  _globals['_ARTIFACTGETQUERY']._serialized_start=446
+  _globals['_ARTIFACTGETQUERY']._serialized_end=518
+  _globals['_ARTIFACT']._serialized_start=520
+  _globals['_ARTIFACT']._serialized_end=549
+  _globals['_ARTIFACTZIP']._serialized_start=551
+  _globals['_ARTIFACTZIP']._serialized_end=581
+  _globals['_EVAL']._serialized_start=628
+  _globals['_EVAL']._serialized_end=1085
 # @@protoc_insertion_point(module_scope)

@@ -103,6 +103,7 @@ type eval_src_req = {
   mutable session : Session.session option;
   mutable src : string;
   mutable async_only : bool;
+  mutable task_filter : string list;
 }
 
 type eval_output = {
@@ -421,6 +422,7 @@ let default_eval_src_req (): eval_src_req =
   session=None;
   src="";
   async_only=false;
+  task_filter=[];
 }
 
 let default_eval_output (): eval_output =
@@ -1000,6 +1002,8 @@ let[@inline] eval_src_req_set_src (self:eval_src_req) (x:string) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 0); self.src <- x
 let[@inline] eval_src_req_set_async_only (self:eval_src_req) (x:bool) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 1); self.async_only <- x
+let[@inline] eval_src_req_set_task_filter (self:eval_src_req) (x:string list) : unit =
+  self.task_filter <- x
 
 let copy_eval_src_req (self:eval_src_req) : eval_src_req =
   { self with session = self.session }
@@ -1008,6 +1012,7 @@ let make_eval_src_req
   ?(session:Session.session option)
   ?(src:string option)
   ?(async_only:bool option)
+  ?(task_filter=[])
   () : eval_src_req  =
   let _res = default_eval_src_req () in
   (match session with
@@ -1019,6 +1024,7 @@ let make_eval_src_req
   (match async_only with
   | None -> ()
   | Some v -> eval_src_req_set_async_only _res v);
+  eval_src_req_set_task_filter _res task_filter;
   _res
 
 let[@inline] eval_output_has_success (self:eval_output) : bool = (Pbrt.Bitfield.get self._presence 0)
@@ -1892,6 +1898,7 @@ let rec pp_eval_src_req fmt (v:eval_src_req) =
     Pbrt.Pp.pp_record_field ~first:true "session" (Pbrt.Pp.pp_option Session.pp_session) fmt v.session;
     Pbrt.Pp.pp_record_field ~absent:(not (eval_src_req_has_src v)) ~first:false "src" Pbrt.Pp.pp_string fmt v.src;
     Pbrt.Pp.pp_record_field ~absent:(not (eval_src_req_has_async_only v)) ~first:false "async_only" Pbrt.Pp.pp_bool fmt v.async_only;
+    Pbrt.Pp.pp_record_field ~first:false "task_filter" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.task_filter;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -2429,6 +2436,10 @@ let rec encode_pb_eval_src_req (v:eval_src_req) encoder =
     Pbrt.Encoder.bool v.async_only encoder;
     Pbrt.Encoder.key 3 Pbrt.Varint encoder; 
   );
+  Pbrt.List_util.rev_iter_with (fun x encoder ->
+    Pbrt.Encoder.string x encoder;
+    Pbrt.Encoder.key 4 Pbrt.Bytes encoder; 
+  ) v.task_filter encoder;
   ()
 
 let rec encode_pb_eval_output (v:eval_output) encoder = 
@@ -3371,6 +3382,8 @@ let rec decode_pb_eval_src_req d =
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
+      (* put lists in the correct order *)
+      eval_src_req_set_task_filter v (List.rev v.task_filter);
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
       eval_src_req_set_session v (Session.decode_pb_session (Pbrt.Decoder.nested d));
@@ -3387,6 +3400,11 @@ let rec decode_pb_eval_src_req d =
     end
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "eval_src_req" 3 pk
+    | Some (4, Pbrt.Bytes) -> begin
+      eval_src_req_set_task_filter v ((Pbrt.Decoder.string d) :: v.task_filter);
+    end
+    | Some (4, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "eval_src_req" 4 pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   (v : eval_src_req)
@@ -4488,6 +4506,10 @@ let rec encode_json_eval_src_req (v:eval_src_req) =
   if eval_src_req_has_async_only v then (
     assoc := ("asyncOnly", Pbrt_yojson.make_bool v.async_only) :: !assoc;
   );
+  assoc := (
+    let l = v.task_filter |> List.map Pbrt_yojson.make_string in
+    ("taskFilter", `List l) :: !assoc 
+  );
   `Assoc !assoc
 
 let rec encode_json_eval_output (v:eval_output) = 
@@ -5267,6 +5289,11 @@ let rec decode_json_eval_src_req d =
       eval_src_req_set_src v (Pbrt_yojson.string json_value "eval_src_req" "src")
     | ("asyncOnly", json_value) -> 
       eval_src_req_set_async_only v (Pbrt_yojson.bool json_value "eval_src_req" "async_only")
+    | ("taskFilter", `List l) -> begin
+      eval_src_req_set_task_filter v @@ List.map (function
+        | json_value -> Pbrt_yojson.string json_value "eval_src_req" "task_filter"
+      ) l;
+    end
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -5275,6 +5302,7 @@ let rec decode_json_eval_src_req d =
     session = v.session;
     src = v.src;
     async_only = v.async_only;
+    task_filter = v.task_filter;
   } : eval_src_req)
 
 let rec decode_json_eval_output d =

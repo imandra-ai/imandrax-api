@@ -11,6 +11,7 @@ type code_snippet = private {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable session : Session.session option;
   mutable code : string;
+  mutable task_filter : string list;
 }
 
 type eval_result =
@@ -89,6 +90,7 @@ val default_artifact_zip : unit -> artifact_zip
 val make_code_snippet : 
   ?session:Session.session ->
   ?code:string ->
+  ?task_filter:string list ->
   unit ->
   code_snippet
 (** [make_code_snippet … ()] is a builder for type [code_snippet] *)
@@ -103,6 +105,9 @@ val code_snippet_has_code : code_snippet -> bool
 
 val code_snippet_set_code : code_snippet -> string -> unit
   (** set field code in code_snippet *)
+
+val code_snippet_set_task_filter : code_snippet -> string list -> unit
+  (** set field task_filter in code_snippet *)
 
 val make_code_snippet_eval_result : 
   ?res:eval_result ->

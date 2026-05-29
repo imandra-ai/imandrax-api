@@ -202,7 +202,15 @@ export interface EvalSrcReq {
    * if true, do not wait for tasks results, only return the task list
    * and not the task results. Use `get_artifact` to get the results.
    */
-  asyncOnly?: boolean | undefined;
+  asyncOnly?:
+    | boolean
+    | undefined;
+  /**
+   * Regular expression for verification tasks to be started during evaluation.
+   * The default is to start all tasks, but e.g. task_filter="*xyz*" would start
+   * only tasks pertaining to top-level definitions with 'xyz' in their name.
+   */
+  taskFilter: string[];
 }
 
 /** Output of an "eval" statement */
@@ -1816,7 +1824,7 @@ export const DecomposeRes: MessageFns<DecomposeRes> = {
 };
 
 function createBaseEvalSrcReq(): EvalSrcReq {
-  return { session: undefined, src: "", asyncOnly: undefined };
+  return { session: undefined, src: "", asyncOnly: undefined, taskFilter: [] };
 }
 
 export const EvalSrcReq: MessageFns<EvalSrcReq> = {
@@ -1829,6 +1837,9 @@ export const EvalSrcReq: MessageFns<EvalSrcReq> = {
     }
     if (message.asyncOnly !== undefined) {
       writer.uint32(24).bool(message.asyncOnly);
+    }
+    for (const v of message.taskFilter) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -1864,6 +1875,14 @@ export const EvalSrcReq: MessageFns<EvalSrcReq> = {
           message.asyncOnly = reader.bool();
           continue;
         }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.taskFilter.push(reader.string());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1878,6 +1897,9 @@ export const EvalSrcReq: MessageFns<EvalSrcReq> = {
       session: isSet(object.session) ? Session.fromJSON(object.session) : undefined,
       src: isSet(object.src) ? globalThis.String(object.src) : "",
       asyncOnly: isSet(object.asyncOnly) ? globalThis.Boolean(object.asyncOnly) : undefined,
+      taskFilter: globalThis.Array.isArray(object?.taskFilter)
+        ? object.taskFilter.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -1892,6 +1914,9 @@ export const EvalSrcReq: MessageFns<EvalSrcReq> = {
     if (message.asyncOnly !== undefined) {
       obj.asyncOnly = message.asyncOnly;
     }
+    if (message.taskFilter?.length) {
+      obj.taskFilter = message.taskFilter;
+    }
     return obj;
   },
 
@@ -1905,6 +1930,7 @@ export const EvalSrcReq: MessageFns<EvalSrcReq> = {
       : undefined;
     message.src = object.src ?? "";
     message.asyncOnly = object.asyncOnly ?? undefined;
+    message.taskFilter = object.taskFilter?.map((e) => e) || [];
     return message;
   },
 };

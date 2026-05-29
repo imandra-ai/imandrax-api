@@ -18,12 +18,14 @@ EVAL_OK: EvalResult
 EVAL_ERRORS: EvalResult
 
 class CodeSnippet(_message.Message):
-    __slots__ = ("session", "code")
+    __slots__ = ("session", "code", "task_filter")
     SESSION_FIELD_NUMBER: _ClassVar[int]
     CODE_FIELD_NUMBER: _ClassVar[int]
+    TASK_FILTER_FIELD_NUMBER: _ClassVar[int]
     session: _session_pb2.Session
     code: str
-    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., code: _Optional[str] = ...) -> None: ...
+    task_filter: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, session: _Optional[_Union[_session_pb2.Session, _Mapping]] = ..., code: _Optional[str] = ..., task_filter: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class CodeSnippetEvalResult(_message.Message):
     __slots__ = ("res", "duration_s", "tasks", "errors")
