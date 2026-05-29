@@ -10,6 +10,7 @@ from ..bindings import (
     api_pb2,
     api_twirp_async,
     session_pb2,
+    session_twirp_async,
     simple_api_pb2,
     simple_api_twirp_async,
     task_pb2,
@@ -18,15 +19,17 @@ from ..bindings import (
 from ..twirp.context import Context
 from ..twirp.errors import Errors
 from ..twirp.exceptions import TwirpServerException
-from ._common import mk_context, url_prod
+from ._common import is_session_not_found, mk_context, url_prod
 
 
 class AsyncClient:
     _client: simple_api_twirp_async.AsyncSimpleClient
     _api_client: api_twirp_async.AsyncEvalClient
+    _session_mgr: session_twirp_async.AsyncSessionManagerClient
     _timeout: float
     _sesh: session_pb2.Session
     _session_id: str | None
+    _create_if_not_found: bool
 
     @staticmethod
     def mk_context() -> Context:
@@ -40,10 +43,12 @@ class AsyncClient:
         api_key: str | None = None,
         timeout: int = 30,
         session_id: str | None = None,
+        create_if_not_found: bool = False,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session: aiohttp.ClientSession = aiohttp.ClientSession()
         self._session_id = session_id
+        self._create_if_not_found = create_if_not_found
         self._closed = False
         self._auth_token = api_key if api_key else auth_token
         if self._auth_token:
@@ -57,6 +62,12 @@ class AsyncClient:
             session=self._session,
         )
         self._api_client = api_twirp_async.AsyncEvalClient(
+            url,
+            timeout=timeout,
+            server_path_prefix=server_path_prefix,
+            session=self._session,
+        )
+        self._session_mgr = session_twirp_async.AsyncSessionManagerClient(
             url,
             timeout=timeout,
             server_path_prefix=server_path_prefix,
@@ -84,10 +95,26 @@ class AsyncClient:
                 else:
                     raise ex
         else:
-            # TODO: actually re-open session via RPC
-            self._sesh = session_pb2.Session(
-                id=self._session_id,
-            )
+            self._sesh = session_pb2.Session(id=self._session_id)
+            try:
+                await self._session_mgr.open_session(
+                    ctx=self.mk_context(),
+                    request=session_pb2.SessionOpen(
+                        id=self._sesh,
+                        api_version=api_types_version.api_types_version,
+                    ),
+                )
+            except TwirpServerException as ex:
+                if is_session_not_found(ex) and self._create_if_not_found:
+                    self._sesh = await self._client.create_session(
+                        ctx=self.mk_context(),
+                        request=simple_api_pb2.SessionCreateReq(
+                            api_version=api_types_version.api_types_version
+                        ),
+                    )
+                    self._session_id = self._sesh.id
+                else:
+                    raise
         return self
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
