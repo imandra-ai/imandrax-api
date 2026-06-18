@@ -317,10 +317,11 @@ module List = struct
                                          " Partial function to access the tail of the list. This function will fail\n      when applied to the empty list {b NOTE} it is recommended to rely on\n      pattern matching instead "]
     [@@builtin.logic_core "mk_list_tl"]
   let head_opt l = match l with | [] -> None | x::_ -> Some x
-  let rec append l1 l2 =
-    match l1 with | [] -> l2 | x::l1' -> x :: (append l1' l2)[@@ocaml.doc
-                                                               " List append / concatenation. [append l1 l2] returns a list composed of all\n      elements of [l1], followed by all elements of [l2] "]
+  let rec (@) l1 l2 = match l1 with | [] -> l2 | x::l1' -> x :: (l1' @ l2)
     [@@adm l1]
+  let append l1 l2 = l1 @ l2[@@ocaml.doc
+                              " List append / concatenation. [append l1 l2] returns a list composed of all\n      elements of [l1], followed by all elements of [l2] "]
+    [@@macro ]
   let append_to_nil x = (append x []) = x[@@imandra_theorem ][@@by
                                                                induct
                                                                  ~on_vars:
@@ -473,8 +474,7 @@ module List = struct
   let ( let* ) = (>>=)[@@macro ]
   let ( and* ) = monoid_product[@@macro ]
 end 
-let (@) = List.append[@@ocaml.doc " Infix alias to {!List.append} "][@@macro
-                                                                    ]
+let (@) = List.(@)[@@ocaml.doc " Infix alias to {!List.append} "][@@macro ]
 let (--) = List.(--)[@@ocaml.doc " Alias to {!List.(--)} "][@@macro ]
 module Int = struct
   type t = int[@@deriving (to_iml, of_mir)]
