@@ -76,6 +76,7 @@ let all : t list =
   make "OhNoError" "Oh no 😰";
   make "Debounced" "Task has been cancelled due to debouncing";
   make "FileNotFound" "A file could not be found";
-  make "InvalidSession" "The session ID provided is invalid"
+  make "InvalidSession" "The session ID provided is invalid";
+  make "NoCounterExample" "Test did not find a counter-example"
   ]
   [@ocamlformat "disable"]
