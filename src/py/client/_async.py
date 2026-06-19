@@ -1,7 +1,7 @@
 # pyright: strict, reportUnknownMemberType=false, reportUnknownVariableType=false
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Optional, Self
 
 import aiohttp  # type: ignore[import-not-found]
 
@@ -75,7 +75,7 @@ class AsyncClient:
         )
         self._timeout = timeout
 
-    async def __aenter__(self, *_: Any) -> AsyncClient:
+    async def __aenter__(self, *_: Any) -> Self:
         await self._session.__aenter__()
         if self._session_id is None:
             try:

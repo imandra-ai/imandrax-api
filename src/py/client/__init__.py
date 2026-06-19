@@ -1,7 +1,7 @@
 # pyright: strict, reportUnknownMemberType=false, reportUnknownVariableType=false
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 import requests
 
@@ -123,7 +123,7 @@ class Client:
                 else:
                     raise
 
-    def __enter__(self, *_: Any) -> Client:
+    def __enter__(self, *_: Any) -> Self:
         return self
 
     def __exit__(self, *_: Any) -> None:
