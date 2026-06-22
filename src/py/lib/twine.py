@@ -17,12 +17,13 @@ class Error(Exception):
 class Decoder:
     """A twine decoder"""
 
-    # per-type cache
-    caches: dict[str, dict[offset, Any]] = {}
+    # per-type cache, keyed by offset; must be per-instance (per-artifact),
+    caches: dict[str, dict[offset, Any]]
 
     def __init__(self, a: bytearray | bytes):
         a = bytearray(a)
         self.bs = a
+        self.caches = {}
 
     def __first_byte(self, off: int) -> tuple[int, int]:
         c = self.bs[off]

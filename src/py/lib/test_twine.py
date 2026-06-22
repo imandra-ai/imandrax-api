@@ -9,6 +9,16 @@ def test_leb128():
     c = twine.Decoder(b'\x81\x42')
     assert c._leb128(off=0)[0] == ((0x42 << 7) + 1)  # pyright: ignore[reportPrivateUsage]
 
+def test_caches_are_per_instance():
+    # Regression: `Decoder.caches` must not be shared across instances, otherwise
+    # cached values keyed by offset leak from one artifact's decoder into another's,
+    # returning stale decoded sub-values at colliding offsets.
+    d1 = twine.Decoder(b'\x00')
+    d2 = twine.Decoder(b'\x00')
+    assert d1.caches is not d2.caches
+    d1.caches.setdefault('T', {})[42] = 'stale'
+    assert 42 not in d2.caches.get('T', {})
+
 def _get_testdata1() -> twine.Decoder:
     with open('test_data/typereg.twine', 'rb') as f:
         data = bytearray(f.read())
