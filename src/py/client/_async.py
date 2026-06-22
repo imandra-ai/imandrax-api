@@ -1,7 +1,7 @@
 # pyright: strict, reportUnknownMemberType=false, reportUnknownVariableType=false
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Optional, Self
 
 import aiohttp  # type: ignore[import-not-found]
 
@@ -75,7 +75,7 @@ class AsyncClient:
         )
         self._timeout = timeout
 
-    async def __aenter__(self, *_: Any) -> AsyncClient:
+    async def __aenter__(self, *_: Any) -> Self:
         await self._session.__aenter__()
         if self._session_id is None:
             try:
@@ -217,17 +217,45 @@ class AsyncClient:
             timeout=timeout,
         )
 
+    async def test_src(
+        self,
+        src: str,
+        seed: Optional[int] = None,
+        timeout: Optional[float] = None,
+    ) -> simple_api_pb2.TestRes:
+        req = simple_api_pb2.TestSrcReq(src=src, session=self._sesh)
+        if seed is not None:
+            req.seed = seed
+
+        timeout = timeout or self._timeout
+        return await self._client.test_src(
+            ctx=self.mk_context(),
+            request=req,
+            timeout=timeout,
+        )
+
     async def qcheck_src(
         self,
         src: str,
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.TestRes:
-        seed = seed or 0
+        return await self.test_src(src=src, seed=seed, timeout=timeout)
+
+    async def test_name(
+        self,
+        name: str,
+        seed: Optional[int] = None,
+        timeout: Optional[float] = None,
+    ) -> simple_api_pb2.TestRes:
+        req = simple_api_pb2.TestNameReq(name=name, session=self._sesh)
+        if seed is not None:
+            req.seed = seed
+
         timeout = timeout or self._timeout
-        return await self._client.qcheck_src(
+        return await self._client.test_name(
             ctx=self.mk_context(),
-            request=simple_api_pb2.QCheckSrcReq(src=src, session=self._sesh, seed=seed),
+            request=req,
             timeout=timeout,
         )
 
@@ -237,15 +265,7 @@ class AsyncClient:
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.TestRes:
-        seed = seed or 0
-        timeout = timeout or self._timeout
-        return await self._client.qcheck_name(
-            ctx=self.mk_context(),
-            request=simple_api_pb2.QCheckNameReq(
-                name=name, session=self._sesh, seed=seed
-            ),
-            timeout=timeout,
-        )
+        return await self.test_name(name=name, seed=seed, timeout=timeout)
 
     async def list_artifacts(
         self, task: task_pb2.Task, timeout: Optional[float] = None
