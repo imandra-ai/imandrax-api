@@ -244,11 +244,14 @@ class Client:
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.TestRes:
-        seed = seed or 0
+        req = simple_api_pb2.TestSrcReq(src=src, session=self._sesh)
+        if seed is not None:
+            req.seed = seed
+
         timeout = timeout or self._timeout
         return self._client.test_src(
             ctx=self.mk_context(),
-            request=simple_api_pb2.TestSrcReq(src=src, session=self._sesh, seed=seed),
+            request=req,
             timeout=timeout,
         )
 
@@ -266,13 +269,14 @@ class Client:
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.TestRes:
-        seed = seed or 0
+        req = simple_api_pb2.TestNameReq(name=name, session=self._sesh)
+        if seed is not None:
+            req.seed = seed
+
         timeout = timeout or self._timeout
         return self._client.test_name(
             ctx=self.mk_context(),
-            request=simple_api_pb2.TestNameReq(
-                name=name, session=self._sesh, seed=seed
-            ),
+            request=req,
             timeout=timeout,
         )
 
