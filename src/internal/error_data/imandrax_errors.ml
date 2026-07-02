@@ -55,7 +55,7 @@ let all : t list =
   make "LowerFolError" "Error in lowering RIR to FOL";
   make "ValidationError" "Error while validating a definition";
   make "LspError" "Error in LSP server";
-  make "Interrupted" "Computation was interrupted";
+  make "Interrupted" "Computation was interrupted (usually for exceeding the time limit)";
   make "RedisError" "Redis error";
   make "CIRDeclNotFoundInStorage" "CIR storage error";
   make "SerializationError" "Error during serialization";
@@ -77,6 +77,6 @@ let all : t list =
   make "Debounced" "Task has been cancelled due to debouncing";
   make "FileNotFound" "A file could not be found";
   make "InvalidSession" "The session ID provided is invalid";
-  make "NoCounterExample" "Test did not find a counter-example"
-  ]
+  make "NoCounterExample" "Test did not find a counter-example";
+  make "OutOfMemory" "The memory limit has been exceeded"  ]
   [@ocamlformat "disable"]
