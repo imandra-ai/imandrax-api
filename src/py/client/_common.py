@@ -21,4 +21,8 @@ def is_session_not_found(ex: TwirpServerException) -> bool:
     # Replace with a typed code check once the server is updated.
     body = (getattr(ex, "meta", None) or {}).get("body") or {}  # type: ignore
     msg = body.get("msg") or ""  # type: ignore
-    return "Session not found" in msg or "Unknown session" in msg
+    return (
+        "Session not found" in msg
+        or "Unknown session" in msg
+        or "InvalidSession" in msg
+    )
