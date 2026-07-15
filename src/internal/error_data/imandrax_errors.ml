@@ -78,5 +78,6 @@ let all : t list =
   make "FileNotFound" "A file could not be found";
   make "InvalidSession" "The session ID provided is invalid";
   make "NoCounterExample" "Test did not find a counter-example";
-  make "OutOfMemory" "The memory limit has been exceeded"  ]
+  make "OutOfMemory" "The memory limit has been exceeded";
+  make "Infrastructure" "A part of the infrastructure failed"  ]
   [@ocamlformat "disable"]
