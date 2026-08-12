@@ -154,14 +154,11 @@ class AsyncClient:
     ) -> simple_api_pb2.DecomposeRes:
         """
         Args:
-            timeout (float | None): HTTP request timeout, coerced to `compute_timeout + 10`
-                if `compute_timeout` is smaller than `timeout`
-            compute_timeout (int | None): region decomposition timeout (in seconds) on the server
+            timeout (float | None): HTTP request timeout
+            compute_timeout (int | None): computation timeout (in seconds) on the server
         """
         if timeout is None:
             timeout = self._timeout
-        if compute_timeout is not None:
-            timeout = max(timeout, compute_timeout + 10)
 
         req = simple_api_pb2.DecomposeReq(
             name=name,
