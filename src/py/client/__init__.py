@@ -171,8 +171,18 @@ class Client:
         lift_bool: Optional[simple_api_pb2.LiftBool] = None,
         timeout: Optional[float] = None,
         string_results: Optional[bool] = None,
+        compute_timeout: Optional[int] = None,
     ) -> simple_api_pb2.DecomposeRes:
-        timeout = timeout or self._timeout
+        """
+        Args:
+            timeout (float | None): HTTP request timeout, coerced to `compute_timeout + 10`
+                if `compute_timeout` is smaller than `timeout`
+            compute_timeout (int | None): region decomposition timeout (in seconds) on the server
+        """
+        if timeout is None:
+            timeout = self._timeout
+        if compute_timeout is not None:
+            timeout = max(timeout, compute_timeout + 10)
 
         req = simple_api_pb2.DecomposeReq(
             name=name,
@@ -189,6 +199,8 @@ class Client:
             req.ctx_simp = ctx_simp
         if string_results is not None:
             req.string_results = string_results
+        if compute_timeout is not None:
+            req.timeout = compute_timeout
 
         return self._client.decompose(
             ctx=self.mk_context(),
