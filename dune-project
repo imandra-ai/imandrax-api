@@ -65,9 +65,7 @@
    (>= 4.12.0))
   (imandrax-api :version)
   (ppxlib
-   (and
-    (>= 0.34)
-    (<= 0.35)))
+   (>= 0.38))
   (odoc :with-doc)))
 
 (package
@@ -79,9 +77,7 @@
     (>= 3.0)
     :with-test))
   (trace
-   (and
-    (>= 0.10)
-    (< 0.11)))
+   (>= 0.12))
   logs
   (ocaml
    (>= 4.14))
@@ -103,15 +99,16 @@
   (imandrax-api-client
    (= :version))
   imandrakit-thread
-  (ezcurl (and (>= 0.2.4) (< 0.3)))
+  (ezcurl
+   (and
+    (>= 0.2.4)
+    (< 0.3)))
   (moonpool
    (and
     (>= 0.7)
     (<= 0.11)))
   (trace
-   (and
-    (>= 0.10)
-    (< 0.11)))
+   (>= 0.12))
   (pbrt
    (>= 4.0))
   (pbrt_yojson
@@ -128,9 +125,7 @@
   lwt
   twirp_cohttp_lwt_unix
   (trace
-   (and
-    (>= 0.10)
-    (< 0.11)))
+   (>= 0.12))
   (pbrt
    (>= 4.0))
   (pbrt_yojson
@@ -151,9 +146,7 @@
   (imandrax-api-client-ezcurl
    (= :version))
   (trace
-   (and
-    (>= 0.10)
-    (< 0.11)))
+   (>= 0.12))
   ppx_deriving))
 
 (package
