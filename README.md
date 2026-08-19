@@ -37,8 +37,9 @@ Once you have that API key, copy it into this file:
 The CLI and the client libraries default to Imandra's cloud
 (`api.imandra.ai`), but every client can be pointed at any ImandraX server
 — e.g. a self-hosted appliance serving REST + websocket on
-`http://<host>:8086`. Self-hosted servers are unauthenticated (access
-control is at the network level), so no API key is needed.
+`<protocol>://<host>:<port>` (`:8086` is the default port in Azure
+VMs). Self-hosted servers are unauthenticated (access control is at the 
+network level), so no API key is needed.
 
 **`imandra-cli`** (batch `check`, `repl`, and the LSP behind the VS Code
 plugin): point `--server-endpoint` at the task scheduler's websocket URL:
