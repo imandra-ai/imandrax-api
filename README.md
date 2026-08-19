@@ -32,6 +32,44 @@ Once you have that API key, copy it into this file:
 ~/.config/imandrax/api_key
 ```
 
+## Connecting to a self-hosted ImandraX server
+
+The CLI and the client libraries default to Imandra's cloud
+(`api.imandra.ai`), but every client can be pointed at any ImandraX server
+— e.g. a self-hosted appliance serving REST + websocket on
+`http://<host>:8086`. Self-hosted servers are unauthenticated (access
+control is at the network level), so no API key is needed.
+
+**`imandra-cli`** (batch `check`, `repl`, and the LSP behind the VS Code
+plugin): pass a config file with the task scheduler's websocket URL:
+
+```json
+{
+  "net": {
+    "remote-scheduler-url": "ws://<host>:8086/proto/ws",
+    "deployment": "local"
+  }
+}
+```
+
+```sh
+imandrax-cli check -c my-config.json my-file.iml
+```
+
+With `"deployment": "local"` and no API key configured, requests are sent
+without an `Authorization` header. Subcommands that talk to the HTTP API
+also accept `--server-endpoint=http://<host>:8086/`.
+
+**Python**:
+
+```python
+with imandrax_api.Client(url="http://<host>:8086") as c:
+    ...
+```
+
+**OCaml**: pass `~url:"http://<host>:8086"` to
+`Imandrax_api_client_ezcurl.create` or `Imandrax_api_client_cohttp.create`.
+
 ## VS Code Plugin / LSP
 
 Next, install the ImandraX VS Code plugin from the VS Code Marketplace ([link](https://marketplace.visualstudio.com/items?itemName=imandra.imandrax)). 
