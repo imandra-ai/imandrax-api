@@ -41,29 +41,29 @@ The CLI and the client libraries default to Imandra's cloud
 control is at the network level), so no API key is needed.
 
 **`imandra-cli`** (batch `check`, `repl`, and the LSP behind the VS Code
-plugin): pass a config file with the task scheduler's websocket URL:
-
-```json
-{
-  "net": {
-    "remote-scheduler-url": "ws://<host>:8086/proto/ws",
-    "deployment": "local"
-  }
-}
-```
+plugin): point `--server-endpoint` at the task scheduler's **websocket**
+URL:
 
 ```sh
-imandrax-cli check -c my-config.json my-file.iml
+imandrax-cli check --server-endpoint=ws://<host>:8086/proto/ws my-file.iml
 ```
 
-With `"deployment": "local"` and no API key configured, requests are sent
-without an `Authorization` header. Do **not** pass `--server-endpoint`:
-despite its help text ("Http(s) URL for the server") it does not speak
-HTTP — it dials the host with the internal `Imandrax_protocol` raw-TCP
-transport (and only after an API key is configured), which the server's
-HTTP port does not serve. In LSP mode passing it silently disables the
-scheduler websocket instead. The config file is the only working route
-in current releases.
+Equivalently, pass a config file (`-c my-config.json`) with
+`{"net": {"remote-scheduler-url": "ws://<host>:8086/proto/ws"}}`.
+
+With no API key configured, requests are sent without an `Authorization`
+header. Two sharp edges:
+
+- The `ws(s)://` scheme in `--server-endpoint` is essential. Despite the
+  flag's help text ("Http(s) URL for the server"), an `http(s)://` value
+  makes the CLI dial the host with an internal raw-TCP transport that the
+  server's HTTP port does not speak (and, in LSP mode, silently disables
+  the scheduler websocket).
+- If using the config file, leave `net.deployment` unset: the default
+  attaches no ambient credentials, whereas `"prod"`/`"dev"` would read
+  your Imandra cloud API key (env or `~/.config/imandrax/api_key`) and
+  send it to the configured host as a bearer token — over plain HTTP for
+  a typical appliance.
 
 Note that the server validates the client's API version on connect: an
 outdated `imandrax-cli` is rejected with a connection reset (LSP:
