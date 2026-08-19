@@ -57,8 +57,18 @@ imandrax-cli check -c my-config.json my-file.iml
 ```
 
 With `"deployment": "local"` and no API key configured, requests are sent
-without an `Authorization` header. Subcommands that talk to the HTTP API
-also accept `--server-endpoint=http://<host>:8086/`.
+without an `Authorization` header. Do **not** pass `--server-endpoint`:
+despite its help text ("Http(s) URL for the server") it does not speak
+HTTP — it dials the host with the internal `Imandrax_protocol` raw-TCP
+transport (and only after an API key is configured), which the server's
+HTTP port does not serve. In LSP mode passing it silently disables the
+scheduler websocket instead. The config file is the only working route
+in current releases.
+
+Note that the server validates the client's API version on connect: an
+outdated `imandrax-cli` is rejected with a connection reset (LSP:
+repeated "Connection to server failed"), so the CLI must be at least as
+recent as the server's release.
 
 **Python**:
 
