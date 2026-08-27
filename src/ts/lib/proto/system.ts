@@ -197,6 +197,8 @@ export interface System {
   gc_stats(request: Empty): Promise<GcStats>;
   /** / Try to free memory, return stats */
   release_memory(request: Empty): Promise<GcStats>;
+  /** Ask the server to exit */
+  shutdown(request: Empty): Promise<Empty>;
 }
 
 export const SystemServiceName = "imandrax.system.System";
@@ -209,6 +211,7 @@ export class SystemClientImpl implements System {
     this.version = this.version.bind(this);
     this.gc_stats = this.gc_stats.bind(this);
     this.release_memory = this.release_memory.bind(this);
+    this.shutdown = this.shutdown.bind(this);
   }
   version(request: Empty): Promise<VersionResponse> {
     const data = Empty.encode(request).finish();
@@ -226,6 +229,12 @@ export class SystemClientImpl implements System {
     const data = Empty.encode(request).finish();
     const promise = this.rpc.request(this.service, "release_memory", data);
     return promise.then((data) => GcStats.decode(new BinaryReader(data)));
+  }
+
+  shutdown(request: Empty): Promise<Empty> {
+    const data = Empty.encode(request).finish();
+    const promise = this.rpc.request(this.service, "shutdown", data);
+    return promise.then((data) => Empty.decode(new BinaryReader(data)));
   }
 }
 

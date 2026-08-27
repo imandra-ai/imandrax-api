@@ -13,9 +13,6 @@ service Simple {
   // Get server status
   rpc status(Empty) returns (StringMsg);
 
-  // ask the server to exit
-  rpc shutdown(Empty) returns (Empty);
-
   // create a session easily
   rpc create_session(SessionCreateReq) returns (imandrax.session.Session);
 

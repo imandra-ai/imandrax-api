@@ -2192,8 +2192,6 @@ module Simple : sig
     
     val status : (Utils.empty, unary, Utils.string_msg, unary) Client.rpc
     
-    val shutdown : (Utils.empty, unary, Utils.empty, unary) Client.rpc
-    
     val create_session : (session_create_req, unary, Session.session, unary) Client.rpc
     
     val end_session : (Session.session, unary, Utils.empty, unary) Client.rpc
@@ -2231,7 +2229,6 @@ module Simple : sig
     (** Produce a server implementation from handlers *)
     val make : 
       status:((Utils.empty, unary, Utils.string_msg, unary) Server.rpc -> 'handler) ->
-      shutdown:((Utils.empty, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
       create_session:((session_create_req, unary, Session.session, unary) Server.rpc -> 'handler) ->
       end_session:((Session.session, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
       eval_src:((eval_src_req, unary, eval_res, unary) Server.rpc -> 'handler) ->
@@ -2253,8 +2250,6 @@ module Simple : sig
     (** The individual server stubs are only exposed for advanced users. Casual users should prefer accessing them through {!make}. *)
     
     val status : (Utils.empty,unary,Utils.string_msg,unary) Server.rpc
-    
-    val shutdown : (Utils.empty,unary,Utils.empty,unary) Server.rpc
     
     val create_session : (session_create_req,unary,Session.session,unary) Server.rpc
     

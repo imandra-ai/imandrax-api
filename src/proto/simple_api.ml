@@ -6109,19 +6109,6 @@ module Simple = struct
         () : (Utils.empty, unary, Utils.string_msg, unary) Client.rpc)
     open Pbrt_services
     
-    let shutdown : (Utils.empty, unary, Utils.empty, unary) Client.rpc =
-      (Client.mk_rpc 
-        ~package:["imandrax";"simple"]
-        ~service_name:"Simple" ~rpc_name:"shutdown"
-        ~req_mode:Client.Unary
-        ~res_mode:Client.Unary
-        ~encode_json_req:Utils.encode_json_empty
-        ~encode_pb_req:Utils.encode_pb_empty
-        ~decode_json_res:Utils.decode_json_empty
-        ~decode_pb_res:Utils.decode_pb_empty
-        () : (Utils.empty, unary, Utils.empty, unary) Client.rpc)
-    open Pbrt_services
-    
     let create_session : (session_create_req, unary, Session.session, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"simple"]
@@ -6343,16 +6330,6 @@ module Simple = struct
         ~decode_pb_req:Utils.decode_pb_empty
         () : _ Server.rpc)
     
-    let shutdown : (Utils.empty,unary,Utils.empty,unary) Server.rpc = 
-      (Server.mk_rpc ~name:"shutdown"
-        ~req_mode:Server.Unary
-        ~res_mode:Server.Unary
-        ~encode_json_res:Utils.encode_json_empty
-        ~encode_pb_res:Utils.encode_pb_empty
-        ~decode_json_req:Utils.decode_json_empty
-        ~decode_pb_req:Utils.decode_pb_empty
-        () : _ Server.rpc)
-    
     let create_session : (session_create_req,unary,Session.session,unary) Server.rpc = 
       (Server.mk_rpc ~name:"create_session"
         ~req_mode:Server.Unary
@@ -6515,7 +6492,6 @@ module Simple = struct
     
     let make
       ~status:__handler__status
-      ~shutdown:__handler__shutdown
       ~create_session:__handler__create_session
       ~end_session:__handler__end_session
       ~eval_src:__handler__eval_src
@@ -6538,7 +6514,6 @@ module Simple = struct
         package=["imandrax";"simple"];
         handlers=[
            (__handler__status status);
-           (__handler__shutdown shutdown);
            (__handler__create_session create_session);
            (__handler__end_session end_session);
            (__handler__eval_src eval_src);

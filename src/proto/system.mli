@@ -141,6 +141,8 @@ module System : sig
     val gc_stats : (Utils.empty, unary, gc_stats, unary) Client.rpc
     
     val release_memory : (Utils.empty, unary, gc_stats, unary) Client.rpc
+    
+    val shutdown : (Utils.empty, unary, Utils.empty, unary) Client.rpc
   end
   
   module Server : sig
@@ -149,6 +151,7 @@ module System : sig
       version:((Utils.empty, unary, version_response, unary) Server.rpc -> 'handler) ->
       gc_stats:((Utils.empty, unary, gc_stats, unary) Server.rpc -> 'handler) ->
       release_memory:((Utils.empty, unary, gc_stats, unary) Server.rpc -> 'handler) ->
+      shutdown:((Utils.empty, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
     
     (** The individual server stubs are only exposed for advanced users. Casual users should prefer accessing them through {!make}. *)
@@ -158,5 +161,7 @@ module System : sig
     val gc_stats : (Utils.empty,unary,gc_stats,unary) Server.rpc
     
     val release_memory : (Utils.empty,unary,gc_stats,unary) Server.rpc
+    
+    val shutdown : (Utils.empty,unary,Utils.empty,unary) Server.rpc
   end
 end
