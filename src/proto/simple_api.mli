@@ -1,7 +1,7 @@
 
 (** Code for simple_api.proto *)
 
-(* generated from "simple_api.proto", do not edit *)
+(* generated from "./simple_api.proto", do not edit *)
 
 
 
@@ -517,6 +517,9 @@ val make_decompose_req :
 
 val copy_decompose_req : decompose_req -> decompose_req
 
+val decompose_req_has_session : decompose_req -> bool
+  (** presence of field "session" in [decompose_req] *)
+
 val decompose_req_set_session : decompose_req -> Session.session -> unit
   (** set field session in decompose_req *)
 
@@ -640,6 +643,9 @@ val make_decompose_req_full_prune :
 
 val copy_decompose_req_full_prune : decompose_req_full_prune -> decompose_req_full_prune
 
+val decompose_req_full_prune_has_d : decompose_req_full_prune -> bool
+  (** presence of field "d" in [decompose_req_full_prune] *)
+
 val decompose_req_full_prune_set_d : decompose_req_full_prune -> decompose_req_full_decomp -> unit
   (** set field d in decompose_req_full_prune *)
 
@@ -652,8 +658,14 @@ val make_decompose_req_full_merge :
 
 val copy_decompose_req_full_merge : decompose_req_full_merge -> decompose_req_full_merge
 
+val decompose_req_full_merge_has_d1 : decompose_req_full_merge -> bool
+  (** presence of field "d1" in [decompose_req_full_merge] *)
+
 val decompose_req_full_merge_set_d1 : decompose_req_full_merge -> decompose_req_full_decomp -> unit
   (** set field d1 in decompose_req_full_merge *)
+
+val decompose_req_full_merge_has_d2 : decompose_req_full_merge -> bool
+  (** presence of field "d2" in [decompose_req_full_merge] *)
 
 val decompose_req_full_merge_set_d2 : decompose_req_full_merge -> decompose_req_full_decomp -> unit
   (** set field d2 in decompose_req_full_merge *)
@@ -667,8 +679,14 @@ val make_decompose_req_full_compound_merge :
 
 val copy_decompose_req_full_compound_merge : decompose_req_full_compound_merge -> decompose_req_full_compound_merge
 
+val decompose_req_full_compound_merge_has_d1 : decompose_req_full_compound_merge -> bool
+  (** presence of field "d1" in [decompose_req_full_compound_merge] *)
+
 val decompose_req_full_compound_merge_set_d1 : decompose_req_full_compound_merge -> decompose_req_full_decomp -> unit
   (** set field d1 in decompose_req_full_compound_merge *)
+
+val decompose_req_full_compound_merge_has_d2 : decompose_req_full_compound_merge -> bool
+  (** presence of field "d2" in [decompose_req_full_compound_merge] *)
 
 val decompose_req_full_compound_merge_set_d2 : decompose_req_full_compound_merge -> decompose_req_full_decomp -> unit
   (** set field d2 in decompose_req_full_compound_merge *)
@@ -680,6 +698,9 @@ val make_decompose_req_full_combine :
 (** [make_decompose_req_full_combine … ()] is a builder for type [decompose_req_full_combine] *)
 
 val copy_decompose_req_full_combine : decompose_req_full_combine -> decompose_req_full_combine
+
+val decompose_req_full_combine_has_d : decompose_req_full_combine -> bool
+  (** presence of field "d" in [decompose_req_full_combine] *)
 
 val decompose_req_full_combine_set_d : decompose_req_full_combine -> decompose_req_full_decomp -> unit
   (** set field d in decompose_req_full_combine *)
@@ -695,6 +716,9 @@ val copy_decompose_req_full_local_var_let : decompose_req_full_local_var_let -> 
 
 val decompose_req_full_local_var_let_set_bindings : decompose_req_full_local_var_let -> decompose_req_full_local_var_binding list -> unit
   (** set field bindings in decompose_req_full_local_var_let *)
+
+val decompose_req_full_local_var_let_has_and_then : decompose_req_full_local_var_let -> bool
+  (** presence of field "and_then" in [decompose_req_full_local_var_let] *)
 
 val decompose_req_full_local_var_let_set_and_then : decompose_req_full_local_var_let -> decompose_req_full_decomp -> unit
   (** set field and_then in decompose_req_full_local_var_let *)
@@ -714,6 +738,9 @@ val decompose_req_full_local_var_binding_has_name : decompose_req_full_local_var
 val decompose_req_full_local_var_binding_set_name : decompose_req_full_local_var_binding -> string -> unit
   (** set field name in decompose_req_full_local_var_binding *)
 
+val decompose_req_full_local_var_binding_has_d : decompose_req_full_local_var_binding -> bool
+  (** presence of field "d" in [decompose_req_full_local_var_binding] *)
+
 val decompose_req_full_local_var_binding_set_d : decompose_req_full_local_var_binding -> decompose_req_full_decomp -> unit
   (** set field d in decompose_req_full_local_var_binding *)
 
@@ -728,8 +755,14 @@ val make_decompose_req_full :
 
 val copy_decompose_req_full : decompose_req_full -> decompose_req_full
 
+val decompose_req_full_has_session : decompose_req_full -> bool
+  (** presence of field "session" in [decompose_req_full] *)
+
 val decompose_req_full_set_session : decompose_req_full -> Session.session -> unit
   (** set field session in decompose_req_full *)
+
+val decompose_req_full_has_decomp : decompose_req_full -> bool
+  (** presence of field "decomp" in [decompose_req_full] *)
 
 val decompose_req_full_set_decomp : decompose_req_full -> decompose_req_full_decomp -> unit
   (** set field decomp in decompose_req_full *)
@@ -756,11 +789,17 @@ val make_decompose_res :
 
 val copy_decompose_res : decompose_res -> decompose_res
 
+val decompose_res_has_res : decompose_res -> bool
+  (** presence of field "res" in [decompose_res] *)
+
 val decompose_res_set_res : decompose_res -> decompose_res_res -> unit
   (** set field res in decompose_res *)
 
 val decompose_res_set_errors : decompose_res -> Error.error list -> unit
   (** set field errors in decompose_res *)
+
+val decompose_res_has_task : decompose_res -> bool
+  (** presence of field "task" in [decompose_res] *)
 
 val decompose_res_set_task : decompose_res -> Task.task -> unit
   (** set field task in decompose_res *)
@@ -775,6 +814,9 @@ val make_eval_src_req :
 (** [make_eval_src_req … ()] is a builder for type [eval_src_req] *)
 
 val copy_eval_src_req : eval_src_req -> eval_src_req
+
+val eval_src_req_has_session : eval_src_req -> bool
+  (** presence of field "session" in [eval_src_req] *)
 
 val eval_src_req_set_session : eval_src_req -> Session.session -> unit
   (** set field session in eval_src_req *)
@@ -855,6 +897,9 @@ val model_has_src : model -> bool
 val model_set_src : model -> string -> unit
   (** set field src in model *)
 
+val model_has_artifact : model -> bool
+  (** presence of field "artifact" in [model] *)
+
 val model_set_artifact : model -> Artmsg.art -> unit
   (** set field artifact in model *)
 
@@ -865,6 +910,9 @@ val make_counter_sat :
 (** [make_counter_sat … ()] is a builder for type [counter_sat] *)
 
 val copy_counter_sat : counter_sat -> counter_sat
+
+val counter_sat_has_model : counter_sat -> bool
+  (** presence of field "model" in [counter_sat] *)
 
 val counter_sat_set_model : counter_sat -> model -> unit
   (** set field model in counter_sat *)
@@ -894,14 +942,23 @@ val make_po_res :
 
 val copy_po_res : po_res -> po_res
 
+val po_res_has_res : po_res -> bool
+  (** presence of field "res" in [po_res] *)
+
 val po_res_set_res : po_res -> po_res_res -> unit
   (** set field res in po_res *)
 
 val po_res_set_errors : po_res -> Error.error list -> unit
   (** set field errors in po_res *)
 
+val po_res_has_task : po_res -> bool
+  (** presence of field "task" in [po_res] *)
+
 val po_res_set_task : po_res -> Task.task -> unit
   (** set field task in po_res *)
+
+val po_res_has_origin : po_res -> bool
+  (** presence of field "origin" in [po_res] *)
 
 val po_res_set_origin : po_res -> Task.origin -> unit
   (** set field origin in po_res *)
@@ -954,6 +1011,9 @@ val make_verify_src_req :
 
 val copy_verify_src_req : verify_src_req -> verify_src_req
 
+val verify_src_req_has_session : verify_src_req -> bool
+  (** presence of field "session" in [verify_src_req] *)
+
 val verify_src_req_set_session : verify_src_req -> Session.session -> unit
   (** set field session in verify_src_req *)
 
@@ -978,6 +1038,9 @@ val make_verify_name_req :
 (** [make_verify_name_req … ()] is a builder for type [verify_name_req] *)
 
 val copy_verify_name_req : verify_name_req -> verify_name_req
+
+val verify_name_req_has_session : verify_name_req -> bool
+  (** presence of field "session" in [verify_name_req] *)
 
 val verify_name_req_set_session : verify_name_req -> Session.session -> unit
   (** set field session in verify_name_req *)
@@ -1004,6 +1067,9 @@ val make_test_src_req :
 
 val copy_test_src_req : test_src_req -> test_src_req
 
+val test_src_req_has_session : test_src_req -> bool
+  (** presence of field "session" in [test_src_req] *)
+
 val test_src_req_set_session : test_src_req -> Session.session -> unit
   (** set field session in test_src_req *)
 
@@ -1028,6 +1094,9 @@ val make_qcheck_src_req :
 (** [make_qcheck_src_req … ()] is a builder for type [qcheck_src_req] *)
 
 val copy_qcheck_src_req : qcheck_src_req -> qcheck_src_req
+
+val qcheck_src_req_has_session : qcheck_src_req -> bool
+  (** presence of field "session" in [qcheck_src_req] *)
 
 val qcheck_src_req_set_session : qcheck_src_req -> Session.session -> unit
   (** set field session in qcheck_src_req *)
@@ -1054,6 +1123,9 @@ val make_test_name_req :
 
 val copy_test_name_req : test_name_req -> test_name_req
 
+val test_name_req_has_session : test_name_req -> bool
+  (** presence of field "session" in [test_name_req] *)
+
 val test_name_req_set_session : test_name_req -> Session.session -> unit
   (** set field session in test_name_req *)
 
@@ -1078,6 +1150,9 @@ val make_qcheck_name_req :
 (** [make_qcheck_name_req … ()] is a builder for type [qcheck_name_req] *)
 
 val copy_qcheck_name_req : qcheck_name_req -> qcheck_name_req
+
+val qcheck_name_req_has_session : qcheck_name_req -> bool
+  (** presence of field "session" in [qcheck_name_req] *)
 
 val qcheck_name_req_set_session : qcheck_name_req -> Session.session -> unit
   (** set field session in qcheck_name_req *)
@@ -1104,6 +1179,9 @@ val make_instance_src_req :
 
 val copy_instance_src_req : instance_src_req -> instance_src_req
 
+val instance_src_req_has_session : instance_src_req -> bool
+  (** presence of field "session" in [instance_src_req] *)
+
 val instance_src_req_set_session : instance_src_req -> Session.session -> unit
   (** set field session in instance_src_req *)
 
@@ -1128,6 +1206,9 @@ val make_instance_name_req :
 (** [make_instance_name_req … ()] is a builder for type [instance_name_req] *)
 
 val copy_instance_name_req : instance_name_req -> instance_name_req
+
+val instance_name_req_has_session : instance_name_req -> bool
+  (** presence of field "session" in [instance_name_req] *)
 
 val instance_name_req_set_session : instance_name_req -> Session.session -> unit
   (** set field session in instance_name_req *)
@@ -1166,6 +1247,9 @@ val make_refuted :
 
 val copy_refuted : refuted -> refuted
 
+val refuted_has_model : refuted -> bool
+  (** presence of field "model" in [refuted] *)
+
 val refuted_set_model : refuted -> model -> unit
   (** set field model in refuted *)
 
@@ -1176,6 +1260,9 @@ val make_sat :
 (** [make_sat … ()] is a builder for type [sat] *)
 
 val copy_sat : sat -> sat
+
+val sat_has_model : sat -> bool
+  (** presence of field "model" in [sat] *)
 
 val sat_set_model : sat -> model -> unit
   (** set field model in sat *)
@@ -1190,11 +1277,17 @@ val make_verify_res :
 
 val copy_verify_res : verify_res -> verify_res
 
+val verify_res_has_res : verify_res -> bool
+  (** presence of field "res" in [verify_res] *)
+
 val verify_res_set_res : verify_res -> verify_res_res -> unit
   (** set field res in verify_res *)
 
 val verify_res_set_errors : verify_res -> Error.error list -> unit
   (** set field errors in verify_res *)
+
+val verify_res_has_task : verify_res -> bool
+  (** presence of field "task" in [verify_res] *)
 
 val verify_res_set_task : verify_res -> Task.task -> unit
   (** set field task in verify_res *)
@@ -1209,11 +1302,17 @@ val make_test_res :
 
 val copy_test_res : test_res -> test_res
 
+val test_res_has_res : test_res -> bool
+  (** presence of field "res" in [test_res] *)
+
 val test_res_set_res : test_res -> test_res_res -> unit
   (** set field res in test_res *)
 
 val test_res_set_errors : test_res -> Error.error list -> unit
   (** set field errors in test_res *)
+
+val test_res_has_task : test_res -> bool
+  (** presence of field "task" in [test_res] *)
 
 val test_res_set_task : test_res -> Task.task -> unit
   (** set field task in test_res *)
@@ -1228,11 +1327,17 @@ val make_instance_res :
 
 val copy_instance_res : instance_res -> instance_res
 
+val instance_res_has_res : instance_res -> bool
+  (** presence of field "res" in [instance_res] *)
+
 val instance_res_set_res : instance_res -> instance_res_res -> unit
   (** set field res in instance_res *)
 
 val instance_res_set_errors : instance_res -> Error.error list -> unit
   (** set field errors in instance_res *)
+
+val instance_res_has_task : instance_res -> bool
+  (** presence of field "task" in [instance_res] *)
 
 val instance_res_set_task : instance_res -> Task.task -> unit
   (** set field task in instance_res *)
@@ -1245,6 +1350,9 @@ val make_typecheck_req :
 (** [make_typecheck_req … ()] is a builder for type [typecheck_req] *)
 
 val copy_typecheck_req : typecheck_req -> typecheck_req
+
+val typecheck_req_has_session : typecheck_req -> bool
+  (** presence of field "session" in [typecheck_req] *)
 
 val typecheck_req_set_session : typecheck_req -> Session.session -> unit
   (** set field session in typecheck_req *)
@@ -1332,6 +1440,9 @@ val oneshot_res_set_results : oneshot_res -> string list -> unit
 val oneshot_res_set_errors : oneshot_res -> string list -> unit
   (** set field errors in oneshot_res *)
 
+val oneshot_res_has_stats : oneshot_res -> bool
+  (** presence of field "stats" in [oneshot_res] *)
+
 val oneshot_res_set_stats : oneshot_res -> oneshot_res_stats -> unit
   (** set field stats in oneshot_res *)
 
@@ -1347,6 +1458,9 @@ val make_get_decls_req :
 (** [make_get_decls_req … ()] is a builder for type [get_decls_req] *)
 
 val copy_get_decls_req : get_decls_req -> get_decls_req
+
+val get_decls_req_has_session : get_decls_req -> bool
+  (** presence of field "session" in [get_decls_req] *)
 
 val get_decls_req_set_session : get_decls_req -> Session.session -> unit
   (** set field session in get_decls_req *)
@@ -1375,6 +1489,9 @@ val decl_with_name_has_name : decl_with_name -> bool
 
 val decl_with_name_set_name : decl_with_name -> string -> unit
   (** set field name in decl_with_name *)
+
+val decl_with_name_has_artifact : decl_with_name -> bool
+  (** presence of field "artifact" in [decl_with_name] *)
 
 val decl_with_name_set_artifact : decl_with_name -> Artmsg.art -> unit
   (** set field artifact in decl_with_name *)
@@ -2192,8 +2309,6 @@ module Simple : sig
     
     val status : (Utils.empty, unary, Utils.string_msg, unary) Client.rpc
     
-    val shutdown : (Utils.empty, unary, Utils.empty, unary) Client.rpc
-    
     val create_session : (session_create_req, unary, Session.session, unary) Client.rpc
     
     val end_session : (Session.session, unary, Utils.empty, unary) Client.rpc
@@ -2231,7 +2346,6 @@ module Simple : sig
     (** Produce a server implementation from handlers *)
     val make : 
       status:((Utils.empty, unary, Utils.string_msg, unary) Server.rpc -> 'handler) ->
-      shutdown:((Utils.empty, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
       create_session:((session_create_req, unary, Session.session, unary) Server.rpc -> 'handler) ->
       end_session:((Session.session, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
       eval_src:((eval_src_req, unary, eval_res, unary) Server.rpc -> 'handler) ->
@@ -2253,8 +2367,6 @@ module Simple : sig
     (** The individual server stubs are only exposed for advanced users. Casual users should prefer accessing them through {!make}. *)
     
     val status : (Utils.empty,unary,Utils.string_msg,unary) Server.rpc
-    
-    val shutdown : (Utils.empty,unary,Utils.empty,unary) Server.rpc
     
     val create_session : (session_create_req,unary,Session.session,unary) Server.rpc
     

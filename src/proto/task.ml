@@ -66,6 +66,7 @@ let make_task_id
   | Some v -> task_id_set_id _res v);
   _res
 
+let[@inline] task_has_id (self:task) : bool = self.id != None
 let[@inline] task_has_kind (self:task) : bool = (Pbrt.Bitfield.get self._presence 0)
 
 let[@inline] task_set_id (self:task) (x:task_id) : unit =

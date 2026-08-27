@@ -103,6 +103,7 @@ let default_artifact_zip (): artifact_zip =
 
 (** {2 Make functions} *)
 
+let[@inline] code_snippet_has_session (self:code_snippet) : bool = self.session != None
 let[@inline] code_snippet_has_code (self:code_snippet) : bool = (Pbrt.Bitfield.get self._presence 0)
 
 let[@inline] code_snippet_set_session (self:code_snippet) (x:Session.session) : unit =
@@ -179,6 +180,7 @@ let make_parse_query
   | Some v -> parse_query_set_code _res v);
   _res
 
+let[@inline] artifact_list_query_has_task_id (self:artifact_list_query) : bool = self.task_id != None
 
 let[@inline] artifact_list_query_set_task_id (self:artifact_list_query) (x:Task.task_id) : unit =
   self.task_id <- Some x
@@ -209,6 +211,7 @@ let make_artifact_list_result
   artifact_list_result_set_kinds _res kinds;
   _res
 
+let[@inline] artifact_get_query_has_task_id (self:artifact_get_query) : bool = self.task_id != None
 let[@inline] artifact_get_query_has_kind (self:artifact_get_query) : bool = (Pbrt.Bitfield.get self._presence 0)
 
 let[@inline] artifact_get_query_set_task_id (self:artifact_get_query) (x:Task.task_id) : unit =
@@ -232,6 +235,7 @@ let make_artifact_get_query
   | Some v -> artifact_get_query_set_kind _res v);
   _res
 
+let[@inline] artifact_has_art (self:artifact) : bool = self.art != None
 
 let[@inline] artifact_set_art (self:artifact) (x:Artmsg.art) : unit =
   self.art <- Some x

@@ -63,6 +63,7 @@ let make_error_message
   | Some v -> error_message_set_backtrace _res v);
   _res
 
+let[@inline] error_has_msg (self:error) : bool = self.msg != None
 let[@inline] error_has_kind (self:error) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] error_has_process (self:error) : bool = (Pbrt.Bitfield.get self._presence 1)
 

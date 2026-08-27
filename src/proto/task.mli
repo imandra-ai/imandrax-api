@@ -1,7 +1,7 @@
 
 (** Code for task.proto *)
 
-(* generated from "task.proto", do not edit *)
+(* generated from "./task.proto", do not edit *)
 
 
 
@@ -71,6 +71,9 @@ val make_task :
 (** [make_task … ()] is a builder for type [task] *)
 
 val copy_task : task -> task
+
+val task_has_id : task -> bool
+  (** presence of field "id" in [task] *)
 
 val task_set_id : task -> task_id -> unit
   (** set field id in task *)

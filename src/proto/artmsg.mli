@@ -1,7 +1,7 @@
 
 (** Code for artmsg.proto *)
 
-(* generated from "artmsg.proto", do not edit *)
+(* generated from "./artmsg.proto", do not edit *)
 
 
 

@@ -81,6 +81,7 @@ let make_session_create
   | Some v -> session_create_set_api_version _res v);
   _res
 
+let[@inline] session_open_has_id (self:session_open) : bool = self.id != None
 let[@inline] session_open_has_api_version (self:session_open) : bool = (Pbrt.Bitfield.get self._presence 0)
 
 let[@inline] session_open_set_id (self:session_open) (x:session) : unit =

@@ -1,7 +1,7 @@
 
 (** Code for error.proto *)
 
-(* generated from "error.proto", do not edit *)
+(* generated from "./error.proto", do not edit *)
 
 
 
@@ -69,6 +69,9 @@ val make_error :
 (** [make_error … ()] is a builder for type [error] *)
 
 val copy_error : error -> error
+
+val error_has_msg : error -> bool
+  (** presence of field "msg" in [error] *)
 
 val error_set_msg : error -> error_message -> unit
   (** set field msg in error *)

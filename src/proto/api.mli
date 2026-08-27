@@ -1,7 +1,7 @@
 
 (** Code for api.proto *)
 
-(* generated from "api.proto", do not edit *)
+(* generated from "./api.proto", do not edit *)
 
 
 
@@ -97,6 +97,9 @@ val make_code_snippet :
 
 val copy_code_snippet : code_snippet -> code_snippet
 
+val code_snippet_has_session : code_snippet -> bool
+  (** presence of field "session" in [code_snippet] *)
+
 val code_snippet_set_session : code_snippet -> Session.session -> unit
   (** set field session in code_snippet *)
 
@@ -160,6 +163,9 @@ val make_artifact_list_query :
 
 val copy_artifact_list_query : artifact_list_query -> artifact_list_query
 
+val artifact_list_query_has_task_id : artifact_list_query -> bool
+  (** presence of field "task_id" in [artifact_list_query] *)
+
 val artifact_list_query_set_task_id : artifact_list_query -> Task.task_id -> unit
   (** set field task_id in artifact_list_query *)
 
@@ -183,6 +189,9 @@ val make_artifact_get_query :
 
 val copy_artifact_get_query : artifact_get_query -> artifact_get_query
 
+val artifact_get_query_has_task_id : artifact_get_query -> bool
+  (** presence of field "task_id" in [artifact_get_query] *)
+
 val artifact_get_query_set_task_id : artifact_get_query -> Task.task_id -> unit
   (** set field task_id in artifact_get_query *)
 
@@ -199,6 +208,9 @@ val make_artifact :
 (** [make_artifact … ()] is a builder for type [artifact] *)
 
 val copy_artifact : artifact -> artifact
+
+val artifact_has_art : artifact -> bool
+  (** presence of field "art" in [artifact] *)
 
 val artifact_set_art : artifact -> Artmsg.art -> unit
   (** set field art in artifact *)

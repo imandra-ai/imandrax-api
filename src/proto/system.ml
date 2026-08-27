@@ -302,6 +302,19 @@ module System = struct
         ~decode_json_res:decode_json_gc_stats
         ~decode_pb_res:decode_pb_gc_stats
         () : (Utils.empty, unary, gc_stats, unary) Client.rpc)
+    open Pbrt_services
+    
+    let shutdown : (Utils.empty, unary, Utils.empty, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"system"]
+        ~service_name:"System" ~rpc_name:"shutdown"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:Utils.encode_json_empty
+        ~encode_pb_req:Utils.encode_pb_empty
+        ~decode_json_res:Utils.decode_json_empty
+        ~decode_pb_res:Utils.decode_pb_empty
+        () : (Utils.empty, unary, Utils.empty, unary) Client.rpc)
   end
   
   module Server = struct
@@ -337,10 +350,21 @@ module System = struct
         ~decode_pb_req:Utils.decode_pb_empty
         () : _ Server.rpc)
     
+    let shutdown : (Utils.empty,unary,Utils.empty,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"shutdown"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:Utils.encode_json_empty
+        ~encode_pb_res:Utils.encode_pb_empty
+        ~decode_json_req:Utils.decode_json_empty
+        ~decode_pb_req:Utils.decode_pb_empty
+        () : _ Server.rpc)
+    
     let make
       ~version:__handler__version
       ~gc_stats:__handler__gc_stats
       ~release_memory:__handler__release_memory
+      ~shutdown:__handler__shutdown
       () : _ Server.t =
       { Server.
         service_name="System";
@@ -349,6 +373,7 @@ module System = struct
            (__handler__version version);
            (__handler__gc_stats gc_stats);
            (__handler__release_memory release_memory);
+           (__handler__shutdown shutdown);
         ];
       }
   end
