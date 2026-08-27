@@ -59,7 +59,7 @@ class Client:
         self._closed = False
         self._auth_token = api_key if api_key else auth_token
         if self._auth_token:
-            self._session.headers["Authorization"] = f"Bearer {auth_token}"
+            self._session.headers["Authorization"] = f"Bearer {self._auth_token}"
         self._url = url
         self._server_path_prefix = server_path_prefix
         self._client = simple_api_twirp.SimpleClient(

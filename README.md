@@ -32,6 +32,48 @@ Once you have that API key, copy it into this file:
 ~/.config/imandrax/api_key
 ```
 
+## Connecting to a self-hosted ImandraX server
+
+The CLI and the client libraries default to Imandra's cloud
+(`api.imandra.ai`), but every client can be pointed at any ImandraX server
+— e.g. a self-hosted appliance serving REST + websocket on
+`<protocol>://<host>:<port>` (`:8086` is the default port in Azure
+VMs). Self-hosted servers are unauthenticated (access control is at the 
+network level), so no API key is needed.
+
+**`imandra-cli`** (batch `check`, `repl`, and the LSP behind the VS Code
+plugin): point `--server-endpoint` at the task scheduler's websocket URL:
+
+```sh
+imandrax-cli check --server-endpoint=ws://<host>:8086/proto/ws my-file.iml
+```
+
+Note that despite the flag's help text, the value must be the `ws(s)://`
+scheduler URL as shown — an `http(s)://` value selects a different
+transport and silently disables remote tasks.
+
+Equivalently, pass a config file (`-c my-config.json`) with
+`{"net": {"remote-scheduler-url": "ws://<host>:8086/proto/ws"}}`, leaving
+`net.deployment` unset so that no ambient API key is attached.
+
+With no API key configured, requests are sent without an `Authorization`
+header.
+
+Note that the server validates the client's API version on connect: an
+outdated `imandrax-cli` is rejected with a connection reset (LSP:
+repeated "Connection to server failed"), so the CLI must match the server's
+release.
+
+**Python**:
+
+```python
+with imandrax_api.Client(url="http://<host>:8086") as c:
+    ...
+```
+
+**OCaml**: pass `~url:"http://<host>:8086"` to
+`Imandrax_api_client_ezcurl.create` or `Imandrax_api_client_cohttp.create`.
+
 ## VS Code Plugin / LSP
 
 Next, install the ImandraX VS Code plugin from the VS Code Marketplace ([link](https://marketplace.visualstudio.com/items?itemName=imandra.imandrax)). 
