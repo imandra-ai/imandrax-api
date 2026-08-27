@@ -143,10 +143,46 @@ class AsyncClient:
         except TwirpServerException as e:
             raise Exception("Error while ending session") from e
 
+    # Service Simple
+    # ====================
+
     async def status(self) -> utils_pb2.StringMsg:
         return await self._client.status(
             ctx=self.mk_context(),
             request=utils_pb2.Empty(),
+        )
+
+    async def eval_src(
+        self,
+        src: str,
+        timeout: Optional[float] = None,
+        async_only: Optional[bool] = None,
+        task_filter: Optional[list[str]] = None,
+    ) -> simple_api_pb2.EvalRes:
+        """
+        Args:
+            timeout (float | None): HTTP request timeout
+            async_only (bool | None): if true, return as soon as the tasks are
+                started, without waiting for their results. The returned
+                `EvalRes.tasks` can then be passed to `get_artifact`
+                or `get_artifact_zip` to collect results later.
+            task_filter (list[str] | None): glob patterns restricting which
+                verification tasks are started, matched against the name of the
+                top-level definition, e.g. `["*xyz*"]`. The default is to
+                start all tasks.
+        """
+        timeout = timeout or self._timeout
+        req = simple_api_pb2.EvalSrcReq(
+            src=src, session=self._sesh, task_filter=task_filter
+        )
+        # If None, keep it as unset
+        if async_only is not None:
+            req.async_only = async_only
+
+        return await self._client.eval_src(
+            ctx=self.mk_context(),
+            request=req,
+            timeout=timeout,
         )
 
     async def decompose(
@@ -201,8 +237,7 @@ class AsyncClient:
         string_results: Optional[bool] = None,
         compute_timeout: Optional[int] = None,
     ) -> simple_api_pb2.DecomposeRes:
-        """Run a compound decomposition.
-
+        """
         More expressive than `decompose`: `d` describes a tree of
         operations (decompose by name, prune, combine, merge, let-bind) built
         with the helpers in `imandrax_api.client.decomp`.
@@ -223,40 +258,6 @@ class AsyncClient:
             req.timeout = compute_timeout
 
         return await self._client.decompose_full(
-            ctx=self.mk_context(),
-            request=req,
-            timeout=timeout,
-        )
-
-    async def eval_src(
-        self,
-        src: str,
-        timeout: Optional[float] = None,
-        async_only: Optional[bool] = None,
-        task_filter: Optional[list[str]] = None,
-    ) -> simple_api_pb2.EvalRes:
-        """Evaluate source code in the session.
-
-        Args:
-            timeout (float | None): HTTP request timeout
-            async_only (bool | None): if true, return as soon as the tasks are
-                started, without waiting for their results. The returned
-                `EvalRes.tasks` can then be passed to `get_artifact`
-                or `get_artifact_zip` to collect results later.
-            task_filter (list[str] | None): glob patterns restricting which
-                verification tasks are started, matched against the name of the
-                top-level definition, e.g. `["*xyz*"]`. The default is to
-                start all tasks.
-        """
-        timeout = timeout or self._timeout
-        req = simple_api_pb2.EvalSrcReq(
-            src=src, session=self._sesh, task_filter=task_filter
-        )
-        # If None, keep it as unset
-        if async_only is not None:
-            req.async_only = async_only
-
-        return await self._client.eval_src(
             ctx=self.mk_context(),
             request=req,
             timeout=timeout,
@@ -374,44 +375,6 @@ class AsyncClient:
     ) -> simple_api_pb2.TestRes:
         return await self.test_name(name=name, seed=seed, timeout=timeout)
 
-    # Artifacts
-    # ---------
-
-    async def list_artifacts(
-        self, task: task_pb2.Task, timeout: Optional[float] = None
-    ) -> api_pb2.ArtifactListResult:
-        timeout = timeout or self._timeout
-        return await self._api_client.list_artifacts(
-            ctx=self.mk_context(),
-            request=api_pb2.ArtifactListQuery(task_id=task.id),
-            timeout=timeout,
-        )
-
-    async def get_artifact(
-        self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
-    ) -> api_pb2.Artifact:
-        """Fetch one artifact produced by `task`.
-
-        This is how the results of an `async_only` `eval_src` are
-        collected. Use `list_artifacts` to discover the available kinds.
-        """
-        timeout = timeout or self._timeout
-        return await self._api_client.get_artifact(
-            ctx=self.mk_context(),
-            request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
-            timeout=timeout,
-        )
-
-    async def get_artifact_zip(
-        self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
-    ) -> api_pb2.ArtifactZip:
-        timeout = timeout or self._timeout
-        return await self._api_client.get_artifact_zip(
-            ctx=self.mk_context(),
-            request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
-            timeout=timeout,
-        )
-
     async def typecheck(
         self, src: str, timeout: Optional[float] = None
     ) -> simple_api_pb2.TypecheckRes:
@@ -468,8 +431,8 @@ class AsyncClient:
             timeout=timeout,
         )
 
-    # Code snippets
-    # -------------
+    # Service Eval
+    # ====================
 
     async def eval_code_snippet(
         self,
@@ -497,7 +460,7 @@ class AsyncClient:
     async def parse_term(
         self, code: str, timeout: Optional[float] = None
     ) -> api_pb2.Artifact:
-        """Parse and typecheck `code` as a term, returning it as an artifact."""
+        """Parse and typecheck a term, returning it as an artifact."""
         timeout = timeout or self._timeout
         return await self._api_client.parse_term(
             ctx=self.mk_context(),
@@ -508,7 +471,7 @@ class AsyncClient:
     async def parse_type(
         self, code: str, timeout: Optional[float] = None
     ) -> api_pb2.Artifact:
-        """Parse and typecheck `code` as a type, returning it as an artifact."""
+        """Parse and typecheck a type, returning it as an artifact."""
         timeout = timeout or self._timeout
         return await self._api_client.parse_type(
             ctx=self.mk_context(),
@@ -516,20 +479,47 @@ class AsyncClient:
             timeout=timeout,
         )
 
-    # Session lifecycle
-    # -----------------
+    async def list_artifacts(
+        self, task: task_pb2.Task, timeout: Optional[float] = None
+    ) -> api_pb2.ArtifactListResult:
+        timeout = timeout or self._timeout
+        return await self._api_client.list_artifacts(
+            ctx=self.mk_context(),
+            request=api_pb2.ArtifactListQuery(task_id=task.id),
+            timeout=timeout,
+        )
+
+    async def get_artifact(
+        self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
+    ) -> api_pb2.Artifact:
+        """Obtain an artifact from a task."""
+        timeout = timeout or self._timeout
+        return await self._api_client.get_artifact(
+            ctx=self.mk_context(),
+            request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
+            timeout=timeout,
+        )
+
+    async def get_artifact_zip(
+        self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
+    ) -> api_pb2.ArtifactZip:
+        """Obtain an artifact from a task as a zip file."""
+        timeout = timeout or self._timeout
+        return await self._api_client.get_artifact_zip(
+            ctx=self.mk_context(),
+            request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
+            timeout=timeout,
+        )
+
+    # Service SessionManager
+    # ====================
 
     @property
     def session_id(self) -> str | None:
-        """The id of the current session, for later reuse via `session_id=`."""
         return self._session_id
 
     async def keep_session_alive(self, timeout: Optional[float] = None) -> None:
-        """Refresh the session so the server does not expire it.
-
-        Worth calling periodically when the client is long-lived and idle, e.g.
-        while polling for the results of an `async_only` `eval_src`.
-        """
+        """Make sure the session remains active."""
         timeout = timeout or self._timeout
         await self._session_mgr.keep_session_alive(
             ctx=self.mk_context(),
@@ -537,13 +527,12 @@ class AsyncClient:
             timeout=timeout,
         )
 
-    # System
-    # ------
+    # Service System
+    # ====================
 
     async def version(
         self, timeout: Optional[float] = None
     ) -> system_pb2.VersionResponse:
-        """The ImandraX server's version."""
         timeout = timeout or self._timeout
         return await self._system_client.version(
             ctx=self.mk_context(),
@@ -552,7 +541,6 @@ class AsyncClient:
         )
 
     async def gc_stats(self, timeout: Optional[float] = None) -> system_pb2.Gc_stats:
-        """Capture the server's GC statistics."""
         timeout = timeout or self._timeout
         return await self._system_client.gc_stats(
             ctx=self.mk_context(),
@@ -563,7 +551,6 @@ class AsyncClient:
     async def release_memory(
         self, timeout: Optional[float] = None
     ) -> system_pb2.Gc_stats:
-        """Ask the server to free memory, returning the resulting GC statistics."""
         timeout = timeout or self._timeout
         return await self._system_client.release_memory(
             ctx=self.mk_context(),
