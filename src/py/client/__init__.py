@@ -183,14 +183,14 @@ class Client:
         """
         Args:
             timeout (float | None): HTTP request timeout
-            async_only (bool | None): if true, return as soon as the tasks are
-                started, without waiting for their results. The returned
-                `EvalRes.tasks` can then be passed to `get_artifact`
-                or `get_artifact_zip` to collect results later.
-            task_filter (list[str] | None): glob patterns restricting which
-                verification tasks are started, matched against the name of the
-                top-level definition, e.g. `["*xyz*"]`. The default is to
-                start all tasks.
+            async_only (bool | None): if true, do not wait for tasks results,
+                only return the task list and not the task results. Use
+                `get_artifact` to get the results.
+            task_filter (list[str] | None): regular expressions for verification
+                tasks to be started during evaluation. The default is to start
+                all tasks, but e.g. `task_filter=["*xyz*"]` would start only
+                tasks pertaining to top-level definitions with 'xyz' in their
+                name.
         """
         timeout = timeout or self._timeout
         req = simple_api_pb2.EvalSrcReq(
@@ -222,7 +222,8 @@ class Client:
         """
         Args:
             timeout (float | None): HTTP request timeout
-            compute_timeout (int | None): computation timeout (in seconds) on the server
+            compute_timeout (int | None): server-side compute timeout, passed as
+                `DecomposeReq.timeout`
         """
         if timeout is None:
             timeout = self._timeout
@@ -259,14 +260,15 @@ class Client:
         compute_timeout: Optional[int] = None,
     ) -> simple_api_pb2.DecomposeRes:
         """
-        More expressive than `decompose`: `d` describes a tree of
-        operations (decompose by name, prune, combine, merge, let-bind) built
-        with the helpers in `imandrax_api.client.decomp`.
+        More expressive variant of `decompose`: `d` describes a tree of
+        operations (decompose by name, merge, compound merge, prune, combine,
+        let-bind) built with the helpers in `imandrax_api.client.decomp`.
 
         Args:
             d: the decomposition to perform
             timeout (float | None): HTTP request timeout
-            compute_timeout (int | None): computation timeout (in seconds) on the server
+            compute_timeout (int | None): server-side compute timeout, passed as
+                `DecomposeReqFull.timeout`
         """
         if timeout is None:
             timeout = self._timeout
@@ -305,7 +307,6 @@ class Client:
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.VerifyRes:
-        """Verify an already-defined predicate, by name."""
         timeout = timeout or self._timeout
         return self._client.verify_name(
             ctx=self.mk_context(),
@@ -336,7 +337,6 @@ class Client:
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.InstanceRes:
-        """Find an instance of an already-defined predicate, by name."""
         timeout = timeout or self._timeout
         return self._client.instance_name(
             ctx=self.mk_context(),
@@ -412,11 +412,10 @@ class Client:
         timeout: Optional[float] = None,
         include_str: bool = False,
     ) -> simple_api_pb2.GetDeclsRes:
-        """Look up declarations by name.
-
+        """
         Args:
-            include_str (bool): also populate `DeclWithName.str` with the
-                string representation of each declaration.
+            include_str (bool): if true, include the string representation of
+                each declaration (`DeclWithName.str`).
         """
         timeout = timeout or self._timeout
         return self._client.get_decls(
@@ -433,11 +432,12 @@ class Client:
         compute_timeout: Optional[float] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.OneshotRes:
-        """Evaluate a self-contained snippet without using the session.
+        """Sessionless, self contained request/response.
 
         Args:
-            input (str): some IML code
-            compute_timeout (float | None): computation timeout (in seconds) on the server
+            input (str): some iml code
+            compute_timeout (float | None): server-side compute timeout, passed
+                as `OneshotReq.timeout`
             timeout (float | None): HTTP request timeout
         """
         timeout = timeout or self._timeout
@@ -461,13 +461,10 @@ class Client:
         task_filter: Optional[list[str]] = None,
         timeout: Optional[float] = None,
     ) -> api_pb2.CodeSnippetEvalResult:
-        """Evaluate a snippet, returning only the tasks it started.
-
-        Always asynchronous: collect the results via `get_artifact`.
-
+        """
         Args:
-            task_filter (list[str] | None): glob patterns restricting which
-                verification tasks are started, as in `eval_src`.
+            task_filter (list[str] | None): regular expressions for verification
+                tasks to be started during evaluation, as in `eval_src`.
         """
         timeout = timeout or self._timeout
         return self._api_client.eval_code_snippet(
