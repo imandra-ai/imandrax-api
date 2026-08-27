@@ -1,7 +1,7 @@
 
 (** Code for utils.proto *)
 
-(* generated from "./utils.proto", do not edit *)
+(* generated from "utils.proto", do not edit *)
 
 
 
@@ -9,36 +9,31 @@
 
 type empty = unit
 
-type string_msg = private {
-  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
-  mutable msg : string;
+type string_msg = {
+  msg : string;
 }
 
 
 (** {2 Basic values} *)
 
 val default_empty : unit
-(** [default_empty] is the default value for type [empty] *)
+(** [default_empty ()] is the default value for type [empty] *)
 
-val default_string_msg : unit -> string_msg 
-(** [default_string_msg ()] is a new empty value for type [string_msg] *)
+val default_string_msg : 
+  ?msg:string ->
+  unit ->
+  string_msg
+(** [default_string_msg ()] is the default value for type [string_msg] *)
 
 
 (** {2 Make functions} *)
 
+
 val make_string_msg : 
-  ?msg:string ->
+  msg:string ->
   unit ->
   string_msg
 (** [make_string_msg … ()] is a builder for type [string_msg] *)
-
-val copy_string_msg : string_msg -> string_msg
-
-val string_msg_has_msg : string_msg -> bool
-  (** presence of field "msg" in [string_msg] *)
-
-val string_msg_set_msg : string_msg -> string -> unit
-  (** set field msg in string_msg *)
 
 
 (** {2 Formatters} *)
