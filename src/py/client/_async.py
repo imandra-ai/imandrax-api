@@ -165,11 +165,12 @@ class AsyncClient:
             async_only (bool | None): if true, do not wait for tasks results,
                 only return the task list and not the task results. Use
                 `get_artifact` to get the results.
-            task_filter (list[str] | None): regular expressions for verification
-                tasks to be started during evaluation. The default is to start
-                all tasks, but e.g. `task_filter=["*xyz*"]` would start only
-                tasks pertaining to top-level definitions with 'xyz' in their
-                name.
+            task_filter (list[str] | None): glob patterns (`*`, `?`, `[...]`)
+                for selecting tasks to be started during evaluation. The
+                default is to start all tasks, but e.g.
+                `task_filter=["*xyz*"]` would start only tasks pertaining to
+                top-level definitions with 'xyz' in their name. Tasks without
+                names are matched under `anonymous`.
         """
         timeout = timeout or self._timeout
         req = simple_api_pb2.EvalSrcReq(
@@ -442,8 +443,8 @@ class AsyncClient:
     ) -> api_pb2.CodeSnippetEvalResult:
         """
         Args:
-            task_filter (list[str] | None): regular expressions for verification
-                tasks to be started during evaluation, as in `eval_src`.
+            task_filter (list[str] | None): glob patterns for selecting tasks
+                to be started during evaluation, as in `eval_src`.
         """
         timeout = timeout or self._timeout
         return await self._api_client.eval_code_snippet(
