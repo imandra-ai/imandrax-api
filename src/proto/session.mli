@@ -7,65 +7,90 @@
 
 (** {2 Types} *)
 
-type session = {
-  id : string;
+type session = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable id : string;
 }
 
-type session_create = {
-  po_check : bool option;
-  api_version : string;
+type session_create = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable po_check : bool;
+  mutable api_version : string;
 }
 
-type session_open = {
-  id : session option;
-  api_version : string;
+type session_open = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable id : session option;
+  mutable api_version : string;
 }
 
 
 (** {2 Basic values} *)
 
-val default_session : 
-  ?id:string ->
-  unit ->
-  session
-(** [default_session ()] is the default value for type [session] *)
+val default_session : unit -> session 
+(** [default_session ()] is a new empty value for type [session] *)
 
-val default_session_create : 
-  ?po_check:bool option ->
-  ?api_version:string ->
-  unit ->
-  session_create
-(** [default_session_create ()] is the default value for type [session_create] *)
+val default_session_create : unit -> session_create 
+(** [default_session_create ()] is a new empty value for type [session_create] *)
 
-val default_session_open : 
-  ?id:session option ->
-  ?api_version:string ->
-  unit ->
-  session_open
-(** [default_session_open ()] is the default value for type [session_open] *)
+val default_session_open : unit -> session_open 
+(** [default_session_open ()] is a new empty value for type [session_open] *)
 
 
 (** {2 Make functions} *)
 
 val make_session : 
-  id:string ->
+  ?id:string ->
   unit ->
   session
 (** [make_session … ()] is a builder for type [session] *)
 
+val copy_session : session -> session
+
+val session_has_id : session -> bool
+  (** presence of field "id" in [session] *)
+
+val session_set_id : session -> string -> unit
+  (** set field id in session *)
+
 val make_session_create : 
-  ?po_check:bool option ->
-  api_version:string ->
+  ?po_check:bool ->
+  ?api_version:string ->
   unit ->
   session_create
 (** [make_session_create … ()] is a builder for type [session_create] *)
 
+val copy_session_create : session_create -> session_create
+
+val session_create_has_po_check : session_create -> bool
+  (** presence of field "po_check" in [session_create] *)
+
+val session_create_set_po_check : session_create -> bool -> unit
+  (** set field po_check in session_create *)
+
+val session_create_has_api_version : session_create -> bool
+  (** presence of field "api_version" in [session_create] *)
+
+val session_create_set_api_version : session_create -> string -> unit
+  (** set field api_version in session_create *)
+
 val make_session_open : 
-  ?id:session option ->
-  api_version:string ->
+  ?id:session ->
+  ?api_version:string ->
   unit ->
   session_open
 (** [make_session_open … ()] is a builder for type [session_open] *)
+
+val copy_session_open : session_open -> session_open
+
+val session_open_set_id : session_open -> session -> unit
+  (** set field id in session_open *)
+
+val session_open_has_api_version : session_open -> bool
+  (** presence of field "api_version" in [session_open] *)
+
+val session_open_set_api_version : session_open -> string -> unit
+  (** set field api_version in session_open *)
 
 
 (** {2 Formatters} *)

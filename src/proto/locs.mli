@@ -7,52 +7,73 @@
 
 (** {2 Types} *)
 
-type position = {
-  line : int32;
-  col : int32;
+type position = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable line : int32;
+  mutable col : int32;
 }
 
-type location = {
-  file : string option;
-  start : position option;
-  stop : position option;
+type location = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable file : string;
+  mutable start : position option;
+  mutable stop : position option;
 }
 
 
 (** {2 Basic values} *)
 
-val default_position : 
-  ?line:int32 ->
-  ?col:int32 ->
-  unit ->
-  position
-(** [default_position ()] is the default value for type [position] *)
+val default_position : unit -> position 
+(** [default_position ()] is a new empty value for type [position] *)
 
-val default_location : 
-  ?file:string option ->
-  ?start:position option ->
-  ?stop:position option ->
-  unit ->
-  location
-(** [default_location ()] is the default value for type [location] *)
+val default_location : unit -> location 
+(** [default_location ()] is a new empty value for type [location] *)
 
 
 (** {2 Make functions} *)
 
 val make_position : 
-  line:int32 ->
-  col:int32 ->
+  ?line:int32 ->
+  ?col:int32 ->
   unit ->
   position
 (** [make_position … ()] is a builder for type [position] *)
 
+val copy_position : position -> position
+
+val position_has_line : position -> bool
+  (** presence of field "line" in [position] *)
+
+val position_set_line : position -> int32 -> unit
+  (** set field line in position *)
+
+val position_has_col : position -> bool
+  (** presence of field "col" in [position] *)
+
+val position_set_col : position -> int32 -> unit
+  (** set field col in position *)
+
 val make_location : 
-  ?file:string option ->
-  ?start:position option ->
-  ?stop:position option ->
+  ?file:string ->
+  ?start:position ->
+  ?stop:position ->
   unit ->
   location
 (** [make_location … ()] is a builder for type [location] *)
+
+val copy_location : location -> location
+
+val location_has_file : location -> bool
+  (** presence of field "file" in [location] *)
+
+val location_set_file : location -> string -> unit
+  (** set field file in location *)
+
+val location_set_start : location -> position -> unit
+  (** set field start in location *)
+
+val location_set_stop : location -> position -> unit
+  (** set field stop in location *)
 
 
 (** {2 Formatters} *)

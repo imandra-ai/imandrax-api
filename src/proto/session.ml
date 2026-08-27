@@ -1,136 +1,153 @@
-[@@@ocaml.warning "-27-30-39-44"]
+[@@@ocaml.warning "-23-27-30-39-44"]
 
 type session = {
-  id : string;
-}
-
-type session_create = {
-  po_check : bool option;
-  api_version : string;
-}
-
-type session_open = {
-  id : session option;
-  api_version : string;
-}
-
-let rec default_session 
-  ?id:((id:string) = "")
-  () : session  = {
-  id;
-}
-
-let rec default_session_create 
-  ?po_check:((po_check:bool option) = None)
-  ?api_version:((api_version:string) = "")
-  () : session_create  = {
-  po_check;
-  api_version;
-}
-
-let rec default_session_open 
-  ?id:((id:session option) = None)
-  ?api_version:((api_version:string) = "")
-  () : session_open  = {
-  id;
-  api_version;
-}
-
-type session_mutable = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable id : string;
 }
 
-let default_session_mutable () : session_mutable = {
-  id = "";
-}
-
-type session_create_mutable = {
-  mutable po_check : bool option;
+type session_create = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
+  mutable po_check : bool;
   mutable api_version : string;
 }
 
-let default_session_create_mutable () : session_create_mutable = {
-  po_check = None;
-  api_version = "";
-}
-
-type session_open_mutable = {
+type session_open = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable id : session option;
   mutable api_version : string;
 }
 
-let default_session_open_mutable () : session_open_mutable = {
-  id = None;
-  api_version = "";
+let default_session (): session =
+{
+  _presence=Pbrt.Bitfield.empty;
+  id="";
+}
+
+let default_session_create (): session_create =
+{
+  _presence=Pbrt.Bitfield.empty;
+  po_check=false;
+  api_version="";
+}
+
+let default_session_open (): session_open =
+{
+  _presence=Pbrt.Bitfield.empty;
+  id=None;
+  api_version="";
 }
 
 
 (** {2 Make functions} *)
 
-let rec make_session 
-  ~(id:string)
-  () : session  = {
-  id;
-}
+let[@inline] session_has_id (self:session) : bool = (Pbrt.Bitfield.get self._presence 0)
 
-let rec make_session_create 
-  ?po_check:((po_check:bool option) = None)
-  ~(api_version:string)
-  () : session_create  = {
-  po_check;
-  api_version;
-}
+let[@inline] session_set_id (self:session) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.id <- x
 
-let rec make_session_open 
-  ?id:((id:session option) = None)
-  ~(api_version:string)
-  () : session_open  = {
-  id;
-  api_version;
-}
+let copy_session (self:session) : session =
+  { self with id = self.id }
 
-[@@@ocaml.warning "-27-30-39"]
+let make_session 
+  ?(id:string option)
+  () : session  =
+  let _res = default_session () in
+  (match id with
+  | None -> ()
+  | Some v -> session_set_id _res v);
+  _res
+
+let[@inline] session_create_has_po_check (self:session_create) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] session_create_has_api_version (self:session_create) : bool = (Pbrt.Bitfield.get self._presence 1)
+
+let[@inline] session_create_set_po_check (self:session_create) (x:bool) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.po_check <- x
+let[@inline] session_create_set_api_version (self:session_create) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 1); self.api_version <- x
+
+let copy_session_create (self:session_create) : session_create =
+  { self with po_check = self.po_check }
+
+let make_session_create 
+  ?(po_check:bool option)
+  ?(api_version:string option)
+  () : session_create  =
+  let _res = default_session_create () in
+  (match po_check with
+  | None -> ()
+  | Some v -> session_create_set_po_check _res v);
+  (match api_version with
+  | None -> ()
+  | Some v -> session_create_set_api_version _res v);
+  _res
+
+let[@inline] session_open_has_api_version (self:session_open) : bool = (Pbrt.Bitfield.get self._presence 0)
+
+let[@inline] session_open_set_id (self:session_open) (x:session) : unit =
+  self.id <- Some x
+let[@inline] session_open_set_api_version (self:session_open) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.api_version <- x
+
+let copy_session_open (self:session_open) : session_open =
+  { self with id = self.id }
+
+let make_session_open 
+  ?(id:session option)
+  ?(api_version:string option)
+  () : session_open  =
+  let _res = default_session_open () in
+  (match id with
+  | None -> ()
+  | Some v -> session_open_set_id _res v);
+  (match api_version with
+  | None -> ()
+  | Some v -> session_open_set_api_version _res v);
+  _res
+
+[@@@ocaml.warning "-23-27-30-39"]
 
 (** {2 Formatters} *)
 
 let rec pp_session fmt (v:session) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "id" Pbrt.Pp.pp_string fmt v.id;
+    Pbrt.Pp.pp_record_field ~absent:(not (session_has_id v)) ~first:true "id" Pbrt.Pp.pp_string fmt v.id;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
 let rec pp_session_create fmt (v:session_create) = 
   let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "po_check" (Pbrt.Pp.pp_option Pbrt.Pp.pp_bool) fmt v.po_check;
-    Pbrt.Pp.pp_record_field ~first:false "api_version" Pbrt.Pp.pp_string fmt v.api_version;
+    Pbrt.Pp.pp_record_field ~absent:(not (session_create_has_po_check v)) ~first:true "po_check" Pbrt.Pp.pp_bool fmt v.po_check;
+    Pbrt.Pp.pp_record_field ~absent:(not (session_create_has_api_version v)) ~first:false "api_version" Pbrt.Pp.pp_string fmt v.api_version;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
 let rec pp_session_open fmt (v:session_open) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "id" (Pbrt.Pp.pp_option pp_session) fmt v.id;
-    Pbrt.Pp.pp_record_field ~first:false "api_version" Pbrt.Pp.pp_string fmt v.api_version;
+    Pbrt.Pp.pp_record_field ~absent:(not (session_open_has_api_version v)) ~first:false "api_version" Pbrt.Pp.pp_string fmt v.api_version;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-[@@@ocaml.warning "-27-30-39"]
+[@@@ocaml.warning "-23-27-30-39"]
 
 (** {2 Protobuf Encoding} *)
 
 let rec encode_pb_session (v:session) encoder = 
-  Pbrt.Encoder.string v.id encoder;
-  Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  if session_has_id v then (
+    Pbrt.Encoder.string v.id encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  );
   ()
 
 let rec encode_pb_session_create (v:session_create) encoder = 
-  begin match v.po_check with
-  | Some x -> 
-    Pbrt.Encoder.bool x encoder;
+  if session_create_has_po_check v then (
+    Pbrt.Encoder.bool v.po_check encoder;
     Pbrt.Encoder.key 1 Pbrt.Varint encoder; 
-  | None -> ();
-  end;
-  Pbrt.Encoder.string v.api_version encoder;
-  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  );
+  if session_create_has_api_version v then (
+    Pbrt.Encoder.string v.api_version encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  );
   ()
 
 let rec encode_pb_session_open (v:session_open) encoder = 
@@ -140,161 +157,162 @@ let rec encode_pb_session_open (v:session_open) encoder =
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | None -> ();
   end;
-  Pbrt.Encoder.string v.api_version encoder;
-  Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  if session_open_has_api_version v then (
+    Pbrt.Encoder.string v.api_version encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  );
   ()
 
-[@@@ocaml.warning "-27-30-39"]
+[@@@ocaml.warning "-23-27-30-39"]
 
 (** {2 Protobuf Decoding} *)
 
 let rec decode_pb_session d =
-  let v = default_session_mutable () in
+  let v = default_session () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.id <- Pbrt.Decoder.string d;
+      session_set_id v (Pbrt.Decoder.string d);
     end
     | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(session), field(1)" pk
+      Pbrt.Decoder.unexpected_payload_message "session" 1 pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
-  ({
-    id = v.id;
-  } : session)
+  (v : session)
 
 let rec decode_pb_session_create d =
-  let v = default_session_create_mutable () in
+  let v = default_session_create () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Varint) -> begin
-      v.po_check <- Some (Pbrt.Decoder.bool d);
+      session_create_set_po_check v (Pbrt.Decoder.bool d);
     end
     | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(session_create), field(1)" pk
+      Pbrt.Decoder.unexpected_payload_message "session_create" 1 pk
     | Some (2, Pbrt.Bytes) -> begin
-      v.api_version <- Pbrt.Decoder.string d;
+      session_create_set_api_version v (Pbrt.Decoder.string d);
     end
     | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(session_create), field(2)" pk
+      Pbrt.Decoder.unexpected_payload_message "session_create" 2 pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
-  ({
-    po_check = v.po_check;
-    api_version = v.api_version;
-  } : session_create)
+  (v : session_create)
 
 let rec decode_pb_session_open d =
-  let v = default_session_open_mutable () in
+  let v = default_session_open () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      v.id <- Some (decode_pb_session (Pbrt.Decoder.nested d));
+      session_open_set_id v (decode_pb_session (Pbrt.Decoder.nested d));
     end
     | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(session_open), field(1)" pk
+      Pbrt.Decoder.unexpected_payload_message "session_open" 1 pk
     | Some (2, Pbrt.Bytes) -> begin
-      v.api_version <- Pbrt.Decoder.string d;
+      session_open_set_api_version v (Pbrt.Decoder.string d);
     end
     | Some (2, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(session_open), field(2)" pk
+      Pbrt.Decoder.unexpected_payload_message "session_open" 2 pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
-  ({
-    id = v.id;
-    api_version = v.api_version;
-  } : session_open)
+  (v : session_open)
 
-[@@@ocaml.warning "-27-30-39"]
+[@@@ocaml.warning "-23-27-30-39"]
 
 (** {2 Protobuf YoJson Encoding} *)
 
 let rec encode_json_session (v:session) = 
-  let assoc = [] in 
-  let assoc = ("id", Pbrt_yojson.make_string v.id) :: assoc in
-  `Assoc assoc
+  let assoc = ref [] in
+  if session_has_id v then (
+    assoc := ("id", Pbrt_yojson.make_string v.id) :: !assoc;
+  );
+  `Assoc !assoc
 
 let rec encode_json_session_create (v:session_create) = 
-  let assoc = [] in 
-  let assoc = match v.po_check with
-    | None -> assoc
-    | Some v -> ("poCheck", Pbrt_yojson.make_bool v) :: assoc
-  in
-  let assoc = ("apiVersion", Pbrt_yojson.make_string v.api_version) :: assoc in
-  `Assoc assoc
+  let assoc = ref [] in
+  if session_create_has_po_check v then (
+    assoc := ("poCheck", Pbrt_yojson.make_bool v.po_check) :: !assoc;
+  );
+  if session_create_has_api_version v then (
+    assoc := ("apiVersion", Pbrt_yojson.make_string v.api_version) :: !assoc;
+  );
+  `Assoc !assoc
 
 let rec encode_json_session_open (v:session_open) = 
-  let assoc = [] in 
-  let assoc = match v.id with
-    | None -> assoc
-    | Some v -> ("id", encode_json_session v) :: assoc
-  in
-  let assoc = ("apiVersion", Pbrt_yojson.make_string v.api_version) :: assoc in
-  `Assoc assoc
+  let assoc = ref [] in
+  assoc := (match v.id with
+    | None -> !assoc
+    | Some v -> ("id", encode_json_session v) :: !assoc);
+  if session_open_has_api_version v then (
+    assoc := ("apiVersion", Pbrt_yojson.make_string v.api_version) :: !assoc;
+  );
+  `Assoc !assoc
 
-[@@@ocaml.warning "-27-30-39"]
+[@@@ocaml.warning "-23-27-30-39"]
 
 (** {2 JSON Decoding} *)
 
 let rec decode_json_session d =
-  let v = default_session_mutable () in
+  let v = default_session () in
   let assoc = match d with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
   in
   List.iter (function 
     | ("id", json_value) -> 
-      v.id <- Pbrt_yojson.string json_value "session" "id"
+      session_set_id v (Pbrt_yojson.string json_value "session" "id")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
+    _presence = v._presence;
     id = v.id;
   } : session)
 
 let rec decode_json_session_create d =
-  let v = default_session_create_mutable () in
+  let v = default_session_create () in
   let assoc = match d with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
   in
   List.iter (function 
     | ("poCheck", json_value) -> 
-      v.po_check <- Some (Pbrt_yojson.bool json_value "session_create" "po_check")
+      session_create_set_po_check v (Pbrt_yojson.bool json_value "session_create" "po_check")
     | ("apiVersion", json_value) -> 
-      v.api_version <- Pbrt_yojson.string json_value "session_create" "api_version"
+      session_create_set_api_version v (Pbrt_yojson.string json_value "session_create" "api_version")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
+    _presence = v._presence;
     po_check = v.po_check;
     api_version = v.api_version;
   } : session_create)
 
 let rec decode_json_session_open d =
-  let v = default_session_open_mutable () in
+  let v = default_session_open () in
   let assoc = match d with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
   in
   List.iter (function 
     | ("id", json_value) -> 
-      v.id <- Some ((decode_json_session json_value))
+      session_open_set_id v (decode_json_session json_value)
     | ("apiVersion", json_value) -> 
-      v.api_version <- Pbrt_yojson.string json_value "session_open" "api_version"
+      session_open_set_api_version v (Pbrt_yojson.string json_value "session_open" "api_version")
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
   ({
+    _presence = v._presence;
     id = v.id;
     api_version = v.api_version;
   } : session_open)
