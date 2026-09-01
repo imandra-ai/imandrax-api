@@ -191,6 +191,7 @@ let main_json () =
   ()
 
 let () =
+  set_binary_mode_out stdout true;
   match Sys.argv.(1) with
   | "ml" -> main_ml ()
   | "json" -> main_json ()
