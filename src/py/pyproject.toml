@@ -41,4 +41,5 @@ exclude = ["lib/__init__.py", "bindings/"]
 dev = [
     "aiohttp>=3.13.2",
     "pyright>=1.1.408",
+    "pytest>=9.1.1",
 ]
