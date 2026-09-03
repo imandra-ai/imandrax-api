@@ -19,6 +19,24 @@ def test_caches_are_per_instance():
     d1.caches.setdefault('T', {})[42] = 'stale'
     assert 42 not in d2.caches.get('T', {})
 
+def test_get_float():
+    # Regression: the float payload starts *after* the first byte, which holds
+    # the (high=3, low=is_f32) tag; reading from the tag byte itself yields garbage.
+    import struct
+
+    f64 = twine.Decoder(b'\x31' + struct.pack('<d', 0.125))
+    assert f64.get_float(off=0) == 0.125
+
+    f32 = twine.Decoder(b'\x30' + struct.pack('<f', 0.125))
+    assert f32.get_float(off=0) == 0.125
+
+def test_skip_float_matches_payload_size():
+    import struct
+
+    d = twine.Decoder(b'\x31' + struct.pack('<d', 1.5) + b'\x11')
+    assert d._skip(off=0) == 9  # pyright: ignore[reportPrivateUsage]
+    assert d.get_int(off=9) == 1
+
 def _get_testdata1() -> twine.Decoder:
     with open('test_data/typereg.twine', 'rb') as f:
         data = bytearray(f.read())
