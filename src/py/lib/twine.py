@@ -235,9 +235,9 @@ class Decoder:
             case 0:
                 if low == 2:
                     return None
-                elif high == 0:
+                elif low == 0:
                     return False
-                elif high == 1:
+                elif low == 1:
                     return True
                 else:
                     raise Error(f"expected true/false/None at off=0x{off:x}")
@@ -274,9 +274,9 @@ class Decoder:
             case 0:
                 if low == 2:
                     return None
-                elif high == 0:
+                elif low == 0:
                     return False
-                elif high == 1:
+                elif low == 1:
                     return True
                 else:
                     raise Error(f"expected true/false/None at off=0x{off:x}")

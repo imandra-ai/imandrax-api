@@ -62,3 +62,14 @@ def test_integration_pubsub():
     off: twine.offset = d.entrypoint()
     v = d.value(off)
     assert "{'PUBSUB': {'summary': 'A container for Pub/Sub commands.', 'complexity': 'Depends on subcommand.', 'group': 'pubsub', 'since': '2.8.0', 'arity': -2}}" == str(v)
+
+def test_value_special_scalars():
+    # Regression: `value`/`shallow_value` tested `high` instead of `low` in the
+    # kind-0 branch, so `true` (0x01) decoded as False.
+    for b, expected in ((b'\x00', False), (b'\x01', True), (b'\x02', None)):
+        d = twine.Decoder(b)
+        assert d.value(off=0) is expected
+        assert d.shallow_value(off=0) is expected
+    # value/shallow_value must agree with get_bool inside a container too
+    d = twine.Decoder(b'\x62\x01\x00')
+    assert d.value(off=0) == (True, False)
