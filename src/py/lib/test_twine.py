@@ -1,6 +1,9 @@
-
 import json
+from pathlib import Path
+
 from . import twine
+
+CURR_DIR = Path(__file__).parent
 
 def test_leb128():
     c = twine.Decoder(b'\x07')
@@ -38,7 +41,7 @@ def test_skip_float_matches_payload_size():
     assert d.get_int(off=9) == 1
 
 def _get_testdata1() -> twine.Decoder:
-    with open('test_data/typereg.twine', 'rb') as f:
+    with (CURR_DIR / 'test_data/typereg.twine').open('rb') as f:
         data = bytearray(f.read())
     return twine.Decoder(data)
 
@@ -48,12 +51,12 @@ def test_integration1():
     assert off == 22172
     v = d.value(off=off)
     v_json = twine.value_to_json(v)
-    with open('test_data/typereg.json', 'r') as f:
+    with (CURR_DIR / 'test_data/typereg.json').open('r') as f:
         data_json = json.dumps(json.loads(f.read()))
     assert data_json == v_json
 
 def test_integration_pubsub():
-    with open('test_data/pubsub.twine', 'rb') as f:
+    with (CURR_DIR / 'test_data/pubsub.twine').open('rb') as f:
         data = bytearray(f.read())
     d = twine.Decoder(data)
     off: twine.offset = d.entrypoint()
