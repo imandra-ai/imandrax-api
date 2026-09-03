@@ -31,6 +31,14 @@ strict = ["**"]
 venvPath = "."
 venv = ".venv"
 
+[tool.pytest.ini_options]
+# This directory is named `py`, which collides with the `py` distribution that
+# pytest imports at startup; the default "prepend" mode would derive the module
+# name `py.lib.test_twine` and fail to import it.
+# TODO(long-term): move tests under $ROOT/src/py to $ROOT/tests/
+addopts = "--import-mode=importlib"
+testpaths = ["lib"]
+
 [tool.ruff]
 indent-width = 4
 target-version = "py312"
