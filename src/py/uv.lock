@@ -293,7 +293,7 @@ wheels = [
 
 [[package]]
 name = "imandrax-api"
-version = "0.20.2.2"
+version = "0.20.2.3"
 source = { editable = "." }
 dependencies = [
     { name = "protobuf" },
