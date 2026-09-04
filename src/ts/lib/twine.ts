@@ -462,9 +462,9 @@ export class Decoder {
       case 0: {
         if (low == 2) {
           return null;
-        } else if (high == 0) {
+        } else if (low == 0) {
           return false;
-        } else if (high == 1) {
+        } else if (low == 1) {
           return true;
         } else {
           throw new TwineError({
