@@ -50,3 +50,10 @@ jobs:
     - uses: actions/checkout@main
     - uses: astral-sh/setup-uv@v5
     - run: cd src/py && make typecheck
+  pytest:
+    name: pytest
+    runs-on: [ubuntu-latest]
+    steps:
+    - uses: actions/checkout@main
+    - uses: astral-sh/setup-uv@v5
+    - run: cd src/py && make unit-test
