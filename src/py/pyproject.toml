@@ -37,7 +37,7 @@ venv = ".venv"
 # name `py.lib.test_twine` and fail to import it.
 # TODO(long-term): move tests under $ROOT/src/py to $ROOT/tests/
 addopts = "--import-mode=importlib"
-testpaths = ["lib"]
+testpaths = ["lib", "../../tests/client/py"]
 
 [tool.ruff]
 indent-width = 4
