@@ -56,7 +56,7 @@ class AsyncClient:
         self._closed = False
         self._auth_token = api_key if api_key else auth_token
         if self._auth_token:
-            self._session.headers["Authorization"] = f"Bearer {auth_token}"
+            self._session.headers["Authorization"] = f"Bearer {self._auth_token}"
         self._url = url
         self._server_path_prefix = server_path_prefix
         self._client = simple_api_twirp_async.AsyncSimpleClient(
@@ -87,61 +87,67 @@ class AsyncClient:
 
     async def __aenter__(self, *_: Any) -> Self:
         await self._session.__aenter__()
-        if self._session_id is None:
-            try:
-                session = await self._client.create_session(
-                    ctx=self.mk_context(),
-                    request=simple_api_pb2.SessionCreateReq(
-                        api_version=api_types_version.api_types_version
-                    ),
-                )
-                self._sesh = session
-                self._session_id = self._sesh.id
-            except TwirpServerException as ex:
-                if ex.code == Errors.InvalidArgument:
-                    raise Exception(
-                        "API version mismatch. Try upgrading the imandrax-api package."
-                    ) from ex
-                else:
-                    raise ex
-        else:
-            self._sesh = session_pb2.Session(id=self._session_id)
-            try:
-                await self._session_mgr.open_session(
-                    ctx=self.mk_context(),
-                    request=session_pb2.SessionOpen(
-                        id=self._sesh,
-                        api_version=api_types_version.api_types_version,
-                    ),
-                )
-            except TwirpServerException as ex:
-                if is_session_not_found(ex) and self._create_if_not_found:
-                    self._sesh = await self._client.create_session(
+        # Guard against session creation failures to avoid leaking the HTTP transport
+        try:
+            if self._session_id is None:
+                try:
+                    session = await self._client.create_session(
                         ctx=self.mk_context(),
                         request=simple_api_pb2.SessionCreateReq(
                             api_version=api_types_version.api_types_version
                         ),
                     )
+                    self._sesh = session
                     self._session_id = self._sesh.id
-                else:
-                    raise
+                except TwirpServerException as ex:
+                    if ex.code == Errors.InvalidArgument:
+                        raise Exception(
+                            "API version mismatch. Try upgrading the imandrax-api package."
+                        ) from ex
+                    else:
+                        raise ex
+            else:
+                self._sesh = session_pb2.Session(id=self._session_id)
+                try:
+                    await self._session_mgr.open_session(
+                        ctx=self.mk_context(),
+                        request=session_pb2.SessionOpen(
+                            id=self._sesh,
+                            api_version=api_types_version.api_types_version,
+                        ),
+                    )
+                except TwirpServerException as ex:
+                    if is_session_not_found(ex) and self._create_if_not_found:
+                        self._sesh = await self._client.create_session(
+                            ctx=self.mk_context(),
+                            request=simple_api_pb2.SessionCreateReq(
+                                api_version=api_types_version.api_types_version
+                            ),
+                        )
+                        self._session_id = self._sesh.id
+                    else:
+                        raise
+        except BaseException:
+            await self._session.close()
+            self._closed = True
+            raise
         return self
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if self._closed:
             return
-        if not hasattr(self, "_sesh"):
-            await self._session.__aexit__(exc_type, exc_val, exc_tb)
-            self._closed = True
-            return
+        # Guard against session end failures to avoid leaking the HTTP transport.
         try:
-            await self._client.end_session(
-                ctx=self.mk_context(), request=self._sesh, timeout=None
-            )
+            if hasattr(self, "_sesh"):
+                try:
+                    await self._client.end_session(
+                        ctx=self.mk_context(), request=self._sesh, timeout=None
+                    )
+                except TwirpServerException as e:
+                    raise Exception("Error while ending session") from e
+        finally:
             await self._session.__aexit__(exc_type, exc_val, exc_tb)
             self._closed = True
-        except TwirpServerException as e:
-            raise Exception("Error while ending session") from e
 
     # Service Simple
     # ====================

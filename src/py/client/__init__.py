@@ -59,7 +59,7 @@ class Client:
         self._closed = False
         self._auth_token = api_key if api_key else auth_token
         if self._auth_token:
-            self._session.headers["Authorization"] = f"Bearer {auth_token}"
+            self._session.headers["Authorization"] = f"Bearer {self._auth_token}"
         self._url = url
         self._server_path_prefix = server_path_prefix
         self._client = simple_api_twirp.SimpleClient(
@@ -88,41 +88,10 @@ class Client:
         )
         self._timeout = timeout
 
-        if session_id is None:
-            try:
-                self._sesh = self._client.create_session(
-                    ctx=self.mk_context(),
-                    request=simple_api_pb2.SessionCreateReq(
-                        api_version=api_types_version.api_types_version
-                    ),
-                    timeout=timeout,
-                )
-            except TwirpServerException as ex:
-                status_code: int | None = ex.meta.get("status_code")  # type: ignore[attr-defined]
-                if status_code and status_code == Errors.get_status_code(
-                    Errors.InvalidArgument
-                ):
-                    raise Exception(
-                        "API version mismatch. Try upgrading the imandrax-api package."
-                    ) from ex
-                else:
-                    raise ex
-        else:
-            # Reopen the supplied session via the SessionManager.open_session
-            # RPC. If the server reports it as missing/expired, fall back to
-            # creating a fresh session.
-            self._sesh = session_pb2.Session(id=session_id)
-            try:
-                self._session_mgr.open_session(
-                    ctx=self.mk_context(),
-                    request=session_pb2.SessionOpen(
-                        id=self._sesh,
-                        api_version=api_types_version.api_types_version,
-                    ),
-                    timeout=timeout,
-                )
-            except TwirpServerException as ex:
-                if is_session_not_found(ex) and create_if_not_found:
+        # Guard against session creation failures to avoid leaking the HTTP transport
+        try:
+            if session_id is None:
+                try:
                     self._sesh = self._client.create_session(
                         ctx=self.mk_context(),
                         request=simple_api_pb2.SessionCreateReq(
@@ -130,8 +99,45 @@ class Client:
                         ),
                         timeout=timeout,
                     )
-                else:
-                    raise
+                except TwirpServerException as ex:
+                    status_code: int | None = ex.meta.get("status_code")  # type: ignore[attr-defined]
+                    if status_code and status_code == Errors.get_status_code(
+                        Errors.InvalidArgument
+                    ):
+                        raise Exception(
+                            "API version mismatch. Try upgrading the imandrax-api package."
+                        ) from ex
+                    else:
+                        raise ex
+            else:
+                # Reopen the supplied session via the SessionManager.open_session
+                # RPC. If the server reports it as missing/expired, fall back to
+                # creating a fresh session.
+                self._sesh = session_pb2.Session(id=session_id)
+                try:
+                    self._session_mgr.open_session(
+                        ctx=self.mk_context(),
+                        request=session_pb2.SessionOpen(
+                            id=self._sesh,
+                            api_version=api_types_version.api_types_version,
+                        ),
+                        timeout=timeout,
+                    )
+                except TwirpServerException as ex:
+                    if is_session_not_found(ex) and create_if_not_found:
+                        self._sesh = self._client.create_session(
+                            ctx=self.mk_context(),
+                            request=simple_api_pb2.SessionCreateReq(
+                                api_version=api_types_version.api_types_version
+                            ),
+                            timeout=timeout,
+                        )
+                    else:
+                        raise
+        except BaseException:
+            self._session.close()
+            self._closed = True
+            raise
 
     def __enter__(self, *_: Any) -> Self:
         return self
@@ -139,16 +145,18 @@ class Client:
     def __exit__(self, *_: Any) -> None:
         if self._closed:
             return
-        if not hasattr(self, "_sesh"):
-            return
+        # Guard against session end failures to avoid leaking the HTTP transport.
         try:
-            self._client.end_session(
-                ctx=self.mk_context(), request=self._sesh, timeout=None
-            )
+            if hasattr(self, "_sesh"):
+                try:
+                    self._client.end_session(
+                        ctx=self.mk_context(), request=self._sesh, timeout=None
+                    )
+                except TwirpServerException as e:
+                    raise Exception("Error while ending session") from e
+        finally:
             self._session.close()
             self._closed = True
-        except TwirpServerException as e:
-            raise Exception("Error while ending session") from e
 
     def __del__(self):
         # Avoid errors during interpreter shutdown when modules may already be None
