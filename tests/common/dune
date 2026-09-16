@@ -1,0 +1,5 @@
+(test
+ (name test_sequent_pp)
+ (package imandrax-api)
+ (modules test_sequent_pp)
+ (libraries imandrax-api.common fmt))
