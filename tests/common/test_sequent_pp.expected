@@ -1,162 +1,126 @@
 # Top level
 There should be no leading or trailing new lines
 ## no hypotheses
-`foo`
-|----------------------------------------------------------------------
- terminates f
-`bar`
+`foo`|----------------------------------------------------------------------
+      terminates f`bar`
 
 ## unnamed and named hypotheses
-`foo`
- H0. x > 0
- h_named: y = 3
-|----------------------------------------------------------------------
- f x = 2
-`bar`
+`foo` H0. x > 0
+      h_named: y = 3
+     |----------------------------------------------------------------------
+      f x = 2`bar`
 
 ## several conclusions
-`foo`
- H0. x > 0
-|----------------------------------------------------------------------
- C0. f x = 2
- c_named: g x = 3
-`bar`
+`foo` H0. x > 0
+     |----------------------------------------------------------------------
+      C0. f x = 2
+      c_named: g x = 3`bar`
 
 ## no conclusions
-`foo`
- H0. x > 0
-|----------------------------------------------------------------------
- false
-`bar`
+`foo` H0. x > 0
+     |----------------------------------------------------------------------
+      false`bar`
 
 ## empty sequent
-`foo`
-|----------------------------------------------------------------------
- false
-`bar`
+`foo`|----------------------------------------------------------------------
+      false`bar`
 
 ## long hypothesis
-`foo`
- H0. a_very_long_hypothesis_term && another_long_conjunct && yet_another_one
-|----------------------------------------------------------------------
- a_very_long_hypothesis_term && another_long_conjunct && yet_another_one
-`bar`
+`foo` H0. a_very_long_hypothesis_term && another_long_conjunct && yet_another_one
+     |----------------------------------------------------------------------
+      a_very_long_hypothesis_term && another_long_conjunct && yet_another_one`bar`
 
 # Nested in a record box
 Every line should pick up the enclosing box's indentation instead of jumping to column 0
 ## no hypotheses
 { before1 = 0;
   before2 =
-  `foo`
-  |----------------------------------------------------------------------
-   terminates f
-  `bar`;
+  `foo`|----------------------------------------------------------------------
+        terminates f`bar`;
   after1 = ...
 }
 
 ## unnamed and named hypotheses
 { before1 = 0;
   before2 =
-  `foo`
-   H0. x > 0
-   h_named: y = 3
-  |----------------------------------------------------------------------
-   f x = 2
-  `bar`;
+  `foo` H0. x > 0
+        h_named: y = 3
+       |----------------------------------------------------------------------
+        f x = 2`bar`;
   after1 = ...
 }
 
 ## several conclusions
 { before1 = 0;
   before2 =
-  `foo`
-   H0. x > 0
-  |----------------------------------------------------------------------
-   C0. f x = 2
-   c_named: g x = 3
-  `bar`;
+  `foo` H0. x > 0
+       |----------------------------------------------------------------------
+        C0. f x = 2
+        c_named: g x = 3`bar`;
   after1 = ...
 }
 
 ## no conclusions
 { before1 = 0;
   before2 =
-  `foo`
-   H0. x > 0
-  |----------------------------------------------------------------------
-   false
-  `bar`;
+  `foo` H0. x > 0
+       |----------------------------------------------------------------------
+        false`bar`;
   after1 = ...
 }
 
 ## empty sequent
 { before1 = 0;
   before2 =
-  `foo`
-  |----------------------------------------------------------------------
-   false
-  `bar`;
+  `foo`|----------------------------------------------------------------------
+        false`bar`;
   after1 = ...
 }
 
 ## long hypothesis
 { before1 = 0;
   before2 =
-  `foo`
-   H0. a_very_long_hypothesis_term && another_long_conjunct && yet_another_one
-  |----------------------------------------------------------------------
-   a_very_long_hypothesis_term && another_long_conjunct && yet_another_one
-  `bar`;
+  `foo` H0. a_very_long_hypothesis_term && another_long_conjunct && yet_another_one
+       |----------------------------------------------------------------------
+        a_very_long_hypothesis_term && another_long_conjunct && yet_another_one`bar`;
   after1 = ...
 }
 
 # Nested mid-line
 The sequent starts mid-line, so its lines should align to the column where it started, not to the enclosing box's own indentation
 ## no hypotheses
-outer { before = `foo`
-      |----------------------------------------------------------------------
-       terminates f
-      `bar`;
+outer { before = `foo`|----------------------------------------------------------------------
+                       terminates f`bar`;
       after = ... }
 
 ## unnamed and named hypotheses
-outer { before = `foo`
-       H0. x > 0
-       h_named: y = 3
-      |----------------------------------------------------------------------
-       f x = 2
-      `bar`;
+outer { before = `foo` H0. x > 0
+                       h_named: y = 3
+                      |----------------------------------------------------------------------
+                       f x = 2`bar`;
       after = ... }
 
 ## several conclusions
-outer { before = `foo`
-       H0. x > 0
-      |----------------------------------------------------------------------
-       C0. f x = 2
-       c_named: g x = 3
-      `bar`;
+outer { before = `foo` H0. x > 0
+                      |----------------------------------------------------------------------
+                       C0. f x = 2
+                       c_named: g x = 3`bar`;
       after = ... }
 
 ## no conclusions
-outer { before = `foo`
-       H0. x > 0
-      |----------------------------------------------------------------------
-       false
-      `bar`;
+outer { before = `foo` H0. x > 0
+                      |----------------------------------------------------------------------
+                       false`bar`;
       after = ... }
 
 ## empty sequent
-outer { before = `foo`
-      |----------------------------------------------------------------------
-       false
-      `bar`;
+outer { before = `foo`|----------------------------------------------------------------------
+                       false`bar`;
       after = ... }
 
 ## long hypothesis
-outer { before = `foo`
-       H0. a_very_long_hypothesis_term && another_long_conjunct && yet_another_one
-      |----------------------------------------------------------------------
-       a_very_long_hypothesis_term && another_long_conjunct && yet_another_one
-      `bar`;
+outer { before = `foo` H0. a_very_long_hypothesis_term && another_long_conjunct && yet_another_one
+                      |----------------------------------------------------------------------
+                       a_very_long_hypothesis_term && another_long_conjunct && yet_another_one`bar`;
       after = ... }
 

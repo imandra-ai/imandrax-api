@@ -134,6 +134,8 @@ let name (self : 'term t_poly) (i : int) (new_name : string) :
 
 let pp_seq ppt ppf (lhs : (string option * 'term) list)
     (rhs : (string option * 'term) list) =
+  (* A printer that emits no leading or trailing newline and uses only relative breaks, so it indents correctly
+      when nested inside another box. *)
   let h_i, c_i = ref 0, ref 0 in
   let next x =
     let i = !x in
@@ -148,7 +150,11 @@ let pp_seq ppt ppf (lhs : (string option * 'term) list)
       Fmt.fprintf ppf "@[%s: @[<hov 1>%a@]@]" n f h
     | None -> Fmt.fprintf ppf "@[H%d. @[<hov 1>%a@]@]" (next h_i) f h
   in
-  let pp_hyps ppf hs = Fmt.list ~sep:Fmt.(return "@\n") pp_hyp ppf hs in
+  let pp_hyps ppf hs =
+    match hs with
+    | [] -> ()
+    | hs -> Fmt.fprintf ppf " @[<v>%a@]@," (Fmt.list ~sep:Fmt.cut pp_hyp) hs
+  in
   let pp_conc ppf ((n, c) : string option * 'term) =
     match n with
     | Some n ->
@@ -163,25 +169,13 @@ let pp_seq ppt ppf (lhs : (string option * 'term) list)
       (match n with
       | Some n -> Fmt.fprintf ppf "%s: %a" n f c
       | None -> f ppf c)
-    | cs -> Fmt.list ~sep:Fmt.(return "@\n") pp_conc ppf cs
+    | cs -> Fmt.fprintf ppf "@[<v>%a@]" (Fmt.list ~sep:Fmt.cut pp_conc) cs
   in
-  Fmt.fprintf ppf
-    "@\n\
-     @[%a@[<hov \
-     1>@[%a@]@]%a@[|----------------------------------------------------------------------@]@\n\
-     @[<hov 1> %a@]@]@\n"
-    (fun ppf () ->
-      if lhs <> [] then
-        Fmt.(fprintf ppf "@ ")
-      else
-        Fmt.(fprintf ppf ""))
-    () pp_hyps lhs
-    (fun ppf () ->
-      if lhs <> [] then
-        Fmt.(fprintf ppf "@\n")
-      else
-        Fmt.(fprintf ppf ""))
-    () pp_concs rhs
+  let sep_line =
+    "|----------------------------------------------------------------------"
+  in
+  Fmt.fprintf ppf "@[<v>%a%s@, @[<hov 1>%a@]@]" pp_hyps lhs sep_line pp_concs
+    rhs
 
 let pp ppt ppf g = pp_seq ppt ppf g.hyps g.concls
 let pp_t_poly ppt out (self : _ t_poly) : unit = pp ppt out self
