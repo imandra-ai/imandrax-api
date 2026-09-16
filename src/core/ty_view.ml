@@ -37,6 +37,7 @@ type ('lbl, 'var, +'t) view =
   | Arrow of 'lbl * 't * 't
   | Tuple of 't list
   | Constr of Uid.t * 't list
+  | Package of Uid.t * (Uid.t * 't) list
 [@@deriving twine, typereg, eq, ord, map, iter, show { with_path = false }]
 
 let hash_view h_lbl h_var h_sub view : int =
