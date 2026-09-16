@@ -1,0 +1,5 @@
+(test
+ (name test_ordinal_pp)
+ (package imandrax-api)
+ (modules test_ordinal_pp)
+ (libraries imandrax-api.eval fmt zarith))

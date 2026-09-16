@@ -1,0 +1,163 @@
+# Top level
+There should be no leading or trailing new lines
+## plain text
+`foo`"hello"`bar`
+
+## explicit newline item
+`foo`"before
+      
+      
+      after"`bar`
+
+## string with embedded newlines
+`foo`"line one
+line two
+line three"`bar`
+
+## term
+`foo`"the term is 
+      f x + 1"`bar`
+
+## embedded sequent
+`foo`"goal:
+      
+      
+       H0. x > 0
+      |----------------------------------------------------------------------
+       f x = 2"`bar`
+
+## nested rtext
+`foo`"outer 
+      inner
+      
+      
+      more"`bar`
+
+## list of rtext
+`foo`"[a;b;c]"`bar`
+
+## substitution
+`foo`"[(x, 1);(y, 2)]"`bar`
+
+# Nested in a record box
+Every line should pick up the enclosing box's indentation instead of jumping to column 0
+## plain text
+{ id = 0;
+  text =
+  `foo`"hello"`bar`;
+  view = ...
+}
+
+## explicit newline item
+{ id = 0;
+  text =
+  `foo`"before
+        
+        
+        after"`bar`;
+  view = ...
+}
+
+## string with embedded newlines
+{ id = 0;
+  text =
+  `foo`"line one
+line two
+line three"`bar`;
+  view = ...
+}
+
+## term
+{ id = 0;
+  text =
+  `foo`"the term is 
+        f x + 1"`bar`;
+  view = ...
+}
+
+## embedded sequent
+{ id = 0;
+  text =
+  `foo`"goal:
+        
+        
+         H0. x > 0
+        |----------------------------------------------------------------------
+         f x = 2"`bar`;
+  view = ...
+}
+
+## nested rtext
+{ id = 0;
+  text =
+  `foo`"outer 
+        inner
+        
+        
+        more"`bar`;
+  view = ...
+}
+
+## list of rtext
+{ id = 0;
+  text =
+  `foo`"[a;b;c]"`bar`;
+  view = ...
+}
+
+## substitution
+{ id = 0;
+  text =
+  `foo`"[(x, 1);(y, 2)]"`bar`;
+  view = ...
+}
+
+# Nested mid-line
+The rtext starts mid-line, so its lines should align to the column where it started, not to the enclosing box's own indentation
+## plain text
+outer { text = `foo`"hello"`bar`;
+      view = ... }
+
+## explicit newline item
+outer { text = `foo`"before
+                     
+                     
+                     after"`bar`;
+      view = ... }
+
+## string with embedded newlines
+outer { text = `foo`"line one
+line two
+line three"`bar`;
+      view = ... }
+
+## term
+outer { text = `foo`"the term is 
+                     f x + 1"`bar`;
+      view = ... }
+
+## embedded sequent
+outer { text = `foo`"goal:
+                     
+                     
+                      H0. x > 0
+                     |----------------------------------------------------------------------
+                      f x = 2"`bar`;
+      view = ... }
+
+## nested rtext
+outer { text = `foo`"outer 
+                     inner
+                     
+                     
+                     more"`bar`;
+      view = ... }
+
+## list of rtext
+outer { text = `foo`"[a;b;c]"`bar`;
+      view = ... }
+
+## substitution
+outer { text = `foo`"[(x, 1);(y, 2)]"`bar`;
+      view = ... }
+

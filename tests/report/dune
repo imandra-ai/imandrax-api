@@ -1,0 +1,5 @@
+(test
+ (name test_rtext_pp)
+ (package imandrax-api)
+ (modules test_rtext_pp)
+ (libraries imandrax-api.common imandrax-api.report fmt))
