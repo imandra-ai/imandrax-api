@@ -23,6 +23,6 @@ let pp out (self : t) : unit =
     | Int _ -> pp out x
     | Cons _ -> Format.fprintf out "(@[%a@])" pp x
   in
-  pp out self
+  Format.fprintf out "@[<hov>%a@]" pp self
 
 let show = Fmt.to_string pp

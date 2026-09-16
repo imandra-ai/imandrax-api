@@ -5,33 +5,25 @@ There should be no leading or trailing new lines
 
 ## explicit newline item
 `foo`"before
-      
-      
       after"`bar`
 
 ## string with embedded newlines
 `foo`"line one
-line two
-line three"`bar`
+      line two
+      line three"`bar`
 
 ## term
-`foo`"the term is 
-      f x + 1"`bar`
+`foo`"the term is f x + 1"`bar`
 
 ## embedded sequent
 `foo`"goal:
-      
-      
        H0. x > 0
       |----------------------------------------------------------------------
        f x = 2"`bar`
 
 ## nested rtext
-`foo`"outer 
-      inner
-      
-      
-      more"`bar`
+`foo`"outer inner
+            more"`bar`
 
 ## list of rtext
 `foo`"[a;b;c]"`bar`
@@ -52,8 +44,6 @@ Every line should pick up the enclosing box's indentation instead of jumping to 
 { id = 0;
   text =
   `foo`"before
-        
-        
         after"`bar`;
   view = ...
 }
@@ -62,16 +52,15 @@ Every line should pick up the enclosing box's indentation instead of jumping to 
 { id = 0;
   text =
   `foo`"line one
-line two
-line three"`bar`;
+        line two
+        line three"`bar`;
   view = ...
 }
 
 ## term
 { id = 0;
   text =
-  `foo`"the term is 
-        f x + 1"`bar`;
+  `foo`"the term is f x + 1"`bar`;
   view = ...
 }
 
@@ -79,8 +68,6 @@ line three"`bar`;
 { id = 0;
   text =
   `foo`"goal:
-        
-        
          H0. x > 0
         |----------------------------------------------------------------------
          f x = 2"`bar`;
@@ -90,11 +77,8 @@ line three"`bar`;
 ## nested rtext
 { id = 0;
   text =
-  `foo`"outer 
-        inner
-        
-        
-        more"`bar`;
+  `foo`"outer inner
+              more"`bar`;
   view = ...
 }
 
@@ -120,37 +104,29 @@ outer { text = `foo`"hello"`bar`;
 
 ## explicit newline item
 outer { text = `foo`"before
-                     
-                     
                      after"`bar`;
       view = ... }
 
 ## string with embedded newlines
 outer { text = `foo`"line one
-line two
-line three"`bar`;
+                     line two
+                     line three"`bar`;
       view = ... }
 
 ## term
-outer { text = `foo`"the term is 
-                     f x + 1"`bar`;
+outer { text = `foo`"the term is f x + 1"`bar`;
       view = ... }
 
 ## embedded sequent
 outer { text = `foo`"goal:
-                     
-                     
                       H0. x > 0
                      |----------------------------------------------------------------------
                       f x = 2"`bar`;
       view = ... }
 
 ## nested rtext
-outer { text = `foo`"outer 
-                     inner
-                     
-                     
-                     more"`bar`;
+outer { text = `foo`"outer inner
+                           more"`bar`;
       view = ... }
 
 ## list of rtext

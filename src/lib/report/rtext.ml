@@ -19,7 +19,7 @@ and 'term item =
 let pp ppt out (t : 't t) : unit =
   let rec loop_item out t =
     match t with
-    | S s | B s | I s -> Fmt.string out s
+    | S s | B s | I s -> Util.pp_text_newlines out s
     | Newline -> Fmt.fprintf out "@ "
     | Sub l -> loop out l
     | L l -> Fmt.Dump.list loop out l
@@ -28,7 +28,8 @@ let pp ppt out (t : 't t) : unit =
     | Sequent seq -> Imandrax_api_common.Sequent.pp_t_poly ppt out seq
     | Subst s -> Fmt.(hovbox @@ Dump.(list (pair ppt ppt))) out s
   and loop out (l : 't t) =
-    Fmt.fprintf out "@[<v>%a@]" (Util.pp_list ~sep:"" loop_item) l
+    (* no separator: items concatenate, only [Newline] introduces a break *)
+    Fmt.fprintf out "@[<v>%a@]" (Fmt.list ~sep:(fun _ () -> ()) loop_item) l
   in
 
   Fmt.fprintf out {|"%a"|} loop t

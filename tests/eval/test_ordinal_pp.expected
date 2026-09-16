@@ -7,21 +7,17 @@ There should be no leading or trailing new lines
 `foo`ω`bar`
 
 ## omega with coefficient and tail
-`foo`3·ω
-+ 7`bar`
+`foo`3·ω + 7`bar`
 
 ## several summands
-`foo`5·ω^3 + 4·ω^2 + 3·ω
-+ 2`bar`
+`foo`5·ω^3 + 4·ω^2 + 3·ω + 2`bar`
 
 ## many summands, wraps
 `foo`111·ω^9 + 222·ω^8 + 333·ω^7 + 444·ω^6 + 555·ω^5
-+ 666·ω^4
-+ 777`bar`
+     + 666·ω^4 + 777`bar`
 
 ## nested exponent
-`foo`2·ω^(ω)
-+ 1`bar`
+`foo`2·ω^(ω) + 1`bar`
 
 # Nested mid-line
 Summands should align to the column where the ordinal started, not to the enclosing box's own indentation
@@ -34,29 +30,19 @@ outer { ord = `foo`ω`bar`;
       view = ... }
 
 ## omega with coefficient and tail
-outer { ord = `foo`3·ω
-      + 7`bar`;
+outer { ord = `foo`3·ω + 7`bar`;
       view = ... }
 
 ## several summands
-outer { ord = `foo`5·ω^3
-      + 4·ω^2
-      + 3·ω
-      + 2`bar`;
+outer { ord = `foo`5·ω^3 + 4·ω^2 + 3·ω + 2`bar`;
       view = ... }
 
 ## many summands, wraps
-outer { ord = `foo`111·ω^9
-      + 222·ω^8
-      + 333·ω^7
-      + 444·ω^6
-      + 555·ω^5
-      + 666·ω^4
-      + 777`bar`;
+outer { ord = `foo`111·ω^9 + 222·ω^8 + 333·ω^7 + 444·ω^6
+                   + 555·ω^5 + 666·ω^4 + 777`bar`;
       view = ... }
 
 ## nested exponent
-outer { ord = `foo`2·ω^(ω)
-      + 1`bar`;
+outer { ord = `foo`2·ω^(ω) + 1`bar`;
       view = ... }
 
