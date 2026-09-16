@@ -1,12 +1,52 @@
 open struct
   module Log = Imandrax_api_client_core.Log
-  module C = Twirp_cohttp_lwt_unix
 
   let spf = Printf.sprintf
 end
 
 open Lwt.Syntax
 include Imandrax_api_client_lwt
+
+(** This is [Twirp_cohttp_lwt_unix], except that the client
+    threaded through the calls is a {!Cookie_jar} rather than [unit], so that
+    cookies survive from one call to the next.  *)
+module C = struct
+  (* ai-disclosure: ai-generated *)
+  include Twirp_core.Client.Common
+
+  include Twirp_core.Client.Make (struct
+    module IO = struct
+      type 'a t = 'a Lwt.t
+
+      let ( let* ) = Lwt.bind
+      let return = Lwt.return
+    end
+
+    type client = Cookie_jar.t
+
+    let http_post ~headers ~url ~body (jar : client) () : _ result Lwt.t =
+      let uri = Uri.of_string url in
+      Lwt.catch
+        (fun () ->
+          let headers =
+            match Cookie_jar.to_header jar with
+            | None -> headers
+            | Some h -> h :: headers
+          in
+          let headers = Cohttp.Header.of_list headers in
+          let* resp, res_body =
+            Cohttp_lwt_unix.Client.post ~body:(`String body) ~headers uri
+          in
+          let code =
+            Cohttp.Response.status resp |> Cohttp.Code.code_of_status
+          in
+          let* res_body = res_body |> Cohttp_lwt.Body.to_string in
+          let headers = Cohttp.Response.headers resp |> Cohttp.Header.to_list in
+          Cookie_jar.update_from_response jar headers;
+          Lwt.return @@ Ok (res_body, code, headers))
+        (fun exn -> Lwt.return @@ Error (Printexc.to_string exn))
+  end)
+end
 
 module Addr = struct
   type t = { url: string } [@@unboxed]
@@ -21,6 +61,7 @@ module Conn = struct
     encoding: [ `JSON | `BINARY ];
     verbose: bool;
     auth_token: string option;  (** JWT *)
+    cookies: Cookie_jar.t;
   }
 
   let pp out (self : t) =
@@ -48,7 +89,7 @@ module Conn = struct
       in
 
       C.call ~encoding:self.encoding ~prefix:(Some "api/v1")
-        ~base_url:self.addr.url ~headers rpc req
+        ~base_url:self.addr.url ~headers self.cookies rpc req
     in
     Lwt.pick [ fut; Lwt_unix.timeout timeout_s ]
 
@@ -83,7 +124,14 @@ let create ?(verbose = false) ?(encoding = `JSON) ?(url = url_prod)
     ~(auth_token : string option) () : t =
   let addr = { Addr.url } in
   let conn =
-    { Conn.active = Atomic.make true; encoding; verbose; addr; auth_token }
+    {
+      Conn.active = Atomic.make true;
+      encoding;
+      verbose;
+      addr;
+      auth_token;
+      cookies = Cookie_jar.create ();
+    }
   in
   create ~addr:(Addr.show addr) ~rpc:(Conn.to_rpc conn) ()
 

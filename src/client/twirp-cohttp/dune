@@ -6,6 +6,11 @@
   imandrax-api.proto
   lwt
   lwt.unix
+  uri
+  cohttp
+  cohttp-lwt
+  cohttp-lwt-unix
+  twirp_core
   (re_export imandrax-api-client.core)
   (re_export imandrax-api-client.lwt)
   (re_export twirp_cohttp_lwt_unix)))
