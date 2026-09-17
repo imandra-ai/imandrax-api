@@ -67,6 +67,11 @@ module Make (Fut : FUT) = struct
     in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.create_session req
 
+  let end_session ?timeout_s (self : t) ~(session : API.session) () : unit Fut.t
+      =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.end_session session
+
   let status ?timeout_s (self : t) : API.string_msg Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.status ()
@@ -89,6 +94,12 @@ module Make (Fut : FUT) = struct
     let arg = API.make_verify_src_req ~session ?hints ~src () in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.verify_src arg
 
+  let verify_name ?timeout_s (self : t) ~(name : string) ?hints
+      ~(session : API.session) () : API.verify_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_verify_name_req ~session ?hints ~name () in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.verify_name arg
+
   let test_src ?timeout_s (self : t) ~(src : string) ?seed
       ~(session : API.session) () : API.test_res Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
@@ -99,15 +110,53 @@ module Make (Fut : FUT) = struct
       ~(session : API.session) () : API.test_res Fut.t =
     test_src ?timeout_s self ~src ?seed ~session ()
 
+  let test_name ?timeout_s (self : t) ~(name : string) ?seed
+      ~(session : API.session) () : API.test_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_test_name_req ~session ?seed ~name () in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.test_name arg
+
+  let qcheck_name ?timeout_s (self : t) ~(name : string) ?seed
+      ~(session : API.session) () : API.test_res Fut.t =
+    test_name ?timeout_s self ~name ?seed ~session ()
+
+  let instance_name ?timeout_s (self : t) ~(name : string) ?hints
+      ~(session : API.session) () : API.instance_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_instance_name_req ~session ?hints ~name () in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.instance_name arg
+
   let decompose ?timeout_s (self : t) ~(name : string) ?assuming ?(basis = [])
-      ?(rule_specs = []) ?(prune = true) ?ctx_simp ?lift_bool
-      ~(session : API.session) () : API.decompose_res Fut.t =
+      ?(rule_specs = []) ?(prune = true) ?ctx_simp ?lift_bool ?string_results
+      ?compute_timeout ~(session : API.session) () : API.decompose_res Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
     let arg =
       API.make_decompose_req ~session ~name ?assuming ~basis ?lift_bool
-        ?ctx_simp ~rule_specs ~prune ()
+        ?ctx_simp ~rule_specs ~prune ?string_results ?timeout:compute_timeout ()
     in
     self.rpc#rpc_call ~timeout_s API.Simple.Client.decompose arg
+
+  let decompose_full ?timeout_s (self : t)
+      ~(decomp : API.decompose_req_full_decomp) ?string_results ?compute_timeout
+      ~(session : API.session) () : API.decompose_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg =
+      API.make_decompose_req_full ~session ~decomp ?string_results
+        ?timeout:compute_timeout ()
+    in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.decompose_full arg
+
+  let typecheck ?timeout_s (self : t) ~(src : string) ~(session : API.session)
+      () : API.typecheck_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_typecheck_req ~session ~src () in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.typecheck arg
+
+  let get_decls ?timeout_s (self : t) ~(names : string list) ?str
+      ~(session : API.session) () : API.get_decls_res Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_get_decls_req ~session ~name:names ?str () in
+    self.rpc#rpc_call ~timeout_s API.Simple.Client.get_decls arg
 
   let list_artifacts ?timeout_s (self : t) ~(task : API.task_id) () :
       API.artifact_list_result Fut.t =
@@ -120,6 +169,12 @@ module Make (Fut : FUT) = struct
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
     let arg = API.make_artifact_get_query ~task_id:task ~kind () in
     self.rpc#rpc_call ~timeout_s API.Eval.Client.get_artifact_zip arg
+
+  let get_artifact ?timeout_s (self : t) ~(task : API.task_id) ~(kind : string)
+      () : API.artifact Fut.t =
+    let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+    let arg = API.make_artifact_get_query ~task_id:task ~kind () in
+    self.rpc#rpc_call ~timeout_s API.Eval.Client.get_artifact arg
 
   let oneshot ?timeout_s (self : t) ~(input : string) () : API.oneshot_res Fut.t
       =
@@ -140,6 +195,10 @@ module Make (Fut : FUT) = struct
     let version ?timeout_s (self : t) : API.version_response Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
       self.rpc#rpc_call ~timeout_s API.System.Client.version ()
+
+    let shutdown ?timeout_s (self : t) : unit Fut.t =
+      let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+      self.rpc#rpc_call ~timeout_s API.System.Client.shutdown ()
   end
 
   module Session = struct
@@ -176,6 +235,18 @@ module Make (Fut : FUT) = struct
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
       let code = API.make_code_snippet ~code ~session () in
       self.rpc#rpc_call ~timeout_s API.Eval.Client.eval_code_snippet code
+
+    let parse_term ?timeout_s (self : client) ~session ~code () :
+        API.artifact Fut.t =
+      let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+      let code = API.make_code_snippet ~code ~session () in
+      self.rpc#rpc_call ~timeout_s API.Eval.Client.parse_term code
+
+    let parse_type ?timeout_s (self : client) ~session ~code () :
+        API.artifact Fut.t =
+      let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
+      let code = API.make_code_snippet ~code ~session () in
+      self.rpc#rpc_call ~timeout_s API.Eval.Client.parse_type code
   end
 
   module Artifact = struct
