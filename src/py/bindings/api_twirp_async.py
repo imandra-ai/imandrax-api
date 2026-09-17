@@ -25,7 +25,7 @@ class AsyncEvalClient(AsyncTwirpClient):
 			url=F"{self._server_path_prefix}/imandrax.api.Eval/parse_term",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
+			response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactResult"),
 			**kwargs,
 		)
 
@@ -34,7 +34,7 @@ class AsyncEvalClient(AsyncTwirpClient):
 			url=F"{self._server_path_prefix}/imandrax.api.Eval/parse_type",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
+			response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactResult"),
 			**kwargs,
 		)
 
@@ -52,7 +52,7 @@ class AsyncEvalClient(AsyncTwirpClient):
 			url=F"{self._server_path_prefix}/imandrax.api.Eval/get_artifact",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("imandrax.api.Artifact"),
+			response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactResult"),
 			**kwargs,
 		)
 
@@ -61,6 +61,6 @@ class AsyncEvalClient(AsyncTwirpClient):
 			url=F"{self._server_path_prefix}/imandrax.api.Eval/get_artifact_zip",
 			ctx=ctx,
 			request=request,
-			response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactZip"),
+			response_obj=_sym_db.GetSymbol("imandrax.api.ArtifactZipResult"),
 			**kwargs,
 		)

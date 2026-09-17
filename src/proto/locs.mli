@@ -69,8 +69,14 @@ val location_has_file : location -> bool
 val location_set_file : location -> string -> unit
   (** set field file in location *)
 
+val location_has_start : location -> bool
+  (** presence of field "start" in [location] *)
+
 val location_set_start : location -> position -> unit
   (** set field start in location *)
+
+val location_has_stop : location -> bool
+  (** presence of field "stop" in [location] *)
 
 val location_set_stop : location -> position -> unit
   (** set field stop in location *)

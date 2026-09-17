@@ -51,7 +51,7 @@ class ArtifactListQuery(_message.Message):
     task_id: _task_pb2.TaskID
     def __init__(self, task_id: _Optional[_Union[_task_pb2.TaskID, _Mapping]] = ...) -> None: ...
 
-class ArtifactListResult(_message.Message):
+class ArtifactList(_message.Message):
     __slots__ = ("kinds",)
     KINDS_FIELD_NUMBER: _ClassVar[int]
     kinds: _containers.RepeatedScalarFieldContainer[str]
@@ -76,3 +76,27 @@ class ArtifactZip(_message.Message):
     ART_ZIP_FIELD_NUMBER: _ClassVar[int]
     art_zip: bytes
     def __init__(self, art_zip: _Optional[bytes] = ...) -> None: ...
+
+class ArtifactResult(_message.Message):
+    __slots__ = ("ok", "error")
+    OK_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    ok: Artifact
+    error: _error_pb2.Error
+    def __init__(self, ok: _Optional[_Union[Artifact, _Mapping]] = ..., error: _Optional[_Union[_error_pb2.Error, _Mapping]] = ...) -> None: ...
+
+class ArtifactListResult(_message.Message):
+    __slots__ = ("ok", "error")
+    OK_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    ok: ArtifactList
+    error: _error_pb2.Error
+    def __init__(self, ok: _Optional[_Union[ArtifactList, _Mapping]] = ..., error: _Optional[_Union[_error_pb2.Error, _Mapping]] = ...) -> None: ...
+
+class ArtifactZipResult(_message.Message):
+    __slots__ = ("ok", "error")
+    OK_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    ok: ArtifactZip
+    error: _error_pb2.Error
+    def __init__(self, ok: _Optional[_Union[ArtifactZip, _Mapping]] = ..., error: _Optional[_Union[_error_pb2.Error, _Mapping]] = ...) -> None: ...

@@ -56,6 +56,8 @@ let make_position
   _res
 
 let[@inline] location_has_file (self:location) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] location_has_start (self:location) : bool = self.start != None
+let[@inline] location_has_stop (self:location) : bool = self.stop != None
 
 let[@inline] location_set_file (self:location) (x:string) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 0); self.file <- x

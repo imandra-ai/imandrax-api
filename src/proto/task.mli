@@ -72,6 +72,9 @@ val make_task :
 
 val copy_task : task -> task
 
+val task_has_id : task -> bool
+  (** presence of field "id" in [task] *)
+
 val task_set_id : task -> task_id -> unit
   (** set field id in task *)
 

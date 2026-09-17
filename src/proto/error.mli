@@ -70,6 +70,9 @@ val make_error :
 
 val copy_error : error -> error
 
+val error_has_msg : error -> bool
+  (** presence of field "msg" in [error] *)
+
 val error_set_msg : error -> error_message -> unit
   (** set field msg in error *)
 

@@ -206,9 +206,10 @@ export interface EvalSrcReq {
     | boolean
     | undefined;
   /**
-   * Regular expression for verification tasks to be started during evaluation.
+   * Glob patterns (`*`, `?`, `[...]`) for selecting tasks to be started during evaluation.
    * The default is to start all tasks, but e.g. task_filter="*xyz*" would start
    * only tasks pertaining to top-level definitions with 'xyz' in their name.
+   * Tasks without names are matched under `anonymous`.
    */
   taskFilter: string[];
 }

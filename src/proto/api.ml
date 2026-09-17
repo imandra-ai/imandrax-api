@@ -28,7 +28,7 @@ type artifact_list_query = {
   mutable task_id : Task.task_id option;
 }
 
-type artifact_list_result = {
+type artifact_list = {
   mutable kinds : string list;
 }
 
@@ -46,6 +46,18 @@ type artifact_zip = {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable art_zip : bytes;
 }
+
+type artifact_result =
+  | Ok of artifact
+  | Error of Error.error
+
+type artifact_list_result =
+  | Ok of artifact_list
+  | Error of Error.error
+
+type artifact_zip_result =
+  | Ok of artifact_zip
+  | Error of Error.error
 
 let default_code_snippet (): code_snippet =
 {
@@ -77,7 +89,7 @@ let default_artifact_list_query (): artifact_list_query =
   task_id=None;
 }
 
-let default_artifact_list_result (): artifact_list_result =
+let default_artifact_list (): artifact_list =
 {
   kinds=[];
 }
@@ -100,9 +112,16 @@ let default_artifact_zip (): artifact_zip =
   art_zip=Bytes.create 0;
 }
 
+let default_artifact_result (): artifact_result = Ok (default_artifact ())
+
+let default_artifact_list_result (): artifact_list_result = Ok (default_artifact_list ())
+
+let default_artifact_zip_result (): artifact_zip_result = Ok (default_artifact_zip ())
+
 
 (** {2 Make functions} *)
 
+let[@inline] code_snippet_has_session (self:code_snippet) : bool = self.session != None
 let[@inline] code_snippet_has_code (self:code_snippet) : bool = (Pbrt.Bitfield.get self._presence 0)
 
 let[@inline] code_snippet_set_session (self:code_snippet) (x:Session.session) : unit =
@@ -179,6 +198,7 @@ let make_parse_query
   | Some v -> parse_query_set_code _res v);
   _res
 
+let[@inline] artifact_list_query_has_task_id (self:artifact_list_query) : bool = self.task_id != None
 
 let[@inline] artifact_list_query_set_task_id (self:artifact_list_query) (x:Task.task_id) : unit =
   self.task_id <- Some x
@@ -196,19 +216,20 @@ let make_artifact_list_query
   _res
 
 
-let[@inline] artifact_list_result_set_kinds (self:artifact_list_result) (x:string list) : unit =
+let[@inline] artifact_list_set_kinds (self:artifact_list) (x:string list) : unit =
   self.kinds <- x
 
-let copy_artifact_list_result (self:artifact_list_result) : artifact_list_result =
+let copy_artifact_list (self:artifact_list) : artifact_list =
   { self with kinds = self.kinds }
 
-let make_artifact_list_result 
+let make_artifact_list 
   ?(kinds=[])
-  () : artifact_list_result  =
-  let _res = default_artifact_list_result () in
-  artifact_list_result_set_kinds _res kinds;
+  () : artifact_list  =
+  let _res = default_artifact_list () in
+  artifact_list_set_kinds _res kinds;
   _res
 
+let[@inline] artifact_get_query_has_task_id (self:artifact_get_query) : bool = self.task_id != None
 let[@inline] artifact_get_query_has_kind (self:artifact_get_query) : bool = (Pbrt.Bitfield.get self._presence 0)
 
 let[@inline] artifact_get_query_set_task_id (self:artifact_get_query) (x:Task.task_id) : unit =
@@ -232,6 +253,7 @@ let make_artifact_get_query
   | Some v -> artifact_get_query_set_kind _res v);
   _res
 
+let[@inline] artifact_has_art (self:artifact) : bool = self.art != None
 
 let[@inline] artifact_set_art (self:artifact) (x:Artmsg.art) : unit =
   self.art <- Some x
@@ -303,7 +325,7 @@ let rec pp_artifact_list_query fmt (v:artifact_list_query) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_artifact_list_result fmt (v:artifact_list_result) = 
+let rec pp_artifact_list fmt (v:artifact_list) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "kinds" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.kinds;
   in
@@ -327,6 +349,21 @@ let rec pp_artifact_zip fmt (v:artifact_zip) =
     Pbrt.Pp.pp_record_field ~absent:(not (artifact_zip_has_art_zip v)) ~first:true "art_zip" Pbrt.Pp.pp_bytes fmt v.art_zip;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_artifact_result fmt (v:artifact_result) =
+  match v with
+  | Ok x -> Format.fprintf fmt "@[<hv2>Ok(@,%a)@]" pp_artifact x
+  | Error x -> Format.fprintf fmt "@[<hv2>Error(@,%a)@]" Error.pp_error x
+
+let rec pp_artifact_list_result fmt (v:artifact_list_result) =
+  match v with
+  | Ok x -> Format.fprintf fmt "@[<hv2>Ok(@,%a)@]" pp_artifact_list x
+  | Error x -> Format.fprintf fmt "@[<hv2>Error(@,%a)@]" Error.pp_error x
+
+let rec pp_artifact_zip_result fmt (v:artifact_zip_result) =
+  match v with
+  | Ok x -> Format.fprintf fmt "@[<hv2>Ok(@,%a)@]" pp_artifact_zip x
+  | Error x -> Format.fprintf fmt "@[<hv2>Error(@,%a)@]" Error.pp_error x
 
 [@@@ocaml.warning "-23-27-30-39"]
 
@@ -389,7 +426,7 @@ let rec encode_pb_artifact_list_query (v:artifact_list_query) encoder =
   end;
   ()
 
-let rec encode_pb_artifact_list_result (v:artifact_list_result) encoder = 
+let rec encode_pb_artifact_list (v:artifact_list) encoder = 
   Pbrt.List_util.rev_iter_with (fun x encoder ->
     Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
@@ -424,6 +461,36 @@ let rec encode_pb_artifact_zip (v:artifact_zip) encoder =
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   );
   ()
+
+let rec encode_pb_artifact_result (v:artifact_result) encoder = 
+  begin match v with
+  | Ok x ->
+    Pbrt.Encoder.nested encode_pb_artifact x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | Error x ->
+    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  end
+
+let rec encode_pb_artifact_list_result (v:artifact_list_result) encoder = 
+  begin match v with
+  | Ok x ->
+    Pbrt.Encoder.nested encode_pb_artifact_list x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | Error x ->
+    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  end
+
+let rec encode_pb_artifact_zip_result (v:artifact_zip_result) encoder = 
+  begin match v with
+  | Ok x ->
+    Pbrt.Encoder.nested encode_pb_artifact_zip x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | Error x ->
+    Pbrt.Encoder.nested Error.encode_pb_error x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  end
 
 [@@@ocaml.warning "-23-27-30-39"]
 
@@ -529,23 +596,23 @@ let rec decode_pb_artifact_list_query d =
   done;
   (v : artifact_list_query)
 
-let rec decode_pb_artifact_list_result d =
-  let v = default_artifact_list_result () in
+let rec decode_pb_artifact_list d =
+  let v = default_artifact_list () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
       (* put lists in the correct order *)
-      artifact_list_result_set_kinds v (List.rev v.kinds);
+      artifact_list_set_kinds v (List.rev v.kinds);
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      artifact_list_result_set_kinds v ((Pbrt.Decoder.string d) :: v.kinds);
+      artifact_list_set_kinds v ((Pbrt.Decoder.string d) :: v.kinds);
     end
     | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload_message "artifact_list_result" 1 pk
+      Pbrt.Decoder.unexpected_payload_message "artifact_list" 1 pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
-  (v : artifact_list_result)
+  (v : artifact_list)
 
 let rec decode_pb_artifact_get_query d =
   let v = default_artifact_get_query () in
@@ -599,6 +666,51 @@ let rec decode_pb_artifact_zip d =
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   (v : artifact_zip)
+
+let rec decode_pb_artifact_result d = 
+  let rec loop () = 
+    let ret:artifact_result = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "artifact_result"
+      | Some (1, _) -> (Ok (decode_pb_artifact (Pbrt.Decoder.nested d)) : artifact_result) 
+      | Some (2, _) -> (Error (Error.decode_pb_error (Pbrt.Decoder.nested d)) : artifact_result) 
+      | Some (n, payload_kind) -> (
+        Pbrt.Decoder.skip d payload_kind; 
+        loop () 
+      )
+    in
+    ret
+  in
+  loop ()
+
+let rec decode_pb_artifact_list_result d = 
+  let rec loop () = 
+    let ret:artifact_list_result = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "artifact_list_result"
+      | Some (1, _) -> (Ok (decode_pb_artifact_list (Pbrt.Decoder.nested d)) : artifact_list_result) 
+      | Some (2, _) -> (Error (Error.decode_pb_error (Pbrt.Decoder.nested d)) : artifact_list_result) 
+      | Some (n, payload_kind) -> (
+        Pbrt.Decoder.skip d payload_kind; 
+        loop () 
+      )
+    in
+    ret
+  in
+  loop ()
+
+let rec decode_pb_artifact_zip_result d = 
+  let rec loop () = 
+    let ret:artifact_zip_result = match Pbrt.Decoder.key d with
+      | None -> Pbrt.Decoder.malformed_variant "artifact_zip_result"
+      | Some (1, _) -> (Ok (decode_pb_artifact_zip (Pbrt.Decoder.nested d)) : artifact_zip_result) 
+      | Some (2, _) -> (Error (Error.decode_pb_error (Pbrt.Decoder.nested d)) : artifact_zip_result) 
+      | Some (n, payload_kind) -> (
+        Pbrt.Decoder.skip d payload_kind; 
+        loop () 
+      )
+    in
+    ret
+  in
+  loop ()
 
 [@@@ocaml.warning "-23-27-30-39"]
 
@@ -655,7 +767,7 @@ let rec encode_json_artifact_list_query (v:artifact_list_query) =
     | Some v -> ("taskId", Task.encode_json_task_id v) :: !assoc);
   `Assoc !assoc
 
-let rec encode_json_artifact_list_result (v:artifact_list_result) = 
+let rec encode_json_artifact_list (v:artifact_list) = 
   let assoc = ref [] in
   assoc := (
     let l = v.kinds |> List.map Pbrt_yojson.make_string in
@@ -686,6 +798,24 @@ let rec encode_json_artifact_zip (v:artifact_zip) =
     assoc := ("artZip", Pbrt_yojson.make_bytes v.art_zip) :: !assoc;
   );
   `Assoc !assoc
+
+let rec encode_json_artifact_result (v:artifact_result) = 
+  begin match v with
+  | Ok v -> `Assoc [("ok", encode_json_artifact v)]
+  | Error v -> `Assoc [("error", Error.encode_json_error v)]
+  end
+
+let rec encode_json_artifact_list_result (v:artifact_list_result) = 
+  begin match v with
+  | Ok v -> `Assoc [("ok", encode_json_artifact_list v)]
+  | Error v -> `Assoc [("error", Error.encode_json_error v)]
+  end
+
+let rec encode_json_artifact_zip_result (v:artifact_zip_result) = 
+  begin match v with
+  | Ok v -> `Assoc [("ok", encode_json_artifact_zip v)]
+  | Error v -> `Assoc [("error", Error.encode_json_error v)]
+  end
 
 [@@@ocaml.warning "-23-27-30-39"]
 
@@ -788,16 +918,16 @@ let rec decode_json_artifact_list_query d =
     task_id = v.task_id;
   } : artifact_list_query)
 
-let rec decode_json_artifact_list_result d =
-  let v = default_artifact_list_result () in
+let rec decode_json_artifact_list d =
+  let v = default_artifact_list () in
   let assoc = match d with
     | `Assoc assoc -> assoc
     | _ -> assert(false)
   in
   List.iter (function 
     | ("kinds", `List l) -> begin
-      artifact_list_result_set_kinds v @@ List.map (function
-        | json_value -> Pbrt_yojson.string json_value "artifact_list_result" "kinds"
+      artifact_list_set_kinds v @@ List.map (function
+        | json_value -> Pbrt_yojson.string json_value "artifact_list" "kinds"
       ) l;
     end
     
@@ -805,7 +935,7 @@ let rec decode_json_artifact_list_result d =
   ) assoc;
   ({
     kinds = v.kinds;
-  } : artifact_list_result)
+  } : artifact_list)
 
 let rec decode_json_artifact_get_query d =
   let v = default_artifact_get_query () in
@@ -860,6 +990,54 @@ let rec decode_json_artifact_zip d =
     art_zip = v.art_zip;
   } : artifact_zip)
 
+let rec decode_json_artifact_result json =
+  let assoc = match json with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  let rec loop = function
+    | [] -> Pbrt_yojson.E.malformed_variant "artifact_result"
+    | ("ok", json_value)::_ -> 
+      (Ok ((decode_json_artifact json_value)) : artifact_result)
+    | ("error", json_value)::_ -> 
+      (Error ((Error.decode_json_error json_value)) : artifact_result)
+    
+    | _ :: tl -> loop tl
+  in
+  loop assoc
+
+let rec decode_json_artifact_list_result json =
+  let assoc = match json with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  let rec loop = function
+    | [] -> Pbrt_yojson.E.malformed_variant "artifact_list_result"
+    | ("ok", json_value)::_ -> 
+      (Ok ((decode_json_artifact_list json_value)) : artifact_list_result)
+    | ("error", json_value)::_ -> 
+      (Error ((Error.decode_json_error json_value)) : artifact_list_result)
+    
+    | _ :: tl -> loop tl
+  in
+  loop assoc
+
+let rec decode_json_artifact_zip_result json =
+  let assoc = match json with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  let rec loop = function
+    | [] -> Pbrt_yojson.E.malformed_variant "artifact_zip_result"
+    | ("ok", json_value)::_ -> 
+      (Ok ((decode_json_artifact_zip json_value)) : artifact_zip_result)
+    | ("error", json_value)::_ -> 
+      (Error ((Error.decode_json_error json_value)) : artifact_zip_result)
+    
+    | _ :: tl -> loop tl
+  in
+  loop assoc
+
 module Eval = struct
   open Pbrt_services.Value_mode
   module Client = struct
@@ -878,7 +1056,7 @@ module Eval = struct
         () : (code_snippet, unary, code_snippet_eval_result, unary) Client.rpc)
     open Pbrt_services
     
-    let parse_term : (code_snippet, unary, artifact, unary) Client.rpc =
+    let parse_term : (code_snippet, unary, artifact_result, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"api"]
         ~service_name:"Eval" ~rpc_name:"parse_term"
@@ -886,12 +1064,12 @@ module Eval = struct
         ~res_mode:Client.Unary
         ~encode_json_req:encode_json_code_snippet
         ~encode_pb_req:encode_pb_code_snippet
-        ~decode_json_res:decode_json_artifact
-        ~decode_pb_res:decode_pb_artifact
-        () : (code_snippet, unary, artifact, unary) Client.rpc)
+        ~decode_json_res:decode_json_artifact_result
+        ~decode_pb_res:decode_pb_artifact_result
+        () : (code_snippet, unary, artifact_result, unary) Client.rpc)
     open Pbrt_services
     
-    let parse_type : (code_snippet, unary, artifact, unary) Client.rpc =
+    let parse_type : (code_snippet, unary, artifact_result, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"api"]
         ~service_name:"Eval" ~rpc_name:"parse_type"
@@ -899,9 +1077,9 @@ module Eval = struct
         ~res_mode:Client.Unary
         ~encode_json_req:encode_json_code_snippet
         ~encode_pb_req:encode_pb_code_snippet
-        ~decode_json_res:decode_json_artifact
-        ~decode_pb_res:decode_pb_artifact
-        () : (code_snippet, unary, artifact, unary) Client.rpc)
+        ~decode_json_res:decode_json_artifact_result
+        ~decode_pb_res:decode_pb_artifact_result
+        () : (code_snippet, unary, artifact_result, unary) Client.rpc)
     open Pbrt_services
     
     let list_artifacts : (artifact_list_query, unary, artifact_list_result, unary) Client.rpc =
@@ -917,7 +1095,7 @@ module Eval = struct
         () : (artifact_list_query, unary, artifact_list_result, unary) Client.rpc)
     open Pbrt_services
     
-    let get_artifact : (artifact_get_query, unary, artifact, unary) Client.rpc =
+    let get_artifact : (artifact_get_query, unary, artifact_result, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"api"]
         ~service_name:"Eval" ~rpc_name:"get_artifact"
@@ -925,12 +1103,12 @@ module Eval = struct
         ~res_mode:Client.Unary
         ~encode_json_req:encode_json_artifact_get_query
         ~encode_pb_req:encode_pb_artifact_get_query
-        ~decode_json_res:decode_json_artifact
-        ~decode_pb_res:decode_pb_artifact
-        () : (artifact_get_query, unary, artifact, unary) Client.rpc)
+        ~decode_json_res:decode_json_artifact_result
+        ~decode_pb_res:decode_pb_artifact_result
+        () : (artifact_get_query, unary, artifact_result, unary) Client.rpc)
     open Pbrt_services
     
-    let get_artifact_zip : (artifact_get_query, unary, artifact_zip, unary) Client.rpc =
+    let get_artifact_zip : (artifact_get_query, unary, artifact_zip_result, unary) Client.rpc =
       (Client.mk_rpc 
         ~package:["imandrax";"api"]
         ~service_name:"Eval" ~rpc_name:"get_artifact_zip"
@@ -938,9 +1116,9 @@ module Eval = struct
         ~res_mode:Client.Unary
         ~encode_json_req:encode_json_artifact_get_query
         ~encode_pb_req:encode_pb_artifact_get_query
-        ~decode_json_res:decode_json_artifact_zip
-        ~decode_pb_res:decode_pb_artifact_zip
-        () : (artifact_get_query, unary, artifact_zip, unary) Client.rpc)
+        ~decode_json_res:decode_json_artifact_zip_result
+        ~decode_pb_res:decode_pb_artifact_zip_result
+        () : (artifact_get_query, unary, artifact_zip_result, unary) Client.rpc)
   end
   
   module Server = struct
@@ -956,22 +1134,22 @@ module Eval = struct
         ~decode_pb_req:decode_pb_code_snippet
         () : _ Server.rpc)
     
-    let parse_term : (code_snippet,unary,artifact,unary) Server.rpc = 
+    let parse_term : (code_snippet,unary,artifact_result,unary) Server.rpc = 
       (Server.mk_rpc ~name:"parse_term"
         ~req_mode:Server.Unary
         ~res_mode:Server.Unary
-        ~encode_json_res:encode_json_artifact
-        ~encode_pb_res:encode_pb_artifact
+        ~encode_json_res:encode_json_artifact_result
+        ~encode_pb_res:encode_pb_artifact_result
         ~decode_json_req:decode_json_code_snippet
         ~decode_pb_req:decode_pb_code_snippet
         () : _ Server.rpc)
     
-    let parse_type : (code_snippet,unary,artifact,unary) Server.rpc = 
+    let parse_type : (code_snippet,unary,artifact_result,unary) Server.rpc = 
       (Server.mk_rpc ~name:"parse_type"
         ~req_mode:Server.Unary
         ~res_mode:Server.Unary
-        ~encode_json_res:encode_json_artifact
-        ~encode_pb_res:encode_pb_artifact
+        ~encode_json_res:encode_json_artifact_result
+        ~encode_pb_res:encode_pb_artifact_result
         ~decode_json_req:decode_json_code_snippet
         ~decode_pb_req:decode_pb_code_snippet
         () : _ Server.rpc)
@@ -986,22 +1164,22 @@ module Eval = struct
         ~decode_pb_req:decode_pb_artifact_list_query
         () : _ Server.rpc)
     
-    let get_artifact : (artifact_get_query,unary,artifact,unary) Server.rpc = 
+    let get_artifact : (artifact_get_query,unary,artifact_result,unary) Server.rpc = 
       (Server.mk_rpc ~name:"get_artifact"
         ~req_mode:Server.Unary
         ~res_mode:Server.Unary
-        ~encode_json_res:encode_json_artifact
-        ~encode_pb_res:encode_pb_artifact
+        ~encode_json_res:encode_json_artifact_result
+        ~encode_pb_res:encode_pb_artifact_result
         ~decode_json_req:decode_json_artifact_get_query
         ~decode_pb_req:decode_pb_artifact_get_query
         () : _ Server.rpc)
     
-    let get_artifact_zip : (artifact_get_query,unary,artifact_zip,unary) Server.rpc = 
+    let get_artifact_zip : (artifact_get_query,unary,artifact_zip_result,unary) Server.rpc = 
       (Server.mk_rpc ~name:"get_artifact_zip"
         ~req_mode:Server.Unary
         ~res_mode:Server.Unary
-        ~encode_json_res:encode_json_artifact_zip
-        ~encode_pb_res:encode_pb_artifact_zip
+        ~encode_json_res:encode_json_artifact_zip_result
+        ~encode_pb_res:encode_pb_artifact_zip_result
         ~decode_json_req:decode_json_artifact_get_query
         ~decode_pb_req:decode_pb_artifact_get_query
         () : _ Server.rpc)
