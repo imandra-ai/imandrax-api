@@ -46,7 +46,7 @@ type decompose_req_full_prune = {
 }
 
 and decompose_req_full_decomp =
-  | From_artifact of Artmsg.art
+  | From_artifact of Artmsg.artifact
   | By_name of decompose_req_full_by_name
   | Merge of decompose_req_full_merge
   | Compound_merge of decompose_req_full_compound_merge
@@ -89,7 +89,7 @@ type decompose_req_full = {
 }
 
 type decompose_res_res =
-  | Artifact of Artmsg.art
+  | Artifact of Artmsg.artifact
   | Err
 
 and decompose_res = {
@@ -126,7 +126,7 @@ type model = {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
   mutable m_type : model_type;
   mutable src : string;
-  mutable artifact : Artmsg.art option;
+  mutable artifact : Artmsg.artifact option;
 }
 
 type counter_sat = {
@@ -311,7 +311,7 @@ type get_decls_req = {
 type decl_with_name = {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
   mutable name : string;
-  mutable artifact : Artmsg.art option;
+  mutable artifact : Artmsg.artifact option;
   mutable str : string;
 }
 
@@ -366,7 +366,7 @@ let default_decompose_req_full_prune (): decompose_req_full_prune =
   d=None;
 }
 
-let default_decompose_req_full_decomp (): decompose_req_full_decomp = From_artifact (Artmsg.default_art ())
+let default_decompose_req_full_decomp (): decompose_req_full_decomp = From_artifact (Artmsg.default_artifact ())
 
 let default_decompose_req_full_merge (): decompose_req_full_merge =
 {
@@ -407,7 +407,7 @@ let default_decompose_req_full (): decompose_req_full =
   timeout=0l;
 }
 
-let default_decompose_res_res (): decompose_res_res = Artifact (Artmsg.default_art ())
+let default_decompose_res_res (): decompose_res_res = Artifact (Artmsg.default_artifact ())
 
 let default_decompose_res (): decompose_res =
 {
@@ -669,6 +669,7 @@ let make_session_create_req
   | Some v -> session_create_req_set_api_version _res v);
   _res
 
+let[@inline] decompose_req_has_session (self:decompose_req) : bool = self.session != None
 let[@inline] decompose_req_has_name (self:decompose_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] decompose_req_has_assuming (self:decompose_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 let[@inline] decompose_req_has_prune (self:decompose_req) : bool = (Pbrt.Bitfield.get self._presence 2)
@@ -812,6 +813,7 @@ let make_decompose_req_full_local_var_get
   | Some v -> decompose_req_full_local_var_get_set_name _res v);
   _res
 
+let[@inline] decompose_req_full_prune_has_d (self:decompose_req_full_prune) : bool = self.d != None
 
 let[@inline] decompose_req_full_prune_set_d (self:decompose_req_full_prune) (x:decompose_req_full_decomp) : unit =
   self.d <- Some x
@@ -828,6 +830,8 @@ let make_decompose_req_full_prune
   | Some v -> decompose_req_full_prune_set_d _res v);
   _res
 
+let[@inline] decompose_req_full_merge_has_d1 (self:decompose_req_full_merge) : bool = self.d1 != None
+let[@inline] decompose_req_full_merge_has_d2 (self:decompose_req_full_merge) : bool = self.d2 != None
 
 let[@inline] decompose_req_full_merge_set_d1 (self:decompose_req_full_merge) (x:decompose_req_full_decomp) : unit =
   self.d1 <- Some x
@@ -850,6 +854,8 @@ let make_decompose_req_full_merge
   | Some v -> decompose_req_full_merge_set_d2 _res v);
   _res
 
+let[@inline] decompose_req_full_compound_merge_has_d1 (self:decompose_req_full_compound_merge) : bool = self.d1 != None
+let[@inline] decompose_req_full_compound_merge_has_d2 (self:decompose_req_full_compound_merge) : bool = self.d2 != None
 
 let[@inline] decompose_req_full_compound_merge_set_d1 (self:decompose_req_full_compound_merge) (x:decompose_req_full_decomp) : unit =
   self.d1 <- Some x
@@ -872,6 +878,7 @@ let make_decompose_req_full_compound_merge
   | Some v -> decompose_req_full_compound_merge_set_d2 _res v);
   _res
 
+let[@inline] decompose_req_full_combine_has_d (self:decompose_req_full_combine) : bool = self.d != None
 
 let[@inline] decompose_req_full_combine_set_d (self:decompose_req_full_combine) (x:decompose_req_full_decomp) : unit =
   self.d <- Some x
@@ -888,6 +895,7 @@ let make_decompose_req_full_combine
   | Some v -> decompose_req_full_combine_set_d _res v);
   _res
 
+let[@inline] decompose_req_full_local_var_let_has_and_then (self:decompose_req_full_local_var_let) : bool = self.and_then != None
 
 let[@inline] decompose_req_full_local_var_let_set_bindings (self:decompose_req_full_local_var_let) (x:decompose_req_full_local_var_binding list) : unit =
   self.bindings <- x
@@ -909,6 +917,7 @@ let make_decompose_req_full_local_var_let
   _res
 
 let[@inline] decompose_req_full_local_var_binding_has_name (self:decompose_req_full_local_var_binding) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] decompose_req_full_local_var_binding_has_d (self:decompose_req_full_local_var_binding) : bool = self.d != None
 
 let[@inline] decompose_req_full_local_var_binding_set_name (self:decompose_req_full_local_var_binding) (x:string) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 0); self.name <- x
@@ -931,6 +940,8 @@ let make_decompose_req_full_local_var_binding
   | Some v -> decompose_req_full_local_var_binding_set_d _res v);
   _res
 
+let[@inline] decompose_req_full_has_session (self:decompose_req_full) : bool = self.session != None
+let[@inline] decompose_req_full_has_decomp (self:decompose_req_full) : bool = self.decomp != None
 let[@inline] decompose_req_full_has_string_results (self:decompose_req_full) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] decompose_req_full_has_timeout (self:decompose_req_full) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -967,6 +978,8 @@ let make_decompose_req_full
   | Some v -> decompose_req_full_set_timeout _res v);
   _res
 
+let[@inline] decompose_res_has_res (self:decompose_res) : bool = self.res != None
+let[@inline] decompose_res_has_task (self:decompose_res) : bool = self.task != None
 
 let[@inline] decompose_res_set_res (self:decompose_res) (x:decompose_res_res) : unit =
   self.res <- Some x
@@ -993,6 +1006,7 @@ let make_decompose_res
   | Some v -> decompose_res_set_task _res v);
   _res
 
+let[@inline] eval_src_req_has_session (self:eval_src_req) : bool = self.session != None
 let[@inline] eval_src_req_has_src (self:eval_src_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] eval_src_req_has_async_only (self:eval_src_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -1074,12 +1088,13 @@ let make_proved
 
 let[@inline] model_has_m_type (self:model) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] model_has_src (self:model) : bool = (Pbrt.Bitfield.get self._presence 1)
+let[@inline] model_has_artifact (self:model) : bool = self.artifact != None
 
 let[@inline] model_set_m_type (self:model) (x:model_type) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 0); self.m_type <- x
 let[@inline] model_set_src (self:model) (x:string) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 1); self.src <- x
-let[@inline] model_set_artifact (self:model) (x:Artmsg.art) : unit =
+let[@inline] model_set_artifact (self:model) (x:Artmsg.artifact) : unit =
   self.artifact <- Some x
 
 let copy_model (self:model) : model =
@@ -1088,7 +1103,7 @@ let copy_model (self:model) : model =
 let make_model 
   ?(m_type:model_type option)
   ?(src:string option)
-  ?(artifact:Artmsg.art option)
+  ?(artifact:Artmsg.artifact option)
   () : model  =
   let _res = default_model () in
   (match m_type with
@@ -1102,6 +1117,7 @@ let make_model
   | Some v -> model_set_artifact _res v);
   _res
 
+let[@inline] counter_sat_has_model (self:counter_sat) : bool = self.model != None
 
 let[@inline] counter_sat_set_model (self:counter_sat) (x:model) : unit =
   self.model <- Some x
@@ -1135,6 +1151,9 @@ let make_verified_upto
   | Some v -> verified_upto_set_msg _res v);
   _res
 
+let[@inline] po_res_has_res (self:po_res) : bool = self.res != None
+let[@inline] po_res_has_task (self:po_res) : bool = self.task != None
+let[@inline] po_res_has_origin (self:po_res) : bool = self.origin != None
 
 let[@inline] po_res_set_res (self:po_res) (x:po_res_res) : unit =
   self.res <- Some x
@@ -1208,6 +1227,7 @@ let make_eval_res
   eval_res_set_decomp_results _res decomp_results;
   _res
 
+let[@inline] verify_src_req_has_session (self:verify_src_req) : bool = self.session != None
 let[@inline] verify_src_req_has_src (self:verify_src_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] verify_src_req_has_hints (self:verify_src_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -1238,6 +1258,7 @@ let make_verify_src_req
   | Some v -> verify_src_req_set_hints _res v);
   _res
 
+let[@inline] verify_name_req_has_session (self:verify_name_req) : bool = self.session != None
 let[@inline] verify_name_req_has_name (self:verify_name_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] verify_name_req_has_hints (self:verify_name_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -1268,6 +1289,7 @@ let make_verify_name_req
   | Some v -> verify_name_req_set_hints _res v);
   _res
 
+let[@inline] test_src_req_has_session (self:test_src_req) : bool = self.session != None
 let[@inline] test_src_req_has_src (self:test_src_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] test_src_req_has_seed (self:test_src_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -1298,6 +1320,7 @@ let make_test_src_req
   | Some v -> test_src_req_set_seed _res v);
   _res
 
+let[@inline] qcheck_src_req_has_session (self:qcheck_src_req) : bool = self.session != None
 let[@inline] qcheck_src_req_has_src (self:qcheck_src_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] qcheck_src_req_has_seed (self:qcheck_src_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -1328,6 +1351,7 @@ let make_qcheck_src_req
   | Some v -> qcheck_src_req_set_seed _res v);
   _res
 
+let[@inline] test_name_req_has_session (self:test_name_req) : bool = self.session != None
 let[@inline] test_name_req_has_name (self:test_name_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] test_name_req_has_seed (self:test_name_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -1358,6 +1382,7 @@ let make_test_name_req
   | Some v -> test_name_req_set_seed _res v);
   _res
 
+let[@inline] qcheck_name_req_has_session (self:qcheck_name_req) : bool = self.session != None
 let[@inline] qcheck_name_req_has_name (self:qcheck_name_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] qcheck_name_req_has_seed (self:qcheck_name_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -1388,6 +1413,7 @@ let make_qcheck_name_req
   | Some v -> qcheck_name_req_set_seed _res v);
   _res
 
+let[@inline] instance_src_req_has_session (self:instance_src_req) : bool = self.session != None
 let[@inline] instance_src_req_has_src (self:instance_src_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] instance_src_req_has_hints (self:instance_src_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -1418,6 +1444,7 @@ let make_instance_src_req
   | Some v -> instance_src_req_set_hints _res v);
   _res
 
+let[@inline] instance_name_req_has_session (self:instance_name_req) : bool = self.session != None
 let[@inline] instance_name_req_has_name (self:instance_name_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 let[@inline] instance_name_req_has_hints (self:instance_name_req) : bool = (Pbrt.Bitfield.get self._presence 1)
 
@@ -1465,6 +1492,7 @@ let make_unsat
   | Some v -> unsat_set_proof_pp _res v);
   _res
 
+let[@inline] refuted_has_model (self:refuted) : bool = self.model != None
 
 let[@inline] refuted_set_model (self:refuted) (x:model) : unit =
   self.model <- Some x
@@ -1481,6 +1509,7 @@ let make_refuted
   | Some v -> refuted_set_model _res v);
   _res
 
+let[@inline] sat_has_model (self:sat) : bool = self.model != None
 
 let[@inline] sat_set_model (self:sat) (x:model) : unit =
   self.model <- Some x
@@ -1497,6 +1526,8 @@ let make_sat
   | Some v -> sat_set_model _res v);
   _res
 
+let[@inline] verify_res_has_res (self:verify_res) : bool = self.res != None
+let[@inline] verify_res_has_task (self:verify_res) : bool = self.task != None
 
 let[@inline] verify_res_set_res (self:verify_res) (x:verify_res_res) : unit =
   self.res <- Some x
@@ -1523,6 +1554,8 @@ let make_verify_res
   | Some v -> verify_res_set_task _res v);
   _res
 
+let[@inline] test_res_has_res (self:test_res) : bool = self.res != None
+let[@inline] test_res_has_task (self:test_res) : bool = self.task != None
 
 let[@inline] test_res_set_res (self:test_res) (x:test_res_res) : unit =
   self.res <- Some x
@@ -1549,6 +1582,8 @@ let make_test_res
   | Some v -> test_res_set_task _res v);
   _res
 
+let[@inline] instance_res_has_res (self:instance_res) : bool = self.res != None
+let[@inline] instance_res_has_task (self:instance_res) : bool = self.task != None
 
 let[@inline] instance_res_set_res (self:instance_res) (x:instance_res_res) : unit =
   self.res <- Some x
@@ -1575,6 +1610,7 @@ let make_instance_res
   | Some v -> instance_res_set_task _res v);
   _res
 
+let[@inline] typecheck_req_has_session (self:typecheck_req) : bool = self.session != None
 let[@inline] typecheck_req_has_src (self:typecheck_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 
 let[@inline] typecheck_req_set_session (self:typecheck_req) (x:Session.session) : unit =
@@ -1667,6 +1703,7 @@ let make_oneshot_res_stats
   | Some v -> oneshot_res_stats_set_time _res v);
   _res
 
+let[@inline] oneshot_res_has_stats (self:oneshot_res) : bool = self.stats != None
 
 let[@inline] oneshot_res_set_results (self:oneshot_res) (x:string list) : unit =
   self.results <- x
@@ -1695,6 +1732,7 @@ let make_oneshot_res
   oneshot_res_set_detailed_results _res detailed_results;
   _res
 
+let[@inline] get_decls_req_has_session (self:get_decls_req) : bool = self.session != None
 let[@inline] get_decls_req_has_str (self:get_decls_req) : bool = (Pbrt.Bitfield.get self._presence 0)
 
 let[@inline] get_decls_req_set_session (self:get_decls_req) (x:Session.session) : unit =
@@ -1723,11 +1761,12 @@ let make_get_decls_req
   _res
 
 let[@inline] decl_with_name_has_name (self:decl_with_name) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] decl_with_name_has_artifact (self:decl_with_name) : bool = self.artifact != None
 let[@inline] decl_with_name_has_str (self:decl_with_name) : bool = (Pbrt.Bitfield.get self._presence 1)
 
 let[@inline] decl_with_name_set_name (self:decl_with_name) (x:string) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 0); self.name <- x
-let[@inline] decl_with_name_set_artifact (self:decl_with_name) (x:Artmsg.art) : unit =
+let[@inline] decl_with_name_set_artifact (self:decl_with_name) (x:Artmsg.artifact) : unit =
   self.artifact <- Some x
 let[@inline] decl_with_name_set_str (self:decl_with_name) (x:string) : unit =
   self._presence <- (Pbrt.Bitfield.set self._presence 1); self.str <- x
@@ -1737,7 +1776,7 @@ let copy_decl_with_name (self:decl_with_name) : decl_with_name =
 
 let make_decl_with_name 
   ?(name:string option)
-  ?(artifact:Artmsg.art option)
+  ?(artifact:Artmsg.artifact option)
   ?(str:string option)
   () : decl_with_name  =
   let _res = default_decl_with_name () in
@@ -1828,7 +1867,7 @@ let rec pp_decompose_req_full_prune fmt (v:decompose_req_full_prune) =
 
 and pp_decompose_req_full_decomp fmt (v:decompose_req_full_decomp) =
   match v with
-  | From_artifact x -> Format.fprintf fmt "@[<hv2>From_artifact(@,%a)@]" Artmsg.pp_art x
+  | From_artifact x -> Format.fprintf fmt "@[<hv2>From_artifact(@,%a)@]" Artmsg.pp_artifact x
   | By_name x -> Format.fprintf fmt "@[<hv2>By_name(@,%a)@]" pp_decompose_req_full_by_name x
   | Merge x -> Format.fprintf fmt "@[<hv2>Merge(@,%a)@]" pp_decompose_req_full_merge x
   | Compound_merge x -> Format.fprintf fmt "@[<hv2>Compound_merge(@,%a)@]" pp_decompose_req_full_compound_merge x
@@ -1882,7 +1921,7 @@ let rec pp_decompose_req_full fmt (v:decompose_req_full) =
 
 let rec pp_decompose_res_res fmt (v:decompose_res_res) =
   match v with
-  | Artifact x -> Format.fprintf fmt "@[<hv2>Artifact(@,%a)@]" Artmsg.pp_art x
+  | Artifact x -> Format.fprintf fmt "@[<hv2>Artifact(@,%a)@]" Artmsg.pp_artifact x
   | Err  -> Format.fprintf fmt "Err"
 
 and pp_decompose_res fmt (v:decompose_res) = 
@@ -1925,7 +1964,7 @@ let rec pp_model fmt (v:model) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~absent:(not (model_has_m_type v)) ~first:true "m_type" pp_model_type fmt v.m_type;
     Pbrt.Pp.pp_record_field ~absent:(not (model_has_src v)) ~first:false "src" Pbrt.Pp.pp_string fmt v.src;
-    Pbrt.Pp.pp_record_field ~first:false "artifact" (Pbrt.Pp.pp_option Artmsg.pp_art) fmt v.artifact;
+    Pbrt.Pp.pp_record_field ~first:false "artifact" (Pbrt.Pp.pp_option Artmsg.pp_artifact) fmt v.artifact;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -2151,7 +2190,7 @@ let rec pp_get_decls_req fmt (v:get_decls_req) =
 let rec pp_decl_with_name fmt (v:decl_with_name) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~absent:(not (decl_with_name_has_name v)) ~first:true "name" Pbrt.Pp.pp_string fmt v.name;
-    Pbrt.Pp.pp_record_field ~first:false "artifact" (Pbrt.Pp.pp_option Artmsg.pp_art) fmt v.artifact;
+    Pbrt.Pp.pp_record_field ~first:false "artifact" (Pbrt.Pp.pp_option Artmsg.pp_artifact) fmt v.artifact;
     Pbrt.Pp.pp_record_field ~absent:(not (decl_with_name_has_str v)) ~first:false "str" Pbrt.Pp.pp_string fmt v.str;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
@@ -2276,7 +2315,7 @@ let rec encode_pb_decompose_req_full_prune (v:decompose_req_full_prune) encoder 
 and encode_pb_decompose_req_full_decomp (v:decompose_req_full_decomp) encoder = 
   begin match v with
   | From_artifact x ->
-    Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
+    Pbrt.Encoder.nested Artmsg.encode_pb_artifact x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | By_name x ->
     Pbrt.Encoder.nested encode_pb_decompose_req_full_by_name x encoder;
@@ -2392,7 +2431,7 @@ let rec encode_pb_decompose_req_full (v:decompose_req_full) encoder =
 let rec encode_pb_decompose_res_res (v:decompose_res_res) encoder = 
   begin match v with
   | Artifact x ->
-    Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
+    Pbrt.Encoder.nested Artmsg.encode_pb_artifact x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | Err ->
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
@@ -2403,7 +2442,7 @@ and encode_pb_decompose_res (v:decompose_res) encoder =
   begin match v.res with
   | None -> ()
   | Some (Artifact x) ->
-    Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
+    Pbrt.Encoder.nested Artmsg.encode_pb_artifact x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | Some Err ->
     Pbrt.Encoder.empty_nested encoder;
@@ -2480,7 +2519,7 @@ let rec encode_pb_model (v:model) encoder =
   );
   begin match v.artifact with
   | Some x -> 
-    Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
+    Pbrt.Encoder.nested Artmsg.encode_pb_artifact x encoder;
     Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
   | None -> ();
   end;
@@ -2976,7 +3015,7 @@ let rec encode_pb_decl_with_name (v:decl_with_name) encoder =
   );
   begin match v.artifact with
   | Some x -> 
-    Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
+    Pbrt.Encoder.nested Artmsg.encode_pb_artifact x encoder;
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   | None -> ();
   end;
@@ -3174,7 +3213,7 @@ and decode_pb_decompose_req_full_decomp d =
   let rec loop () = 
     let ret:decompose_req_full_decomp = match Pbrt.Decoder.key d with
       | None -> Pbrt.Decoder.malformed_variant "decompose_req_full_decomp"
-      | Some (1, _) -> (From_artifact (Artmsg.decode_pb_art (Pbrt.Decoder.nested d)) : decompose_req_full_decomp) 
+      | Some (1, _) -> (From_artifact (Artmsg.decode_pb_artifact (Pbrt.Decoder.nested d)) : decompose_req_full_decomp) 
       | Some (2, _) -> (By_name (decode_pb_decompose_req_full_by_name (Pbrt.Decoder.nested d)) : decompose_req_full_decomp) 
       | Some (3, _) -> (Merge (decode_pb_decompose_req_full_merge (Pbrt.Decoder.nested d)) : decompose_req_full_decomp) 
       | Some (4, _) -> (Compound_merge (decode_pb_decompose_req_full_compound_merge (Pbrt.Decoder.nested d)) : decompose_req_full_decomp) 
@@ -3328,7 +3367,7 @@ let rec decode_pb_decompose_res_res d =
   let rec loop () = 
     let ret:decompose_res_res = match Pbrt.Decoder.key d with
       | None -> Pbrt.Decoder.malformed_variant "decompose_res_res"
-      | Some (1, _) -> (Artifact (Artmsg.decode_pb_art (Pbrt.Decoder.nested d)) : decompose_res_res) 
+      | Some (1, _) -> (Artifact (Artmsg.decode_pb_artifact (Pbrt.Decoder.nested d)) : decompose_res_res) 
       | Some (2, _) -> begin 
         Pbrt.Decoder.empty_nested d ;
         (Err : decompose_res_res)
@@ -3352,7 +3391,7 @@ and decode_pb_decompose_res d =
       decompose_res_set_errors v (List.rev v.errors);
     ); continue__ := false
     | Some (1, Pbrt.Bytes) -> begin
-      decompose_res_set_res v (Artifact (Artmsg.decode_pb_art (Pbrt.Decoder.nested d)));
+      decompose_res_set_res v (Artifact (Artmsg.decode_pb_artifact (Pbrt.Decoder.nested d)));
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "decompose_res" 1 pk
@@ -3477,7 +3516,7 @@ let rec decode_pb_model d =
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "model" 2 pk
     | Some (3, Pbrt.Bytes) -> begin
-      model_set_artifact v (Artmsg.decode_pb_art (Pbrt.Decoder.nested d));
+      model_set_artifact v (Artmsg.decode_pb_artifact (Pbrt.Decoder.nested d));
     end
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "model" 3 pk
@@ -4265,7 +4304,7 @@ let rec decode_pb_decl_with_name d =
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "decl_with_name" 1 pk
     | Some (2, Pbrt.Bytes) -> begin
-      decl_with_name_set_artifact v (Artmsg.decode_pb_art (Pbrt.Decoder.nested d));
+      decl_with_name_set_artifact v (Artmsg.decode_pb_artifact (Pbrt.Decoder.nested d));
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload_message "decl_with_name" 2 pk
@@ -4399,7 +4438,7 @@ let rec encode_json_decompose_req_full_prune (v:decompose_req_full_prune) =
 
 and encode_json_decompose_req_full_decomp (v:decompose_req_full_decomp) = 
   begin match v with
-  | From_artifact v -> `Assoc [("fromArtifact", Artmsg.encode_json_art v)]
+  | From_artifact v -> `Assoc [("fromArtifact", Artmsg.encode_json_artifact v)]
   | By_name v -> `Assoc [("byName", encode_json_decompose_req_full_by_name v)]
   | Merge v -> `Assoc [("merge", encode_json_decompose_req_full_merge v)]
   | Compound_merge v -> `Assoc [("compoundMerge", encode_json_decompose_req_full_compound_merge v)]
@@ -4475,7 +4514,7 @@ let rec encode_json_decompose_req_full (v:decompose_req_full) =
 
 let rec encode_json_decompose_res_res (v:decompose_res_res) = 
   begin match v with
-  | Artifact v -> `Assoc [("artifact", Artmsg.encode_json_art v)]
+  | Artifact v -> `Assoc [("artifact", Artmsg.encode_json_artifact v)]
   | Err -> `Assoc [("err", `Null)]
   end
 
@@ -4483,7 +4522,7 @@ and encode_json_decompose_res (v:decompose_res) =
   let assoc = ref [] in
   assoc := (match v.res with
       | None -> !assoc
-      | Some (Artifact v) -> ("artifact", Artmsg.encode_json_art v) :: !assoc
+      | Some (Artifact v) -> ("artifact", Artmsg.encode_json_artifact v) :: !assoc
       | Some Err -> ("err", `Null) :: !assoc
   ); (* match v.res *)
   assoc := (
@@ -4548,7 +4587,7 @@ let rec encode_json_model (v:model) =
   );
   assoc := (match v.artifact with
     | None -> !assoc
-    | Some v -> ("artifact", Artmsg.encode_json_art v) :: !assoc);
+    | Some v -> ("artifact", Artmsg.encode_json_artifact v) :: !assoc);
   `Assoc !assoc
 
 let rec encode_json_counter_sat (v:counter_sat) = 
@@ -4914,7 +4953,7 @@ let rec encode_json_decl_with_name (v:decl_with_name) =
   );
   assoc := (match v.artifact with
     | None -> !assoc
-    | Some v -> ("artifact", Artmsg.encode_json_art v) :: !assoc);
+    | Some v -> ("artifact", Artmsg.encode_json_artifact v) :: !assoc);
   if decl_with_name_has_str v then (
     assoc := ("str", Pbrt_yojson.make_string v.str) :: !assoc;
   );
@@ -5093,7 +5132,7 @@ and decode_json_decompose_req_full_decomp json =
   let rec loop = function
     | [] -> Pbrt_yojson.E.malformed_variant "decompose_req_full_decomp"
     | ("fromArtifact", json_value)::_ -> 
-      (From_artifact ((Artmsg.decode_json_art json_value)) : decompose_req_full_decomp)
+      (From_artifact ((Artmsg.decode_json_artifact json_value)) : decompose_req_full_decomp)
     | ("byName", json_value)::_ -> 
       (By_name ((decode_json_decompose_req_full_by_name json_value)) : decompose_req_full_decomp)
     | ("merge", json_value)::_ -> 
@@ -5243,7 +5282,7 @@ let rec decode_json_decompose_res_res json =
   let rec loop = function
     | [] -> Pbrt_yojson.E.malformed_variant "decompose_res_res"
     | ("artifact", json_value)::_ -> 
-      (Artifact ((Artmsg.decode_json_art json_value)) : decompose_res_res)
+      (Artifact ((Artmsg.decode_json_artifact json_value)) : decompose_res_res)
     | ("err", _)::_-> (Err : decompose_res_res)
     
     | _ :: tl -> loop tl
@@ -5258,7 +5297,7 @@ and decode_json_decompose_res d =
   in
   List.iter (function 
     | ("artifact", json_value) -> 
-      decompose_res_set_res v (Artifact ((Artmsg.decode_json_art json_value)))
+      decompose_res_set_res v (Artifact ((Artmsg.decode_json_artifact json_value)))
     | ("err", _) -> decompose_res_set_res v Err
     | ("errors", `List l) -> begin
       decompose_res_set_errors v @@ List.map (function
@@ -5366,7 +5405,7 @@ let rec decode_json_model d =
     | ("src", json_value) -> 
       model_set_src v (Pbrt_yojson.string json_value "model" "src")
     | ("artifact", json_value) -> 
-      model_set_artifact v (Artmsg.decode_json_art json_value)
+      model_set_artifact v (Artmsg.decode_json_artifact json_value)
     
     | (_, _) -> () (*Unknown fields are ignored*)
   ) assoc;
@@ -6053,7 +6092,7 @@ let rec decode_json_decl_with_name d =
     | ("name", json_value) -> 
       decl_with_name_set_name v (Pbrt_yojson.string json_value "decl_with_name" "name")
     | ("artifact", json_value) -> 
-      decl_with_name_set_artifact v (Artmsg.decode_json_art json_value)
+      decl_with_name_set_artifact v (Artmsg.decode_json_artifact json_value)
     | ("str", json_value) -> 
       decl_with_name_set_str v (Pbrt_yojson.string json_value "decl_with_name" "str")
     

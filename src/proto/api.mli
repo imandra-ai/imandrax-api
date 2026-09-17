@@ -1,7 +1,7 @@
 
 (** Code for api.proto *)
 
-(* generated from "api.proto", do not edit *)
+(* generated from "./api.proto", do not edit *)
 
 
 
@@ -35,7 +35,7 @@ type artifact_list_query = private {
   mutable task_id : Task.task_id option;
 }
 
-type artifact_list_result = private {
+type artifact_list = private {
   mutable kinds : string list;
 }
 
@@ -45,14 +45,22 @@ type artifact_get_query = private {
   mutable kind : string;
 }
 
-type artifact = private {
-  mutable art : Artmsg.art option;
-}
-
 type artifact_zip = private {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable art_zip : bytes;
 }
+
+type artifact_result =
+  | Ok of Artmsg.artifact
+  | Error of Error.error
+
+type artifact_list_result =
+  | Ok of artifact_list
+  | Error of Error.error
+
+type artifact_zip_result =
+  | Ok of artifact_zip
+  | Error of Error.error
 
 
 (** {2 Basic values} *)
@@ -72,17 +80,23 @@ val default_parse_query : unit -> parse_query
 val default_artifact_list_query : unit -> artifact_list_query 
 (** [default_artifact_list_query ()] is a new empty value for type [artifact_list_query] *)
 
-val default_artifact_list_result : unit -> artifact_list_result 
-(** [default_artifact_list_result ()] is a new empty value for type [artifact_list_result] *)
+val default_artifact_list : unit -> artifact_list 
+(** [default_artifact_list ()] is a new empty value for type [artifact_list] *)
 
 val default_artifact_get_query : unit -> artifact_get_query 
 (** [default_artifact_get_query ()] is a new empty value for type [artifact_get_query] *)
 
-val default_artifact : unit -> artifact 
-(** [default_artifact ()] is a new empty value for type [artifact] *)
-
 val default_artifact_zip : unit -> artifact_zip 
 (** [default_artifact_zip ()] is a new empty value for type [artifact_zip] *)
+
+val default_artifact_result : unit -> artifact_result
+(** [default_artifact_result ()] is a new empty value for type [artifact_result] *)
+
+val default_artifact_list_result : unit -> artifact_list_result
+(** [default_artifact_list_result ()] is a new empty value for type [artifact_list_result] *)
+
+val default_artifact_zip_result : unit -> artifact_zip_result
+(** [default_artifact_zip_result ()] is a new empty value for type [artifact_zip_result] *)
 
 
 (** {2 Make functions} *)
@@ -96,6 +110,9 @@ val make_code_snippet :
 (** [make_code_snippet … ()] is a builder for type [code_snippet] *)
 
 val copy_code_snippet : code_snippet -> code_snippet
+
+val code_snippet_has_session : code_snippet -> bool
+  (** presence of field "session" in [code_snippet] *)
 
 val code_snippet_set_session : code_snippet -> Session.session -> unit
   (** set field session in code_snippet *)
@@ -160,19 +177,22 @@ val make_artifact_list_query :
 
 val copy_artifact_list_query : artifact_list_query -> artifact_list_query
 
+val artifact_list_query_has_task_id : artifact_list_query -> bool
+  (** presence of field "task_id" in [artifact_list_query] *)
+
 val artifact_list_query_set_task_id : artifact_list_query -> Task.task_id -> unit
   (** set field task_id in artifact_list_query *)
 
-val make_artifact_list_result : 
+val make_artifact_list : 
   ?kinds:string list ->
   unit ->
-  artifact_list_result
-(** [make_artifact_list_result … ()] is a builder for type [artifact_list_result] *)
+  artifact_list
+(** [make_artifact_list … ()] is a builder for type [artifact_list] *)
 
-val copy_artifact_list_result : artifact_list_result -> artifact_list_result
+val copy_artifact_list : artifact_list -> artifact_list
 
-val artifact_list_result_set_kinds : artifact_list_result -> string list -> unit
-  (** set field kinds in artifact_list_result *)
+val artifact_list_set_kinds : artifact_list -> string list -> unit
+  (** set field kinds in artifact_list *)
 
 val make_artifact_get_query : 
   ?task_id:Task.task_id ->
@@ -183,6 +203,9 @@ val make_artifact_get_query :
 
 val copy_artifact_get_query : artifact_get_query -> artifact_get_query
 
+val artifact_get_query_has_task_id : artifact_get_query -> bool
+  (** presence of field "task_id" in [artifact_get_query] *)
+
 val artifact_get_query_set_task_id : artifact_get_query -> Task.task_id -> unit
   (** set field task_id in artifact_get_query *)
 
@@ -191,17 +214,6 @@ val artifact_get_query_has_kind : artifact_get_query -> bool
 
 val artifact_get_query_set_kind : artifact_get_query -> string -> unit
   (** set field kind in artifact_get_query *)
-
-val make_artifact : 
-  ?art:Artmsg.art ->
-  unit ->
-  artifact
-(** [make_artifact … ()] is a builder for type [artifact] *)
-
-val copy_artifact : artifact -> artifact
-
-val artifact_set_art : artifact -> Artmsg.art -> unit
-  (** set field art in artifact *)
 
 val make_artifact_zip : 
   ?art_zip:bytes ->
@@ -235,17 +247,23 @@ val pp_parse_query : Format.formatter -> parse_query -> unit
 val pp_artifact_list_query : Format.formatter -> artifact_list_query -> unit 
 (** [pp_artifact_list_query v] formats v *)
 
-val pp_artifact_list_result : Format.formatter -> artifact_list_result -> unit 
-(** [pp_artifact_list_result v] formats v *)
+val pp_artifact_list : Format.formatter -> artifact_list -> unit 
+(** [pp_artifact_list v] formats v *)
 
 val pp_artifact_get_query : Format.formatter -> artifact_get_query -> unit 
 (** [pp_artifact_get_query v] formats v *)
 
-val pp_artifact : Format.formatter -> artifact -> unit 
-(** [pp_artifact v] formats v *)
-
 val pp_artifact_zip : Format.formatter -> artifact_zip -> unit 
 (** [pp_artifact_zip v] formats v *)
+
+val pp_artifact_result : Format.formatter -> artifact_result -> unit 
+(** [pp_artifact_result v] formats v *)
+
+val pp_artifact_list_result : Format.formatter -> artifact_list_result -> unit 
+(** [pp_artifact_list_result v] formats v *)
+
+val pp_artifact_zip_result : Format.formatter -> artifact_zip_result -> unit 
+(** [pp_artifact_zip_result v] formats v *)
 
 
 (** {2 Protobuf Encoding} *)
@@ -265,17 +283,23 @@ val encode_pb_parse_query : parse_query -> Pbrt.Encoder.t -> unit
 val encode_pb_artifact_list_query : artifact_list_query -> Pbrt.Encoder.t -> unit
 (** [encode_pb_artifact_list_query v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_artifact_list_result : artifact_list_result -> Pbrt.Encoder.t -> unit
-(** [encode_pb_artifact_list_result v encoder] encodes [v] with the given [encoder] *)
+val encode_pb_artifact_list : artifact_list -> Pbrt.Encoder.t -> unit
+(** [encode_pb_artifact_list v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_artifact_get_query : artifact_get_query -> Pbrt.Encoder.t -> unit
 (** [encode_pb_artifact_get_query v encoder] encodes [v] with the given [encoder] *)
 
-val encode_pb_artifact : artifact -> Pbrt.Encoder.t -> unit
-(** [encode_pb_artifact v encoder] encodes [v] with the given [encoder] *)
-
 val encode_pb_artifact_zip : artifact_zip -> Pbrt.Encoder.t -> unit
 (** [encode_pb_artifact_zip v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_artifact_result : artifact_result -> Pbrt.Encoder.t -> unit
+(** [encode_pb_artifact_result v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_artifact_list_result : artifact_list_result -> Pbrt.Encoder.t -> unit
+(** [encode_pb_artifact_list_result v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_artifact_zip_result : artifact_zip_result -> Pbrt.Encoder.t -> unit
+(** [encode_pb_artifact_zip_result v encoder] encodes [v] with the given [encoder] *)
 
 
 (** {2 Protobuf Decoding} *)
@@ -295,17 +319,23 @@ val decode_pb_parse_query : Pbrt.Decoder.t -> parse_query
 val decode_pb_artifact_list_query : Pbrt.Decoder.t -> artifact_list_query
 (** [decode_pb_artifact_list_query decoder] decodes a [artifact_list_query] binary value from [decoder] *)
 
-val decode_pb_artifact_list_result : Pbrt.Decoder.t -> artifact_list_result
-(** [decode_pb_artifact_list_result decoder] decodes a [artifact_list_result] binary value from [decoder] *)
+val decode_pb_artifact_list : Pbrt.Decoder.t -> artifact_list
+(** [decode_pb_artifact_list decoder] decodes a [artifact_list] binary value from [decoder] *)
 
 val decode_pb_artifact_get_query : Pbrt.Decoder.t -> artifact_get_query
 (** [decode_pb_artifact_get_query decoder] decodes a [artifact_get_query] binary value from [decoder] *)
 
-val decode_pb_artifact : Pbrt.Decoder.t -> artifact
-(** [decode_pb_artifact decoder] decodes a [artifact] binary value from [decoder] *)
-
 val decode_pb_artifact_zip : Pbrt.Decoder.t -> artifact_zip
 (** [decode_pb_artifact_zip decoder] decodes a [artifact_zip] binary value from [decoder] *)
+
+val decode_pb_artifact_result : Pbrt.Decoder.t -> artifact_result
+(** [decode_pb_artifact_result decoder] decodes a [artifact_result] binary value from [decoder] *)
+
+val decode_pb_artifact_list_result : Pbrt.Decoder.t -> artifact_list_result
+(** [decode_pb_artifact_list_result decoder] decodes a [artifact_list_result] binary value from [decoder] *)
+
+val decode_pb_artifact_zip_result : Pbrt.Decoder.t -> artifact_zip_result
+(** [decode_pb_artifact_zip_result decoder] decodes a [artifact_zip_result] binary value from [decoder] *)
 
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -325,17 +355,23 @@ val encode_json_parse_query : parse_query -> Yojson.Basic.t
 val encode_json_artifact_list_query : artifact_list_query -> Yojson.Basic.t
 (** [encode_json_artifact_list_query v encoder] encodes [v] to to json *)
 
-val encode_json_artifact_list_result : artifact_list_result -> Yojson.Basic.t
-(** [encode_json_artifact_list_result v encoder] encodes [v] to to json *)
+val encode_json_artifact_list : artifact_list -> Yojson.Basic.t
+(** [encode_json_artifact_list v encoder] encodes [v] to to json *)
 
 val encode_json_artifact_get_query : artifact_get_query -> Yojson.Basic.t
 (** [encode_json_artifact_get_query v encoder] encodes [v] to to json *)
 
-val encode_json_artifact : artifact -> Yojson.Basic.t
-(** [encode_json_artifact v encoder] encodes [v] to to json *)
-
 val encode_json_artifact_zip : artifact_zip -> Yojson.Basic.t
 (** [encode_json_artifact_zip v encoder] encodes [v] to to json *)
+
+val encode_json_artifact_result : artifact_result -> Yojson.Basic.t
+(** [encode_json_artifact_result v encoder] encodes [v] to to json *)
+
+val encode_json_artifact_list_result : artifact_list_result -> Yojson.Basic.t
+(** [encode_json_artifact_list_result v encoder] encodes [v] to to json *)
+
+val encode_json_artifact_zip_result : artifact_zip_result -> Yojson.Basic.t
+(** [encode_json_artifact_zip_result v encoder] encodes [v] to to json *)
 
 
 (** {2 JSON Decoding} *)
@@ -355,17 +391,23 @@ val decode_json_parse_query : Yojson.Basic.t -> parse_query
 val decode_json_artifact_list_query : Yojson.Basic.t -> artifact_list_query
 (** [decode_json_artifact_list_query decoder] decodes a [artifact_list_query] value from [decoder] *)
 
-val decode_json_artifact_list_result : Yojson.Basic.t -> artifact_list_result
-(** [decode_json_artifact_list_result decoder] decodes a [artifact_list_result] value from [decoder] *)
+val decode_json_artifact_list : Yojson.Basic.t -> artifact_list
+(** [decode_json_artifact_list decoder] decodes a [artifact_list] value from [decoder] *)
 
 val decode_json_artifact_get_query : Yojson.Basic.t -> artifact_get_query
 (** [decode_json_artifact_get_query decoder] decodes a [artifact_get_query] value from [decoder] *)
 
-val decode_json_artifact : Yojson.Basic.t -> artifact
-(** [decode_json_artifact decoder] decodes a [artifact] value from [decoder] *)
-
 val decode_json_artifact_zip : Yojson.Basic.t -> artifact_zip
 (** [decode_json_artifact_zip decoder] decodes a [artifact_zip] value from [decoder] *)
+
+val decode_json_artifact_result : Yojson.Basic.t -> artifact_result
+(** [decode_json_artifact_result decoder] decodes a [artifact_result] value from [decoder] *)
+
+val decode_json_artifact_list_result : Yojson.Basic.t -> artifact_list_result
+(** [decode_json_artifact_list_result decoder] decodes a [artifact_list_result] value from [decoder] *)
+
+val decode_json_artifact_zip_result : Yojson.Basic.t -> artifact_zip_result
+(** [decode_json_artifact_zip_result decoder] decodes a [artifact_zip_result] value from [decoder] *)
 
 
 (** {2 Services} *)
@@ -379,40 +421,40 @@ module Eval : sig
     
     val eval_code_snippet : (code_snippet, unary, code_snippet_eval_result, unary) Client.rpc
     
-    val parse_term : (code_snippet, unary, artifact, unary) Client.rpc
+    val parse_term : (code_snippet, unary, artifact_result, unary) Client.rpc
     
-    val parse_type : (code_snippet, unary, artifact, unary) Client.rpc
+    val parse_type : (code_snippet, unary, artifact_result, unary) Client.rpc
     
     val list_artifacts : (artifact_list_query, unary, artifact_list_result, unary) Client.rpc
     
-    val get_artifact : (artifact_get_query, unary, artifact, unary) Client.rpc
+    val get_artifact : (artifact_get_query, unary, artifact_result, unary) Client.rpc
     
-    val get_artifact_zip : (artifact_get_query, unary, artifact_zip, unary) Client.rpc
+    val get_artifact_zip : (artifact_get_query, unary, artifact_zip_result, unary) Client.rpc
   end
   
   module Server : sig
     (** Produce a server implementation from handlers *)
     val make : 
       eval_code_snippet:((code_snippet, unary, code_snippet_eval_result, unary) Server.rpc -> 'handler) ->
-      parse_term:((code_snippet, unary, artifact, unary) Server.rpc -> 'handler) ->
-      parse_type:((code_snippet, unary, artifact, unary) Server.rpc -> 'handler) ->
+      parse_term:((code_snippet, unary, artifact_result, unary) Server.rpc -> 'handler) ->
+      parse_type:((code_snippet, unary, artifact_result, unary) Server.rpc -> 'handler) ->
       list_artifacts:((artifact_list_query, unary, artifact_list_result, unary) Server.rpc -> 'handler) ->
-      get_artifact:((artifact_get_query, unary, artifact, unary) Server.rpc -> 'handler) ->
-      get_artifact_zip:((artifact_get_query, unary, artifact_zip, unary) Server.rpc -> 'handler) ->
+      get_artifact:((artifact_get_query, unary, artifact_result, unary) Server.rpc -> 'handler) ->
+      get_artifact_zip:((artifact_get_query, unary, artifact_zip_result, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
     
     (** The individual server stubs are only exposed for advanced users. Casual users should prefer accessing them through {!make}. *)
     
     val eval_code_snippet : (code_snippet,unary,code_snippet_eval_result,unary) Server.rpc
     
-    val parse_term : (code_snippet,unary,artifact,unary) Server.rpc
+    val parse_term : (code_snippet,unary,artifact_result,unary) Server.rpc
     
-    val parse_type : (code_snippet,unary,artifact,unary) Server.rpc
+    val parse_type : (code_snippet,unary,artifact_result,unary) Server.rpc
     
     val list_artifacts : (artifact_list_query,unary,artifact_list_result,unary) Server.rpc
     
-    val get_artifact : (artifact_get_query,unary,artifact,unary) Server.rpc
+    val get_artifact : (artifact_get_query,unary,artifact_result,unary) Server.rpc
     
-    val get_artifact_zip : (artifact_get_query,unary,artifact_zip,unary) Server.rpc
+    val get_artifact_zip : (artifact_get_query,unary,artifact_zip_result,unary) Server.rpc
   end
 end

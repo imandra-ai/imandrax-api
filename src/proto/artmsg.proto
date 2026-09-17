@@ -9,7 +9,7 @@ message StorageEntry {
   bytes value = 2;
 }
 
-message Art {
+message Artifact {
   // The kind of artifact.
   string kind = 1;
 

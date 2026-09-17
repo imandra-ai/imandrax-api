@@ -1,7 +1,7 @@
 
 (** Code for system.proto *)
 
-(* generated from "system.proto", do not edit *)
+(* generated from "./system.proto", do not edit *)
 
 
 

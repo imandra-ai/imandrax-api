@@ -38,7 +38,7 @@ __all__ = [
 ]
 
 
-def from_artifact(art: artmsg_pb2.Art) -> Decomp:
+def from_artifact(art: artmsg_pb2.Artifact) -> Decomp:
     """Resume from a decomposition previously returned as an artifact."""
     return Decomp(from_artifact=art)
 

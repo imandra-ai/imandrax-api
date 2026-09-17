@@ -486,7 +486,7 @@ class Client:
 
     def parse_term(
         self, code: str, timeout: Optional[float] = None
-    ) -> api_pb2.Artifact:
+    ) -> api_pb2.ArtifactResult:
         """Parse and typecheck a term, returning it as an artifact."""
         timeout = timeout or self._timeout
         return self._api_client.parse_term(
@@ -497,7 +497,7 @@ class Client:
 
     def parse_type(
         self, code: str, timeout: Optional[float] = None
-    ) -> api_pb2.Artifact:
+    ) -> api_pb2.ArtifactResult:
         """Parse and typecheck a type, returning it as an artifact."""
         timeout = timeout or self._timeout
         return self._api_client.parse_type(
@@ -518,7 +518,7 @@ class Client:
 
     def get_artifact(
         self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
-    ) -> api_pb2.Artifact:
+    ) -> api_pb2.ArtifactResult:
         """Obtain an artifact from a task."""
         timeout = timeout or self._timeout
         return self._api_client.get_artifact(
@@ -529,7 +529,7 @@ class Client:
 
     def get_artifact_zip(
         self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
-    ) -> api_pb2.ArtifactZip:
+    ) -> api_pb2.ArtifactZipResult:
         """Obtain an artifact from a task as a zip file."""
         timeout = timeout or self._timeout
         return self._api_client.get_artifact_zip(
