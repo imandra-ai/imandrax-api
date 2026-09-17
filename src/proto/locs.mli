@@ -1,7 +1,7 @@
 
 (** Code for locs.proto *)
 
-(* generated from "locs.proto", do not edit *)
+(* generated from "./locs.proto", do not edit *)
 
 
 

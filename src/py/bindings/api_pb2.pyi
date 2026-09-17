@@ -65,12 +65,6 @@ class ArtifactGetQuery(_message.Message):
     kind: str
     def __init__(self, task_id: _Optional[_Union[_task_pb2.TaskID, _Mapping]] = ..., kind: _Optional[str] = ...) -> None: ...
 
-class Artifact(_message.Message):
-    __slots__ = ("art",)
-    ART_FIELD_NUMBER: _ClassVar[int]
-    art: _artmsg_pb2.Art
-    def __init__(self, art: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ...) -> None: ...
-
 class ArtifactZip(_message.Message):
     __slots__ = ("art_zip",)
     ART_ZIP_FIELD_NUMBER: _ClassVar[int]
@@ -81,9 +75,9 @@ class ArtifactResult(_message.Message):
     __slots__ = ("ok", "error")
     OK_FIELD_NUMBER: _ClassVar[int]
     ERROR_FIELD_NUMBER: _ClassVar[int]
-    ok: Artifact
+    ok: _artmsg_pb2.Artifact
     error: _error_pb2.Error
-    def __init__(self, ok: _Optional[_Union[Artifact, _Mapping]] = ..., error: _Optional[_Union[_error_pb2.Error, _Mapping]] = ...) -> None: ...
+    def __init__(self, ok: _Optional[_Union[_artmsg_pb2.Artifact, _Mapping]] = ..., error: _Optional[_Union[_error_pb2.Error, _Mapping]] = ...) -> None: ...
 
 class ArtifactListResult(_message.Message):
     __slots__ = ("ok", "error")

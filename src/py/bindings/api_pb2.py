@@ -28,15 +28,15 @@ import task_pb2 as task__pb2
 import artmsg_pb2 as artmsg__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tapi.proto\x12\x0cimandrax.api\x1a\x0b\x65rror.proto\x1a\rsession.proto\x1a\ntask.proto\x1a\x0c\x61rtmsg.proto\"\\\n\x0b\x43odeSnippet\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04\x63ode\x18\x02 \x01(\t\x12\x13\n\x0btask_filter\x18\x04 \x03(\t\"\x8e\x01\n\x15\x43odeSnippetEvalResult\x12%\n\x03res\x18\x01 \x01(\x0e\x32\x18.imandrax.api.EvalResult\x12\x12\n\nduration_s\x18\x03 \x01(\x02\x12\"\n\x05tasks\x18\t \x03(\x0b\x32\x13.imandrax.task.Task\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\"\x1a\n\nParseQuery\x12\x0c\n\x04\x63ode\x18\x01 \x01(\t\";\n\x11\x41rtifactListQuery\x12&\n\x07task_id\x18\x01 \x01(\x0b\x32\x15.imandrax.task.TaskID\"\x1d\n\x0c\x41rtifactList\x12\r\n\x05kinds\x18\x01 \x03(\t\"H\n\x10\x41rtifactGetQuery\x12&\n\x07task_id\x18\x01 \x01(\x0b\x32\x15.imandrax.task.TaskID\x12\x0c\n\x04kind\x18\x02 \x01(\t\"\x1d\n\x08\x41rtifact\x12\x11\n\x03\x61rt\x18\x01 \x01(\x0b\x32\x04.Art\"\x1e\n\x0b\x41rtifactZip\x12\x0f\n\x07\x61rt_zip\x18\x01 \x01(\x0c\"Y\n\x0e\x41rtifactResult\x12$\n\x02ok\x18\x01 \x01(\x0b\x32\x16.imandrax.api.ArtifactH\x00\x12\x17\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x06.ErrorH\x00\x42\x08\n\x06result\"a\n\x12\x41rtifactListResult\x12(\n\x02ok\x18\x01 \x01(\x0b\x32\x1a.imandrax.api.ArtifactListH\x00\x12\x17\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x06.ErrorH\x00\x42\x08\n\x06result\"_\n\x11\x41rtifactZipResult\x12\'\n\x02ok\x18\x01 \x01(\x0b\x32\x19.imandrax.api.ArtifactZipH\x00\x12\x17\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x06.ErrorH\x00\x42\x08\n\x06result**\n\nEvalResult\x12\x0b\n\x07\x45VAL_OK\x10\x00\x12\x0f\n\x0b\x45VAL_ERRORS\x10\x01\x32\xe1\x03\n\x04\x45val\x12S\n\x11\x65val_code_snippet\x12\x19.imandrax.api.CodeSnippet\x1a#.imandrax.api.CodeSnippetEvalResult\x12\x45\n\nparse_term\x12\x19.imandrax.api.CodeSnippet\x1a\x1c.imandrax.api.ArtifactResult\x12\x45\n\nparse_type\x12\x19.imandrax.api.CodeSnippet\x1a\x1c.imandrax.api.ArtifactResult\x12S\n\x0elist_artifacts\x12\x1f.imandrax.api.ArtifactListQuery\x1a .imandrax.api.ArtifactListResult\x12L\n\x0cget_artifact\x12\x1e.imandrax.api.ArtifactGetQuery\x1a\x1c.imandrax.api.ArtifactResult\x12S\n\x10get_artifact_zip\x12\x1e.imandrax.api.ArtifactGetQuery\x1a\x1f.imandrax.api.ArtifactZipResultb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tapi.proto\x12\x0cimandrax.api\x1a\x0b\x65rror.proto\x1a\rsession.proto\x1a\ntask.proto\x1a\x0c\x61rtmsg.proto\"\\\n\x0b\x43odeSnippet\x12*\n\x07session\x18\x01 \x01(\x0b\x32\x19.imandrax.session.Session\x12\x0c\n\x04\x63ode\x18\x02 \x01(\t\x12\x13\n\x0btask_filter\x18\x04 \x03(\t\"\x8e\x01\n\x15\x43odeSnippetEvalResult\x12%\n\x03res\x18\x01 \x01(\x0e\x32\x18.imandrax.api.EvalResult\x12\x12\n\nduration_s\x18\x03 \x01(\x02\x12\"\n\x05tasks\x18\t \x03(\x0b\x32\x13.imandrax.task.Task\x12\x16\n\x06\x65rrors\x18\n \x03(\x0b\x32\x06.Error\"\x1a\n\nParseQuery\x12\x0c\n\x04\x63ode\x18\x01 \x01(\t\";\n\x11\x41rtifactListQuery\x12&\n\x07task_id\x18\x01 \x01(\x0b\x32\x15.imandrax.task.TaskID\"\x1d\n\x0c\x41rtifactList\x12\r\n\x05kinds\x18\x01 \x03(\t\"H\n\x10\x41rtifactGetQuery\x12&\n\x07task_id\x18\x01 \x01(\x0b\x32\x15.imandrax.task.TaskID\x12\x0c\n\x04kind\x18\x02 \x01(\t\"\x1e\n\x0b\x41rtifactZip\x12\x0f\n\x07\x61rt_zip\x18\x01 \x01(\x0c\"L\n\x0e\x41rtifactResult\x12\x17\n\x02ok\x18\x01 \x01(\x0b\x32\t.ArtifactH\x00\x12\x17\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x06.ErrorH\x00\x42\x08\n\x06result\"a\n\x12\x41rtifactListResult\x12(\n\x02ok\x18\x01 \x01(\x0b\x32\x1a.imandrax.api.ArtifactListH\x00\x12\x17\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x06.ErrorH\x00\x42\x08\n\x06result\"_\n\x11\x41rtifactZipResult\x12\'\n\x02ok\x18\x01 \x01(\x0b\x32\x19.imandrax.api.ArtifactZipH\x00\x12\x17\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x06.ErrorH\x00\x42\x08\n\x06result**\n\nEvalResult\x12\x0b\n\x07\x45VAL_OK\x10\x00\x12\x0f\n\x0b\x45VAL_ERRORS\x10\x01\x32\xe1\x03\n\x04\x45val\x12S\n\x11\x65val_code_snippet\x12\x19.imandrax.api.CodeSnippet\x1a#.imandrax.api.CodeSnippetEvalResult\x12\x45\n\nparse_term\x12\x19.imandrax.api.CodeSnippet\x1a\x1c.imandrax.api.ArtifactResult\x12\x45\n\nparse_type\x12\x19.imandrax.api.CodeSnippet\x1a\x1c.imandrax.api.ArtifactResult\x12S\n\x0elist_artifacts\x12\x1f.imandrax.api.ArtifactListQuery\x1a .imandrax.api.ArtifactListResult\x12L\n\x0cget_artifact\x12\x1e.imandrax.api.ArtifactGetQuery\x1a\x1c.imandrax.api.ArtifactResult\x12S\n\x10get_artifact_zip\x12\x1e.imandrax.api.ArtifactGetQuery\x1a\x1f.imandrax.api.ArtifactZipResultb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'api_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_EVALRESULT']._serialized_start=864
-  _globals['_EVALRESULT']._serialized_end=906
+  _globals['_EVALRESULT']._serialized_start=820
+  _globals['_EVALRESULT']._serialized_end=862
   _globals['_CODESNIPPET']._serialized_start=81
   _globals['_CODESNIPPET']._serialized_end=173
   _globals['_CODESNIPPETEVALRESULT']._serialized_start=176
@@ -49,16 +49,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_ARTIFACTLIST']._serialized_end=438
   _globals['_ARTIFACTGETQUERY']._serialized_start=440
   _globals['_ARTIFACTGETQUERY']._serialized_end=512
-  _globals['_ARTIFACT']._serialized_start=514
-  _globals['_ARTIFACT']._serialized_end=543
-  _globals['_ARTIFACTZIP']._serialized_start=545
-  _globals['_ARTIFACTZIP']._serialized_end=575
-  _globals['_ARTIFACTRESULT']._serialized_start=577
-  _globals['_ARTIFACTRESULT']._serialized_end=666
-  _globals['_ARTIFACTLISTRESULT']._serialized_start=668
-  _globals['_ARTIFACTLISTRESULT']._serialized_end=765
-  _globals['_ARTIFACTZIPRESULT']._serialized_start=767
-  _globals['_ARTIFACTZIPRESULT']._serialized_end=862
-  _globals['_EVAL']._serialized_start=909
-  _globals['_EVAL']._serialized_end=1390
+  _globals['_ARTIFACTZIP']._serialized_start=514
+  _globals['_ARTIFACTZIP']._serialized_end=544
+  _globals['_ARTIFACTRESULT']._serialized_start=546
+  _globals['_ARTIFACTRESULT']._serialized_end=622
+  _globals['_ARTIFACTLISTRESULT']._serialized_start=624
+  _globals['_ARTIFACTLISTRESULT']._serialized_end=721
+  _globals['_ARTIFACTZIPRESULT']._serialized_start=723
+  _globals['_ARTIFACTZIPRESULT']._serialized_end=818
+  _globals['_EVAL']._serialized_start=865
+  _globals['_EVAL']._serialized_end=1346
 # @@protoc_insertion_point(module_scope)

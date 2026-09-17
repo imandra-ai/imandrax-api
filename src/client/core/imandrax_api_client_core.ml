@@ -165,7 +165,7 @@ module Make (Fut : FUT) = struct
     self.rpc#rpc_call ~timeout_s API.Eval.Client.list_artifacts arg
 
   let get_artifact_zip ?timeout_s (self : t) ~(task : API.task_id)
-      ~(kind : string) () : API.artifact_zip Fut.t =
+      ~(kind : string) () : API.artifact_zip_result Fut.t =
     let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
     let arg = API.make_artifact_get_query ~task_id:task ~kind () in
     self.rpc#rpc_call ~timeout_s API.Eval.Client.get_artifact_zip arg
@@ -257,7 +257,7 @@ module Make (Fut : FUT) = struct
       self.rpc#rpc_call ~timeout_s API.Eval.Client.list_artifacts q
 
     let get_artifact ?timeout_s (self : client) ~(kind : string)
-        (t : API.task_id) : API.artifact Fut.t =
+        (t : API.task_id) : API.artifact_result Fut.t =
       let timeout_s = Option.value ~default:self.default_timeout_s timeout_s in
       let q = API.make_artifact_get_query ~task_id:t ~kind () in
       self.rpc#rpc_call ~timeout_s API.Eval.Client.get_artifact q

@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Art } from "./artmsg.js";
+import { Artifact } from "./artmsg.js";
 import { Error } from "./error.js";
 import { Session } from "./session.js";
 import { Task, TaskID } from "./task.js";
@@ -94,11 +94,6 @@ export interface ArtifactGetQuery {
     | undefined;
   /** the kind of artifact we want */
   kind: string;
-}
-
-export interface Artifact {
-  /** requested artifact */
-  art: Art | undefined;
 }
 
 export interface ArtifactZip {
@@ -575,64 +570,6 @@ export const ArtifactGetQuery: MessageFns<ArtifactGetQuery> = {
       ? TaskID.fromPartial(object.taskId)
       : undefined;
     message.kind = object.kind ?? "";
-    return message;
-  },
-};
-
-function createBaseArtifact(): Artifact {
-  return { art: undefined };
-}
-
-export const Artifact: MessageFns<Artifact> = {
-  encode(message: Artifact, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.art !== undefined) {
-      Art.encode(message.art, writer.uint32(10).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): Artifact {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseArtifact();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.art = Art.decode(reader, reader.uint32());
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Artifact {
-    return { art: isSet(object.art) ? Art.fromJSON(object.art) : undefined };
-  },
-
-  toJSON(message: Artifact): unknown {
-    const obj: any = {};
-    if (message.art !== undefined) {
-      obj.art = Art.toJSON(message.art);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Artifact>, I>>(base?: I): Artifact {
-    return Artifact.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<Artifact>, I>>(object: I): Artifact {
-    const message = createBaseArtifact();
-    message.art = (object.art !== undefined && object.art !== null) ? Art.fromPartial(object.art) : undefined;
     return message;
   },
 };

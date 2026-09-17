@@ -38,17 +38,13 @@ type artifact_get_query = {
   mutable kind : string;
 }
 
-type artifact = {
-  mutable art : Artmsg.art option;
-}
-
 type artifact_zip = {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable art_zip : bytes;
 }
 
 type artifact_result =
-  | Ok of artifact
+  | Ok of Artmsg.artifact
   | Error of Error.error
 
 type artifact_list_result =
@@ -101,18 +97,13 @@ let default_artifact_get_query (): artifact_get_query =
   kind="";
 }
 
-let default_artifact (): artifact =
-{
-  art=None;
-}
-
 let default_artifact_zip (): artifact_zip =
 {
   _presence=Pbrt.Bitfield.empty;
   art_zip=Bytes.create 0;
 }
 
-let default_artifact_result (): artifact_result = Ok (default_artifact ())
+let default_artifact_result (): artifact_result = Ok (Artmsg.default_artifact ())
 
 let default_artifact_list_result (): artifact_list_result = Ok (default_artifact_list ())
 
@@ -253,23 +244,6 @@ let make_artifact_get_query
   | Some v -> artifact_get_query_set_kind _res v);
   _res
 
-let[@inline] artifact_has_art (self:artifact) : bool = self.art != None
-
-let[@inline] artifact_set_art (self:artifact) (x:Artmsg.art) : unit =
-  self.art <- Some x
-
-let copy_artifact (self:artifact) : artifact =
-  { self with art = self.art }
-
-let make_artifact 
-  ?(art:Artmsg.art option)
-  () : artifact  =
-  let _res = default_artifact () in
-  (match art with
-  | None -> ()
-  | Some v -> artifact_set_art _res v);
-  _res
-
 let[@inline] artifact_zip_has_art_zip (self:artifact_zip) : bool = (Pbrt.Bitfield.get self._presence 0)
 
 let[@inline] artifact_zip_set_art_zip (self:artifact_zip) (x:bytes) : unit =
@@ -338,12 +312,6 @@ let rec pp_artifact_get_query fmt (v:artifact_get_query) =
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
-let rec pp_artifact fmt (v:artifact) = 
-  let pp_i fmt () =
-    Pbrt.Pp.pp_record_field ~first:true "art" (Pbrt.Pp.pp_option Artmsg.pp_art) fmt v.art;
-  in
-  Pbrt.Pp.pp_brk pp_i fmt ()
-
 let rec pp_artifact_zip fmt (v:artifact_zip) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~absent:(not (artifact_zip_has_art_zip v)) ~first:true "art_zip" Pbrt.Pp.pp_bytes fmt v.art_zip;
@@ -352,7 +320,7 @@ let rec pp_artifact_zip fmt (v:artifact_zip) =
 
 let rec pp_artifact_result fmt (v:artifact_result) =
   match v with
-  | Ok x -> Format.fprintf fmt "@[<hv2>Ok(@,%a)@]" pp_artifact x
+  | Ok x -> Format.fprintf fmt "@[<hv2>Ok(@,%a)@]" Artmsg.pp_artifact x
   | Error x -> Format.fprintf fmt "@[<hv2>Error(@,%a)@]" Error.pp_error x
 
 let rec pp_artifact_list_result fmt (v:artifact_list_result) =
@@ -446,15 +414,6 @@ let rec encode_pb_artifact_get_query (v:artifact_get_query) encoder =
   );
   ()
 
-let rec encode_pb_artifact (v:artifact) encoder = 
-  begin match v.art with
-  | Some x -> 
-    Pbrt.Encoder.nested Artmsg.encode_pb_art x encoder;
-    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
-  | None -> ();
-  end;
-  ()
-
 let rec encode_pb_artifact_zip (v:artifact_zip) encoder = 
   if artifact_zip_has_art_zip v then (
     Pbrt.Encoder.bytes v.art_zip encoder;
@@ -465,7 +424,7 @@ let rec encode_pb_artifact_zip (v:artifact_zip) encoder =
 let rec encode_pb_artifact_result (v:artifact_result) encoder = 
   begin match v with
   | Ok x ->
-    Pbrt.Encoder.nested encode_pb_artifact x encoder;
+    Pbrt.Encoder.nested Artmsg.encode_pb_artifact x encoder;
     Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
   | Error x ->
     Pbrt.Encoder.nested Error.encode_pb_error x encoder;
@@ -635,22 +594,6 @@ let rec decode_pb_artifact_get_query d =
   done;
   (v : artifact_get_query)
 
-let rec decode_pb_artifact d =
-  let v = default_artifact () in
-  let continue__= ref true in
-  while !continue__ do
-    match Pbrt.Decoder.key d with
-    | None -> (
-    ); continue__ := false
-    | Some (1, Pbrt.Bytes) -> begin
-      artifact_set_art v (Artmsg.decode_pb_art (Pbrt.Decoder.nested d));
-    end
-    | Some (1, pk) -> 
-      Pbrt.Decoder.unexpected_payload_message "artifact" 1 pk
-    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
-  done;
-  (v : artifact)
-
 let rec decode_pb_artifact_zip d =
   let v = default_artifact_zip () in
   let continue__= ref true in
@@ -671,7 +614,7 @@ let rec decode_pb_artifact_result d =
   let rec loop () = 
     let ret:artifact_result = match Pbrt.Decoder.key d with
       | None -> Pbrt.Decoder.malformed_variant "artifact_result"
-      | Some (1, _) -> (Ok (decode_pb_artifact (Pbrt.Decoder.nested d)) : artifact_result) 
+      | Some (1, _) -> (Ok (Artmsg.decode_pb_artifact (Pbrt.Decoder.nested d)) : artifact_result) 
       | Some (2, _) -> (Error (Error.decode_pb_error (Pbrt.Decoder.nested d)) : artifact_result) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
@@ -785,13 +728,6 @@ let rec encode_json_artifact_get_query (v:artifact_get_query) =
   );
   `Assoc !assoc
 
-let rec encode_json_artifact (v:artifact) = 
-  let assoc = ref [] in
-  assoc := (match v.art with
-    | None -> !assoc
-    | Some v -> ("art", Artmsg.encode_json_art v) :: !assoc);
-  `Assoc !assoc
-
 let rec encode_json_artifact_zip (v:artifact_zip) = 
   let assoc = ref [] in
   if artifact_zip_has_art_zip v then (
@@ -801,7 +737,7 @@ let rec encode_json_artifact_zip (v:artifact_zip) =
 
 let rec encode_json_artifact_result (v:artifact_result) = 
   begin match v with
-  | Ok v -> `Assoc [("ok", encode_json_artifact v)]
+  | Ok v -> `Assoc [("ok", Artmsg.encode_json_artifact v)]
   | Error v -> `Assoc [("error", Error.encode_json_error v)]
   end
 
@@ -957,22 +893,6 @@ let rec decode_json_artifact_get_query d =
     kind = v.kind;
   } : artifact_get_query)
 
-let rec decode_json_artifact d =
-  let v = default_artifact () in
-  let assoc = match d with
-    | `Assoc assoc -> assoc
-    | _ -> assert(false)
-  in
-  List.iter (function 
-    | ("art", json_value) -> 
-      artifact_set_art v (Artmsg.decode_json_art json_value)
-    
-    | (_, _) -> () (*Unknown fields are ignored*)
-  ) assoc;
-  ({
-    art = v.art;
-  } : artifact)
-
 let rec decode_json_artifact_zip d =
   let v = default_artifact_zip () in
   let assoc = match d with
@@ -998,7 +918,7 @@ let rec decode_json_artifact_result json =
   let rec loop = function
     | [] -> Pbrt_yojson.E.malformed_variant "artifact_result"
     | ("ok", json_value)::_ -> 
-      (Ok ((decode_json_artifact json_value)) : artifact_result)
+      (Ok ((Artmsg.decode_json_artifact json_value)) : artifact_result)
     | ("error", json_value)::_ -> 
       (Error ((Error.decode_json_error json_value)) : artifact_result)
     

@@ -1,7 +1,7 @@
 
 (** Code for task.proto *)
 
-(* generated from "task.proto", do not edit *)
+(* generated from "./task.proto", do not edit *)
 
 
 

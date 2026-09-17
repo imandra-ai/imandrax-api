@@ -1,7 +1,7 @@
 
 (** Code for session.proto *)
 
-(* generated from "session.proto", do not edit *)
+(* generated from "./session.proto", do not edit *)
 
 
 

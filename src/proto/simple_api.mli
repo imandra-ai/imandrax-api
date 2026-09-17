@@ -1,7 +1,7 @@
 
 (** Code for simple_api.proto *)
 
-(* generated from "simple_api.proto", do not edit *)
+(* generated from "./simple_api.proto", do not edit *)
 
 
 
@@ -53,7 +53,7 @@ type decompose_req_full_prune = private {
 }
 
 and decompose_req_full_decomp =
-  | From_artifact of Artmsg.art
+  | From_artifact of Artmsg.artifact
   | By_name of decompose_req_full_by_name
   | Merge of decompose_req_full_merge
   | Compound_merge of decompose_req_full_compound_merge
@@ -96,7 +96,7 @@ type decompose_req_full = private {
 }
 
 type decompose_res_res =
-  | Artifact of Artmsg.art
+  | Artifact of Artmsg.artifact
   | Err
 
 and decompose_res = private {
@@ -133,7 +133,7 @@ type model = private {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
   mutable m_type : model_type;
   mutable src : string;
-  mutable artifact : Artmsg.art option;
+  mutable artifact : Artmsg.artifact option;
 }
 
 type counter_sat = private {
@@ -318,7 +318,7 @@ type get_decls_req = private {
 type decl_with_name = private {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 2 fields *)
   mutable name : string;
-  mutable artifact : Artmsg.art option;
+  mutable artifact : Artmsg.artifact option;
   mutable str : string;
 }
 
@@ -878,7 +878,7 @@ val proved_set_proof_pp : proved -> string -> unit
 val make_model : 
   ?m_type:model_type ->
   ?src:string ->
-  ?artifact:Artmsg.art ->
+  ?artifact:Artmsg.artifact ->
   unit ->
   model
 (** [make_model … ()] is a builder for type [model] *)
@@ -900,7 +900,7 @@ val model_set_src : model -> string -> unit
 val model_has_artifact : model -> bool
   (** presence of field "artifact" in [model] *)
 
-val model_set_artifact : model -> Artmsg.art -> unit
+val model_set_artifact : model -> Artmsg.artifact -> unit
   (** set field artifact in model *)
 
 val make_counter_sat : 
@@ -1476,7 +1476,7 @@ val get_decls_req_set_str : get_decls_req -> bool -> unit
 
 val make_decl_with_name : 
   ?name:string ->
-  ?artifact:Artmsg.art ->
+  ?artifact:Artmsg.artifact ->
   ?str:string ->
   unit ->
   decl_with_name
@@ -1493,7 +1493,7 @@ val decl_with_name_set_name : decl_with_name -> string -> unit
 val decl_with_name_has_artifact : decl_with_name -> bool
   (** presence of field "artifact" in [decl_with_name] *)
 
-val decl_with_name_set_artifact : decl_with_name -> Artmsg.art -> unit
+val decl_with_name_set_artifact : decl_with_name -> Artmsg.artifact -> unit
   (** set field artifact in decl_with_name *)
 
 val decl_with_name_has_str : decl_with_name -> bool

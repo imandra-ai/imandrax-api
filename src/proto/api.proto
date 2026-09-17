@@ -73,11 +73,6 @@ message ArtifactGetQuery {
   string kind = 2;
 }
 
-message Artifact {
-  // requested artifact
-  Art art = 1;
-}
-
 message ArtifactZip {
   // requested artifact as a .zip file
   bytes art_zip = 1;

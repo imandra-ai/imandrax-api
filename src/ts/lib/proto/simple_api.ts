@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Art } from "./artmsg.js";
+import { Artifact } from "./artmsg.js";
 import { Error } from "./error.js";
 import { Session } from "./session.js";
 import { Origin, Task } from "./task.js";
@@ -173,7 +173,7 @@ export interface DecomposeReqFull_LocalVarGet {
 
 /** The main description of what to decompose */
 export interface DecomposeReqFull_Decomp {
-  fromArtifact?: Art | undefined;
+  fromArtifact?: Artifact | undefined;
   byName?: DecomposeReqFull_ByName | undefined;
   merge?: DecomposeReqFull_Merge | undefined;
   compoundMerge?: DecomposeReqFull_CompoundMerge | undefined;
@@ -185,7 +185,7 @@ export interface DecomposeReqFull_Decomp {
 
 /** Result of a decomposition */
 export interface DecomposeRes {
-  artifact?: Art | undefined;
+  artifact?: Artifact | undefined;
   err?: Empty | undefined;
   errors: Error[];
   /** the ID of the task */
@@ -337,7 +337,7 @@ export interface Model {
   /** iml source code for the model */
   src: string;
   /** the model as an artifact */
-  artifact?: Art | undefined;
+  artifact?: Artifact | undefined;
 }
 
 export interface Refuted {
@@ -445,7 +445,7 @@ export interface DeclWithName {
   name: string;
   /** artifact with the decl in it */
   artifact:
-    | Art
+    | Artifact
     | undefined;
   /** included if `str` was true */
   str?: string | undefined;
@@ -1531,7 +1531,7 @@ function createBaseDecomposeReqFull_Decomp(): DecomposeReqFull_Decomp {
 export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
   encode(message: DecomposeReqFull_Decomp, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.fromArtifact !== undefined) {
-      Art.encode(message.fromArtifact, writer.uint32(10).fork()).join();
+      Artifact.encode(message.fromArtifact, writer.uint32(10).fork()).join();
     }
     if (message.byName !== undefined) {
       DecomposeReqFull_ByName.encode(message.byName, writer.uint32(18).fork()).join();
@@ -1569,7 +1569,7 @@ export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
             break;
           }
 
-          message.fromArtifact = Art.decode(reader, reader.uint32());
+          message.fromArtifact = Artifact.decode(reader, reader.uint32());
           continue;
         }
         case 2: {
@@ -1639,7 +1639,7 @@ export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
 
   fromJSON(object: any): DecomposeReqFull_Decomp {
     return {
-      fromArtifact: isSet(object.fromArtifact) ? Art.fromJSON(object.fromArtifact) : undefined,
+      fromArtifact: isSet(object.fromArtifact) ? Artifact.fromJSON(object.fromArtifact) : undefined,
       byName: isSet(object.byName) ? DecomposeReqFull_ByName.fromJSON(object.byName) : undefined,
       merge: isSet(object.merge) ? DecomposeReqFull_Merge.fromJSON(object.merge) : undefined,
       compoundMerge: isSet(object.compoundMerge)
@@ -1655,7 +1655,7 @@ export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
   toJSON(message: DecomposeReqFull_Decomp): unknown {
     const obj: any = {};
     if (message.fromArtifact !== undefined) {
-      obj.fromArtifact = Art.toJSON(message.fromArtifact);
+      obj.fromArtifact = Artifact.toJSON(message.fromArtifact);
     }
     if (message.byName !== undefined) {
       obj.byName = DecomposeReqFull_ByName.toJSON(message.byName);
@@ -1687,7 +1687,7 @@ export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
   fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_Decomp>, I>>(object: I): DecomposeReqFull_Decomp {
     const message = createBaseDecomposeReqFull_Decomp();
     message.fromArtifact = (object.fromArtifact !== undefined && object.fromArtifact !== null)
-      ? Art.fromPartial(object.fromArtifact)
+      ? Artifact.fromPartial(object.fromArtifact)
       : undefined;
     message.byName = (object.byName !== undefined && object.byName !== null)
       ? DecomposeReqFull_ByName.fromPartial(object.byName)
@@ -1721,7 +1721,7 @@ function createBaseDecomposeRes(): DecomposeRes {
 export const DecomposeRes: MessageFns<DecomposeRes> = {
   encode(message: DecomposeRes, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.artifact !== undefined) {
-      Art.encode(message.artifact, writer.uint32(10).fork()).join();
+      Artifact.encode(message.artifact, writer.uint32(10).fork()).join();
     }
     if (message.err !== undefined) {
       Empty.encode(message.err, writer.uint32(18).fork()).join();
@@ -1747,7 +1747,7 @@ export const DecomposeRes: MessageFns<DecomposeRes> = {
             break;
           }
 
-          message.artifact = Art.decode(reader, reader.uint32());
+          message.artifact = Artifact.decode(reader, reader.uint32());
           continue;
         }
         case 2: {
@@ -1785,7 +1785,7 @@ export const DecomposeRes: MessageFns<DecomposeRes> = {
 
   fromJSON(object: any): DecomposeRes {
     return {
-      artifact: isSet(object.artifact) ? Art.fromJSON(object.artifact) : undefined,
+      artifact: isSet(object.artifact) ? Artifact.fromJSON(object.artifact) : undefined,
       err: isSet(object.err) ? Empty.fromJSON(object.err) : undefined,
       errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => Error.fromJSON(e)) : [],
       task: isSet(object.task) ? Task.fromJSON(object.task) : undefined,
@@ -1795,7 +1795,7 @@ export const DecomposeRes: MessageFns<DecomposeRes> = {
   toJSON(message: DecomposeRes): unknown {
     const obj: any = {};
     if (message.artifact !== undefined) {
-      obj.artifact = Art.toJSON(message.artifact);
+      obj.artifact = Artifact.toJSON(message.artifact);
     }
     if (message.err !== undefined) {
       obj.err = Empty.toJSON(message.err);
@@ -1815,7 +1815,7 @@ export const DecomposeRes: MessageFns<DecomposeRes> = {
   fromPartial<I extends Exact<DeepPartial<DecomposeRes>, I>>(object: I): DecomposeRes {
     const message = createBaseDecomposeRes();
     message.artifact = (object.artifact !== undefined && object.artifact !== null)
-      ? Art.fromPartial(object.artifact)
+      ? Artifact.fromPartial(object.artifact)
       : undefined;
     message.err = (object.err !== undefined && object.err !== null) ? Empty.fromPartial(object.err) : undefined;
     message.errors = object.errors?.map((e) => Error.fromPartial(e)) || [];
@@ -3170,7 +3170,7 @@ export const Model: MessageFns<Model> = {
       writer.uint32(18).string(message.src);
     }
     if (message.artifact !== undefined) {
-      Art.encode(message.artifact, writer.uint32(26).fork()).join();
+      Artifact.encode(message.artifact, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -3203,7 +3203,7 @@ export const Model: MessageFns<Model> = {
             break;
           }
 
-          message.artifact = Art.decode(reader, reader.uint32());
+          message.artifact = Artifact.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -3219,7 +3219,7 @@ export const Model: MessageFns<Model> = {
     return {
       mType: isSet(object.mType) ? modelTypeFromJSON(object.mType) : 0,
       src: isSet(object.src) ? globalThis.String(object.src) : "",
-      artifact: isSet(object.artifact) ? Art.fromJSON(object.artifact) : undefined,
+      artifact: isSet(object.artifact) ? Artifact.fromJSON(object.artifact) : undefined,
     };
   },
 
@@ -3232,7 +3232,7 @@ export const Model: MessageFns<Model> = {
       obj.src = message.src;
     }
     if (message.artifact !== undefined) {
-      obj.artifact = Art.toJSON(message.artifact);
+      obj.artifact = Artifact.toJSON(message.artifact);
     }
     return obj;
   },
@@ -3245,7 +3245,7 @@ export const Model: MessageFns<Model> = {
     message.mType = object.mType ?? 0;
     message.src = object.src ?? "";
     message.artifact = (object.artifact !== undefined && object.artifact !== null)
-      ? Art.fromPartial(object.artifact)
+      ? Artifact.fromPartial(object.artifact)
       : undefined;
     return message;
   },
@@ -4579,7 +4579,7 @@ export const DeclWithName: MessageFns<DeclWithName> = {
       writer.uint32(10).string(message.name);
     }
     if (message.artifact !== undefined) {
-      Art.encode(message.artifact, writer.uint32(18).fork()).join();
+      Artifact.encode(message.artifact, writer.uint32(18).fork()).join();
     }
     if (message.str !== undefined) {
       writer.uint32(26).string(message.str);
@@ -4607,7 +4607,7 @@ export const DeclWithName: MessageFns<DeclWithName> = {
             break;
           }
 
-          message.artifact = Art.decode(reader, reader.uint32());
+          message.artifact = Artifact.decode(reader, reader.uint32());
           continue;
         }
         case 3: {
@@ -4630,7 +4630,7 @@ export const DeclWithName: MessageFns<DeclWithName> = {
   fromJSON(object: any): DeclWithName {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      artifact: isSet(object.artifact) ? Art.fromJSON(object.artifact) : undefined,
+      artifact: isSet(object.artifact) ? Artifact.fromJSON(object.artifact) : undefined,
       str: isSet(object.str) ? globalThis.String(object.str) : undefined,
     };
   },
@@ -4641,7 +4641,7 @@ export const DeclWithName: MessageFns<DeclWithName> = {
       obj.name = message.name;
     }
     if (message.artifact !== undefined) {
-      obj.artifact = Art.toJSON(message.artifact);
+      obj.artifact = Artifact.toJSON(message.artifact);
     }
     if (message.str !== undefined) {
       obj.str = message.str;
@@ -4656,7 +4656,7 @@ export const DeclWithName: MessageFns<DeclWithName> = {
     const message = createBaseDeclWithName();
     message.name = object.name ?? "";
     message.artifact = (object.artifact !== undefined && object.artifact !== null)
-      ? Art.fromPartial(object.artifact)
+      ? Artifact.fromPartial(object.artifact)
       : undefined;
     message.str = object.str ?? undefined;
     return message;

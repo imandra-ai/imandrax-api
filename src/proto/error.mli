@@ -1,7 +1,7 @@
 
 (** Code for error.proto *)
 
-(* generated from "error.proto", do not edit *)
+(* generated from "./error.proto", do not edit *)
 
 
 
