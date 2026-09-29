@@ -1,7 +1,7 @@
 
 (** Code for utils.proto *)
 
-(* generated from "utils.proto", do not edit *)
+(* generated from "./utils.proto", do not edit *)
 
 
 

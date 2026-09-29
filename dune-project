@@ -11,7 +11,7 @@
 
 ;; keep in sync with imandrax
 
-(version 0.20)
+(version 0.21)
 
 (authors "the imandrax team")
 
@@ -103,7 +103,10 @@
   (imandrax-api-client
    (= :version))
   imandrakit-thread
-  (ezcurl (and (>= 0.2.4) (< 0.3)))
+  (ezcurl
+   (and
+    (>= 0.2.4)
+    (< 0.3)))
   (moonpool
    (and
     (>= 0.7)

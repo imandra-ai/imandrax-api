@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Art } from "./artmsg.js";
+import { Artifact } from "./artmsg.js";
 import { Error } from "./error.js";
 import { Session } from "./session.js";
 import { Task, TaskID } from "./task.js";
@@ -53,9 +53,10 @@ export interface CodeSnippet {
   /** / Code snippet. */
   code: string;
   /**
-   * Regular expression for verification tasks to be started during evaluation.
+   * Glob patterns (`*`, `?`, `[...]`) for selecting tasks to be started during evaluation.
    * The default is to start all tasks, but e.g. task_filter="*xyz*" would start
    * only tasks pertaining to top-level definitions with 'xyz' in their name.
+   * Tasks without names are matched under `anonymous`.
    */
   taskFilter: string[];
 }
@@ -81,7 +82,7 @@ export interface ArtifactListQuery {
   taskId: TaskID | undefined;
 }
 
-export interface ArtifactListResult {
+export interface ArtifactList {
   /** the kinds of artifacts available for this task */
   kinds: string[];
 }
@@ -95,14 +96,24 @@ export interface ArtifactGetQuery {
   kind: string;
 }
 
-export interface Artifact {
-  /** requested artifact */
-  art: Art | undefined;
-}
-
 export interface ArtifactZip {
   /** requested artifact as a .zip file */
   artZip: Uint8Array;
+}
+
+export interface ArtifactResult {
+  ok?: Artifact | undefined;
+  error?: Error | undefined;
+}
+
+export interface ArtifactListResult {
+  ok?: ArtifactList | undefined;
+  error?: Error | undefined;
+}
+
+export interface ArtifactZipResult {
+  ok?: ArtifactZip | undefined;
+  error?: Error | undefined;
 }
 
 function createBaseCodeSnippet(): CodeSnippet {
@@ -427,22 +438,22 @@ export const ArtifactListQuery: MessageFns<ArtifactListQuery> = {
   },
 };
 
-function createBaseArtifactListResult(): ArtifactListResult {
+function createBaseArtifactList(): ArtifactList {
   return { kinds: [] };
 }
 
-export const ArtifactListResult: MessageFns<ArtifactListResult> = {
-  encode(message: ArtifactListResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const ArtifactList: MessageFns<ArtifactList> = {
+  encode(message: ArtifactList, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.kinds) {
       writer.uint32(10).string(v!);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): ArtifactListResult {
+  decode(input: BinaryReader | Uint8Array, length?: number): ArtifactList {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseArtifactListResult();
+    const message = createBaseArtifactList();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -463,11 +474,11 @@ export const ArtifactListResult: MessageFns<ArtifactListResult> = {
     return message;
   },
 
-  fromJSON(object: any): ArtifactListResult {
+  fromJSON(object: any): ArtifactList {
     return { kinds: globalThis.Array.isArray(object?.kinds) ? object.kinds.map((e: any) => globalThis.String(e)) : [] };
   },
 
-  toJSON(message: ArtifactListResult): unknown {
+  toJSON(message: ArtifactList): unknown {
     const obj: any = {};
     if (message.kinds?.length) {
       obj.kinds = message.kinds;
@@ -475,11 +486,11 @@ export const ArtifactListResult: MessageFns<ArtifactListResult> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ArtifactListResult>, I>>(base?: I): ArtifactListResult {
-    return ArtifactListResult.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<ArtifactList>, I>>(base?: I): ArtifactList {
+    return ArtifactList.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ArtifactListResult>, I>>(object: I): ArtifactListResult {
-    const message = createBaseArtifactListResult();
+  fromPartial<I extends Exact<DeepPartial<ArtifactList>, I>>(object: I): ArtifactList {
+    const message = createBaseArtifactList();
     message.kinds = object.kinds?.map((e) => e) || [];
     return message;
   },
@@ -563,64 +574,6 @@ export const ArtifactGetQuery: MessageFns<ArtifactGetQuery> = {
   },
 };
 
-function createBaseArtifact(): Artifact {
-  return { art: undefined };
-}
-
-export const Artifact: MessageFns<Artifact> = {
-  encode(message: Artifact, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.art !== undefined) {
-      Art.encode(message.art, writer.uint32(10).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): Artifact {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseArtifact();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.art = Art.decode(reader, reader.uint32());
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Artifact {
-    return { art: isSet(object.art) ? Art.fromJSON(object.art) : undefined };
-  },
-
-  toJSON(message: Artifact): unknown {
-    const obj: any = {};
-    if (message.art !== undefined) {
-      obj.art = Art.toJSON(message.art);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Artifact>, I>>(base?: I): Artifact {
-    return Artifact.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<Artifact>, I>>(object: I): Artifact {
-    const message = createBaseArtifact();
-    message.art = (object.art !== undefined && object.art !== null) ? Art.fromPartial(object.art) : undefined;
-    return message;
-  },
-};
-
 function createBaseArtifactZip(): ArtifactZip {
   return { artZip: new Uint8Array(0) };
 }
@@ -679,18 +632,246 @@ export const ArtifactZip: MessageFns<ArtifactZip> = {
   },
 };
 
+function createBaseArtifactResult(): ArtifactResult {
+  return { ok: undefined, error: undefined };
+}
+
+export const ArtifactResult: MessageFns<ArtifactResult> = {
+  encode(message: ArtifactResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.ok !== undefined) {
+      Artifact.encode(message.ok, writer.uint32(10).fork()).join();
+    }
+    if (message.error !== undefined) {
+      Error.encode(message.error, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ArtifactResult {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseArtifactResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ok = Artifact.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.error = Error.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ArtifactResult {
+    return {
+      ok: isSet(object.ok) ? Artifact.fromJSON(object.ok) : undefined,
+      error: isSet(object.error) ? Error.fromJSON(object.error) : undefined,
+    };
+  },
+
+  toJSON(message: ArtifactResult): unknown {
+    const obj: any = {};
+    if (message.ok !== undefined) {
+      obj.ok = Artifact.toJSON(message.ok);
+    }
+    if (message.error !== undefined) {
+      obj.error = Error.toJSON(message.error);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ArtifactResult>, I>>(base?: I): ArtifactResult {
+    return ArtifactResult.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ArtifactResult>, I>>(object: I): ArtifactResult {
+    const message = createBaseArtifactResult();
+    message.ok = (object.ok !== undefined && object.ok !== null) ? Artifact.fromPartial(object.ok) : undefined;
+    message.error = (object.error !== undefined && object.error !== null) ? Error.fromPartial(object.error) : undefined;
+    return message;
+  },
+};
+
+function createBaseArtifactListResult(): ArtifactListResult {
+  return { ok: undefined, error: undefined };
+}
+
+export const ArtifactListResult: MessageFns<ArtifactListResult> = {
+  encode(message: ArtifactListResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.ok !== undefined) {
+      ArtifactList.encode(message.ok, writer.uint32(10).fork()).join();
+    }
+    if (message.error !== undefined) {
+      Error.encode(message.error, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ArtifactListResult {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseArtifactListResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ok = ArtifactList.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.error = Error.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ArtifactListResult {
+    return {
+      ok: isSet(object.ok) ? ArtifactList.fromJSON(object.ok) : undefined,
+      error: isSet(object.error) ? Error.fromJSON(object.error) : undefined,
+    };
+  },
+
+  toJSON(message: ArtifactListResult): unknown {
+    const obj: any = {};
+    if (message.ok !== undefined) {
+      obj.ok = ArtifactList.toJSON(message.ok);
+    }
+    if (message.error !== undefined) {
+      obj.error = Error.toJSON(message.error);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ArtifactListResult>, I>>(base?: I): ArtifactListResult {
+    return ArtifactListResult.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ArtifactListResult>, I>>(object: I): ArtifactListResult {
+    const message = createBaseArtifactListResult();
+    message.ok = (object.ok !== undefined && object.ok !== null) ? ArtifactList.fromPartial(object.ok) : undefined;
+    message.error = (object.error !== undefined && object.error !== null) ? Error.fromPartial(object.error) : undefined;
+    return message;
+  },
+};
+
+function createBaseArtifactZipResult(): ArtifactZipResult {
+  return { ok: undefined, error: undefined };
+}
+
+export const ArtifactZipResult: MessageFns<ArtifactZipResult> = {
+  encode(message: ArtifactZipResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.ok !== undefined) {
+      ArtifactZip.encode(message.ok, writer.uint32(10).fork()).join();
+    }
+    if (message.error !== undefined) {
+      Error.encode(message.error, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ArtifactZipResult {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseArtifactZipResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ok = ArtifactZip.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.error = Error.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ArtifactZipResult {
+    return {
+      ok: isSet(object.ok) ? ArtifactZip.fromJSON(object.ok) : undefined,
+      error: isSet(object.error) ? Error.fromJSON(object.error) : undefined,
+    };
+  },
+
+  toJSON(message: ArtifactZipResult): unknown {
+    const obj: any = {};
+    if (message.ok !== undefined) {
+      obj.ok = ArtifactZip.toJSON(message.ok);
+    }
+    if (message.error !== undefined) {
+      obj.error = Error.toJSON(message.error);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ArtifactZipResult>, I>>(base?: I): ArtifactZipResult {
+    return ArtifactZipResult.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ArtifactZipResult>, I>>(object: I): ArtifactZipResult {
+    const message = createBaseArtifactZipResult();
+    message.ok = (object.ok !== undefined && object.ok !== null) ? ArtifactZip.fromPartial(object.ok) : undefined;
+    message.error = (object.error !== undefined && object.error !== null) ? Error.fromPartial(object.error) : undefined;
+    return message;
+  },
+};
+
 export interface Eval {
   /** / Evaluate a snippet */
   eval_code_snippet(request: CodeSnippet): Promise<CodeSnippetEvalResult>;
   /** parse+typecheck a term, return it as artifact */
-  parse_term(request: CodeSnippet): Promise<Artifact>;
+  parse_term(request: CodeSnippet): Promise<ArtifactResult>;
   /** parse+typecheck a type, return it as artifact */
-  parse_type(request: CodeSnippet): Promise<Artifact>;
+  parse_type(request: CodeSnippet): Promise<ArtifactResult>;
   list_artifacts(request: ArtifactListQuery): Promise<ArtifactListResult>;
   /** Obtain an artifact from a task */
-  get_artifact(request: ArtifactGetQuery): Promise<Artifact>;
+  get_artifact(request: ArtifactGetQuery): Promise<ArtifactResult>;
   /** Obtain an artifact from a task as a zip file */
-  get_artifact_zip(request: ArtifactGetQuery): Promise<ArtifactZip>;
+  get_artifact_zip(request: ArtifactGetQuery): Promise<ArtifactZipResult>;
 }
 
 export const EvalServiceName = "imandrax.api.Eval";
@@ -713,16 +894,16 @@ export class EvalClientImpl implements Eval {
     return promise.then((data) => CodeSnippetEvalResult.decode(new BinaryReader(data)));
   }
 
-  parse_term(request: CodeSnippet): Promise<Artifact> {
+  parse_term(request: CodeSnippet): Promise<ArtifactResult> {
     const data = CodeSnippet.encode(request).finish();
     const promise = this.rpc.request(this.service, "parse_term", data);
-    return promise.then((data) => Artifact.decode(new BinaryReader(data)));
+    return promise.then((data) => ArtifactResult.decode(new BinaryReader(data)));
   }
 
-  parse_type(request: CodeSnippet): Promise<Artifact> {
+  parse_type(request: CodeSnippet): Promise<ArtifactResult> {
     const data = CodeSnippet.encode(request).finish();
     const promise = this.rpc.request(this.service, "parse_type", data);
-    return promise.then((data) => Artifact.decode(new BinaryReader(data)));
+    return promise.then((data) => ArtifactResult.decode(new BinaryReader(data)));
   }
 
   list_artifacts(request: ArtifactListQuery): Promise<ArtifactListResult> {
@@ -731,16 +912,16 @@ export class EvalClientImpl implements Eval {
     return promise.then((data) => ArtifactListResult.decode(new BinaryReader(data)));
   }
 
-  get_artifact(request: ArtifactGetQuery): Promise<Artifact> {
+  get_artifact(request: ArtifactGetQuery): Promise<ArtifactResult> {
     const data = ArtifactGetQuery.encode(request).finish();
     const promise = this.rpc.request(this.service, "get_artifact", data);
-    return promise.then((data) => Artifact.decode(new BinaryReader(data)));
+    return promise.then((data) => ArtifactResult.decode(new BinaryReader(data)));
   }
 
-  get_artifact_zip(request: ArtifactGetQuery): Promise<ArtifactZip> {
+  get_artifact_zip(request: ArtifactGetQuery): Promise<ArtifactZipResult> {
     const data = ArtifactGetQuery.encode(request).finish();
     const promise = this.rpc.request(this.service, "get_artifact_zip", data);
-    return promise.then((data) => ArtifactZip.decode(new BinaryReader(data)));
+    return promise.then((data) => ArtifactZipResult.decode(new BinaryReader(data)));
   }
 }
 

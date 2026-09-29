@@ -1,6 +1,6 @@
 {
   "name": "imandrax-api",
-  "version": "0.0.1",
+  "version": "0.21.0",
   "type": "module",
   "scripts": {
     "build-dev": "esbuild lib/*.ts lib/proto/*.ts --outdir=out/dev --format=cjs --platform=node --sourcemap",

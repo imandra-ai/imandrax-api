@@ -49,14 +49,14 @@ async def main():
         art_po_task = await c.get_artifact_zip(task, kind="po_task")
         art_po_res = await c.get_artifact_zip(task, kind="po_res")
 
-        assert len(art_po_task.art_zip) > 0, "po_task artifact is empty"
-        assert len(art_po_res.art_zip) > 0, "po_res artifact is empty"
+        assert len(art_po_task.ok.art_zip) > 0, "po_task artifact is empty"
+        assert len(art_po_res.ok.art_zip) > 0, "po_res artifact is empty"
 
         print("5. parse artifacts")
         # Extract from zip
-        with zipfile.ZipFile(io.BytesIO(art_po_task.art_zip)) as zf:
+        with zipfile.ZipFile(io.BytesIO(art_po_task.ok.art_zip)) as zf:
             art_task_data = zf.read(zf.namelist()[0])
-        with zipfile.ZipFile(io.BytesIO(art_po_res.art_zip)) as zf:
+        with zipfile.ZipFile(io.BytesIO(art_po_res.ok.art_zip)) as zf:
             art_res_data = zf.read(zf.namelist()[0])
 
         art_task = xtypes.read_artifact_data(data=art_task_data, kind="po_task")
@@ -137,7 +137,7 @@ async def main():
 
         async_task = x6.tasks[0]
         for _ in range(20):
-            kinds = (await c.list_artifacts(async_task)).kinds
+            kinds = (await c.list_artifacts(async_task)).ok.kinds
             if "po_res" in kinds:
                 break
             await asyncio.sleep(0.5)
@@ -145,9 +145,9 @@ async def main():
             raise AssertionError("po_res artifact never became available")
 
         art = await c.get_artifact(async_task, kind="po_res")
-        assert art.art.kind == "po_res", f"unexpected kind {art.art.kind}"
-        assert len(art.art.data) > 0, "po_res artifact is empty"
-        async_res = xtypes.read_artifact_data(data=art.art.data, kind="po_res")
+        assert art.ok.kind == "po_res", f"unexpected kind {art.ok.kind}"
+        assert len(art.ok.data) > 0, "po_res artifact is empty"
+        async_res = xtypes.read_artifact_data(data=art.ok.data, kind="po_res")
         assert async_res is not None, "failed to parse async po_res"
 
         print("11. eval_src task_filter")
@@ -184,12 +184,12 @@ async def main():
         assert list(snip.errors) == [], f"snippet eval failed: {snip.errors}"
 
         term = await c.parse_term(code="1 + 1")
-        assert term.art.kind == "term", f"unexpected kind {term.art.kind}"
-        assert len(term.art.data) > 0, "term artifact is empty"
+        assert term.ok.kind == "term", f"unexpected kind {term.ok.kind}"
+        assert len(term.ok.data) > 0, "term artifact is empty"
 
         ty = await c.parse_type(code="int list")
-        assert ty.art.kind == "ty", f"unexpected kind {ty.art.kind}"
-        assert len(ty.art.data) > 0, "type artifact is empty"
+        assert ty.ok.kind == "ty", f"unexpected kind {ty.ok.kind}"
+        assert len(ty.ok.data) > 0, "type artifact is empty"
 
         print("14. session lifecycle")
         assert c.session_id, "expected a session id"

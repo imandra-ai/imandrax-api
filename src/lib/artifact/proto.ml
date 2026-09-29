@@ -3,7 +3,7 @@
 module Proto = Imandrax_api_proto
 module Mir = Imandrax_api_mir
 
-type msg = Proto.art [@@deriving show]
+type msg = Proto.artifact [@@deriving show]
 
 let to_msg (self : Artifact.t) : msg =
   let (Artifact { kind; storage; _ }) = self in
@@ -23,14 +23,14 @@ let to_msg (self : Artifact.t) : msg =
       storage
   in
 
-  Proto.make_art
+  Proto.make_artifact
     ~kind:(Artifact.kind_to_string kind)
     ~data:(Bytes.unsafe_of_string data)
     ~storage ~api_version:Versioning.api_types_version ()
 
 let to_msg_str ?(enc = Pbrt.Encoder.create ()) (self : Artifact.t) : string =
   Pbrt.Encoder.clear enc;
-  Proto.encode_pb_art (to_msg self) enc;
+  Proto.encode_pb_artifact (to_msg self) enc;
   Pbrt.Encoder.to_string enc
 
 let of_msg (msg : msg) : Artifact.t Error.result =
@@ -73,6 +73,6 @@ let of_msg_str (str : string) : Artifact.t Error.result =
   let@ () = Error.try_catch ~kind:Error_kinds.deserializationError () in
   let msg =
     let dec = Pbrt.Decoder.of_string str in
-    Proto.decode_pb_art dec
+    Proto.decode_pb_artifact dec
   in
   of_msg msg |> Error.unwrap

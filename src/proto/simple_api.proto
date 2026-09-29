@@ -148,7 +148,7 @@ message DecomposeReqFull {
   // The main description of what to decompose
   message Decomp {
     oneof decomp {
-      Art from_artifact = 1;
+      Artifact from_artifact = 1;
       DecomposeReqFull.ByName by_name = 2;
       DecomposeReqFull.Merge merge = 3;
       DecomposeReqFull.CompoundMerge compound_merge = 4;
@@ -171,7 +171,7 @@ message DecomposeReqFull {
 // Result of a decomposition
 message DecomposeRes {
   oneof res {
-    Art artifact = 1;
+    Artifact artifact = 1;
     Empty err = 2;
   }
 
@@ -313,7 +313,7 @@ message Model {
   string src = 2;
 
   // the model as an artifact
-  optional Art artifact = 3;
+  optional Artifact artifact = 3;
 }
 
 message Refuted { optional Model model = 1; }
@@ -436,7 +436,7 @@ message DeclWithName {
   string name = 1;
 
   // artifact with the decl in it
-  Art artifact = 2;
+  Artifact artifact = 2;
 
   // included if `str` was true
   optional string str = 3;

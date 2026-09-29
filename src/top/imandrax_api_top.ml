@@ -136,9 +136,11 @@ module Eval = struct
       Client.Artifact.get_artifact ?timeout_s client ~kind:kind_as_str
         (Client.API.make_task_id ~id:task.id ())
     in
-    match r.art with
-    | None -> Error.fail ~kind:Error_kinds.rpcError "missing artifact"
-    | Some r ->
+    match r with
+    | Error e ->
+      Error.fail ~kind:Error_kinds.rpcError
+        (Fmt.to_string Client.API.pp_error e)
+    | Ok r ->
       (* decode artifact *)
       if not (String.equal kind_as_str r.kind) then
         Error.failf ~kind:Error_kinds.rpcError
@@ -152,5 +154,9 @@ module Eval = struct
 
   let list_artifacts ?timeout_s client (task : task_id) : string list Lwt.t =
     let+ r = Client.Artifact.list_artifacts ?timeout_s client task in
-    r.kinds
+    match r with
+    | Ok r -> r.kinds
+    | Error e ->
+      Error.fail ~kind:Error_kinds.rpcError
+        (Fmt.to_string Client.API.pp_error e)
 end
