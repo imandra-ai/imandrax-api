@@ -30,5 +30,8 @@ service System {
 
   /// Try to free memory, return stats
   rpc release_memory(Empty) returns (Gc_stats);
+
+  // Ask the server to exit
+  rpc shutdown(Empty) returns (Empty);
 }
 

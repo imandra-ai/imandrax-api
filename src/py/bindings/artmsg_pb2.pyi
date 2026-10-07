@@ -13,7 +13,7 @@ class StorageEntry(_message.Message):
     value: bytes
     def __init__(self, key: _Optional[str] = ..., value: _Optional[bytes] = ...) -> None: ...
 
-class Art(_message.Message):
+class Artifact(_message.Message):
     __slots__ = ("kind", "data", "api_version", "storage")
     KIND_FIELD_NUMBER: _ClassVar[int]
     DATA_FIELD_NUMBER: _ClassVar[int]

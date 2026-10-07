@@ -20,15 +20,6 @@ class SimpleClient(TwirpClient):
 			**kwargs,
 		)
 
-	def shutdown(self, *args, ctx, request, **kwargs):
-		return self._make_request(
-			url=F"{self._server_path_prefix}/imandrax.simple.Simple/shutdown",
-			ctx=ctx,
-			request=request,
-			response_obj=_sym_db.GetSymbol("Empty"),
-			**kwargs,
-		)
-
 	def create_session(self, *args, ctx, request, **kwargs):
 		return self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.simple.Simple/create_session",

@@ -37,3 +37,12 @@ class AsyncSystemClient(AsyncTwirpClient):
 			response_obj=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
 			**kwargs,
 		)
+
+	async def shutdown(self, *, ctx, request, **kwargs):
+		return await self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.system.System/shutdown",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("Empty"),
+			**kwargs,
+		)

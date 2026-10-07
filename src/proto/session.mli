@@ -1,7 +1,7 @@
 
 (** Code for session.proto *)
 
-(* generated from "session.proto", do not edit *)
+(* generated from "./session.proto", do not edit *)
 
 
 
@@ -82,6 +82,9 @@ val make_session_open :
 (** [make_session_open … ()] is a builder for type [session_open] *)
 
 val copy_session_open : session_open -> session_open
+
+val session_open_has_id : session_open -> bool
+  (** presence of field "id" in [session_open] *)
 
 val session_open_set_id : session_open -> session -> unit
   (** set field id in session_open *)

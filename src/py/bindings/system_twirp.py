@@ -37,3 +37,12 @@ class SystemClient(TwirpClient):
 			response_obj=_sym_db.GetSymbol("imandrax.system.Gc_stats"),
 			**kwargs,
 		)
+
+	def shutdown(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.system.System/shutdown",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("Empty"),
+			**kwargs,
+		)

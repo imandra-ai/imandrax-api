@@ -131,7 +131,7 @@ class DecomposeReqFull(_message.Message):
         COMBINE_FIELD_NUMBER: _ClassVar[int]
         GET_FIELD_NUMBER: _ClassVar[int]
         SET_FIELD_NUMBER: _ClassVar[int]
-        from_artifact: _artmsg_pb2.Art
+        from_artifact: _artmsg_pb2.Artifact
         by_name: DecomposeReqFull.ByName
         merge: DecomposeReqFull.Merge
         compound_merge: DecomposeReqFull.CompoundMerge
@@ -139,7 +139,7 @@ class DecomposeReqFull(_message.Message):
         combine: DecomposeReqFull.Combine
         get: DecomposeReqFull.LocalVarGet
         set: DecomposeReqFull.LocalVarLet
-        def __init__(self, from_artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ..., by_name: _Optional[_Union[DecomposeReqFull.ByName, _Mapping]] = ..., merge: _Optional[_Union[DecomposeReqFull.Merge, _Mapping]] = ..., compound_merge: _Optional[_Union[DecomposeReqFull.CompoundMerge, _Mapping]] = ..., prune: _Optional[_Union[DecomposeReqFull.Prune, _Mapping]] = ..., combine: _Optional[_Union[DecomposeReqFull.Combine, _Mapping]] = ..., get: _Optional[_Union[DecomposeReqFull.LocalVarGet, _Mapping]] = ..., set: _Optional[_Union[DecomposeReqFull.LocalVarLet, _Mapping]] = ...) -> None: ...
+        def __init__(self, from_artifact: _Optional[_Union[_artmsg_pb2.Artifact, _Mapping]] = ..., by_name: _Optional[_Union[DecomposeReqFull.ByName, _Mapping]] = ..., merge: _Optional[_Union[DecomposeReqFull.Merge, _Mapping]] = ..., compound_merge: _Optional[_Union[DecomposeReqFull.CompoundMerge, _Mapping]] = ..., prune: _Optional[_Union[DecomposeReqFull.Prune, _Mapping]] = ..., combine: _Optional[_Union[DecomposeReqFull.Combine, _Mapping]] = ..., get: _Optional[_Union[DecomposeReqFull.LocalVarGet, _Mapping]] = ..., set: _Optional[_Union[DecomposeReqFull.LocalVarLet, _Mapping]] = ...) -> None: ...
     SESSION_FIELD_NUMBER: _ClassVar[int]
     DECOMP_FIELD_NUMBER: _ClassVar[int]
     STRING_RESULTS_FIELD_NUMBER: _ClassVar[int]
@@ -156,11 +156,11 @@ class DecomposeRes(_message.Message):
     ERR_FIELD_NUMBER: _ClassVar[int]
     ERRORS_FIELD_NUMBER: _ClassVar[int]
     TASK_FIELD_NUMBER: _ClassVar[int]
-    artifact: _artmsg_pb2.Art
+    artifact: _artmsg_pb2.Artifact
     err: _utils_pb2.Empty
     errors: _containers.RepeatedCompositeFieldContainer[_error_pb2.Error]
     task: _task_pb2.Task
-    def __init__(self, artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ..., err: _Optional[_Union[_utils_pb2.Empty, _Mapping]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., task: _Optional[_Union[_task_pb2.Task, _Mapping]] = ...) -> None: ...
+    def __init__(self, artifact: _Optional[_Union[_artmsg_pb2.Artifact, _Mapping]] = ..., err: _Optional[_Union[_utils_pb2.Empty, _Mapping]] = ..., errors: _Optional[_Iterable[_Union[_error_pb2.Error, _Mapping]]] = ..., task: _Optional[_Union[_task_pb2.Task, _Mapping]] = ...) -> None: ...
 
 class EvalSrcReq(_message.Message):
     __slots__ = ("session", "src", "async_only", "task_filter")
@@ -311,8 +311,8 @@ class Model(_message.Message):
     ARTIFACT_FIELD_NUMBER: _ClassVar[int]
     m_type: ModelType
     src: str
-    artifact: _artmsg_pb2.Art
-    def __init__(self, m_type: _Optional[_Union[ModelType, str]] = ..., src: _Optional[str] = ..., artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ...) -> None: ...
+    artifact: _artmsg_pb2.Artifact
+    def __init__(self, m_type: _Optional[_Union[ModelType, str]] = ..., src: _Optional[str] = ..., artifact: _Optional[_Union[_artmsg_pb2.Artifact, _Mapping]] = ...) -> None: ...
 
 class Refuted(_message.Message):
     __slots__ = ("model",)
@@ -459,9 +459,9 @@ class DeclWithName(_message.Message):
     ARTIFACT_FIELD_NUMBER: _ClassVar[int]
     STR_FIELD_NUMBER: _ClassVar[int]
     name: str
-    artifact: _artmsg_pb2.Art
+    artifact: _artmsg_pb2.Artifact
     str: str
-    def __init__(self, name: _Optional[str] = ..., artifact: _Optional[_Union[_artmsg_pb2.Art, _Mapping]] = ..., str: _Optional[str] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., artifact: _Optional[_Union[_artmsg_pb2.Artifact, _Mapping]] = ..., str: _Optional[str] = ...) -> None: ...
 
 class GetDeclsRes(_message.Message):
     __slots__ = ("decls", "not_found")

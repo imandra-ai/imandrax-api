@@ -16,7 +16,10 @@ clean:
 typecheck:
 	uv run pyright -p pyproject.toml __init__.py client/ lib/
 
-test:
+unit-test:
+	uv run pytest
+
+test: unit-test
 	uv run ../../tests/api/py/test_cloud_dev.py
 	uv run ../../tests/api/py/test_cloud_dev_async.py
 	uv run ../../tests/api/py/test_extract_region_str.py
@@ -63,4 +66,4 @@ install-go-protobuf-plugin:
 	@echo "installing twirp plugin for protoc into `echo $(GOBIN)`"
 	cd protoc-gen-twirpy && GOBIN="`echo $(GOBIN)`" go install ./
 
-.PHONY: remove-wheels build genversion api_types_version.py test-setup-py-install
+.PHONY: remove-wheels build genversion api_types_version.py test-setup-py-install unit-test test

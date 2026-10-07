@@ -20,15 +20,6 @@ class AsyncSimpleClient(AsyncTwirpClient):
 			**kwargs,
 		)
 
-	async def shutdown(self, *, ctx, request, **kwargs):
-		return await self._make_request(
-			url=F"{self._server_path_prefix}/imandrax.simple.Simple/shutdown",
-			ctx=ctx,
-			request=request,
-			response_obj=_sym_db.GetSymbol("Empty"),
-			**kwargs,
-		)
-
 	async def create_session(self, *, ctx, request, **kwargs):
 		return await self._make_request(
 			url=F"{self._server_path_prefix}/imandrax.simple.Simple/create_session",

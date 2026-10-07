@@ -145,11 +145,12 @@ class Decoder:
         if high != 3:
             raise Error(f"expected float, but high={high} at off=0x{off:x}")
 
+        # the payload starts right after the first byte
         isf32 = low == 0
         if isf32:
-            return struct.unpack_from("<f", self.bs, offset=off)[0]
+            return struct.unpack_from("<f", self.bs, offset=off + 1)[0]
         else:
-            return struct.unpack_from("<d", self.bs, offset=off)[0]
+            return struct.unpack_from("<d", self.bs, offset=off + 1)[0]
 
     def get_str(self, off: offset) -> str:
         off = self._deref(off=off)
@@ -234,9 +235,9 @@ class Decoder:
             case 0:
                 if low == 2:
                     return None
-                elif high == 0:
+                elif low == 0:
                     return False
-                elif high == 1:
+                elif low == 1:
                     return True
                 else:
                     raise Error(f"expected true/false/None at off=0x{off:x}")
@@ -273,9 +274,9 @@ class Decoder:
             case 0:
                 if low == 2:
                     return None
-                elif high == 0:
+                elif low == 0:
                     return False
-                elif high == 1:
+                elif low == 1:
                     return True
                 else:
                     raise Error(f"expected true/false/None at off=0x{off:x}")

@@ -16,7 +16,7 @@ export interface StorageEntry {
   value: Uint8Array;
 }
 
-export interface Art {
+export interface Artifact {
   /** The kind of artifact. */
   kind: string;
   /** Serialized data, in twine. */
@@ -106,12 +106,12 @@ export const StorageEntry: MessageFns<StorageEntry> = {
   },
 };
 
-function createBaseArt(): Art {
+function createBaseArtifact(): Artifact {
   return { kind: "", data: new Uint8Array(0), apiVersion: "", storage: [] };
 }
 
-export const Art: MessageFns<Art> = {
-  encode(message: Art, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const Artifact: MessageFns<Artifact> = {
+  encode(message: Artifact, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.kind !== "") {
       writer.uint32(10).string(message.kind);
     }
@@ -127,10 +127,10 @@ export const Art: MessageFns<Art> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): Art {
+  decode(input: BinaryReader | Uint8Array, length?: number): Artifact {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseArt();
+    const message = createBaseArtifact();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -175,7 +175,7 @@ export const Art: MessageFns<Art> = {
     return message;
   },
 
-  fromJSON(object: any): Art {
+  fromJSON(object: any): Artifact {
     return {
       kind: isSet(object.kind) ? globalThis.String(object.kind) : "",
       data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(0),
@@ -186,7 +186,7 @@ export const Art: MessageFns<Art> = {
     };
   },
 
-  toJSON(message: Art): unknown {
+  toJSON(message: Artifact): unknown {
     const obj: any = {};
     if (message.kind !== "") {
       obj.kind = message.kind;
@@ -203,11 +203,11 @@ export const Art: MessageFns<Art> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Art>, I>>(base?: I): Art {
-    return Art.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Artifact>, I>>(base?: I): Artifact {
+    return Artifact.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Art>, I>>(object: I): Art {
-    const message = createBaseArt();
+  fromPartial<I extends Exact<DeepPartial<Artifact>, I>>(object: I): Artifact {
+    const message = createBaseArtifact();
     message.kind = object.kind ?? "";
     message.data = object.data ?? new Uint8Array(0);
     message.apiVersion = object.apiVersion ?? "";
