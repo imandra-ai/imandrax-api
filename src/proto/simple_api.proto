@@ -145,6 +145,17 @@ message DecomposeReqFull {
     string name = 1;
   }
 
+  enum EnumerationStyle {
+    Additive = 0;
+    Multiplicative = 1;
+  }
+
+  message Enumerate {
+    Decomp d_f = 1;
+    repeated Decomp ds = 2;
+    EnumerationStyle style = 3;
+  }
+
   // The main description of what to decompose
   message Decomp {
     oneof decomp {
@@ -156,6 +167,7 @@ message DecomposeReqFull {
       DecomposeReqFull.Combine combine = 6;
       DecomposeReqFull.LocalVarGet get = 10;
       DecomposeReqFull.LocalVarLet set = 11;
+      DecomposeReqFull.Enumerate enumerate = 12;
     }
   };
 

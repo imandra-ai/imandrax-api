@@ -1221,6 +1221,14 @@ pub struct TasksEval_res<'a> {
 }
 
 
+// clique Imandrax_api_tasks.Decomp_task.enumeration_style
+// immediate
+#[derive(Debug, Clone, FromTwine)]
+pub enum TasksDecomp_taskEnumeration_style {
+  Additive,
+  Multiplicative,
+}
+
 // clique Imandrax_api_tasks.Decomp_task.decomp_poly
 #[derive(Debug, Clone, FromTwine)]
 pub enum TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a> {
@@ -1235,6 +1243,11 @@ pub enum TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term:'a,V_tyreg_poly_ty:'a>
   Let {
     bindings: &'a [(&'a str,&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>)],
     and_then: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+  },
+  Enumerate {
+    d_f: &'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>,
+    ds: &'a [&'a TasksDecomp_taskDecomp_poly<'a,V_tyreg_poly_term,V_tyreg_poly_ty>],
+    style: Option<TasksDecomp_taskEnumeration_style>,
   },
 }
 

@@ -41,6 +41,10 @@ type decompose_req_full_local_var_get = {
   mutable name : string;
 }
 
+type decompose_req_full_enumeration_style =
+  | Additive 
+  | Multiplicative 
+
 type decompose_req_full_prune = {
   mutable d : decompose_req_full_decomp option;
 }
@@ -54,6 +58,7 @@ and decompose_req_full_decomp =
   | Combine of decompose_req_full_combine
   | Get of decompose_req_full_local_var_get
   | Set of decompose_req_full_local_var_let
+  | Enumerate of decompose_req_full_enumerate
 
 and decompose_req_full_merge = {
   mutable d1 : decompose_req_full_decomp option;
@@ -78,6 +83,13 @@ and decompose_req_full_local_var_binding = {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable name : string;
   mutable d : decompose_req_full_decomp option;
+}
+
+and decompose_req_full_enumerate = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable d_f : decompose_req_full_decomp option;
+  mutable ds : decompose_req_full_decomp list;
+  mutable style : decompose_req_full_enumeration_style;
 }
 
 type decompose_req_full = {
@@ -361,6 +373,8 @@ let default_decompose_req_full_local_var_get (): decompose_req_full_local_var_ge
   name="";
 }
 
+let default_decompose_req_full_enumeration_style () = (Additive:decompose_req_full_enumeration_style)
+
 let default_decompose_req_full_prune (): decompose_req_full_prune =
 {
   d=None;
@@ -396,6 +410,14 @@ let default_decompose_req_full_local_var_binding (): decompose_req_full_local_va
   _presence=Pbrt.Bitfield.empty;
   name="";
   d=None;
+}
+
+let default_decompose_req_full_enumerate (): decompose_req_full_enumerate =
+{
+  _presence=Pbrt.Bitfield.empty;
+  d_f=None;
+  ds=[];
+  style=default_decompose_req_full_enumeration_style ();
 }
 
 let default_decompose_req_full (): decompose_req_full =
@@ -938,6 +960,34 @@ let make_decompose_req_full_local_var_binding
   (match d with
   | None -> ()
   | Some v -> decompose_req_full_local_var_binding_set_d _res v);
+  _res
+
+let[@inline] decompose_req_full_enumerate_has_d_f (self:decompose_req_full_enumerate) : bool = self.d_f != None
+let[@inline] decompose_req_full_enumerate_has_style (self:decompose_req_full_enumerate) : bool = (Pbrt.Bitfield.get self._presence 0)
+
+let[@inline] decompose_req_full_enumerate_set_d_f (self:decompose_req_full_enumerate) (x:decompose_req_full_decomp) : unit =
+  self.d_f <- Some x
+let[@inline] decompose_req_full_enumerate_set_ds (self:decompose_req_full_enumerate) (x:decompose_req_full_decomp list) : unit =
+  self.ds <- x
+let[@inline] decompose_req_full_enumerate_set_style (self:decompose_req_full_enumerate) (x:decompose_req_full_enumeration_style) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.style <- x
+
+let copy_decompose_req_full_enumerate (self:decompose_req_full_enumerate) : decompose_req_full_enumerate =
+  { self with d_f = self.d_f }
+
+let make_decompose_req_full_enumerate 
+  ?(d_f:decompose_req_full_decomp option)
+  ?(ds=[])
+  ?(style:decompose_req_full_enumeration_style option)
+  () : decompose_req_full_enumerate  =
+  let _res = default_decompose_req_full_enumerate () in
+  (match d_f with
+  | None -> ()
+  | Some v -> decompose_req_full_enumerate_set_d_f _res v);
+  decompose_req_full_enumerate_set_ds _res ds;
+  (match style with
+  | None -> ()
+  | Some v -> decompose_req_full_enumerate_set_style _res v);
   _res
 
 let[@inline] decompose_req_full_has_session (self:decompose_req_full) : bool = self.session != None
@@ -1859,6 +1909,11 @@ let rec pp_decompose_req_full_local_var_get fmt (v:decompose_req_full_local_var_
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
+let rec pp_decompose_req_full_enumeration_style fmt (v:decompose_req_full_enumeration_style) =
+  match v with
+  | Additive -> Format.fprintf fmt "Additive"
+  | Multiplicative -> Format.fprintf fmt "Multiplicative"
+
 let rec pp_decompose_req_full_prune fmt (v:decompose_req_full_prune) = 
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "d" (Pbrt.Pp.pp_option pp_decompose_req_full_decomp) fmt v.d;
@@ -1875,6 +1930,7 @@ and pp_decompose_req_full_decomp fmt (v:decompose_req_full_decomp) =
   | Combine x -> Format.fprintf fmt "@[<hv2>Combine(@,%a)@]" pp_decompose_req_full_combine x
   | Get x -> Format.fprintf fmt "@[<hv2>Get(@,%a)@]" pp_decompose_req_full_local_var_get x
   | Set x -> Format.fprintf fmt "@[<hv2>Set(@,%a)@]" pp_decompose_req_full_local_var_let x
+  | Enumerate x -> Format.fprintf fmt "@[<hv2>Enumerate(@,%a)@]" pp_decompose_req_full_enumerate x
 
 and pp_decompose_req_full_merge fmt (v:decompose_req_full_merge) = 
   let pp_i fmt () =
@@ -1907,6 +1963,14 @@ and pp_decompose_req_full_local_var_binding fmt (v:decompose_req_full_local_var_
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_full_local_var_binding_has_name v)) ~first:true "name" Pbrt.Pp.pp_string fmt v.name;
     Pbrt.Pp.pp_record_field ~first:false "d" (Pbrt.Pp.pp_option pp_decompose_req_full_decomp) fmt v.d;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+and pp_decompose_req_full_enumerate fmt (v:decompose_req_full_enumerate) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "d_f" (Pbrt.Pp.pp_option pp_decompose_req_full_decomp) fmt v.d_f;
+    Pbrt.Pp.pp_record_field ~first:false "ds" (Pbrt.Pp.pp_list pp_decompose_req_full_decomp) fmt v.ds;
+    Pbrt.Pp.pp_record_field ~absent:(not (decompose_req_full_enumerate_has_style v)) ~first:false "style" pp_decompose_req_full_enumeration_style fmt v.style;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -2303,6 +2367,11 @@ let rec encode_pb_decompose_req_full_local_var_get (v:decompose_req_full_local_v
   );
   ()
 
+let rec encode_pb_decompose_req_full_enumeration_style (v:decompose_req_full_enumeration_style) encoder =
+  match v with
+  | Additive -> Pbrt.Encoder.int_as_varint (0) encoder
+  | Multiplicative -> Pbrt.Encoder.int_as_varint 1 encoder
+
 let rec encode_pb_decompose_req_full_prune (v:decompose_req_full_prune) encoder = 
   begin match v.d with
   | Some x -> 
@@ -2338,6 +2407,9 @@ and encode_pb_decompose_req_full_decomp (v:decompose_req_full_decomp) encoder =
   | Set x ->
     Pbrt.Encoder.nested encode_pb_decompose_req_full_local_var_let x encoder;
     Pbrt.Encoder.key 11 Pbrt.Bytes encoder; 
+  | Enumerate x ->
+    Pbrt.Encoder.nested encode_pb_decompose_req_full_enumerate x encoder;
+    Pbrt.Encoder.key 12 Pbrt.Bytes encoder; 
   end
 
 and encode_pb_decompose_req_full_merge (v:decompose_req_full_merge) encoder = 
@@ -2403,6 +2475,23 @@ and encode_pb_decompose_req_full_local_var_binding (v:decompose_req_full_local_v
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   | None -> ();
   end;
+  ()
+
+and encode_pb_decompose_req_full_enumerate (v:decompose_req_full_enumerate) encoder = 
+  begin match v.d_f with
+  | Some x -> 
+    Pbrt.Encoder.nested encode_pb_decompose_req_full_decomp x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  Pbrt.List_util.rev_iter_with (fun x encoder ->
+    Pbrt.Encoder.nested encode_pb_decompose_req_full_decomp x encoder;
+    Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
+  ) v.ds encoder;
+  if decompose_req_full_enumerate_has_style v then (
+    encode_pb_decompose_req_full_enumeration_style v.style encoder;
+    Pbrt.Encoder.key 3 Pbrt.Varint encoder; 
+  );
   ()
 
 let rec encode_pb_decompose_req_full (v:decompose_req_full) encoder = 
@@ -3193,6 +3282,12 @@ let rec decode_pb_decompose_req_full_local_var_get d =
   done;
   (v : decompose_req_full_local_var_get)
 
+let rec decode_pb_decompose_req_full_enumeration_style d : decompose_req_full_enumeration_style = 
+  match Pbrt.Decoder.int_as_varint d with
+  | 0 -> Additive
+  | 1 -> Multiplicative
+  | _ -> Pbrt.Decoder.malformed_variant "decompose_req_full_enumeration_style"
+
 let rec decode_pb_decompose_req_full_prune d =
   let v = default_decompose_req_full_prune () in
   let continue__= ref true in
@@ -3221,6 +3316,7 @@ and decode_pb_decompose_req_full_decomp d =
       | Some (6, _) -> (Combine (decode_pb_decompose_req_full_combine (Pbrt.Decoder.nested d)) : decompose_req_full_decomp) 
       | Some (10, _) -> (Get (decode_pb_decompose_req_full_local_var_get (Pbrt.Decoder.nested d)) : decompose_req_full_decomp) 
       | Some (11, _) -> (Set (decode_pb_decompose_req_full_local_var_let (Pbrt.Decoder.nested d)) : decompose_req_full_decomp) 
+      | Some (12, _) -> (Enumerate (decode_pb_decompose_req_full_enumerate (Pbrt.Decoder.nested d)) : decompose_req_full_decomp) 
       | Some (n, payload_kind) -> (
         Pbrt.Decoder.skip d payload_kind; 
         loop () 
@@ -3331,6 +3427,34 @@ and decode_pb_decompose_req_full_local_var_binding d =
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   (v : decompose_req_full_local_var_binding)
+
+and decode_pb_decompose_req_full_enumerate d =
+  let v = default_decompose_req_full_enumerate () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      (* put lists in the correct order *)
+      decompose_req_full_enumerate_set_ds v (List.rev v.ds);
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      decompose_req_full_enumerate_set_d_f v (decode_pb_decompose_req_full_decomp (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "decompose_req_full_enumerate" 1 pk
+    | Some (2, Pbrt.Bytes) -> begin
+      decompose_req_full_enumerate_set_ds v ((decode_pb_decompose_req_full_decomp (Pbrt.Decoder.nested d)) :: v.ds);
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "decompose_req_full_enumerate" 2 pk
+    | Some (3, Pbrt.Varint) -> begin
+      decompose_req_full_enumerate_set_style v (decode_pb_decompose_req_full_enumeration_style d);
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "decompose_req_full_enumerate" 3 pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  (v : decompose_req_full_enumerate)
 
 let rec decode_pb_decompose_req_full d =
   let v = default_decompose_req_full () in
@@ -4429,6 +4553,11 @@ let rec encode_json_decompose_req_full_local_var_get (v:decompose_req_full_local
   );
   `Assoc !assoc
 
+let rec encode_json_decompose_req_full_enumeration_style (v:decompose_req_full_enumeration_style) = 
+  match v with
+  | Additive -> `String "Additive"
+  | Multiplicative -> `String "Multiplicative"
+
 let rec encode_json_decompose_req_full_prune (v:decompose_req_full_prune) = 
   let assoc = ref [] in
   assoc := (match v.d with
@@ -4446,6 +4575,7 @@ and encode_json_decompose_req_full_decomp (v:decompose_req_full_decomp) =
   | Combine v -> `Assoc [("combine", encode_json_decompose_req_full_combine v)]
   | Get v -> `Assoc [("get", encode_json_decompose_req_full_local_var_get v)]
   | Set v -> `Assoc [("set", encode_json_decompose_req_full_local_var_let v)]
+  | Enumerate v -> `Assoc [("enumerate", encode_json_decompose_req_full_enumerate v)]
   end
 
 and encode_json_decompose_req_full_merge (v:decompose_req_full_merge) = 
@@ -4494,6 +4624,20 @@ and encode_json_decompose_req_full_local_var_binding (v:decompose_req_full_local
   assoc := (match v.d with
     | None -> !assoc
     | Some v -> ("d", encode_json_decompose_req_full_decomp v) :: !assoc);
+  `Assoc !assoc
+
+and encode_json_decompose_req_full_enumerate (v:decompose_req_full_enumerate) = 
+  let assoc = ref [] in
+  assoc := (match v.d_f with
+    | None -> !assoc
+    | Some v -> ("dF", encode_json_decompose_req_full_decomp v) :: !assoc);
+  assoc := (
+    let l = v.ds |> List.map encode_json_decompose_req_full_decomp in
+    ("ds", `List l) :: !assoc 
+  );
+  if decompose_req_full_enumerate_has_style v then (
+    assoc := ("style", encode_json_decompose_req_full_enumeration_style v.style) :: !assoc;
+  );
   `Assoc !assoc
 
 let rec encode_json_decompose_req_full (v:decompose_req_full) = 
@@ -5108,6 +5252,12 @@ let rec decode_json_decompose_req_full_local_var_get d =
     name = v.name;
   } : decompose_req_full_local_var_get)
 
+let rec decode_json_decompose_req_full_enumeration_style json =
+  match json with
+  | `String "Additive" -> (Additive : decompose_req_full_enumeration_style)
+  | `String "Multiplicative" -> (Multiplicative : decompose_req_full_enumeration_style)
+  | _ -> Pbrt_yojson.E.malformed_variant "decompose_req_full_enumeration_style"
+
 let rec decode_json_decompose_req_full_prune d =
   let v = default_decompose_req_full_prune () in
   let assoc = match d with
@@ -5147,6 +5297,8 @@ and decode_json_decompose_req_full_decomp json =
       (Get ((decode_json_decompose_req_full_local_var_get json_value)) : decompose_req_full_decomp)
     | ("set", json_value)::_ -> 
       (Set ((decode_json_decompose_req_full_local_var_let json_value)) : decompose_req_full_decomp)
+    | ("enumerate", json_value)::_ -> 
+      (Enumerate ((decode_json_decompose_req_full_enumerate json_value)) : decompose_req_full_decomp)
     
     | _ :: tl -> loop tl
   in
@@ -5247,6 +5399,32 @@ and decode_json_decompose_req_full_local_var_binding d =
     name = v.name;
     d = v.d;
   } : decompose_req_full_local_var_binding)
+
+and decode_json_decompose_req_full_enumerate d =
+  let v = default_decompose_req_full_enumerate () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("dF", json_value) -> 
+      decompose_req_full_enumerate_set_d_f v (decode_json_decompose_req_full_decomp json_value)
+    | ("ds", `List l) -> begin
+      decompose_req_full_enumerate_set_ds v @@ List.map (function
+        | json_value -> (decode_json_decompose_req_full_decomp json_value)
+      ) l;
+    end
+    | ("style", json_value) -> 
+      decompose_req_full_enumerate_set_style v ((decode_json_decompose_req_full_enumeration_style json_value))
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    _presence = v._presence;
+    d_f = v.d_f;
+    ds = v.ds;
+    style = v.style;
+  } : decompose_req_full_enumerate)
 
 let rec decode_json_decompose_req_full d =
   let v = default_decompose_req_full () in

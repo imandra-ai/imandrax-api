@@ -48,6 +48,10 @@ type decompose_req_full_local_var_get = private {
   mutable name : string;
 }
 
+type decompose_req_full_enumeration_style =
+  | Additive 
+  | Multiplicative 
+
 type decompose_req_full_prune = private {
   mutable d : decompose_req_full_decomp option;
 }
@@ -61,6 +65,7 @@ and decompose_req_full_decomp =
   | Combine of decompose_req_full_combine
   | Get of decompose_req_full_local_var_get
   | Set of decompose_req_full_local_var_let
+  | Enumerate of decompose_req_full_enumerate
 
 and decompose_req_full_merge = private {
   mutable d1 : decompose_req_full_decomp option;
@@ -85,6 +90,13 @@ and decompose_req_full_local_var_binding = private {
   mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
   mutable name : string;
   mutable d : decompose_req_full_decomp option;
+}
+
+and decompose_req_full_enumerate = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 1 fields *)
+  mutable d_f : decompose_req_full_decomp option;
+  mutable ds : decompose_req_full_decomp list;
+  mutable style : decompose_req_full_enumeration_style;
 }
 
 type decompose_req_full = private {
@@ -345,6 +357,9 @@ val default_decompose_req_full_by_name : unit -> decompose_req_full_by_name
 val default_decompose_req_full_local_var_get : unit -> decompose_req_full_local_var_get 
 (** [default_decompose_req_full_local_var_get ()] is a new empty value for type [decompose_req_full_local_var_get] *)
 
+val default_decompose_req_full_enumeration_style : unit -> decompose_req_full_enumeration_style
+(** [default_decompose_req_full_enumeration_style ()] is a new empty value for type [decompose_req_full_enumeration_style] *)
+
 val default_decompose_req_full_prune : unit -> decompose_req_full_prune 
 (** [default_decompose_req_full_prune ()] is a new empty value for type [decompose_req_full_prune] *)
 
@@ -365,6 +380,9 @@ val default_decompose_req_full_local_var_let : unit -> decompose_req_full_local_
 
 val default_decompose_req_full_local_var_binding : unit -> decompose_req_full_local_var_binding 
 (** [default_decompose_req_full_local_var_binding ()] is a new empty value for type [decompose_req_full_local_var_binding] *)
+
+val default_decompose_req_full_enumerate : unit -> decompose_req_full_enumerate 
+(** [default_decompose_req_full_enumerate ()] is a new empty value for type [decompose_req_full_enumerate] *)
 
 val default_decompose_req_full : unit -> decompose_req_full 
 (** [default_decompose_req_full ()] is a new empty value for type [decompose_req_full] *)
@@ -743,6 +761,31 @@ val decompose_req_full_local_var_binding_has_d : decompose_req_full_local_var_bi
 
 val decompose_req_full_local_var_binding_set_d : decompose_req_full_local_var_binding -> decompose_req_full_decomp -> unit
   (** set field d in decompose_req_full_local_var_binding *)
+
+val make_decompose_req_full_enumerate : 
+  ?d_f:decompose_req_full_decomp ->
+  ?ds:decompose_req_full_decomp list ->
+  ?style:decompose_req_full_enumeration_style ->
+  unit ->
+  decompose_req_full_enumerate
+(** [make_decompose_req_full_enumerate … ()] is a builder for type [decompose_req_full_enumerate] *)
+
+val copy_decompose_req_full_enumerate : decompose_req_full_enumerate -> decompose_req_full_enumerate
+
+val decompose_req_full_enumerate_has_d_f : decompose_req_full_enumerate -> bool
+  (** presence of field "d_f" in [decompose_req_full_enumerate] *)
+
+val decompose_req_full_enumerate_set_d_f : decompose_req_full_enumerate -> decompose_req_full_decomp -> unit
+  (** set field d_f in decompose_req_full_enumerate *)
+
+val decompose_req_full_enumerate_set_ds : decompose_req_full_enumerate -> decompose_req_full_decomp list -> unit
+  (** set field ds in decompose_req_full_enumerate *)
+
+val decompose_req_full_enumerate_has_style : decompose_req_full_enumerate -> bool
+  (** presence of field "style" in [decompose_req_full_enumerate] *)
+
+val decompose_req_full_enumerate_set_style : decompose_req_full_enumerate -> decompose_req_full_enumeration_style -> unit
+  (** set field style in decompose_req_full_enumerate *)
 
 val make_decompose_req_full : 
   ?session:Session.session ->
@@ -1535,6 +1578,9 @@ val pp_decompose_req_full_by_name : Format.formatter -> decompose_req_full_by_na
 val pp_decompose_req_full_local_var_get : Format.formatter -> decompose_req_full_local_var_get -> unit 
 (** [pp_decompose_req_full_local_var_get v] formats v *)
 
+val pp_decompose_req_full_enumeration_style : Format.formatter -> decompose_req_full_enumeration_style -> unit 
+(** [pp_decompose_req_full_enumeration_style v] formats v *)
+
 val pp_decompose_req_full_prune : Format.formatter -> decompose_req_full_prune -> unit 
 (** [pp_decompose_req_full_prune v] formats v *)
 
@@ -1555,6 +1601,9 @@ val pp_decompose_req_full_local_var_let : Format.formatter -> decompose_req_full
 
 val pp_decompose_req_full_local_var_binding : Format.formatter -> decompose_req_full_local_var_binding -> unit 
 (** [pp_decompose_req_full_local_var_binding v] formats v *)
+
+val pp_decompose_req_full_enumerate : Format.formatter -> decompose_req_full_enumerate -> unit 
+(** [pp_decompose_req_full_enumerate v] formats v *)
 
 val pp_decompose_req_full : Format.formatter -> decompose_req_full -> unit 
 (** [pp_decompose_req_full v] formats v *)
@@ -1691,6 +1740,9 @@ val encode_pb_decompose_req_full_by_name : decompose_req_full_by_name -> Pbrt.En
 val encode_pb_decompose_req_full_local_var_get : decompose_req_full_local_var_get -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req_full_local_var_get v encoder] encodes [v] with the given [encoder] *)
 
+val encode_pb_decompose_req_full_enumeration_style : decompose_req_full_enumeration_style -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_enumeration_style v encoder] encodes [v] with the given [encoder] *)
+
 val encode_pb_decompose_req_full_prune : decompose_req_full_prune -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req_full_prune v encoder] encodes [v] with the given [encoder] *)
 
@@ -1711,6 +1763,9 @@ val encode_pb_decompose_req_full_local_var_let : decompose_req_full_local_var_le
 
 val encode_pb_decompose_req_full_local_var_binding : decompose_req_full_local_var_binding -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req_full_local_var_binding v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_decompose_req_full_enumerate : decompose_req_full_enumerate -> Pbrt.Encoder.t -> unit
+(** [encode_pb_decompose_req_full_enumerate v encoder] encodes [v] with the given [encoder] *)
 
 val encode_pb_decompose_req_full : decompose_req_full -> Pbrt.Encoder.t -> unit
 (** [encode_pb_decompose_req_full v encoder] encodes [v] with the given [encoder] *)
@@ -1847,6 +1902,9 @@ val decode_pb_decompose_req_full_by_name : Pbrt.Decoder.t -> decompose_req_full_
 val decode_pb_decompose_req_full_local_var_get : Pbrt.Decoder.t -> decompose_req_full_local_var_get
 (** [decode_pb_decompose_req_full_local_var_get decoder] decodes a [decompose_req_full_local_var_get] binary value from [decoder] *)
 
+val decode_pb_decompose_req_full_enumeration_style : Pbrt.Decoder.t -> decompose_req_full_enumeration_style
+(** [decode_pb_decompose_req_full_enumeration_style decoder] decodes a [decompose_req_full_enumeration_style] binary value from [decoder] *)
+
 val decode_pb_decompose_req_full_prune : Pbrt.Decoder.t -> decompose_req_full_prune
 (** [decode_pb_decompose_req_full_prune decoder] decodes a [decompose_req_full_prune] binary value from [decoder] *)
 
@@ -1867,6 +1925,9 @@ val decode_pb_decompose_req_full_local_var_let : Pbrt.Decoder.t -> decompose_req
 
 val decode_pb_decompose_req_full_local_var_binding : Pbrt.Decoder.t -> decompose_req_full_local_var_binding
 (** [decode_pb_decompose_req_full_local_var_binding decoder] decodes a [decompose_req_full_local_var_binding] binary value from [decoder] *)
+
+val decode_pb_decompose_req_full_enumerate : Pbrt.Decoder.t -> decompose_req_full_enumerate
+(** [decode_pb_decompose_req_full_enumerate decoder] decodes a [decompose_req_full_enumerate] binary value from [decoder] *)
 
 val decode_pb_decompose_req_full : Pbrt.Decoder.t -> decompose_req_full
 (** [decode_pb_decompose_req_full decoder] decodes a [decompose_req_full] binary value from [decoder] *)
@@ -2003,6 +2064,9 @@ val encode_json_decompose_req_full_by_name : decompose_req_full_by_name -> Yojso
 val encode_json_decompose_req_full_local_var_get : decompose_req_full_local_var_get -> Yojson.Basic.t
 (** [encode_json_decompose_req_full_local_var_get v encoder] encodes [v] to to json *)
 
+val encode_json_decompose_req_full_enumeration_style : decompose_req_full_enumeration_style -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_enumeration_style v encoder] encodes [v] to to json *)
+
 val encode_json_decompose_req_full_prune : decompose_req_full_prune -> Yojson.Basic.t
 (** [encode_json_decompose_req_full_prune v encoder] encodes [v] to to json *)
 
@@ -2023,6 +2087,9 @@ val encode_json_decompose_req_full_local_var_let : decompose_req_full_local_var_
 
 val encode_json_decompose_req_full_local_var_binding : decompose_req_full_local_var_binding -> Yojson.Basic.t
 (** [encode_json_decompose_req_full_local_var_binding v encoder] encodes [v] to to json *)
+
+val encode_json_decompose_req_full_enumerate : decompose_req_full_enumerate -> Yojson.Basic.t
+(** [encode_json_decompose_req_full_enumerate v encoder] encodes [v] to to json *)
 
 val encode_json_decompose_req_full : decompose_req_full -> Yojson.Basic.t
 (** [encode_json_decompose_req_full v encoder] encodes [v] to to json *)
@@ -2159,6 +2226,9 @@ val decode_json_decompose_req_full_by_name : Yojson.Basic.t -> decompose_req_ful
 val decode_json_decompose_req_full_local_var_get : Yojson.Basic.t -> decompose_req_full_local_var_get
 (** [decode_json_decompose_req_full_local_var_get decoder] decodes a [decompose_req_full_local_var_get] value from [decoder] *)
 
+val decode_json_decompose_req_full_enumeration_style : Yojson.Basic.t -> decompose_req_full_enumeration_style
+(** [decode_json_decompose_req_full_enumeration_style decoder] decodes a [decompose_req_full_enumeration_style] value from [decoder] *)
+
 val decode_json_decompose_req_full_prune : Yojson.Basic.t -> decompose_req_full_prune
 (** [decode_json_decompose_req_full_prune decoder] decodes a [decompose_req_full_prune] value from [decoder] *)
 
@@ -2179,6 +2249,9 @@ val decode_json_decompose_req_full_local_var_let : Yojson.Basic.t -> decompose_r
 
 val decode_json_decompose_req_full_local_var_binding : Yojson.Basic.t -> decompose_req_full_local_var_binding
 (** [decode_json_decompose_req_full_local_var_binding decoder] decodes a [decompose_req_full_local_var_binding] value from [decoder] *)
+
+val decode_json_decompose_req_full_enumerate : Yojson.Basic.t -> decompose_req_full_enumerate
+(** [decode_json_decompose_req_full_enumerate decoder] decodes a [decompose_req_full_enumerate] value from [decoder] *)
 
 val decode_json_decompose_req_full : Yojson.Basic.t -> decompose_req_full
 (** [decode_json_decompose_req_full decoder] decodes a [decompose_req_full] value from [decoder] *)
