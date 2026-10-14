@@ -61,6 +61,12 @@ class DecomposeReq(_message.Message):
 
 class DecomposeReqFull(_message.Message):
     __slots__ = ("session", "decomp", "string_results", "timeout")
+    class EnumerationStyle(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        Additive: _ClassVar[DecomposeReqFull.EnumerationStyle]
+        Multiplicative: _ClassVar[DecomposeReqFull.EnumerationStyle]
+    Additive: DecomposeReqFull.EnumerationStyle
+    Multiplicative: DecomposeReqFull.EnumerationStyle
     class ByName(_message.Message):
         __slots__ = ("name", "assuming", "basis", "rule_specs", "prune", "ctx_simp", "lift_bool")
         NAME_FIELD_NUMBER: _ClassVar[int]
@@ -121,8 +127,17 @@ class DecomposeReqFull(_message.Message):
         NAME_FIELD_NUMBER: _ClassVar[int]
         name: str
         def __init__(self, name: _Optional[str] = ...) -> None: ...
+    class Enumerate(_message.Message):
+        __slots__ = ("d_f", "ds", "style")
+        D_F_FIELD_NUMBER: _ClassVar[int]
+        DS_FIELD_NUMBER: _ClassVar[int]
+        STYLE_FIELD_NUMBER: _ClassVar[int]
+        d_f: DecomposeReqFull.Decomp
+        ds: _containers.RepeatedCompositeFieldContainer[DecomposeReqFull.Decomp]
+        style: DecomposeReqFull.EnumerationStyle
+        def __init__(self, d_f: _Optional[_Union[DecomposeReqFull.Decomp, _Mapping]] = ..., ds: _Optional[_Iterable[_Union[DecomposeReqFull.Decomp, _Mapping]]] = ..., style: _Optional[_Union[DecomposeReqFull.EnumerationStyle, str]] = ...) -> None: ...
     class Decomp(_message.Message):
-        __slots__ = ("from_artifact", "by_name", "merge", "compound_merge", "prune", "combine", "get", "set")
+        __slots__ = ("from_artifact", "by_name", "merge", "compound_merge", "prune", "combine", "get", "set", "enumerate")
         FROM_ARTIFACT_FIELD_NUMBER: _ClassVar[int]
         BY_NAME_FIELD_NUMBER: _ClassVar[int]
         MERGE_FIELD_NUMBER: _ClassVar[int]
@@ -131,6 +146,7 @@ class DecomposeReqFull(_message.Message):
         COMBINE_FIELD_NUMBER: _ClassVar[int]
         GET_FIELD_NUMBER: _ClassVar[int]
         SET_FIELD_NUMBER: _ClassVar[int]
+        ENUMERATE_FIELD_NUMBER: _ClassVar[int]
         from_artifact: _artmsg_pb2.Artifact
         by_name: DecomposeReqFull.ByName
         merge: DecomposeReqFull.Merge
@@ -139,7 +155,8 @@ class DecomposeReqFull(_message.Message):
         combine: DecomposeReqFull.Combine
         get: DecomposeReqFull.LocalVarGet
         set: DecomposeReqFull.LocalVarLet
-        def __init__(self, from_artifact: _Optional[_Union[_artmsg_pb2.Artifact, _Mapping]] = ..., by_name: _Optional[_Union[DecomposeReqFull.ByName, _Mapping]] = ..., merge: _Optional[_Union[DecomposeReqFull.Merge, _Mapping]] = ..., compound_merge: _Optional[_Union[DecomposeReqFull.CompoundMerge, _Mapping]] = ..., prune: _Optional[_Union[DecomposeReqFull.Prune, _Mapping]] = ..., combine: _Optional[_Union[DecomposeReqFull.Combine, _Mapping]] = ..., get: _Optional[_Union[DecomposeReqFull.LocalVarGet, _Mapping]] = ..., set: _Optional[_Union[DecomposeReqFull.LocalVarLet, _Mapping]] = ...) -> None: ...
+        enumerate: DecomposeReqFull.Enumerate
+        def __init__(self, from_artifact: _Optional[_Union[_artmsg_pb2.Artifact, _Mapping]] = ..., by_name: _Optional[_Union[DecomposeReqFull.ByName, _Mapping]] = ..., merge: _Optional[_Union[DecomposeReqFull.Merge, _Mapping]] = ..., compound_merge: _Optional[_Union[DecomposeReqFull.CompoundMerge, _Mapping]] = ..., prune: _Optional[_Union[DecomposeReqFull.Prune, _Mapping]] = ..., combine: _Optional[_Union[DecomposeReqFull.Combine, _Mapping]] = ..., get: _Optional[_Union[DecomposeReqFull.LocalVarGet, _Mapping]] = ..., set: _Optional[_Union[DecomposeReqFull.LocalVarLet, _Mapping]] = ..., enumerate: _Optional[_Union[DecomposeReqFull.Enumerate, _Mapping]] = ...) -> None: ...
     SESSION_FIELD_NUMBER: _ClassVar[int]
     DECOMP_FIELD_NUMBER: _ClassVar[int]
     STRING_RESULTS_FIELD_NUMBER: _ClassVar[int]

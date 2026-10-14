@@ -1,5 +1,10 @@
 (** Decomposition tasks *)
 
+type enumeration_style =
+  | Additive
+  | Multiplicative
+[@@deriving show, twine, typereg]
+
 type ('term, 'ty) decomp_poly =
   | Decomp of Imandrax_api_common.Decomp.t_
   | Term of 'term
@@ -14,6 +19,11 @@ type ('term, 'ty) decomp_poly =
   | Let of {
       bindings: (string * ('term, 'ty) decomp_poly) list;
       and_then: ('term, 'ty) decomp_poly;
+    }
+  | Enumerate of {
+      d_f: ('term, 'ty) decomp_poly;
+      ds: ('term, 'ty) decomp_poly list;
+      style: enumeration_style option; (* default is Additive *)
     }
 [@@deriving show, twine, typereg, map, iter]
 
