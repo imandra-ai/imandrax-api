@@ -892,6 +892,11 @@ class EvaluationTask:
         """The timeout, if any"""
         return self._data.timeout
 
+    @cached_property
+    def db(self) -> DB:
+        """The database of declarations and rules the term is evaluated in"""
+        return DB(self._data.db, self._artifact.storage)
+
 
 class EvaluationTaskHandle(TaskHandle):
     """A handle to an evaluation task on the server"""
@@ -1183,6 +1188,11 @@ class DecompositionTask:
     def timeout(self) -> int | None:
         """The timeout, if any"""
         return self._data.timeout
+
+    @cached_property
+    def db(self) -> DB:
+        """The database of declarations and rules the decomposition is computed in"""
+        return DB(self._data.db, self._artifact.storage)
 
 
 class DecompositionTaskHandle(TaskHandle):
