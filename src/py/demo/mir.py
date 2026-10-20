@@ -95,10 +95,12 @@ def type_of_lib(x: lib.Mir_Type) -> Type:
             return TypeVariable(x)
         case lib.Ty_view_view_Arrow():
             return ArrowType(x)
+        case lib.Ty_view_view_Tuple():
+            return TupleType(x)
         case lib.Ty_view_view_Constr():
             return ConstructedType(x)
         case _:
-            raise Exception("Invalid type")
+            assert_never(x.view)
 
 
 class TypeVariable(Type):
@@ -135,6 +137,28 @@ class ArrowType(Type):
         lbl, tl, tr = self._view.args
         lbl = "" if lbl is None else f"{lbl}"
         return f"{lbl}{str(type_of_lib(tl))} -> {str(type_of_lib(tr))}"
+
+
+class TupleType(Type):
+    """A tuple type `a * b * ...`"""
+
+    def __init__(self, x: lib.Mir_Type):
+        if not isinstance(x.view, lib.Ty_view_view_Tuple):
+            raise InvalidType()
+        self._raw: lib.Mir_Type = x
+
+    @property
+    def _view(self) -> lib.Ty_view_view_Tuple[None, lib.Mir_Type_var, lib.Mir_Type]:
+        assert isinstance(self._raw.view, lib.Ty_view_view_Tuple)
+        return self._raw.view
+
+    @property
+    def elements(self) -> list[Type]:
+        """The component types"""
+        return [type_of_lib(t) for t in self._view.arg]
+
+    def __str__(self) -> str:
+        return " * ".join(str(t) for t in self.elements)
 
 
 class ConstructedType(Type):
