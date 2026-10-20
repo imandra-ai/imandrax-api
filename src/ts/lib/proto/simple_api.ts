@@ -122,6 +122,39 @@ export interface DecomposeReqFull {
   timeout?: number | undefined;
 }
 
+export enum DecomposeReqFull_EnumerationStyle {
+  Additive = 0,
+  Multiplicative = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function decomposeReqFull_EnumerationStyleFromJSON(object: any): DecomposeReqFull_EnumerationStyle {
+  switch (object) {
+    case 0:
+    case "Additive":
+      return DecomposeReqFull_EnumerationStyle.Additive;
+    case 1:
+    case "Multiplicative":
+      return DecomposeReqFull_EnumerationStyle.Multiplicative;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return DecomposeReqFull_EnumerationStyle.UNRECOGNIZED;
+  }
+}
+
+export function decomposeReqFull_EnumerationStyleToJSON(object: DecomposeReqFull_EnumerationStyle): string {
+  switch (object) {
+    case DecomposeReqFull_EnumerationStyle.Additive:
+      return "Additive";
+    case DecomposeReqFull_EnumerationStyle.Multiplicative:
+      return "Multiplicative";
+    case DecomposeReqFull_EnumerationStyle.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface DecomposeReqFull_ByName {
   /** name of function to decompose */
   name: string;
@@ -171,6 +204,12 @@ export interface DecomposeReqFull_LocalVarGet {
   name: string;
 }
 
+export interface DecomposeReqFull_Enumerate {
+  dF: DecomposeReqFull_Decomp | undefined;
+  ds: DecomposeReqFull_Decomp[];
+  style: DecomposeReqFull_EnumerationStyle;
+}
+
 /** The main description of what to decompose */
 export interface DecomposeReqFull_Decomp {
   fromArtifact?: Artifact | undefined;
@@ -181,6 +220,7 @@ export interface DecomposeReqFull_Decomp {
   combine?: DecomposeReqFull_Combine | undefined;
   get?: DecomposeReqFull_LocalVarGet | undefined;
   set?: DecomposeReqFull_LocalVarLet | undefined;
+  enumerate?: DecomposeReqFull_Enumerate | undefined;
 }
 
 /** Result of a decomposition */
@@ -1515,6 +1555,100 @@ export const DecomposeReqFull_LocalVarGet: MessageFns<DecomposeReqFull_LocalVarG
   },
 };
 
+function createBaseDecomposeReqFull_Enumerate(): DecomposeReqFull_Enumerate {
+  return { dF: undefined, ds: [], style: 0 };
+}
+
+export const DecomposeReqFull_Enumerate: MessageFns<DecomposeReqFull_Enumerate> = {
+  encode(message: DecomposeReqFull_Enumerate, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.dF !== undefined) {
+      DecomposeReqFull_Decomp.encode(message.dF, writer.uint32(10).fork()).join();
+    }
+    for (const v of message.ds) {
+      DecomposeReqFull_Decomp.encode(v!, writer.uint32(18).fork()).join();
+    }
+    if (message.style !== 0) {
+      writer.uint32(24).int32(message.style);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DecomposeReqFull_Enumerate {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDecomposeReqFull_Enumerate();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.dF = DecomposeReqFull_Decomp.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.ds.push(DecomposeReqFull_Decomp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.style = reader.int32() as any;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DecomposeReqFull_Enumerate {
+    return {
+      dF: isSet(object.dF) ? DecomposeReqFull_Decomp.fromJSON(object.dF) : undefined,
+      ds: globalThis.Array.isArray(object?.ds) ? object.ds.map((e: any) => DecomposeReqFull_Decomp.fromJSON(e)) : [],
+      style: isSet(object.style) ? decomposeReqFull_EnumerationStyleFromJSON(object.style) : 0,
+    };
+  },
+
+  toJSON(message: DecomposeReqFull_Enumerate): unknown {
+    const obj: any = {};
+    if (message.dF !== undefined) {
+      obj.dF = DecomposeReqFull_Decomp.toJSON(message.dF);
+    }
+    if (message.ds?.length) {
+      obj.ds = message.ds.map((e) => DecomposeReqFull_Decomp.toJSON(e));
+    }
+    if (message.style !== 0) {
+      obj.style = decomposeReqFull_EnumerationStyleToJSON(message.style);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DecomposeReqFull_Enumerate>, I>>(base?: I): DecomposeReqFull_Enumerate {
+    return DecomposeReqFull_Enumerate.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DecomposeReqFull_Enumerate>, I>>(object: I): DecomposeReqFull_Enumerate {
+    const message = createBaseDecomposeReqFull_Enumerate();
+    message.dF = (object.dF !== undefined && object.dF !== null)
+      ? DecomposeReqFull_Decomp.fromPartial(object.dF)
+      : undefined;
+    message.ds = object.ds?.map((e) => DecomposeReqFull_Decomp.fromPartial(e)) || [];
+    message.style = object.style ?? 0;
+    return message;
+  },
+};
+
 function createBaseDecomposeReqFull_Decomp(): DecomposeReqFull_Decomp {
   return {
     fromArtifact: undefined,
@@ -1525,6 +1659,7 @@ function createBaseDecomposeReqFull_Decomp(): DecomposeReqFull_Decomp {
     combine: undefined,
     get: undefined,
     set: undefined,
+    enumerate: undefined,
   };
 }
 
@@ -1553,6 +1688,9 @@ export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
     }
     if (message.set !== undefined) {
       DecomposeReqFull_LocalVarLet.encode(message.set, writer.uint32(90).fork()).join();
+    }
+    if (message.enumerate !== undefined) {
+      DecomposeReqFull_Enumerate.encode(message.enumerate, writer.uint32(98).fork()).join();
     }
     return writer;
   },
@@ -1628,6 +1766,14 @@ export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
           message.set = DecomposeReqFull_LocalVarLet.decode(reader, reader.uint32());
           continue;
         }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.enumerate = DecomposeReqFull_Enumerate.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1649,6 +1795,7 @@ export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
       combine: isSet(object.combine) ? DecomposeReqFull_Combine.fromJSON(object.combine) : undefined,
       get: isSet(object.get) ? DecomposeReqFull_LocalVarGet.fromJSON(object.get) : undefined,
       set: isSet(object.set) ? DecomposeReqFull_LocalVarLet.fromJSON(object.set) : undefined,
+      enumerate: isSet(object.enumerate) ? DecomposeReqFull_Enumerate.fromJSON(object.enumerate) : undefined,
     };
   },
 
@@ -1677,6 +1824,9 @@ export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
     }
     if (message.set !== undefined) {
       obj.set = DecomposeReqFull_LocalVarLet.toJSON(message.set);
+    }
+    if (message.enumerate !== undefined) {
+      obj.enumerate = DecomposeReqFull_Enumerate.toJSON(message.enumerate);
     }
     return obj;
   },
@@ -1709,6 +1859,9 @@ export const DecomposeReqFull_Decomp: MessageFns<DecomposeReqFull_Decomp> = {
       : undefined;
     message.set = (object.set !== undefined && object.set !== null)
       ? DecomposeReqFull_LocalVarLet.fromPartial(object.set)
+      : undefined;
+    message.enumerate = (object.enumerate !== undefined && object.enumerate !== null)
+      ? DecomposeReqFull_Enumerate.fromPartial(object.enumerate)
       : undefined;
     return message;
   },
