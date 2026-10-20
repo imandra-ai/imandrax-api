@@ -1,4 +1,5 @@
 from fractions import Fraction
+from functools import cached_property
 from typing import Any, assert_never
 
 import imandrax_api
@@ -569,11 +570,6 @@ class Task:
     def __init__(self, task: task_pb2.Task, client: imandrax_api.client.Client | None = None):
         self._raw: task_pb2.Task = task
         self._client: imandrax_api.client.Client | None = client
-        self._artifact: Artifact | None = None
-        self._result_artifact: Artifact | None = None
-        self._result: (
-            ProofObligationTaskResult | EvaluationTaskResult | DecompositionTaskResult | None
-        ) = None
 
     @property
     def id(self) -> TaskID:
@@ -585,62 +581,42 @@ class Task:
         """The task's kind"""
         return Task.Kind(self._raw.kind)
 
-    @property
-    def artifact(self) -> Artifact | None:
-        """The task's data, fetched from the server on first use"""
-        if self._artifact is not None:
-            return self._artifact
+    def _fetch_artifact(self, kind: str) -> Artifact:
         if self._client is None:
             raise NoClientError("cannot get artifact without a client")
 
-        art_req_res: api_pb2.ArtifactResult = self._client.get_artifact(
-            self._raw, self.kind.corresponding_artifact_kind()
-        )
+        art_req_res: api_pb2.ArtifactResult = self._client.get_artifact(self._raw, kind)
 
         match art_req_res.WhichOneof("result"):
             case "error":
                 raise Exception(f"{Error(art_req_res.error)}")
             case "ok":
-                self._artifact = Artifact(art_req_res.ok)
-                return self._artifact
+                return Artifact(art_req_res.ok)
             case _:
                 raise Exception("Artifact result has neither `error` nor `ok`")
 
-    @property
+    @cached_property
+    def artifact(self) -> Artifact:
+        """The task's data, fetched from the server on first use"""
+        return self._fetch_artifact(self.kind.corresponding_artifact_kind())
+
+    @cached_property
+    def _result_artifact(self) -> Artifact:
+        return self._fetch_artifact(self.kind.corresponding_result_artifact_kind())
+
+    @cached_property
     def result(self) -> ProofObligationTaskResult | EvaluationTaskResult | DecompositionTaskResult:
         """The task's result, fetched from the server on first use"""
-        if self._result is not None:
-            return self._result
-
-        if self._result_artifact is None:
-            if self._client is None:
-                raise NoClientError("cannot get artifact without a client")
-
-            art_req_res: api_pb2.ArtifactResult = self._client.get_artifact(
-                self._raw, self.kind.corresponding_result_artifact_kind()
-            )
-
-            match art_req_res.WhichOneof("result"):
-                case "error":
-                    raise Exception(f"{Error(art_req_res.error)}")
-                case "ok":
-                    self._result_artifact = Artifact(art_req_res.ok)
-                case _:
-                    raise Exception("Artifact result has neither `error` nor `ok`")
-
-        assert self._result_artifact
-
-        match self._result_artifact.kind:
+        artifact = self._result_artifact
+        match artifact.kind:
             case "po_res":
-                r = ProofObligationTaskResult(self._result_artifact)
+                return ProofObligationTaskResult(artifact)
             case "eval_res":
-                r = EvaluationTaskResult(self._result_artifact)
+                return EvaluationTaskResult(artifact)
             case "decomp_res":
-                r = DecompositionTaskResult(self._result_artifact)
+                return DecompositionTaskResult(artifact)
             case _:
-                raise Exception(f"Unexpected result artifact kind '{self._result_artifact.kind}'")
-        self._result = r
-        return r
+                raise Exception(f"Unexpected result artifact kind '{artifact.kind}'")
 
 
 class Tactic:
@@ -812,20 +788,13 @@ class ProofObligationTask(Task):
     def __init__(self, task: task_pb2.Task, client: imandrax_api.client.Client | None = None):
         assert task.kind == task_pb2.TASK_CHECK_PO
         super().__init__(task, client)
-        self._po_task_cache: lib.Tasks_PO_task_Mir | None = None
-        self._db: DB | None = None
 
-    @property
+    @cached_property
     def _po_task(self) -> lib.Tasks_PO_task_Mir:
-        if self._po_task_cache is None:
-            artifact = self.artifact
-            if artifact is None:
-                raise Exception("No task artifact available")
-            d = lib.read_artifact_data(artifact.data, artifact.kind)
-            if not (isinstance(d, lib.Tasks_PO_task_t_poly)):
-                raise Exception(f"Unexpected task artifact type '{type(d)}'")
-            self._po_task_cache = d
-        return self._po_task_cache
+        d = lib.read_artifact_data(self.artifact.data, self.artifact.kind)
+        if not (isinstance(d, lib.Tasks_PO_task_t_poly)):
+            raise Exception(f"Unexpected task artifact type '{type(d)}'")
+        return d
 
     @property
     def proof_obligation(self) -> ProofObligation:
@@ -842,15 +811,10 @@ class ProofObligationTask(Task):
         """Distinguishes proof obligations generated from the same symbol"""
         return self._po_task.count
 
-    @property
-    def db(self) -> DB | None:
+    @cached_property
+    def db(self) -> DB:
         """The database of declarations and rules the proof obligation is checked in"""
-        if self._db is None:
-            artifact = self.artifact
-            if artifact is None:
-                return None
-            self._db = DB(self._po_task.db, artifact.storage)
-        return self._db
+        return DB(self._po_task.db, self.artifact.storage)
 
 
 class EvaluationTask(Task):
@@ -859,19 +823,13 @@ class EvaluationTask(Task):
     def __init__(self, task: task_pb2.Task, client: imandrax_api.client.Client | None = None):
         assert task.kind == task_pb2.TASK_EVAL
         super().__init__(task, client)
-        self._eval_task_cache: lib.Tasks_Eval_task_Mir | None = None
 
-    @property
+    @cached_property
     def _eval_task(self) -> lib.Tasks_Eval_task_Mir:
-        if self._eval_task_cache is None:
-            artifact = self.artifact
-            if artifact is None:
-                raise Exception("No task artifact available")
-            d = lib.read_artifact_data(artifact.data, artifact.kind)
-            if not (isinstance(d, lib.Tasks_Eval_task_t_poly)):
-                raise Exception(f"Unexpected task artifact type '{type(d)}'")
-            self._eval_task_cache = d
-        return self._eval_task_cache
+        d = lib.read_artifact_data(self.artifact.data, self.artifact.kind)
+        if not (isinstance(d, lib.Tasks_Eval_task_t_poly)):
+            raise Exception(f"Unexpected task artifact type '{type(d)}'")
+        return d
 
     @property
     def variables(self) -> list[Var]:
@@ -1142,19 +1100,13 @@ class DecompositionTask(Task):
     def __init__(self, task: task_pb2.Task, client: imandrax_api.client.Client | None = None):
         assert task.kind == task_pb2.TASK_DECOMP
         super().__init__(task, client)
-        self._decomp_task_cache: lib.Tasks_Decomp_task_Mir | None = None
 
-    @property
+    @cached_property
     def _decomp_task(self) -> lib.Tasks_Decomp_task_Mir:
-        if self._decomp_task_cache is None:
-            artifact = self.artifact
-            if artifact is None:
-                raise Exception("No task artifact available")
-            d = lib.read_artifact_data(artifact.data, artifact.kind)
-            if not (isinstance(d, lib.Tasks_Decomp_task_t_poly)):
-                raise Exception(f"Unexpected task artifact type '{type(d)}'")
-            self._decomp_task_cache = d
-        return self._decomp_task_cache
+        d = lib.read_artifact_data(self.artifact.data, self.artifact.kind)
+        if not (isinstance(d, lib.Tasks_Decomp_task_t_poly)):
+            raise Exception(f"Unexpected task artifact type '{type(d)}'")
+        return d
 
     @property
     def decomp(self) -> DecompositionRequest.Request:
@@ -1220,14 +1172,11 @@ class ProofObligationResult:
     def __init__(self, po_result: simple_api_pb2.PO_Res, client: imandrax_api.client.Client | None = None):
         self._raw: simple_api_pb2.PO_Res = po_result
         self._client: imandrax_api.client.Client | None = client
-        self._task: Task | None = None
 
-    @property
+    @cached_property
     def task(self) -> Task:
         """The proof obligation's task"""
-        if self._task is None:
-            self._task = task_of_raw(self._raw.task, client=self._client)
-        return self._task
+        return task_of_raw(self._raw.task, client=self._client)
 
     @property
     def origin(self) -> Origin:
@@ -1258,7 +1207,6 @@ class DecompositionResult:
     def __init__(self, decomp_result: simple_api_pb2.DecomposeRes, client: imandrax_api.client.Client | None = None):
         self._raw: simple_api_pb2.DecomposeRes = decomp_result
         self._client: imandrax_api.client.Client | None = client
-        self._task: Task | None = None
 
     @property
     def artifact(self) -> Artifact | None:
@@ -1266,12 +1214,10 @@ class DecompositionResult:
         if self._raw.WhichOneof("res") != "artifact": return None
         return Artifact(self._raw.artifact)
 
-    @property
+    @cached_property
     def task(self) -> Task:
         """The decomposition task"""
-        if self._task is None:
-            self._task = task_of_raw(self._raw.task, client=self._client)
-        return self._task
+        return task_of_raw(self._raw.task, client=self._client)
 
     @property
     def errors(self) -> list[Error]:
@@ -1307,7 +1253,6 @@ class EvalSrcResponse:
     def __init__(self, res: simple_api_pb2.EvalRes, client: imandrax_api.client.Client | None = None):
         self._raw: simple_api_pb2.EvalRes = res
         self._client: imandrax_api.client.Client | None = client
-        self._tasks: list[Task] | None = None
 
     def __str__(self) -> str:
         return f"{self._raw}"
@@ -1327,12 +1272,10 @@ class EvalSrcResponse:
         """Errors reported while processing the source"""
         return [Error(e) for e in self._raw.errors]
 
-    @property
+    @cached_property
     def tasks(self) -> list[Task]:
         """The tasks created while processing the source"""
-        if self._tasks is None:
-            self._tasks = [task_of_raw(t, client=self._client) for t in self._raw.tasks]
-        return self._tasks
+        return [task_of_raw(t, client=self._client) for t in self._raw.tasks]
 
     @property
     def po_results(self) -> list[ProofObligationResult]:
