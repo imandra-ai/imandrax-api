@@ -2,7 +2,7 @@ import base64
 import re
 
 from collections.abc import Callable, Iterable, Iterator, Sized
-from typing import Never, override
+from typing import Never, assert_never, override
 
 from imandrax_api import lib
 
@@ -43,6 +43,8 @@ class Uid:
                 match gen_kind:
                     case lib.Uid_gen_kind_To_be_rewritten():
                         suffix = "[temp]"
+                    case lib.Uid_gen_kind_Local():
+                        pass
                 return f"{self._raw.name}/{id}{suffix}"
             case lib.Uid_view_Cname(cname):
                 return f"{self._raw.name}/{base64.b64encode(cname.chash).decode()}"
@@ -108,7 +110,7 @@ class TypeVariable(Type):
         self._raw: lib.Mir_Type = x
 
     @property
-    def _view(self) -> lib.Ty_view_view_Var:
+    def _view(self) -> lib.Ty_view_view_Var[None, lib.Mir_Type_var, lib.Mir_Type]:
         assert isinstance(self._raw.view, lib.Ty_view_view_Var)
         return self._raw.view
 
@@ -125,7 +127,7 @@ class ArrowType(Type):
         self._raw: lib.Mir_Type = x
 
     @property
-    def _view(self) -> lib.Ty_view_view_Arrow:
+    def _view(self) -> lib.Ty_view_view_Arrow[None, lib.Mir_Type_var, lib.Mir_Type]:
         assert isinstance(self._raw.view, lib.Ty_view_view_Arrow)
         return self._raw.view
 
@@ -144,7 +146,7 @@ class ConstructedType(Type):
         self._raw: lib.Mir_Type = x
 
     @property
-    def _view(self) -> lib.Ty_view_view_Constr:
+    def _view(self) -> lib.Ty_view_view_Constr[None, lib.Mir_Type_var, lib.Mir_Type]:
         assert isinstance(self._raw.view, lib.Ty_view_view_Constr)
         return self._raw.view
 
@@ -169,7 +171,7 @@ class TypedSymbol:
         return Uid(self._raw.id)
 
     @property
-    def type_schema(self) -> lib.Common_Type_schema_t_poly:
+    def type_schema(self) -> lib.Mir_Type_schema:
         """The symbol's type schema"""
         return self._raw.ty
 
@@ -269,7 +271,7 @@ def term_of_lib(x: lib.Mir_Term) -> Term:
         case lib.Mir_Term_view_Sequence():
             return Sequence(x)
         case _:
-            raise Exception("Unknown MIR term view")
+            assert_never(x.view)
 
 
 def _name(s: lib.Mir_Applied_symbol) -> str:

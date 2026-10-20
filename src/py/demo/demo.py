@@ -8,11 +8,11 @@ from interface import *
 
 def main():
     try:
-        API_KEY = os.environ.get("IMANDRAX_API_KEY")
-        if API_KEY is None:
-            API_KEY = Path("~/.config/imandrax/api_key").expanduser().read_text()
+        api_key = os.environ.get("IMANDRAX_API_KEY")
+        if api_key is None:
+            api_key = Path("~/.config/imandrax/api_key").expanduser().read_text()
 
-        c = Client(url=imandrax_api.client.url_dev, api_key=API_KEY)
+        c = Client(url=imandrax_api.client.url_dev, api_key=api_key)
 
         status = str(c.status()).strip()
         if status != 'msg: "OK"':
@@ -55,6 +55,7 @@ instance (fun (xs: int list) (y : int) -> f xs <> List.map (fun x -> x + y) xs)
                                 match subterm:
                                     case Apply(function=Symbol() as s):
                                         functions.add(s.symbol.id)
+                                    case _:
                                         pass
                             print(f"  Functions in goal: {functions}")
 
@@ -76,6 +77,9 @@ instance (fun (xs: int list) (y : int) -> f xs <> List.map (fun x -> x + y) xs)
 
                     case DecompositionTask():
                         print(f"  Request: {t.decomp}")
+
+                    case _:
+                        pass
 
                 # Every task has a result
                 task_result = t.result

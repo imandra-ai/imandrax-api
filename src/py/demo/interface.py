@@ -1,5 +1,5 @@
 from fractions import Fraction
-from typing import Any
+from typing import Any, assert_never
 
 import imandrax_api
 from imandrax_api import lib
@@ -105,7 +105,7 @@ class Artifact:
 class FunctionInterpretation:
     """The interpretation of a function in a model: a table of cases"""
 
-    def __init__(self, x: lib.Common_Model_fi):
+    def __init__(self, x: lib.Common_Model_fi[lib.Mir_Term, lib.Mir_Type]):
         self._raw = x
 
     @property
@@ -132,14 +132,14 @@ class FunctionInterpretation:
 class TypeInterpretation:
     """The interpretation of a type in a model"""
 
-    def __init__(self, x: lib.Common_Model_ty_def):
+    def __init__(self, x: lib.Common_Model_ty_def[lib.Mir_Term, lib.Mir_Type]):
         self._raw = x
 
 
 class Model:
     """A model, e.g. a counter-model or an instance"""
 
-    def __init__(self, x: lib.Common_Model_t_poly):
+    def __init__(self, x: lib.Mir_Model):
         self._raw = x
 
     @property
@@ -167,7 +167,7 @@ class ProofObligationTaskResult:
     class Subresult:
         """The result for one subgoal of a proof obligation"""
 
-        def __init__(self, sr: lib.Tasks_PO_res_sub_res):
+        def __init__(self, sr: lib.Tasks_PO_res_sub_res[lib.Mir_Term]):
             self._raw = sr
 
         @property
@@ -197,7 +197,7 @@ class ProofObligationTaskResult:
         d = lib.read_artifact_data(artifact.data, artifact.kind)
         if not (isinstance(d, lib.Tasks_PO_res_shallow_poly)):
             raise Exception(f"Unexpected result type '{type(d)}'")
-        self._data: lib.Tasks_PO_res_shallow_poly = d
+        self._data: lib.Tasks_PO_res_Shallow = d
 
     @property
     def from_(self) -> str:
@@ -239,7 +239,7 @@ class ProofObligationTaskResult:
                 return None
 
     @property
-    def proof(self) -> lib.Proof_Proof_term_t_poly | None:
+    def proof(self) -> lib.Proof_Proof_term_t_poly[lib.Mir_Term, lib.Mir_Type] | None:
         """The proof term, if a proof was found"""
         match self._data.res:
             case lib.Tasks_PO_res_success_Proof(x):
@@ -268,7 +268,9 @@ class ProofObligationTaskResult:
                 return None
 
     @property
-    def result(self) -> lib.Tasks_PO_res_result:
+    def result(self) -> lib.Tasks_PO_res_result[
+        lib.Tasks_PO_res_success[lib.Mir_Term, lib.Mir_Type], lib.Mir_Term, lib.Mir_Type
+    ]:
         """The result as returned by the library"""
         return self._data.res
 
@@ -321,8 +323,6 @@ class EvaluationTaskResult:
         return self._data.stats
 
     def __str__(self) -> str:
-        if self.value is None:
-            return "None"
         return str(self.value)
 
 
@@ -346,7 +346,7 @@ class Decomposition:
                 | list[Decomposition.Region.Meta.Value]
             )
 
-            def __init__(self, m: lib.Common_Region_meta):
+            def __init__(self, m: lib.Common_Region_meta[lib.Mir_Term]):
                 self._raw = m
 
             @property
@@ -370,7 +370,7 @@ class Decomposition:
                     case lib.Common_Region_meta_List(arg=xs):
                         return [Decomposition.Region.Meta(x).value for x in xs]
 
-        def __init__(self, r: lib.Common_Region_t_poly):
+        def __init__(self, r: lib.Mir_Region_Region):
             self._raw = r
 
         @property
@@ -384,12 +384,12 @@ class Decomposition:
             return term_of_lib(self._raw.invariant)
 
         @property
-        def meta(self) -> dict[str, lib.Common_Region_meta]:
+        def meta(self) -> dict[str, lib.Common_Region_meta[lib.Mir_Term]]:
             """Metadata attached to the region, by name"""
             return {k: v for k, v in self._raw.meta}
 
         @property
-        def status(self) -> lib.Common_Region_status:
+        def status(self) -> lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type]:
             """Whether the region is known to be feasible"""
             return self._raw.status
 
@@ -407,7 +407,7 @@ class Decomposition:
         def __repr__(self) -> str:
             return f"{type(self).__name__}({self})"
 
-    def __init__(self, d: lib.Common_Fun_decomp_t_poly):
+    def __init__(self, d: lib.Mir_Fun_decomp):
         self._raw = d
 
     @property
@@ -439,7 +439,7 @@ class DecompositionTaskResult:
         d = lib.read_artifact_data(artifact.data, artifact.kind)
         if not (isinstance(d, lib.Tasks_Decomp_res_shallow_poly)):
             raise Exception(f"Unexpected result type '{type(d)}'")
-        self._data: lib.Tasks_Decomp_res_shallow_poly = d
+        self._data: lib.Tasks_Decomp_res_Shallow = d
 
     @property
     def from_(self) -> str:
@@ -447,7 +447,7 @@ class DecompositionTaskResult:
         return self._data.from_.key
 
     @property
-    def _result(self) -> lib.Tasks_Decomp_res_result:
+    def _result(self) -> lib.Tasks_Decomp_res_result[lib.Tasks_Decomp_res_success[lib.Mir_Term, lib.Mir_Type]]:
         return self._data.res
 
     @property
@@ -566,7 +566,7 @@ class Task:
                 case _:
                     return "unknown"
 
-    def __init__(self, task: task_pb2.Task, client=None):
+    def __init__(self, task: task_pb2.Task, client: imandrax_api.client.Client | None = None):
         self._raw: task_pb2.Task = task
         self._client: imandrax_api.client.Client | None = client
         self._artifact: Artifact | None = None
@@ -603,6 +603,8 @@ class Task:
             case "ok":
                 self._artifact = Artifact(art_req_res.ok)
                 return self._artifact
+            case _:
+                raise Exception("Artifact result has neither `error` nor `ok`")
 
     @property
     def result(self) -> ProofObligationTaskResult | EvaluationTaskResult | DecompositionTaskResult:
@@ -623,6 +625,8 @@ class Task:
                     raise Exception(f"{Error(art_req_res.error)}")
                 case "ok":
                     self._result_artifact = Artifact(art_req_res.ok)
+                case _:
+                    raise Exception("Artifact result has neither `error` nor `ok`")
 
         assert self._result_artifact
 
@@ -642,7 +646,7 @@ class Task:
 class Tactic:
     """A tactic used to discharge a proof obligation"""
 
-    def __init__(self, t: lib.Common_Tactic_t_poly):
+    def __init__(self, t: lib.Mir_Tactic):
         self._raw = t
 
     def __str__(self) -> str:
@@ -655,7 +659,7 @@ class Tactic:
 class DefaultTerminationTactic(Tactic):
     """The default tactic for termination proofs"""
 
-    def __init__(self, t: lib.Common_Tactic_t_poly_Default_termination):
+    def __init__(self, t: lib.Common_Tactic_t_poly_Default_termination[lib.Mir_Term, lib.Mir_Type]):
         self._raw = t
 
     @property
@@ -676,7 +680,7 @@ class DefaultTerminationTactic(Tactic):
 class DefaultTheoremTactic(Tactic):
     """The default tactic for theorems"""
 
-    def __init__(self, t: lib.Common_Tactic_t_poly_Default_thm):
+    def __init__(self, t: lib.Common_Tactic_t_poly_Default_thm[lib.Mir_Term, lib.Mir_Type]):
         self._raw = t
 
     @property
@@ -697,7 +701,7 @@ class DefaultTheoremTactic(Tactic):
 class DefaultTestTactic(Tactic):
     """The default tactic for tests"""
 
-    def __init__(self, t: lib.Common_Tactic_t_poly_Default_test):
+    def __init__(self, t: lib.Common_Tactic_t_poly_Default_test[lib.Mir_Term, lib.Mir_Type]):
         self._raw = t
 
     @property
@@ -717,7 +721,7 @@ class DefaultTestTactic(Tactic):
 class TermTactic(Tactic):
     """A tactic given as a term"""
 
-    def __init__(self, t: lib.Common_Tactic_t_poly_Term):
+    def __init__(self, t: lib.Common_Tactic_t_poly_Term[lib.Mir_Term, lib.Mir_Type]):
         self._raw = t
 
     @property
@@ -734,7 +738,7 @@ class TermTactic(Tactic):
         return str(self.term)
 
 
-def tactic_of_lib(t: lib.Common_Tactic_t_poly) -> Tactic:
+def tactic_of_lib(t: lib.Mir_Tactic) -> Tactic:
     """Wrap a library tactic in the matching `Tactic` subclass"""
     match t:
         case lib.Common_Tactic_t_poly_Default_termination():
@@ -746,13 +750,13 @@ def tactic_of_lib(t: lib.Common_Tactic_t_poly) -> Tactic:
         case lib.Common_Tactic_t_poly_Term():
             return TermTactic(t)
         case _:
-            raise Exception("Unknown tactic")
+            assert_never(t)
 
 
 class ProofObligation:
     """A proof obligation: a goal to prove and the tactic to use"""
 
-    def __init__(self, po: lib.Common_Proof_obligation_t_poly):
+    def __init__(self, po: lib.Mir_Proof_obligation):
         self._raw = po
 
     @property
@@ -805,14 +809,14 @@ class ProofObligation:
 class ProofObligationTask(Task):
     """A proof obligation task"""
 
-    def __init__(self, task: task_pb2.Task, client=None):
+    def __init__(self, task: task_pb2.Task, client: imandrax_api.client.Client | None = None):
         assert task.kind == task_pb2.TASK_CHECK_PO
         super().__init__(task, client)
-        self._po_task_cache: lib.Tasks_PO_task_t_poly | None = None
+        self._po_task_cache: lib.Tasks_PO_task_Mir | None = None
         self._db: DB | None = None
 
     @property
-    def _po_task(self) -> lib.Tasks_PO_task_t_poly:
+    def _po_task(self) -> lib.Tasks_PO_task_Mir:
         if self._po_task_cache is None:
             artifact = self.artifact
             if artifact is None:
@@ -852,13 +856,13 @@ class ProofObligationTask(Task):
 class EvaluationTask(Task):
     """An evaluation task"""
 
-    def __init__(self, task: task_pb2.Task, client=None):
+    def __init__(self, task: task_pb2.Task, client: imandrax_api.client.Client | None = None):
         assert task.kind == task_pb2.TASK_EVAL
         super().__init__(task, client)
-        self._eval_task_cache = None
+        self._eval_task_cache: lib.Tasks_Eval_task_Mir | None = None
 
     @property
-    def _eval_task(self) -> lib.Tasks_Eval_task_t_poly:
+    def _eval_task(self) -> lib.Tasks_Eval_task_Mir:
         if self._eval_task_cache is None:
             artifact = self.artifact
             if artifact is None:
@@ -907,7 +911,7 @@ class DecompositionRequest:
     class Function(Request):
         """Decompose a function"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Decomp):
+        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Decomp[lib.Mir_Term, lib.Mir_Type]):
             self._raw = d
 
         @property
@@ -954,7 +958,7 @@ class DecompositionRequest:
     class Term(Request):
         """Decompose a term"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Term):
+        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Term[lib.Mir_Term, lib.Mir_Type]):
             self._raw = d
 
         @property
@@ -968,7 +972,7 @@ class DecompositionRequest:
     class Return(Request):
         """An already computed decomposition, returned as is (e.g. as a base case of a merge)"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Return):
+        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Return[lib.Mir_Term, lib.Mir_Type]):
             self._raw = d
 
         @property
@@ -982,7 +986,7 @@ class DecompositionRequest:
     class Prune(Request):
         """Prune the infeasible regions of a decomposition"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Prune):
+        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Prune[lib.Mir_Term, lib.Mir_Type]):
             self._raw = d
 
         @property
@@ -996,7 +1000,7 @@ class DecompositionRequest:
     class Merge(Request):
         """Merge two decompositions"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Merge):
+        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Merge[lib.Mir_Term, lib.Mir_Type]):
             self._raw = d
 
         @property
@@ -1015,7 +1019,7 @@ class DecompositionRequest:
     class CompoundMerge(Request):
         """Compound-merge two decompositions"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Compound_merge):
+        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Compound_merge[lib.Mir_Term, lib.Mir_Type]):
             self._raw = d
 
         @property
@@ -1034,7 +1038,7 @@ class DecompositionRequest:
     class Combine(Request):
         """Combine the regions of a decomposition"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Combine):
+        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Combine[lib.Mir_Term, lib.Mir_Type]):
             self._raw = d
 
         @property
@@ -1048,7 +1052,7 @@ class DecompositionRequest:
     class Get(Request):
         """A decomposition bound by name in an enclosing `Let`"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Get):
+        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Get[lib.Mir_Term, lib.Mir_Type]):
             self._raw = d
 
         @property
@@ -1062,7 +1066,7 @@ class DecompositionRequest:
     class Let(Request):
         """Bind decompositions to names, for use (via `Get`) in `and_then`"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Let):
+        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Let[lib.Mir_Term, lib.Mir_Type]):
             self._raw = d
 
         @property
@@ -1082,7 +1086,7 @@ class DecompositionRequest:
     class Enumerate(Request):
         """Enumerate the decomposition `d_f` over the decompositions `ds`"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Enumerate):
+        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Enumerate[lib.Mir_Term, lib.Mir_Type]):
             self._raw = d
 
         @property
@@ -1105,7 +1109,7 @@ class DecompositionRequest:
             return f"enumerate ({self.d_f}) [{ds}]"
 
 
-def decomp_request_of_lib(d: lib.Tasks_Decomp_task_decomp_poly) -> DecompositionRequest.Request:
+def decomp_request_of_lib(d: lib.Tasks_Decomp_task_Mir_decomp) -> DecompositionRequest.Request:
     """Wrap a library decomposition request in the matching `Request` subclass"""
     match d:
         case lib.Tasks_Decomp_task_decomp_poly_Decomp():
@@ -1129,19 +1133,19 @@ def decomp_request_of_lib(d: lib.Tasks_Decomp_task_decomp_poly) -> Decomposition
         case lib.Tasks_Decomp_task_decomp_poly_Enumerate():
             return DecompositionRequest.Enumerate(d)
         case _:
-            raise Exception("Unknown decomposition request")
+            assert_never(d)
 
 
 class DecompositionTask(Task):
     """A decomposition task"""
 
-    def __init__(self, task: task_pb2.Task, client=None):
+    def __init__(self, task: task_pb2.Task, client: imandrax_api.client.Client | None = None):
         assert task.kind == task_pb2.TASK_DECOMP
         super().__init__(task, client)
-        self._decomp_task_cache: lib.Tasks_Decomp_task_t_poly | None = None
+        self._decomp_task_cache: lib.Tasks_Decomp_task_Mir | None = None
 
     @property
-    def _decomp_task(self) -> lib.Tasks_Decomp_task_t_poly:
+    def _decomp_task(self) -> lib.Tasks_Decomp_task_Mir:
         if self._decomp_task_cache is None:
             artifact = self.artifact
             if artifact is None:
@@ -1171,13 +1175,13 @@ class DecompositionTask(Task):
 class ProofCheckTask(Task):
     """A proof checking task"""
 
-    def __init__(self, task: task_pb2.Task, client=None):
+    def __init__(self, task: task_pb2.Task, client: imandrax_api.client.Client | None = None):
         assert task.kind == task_pb2.TASK_PROOF_CHECK
         super().__init__(task, client)
 
 
 def task_of_raw(
-    t: task_pb2.Task, client
+    t: task_pb2.Task, client: imandrax_api.client.Client | None
 ) -> ProofObligationTask | EvaluationTask | DecompositionTask | Task:
     """Wrap a task in the matching `Task` subclass"""
     match t.kind:
@@ -1213,7 +1217,7 @@ class Origin:
 class ProofObligationResult:
     """A proof obligation result in an `eval_src` response"""
 
-    def __init__(self, po_result: simple_api_pb2.PO_Res, client=None):
+    def __init__(self, po_result: simple_api_pb2.PO_Res, client: imandrax_api.client.Client | None = None):
         self._raw: simple_api_pb2.PO_Res = po_result
         self._client: imandrax_api.client.Client | None = client
         self._task: Task | None = None
@@ -1251,7 +1255,7 @@ class EvaluationResult:
 class DecompositionResult:
     """The result of a decomposition request"""
 
-    def __init__(self, decomp_result: simple_api_pb2.DecomposeRes, client=None):
+    def __init__(self, decomp_result: simple_api_pb2.DecomposeRes, client: imandrax_api.client.Client | None = None):
         self._raw: simple_api_pb2.DecomposeRes = decomp_result
         self._client: imandrax_api.client.Client | None = client
         self._task: Task | None = None
@@ -1300,7 +1304,7 @@ class EvalOutput:
 class EvalSrcResponse:
     """The response to an `eval_src` request"""
 
-    def __init__(self, res: simple_api_pb2.EvalRes, client=None):
+    def __init__(self, res: simple_api_pb2.EvalRes, client: imandrax_api.client.Client | None = None):
         self._raw: simple_api_pb2.EvalRes = res
         self._client: imandrax_api.client.Client | None = client
         self._tasks: list[Task] | None = None
