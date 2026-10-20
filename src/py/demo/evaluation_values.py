@@ -87,7 +87,7 @@ class Constructor(Value):
         descriptor, args = v.args
         self.name: str = descriptor.cd_name.name
         self.index: int = descriptor.cd_idx
-        self.args: list[Value] = [of_lib(a.v) for a in args]
+        self.args: list[Value] = [value_of_lib(a.v) for a in args]
 
     @override
     def __str__(self) -> str:
@@ -102,7 +102,7 @@ class Tuple(Value):
     def __init__(
         self, v: lib.Eval_Value_view_V_tuple[lib.Eval_Value, lib.Eval_Value_erased_closure]
     ):
-        self.elements: list[Value] = [of_lib(e.v) for e in v.arg]
+        self.elements: list[Value] = [value_of_lib(e.v) for e in v.arg]
 
     @override
     def __str__(self) -> str:
@@ -118,7 +118,7 @@ class Record(Value):
         descriptor, values = v.args
         self.name: str = descriptor.rd_name.name
         self.fields: dict[str, Value] = {
-            f.name: of_lib(x.v) for f, x in zip(descriptor.rd_fields, values)
+            f.name: value_of_lib(x.v) for f, x in zip(descriptor.rd_fields, values)
         }
 
     @override
