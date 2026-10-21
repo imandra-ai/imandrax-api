@@ -6,6 +6,10 @@ url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
 url_prod = "https://api.imandra.ai/internal/imandrax/"
 
 
+class ClientClosedError(Exception):
+    """A request was made on a client that has already been closed"""
+
+
 def mk_context() -> Context:
     """Build a request context with the appropriate headers"""
     return Context(headers={"x-api-version": api_types_version.api_types_version})
