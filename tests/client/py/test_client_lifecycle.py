@@ -12,7 +12,7 @@ import asyncio
 from typing import Any
 
 import imandrax_api.client as sync_client_mod
-from imandrax_api.client import Client
+from imandrax_api.client import Client, ClientClosedError
 from imandrax_api.client._async import AsyncClient
 
 URL = "http://127.0.0.1:1"
@@ -158,3 +158,47 @@ def test_sync_end_session_failure_closes_transport(monkeypatch: Any) -> None:
 
     assert c._closed
     assert created and created[-1].was_closed
+
+
+def test_async_closed_client_raises() -> None:
+    async def end_ok(**_: Any) -> None:
+        pass
+
+    async def go() -> None:
+        c = AsyncClient(url=URL)
+        c._client.create_session = _create_ok
+        c._client.end_session = end_ok
+        async with c:
+            pass
+        try:
+            await c.status()
+        except ClientClosedError:
+            pass
+        else:
+            raise AssertionError("a closed client should refuse requests")
+
+    asyncio.run(go())
+
+
+def test_sync_closed_client_raises(monkeypatch: Any) -> None:
+    created = _record_sessions(monkeypatch)
+    monkeypatch.setattr(
+        sync_client_mod.simple_api_twirp.SimpleClient,
+        "create_session",
+        _create_sesh,
+    )
+    monkeypatch.setattr(
+        sync_client_mod.simple_api_twirp.SimpleClient, "end_session", _create_sesh
+    )
+
+    with Client(url=URL) as c:
+        pass
+    assert created and created[-1].was_closed
+
+    # `requests` would silently reopen a connection; the client must not
+    try:
+        c.status()
+    except ClientClosedError:
+        pass
+    else:
+        raise AssertionError("a closed client should refuse requests")
