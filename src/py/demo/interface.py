@@ -1,10 +1,11 @@
+# pyright: reportPrivateUsage=false
+from collections.abc import Awaitable
 from fractions import Fraction
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, assert_never, override
+from typing import TYPE_CHECKING, Any, Self, assert_never, overload
 
 import imandrax_api
 from imandrax_api import lib
-from imandrax_api.client import Client as Client_
 
 from imandrax_api.bindings import error_pb2, locs_pb2, task_pb2, artmsg_pb2, api_pb2, simple_api_pb2
 
@@ -13,13 +14,11 @@ from evaluation_values import Value, value_of_lib
 from mir import *
 
 if TYPE_CHECKING:
-    from imandrax_api.client import AsyncClient
-
-type AnyClient = Client_ | AsyncClient
+    from imandrax_api.client import AsyncClient as AsyncClient_
 
 
-class NoClientError(Exception):
-    """No API client available"""
+class NotFetchedError(Exception):
+    """Task data was accessed before it was fetched with `Task.fetch`"""
 
 
 class Error:
@@ -529,9 +528,8 @@ class TaskID:
         return self._raw.id
 
 
-class TaskHandle:
-    """A handle to a task run by the server, e.g. a proof obligation, evaluation or
-    decomposition; the `fetch_*` methods fetch its data and result"""
+class Task:
+    """A task run by the server, e.g. a proof obligation, evaluation or decomposition"""
 
     class Kind:
         """The kind of a task"""
@@ -574,9 +572,9 @@ class TaskHandle:
                 case _:
                     return "unknown"
 
-    def __init__(self, task: task_pb2.Task, client: AnyClient | None = None):
+    def __init__(self, task: task_pb2.Task):
         self._raw: task_pb2.Task = task
-        self._client: AnyClient | None = client
+        self._artifact: Artifact | None = None
 
     @property
     def id(self) -> TaskID:
@@ -586,31 +584,52 @@ class TaskHandle:
     @property
     def kind(self) -> Kind:
         """The task's kind"""
-        return TaskHandle.Kind(self._raw.kind)
+        return Task.Kind(self._raw.kind)
 
-    def _fetch_artifact(self, kind: str, method: str) -> Artifact:
-        if self._client is None:
-            raise NoClientError("cannot fetch an artifact without a client")
-        if not isinstance(self._client, Client_):
-            raise Exception(f"the task has an async client; use `await {method}_async()`")
-        return _artifact_of_result(self._client.get_artifact(self._raw, kind))
+    @property
+    def artifact(self) -> Artifact:
+        """The task's data; raises `NotFetchedError` until fetched with `fetch`"""
+        if self._artifact is None:
+            raise NotFetchedError(f"task {self.id} not fetched; call `fetch(client)` first")
+        return self._artifact
 
-    async def _fetch_artifact_async(self, kind: str, method: str) -> Artifact:
-        if self._client is None:
-            raise NoClientError("cannot fetch an artifact without a client")
-        if isinstance(self._client, Client_):
-            raise Exception(f"the task has a sync client; use `{method}()`")
-        return _artifact_of_result(await self._client.get_artifact(self._raw, kind))
+    @overload
+    def fetch(self, client: "Client") -> Self: ...
+    @overload
+    def fetch(self, client: "AsyncClient") -> Awaitable[Self]: ...
+    def fetch(self, client: "Client | AsyncClient") -> Self | Awaitable[Self]:
+        """Fetch the task's data from the server, unless already fetched; returns the task"""
+        kind = self.kind.corresponding_artifact_kind()
+        if isinstance(client, Client):
+            if self._artifact is None:
+                art_req_res = client._client.get_artifact(self._raw, kind)
+                self._artifact = _artifact_of_result(art_req_res)
+            return self
 
-    def fetch_result(self) -> "TaskResult":
+        async def fetch_async() -> Self:
+            if self._artifact is None:
+                art_req_res = await client._client.get_artifact(self._raw, kind)
+                self._artifact = _artifact_of_result(art_req_res)
+            return self
+
+        return fetch_async()
+
+    @overload
+    def fetch_result(self, client: "Client") -> "TaskResult": ...
+    @overload
+    def fetch_result(self, client: "AsyncClient") -> Awaitable["TaskResult"]: ...
+    def fetch_result(self, client: "Client | AsyncClient") -> "TaskResult | Awaitable[TaskResult]":
         """Fetch the task's result from the server"""
         kind = self.kind.corresponding_result_artifact_kind()
-        return _task_result_of_artifact(self._fetch_artifact(kind, "fetch_result"))
+        if isinstance(client, Client):
+            art_req_res = client._client.get_artifact(self._raw, kind)
+            return _task_result_of_artifact(_artifact_of_result(art_req_res))
 
-    async def fetch_result_async(self) -> "TaskResult":
-        """Fetch the task's result from the server"""
-        kind = self.kind.corresponding_result_artifact_kind()
-        return _task_result_of_artifact(await self._fetch_artifact_async(kind, "fetch_result"))
+        async def fetch_result_async() -> TaskResult:
+            art_req_res = await client._client.get_artifact(self._raw, kind)
+            return _task_result_of_artifact(_artifact_of_result(art_req_res))
+
+        return fetch_result_async()
 
 
 type TaskResult = ProofObligationTaskResult | EvaluationTaskResult | DecompositionTaskResult
@@ -801,125 +820,81 @@ class ProofObligation:
         return [(n, term_of_lib(t)) for (n, t) in self._raw.named_hypotheses]
 
 
-class ProofObligationTask:
+class ProofObligationTask(Task):
     """A proof obligation task"""
 
-    def __init__(self, artifact: Artifact):
-        if artifact.kind != "po_task":
-            raise Exception(f"Unexpected artifact kind '{artifact.kind}'")
-        self._artifact: Artifact = artifact
-        d = lib.read_artifact_data(artifact.data, artifact.kind)
+    def __init__(self, task: task_pb2.Task):
+        assert task.kind == task_pb2.TASK_CHECK_PO
+        super().__init__(task)
+
+    @cached_property
+    def _po_task(self) -> lib.Tasks_PO_task_Mir:
+        d = lib.read_artifact_data(self.artifact.data, self.artifact.kind)
         if not (isinstance(d, lib.Tasks_PO_task_t_poly)):
             raise Exception(f"Unexpected task artifact type '{type(d)}'")
-        self._data: lib.Tasks_PO_task_Mir = d
+        return d
 
     @property
     def proof_obligation(self) -> ProofObligation:
         """The proof obligation to check"""
-        return ProofObligation(self._data.po)
+        return ProofObligation(self._po_task.po)
 
     @property
     def from_sym(self) -> str:
         """The symbol the proof obligation was generated from"""
-        return self._data.from_sym
+        return self._po_task.from_sym
 
     @property
     def count(self) -> int | None:
         """Distinguishes proof obligations generated from the same symbol"""
-        return self._data.count
+        return self._po_task.count
 
     @cached_property
     def db(self) -> DB:
         """The database of declarations and rules the proof obligation is checked in"""
-        return DB(self._data.db, self._artifact.storage)
+        return DB(self._po_task.db, self.artifact.storage)
 
 
-class ProofObligationTaskHandle(TaskHandle):
-    """A handle to a proof obligation task on the server"""
-
-    def __init__(self, task: task_pb2.Task, client: AnyClient | None = None):
-        assert task.kind == task_pb2.TASK_CHECK_PO
-        super().__init__(task, client)
-
-    def fetch_task(self) -> ProofObligationTask:
-        """Fetch the task's data from the server"""
-        return ProofObligationTask(self._fetch_artifact("po_task", "fetch_task"))
-
-    async def fetch_task_async(self) -> ProofObligationTask:
-        """Fetch the task's data from the server"""
-        return ProofObligationTask(await self._fetch_artifact_async("po_task", "fetch_task"))
-
-    @override
-    def fetch_result(self) -> ProofObligationTaskResult:
-        return ProofObligationTaskResult(self._fetch_artifact("po_res", "fetch_result"))
-
-    @override
-    async def fetch_result_async(self) -> ProofObligationTaskResult:
-        return ProofObligationTaskResult(await self._fetch_artifact_async("po_res", "fetch_result"))
-
-
-class EvaluationTask:
+class EvaluationTask(Task):
     """An evaluation task"""
 
-    def __init__(self, artifact: Artifact):
-        if artifact.kind != "eval_task":
-            raise Exception(f"Unexpected artifact kind '{artifact.kind}'")
-        self._artifact: Artifact = artifact
-        d = lib.read_artifact_data(artifact.data, artifact.kind)
+    def __init__(self, task: task_pb2.Task):
+        assert task.kind == task_pb2.TASK_EVAL
+        super().__init__(task)
+
+    @cached_property
+    def _eval_task(self) -> lib.Tasks_Eval_task_Mir:
+        d = lib.read_artifact_data(self.artifact.data, self.artifact.kind)
         if not (isinstance(d, lib.Tasks_Eval_task_t_poly)):
             raise Exception(f"Unexpected task artifact type '{type(d)}'")
-        self._data: lib.Tasks_Eval_task_Mir = d
+        return d
 
     @property
     def variables(self) -> list[Var]:
         """The variables bound in the term"""
-        vs, _ = self._data.term
+        vs, _ = self._eval_task.term
         return [var_term_of_var(v) for v in vs]
 
     @property
     def term(self) -> Term:
         """The term to evaluate"""
-        _, t = self._data.term
+        _, t = self._eval_task.term
         return term_of_lib(t)
 
     @property
     def anchor(self) -> lib.Anchor:
         """Where the evaluation comes from"""
-        return self._data.anchor
+        return self._eval_task.anchor
 
     @property
     def timeout(self) -> int | None:
         """The timeout, if any"""
-        return self._data.timeout
+        return self._eval_task.timeout
 
     @cached_property
     def db(self) -> DB:
         """The database of declarations and rules the term is evaluated in"""
-        return DB(self._data.db, self._artifact.storage)
-
-
-class EvaluationTaskHandle(TaskHandle):
-    """A handle to an evaluation task on the server"""
-
-    def __init__(self, task: task_pb2.Task, client: AnyClient | None = None):
-        assert task.kind == task_pb2.TASK_EVAL
-        super().__init__(task, client)
-
-    def fetch_task(self) -> EvaluationTask:
-        """Fetch the task's data from the server"""
-        return EvaluationTask(self._fetch_artifact("eval_task", "fetch_task"))
-
-    async def fetch_task_async(self) -> EvaluationTask:
-        """Fetch the task's data from the server"""
-        return EvaluationTask(await self._fetch_artifact_async("eval_task", "fetch_task"))
-
-    @override
-    def fetch_result(self) -> EvaluationTaskResult:
-        return EvaluationTaskResult(self._fetch_artifact("eval_res", "fetch_result"))
-
-    @override
-    async def fetch_result_async(self) -> EvaluationTaskResult:
-        return EvaluationTaskResult(await self._fetch_artifact_async("eval_res", "fetch_result"))
+        return DB(self._eval_task.db, self.artifact.storage)
 
 
 class DecompositionRequest:
@@ -1162,86 +1137,64 @@ def decomp_request_of_lib(d: lib.Tasks_Decomp_task_Mir_decomp) -> DecompositionR
             assert_never(d)
 
 
-class DecompositionTask:
+class DecompositionTask(Task):
     """A decomposition task"""
 
-    def __init__(self, artifact: Artifact):
-        if artifact.kind != "decomp_task":
-            raise Exception(f"Unexpected artifact kind '{artifact.kind}'")
-        self._artifact: Artifact = artifact
-        d = lib.read_artifact_data(artifact.data, artifact.kind)
+    def __init__(self, task: task_pb2.Task):
+        assert task.kind == task_pb2.TASK_DECOMP
+        super().__init__(task)
+
+    @cached_property
+    def _decomp_task(self) -> lib.Tasks_Decomp_task_Mir:
+        d = lib.read_artifact_data(self.artifact.data, self.artifact.kind)
         if not (isinstance(d, lib.Tasks_Decomp_task_t_poly)):
             raise Exception(f"Unexpected task artifact type '{type(d)}'")
-        self._data: lib.Tasks_Decomp_task_Mir = d
+        return d
 
     @property
     def decomp(self) -> DecompositionRequest.Request:
         """The decomposition request"""
-        return decomp_request_of_lib(self._data.decomp)
+        return decomp_request_of_lib(self._decomp_task.decomp)
 
     @property
     def anchor(self) -> lib.Anchor:
         """Where the decomposition comes from"""
-        return self._data.anchor
+        return self._decomp_task.anchor
 
     @property
     def timeout(self) -> int | None:
         """The timeout, if any"""
-        return self._data.timeout
+        return self._decomp_task.timeout
 
     @cached_property
     def db(self) -> DB:
         """The database of declarations and rules the decomposition is computed in"""
-        return DB(self._data.db, self._artifact.storage)
+        return DB(self._decomp_task.db, self.artifact.storage)
 
 
-class DecompositionTaskHandle(TaskHandle):
-    """A handle to a decomposition task on the server"""
+class ProofCheckTask(Task):
+    """A proof checking task"""
 
-    def __init__(self, task: task_pb2.Task, client: AnyClient | None = None):
-        assert task.kind == task_pb2.TASK_DECOMP
-        super().__init__(task, client)
-
-    def fetch_task(self) -> DecompositionTask:
-        """Fetch the task's data from the server"""
-        return DecompositionTask(self._fetch_artifact("decomp_task", "fetch_task"))
-
-    async def fetch_task_async(self) -> DecompositionTask:
-        """Fetch the task's data from the server"""
-        return DecompositionTask(await self._fetch_artifact_async("decomp_task", "fetch_task"))
-
-    @override
-    def fetch_result(self) -> DecompositionTaskResult:
-        return DecompositionTaskResult(self._fetch_artifact("decomp_res", "fetch_result"))
-
-    @override
-    async def fetch_result_async(self) -> DecompositionTaskResult:
-        return DecompositionTaskResult(await self._fetch_artifact_async("decomp_res", "fetch_result"))
-
-
-class ProofCheckTaskHandle(TaskHandle):
-    """A handle to a proof checking task on the server"""
-
-    def __init__(self, task: task_pb2.Task, client: AnyClient | None = None):
+    def __init__(self, task: task_pb2.Task):
         assert task.kind == task_pb2.TASK_PROOF_CHECK
-        super().__init__(task, client)
+        super().__init__(task)
 
 
-def task_handle_of_raw(
-    t: task_pb2.Task, client: AnyClient | None
-) -> ProofObligationTaskHandle | EvaluationTaskHandle | DecompositionTaskHandle | TaskHandle:
-    """Wrap a task in the matching `TaskHandle` subclass"""
+def task_of_raw(
+    t: task_pb2.Task,
+) -> ProofObligationTask | EvaluationTask | DecompositionTask | Task:
+    """Wrap a task in the matching `Task` subclass"""
     match t.kind:
         case task_pb2.TASK_CHECK_PO:
-            return ProofObligationTaskHandle(t, client)
+            return ProofObligationTask(t)
         case task_pb2.TASK_EVAL:
-            return EvaluationTaskHandle(t, client)
+            return EvaluationTask(t)
         case task_pb2.TASK_DECOMP:
-            return DecompositionTaskHandle(t, client)
+            return DecompositionTask(t)
         case task_pb2.TASK_PROOF_CHECK:
-            return ProofCheckTaskHandle(t, client)
+            return ProofCheckTask(t)
         case _:
-            return TaskHandle(t, client)
+            return Task(t)
 
 
 class Origin:
@@ -1264,14 +1217,13 @@ class Origin:
 class ProofObligationResult:
     """A proof obligation result in an `eval_src` response"""
 
-    def __init__(self, po_result: simple_api_pb2.PO_Res, client: AnyClient | None = None):
+    def __init__(self, po_result: simple_api_pb2.PO_Res):
         self._raw: simple_api_pb2.PO_Res = po_result
-        self._client: AnyClient | None = client
 
     @cached_property
-    def task(self) -> TaskHandle:
+    def task(self) -> Task:
         """The proof obligation's task"""
-        return task_handle_of_raw(self._raw.task, client=self._client)
+        return task_of_raw(self._raw.task)
 
     @property
     def origin(self) -> Origin:
@@ -1299,9 +1251,8 @@ class EvaluationResult:
 class DecompositionResult:
     """The result of a decomposition request"""
 
-    def __init__(self, decomp_result: simple_api_pb2.DecomposeRes, client: AnyClient | None = None):
+    def __init__(self, decomp_result: simple_api_pb2.DecomposeRes):
         self._raw: simple_api_pb2.DecomposeRes = decomp_result
-        self._client: AnyClient | None = client
 
     @property
     def artifact(self) -> Artifact | None:
@@ -1310,9 +1261,9 @@ class DecompositionResult:
         return Artifact(self._raw.artifact)
 
     @cached_property
-    def task(self) -> TaskHandle:
+    def task(self) -> Task:
         """The decomposition task"""
-        return task_handle_of_raw(self._raw.task, client=self._client)
+        return task_of_raw(self._raw.task)
 
     @property
     def errors(self) -> list[Error]:
@@ -1345,9 +1296,8 @@ class EvalOutput:
 class EvalSrcResponse:
     """The response to an `eval_src` request"""
 
-    def __init__(self, res: simple_api_pb2.EvalRes, client: AnyClient | None = None):
+    def __init__(self, res: simple_api_pb2.EvalRes):
         self._raw: simple_api_pb2.EvalRes = res
-        self._client: AnyClient | None = client
 
     def __str__(self) -> str:
         return f"{self._raw}"
@@ -1368,14 +1318,14 @@ class EvalSrcResponse:
         return [Error(e) for e in self._raw.errors]
 
     @cached_property
-    def tasks(self) -> list[TaskHandle]:
+    def tasks(self) -> list[Task]:
         """The tasks created while processing the source"""
-        return [task_handle_of_raw(t, client=self._client) for t in self._raw.tasks]
+        return [task_of_raw(t) for t in self._raw.tasks]
 
     @property
     def po_results(self) -> list[ProofObligationResult]:
         """The results of the source's proof obligations"""
-        return [ProofObligationResult(pr, client=self._client) for pr in self._raw.po_results]
+        return [ProofObligationResult(pr) for pr in self._raw.po_results]
 
     @property
     def eval_results(self) -> list[EvalOutput]:
@@ -1385,7 +1335,7 @@ class EvalSrcResponse:
     @property
     def decomp_results(self) -> list[DecompositionResult]:
         """The results of the source's decompositions"""
-        return [DecompositionResult(dr, client=self._client) for dr in self._raw.decomp_results]
+        return [DecompositionResult(dr) for dr in self._raw.decomp_results]
 
 
 class Client:
@@ -1417,6 +1367,49 @@ class Client:
 
     def eval_src(self, src: str, **kwargs: Any) -> EvalSrcResponse:
         """Evaluate IML source; other keyword arguments go to `imandrax_api.Client.eval_src`"""
-        return EvalSrcResponse(self._client.eval_src(src, **kwargs), client=self._client)
+        return EvalSrcResponse(self._client.eval_src(src, **kwargs))
+
+    # TODO: Add all the other client functions
+
+
+class AsyncClient:
+    """An asynchronous client for the ImandraX API; use it as `async with AsyncClient(...) as c`
+
+    Needs the optional `aiohttp` dependency."""
+
+    def __init__(
+        self,
+        url: str = imandrax_api.client.url_prod,
+        server_path_prefix: str = "/api/v1",
+        auth_token: str | None = None,
+        api_key: str | None = None,
+        timeout: int = 30,
+        session_id: str | None = None,
+        create_if_not_found: bool = False,
+    ):
+        self._client: AsyncClient_ = imandrax_api.client.AsyncClient(
+            url=url,
+            server_path_prefix=server_path_prefix,
+            auth_token=auth_token,
+            api_key=api_key,
+            timeout=timeout,
+            session_id=session_id,
+            create_if_not_found=create_if_not_found,
+        )
+
+    async def __aenter__(self) -> Self:
+        await self._client.__aenter__()
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        await self._client.__aexit__(exc_type, exc_val, exc_tb)
+
+    async def status(self):
+        """The server's status"""
+        return await self._client.status()
+
+    async def eval_src(self, src: str, **kwargs: Any) -> EvalSrcResponse:
+        """Evaluate IML source; other keyword arguments go to `imandrax_api.AsyncClient.eval_src`"""
+        return EvalSrcResponse(await self._client.eval_src(src, **kwargs))
 
     # TODO: Add all the other client functions

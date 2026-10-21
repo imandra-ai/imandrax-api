@@ -34,56 +34,58 @@ instance (fun (xs: int list) (y : int) -> f xs <> List.map (fun x -> x + y) xs)
                 print(f"Task {t.id}:")
                 print(f"  Kind: {t.kind}")
                 match t:
-                    case EvaluationTaskHandle():
-                        print(f"  Term: {t.fetch_task().term}")
+                    case EvaluationTask():
+                        t.fetch(c)
+                        print(f"  Term: {t.term}")
 
-                    case ProofObligationTaskHandle():
-                        task = t.fetch_task()
-                        po = task.proof_obligation
-                        print(f"  Description: {po.description}")
+                    case ProofObligationTask():
+                        t.fetch(c)
+                        po = t.proof_obligation
+                        print(f"  Description: {t.proof_obligation.description}")
                         vars, goal_term = po.goal
                         vars = " ".join(str(v) for v in vars)
                         # Note: instances are also proof obligations (just with a negated goal)
                         name = "Instance" if po.isInstance else "Goal"
                         print(f"  {name}: (fun {vars} -> {goal_term})")
-                        print(f"  Tactic: {po.tactic}")
-                        db = task.db
-                        print(f"  # Declarations in DB: {len(db.decls)}")
-                        # Let's get all the names of functions used in the
-                        # goal by drilling down the goal term
-                        functions: set[Uid] = set()
-                        for subterm in goal_term:
-                            match subterm:
-                                case Apply(function=Symbol() as s):
-                                    functions.add(s.symbol.id)
-                                case _:
-                                    pass
-                        print(f"  Functions in goal: {functions}")
+                        print(f"  Tactic: {t.proof_obligation.tactic}")
+                        if t.db:
+                            print(f"  # Declarations in DB: {len(t.db.decls)}")
+                            # Let's get all the names of functions used in the
+                            # goal by drilling down the goal term
+                            functions: set[Uid] = set()
+                            for subterm in goal_term:
+                                match subterm:
+                                    case Apply(function=Symbol() as s):
+                                        functions.add(s.symbol.id)
+                                    case _:
+                                        pass
+                            print(f"  Functions in goal: {functions}")
 
-                        # Any lifted lambdas in there?
-                        lambdas = {f for f in functions if f.short_name == "$lambda"}
-                        for lid in lambdas:
-                            print(f"  Lambda '{lid.full_name}':")
-                            # Then there must also be a definition for it
-                            f = db.find_function(lid)
-                            if f:
+                            # Any lifted lambdas in there?
+                            lambdas = {f for f in functions if f.short_name == "$lambda"}
+                            for lid in lambdas:
+                                print(f"  Lambda '{lid.full_name}':")
+                                # Then there must also be a definition for it
+                                f = t.db.find_function(lid)
+                                if f:
+                                    print(f"    Signature: {f.type}")
+                                    print(f"    Definition: {f}")
+
+                            # There should also be (a) function(s) with a short name of `f`
+                            for id, f in t.db.find_function_re("f/.*").items():
+                                print(f"  Function '{id}':")
                                 print(f"    Signature: {f.type}")
                                 print(f"    Definition: {f}")
 
-                        # There should also be (a) function(s) with a short name of `f`
-                        for id, f in db.find_function_re("f/.*").items():
-                            print(f"  Function '{id}':")
-                            print(f"    Signature: {f.type}")
-                            print(f"    Definition: {f}")
-
-                    case DecompositionTaskHandle():
-                        print(f"  Request: {t.fetch_task().decomp}")
+                    case DecompositionTask():
+                        t.fetch(c)
+                        print(f"  Request: {t.decomp}")
 
                     case _:
                         pass
 
                 # Every task has a result
-                task_result = t.fetch_result()
+                task_result = t.fetch_result(c)
                 print(f"  Result:")
                 match task_result:
                     case EvaluationTaskResult() as r:
