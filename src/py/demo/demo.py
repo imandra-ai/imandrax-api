@@ -35,11 +35,9 @@ instance (fun (xs: int list) (y : int) -> f xs <> List.map (fun x -> x + y) xs)
                 print(f"  Kind: {t.kind}")
                 match t:
                     case EvaluationTask():
-                        t.fetch(c)
                         print(f"  Term: {t.term}")
 
                     case ProofObligationTask():
-                        t.fetch(c)
                         po = t.proof_obligation
                         print(f"  Description: {t.proof_obligation.description}")
                         vars, goal_term = po.goal
@@ -78,14 +76,13 @@ instance (fun (xs: int list) (y : int) -> f xs <> List.map (fun x -> x + y) xs)
                                 print(f"    Definition: {f}")
 
                     case DecompositionTask():
-                        t.fetch(c)
                         print(f"  Request: {t.decomp}")
 
                     case _:
                         pass
 
                 # Every task has a result
-                task_result = t.fetch_result(c)
+                task_result = t.result
                 print(f"  Result:")
                 match task_result:
                     case EvaluationTaskResult() as r:
