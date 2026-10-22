@@ -640,7 +640,10 @@ class Task:
 
     @property
     def artifact(self) -> Artifact:
-        """The task's data"""
+        """The task's data
+
+        Fetched on first access, see `Task`
+        """
         kind = self.kind.corresponding_artifact_kind()
         if kind is None:
             raise Exception(f"tasks of kind {self.kind} have no data")
@@ -648,7 +651,10 @@ class Task:
 
     @cached_property
     def result(self) -> TaskResult:
-        """The task's result"""
+        """The task's result
+
+        Fetched on first access, see `Task`
+        """
         kind = self.kind.corresponding_result_artifact_kind()
         if kind is None:
             raise Exception(f"tasks of kind {self.kind} have no result")
@@ -922,22 +928,34 @@ class ProofObligationTask(Task):
 
     @property
     def proof_obligation(self) -> ProofObligation:
-        """The proof obligation to check"""
+        """The proof obligation to check
+
+        Fetched on first access, see `Task`
+        """
         return ProofObligation(self._po_task.po)
 
     @property
     def from_sym(self) -> str:
-        """The symbol the proof obligation was generated from"""
+        """The symbol the proof obligation was generated from
+
+        Fetched on first access, see `Task`
+        """
         return self._po_task.from_sym
 
     @property
     def count(self) -> int | None:
-        """Distinguishes proof obligations generated from the same symbol"""
+        """Distinguishes proof obligations generated from the same symbol
+
+        Fetched on first access, see `Task`
+        """
         return self._po_task.count
 
     @cached_property
     def db(self) -> DB:
-        """The database of declarations and rules the proof obligation is checked in"""
+        """The database of declarations and rules the proof obligation is checked in
+
+        Fetched on first access, see `Task`
+        """
         return DB(self._po_task.db, self._artifact("po_task").storage)
 
 
@@ -958,29 +976,44 @@ class EvaluationTask(Task):
 
     @property
     def variables(self) -> list[Var]:
-        """The variables bound in the term"""
+        """The variables bound in the term
+
+        Fetched on first access, see `Task`
+        """
         vs, _ = self._eval_task.term
         return [var_term_of_var(v) for v in vs]
 
     @property
     def term(self) -> Term:
-        """The term to evaluate"""
+        """The term to evaluate
+
+        Fetched on first access, see `Task`
+        """
         _, t = self._eval_task.term
         return term_of_lib(t)
 
     @property
     def anchor(self) -> lib.Anchor:
-        """Where the evaluation comes from"""
+        """Where the evaluation comes from
+
+        Fetched on first access, see `Task`
+        """
         return self._eval_task.anchor
 
     @property
     def timeout(self) -> int | None:
-        """The timeout, if any"""
+        """The timeout, if any
+
+        Fetched on first access, see `Task`
+        """
         return self._eval_task.timeout
 
     @cached_property
     def db(self) -> DB:
-        """The database of declarations and rules the term is evaluated in"""
+        """The database of declarations and rules the term is evaluated in
+
+        Fetched on first access, see `Task`
+        """
         return DB(self._eval_task.db, self._artifact("eval_task").storage)
 
 
@@ -1241,22 +1274,34 @@ class DecompositionTask(Task):
 
     @property
     def decomp(self) -> DecompositionRequest.Request:
-        """The decomposition request"""
+        """The decomposition request
+
+        Fetched on first access, see `Task`
+        """
         return decomp_request_of_lib(self._decomp_task.decomp)
 
     @property
     def anchor(self) -> lib.Anchor:
-        """Where the decomposition comes from"""
+        """Where the decomposition comes from
+
+        Fetched on first access, see `Task`
+        """
         return self._decomp_task.anchor
 
     @property
     def timeout(self) -> int | None:
-        """The timeout, if any"""
+        """The timeout, if any
+
+        Fetched on first access, see `Task`
+        """
         return self._decomp_task.timeout
 
     @cached_property
     def db(self) -> DB:
-        """The database of declarations and rules the decomposition is computed in"""
+        """The database of declarations and rules the decomposition is computed in
+
+        Fetched on first access, see `Task`
+        """
         return DB(self._decomp_task.db, self._artifact("decomp_task").storage)
 
 
