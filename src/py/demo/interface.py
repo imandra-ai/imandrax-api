@@ -23,6 +23,10 @@ class ClientGoneError(Exception):
     """Task data was fetched after the client that created the task was garbage-collected"""
 
 
+class NoClientError(Exception):
+    """Task data that is not fetched yet was accessed on a task created without a client"""
+
+
 class NotFetchedError(Exception):
     """An artifact of a task from an `AsyncClient` was accessed before it was fetched
 
@@ -568,6 +572,10 @@ class Task:
     - With a `Client`, accessing a property like `t.result` fetches what it needs
     - With an `AsyncClient`, await it once with `await t.awaitable.result`; after that, `t.result`
       can be accessed as usual. Accessing it before raises `NotFetchedError`.
+    - With no client, nothing is fetched; accessing an artifact raises `NoClientError`.
+
+    `await t.fetch_all()` fetches all of the task's artifacts, after which every attribute can be
+    accessed without `t.awaitable`.
     """
 
     class Kind:
@@ -579,11 +587,9 @@ class Task:
         def __str__(self) -> str:
             return task_pb2.TaskKind.Name(self._raw)
 
-        def corresponding_artifact_kind(self) -> str:
-            """The artifact kind of the data of tasks of this kind"""
+        def corresponding_artifact_kind(self) -> str | None:
+            """The artifact kind of the data of tasks of this kind, `None` if they have no data"""
             match self._raw:
-                case task_pb2.TASK_UNSPECIFIED:
-                    return "unspecified"
                 case task_pb2.TASK_EVAL:
                     return "eval_task"
                 case task_pb2.TASK_CHECK_PO:
@@ -593,13 +599,11 @@ class Task:
                 case task_pb2.TASK_DECOMP:
                     return "decomp_task"
                 case _:
-                    return "unknown"
+                    return None
 
-        def corresponding_result_artifact_kind(self) -> str:
-            """The artifact kind of the results of tasks of this kind"""
+        def corresponding_result_artifact_kind(self) -> str | None:
+            """The artifact kind of the results of tasks of this kind, `None` if they have no result"""
             match self._raw:
-                case task_pb2.TASK_UNSPECIFIED:
-                    return "unspecified"
                 case task_pb2.TASK_EVAL:
                     return "eval_res"
                 case task_pb2.TASK_CHECK_PO:
@@ -609,13 +613,13 @@ class Task:
                 case task_pb2.TASK_DECOMP:
                     return "decomp_res"
                 case _:
-                    return "unknown"
+                    return None
 
-    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient"):
+    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         self._raw: task_pb2.Task = task
         # The task holds only a weak reference to the client, so it does not keep the client alive;
         # fetching after the client is gone raises `ClientGoneError`.
-        self._client: weakref.ref[Client | AsyncClient] = weakref.ref(client)
+        self._client: weakref.ref[Client | AsyncClient] | None = None if client is None else weakref.ref(client)
         self._artifacts: dict[str, Artifact] = {}
         self._pending: dict[str, asyncio.Future[Artifact]] = {}
 
@@ -637,14 +641,37 @@ class Task:
     @property
     def artifact(self) -> Artifact:
         """The task's data"""
-        return self._artifact(self.kind.corresponding_artifact_kind())
+        kind = self.kind.corresponding_artifact_kind()
+        if kind is None:
+            raise Exception(f"tasks of kind {self.kind} have no data")
+        return self._artifact(kind)
 
     @cached_property
     def result(self) -> TaskResult:
         """The task's result"""
-        return _task_result_of_artifact(self._artifact(self.kind.corresponding_result_artifact_kind()))
+        kind = self.kind.corresponding_result_artifact_kind()
+        if kind is None:
+            raise Exception(f"tasks of kind {self.kind} have no result")
+        return _task_result_of_artifact(self._artifact(kind))
+
+    async def fetch_all(self) -> None:
+        """Fetch all of the task's artifacts (its data and its result), with either client
+
+        After this, every attribute can be accessed without `t.awaitable`.
+        """
+        kinds = [self.kind.corresponding_artifact_kind(), self.kind.corresponding_result_artifact_kind()]
+        kinds = [k for k in kinds if k is not None and k not in self._artifacts]
+        if not kinds:
+            return
+        if isinstance(self._get_client(), AsyncClient):
+            await asyncio.gather(*(self._fetch_async(k) for k in kinds))
+        else:
+            for k in kinds:
+                self._artifact(k)
 
     def _get_client(self) -> "Client | AsyncClient":
+        if self._client is None:
+            raise NoClientError(f"task {self.id} has no client to fetch its data with")
         client = self._client()
         if client is None:
             raise ClientGoneError(f"the client of task {self.id} is gone; keep it alive while fetching")
@@ -881,7 +908,7 @@ class ProofObligation:
 class ProofObligationTask(Task):
     """A proof obligation task"""
 
-    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient"):
+    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         assert task.kind == task_pb2.TASK_CHECK_PO
         super().__init__(task, client)
 
@@ -917,7 +944,7 @@ class ProofObligationTask(Task):
 class EvaluationTask(Task):
     """An evaluation task"""
 
-    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient"):
+    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         assert task.kind == task_pb2.TASK_EVAL
         super().__init__(task, client)
 
@@ -1200,7 +1227,7 @@ def decomp_request_of_lib(d: lib.Tasks_Decomp_task_Mir_decomp) -> DecompositionR
 class DecompositionTask(Task):
     """A decomposition task"""
 
-    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient"):
+    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         assert task.kind == task_pb2.TASK_DECOMP
         super().__init__(task, client)
 
@@ -1236,12 +1263,12 @@ class DecompositionTask(Task):
 class ProofCheckTask(Task):
     """A proof checking task"""
 
-    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient"):
+    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         assert task.kind == task_pb2.TASK_PROOF_CHECK
         super().__init__(task, client)
 
 
-def task_of_raw(t: task_pb2.Task, client: "Client | AsyncClient") -> Task:
+def task_of_raw(t: task_pb2.Task, client: "Client | AsyncClient | None" = None) -> Task:
     """Wrap a task in the matching `Task` subclass"""
     match t.kind:
         case task_pb2.TASK_CHECK_PO:
@@ -1276,7 +1303,7 @@ class Origin:
 class ProofObligationResult:
     """A proof obligation result in an `eval_src` response"""
 
-    def __init__(self, po_result: simple_api_pb2.PO_Res, client: "Client | AsyncClient"):
+    def __init__(self, po_result: simple_api_pb2.PO_Res, client: "Client | AsyncClient | None" = None):
         self._raw: simple_api_pb2.PO_Res = po_result
         self._task: Task = task_of_raw(po_result.task, client)
 
@@ -1311,7 +1338,7 @@ class EvaluationResult:
 class DecompositionResult:
     """The result of a decomposition request"""
 
-    def __init__(self, decomp_result: simple_api_pb2.DecomposeRes, client: "Client | AsyncClient"):
+    def __init__(self, decomp_result: simple_api_pb2.DecomposeRes, client: "Client | AsyncClient | None" = None):
         self._raw: simple_api_pb2.DecomposeRes = decomp_result
         self._task: Task = task_of_raw(decomp_result.task, client)
 
@@ -1357,7 +1384,7 @@ class EvalOutput:
 class EvalSrcResponse:
     """The response to an `eval_src` request"""
 
-    def __init__(self, res: simple_api_pb2.EvalRes, client: "Client | AsyncClient"):
+    def __init__(self, res: simple_api_pb2.EvalRes, client: "Client | AsyncClient | None" = None):
         self._raw: simple_api_pb2.EvalRes = res
         self._tasks: list[Task] = [task_of_raw(t, client) for t in res.tasks]
         self._po_results = [ProofObligationResult(pr, client) for pr in res.po_results]
