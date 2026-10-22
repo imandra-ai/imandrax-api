@@ -1,0 +1,4 @@
+; imandrax-api/src/imandrax_api is a symlink back to this directory, for pyright.
+; Dune refuses to scan a directory twice, so skip it.
+
+(dirs :standard \ imandrax-api)
