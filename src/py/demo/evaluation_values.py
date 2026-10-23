@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from fractions import Fraction
-from typing import override
+from typing import assert_never, override
 
 import mir
 from imandrax_api import lib
@@ -147,7 +147,7 @@ class Uid:
 class Closure:
     """A function value; its code is not sent to the client, so it prints as `<fun>`."""
 
-    closure: lib.Eval_Value_erased_closure
+    missing: int
     _raw: _View = field(repr=False, compare=False)
 
     @override
@@ -171,25 +171,16 @@ class Custom:
         return "<custom>"
 
 
-def _ordinal_str(o: lib.Eval_Ordinal) -> str:
-    """Format an ordinal: a plain integer as `n`, a `Cons (a, n, b)` as the triple `(a, n, b)`."""
-    match o:
-        case lib.Eval_Ordinal_Int(arg=n):
-            return f"{n}"
-        case lib.Eval_Ordinal_Cons(args=(a, n, b)):
-            return f"({_ordinal_str(a)}, {n}, {_ordinal_str(b)})"
-
-
 @dataclass(slots=True, frozen=True)
 class Ordinal:
     """An ordinal, stored in `value`."""
 
-    value: lib.Eval_Ordinal
+    value: OrdinalExpr
     _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
-        return _ordinal_str(self.value)
+        return str(self.value)
 
 
 Value = (
@@ -237,10 +228,45 @@ def value_of_lib(x: _View) -> Value:
         case lib.Eval_Value_view_V_uid(arg=u):
             return Uid(uid=mir.Uid(u), _raw=x)
         case lib.Eval_Value_view_V_closure(arg=c):
-            return Closure(closure=c, _raw=x)
+            return Closure(missing=c.missing, _raw=x)
         case lib.Eval_Value_view_V_custom(arg=c):
             return Custom(value=c, _raw=x)
         case lib.Eval_Value_view_V_ordinal(arg=o):
-            return Ordinal(value=o, _raw=x)
+            return Ordinal(value=ordinal_expr_of_lib(o), _raw=x)
         case _:
-            raise Exception("Unexpected evaluation value")
+            assert_never(x)
+
+
+@dataclass(slots=True, frozen=True)
+class IntOrdinal:
+    value: int
+    _raw: lib.Eval_Ordinal = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return f"{self.value}"
+
+
+@dataclass(slots=True, frozen=True)
+class ConsOrdinal:
+    """`coefficient·ω^exponent + rest`"""
+
+    exponent: OrdinalExpr
+    coefficient: int
+    rest: OrdinalExpr
+    _raw: lib.Eval_Ordinal = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return f"({self.exponent}, {self.coefficient}, {self.rest})"
+
+
+OrdinalExpr = IntOrdinal | ConsOrdinal
+"""Ordinal type."""
+
+
+def ordinal_expr_of_lib(x: lib.Eval_Ordinal) -> OrdinalExpr:
+    """Convert a library ordinal into the matching `OrdinalExpr` variant"""
+    match x:
+        case lib.Eval_Ordinal_Int(arg=n):
+            return IntOrdinal(value=n, _raw=x)
+        case lib.Eval_Ordinal_Cons(args=(a, n, b)):
+            return ConsOrdinal(exponent=ordinal_expr_of_lib(a), coefficient=n, rest=ordinal_expr_of_lib(b), _raw=x)

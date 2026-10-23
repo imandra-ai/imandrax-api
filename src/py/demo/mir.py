@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import base64
-import dataclasses
 import re
 
 from collections.abc import Callable, Iterable, Iterator, Sized
 from dataclasses import dataclass, field
+from enum import Enum
+from fractions import Fraction
 from functools import cached_property
 from typing import ClassVar, Never, assert_never, cast, override
 
@@ -65,11 +66,286 @@ class Uid:
         return f"{type(self).__name__}({self})"
 
 
+@dataclass(slots=True, frozen=True)
+class Cname:
+    name: str
+    chash: bytes
+    is_key: bool
+    """Is this cname a key (ie a toplevel definition)? Or, if [false], is it just a symbol defined
+    as part of another symbol (cstor, label, etc)"""
+    _raw: lib.Cname = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Cname) -> Cname:
+        return cls(name=x.name, chash=x.chash, is_key=x.is_key, _raw=x)
+
+
+@dataclass(slots=True, frozen=True)
+class NamedAnchor:
+    cname: Cname
+    _raw: lib.Anchor = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class EvalAnchor:
+    index: int
+    _raw: lib.Anchor = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class ProofCheckAnchor:
+    anchor: Anchor
+    _raw: lib.Anchor = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class DecompAnchor:
+    anchor: Anchor
+    _raw: lib.Anchor = field(repr=False, compare=False)
+
+
+Anchor = NamedAnchor | EvalAnchor | ProofCheckAnchor | DecompAnchor
+
+
+def anchor_of_lib(x: lib.Anchor) -> Anchor:
+    """Convert a library anchor into the matching `Anchor` variant"""
+    match x:
+        case lib.Anchor_Named(arg=c):
+            return NamedAnchor(cname=Cname.of_lib(c), _raw=x)
+        case lib.Anchor_Eval(arg=n):
+            return EvalAnchor(index=n, _raw=x)
+        case lib.Anchor_Proof_check(arg=a):
+            return ProofCheckAnchor(anchor=anchor_of_lib(a), _raw=x)
+        case lib.Anchor_Decomp(arg=a):
+            return DecompAnchor(anchor=anchor_of_lib(a), _raw=x)
+
+
+@dataclass(slots=True, frozen=True)
+class SubAnchor:
+    fname: str
+    """name of the symbol containing this sub-anchor in its definition"""
+    anchor: int
+    _raw: lib.Sub_anchor = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Sub_anchor) -> SubAnchor:
+        return cls(fname=x.fname, anchor=x.anchor, _raw=x)
+
+
+# `Upto.t` has the single constructor `N_steps of int`, so it is represented by that number of
+# steps.
+
+
+def upto_of_lib(x: lib.Upto) -> int:
+    """The number of steps of a library `Upto`"""
+    match x:
+        case lib.Upto_N_steps(arg=n):
+            return n
+
+
+@dataclass(slots=True, frozen=True)
+class FloatConst:
+    value: float
+    _raw: lib.Const = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+
+@dataclass(slots=True, frozen=True)
+class StringConst:
+    value: str
+    _raw: lib.Const = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return f'"{self.value}"'
+
+
+@dataclass(slots=True, frozen=True)
+class IntConst:
+    value: int
+    _raw: lib.Const = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+
+@dataclass(slots=True, frozen=True)
+class RationalConst:
+    value: Fraction
+    _raw: lib.Const = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return f"{self.value.numerator}/{self.value.denominator}"
+
+
+@dataclass(slots=True, frozen=True)
+class RealApproxConst:
+    value: str
+    _raw: lib.Const = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return self.value
+
+
+@dataclass(slots=True, frozen=True)
+class UidConst:
+    uid: Uid
+    _raw: lib.Const = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return self.uid.short_name
+
+
+@dataclass(slots=True, frozen=True)
+class BoolConst:
+    value: bool
+    _raw: lib.Const = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return "true" if self.value else "false"
+
+
+Const = FloatConst | StringConst | IntConst | RationalConst | RealApproxConst | UidConst | BoolConst
+
+
+def const_of_lib(x: lib.Const) -> Const:
+    """Convert a library constant into the matching `Const` variant"""
+    match x:
+        case lib.Const_Const_float(arg=f):
+            return FloatConst(value=f, _raw=x)
+        case lib.Const_Const_string(arg=s):
+            return StringConst(value=s, _raw=x)
+        case lib.Const_Const_z(arg=n):
+            return IntConst(value=n, _raw=x)
+        case lib.Const_Const_q(arg=(num, den)):
+            return RationalConst(value=Fraction(num, den), _raw=x)
+        case lib.Const_Const_real_approx(arg=s):
+            return RealApproxConst(value=s, _raw=x)
+        case lib.Const_Const_uid(arg=u):
+            return UidConst(uid=Uid(u), _raw=x)
+        case lib.Const_Const_bool(arg=b):
+            return BoolConst(value=b, _raw=x)
+
+
+@dataclass(slots=True, frozen=True)
+class LogicCoreBuiltin:
+    name: str
+    _raw: lib.Builtin_data_kind = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class SpecialBuiltin:
+    tag: str
+    _raw: lib.Builtin_data_kind = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class TacticBuiltin:
+    name: str
+    _raw: lib.Builtin_data_kind = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class DecompBuiltin:
+    name: str
+    _raw: lib.Builtin_data_kind = field(repr=False, compare=False)
+
+
+BuiltinDataKind = LogicCoreBuiltin | SpecialBuiltin | TacticBuiltin | DecompBuiltin
+
+
+def builtin_data_kind_of_lib(x: lib.Builtin_data_kind) -> BuiltinDataKind:
+    """Convert a library builtin kind into the matching `BuiltinDataKind` variant"""
+    match x:
+        case lib.Builtin_data_kind_Logic_core(logic_core_name=n):
+            return LogicCoreBuiltin(name=n, _raw=x)
+        case lib.Builtin_data_kind_Special(tag=t):
+            return SpecialBuiltin(tag=t, _raw=x)
+        case lib.Builtin_data_kind_Tactic(tac_name=n):
+            return TacticBuiltin(name=n, _raw=x)
+        case lib.Builtin_data_kind_Decomp(decomp_name=n):
+            return DecompBuiltin(name=n, _raw=x)
+
+
+@dataclass(slots=True, frozen=True)
+class BuiltinFunction:
+    """Builtin functions"""
+
+    id: Uid
+    kind: BuiltinDataKind
+    left_associative: bool
+    commutative: bool
+    connective: bool
+    _raw: lib.Builtin_Fun = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Builtin_Fun) -> BuiltinFunction:
+        return cls(
+            id=Uid(x.id),
+            kind=builtin_data_kind_of_lib(x.kind),
+            left_associative=x.lassoc,
+            commutative=x.commutative,
+            connective=x.connective,
+            _raw=x,
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class BuiltinSort:
+    """Builtin sorts"""
+
+    id: Uid
+    kind: BuiltinDataKind
+    _raw: lib.Builtin_Ty = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Builtin_Ty) -> BuiltinSort:
+        return cls(id=Uid(x.id), kind=builtin_data_kind_of_lib(x.kind), _raw=x)
+
+
+@dataclass(slots=True, frozen=True)
+class NoTrigger:
+    _raw: lib.As_trigger = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class AnonymousTrigger:
+    _raw: lib.As_trigger = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class NamedTrigger:
+    index: int
+    _raw: lib.As_trigger = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class RewriteTrigger:
+    _raw: lib.As_trigger = field(repr=False, compare=False)
+
+
+AsTrigger = NoTrigger | AnonymousTrigger | NamedTrigger | RewriteTrigger
+
+
+def as_trigger_of_lib(x: lib.As_trigger) -> AsTrigger:
+    """Convert a library `As_trigger` into the matching `AsTrigger` variant"""
+    match x:
+        case lib.As_trigger_Trig_none():
+            return NoTrigger(_raw=x)
+        case lib.As_trigger_Trig_anon():
+            return AnonymousTrigger(_raw=x)
+        case lib.As_trigger_Trig_named(arg=n):
+            return NamedTrigger(index=n, _raw=x)
+        case lib.As_trigger_Trig_rw():
+            return RewriteTrigger(_raw=x)
+
+
+@dataclass(slots=True, frozen=True, kw_only=True, repr=False)
 class _Type:
     """A type"""
 
-    __slots__ = ()
-    _raw: lib.Mir_Type
+    _raw: lib.Mir_Type = field(repr=False, compare=False)
 
     def __str__(self) -> str:
         return "<type>"
@@ -79,7 +355,7 @@ class _Type:
 
 
 def type_of_lib(x: lib.Mir_Type) -> Type:
-    """Convert a library type into the matching `Type` subclass"""
+    """Convert a library type into the matching `Type` variant"""
     match x.view:
         case lib.Ty_view_view_Var(arg=v):
             return TypeVariable(name=Uid(v), _raw=x)
@@ -98,7 +374,6 @@ class TypeVariable(_Type):
     """A type variable"""
 
     name: Uid
-    _raw: lib.Mir_Type = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
@@ -111,7 +386,6 @@ class ArrowType(_Type):
 
     domain: Type
     codomain: Type
-    _raw: lib.Mir_Type = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
@@ -124,7 +398,6 @@ class TupleType(_Type):
 
     elements: tuple[Type, ...]
     """The component types"""
-    _raw: lib.Mir_Type = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
@@ -137,7 +410,6 @@ class ConstructedType(_Type):
 
     constructor: Uid
     arguments: tuple[Type, ...]
-    _raw: lib.Mir_Type = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
@@ -151,6 +423,98 @@ Type = TypeVariable | ArrowType | TupleType | ConstructedType
 """A type"""
 
 
+@dataclass(slots=True, frozen=True)
+class ConstructorDefinition:
+    name: Uid
+    labels: tuple[Uid, ...] | None
+    """for inline records; same length as [args]"""
+    arguments: tuple[Type, ...]
+    doc: str | None
+    _raw: lib.Ty_view_adt_row[lib.Uid, lib.Mir_Type] = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Ty_view_adt_row[lib.Uid, lib.Mir_Type]) -> ConstructorDefinition:
+        return cls(
+            name=Uid(x.c),
+            labels=None if x.labels is None else tuple(Uid(l) for l in x.labels),
+            arguments=tuple(type_of_lib(t) for t in x.args),
+            doc=x.doc,
+            _raw=x,
+        )
+
+    def __str__(self) -> str:
+        if not self.arguments:
+            return str(self.name)
+        if self.labels is not None:
+            fs = "; ".join(f"{l} : {t}" for l, t in zip(self.labels, self.arguments))
+            return f"{self.name} of {{{fs}}}"
+        return f"{self.name} of {' * '.join(str(t) for t in self.arguments)}"
+
+
+@dataclass(slots=True, frozen=True)
+class FieldDefinition:
+    name: Uid
+    type: Type
+    doc: str | None
+    _raw: lib.Ty_view_rec_row[lib.Uid, lib.Mir_Type] = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Ty_view_rec_row[lib.Uid, lib.Mir_Type]) -> FieldDefinition:
+        return cls(name=Uid(x.f), type=type_of_lib(x.ty), doc=x.doc, _raw=x)
+
+    def __str__(self) -> str:
+        return f"{self.name} : {self.type}"
+
+
+@dataclass(slots=True, frozen=True)
+class AlgebraicTypeKind:
+    constructors: tuple[ConstructorDefinition, ...]
+    _raw: lib.Ty_view_decl[lib.Uid, lib.Mir_Type, Never] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class RecordTypeKind:
+    fields: tuple[FieldDefinition, ...]
+    _raw: lib.Ty_view_decl[lib.Uid, lib.Mir_Type, Never] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class SkolemTypeKind:
+    _raw: lib.Ty_view_decl[lib.Uid, lib.Mir_Type, Never] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class BuiltinTypeKind:
+    sort: BuiltinSort
+    _raw: lib.Ty_view_decl[lib.Uid, lib.Mir_Type, Never] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class OtherTypeKind:
+    _raw: lib.Ty_view_decl[lib.Uid, lib.Mir_Type, Never] = field(repr=False, compare=False)
+
+
+# `Alias` is left out: its target has the empty type `Void.t` in type definitions
+TypeKind = AlgebraicTypeKind | RecordTypeKind | SkolemTypeKind | BuiltinTypeKind | OtherTypeKind
+
+
+def type_kind_of_lib(x: lib.Ty_view_decl[lib.Uid, lib.Mir_Type, Never]) -> TypeKind:
+    """Convert a library type declaration into the matching `TypeKind` variant"""
+    match x:
+        case lib.Ty_view_decl_Algebraic(arg=rows):
+            return AlgebraicTypeKind(constructors=tuple(ConstructorDefinition.of_lib(r) for r in rows), _raw=x)
+        case lib.Ty_view_decl_Record(arg=rows):
+            return RecordTypeKind(fields=tuple(FieldDefinition.of_lib(r) for r in rows), _raw=x)
+        case lib.Ty_view_decl_Alias():
+            raise Exception("unexpected alias in a type definition")
+        case lib.Ty_view_decl_Skolem():
+            return SkolemTypeKind(_raw=x)
+        case lib.Ty_view_decl_Builtin(arg=b):
+            return BuiltinTypeKind(sort=BuiltinSort.of_lib(b), _raw=x)
+        case lib.Ty_view_decl_Other():
+            return OtherTypeKind(_raw=x)
+
+
 @dataclass(slots=True, frozen=True, repr=False)
 class TypeDefinition:
     """A type definition"""
@@ -159,7 +523,7 @@ class TypeDefinition:
     """The type's name"""
     parameters: tuple[Uid, ...]
     """The type variables the type is parameterized over"""
-    declaration: lib.Ty_view_decl[lib.Uid, lib.Mir_Type, Never]
+    kind: TypeKind
     """How the type is defined: algebraic, record, skolem, builtin, ..."""
     clique: frozenset[Uid] | None
     """The mutually recursive types this type belongs to, if any"""
@@ -168,33 +532,24 @@ class TypeDefinition:
     _raw: lib.Mir_Type_def = field(repr=False, compare=False)
 
     @classmethod
-    def of_lib(cls, x: lib.Mir_Type_def) -> "TypeDefinition":
+    def of_lib(cls, x: lib.Mir_Type_def) -> TypeDefinition:
         return cls(
             name=Uid(x.name),
             parameters=tuple(Uid(p) for p in x.params),
-            declaration=x.decl,
+            kind=type_kind_of_lib(x.decl),
             clique=None if x.clique is None else frozenset(Uid(u) for u in x.clique),
             timeout=x.timeout,
             _raw=x,
         )
 
     def __str__(self) -> str:
-        def constructor(r: lib.Ty_view_adt_row[lib.Uid, lib.Mir_Type]) -> str:
-            if not r.args:
-                return str(Uid(r.c))
-            if r.labels is not None:
-                fs = "; ".join(f"{Uid(l)} : {type_of_lib(t)}" for l, t in zip(r.labels, r.args))
-                return f"{Uid(r.c)} of {{{fs}}}"
-            return f"{Uid(r.c)} of {' * '.join(str(type_of_lib(t)) for t in r.args)}"
-
         params = "".join(f"{p} " for p in self.parameters)
         head = f"type {params}{self.name}"
-        match self.declaration:
-            case lib.Ty_view_decl_Algebraic(arg=rows):
-                return f"{head} = {' | '.join(constructor(r) for r in rows)}"
-            case lib.Ty_view_decl_Record(arg=rows):
-                fs = "; ".join(f"{Uid(r.f)} : {type_of_lib(r.ty)}" for r in rows)
-                return f"{head} = {{{fs}}}"
+        match self.kind:
+            case AlgebraicTypeKind(constructors=cs):
+                return f"{head} = {' | '.join(str(c) for c in cs)}"
+            case RecordTypeKind(fields=fs):
+                return f"{head} = {{{'; '.join(str(f) for f in fs)}}}"
             case _:
                 return head
 
@@ -203,18 +558,44 @@ class TypeDefinition:
 
 
 @dataclass(slots=True, frozen=True)
+class Variable:
+    # class name collide with Var of term, thus it's called Variable
+    id: Uid
+    type: Type
+    _raw: lib.Mir_Var = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Mir_Var) -> Variable:
+        return cls(id=Uid(x.id), type=type_of_lib(x.ty), _raw=x)
+
+    def __str__(self) -> str:
+        return self.id.short_name
+
+
+@dataclass(slots=True, frozen=True)
+class TypeSchema:
+    parameters: tuple[Uid, ...]
+    type: Type
+    _raw: lib.Mir_Type_schema = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Mir_Type_schema) -> TypeSchema:
+        return cls(parameters=tuple(Uid(p) for p in x.params), type=type_of_lib(x.ty), _raw=x)
+
+
+@dataclass(slots=True, frozen=True)
 class TypedSymbol:
     """A symbol together with its type schema"""
 
     id: Uid
     """The symbol's unique identifier"""
-    type_schema: lib.Mir_Type_schema = field(hash=False)
+    type_schema: TypeSchema
     """The symbol's type schema"""
     _raw: lib.Mir_Typed_symbol = field(repr=False, compare=False)
 
     @classmethod
-    def of_lib(cls, x: lib.Mir_Typed_symbol) -> "TypedSymbol":
-        return cls(id=Uid(x.id), type_schema=x.ty, _raw=x)
+    def of_lib(cls, x: lib.Mir_Typed_symbol) -> TypedSymbol:
+        return cls(id=Uid(x.id), type_schema=TypeSchema.of_lib(x.ty), _raw=x)
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -229,7 +610,7 @@ class AppliedSymbol:
     _raw: lib.Mir_Applied_symbol = field(repr=False, compare=False)
 
     @classmethod
-    def of_lib(cls, x: lib.Mir_Applied_symbol) -> "AppliedSymbol":
+    def of_lib(cls, x: lib.Mir_Applied_symbol) -> AppliedSymbol:
         return cls(
             symbol=TypedSymbol.of_lib(x.sym),
             type_arguments=tuple(type_of_lib(t) for t in x.args),
@@ -249,11 +630,13 @@ class AppliedSymbol:
         return f"{type(self).__name__}({self})"
 
 
+@dataclass(slots=True, frozen=True, kw_only=True, repr=False)
 class _Term:
     """A term"""
 
-    __slots__ = ()
-    _raw: lib.Mir_Term
+    type: Type
+    sub_anchor: SubAnchor | None = field(compare=False)
+    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
     def subterms(self) -> list[Term]:
@@ -281,39 +664,60 @@ class _Term:
 
 
 def term_of_lib(x: lib.Mir_Term) -> Term:
-    """Convert a library term into the matching `Term` subclass, including all its subterms"""
+    """Convert a library term into the matching `Term` variant, including all its subterms"""
+    ty = type_of_lib(x.ty)
+    sa = None if x.sub_anchor is None else SubAnchor.of_lib(x.sub_anchor)
     match x.view:
         case lib.Mir_Term_view_Const(arg=c):
-            return Constant(value=c, _raw=x)
+            return Constant(value=const_of_lib(c), type=ty, sub_anchor=sa, _raw=x)
         case lib.Mir_Term_view_If(args=(c, a, b)):
-            return If(condition=term_of_lib(c), then_branch=term_of_lib(a), else_branch=term_of_lib(b), _raw=x)
+            return If(
+                condition=term_of_lib(c),
+                then_branch=term_of_lib(a),
+                else_branch=term_of_lib(b),
+                type=ty,
+                sub_anchor=sa,
+                _raw=x,
+            )
         case lib.Mir_Term_view_Apply(f=f, l=l):
-            return Apply(function=term_of_lib(f), arguments=tuple(term_of_lib(t) for t in l), _raw=x)
+            return Apply(
+                function=term_of_lib(f),
+                arguments=tuple(term_of_lib(t) for t in l),
+                type=ty,
+                sub_anchor=sa,
+                _raw=x,
+            )
         case lib.Mir_Term_view_Var(arg=v):
-            return Var(var=v, _raw=x)
+            return Var(var=Variable.of_lib(v), type=ty, sub_anchor=sa, _raw=x)
         case lib.Mir_Term_view_Sym(arg=s):
-            return Symbol(symbol=AppliedSymbol.of_lib(s), _raw=x)
+            return Symbol(symbol=AppliedSymbol.of_lib(s), type=ty, sub_anchor=sa, _raw=x)
         case lib.Mir_Term_view_Construct(c=c, args=args, labels=labels):
             return Construct(
                 constructor=AppliedSymbol.of_lib(c),
                 arguments=tuple(term_of_lib(t) for t in args),
                 labels=None if labels is None else tuple(Uid(l) for l in labels),
+                type=ty,
+                sub_anchor=sa,
                 _raw=x,
             )
         case lib.Mir_Term_view_Destruct(c=c, i=i, t=t):
-            return Destruct(constructor=AppliedSymbol.of_lib(c), index=i, term=term_of_lib(t), _raw=x)
+            return Destruct(
+                constructor=AppliedSymbol.of_lib(c), index=i, term=term_of_lib(t), type=ty, sub_anchor=sa, _raw=x
+            )
         case lib.Mir_Term_view_Is_a(c=c, t=t):
-            return IsA(constructor=AppliedSymbol.of_lib(c), term=term_of_lib(t), _raw=x)
+            return IsA(constructor=AppliedSymbol.of_lib(c), term=term_of_lib(t), type=ty, sub_anchor=sa, _raw=x)
         case lib.Mir_Term_view_Tuple(l=l):
-            return Tuple(elements=tuple(term_of_lib(t) for t in l), _raw=x)
+            return Tuple(elements=tuple(term_of_lib(t) for t in l), type=ty, sub_anchor=sa, _raw=x)
         case lib.Mir_Term_view_Field(f=f, t=t):
-            return Field(field=AppliedSymbol.of_lib(f), term=term_of_lib(t), _raw=x)
+            return Field(field=AppliedSymbol.of_lib(f), term=term_of_lib(t), type=ty, sub_anchor=sa, _raw=x)
         case lib.Mir_Term_view_Tuple_field(i=i, t=t):
-            return TupleField(index=i, term=term_of_lib(t), _raw=x)
+            return TupleField(index=i, term=term_of_lib(t), type=ty, sub_anchor=sa, _raw=x)
         case lib.Mir_Term_view_Record(rows=rows, rest=rest):
             return Record(
                 rows=tuple((AppliedSymbol.of_lib(f), term_of_lib(t)) for f, t in rows),
                 rest=None if rest is None else term_of_lib(rest),
+                type=ty,
+                sub_anchor=sa,
                 _raw=x,
             )
         case lib.Mir_Term_view_Case(u=u, cases=cases, default=default):
@@ -321,10 +725,14 @@ def term_of_lib(x: lib.Mir_Term) -> Term:
                 scrutinee=term_of_lib(u),
                 cases=tuple((AppliedSymbol.of_lib(c), term_of_lib(t)) for c, t in cases),
                 default=None if default is None else term_of_lib(default),
+                type=ty,
+                sub_anchor=sa,
                 _raw=x,
             )
         case lib.Mir_Term_view_Sequence(args=(prefix, last)):
-            return Sequence(prefix=tuple(term_of_lib(t) for t in prefix), last=term_of_lib(last), _raw=x)
+            return Sequence(
+                prefix=tuple(term_of_lib(t) for t in prefix), last=term_of_lib(last), type=ty, sub_anchor=sa, _raw=x
+            )
         case _:
             assert_never(x.view)
 
@@ -333,27 +741,12 @@ def term_of_lib(x: lib.Mir_Term) -> Term:
 class Constant(_Term):
     """A constant"""
 
-    value: lib.Const
+    value: Const
     """The constant's value"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
-        match self.value:
-            case lib.Const_Const_float(arg=f):
-                return str(f)
-            case lib.Const_Const_string(arg=s):
-                return f'"{s}"'
-            case lib.Const_Const_z(arg=n):
-                return str(n)
-            case lib.Const_Const_q(arg=(num, den)):
-                return f"{num}/{den}"
-            case lib.Const_Const_real_approx(arg=s):
-                return s
-            case lib.Const_Const_uid(arg=u):
-                return u.name
-            case lib.Const_Const_bool(arg=b):
-                return "true" if b else "false"
+        return str(self.value)
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -366,7 +759,6 @@ class If(_Term):
     """The term evaluated if the condition is true"""
     else_branch: Term
     """The term evaluated if the condition is false"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
     @override
@@ -386,7 +778,6 @@ class Apply(_Term):
     """The function being applied"""
     arguments: tuple[Term, ...]
     """The arguments the function is applied to"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
     @override
@@ -406,18 +797,18 @@ class Apply(_Term):
 class Var(_Term):
     """A variable"""
 
-    var: lib.Mir_Var = field(hash=False)
+    var: Variable
     """The variable, with its type"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
-        return self.var.id.name
+        return self.var.id.short_name
 
 
 def var_term_of_var(x: lib.Mir_Var) -> Var:
     """Turn a library variable into a `Var` term"""
-    return Var(var=x, _raw=lib.Mir_Term(view=(lib.Mir_Term_view_Var(arg=x)), ty=x.ty, sub_anchor=None))
+    raw = lib.Mir_Term(view=(lib.Mir_Term_view_Var(arg=x)), ty=x.ty, sub_anchor=None)
+    return Var(var=Variable.of_lib(x), type=type_of_lib(x.ty), sub_anchor=None, _raw=raw)
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -426,7 +817,6 @@ class Symbol(_Term):
 
     symbol: AppliedSymbol
     """The symbol, instantiated at its type"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
@@ -443,7 +833,6 @@ class Construct(_Term):
     """The constructor's arguments"""
     labels: tuple[Uid, ...] | None
     """The argument labels, if the constructor takes labeled (record) arguments"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
     @override
@@ -474,7 +863,6 @@ class Destruct(_Term):
     """The position of the extracted argument"""
     term: Term
     """The term the argument is extracted from"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
     @override
@@ -494,7 +882,6 @@ class IsA(_Term):
     """The constructor tested for"""
     term: Term
     """The term being tested"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
     @override
@@ -512,7 +899,6 @@ class Tuple(_Term):
 
     elements: tuple[Term, ...]
     """The tuple's elements"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     def __len__(self) -> int:
         return len(self.elements)
@@ -535,8 +921,6 @@ class Field(_Term):
     """The field being accessed"""
     term: Term
     """The record whose field is accessed"""
-    # `dataclasses.field` since `field` is shadowed by the field above
-    _raw: lib.Mir_Term = dataclasses.field(repr=False, compare=False)
 
     @property
     @override
@@ -556,7 +940,6 @@ class TupleField(_Term):
     """The position of the accessed component"""
     term: Term
     """The tuple whose component is accessed"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
     @override
@@ -576,7 +959,6 @@ class Record(_Term):
     """The record's fields and their values"""
     rest: Term | None
     """The record being updated in `{rest with ...}`, if any"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
     @override
@@ -602,7 +984,6 @@ class Case(_Term):
     """The match arms, each a constructor and the term for that case"""
     default: Term | None
     """The term for the wildcard case `_`, if any"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
     @override
@@ -628,7 +1009,6 @@ class Sequence(_Term):
     """The terms evaluated before `last`"""
     last: Term
     """The final term, whose value is the value of the sequence"""
-    _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
     @override
@@ -646,6 +1026,12 @@ Term = (
 """A term"""
 
 
+def _binder_of_lib(x: tuple[list[lib.Mir_Var], lib.Mir_Term]) -> tuple[tuple[Variable, ...], Term]:
+    """Convert a library `fun vars -> body` pair"""
+    vs, t = x
+    return (tuple(Variable.of_lib(v) for v in vs), term_of_lib(t))
+
+
 @dataclass(slots=True, frozen=True)
 class Sequent:
     """A sequent"""
@@ -657,12 +1043,130 @@ class Sequent:
     _raw: lib.Mir_Sequent = field(repr=False, compare=False)
 
     @classmethod
-    def of_lib(cls, x: lib.Mir_Sequent) -> "Sequent":
+    def of_lib(cls, x: lib.Mir_Sequent) -> Sequent:
         return cls(
             hypotheses=tuple((n, term_of_lib(t)) for (n, t) in x.hyps),
             conclusions=tuple((n, term_of_lib(t)) for (n, t) in x.concls),
             _raw=x,
         )
+
+
+PreTrigger = tuple[Term, AsTrigger]
+"""A single item in a trigger"""
+
+
+def _pre_trigger_of_lib(x: lib.Mir_Pre_trigger) -> PreTrigger:
+    t, a = x
+    return (term_of_lib(t), as_trigger_of_lib(a))
+
+
+@dataclass(slots=True, frozen=True)
+class Admission:
+    """The admission data for a particular function."""
+
+    measured_subset: tuple[str, ...]
+    """Subset of variables that participate in termination."""
+    measure_function: Uid | None
+    """Name of the measure function (takes subset of arguments, returns an ordinal)"""
+    _raw: lib.Common_Admission = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Common_Admission) -> Admission:
+        return cls(
+            measured_subset=tuple(x.measured_subset),
+            measure_function=None if x.measure_fun is None else Uid(x.measure_fun),
+            _raw=x,
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class Validate:
+    """Validate using this tactic for POs"""
+
+    tactic: tuple[tuple[Variable, ...], Term] | None
+    _raw: lib.Common_Hints_validation_strategy[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class NoValidate:
+    """Admitted, or builtin."""
+
+    _raw: lib.Common_Hints_validation_strategy[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+ValidationStrategy = Validate | NoValidate
+"""How to validate a function"""
+
+
+def validation_strategy_of_lib(
+    x: lib.Common_Hints_validation_strategy[lib.Mir_Term, lib.Mir_Type],
+) -> ValidationStrategy:
+    """Convert a library validation strategy into the matching `ValidationStrategy` variant"""
+    match x:
+        case lib.Common_Hints_validation_strategy_VS_validate(tactic=t):
+            return Validate(tactic=None if t is None else _binder_of_lib(t), _raw=x)
+        case lib.Common_Hints_validation_strategy_VS_no_validate():
+            return NoValidate(_raw=x)
+
+
+@dataclass(slots=True, frozen=True)
+class Hints:
+    validation_strategy: ValidationStrategy
+    unroll_definition: int | None
+    enable: tuple[Uid, ...]
+    """local enables"""
+    disable: tuple[Uid, ...]
+    """local disables"""
+    timeout: int | None
+    """timeout for POs"""
+    admission: Admission | None
+    decomp: Term | None
+    _raw: lib.Mir_Hints = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Mir_Hints) -> Hints:
+        return cls(
+            validation_strategy=validation_strategy_of_lib(x.f_validate_strat),
+            unroll_definition=x.f_unroll_def,
+            enable=tuple(Uid(u) for u in x.f_enable),
+            disable=tuple(Uid(u) for u in x.f_disable),
+            timeout=x.f_timeout,
+            admission=None if x.f_admission is None else Admission.of_lib(x.f_admission),
+            decomp=None if x.f_decomp is None else term_of_lib(x.f_decomp),
+            _raw=x,
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class DefinedFunctionKind:
+    is_macro: bool
+    from_lambda: bool
+    _raw: lib.Common_Fun_def_fun_kind = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class BuiltinFunctionKind:
+    builtin: BuiltinFunction
+    _raw: lib.Common_Fun_def_fun_kind = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class OpaqueFunctionKind:
+    _raw: lib.Common_Fun_def_fun_kind = field(repr=False, compare=False)
+
+
+FunctionKind = DefinedFunctionKind | BuiltinFunctionKind | OpaqueFunctionKind
+
+
+def function_kind_of_lib(x: lib.Common_Fun_def_fun_kind) -> FunctionKind:
+    """Convert a library function kind into the matching `FunctionKind` variant"""
+    match x:
+        case lib.Common_Fun_def_fun_kind_Fun_defined(is_macro=m, from_lambda=l):
+            return DefinedFunctionKind(is_macro=m, from_lambda=l, _raw=x)
+        case lib.Common_Fun_def_fun_kind_Fun_builtin(arg=b):
+            return BuiltinFunctionKind(builtin=BuiltinFunction.of_lib(b), _raw=x)
+        case lib.Common_Fun_def_fun_kind_Fun_opaque():
+            return OpaqueFunctionKind(_raw=x)
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -681,14 +1185,14 @@ class FunctionDefinition:
     """The function's body"""
     clique: frozenset[Uid] | None
     """The mutually recursive functions this function belongs to, if any"""
-    kind: lib.Common_Fun_def_fun_kind
+    kind: FunctionKind
     """Whether the function is defined, builtin or opaque"""
-    hints: lib.Mir_Hints
+    hints: Hints
     """Prover hints attached to the definition"""
     _raw: lib.Mir_Fun_def = field(repr=False, compare=False)
 
     @classmethod
-    def of_lib(cls, x: lib.Mir_Fun_def) -> "FunctionDefinition":
+    def of_lib(cls, x: lib.Mir_Fun_def) -> FunctionDefinition:
         return cls(
             name=Uid(x.f_name),
             type_parameters=tuple(Uid(p) for p in x.f_ty.params),
@@ -696,8 +1200,8 @@ class FunctionDefinition:
             arguments=tuple(var_term_of_var(a) for a in x.f_args),
             body=term_of_lib(x.f_body),
             clique=None if x.f_clique is None else frozenset(Uid(u) for u in x.f_clique),
-            kind=x.f_kind,
-            hints=x.f_hints,
+            kind=function_kind_of_lib(x.f_kind),
+            hints=Hints.of_lib(x.f_hints),
             _raw=x,
         )
 
@@ -714,6 +1218,121 @@ def _definition_str(keyword: str, f: FunctionDefinition) -> str:
     return f"{keyword} {f.name}{args} = {f.body}"
 
 
+@dataclass(slots=True, frozen=True)
+class Theorem:
+    """A theorem, entered with [theorem foo x y = <formula using x,y>]"""
+
+    function: FunctionDefinition
+    """corresponding (boolean) function"""
+    rewriting: bool
+    """rewrite rule?"""
+    perm_restrict: bool
+    """apply permutative rewrite rule restrictions?"""
+    forward_chaining: bool
+    """forward chaining rule?"""
+    elimination: bool
+    """elimination rule?"""
+    generalization: bool
+    """generalization rule?"""
+    triggers: tuple[PreTrigger, ...]
+    is_axiom: bool
+    by: tuple[tuple[Variable, ...], Term]
+    named_hypotheses: tuple[tuple[str, Term], ...]
+    _raw: lib.Mir_Theorem = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Mir_Theorem) -> Theorem:
+        return cls(
+            function=FunctionDefinition.of_lib(x.thm_link),
+            rewriting=x.thm_rewriting,
+            perm_restrict=x.thm_perm_restrict,
+            forward_chaining=x.thm_fc,
+            elimination=x.thm_elim,
+            generalization=x.thm_gen,
+            triggers=tuple(_pre_trigger_of_lib(t) for t in x.thm_triggers),
+            is_axiom=x.thm_is_axiom,
+            by=_binder_of_lib(x.thm_by),
+            named_hypotheses=tuple((n, term_of_lib(t)) for n, t in x.thm_named_hypotheses),
+            _raw=x,
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class RuleSpec:
+    """A rule_spec_spec, entered with [rule_spec_spec foo x y = <formula using x,y>]"""
+
+    forward_chaining: bool
+    """forward chaining rule?"""
+    rewriting: bool
+    """rewrite rule?"""
+    perm_restrict: bool
+    """apply permutative rewrite rule restrictions?"""
+    function: FunctionDefinition
+    """corresponding (boolean) function"""
+    triggers: tuple[PreTrigger, ...]
+    """explicit rule triggers"""
+    _raw: lib.Common_Rule_spec_t_poly[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Common_Rule_spec_t_poly[lib.Mir_Term, lib.Mir_Type]) -> RuleSpec:
+        return cls(
+            forward_chaining=x.rule_spec_fc,
+            rewriting=x.rule_spec_rewriting,
+            perm_restrict=x.rule_spec_perm_restrict,
+            function=FunctionDefinition.of_lib(x.rule_spec_link),
+            triggers=tuple(_pre_trigger_of_lib(t) for t in x.rule_spec_triggers),
+            _raw=x,
+        )
+
+
+class VerifyKind(Enum):
+    VERIFY = "verify"
+    INSTANCE = "instance"
+    TEST = "test"
+
+
+def verify_kind_of_lib(x: lib.Common_Verify_kind) -> VerifyKind:
+    """Convert a library verify kind into the matching `VerifyKind`"""
+    match x:
+        case lib.Common_Verify_kind_K_verify():
+            return VerifyKind.VERIFY
+        case lib.Common_Verify_kind_K_instance():
+            return VerifyKind.INSTANCE
+        case lib.Common_Verify_kind_K_test():
+            return VerifyKind.TEST
+
+
+@dataclass(slots=True, frozen=True)
+class Verify:
+    """A [verify (fun x y -> <formula using x,y>)] event, for nameless theorems."""
+
+    function: FunctionDefinition
+    """nameless function representing the property to check"""
+    simplify: bool
+    """simplify first?"""
+    nonlinear: bool
+    """nonlinear real arithmetic?"""
+    upto: int | None
+    kind: VerifyKind
+    minimize: tuple[Term, ...]
+    """arithmetic terms to minimize in models"""
+    by: tuple[tuple[Variable, ...], Term] | None
+    _raw: lib.Common_Verify_t_poly[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Common_Verify_t_poly[lib.Mir_Term, lib.Mir_Type]) -> Verify:
+        return cls(
+            function=FunctionDefinition.of_lib(x.verify_link),
+            simplify=x.verify_simplify,
+            nonlinear=x.verify_nonlin,
+            upto=None if x.verify_upto is None else upto_of_lib(x.verify_upto),
+            kind=verify_kind_of_lib(x.verify_kind),
+            minimize=tuple(term_of_lib(t) for t in x.verify_minimize),
+            by=None if x.verify_by is None else _binder_of_lib(x.verify_by),
+            _raw=x,
+        )
+
+
 def declaration_of_lib(x: lib.Mir_Decl) -> Declaration:
     """Convert a library declaration into the matching `Declaration` variant"""
     match x:
@@ -722,11 +1341,11 @@ def declaration_of_lib(x: lib.Mir_Decl) -> Declaration:
         case lib.Common_Decl_t_poly_Ty(arg=ty):
             return TypeDeclaration(type=TypeDefinition.of_lib(ty), _raw=x)
         case lib.Common_Decl_t_poly_Theorem(arg=thm):
-            return TheoremDeclaration(theorem=thm, function=FunctionDefinition.of_lib(thm.thm_link), _raw=x)
+            return TheoremDeclaration(theorem=Theorem.of_lib(thm), _raw=x)
         case lib.Common_Decl_t_poly_Rule_spec(arg=rs):
-            return RuleSpecDeclaration(rule_spec=rs, function=FunctionDefinition.of_lib(rs.rule_spec_link), _raw=x)
+            return RuleSpecDeclaration(rule_spec=RuleSpec.of_lib(rs), _raw=x)
         case lib.Common_Decl_t_poly_Verify(arg=v):
-            return VerifyDeclaration(verify=v, function=FunctionDefinition.of_lib(v.verify_link), _raw=x)
+            return VerifyDeclaration(verify=Verify.of_lib(v), _raw=x)
 
 
 @dataclass(slots=True, frozen=True)
@@ -765,11 +1384,14 @@ class TypeDeclaration:
 class TheoremDeclaration:
     kind: ClassVar[str] = "theorem"
 
-    theorem: lib.Mir_Theorem
+    theorem: Theorem
     """The theorem"""
-    function: FunctionDefinition
-    """The linked function"""
     _raw: lib.Mir_Decl = field(repr=False, compare=False)
+
+    @property
+    def function(self) -> FunctionDefinition:
+        """The linked function"""
+        return self.theorem.function
 
     @property
     def id(self) -> Uid:
@@ -783,11 +1405,14 @@ class TheoremDeclaration:
 class RuleSpecDeclaration:
     kind: ClassVar[str] = "rule_spec"
 
-    rule_spec: lib.Common_Rule_spec_t_poly[lib.Mir_Term, lib.Mir_Type]
+    rule_spec: RuleSpec
     """The rule spec"""
-    function: FunctionDefinition
-    """The linked function"""
     _raw: lib.Mir_Decl = field(repr=False, compare=False)
+
+    @property
+    def function(self) -> FunctionDefinition:
+        """The linked function"""
+        return self.rule_spec.function
 
     @property
     def id(self) -> Uid:
@@ -801,11 +1426,14 @@ class RuleSpecDeclaration:
 class VerifyDeclaration:
     kind: ClassVar[str] = "verify"
 
-    verify: lib.Common_Verify_t_poly[lib.Mir_Term, lib.Mir_Type]
+    verify: Verify
     """The verify declaration"""
-    function: FunctionDefinition
-    """The linked function"""
     _raw: lib.Mir_Decl = field(repr=False, compare=False)
+
+    @property
+    def function(self) -> FunctionDefinition:
+        """The linked function"""
+        return self.verify.function
 
     @property
     def id(self) -> Uid:
@@ -852,6 +1480,8 @@ def pattern_head_of_lib(x: lib.Mir_Pattern_head) -> PatternHead:
 
 @dataclass(slots=True, frozen=True)
 class SymbolHead:
+    """starts with function symbol"""
+
     uid: Uid
     """The symbol's uid"""
     _raw: lib.Mir_Pattern_head = field(repr=False, compare=False)
@@ -862,6 +1492,8 @@ class SymbolHead:
 
 @dataclass(slots=True, frozen=True)
 class TypeHead:
+    """is just a variable"""
+
     type: Type
     """The type"""
     _raw: lib.Mir_Pattern_head = field(repr=False, compare=False)
@@ -872,6 +1504,8 @@ class TypeHead:
 
 @dataclass(slots=True, frozen=True)
 class DatatypeOpHead:
+    """starts with destruct/is-a"""
+
     _raw: lib.Mir_Pattern_head = field(repr=False, compare=False)
 
     def __str__(self) -> str:
@@ -882,10 +1516,235 @@ PatternHead = SymbolHead | TypeHead | DatatypeOpHead
 """The head of a rule pattern: a symbol, a type, or a datatype operation"""
 
 
+@dataclass(slots=True, frozen=True, kw_only=True)
+class _FoPattern:
+    """A first-order pattern"""
+
+    type: Type
+    _raw: lib.Mir_Fo_pattern = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class AnyPattern(_FoPattern):
+    pass
+
+
+@dataclass(slots=True, frozen=True)
+class BoolPattern(_FoPattern):
+    value: bool
+
+
+@dataclass(slots=True, frozen=True)
+class ConstPattern(_FoPattern):
+    value: Const
+
+
+@dataclass(slots=True, frozen=True)
+class VarPattern(_FoPattern):
+    """free variable to match"""
+
+    variable: Variable
+
+
+@dataclass(slots=True, frozen=True)
+class ApplyPattern(_FoPattern):
+    """function applied to args"""
+
+    function: AppliedSymbol
+    arguments: tuple[FoPattern, ...]
+
+
+@dataclass(slots=True, frozen=True)
+class ConstructPattern(_FoPattern):
+    """constructor, tuple, record…"""
+
+    constructor: AppliedSymbol | None
+    arguments: tuple[FoPattern, ...]
+    labels: tuple[Uid, ...] | None
+
+
+@dataclass(slots=True, frozen=True)
+class DestructPattern(_FoPattern):
+    constructor: AppliedSymbol | None
+    index: int
+    pattern: FoPattern
+
+
+@dataclass(slots=True, frozen=True)
+class IsAPattern(_FoPattern):
+    constructor: AppliedSymbol
+    pattern: FoPattern
+
+
+FoPattern = (
+    AnyPattern
+    | BoolPattern
+    | ConstPattern
+    | VarPattern
+    | ApplyPattern
+    | ConstructPattern
+    | DestructPattern
+    | IsAPattern
+)
+"""A first-order pattern"""
+
+
+def fo_pattern_of_lib(x: lib.Mir_Fo_pattern) -> FoPattern:
+    """Convert a library first-order pattern into the matching `FoPattern` variant"""
+    ty = type_of_lib(x.ty)
+    match x.view:
+        case lib.Common_Fo_pattern_view_FO_any():
+            return AnyPattern(type=ty, _raw=x)
+        case lib.Common_Fo_pattern_view_FO_bool(arg=b):
+            return BoolPattern(value=b, type=ty, _raw=x)
+        case lib.Common_Fo_pattern_view_FO_const(arg=c):
+            return ConstPattern(value=const_of_lib(c), type=ty, _raw=x)
+        case lib.Common_Fo_pattern_view_FO_var(arg=v):
+            return VarPattern(variable=Variable.of_lib(v), type=ty, _raw=x)
+        case lib.Common_Fo_pattern_view_FO_app(args=(f, args)):
+            return ApplyPattern(
+                function=AppliedSymbol.of_lib(f), arguments=tuple(fo_pattern_of_lib(a) for a in args), type=ty, _raw=x
+            )
+        case lib.Common_Fo_pattern_view_FO_cstor(c=c, args=args, labels=labels):
+            return ConstructPattern(
+                constructor=None if c is None else AppliedSymbol.of_lib(c),
+                arguments=tuple(fo_pattern_of_lib(a) for a in args),
+                labels=None if labels is None else tuple(Uid(l) for l in labels),
+                type=ty,
+                _raw=x,
+            )
+        case lib.Common_Fo_pattern_view_FO_destruct(c=c, i=i, u=u):
+            return DestructPattern(
+                constructor=None if c is None else AppliedSymbol.of_lib(c),
+                index=i,
+                pattern=fo_pattern_of_lib(u),
+                type=ty,
+                _raw=x,
+            )
+        case lib.Common_Fo_pattern_view_FO_is_a(c=c, u=u):
+            return IsAPattern(constructor=AppliedSymbol.of_lib(c), pattern=fo_pattern_of_lib(u), type=ty, _raw=x)
+
+
+@dataclass(slots=True, frozen=True)
+class RewriteRule:
+    """A rewrite rule"""
+
+    name: Uid
+    """name of theorem that gives this rewrite rule"""
+    head: PatternHead
+    """head symbol of LHS"""
+    lhs: FoPattern
+    rhs: Term
+    guard: tuple[Term, ...]
+    variables: tuple[Variable, ...]
+    """all variables of the rule (LHS + triggers)"""
+    triggers: tuple[FoPattern, ...]
+    """additional triggers"""
+    perm_restrict: bool
+    """should we apply `permutative rule` restrictions?"""
+    loop_break: FoPattern | None
+    """if this matches scrutinee term, rewrite aborts"""
+    _raw: lib.Mir_Rewrite_rule = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Mir_Rewrite_rule) -> RewriteRule:
+        return cls(
+            name=Uid(x.rw_name),
+            head=pattern_head_of_lib(x.rw_head),
+            lhs=fo_pattern_of_lib(x.rw_lhs),
+            rhs=term_of_lib(x.rw_rhs),
+            guard=tuple(term_of_lib(t) for t in x.rw_guard),
+            variables=tuple(Variable.of_lib(v) for v in x.rw_vars),
+            triggers=tuple(fo_pattern_of_lib(p) for p in x.rw_triggers),
+            perm_restrict=x.rw_perm_restrict,
+            loop_break=None if x.rw_loop_break is None else fo_pattern_of_lib(x.rw_loop_break),
+            _raw=x,
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class Trigger:
+    head: PatternHead
+    """Root of the pattern"""
+    patterns: tuple[FoPattern, ...]
+    instantiation_rule_name: Uid
+    """Name of the instantiation rule"""
+    _raw: lib.Mir_Trigger = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Mir_Trigger) -> Trigger:
+        return cls(
+            head=pattern_head_of_lib(x.trigger_head),
+            patterns=tuple(fo_pattern_of_lib(p) for p in x.trigger_patterns),
+            instantiation_rule_name=Uid(x.trigger_instantiation_rule_name),
+            _raw=x,
+        )
+
+
+class InstantiationRuleKind(Enum):
+    FORWARD_CHAINING = "forward_chaining"
+    GENERALIZATION = "generalization"
+
+
+def instantiation_rule_kind_of_lib(x: lib.Common_Instantiation_rule_kind) -> InstantiationRuleKind:
+    """Convert a library instantiation rule kind into the matching `InstantiationRuleKind`"""
+    match x:
+        case lib.Common_Instantiation_rule_kind_IR_forward_chaining():
+            return InstantiationRuleKind.FORWARD_CHAINING
+        case lib.Common_Instantiation_rule_kind_IR_generalization():
+            return InstantiationRuleKind.GENERALIZATION
+
+
+@dataclass(slots=True, frozen=True)
+class InstantiationRule:
+    function: FunctionDefinition
+    triggers: tuple[Trigger, ...]
+    kind: InstantiationRuleKind
+    _raw: lib.Mir_Instantiation_rule = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Mir_Instantiation_rule) -> InstantiationRule:
+        return cls(
+            function=FunctionDefinition.of_lib(x.ir_from),
+            triggers=tuple(Trigger.of_lib(t) for t in x.ir_triggers),
+            kind=instantiation_rule_kind_of_lib(x.ir_kind),
+            _raw=x,
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class EliminationRule:
+    name: Uid
+    """name of theorem giving rise to this elim rule"""
+    guard: tuple[Term, ...]
+    """elimination hypotheses"""
+    lhs: Term
+    """the `body' of the rule, at the theorem level"""
+    rhs: Variable
+    """the RHS / elimination variable"""
+    destructors: tuple[FoPattern, ...]
+    """destructor terms of the rule, as patterns"""
+    destructor_terms: tuple[Term, ...]
+    """destructor terms of the rule, as terms"""
+    _raw: lib.Mir_Elimination_rule = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Mir_Elimination_rule) -> EliminationRule:
+        return cls(
+            name=Uid(x.er_name),
+            guard=tuple(term_of_lib(t) for t in x.er_guard),
+            lhs=term_of_lib(x.er_lhs),
+            rhs=Variable.of_lib(x.er_rhs),
+            destructors=tuple(fo_pattern_of_lib(p) for p in x.er_dests),
+            destructor_terms=tuple(term_of_lib(t) for t in x.er_dest_tms),
+            _raw=x,
+        )
+
+
 class DB:
     """A database of symbols
 
-    Declarations, functions and types are each converted on first access.
+    Its contents are converted on first access.
     """
 
     def __init__(self, ds: lib.Mir_Db_ser, storage: dict[str, bytes]):
@@ -898,20 +1757,18 @@ class DB:
         self._raw_tys: dict[Uid, lib.Mir_Type_def] = {}
         self._raw_funs: dict[Uid, lib.Mir_Fun_def] = {}
         self._raw_decls: dict[Uid, lib.Mir_Decl] = {}
-        self._theorems: dict[Uid, lib.Mir_Theorem] = {}
-        self._rule_specs: dict[Uid, lib.Common_Rule_spec_t_poly[lib.Mir_Term, lib.Mir_Type]] = {}
-        self._rw_rules: dict[PatternHead, list[lib.Mir_Rewrite_rule]] = {}
-        self._fc: dict[PatternHead, list[lib.Mir_Trigger]] = {}
-        self._elim: dict[PatternHead, list[lib.Mir_Elimination_rule]] = {}
-        self._gen: dict[PatternHead, list[lib.Mir_Trigger]] = {}
-        self._admission: dict[Uid, lib.Common_Admission] = {}
-        self._thm_as_rw: dict[Uid, list[lib.Mir_Rewrite_rule]] = {}
-        self._thm_as_fc: dict[Uid, list[lib.Mir_Instantiation_rule]] = {}
-        self._thm_as_elim: dict[Uid, list[lib.Mir_Elimination_rule]] = {}
-        self._thm_as_gen: dict[Uid, lib.Mir_Instantiation_rule] = {}
-        self._inst_rules: dict[Uid, lib.Mir_Instantiation_rule] = {}
-        self._rule_spec_fc: dict[Uid, list[lib.Mir_Trigger]] = {}
-        self._rule_spec_rw_rules: dict[Uid, list[lib.Mir_Rewrite_rule]] = {}
+        self._raw_rw_rules: dict[PatternHead, list[lib.Mir_Rewrite_rule]] = {}
+        self._raw_fc: dict[PatternHead, list[lib.Mir_Trigger]] = {}
+        self._raw_elim: dict[PatternHead, list[lib.Mir_Elimination_rule]] = {}
+        self._raw_gen: dict[PatternHead, list[lib.Mir_Trigger]] = {}
+        self._raw_admission: dict[Uid, lib.Common_Admission] = {}
+        self._raw_thm_as_rw: dict[Uid, list[lib.Mir_Rewrite_rule]] = {}
+        self._raw_thm_as_fc: dict[Uid, list[lib.Mir_Instantiation_rule]] = {}
+        self._raw_thm_as_elim: dict[Uid, list[lib.Mir_Elimination_rule]] = {}
+        self._raw_thm_as_gen: dict[Uid, lib.Mir_Instantiation_rule] = {}
+        self._raw_inst_rules: dict[Uid, lib.Mir_Instantiation_rule] = {}
+        self._raw_rule_spec_fc: dict[Uid, list[lib.Mir_Trigger]] = {}
+        self._raw_rule_spec_rw_rules: dict[Uid, list[lib.Mir_Rewrite_rule]] = {}
         for op in ds.ops:
             bs = storage[op.key]
             rw = lib.twine.Decoder(bs)
@@ -938,38 +1795,37 @@ class DB:
                             case lib.Common_Decl_t_poly_Ty(arg=ty):
                                 self._raw_tys[uid] = ty
                             case lib.Common_Decl_t_poly_Theorem(arg=thm):
-                                self._theorems[uid] = thm
                                 self._raw_funs[uid] = thm.thm_link
-                            case lib.Common_Decl_t_poly_Rule_spec(arg=rs):
-                                self._rule_specs[uid] = rs
+                            case lib.Common_Decl_t_poly_Rule_spec():
+                                pass
                             case lib.Common_Decl_t_poly_Verify(arg=v):
                                 self._raw_funs[uid] = v.verify_link
                 case lib.Common_Db_op_t_poly_Op_add_rw((head, rule)):
-                    self._rw_rules.setdefault(pattern_head_of_lib(head), []).append(rule)
+                    self._raw_rw_rules.setdefault(pattern_head_of_lib(head), []).append(rule)
                 case lib.Common_Db_op_t_poly_Op_add_fc_trigger((head, trigger)):
-                    self._fc.setdefault(pattern_head_of_lib(head), []).append(trigger)
+                    self._raw_fc.setdefault(pattern_head_of_lib(head), []).append(trigger)
                 case lib.Common_Db_op_t_poly_Op_add_elim((head, rule)):
-                    self._elim.setdefault(pattern_head_of_lib(head), []).append(rule)
+                    self._raw_elim.setdefault(pattern_head_of_lib(head), []).append(rule)
                 case lib.Common_Db_op_t_poly_Op_add_gen_trigger((head, trigger)):
-                    self._gen.setdefault(pattern_head_of_lib(head), []).append(trigger)
+                    self._raw_gen.setdefault(pattern_head_of_lib(head), []).append(trigger)
                 case lib.Common_Db_op_t_poly_Op_add_count_fun():
                     pass  # ignored in imandrax
                 case lib.Common_Db_op_t_poly_Op_set_admission((uid, adm)):
-                    self._admission[Uid(uid)] = adm
+                    self._raw_admission[Uid(uid)] = adm
                 case lib.Common_Db_op_t_poly_Op_set_thm_as_rw((uid, rules)):
-                    self._thm_as_rw[Uid(uid)] = rules
+                    self._raw_thm_as_rw[Uid(uid)] = rules
                 case lib.Common_Db_op_t_poly_Op_set_thm_as_fc((uid, rules)):
-                    self._thm_as_fc[Uid(uid)] = rules
+                    self._raw_thm_as_fc[Uid(uid)] = rules
                 case lib.Common_Db_op_t_poly_Op_set_thm_as_elim((uid, rules)):
-                    self._thm_as_elim[Uid(uid)] = rules
+                    self._raw_thm_as_elim[Uid(uid)] = rules
                 case lib.Common_Db_op_t_poly_Op_set_thm_as_gen((uid, rule)):
-                    self._thm_as_gen[Uid(uid)] = rule
+                    self._raw_thm_as_gen[Uid(uid)] = rule
                 case lib.Common_Db_op_t_poly_Op_add_instantiation_rule(rule):
-                    self._inst_rules[Uid(rule.ir_from.f_name)] = rule
+                    self._raw_inst_rules[Uid(rule.ir_from.f_name)] = rule
                 case lib.Common_Db_op_t_poly_Op_add_rule_spec_fc_triggers((uid, triggers)):
-                    self._rule_spec_fc.setdefault(Uid(uid), []).extend(triggers)
+                    self._raw_rule_spec_fc.setdefault(Uid(uid), []).extend(triggers)
                 case lib.Common_Db_op_t_poly_Op_add_rule_spec_rw((uid, rules)):
-                    self._rule_spec_rw_rules.setdefault(Uid(uid), []).extend(rules)
+                    self._raw_rule_spec_rw_rules.setdefault(Uid(uid), []).extend(rules)
                 case _:
                     raise Exception("unknown MIR database operation")
 
@@ -995,65 +1851,65 @@ class DB:
         """All declarations, by uid"""
         return self._decls
 
-    @property
-    def rw_rules(self) -> dict[PatternHead, list[lib.Mir_Rewrite_rule]]:
+    @cached_property
+    def rw_rules(self) -> dict[PatternHead, list[RewriteRule]]:
         """Rewrite rules, by the uid of their pattern head"""
-        return self._rw_rules
+        return {h: [RewriteRule.of_lib(r) for r in rs] for h, rs in self._raw_rw_rules.items()}
 
-    @property
-    def fc(self) -> dict[PatternHead, list[lib.Mir_Trigger]]:
+    @cached_property
+    def fc(self) -> dict[PatternHead, list[Trigger]]:
         """Forward-chaining triggers, by the uid of their pattern head"""
-        return self._fc
+        return {h: [Trigger.of_lib(t) for t in ts] for h, ts in self._raw_fc.items()}
 
-    @property
-    def elim(self) -> dict[PatternHead, list[lib.Mir_Elimination_rule]]:
+    @cached_property
+    def elim(self) -> dict[PatternHead, list[EliminationRule]]:
         """Elimination rules, by the uid of their pattern head"""
-        return self._elim
+        return {h: [EliminationRule.of_lib(r) for r in rs] for h, rs in self._raw_elim.items()}
 
-    @property
-    def gen(self) -> dict[PatternHead, list[lib.Mir_Trigger]]:
+    @cached_property
+    def gen(self) -> dict[PatternHead, list[Trigger]]:
         """Generalization triggers, by the uid of their pattern head"""
-        return self._gen
+        return {h: [Trigger.of_lib(t) for t in ts] for h, ts in self._raw_gen.items()}
 
-    @property
-    def admission(self) -> dict[Uid, lib.Common_Admission]:
+    @cached_property
+    def admission(self) -> dict[Uid, Admission]:
         """Admission information, by function uid"""
-        return self._admission
+        return {u: Admission.of_lib(a) for u, a in self._raw_admission.items()}
 
-    @property
-    def thm_as_rw(self) -> dict[Uid, list[lib.Mir_Rewrite_rule]]:
+    @cached_property
+    def thm_as_rw(self) -> dict[Uid, list[RewriteRule]]:
         """Rewrite rules derived from each theorem, by theorem uid"""
-        return self._thm_as_rw
+        return {u: [RewriteRule.of_lib(r) for r in rs] for u, rs in self._raw_thm_as_rw.items()}
 
-    @property
-    def thm_as_fc(self) -> dict[Uid, list[lib.Mir_Instantiation_rule]]:
+    @cached_property
+    def thm_as_fc(self) -> dict[Uid, list[InstantiationRule]]:
         """Forward-chaining rules derived from each theorem, by theorem uid"""
-        return self._thm_as_fc
+        return {u: [InstantiationRule.of_lib(r) for r in rs] for u, rs in self._raw_thm_as_fc.items()}
 
-    @property
-    def thm_as_elim(self) -> dict[Uid, list[lib.Mir_Elimination_rule]]:
+    @cached_property
+    def thm_as_elim(self) -> dict[Uid, list[EliminationRule]]:
         """Elimination rules derived from each theorem, by theorem uid"""
-        return self._thm_as_elim
+        return {u: [EliminationRule.of_lib(r) for r in rs] for u, rs in self._raw_thm_as_elim.items()}
 
-    @property
-    def thm_as_gen(self) -> dict[Uid, lib.Mir_Instantiation_rule]:
+    @cached_property
+    def thm_as_gen(self) -> dict[Uid, InstantiationRule]:
         """The generalization rule derived from each theorem, by theorem uid"""
-        return self._thm_as_gen
+        return {u: InstantiationRule.of_lib(r) for u, r in self._raw_thm_as_gen.items()}
 
-    @property
-    def inst_rules(self) -> dict[Uid, lib.Mir_Instantiation_rule]:
+    @cached_property
+    def inst_rules(self) -> dict[Uid, InstantiationRule]:
         """Instantiation rules, by the uid of the function they come from"""
-        return self._inst_rules
+        return {u: InstantiationRule.of_lib(r) for u, r in self._raw_inst_rules.items()}
 
-    @property
-    def rule_spec_fc(self) -> dict[Uid, list[lib.Mir_Trigger]]:
+    @cached_property
+    def rule_spec_fc(self) -> dict[Uid, list[Trigger]]:
         """Forward-chaining triggers of each rule spec, by uid"""
-        return self._rule_spec_fc
+        return {u: [Trigger.of_lib(t) for t in ts] for u, ts in self._raw_rule_spec_fc.items()}
 
-    @property
-    def rule_spec_rw_rules(self) -> dict[Uid, list[lib.Mir_Rewrite_rule]]:
+    @cached_property
+    def rule_spec_rw_rules(self) -> dict[Uid, list[RewriteRule]]:
         """Rewrite rules of each rule spec, by uid"""
-        return self._rule_spec_rw_rules
+        return {u: [RewriteRule.of_lib(r) for r in rs] for u, rs in self._raw_rule_spec_rw_rules.items()}
 
     def __str__(self) -> str:
         def uids(us: Iterable[Uid]) -> str:

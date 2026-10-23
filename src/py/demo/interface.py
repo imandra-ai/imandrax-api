@@ -3,6 +3,7 @@ import asyncio
 import weakref
 from collections.abc import Awaitable
 from dataclasses import dataclass, field
+from enum import Enum
 from fractions import Fraction
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, Self, assert_never
@@ -132,6 +133,55 @@ class Artifact:
 
 
 @dataclass(slots=True, frozen=True)
+class Statistics:
+    """Tactic Execution Statistics"""
+
+    time_s: float
+    """Execution time"""
+    tactic: tuple[tuple[str, str], ...] | None
+    """Tactic-level statistics"""
+    _raw: lib.Statistics = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Statistics) -> "Statistics":
+        return cls(
+            time_s=x.time_s,
+            tactic=None if x.tactic is None else tuple((k, v) for k, v in x.tactic),
+            _raw=x,
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class ErrorMessage:
+    message: str
+    backtrace: str | None
+    _raw: lib.Error_Error_core_message = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Error_Error_core_message) -> "ErrorMessage":
+        return cls(message=x.msg, backtrace=x.bt, _raw=x)
+
+
+@dataclass(slots=True, frozen=True)
+class ErrorCore:
+    process: str
+    kind: str
+    message: ErrorMessage
+    stack: tuple[ErrorMessage, ...]
+    _raw: lib.Error_Error_core = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Error_Error_core) -> "ErrorCore":
+        return cls(
+            process=x.process,
+            kind=x.kind.name,
+            message=ErrorMessage.of_lib(x.msg),
+            stack=tuple(ErrorMessage.of_lib(m) for m in x.stack),
+            _raw=x,
+        )
+
+
+@dataclass(slots=True, frozen=True)
 class FunctionInterpretation:
     """The interpretation of a function in a model: a table of cases"""
 
@@ -156,11 +206,33 @@ class FunctionInterpretation:
         )
 
 
-class TypeInterpretation:
-    """The interpretation of a type in a model"""
+@dataclass(slots=True, frozen=True)
+class FiniteTypeInterpretation:
+    """interpretation of the type as a finite domain"""
 
-    def __init__(self, x: lib.Common_Model_ty_def[lib.Mir_Term, lib.Mir_Type]):
-        self._raw = x
+    elements: tuple[Term, ...]
+    _raw: lib.Common_Model_ty_def[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class UnitAliasTypeInterpretation:
+    """Interpretation of the type as an alias to [unit]"""
+
+    type: Type
+    _raw: lib.Common_Model_ty_def[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+TypeInterpretation = FiniteTypeInterpretation | UnitAliasTypeInterpretation
+"""The interpretation of a type in a model"""
+
+
+def type_interpretation_of_lib(x: lib.Common_Model_ty_def[lib.Mir_Term, lib.Mir_Type]) -> TypeInterpretation:
+    """Convert a library type interpretation into the matching `TypeInterpretation` variant"""
+    match x:
+        case lib.Common_Model_ty_def_Ty_finite(arg=ts):
+            return FiniteTypeInterpretation(elements=tuple(term_of_lib(t) for t in ts), _raw=x)
+        case lib.Common_Model_ty_def_Ty_alias_unit(arg=ty):
+            return UnitAliasTypeInterpretation(type=type_of_lib(ty), _raw=x)
 
 
 @dataclass(slots=True, frozen=True)
@@ -173,19 +245,291 @@ class Model:
     """The values of constants"""
     functions: dict[AppliedSymbol, FunctionInterpretation]
     """The interpretations of functions"""
+    representable: bool
+    """Can it be entirely represented into OCaml? Not the case if it contains irrational reals"""
+    completed: bool
+    """Indicates whether the model has been completed"""
+    type_substitution: tuple[tuple[Uid, Type], ...]
+    """Types that had new ones substituted during model extraction."""
     _raw: lib.Mir_Model = field(repr=False, compare=False)
 
     @classmethod
     def of_lib(cls, x: lib.Mir_Model) -> "Model":
         return cls(
-            types={type_of_lib(t): TypeInterpretation(d) for (t, d) in x.tys},
+            types={type_of_lib(t): type_interpretation_of_lib(d) for (t, d) in x.tys},
             constants={AppliedSymbol.of_lib(s): term_of_lib(t) for (s, t) in x.consts},
             functions={AppliedSymbol.of_lib(s): FunctionInterpretation.of_lib(f) for (s, f) in x.funs},
+            representable=x.representable,
+            completed=x.completed,
+            type_substitution=tuple((Uid(u), type_of_lib(t)) for u, t in x.ty_subst),
             _raw=x,
         )
 
     def __str__(self) -> str:
         return f"types: {self.types} constants: {self.constants} functions: {self.functions}"
+
+
+@dataclass(slots=True, frozen=True)
+class TermArgument:
+    term: Term
+    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class TypeArgument:
+    type: Type
+    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class IntArgument:
+    value: int
+    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class StringArgument:
+    value: str
+    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class ListArgument:
+    elements: tuple["ProofArgument", ...]
+    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class DictArgument:
+    entries: tuple[tuple[str, "ProofArgument"], ...]
+    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class SequentArgument:
+    sequent: Sequent
+    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+ProofArgument = (
+    TermArgument | TypeArgument | IntArgument | StringArgument | ListArgument | DictArgument | SequentArgument
+)
+
+
+def proof_argument_of_lib(x: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type]) -> ProofArgument:
+    """Convert a library proof rule argument into the matching `ProofArgument` variant"""
+    match x:
+        case lib.Proof_Arg_A_term(arg=t):
+            return TermArgument(term=term_of_lib(t), _raw=x)
+        case lib.Proof_Arg_A_ty(arg=ty):
+            return TypeArgument(type=type_of_lib(ty), _raw=x)
+        case lib.Proof_Arg_A_int(arg=n):
+            return IntArgument(value=n, _raw=x)
+        case lib.Proof_Arg_A_string(arg=st):
+            return StringArgument(value=st, _raw=x)
+        case lib.Proof_Arg_A_list(arg=xs):
+            return ListArgument(elements=tuple(proof_argument_of_lib(a) for a in xs), _raw=x)
+        case lib.Proof_Arg_A_dict(arg=kvs):
+            return DictArgument(entries=tuple((k, proof_argument_of_lib(v)) for k, v in kvs), _raw=x)
+        case lib.Proof_Arg_A_seq(arg=sq):
+            return SequentArgument(sequent=Sequent.of_lib(sq), _raw=x)
+
+
+# The variants of a proof term are those of its view, from `Imandrax_api_proof.View`.
+
+
+@dataclass(slots=True, frozen=True, kw_only=True)
+class _ProofTerm:
+    """A proof term"""
+
+    id: int
+    """unique generative id"""
+    conclusion: Sequent
+    _raw: lib.Proof_Proof_term_t_poly[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class AssumeProof(_ProofTerm):
+    """The rest of the proof is elsewhere. This can be replaced with the actual proof of this proof's
+    goal."""
+
+
+@dataclass(slots=True, frozen=True)
+class SubstProof(_ProofTerm):
+    """Instantiation of a previous step"""
+
+    term_substitution: tuple[tuple[Variable, Term], ...]
+    type_substitution: tuple[tuple[Uid, Type], ...]
+    premise: "ProofTerm"
+
+
+@dataclass(slots=True, frozen=True)
+class DeductionProof(_ProofTerm):
+    premises: tuple[tuple[str, tuple["ProofTerm", ...]], ...]
+    """Groups of premises. The conclusion should be provable via QF_UF reasoning from the conjunction
+    of all premises."""
+
+
+@dataclass(slots=True, frozen=True)
+class RuleProof(_ProofTerm):
+    """A leaf rule, e.g. an axiom or a particular theory rule."""
+
+    rule: str
+    arguments: tuple[ProofArgument, ...]
+
+
+ProofTerm = AssumeProof | SubstProof | DeductionProof | RuleProof
+"""A proof term"""
+
+
+def proof_term_of_lib(x: lib.Proof_Proof_term_t_poly[lib.Mir_Term, lib.Mir_Type]) -> ProofTerm:
+    """Convert a library proof term into the matching `ProofTerm` variant"""
+    concl = Sequent.of_lib(x.concl)
+    match x.view:
+        case lib.Proof_View_T_assume():
+            return AssumeProof(id=x.id, conclusion=concl, _raw=x)
+        case lib.Proof_View_T_subst(t_subst=ts, ty_subst=tys, premise=p):
+            return SubstProof(
+                term_substitution=tuple(
+                    (Variable.of_lib(lib.Common_Var_t_poly(id=u, ty=ty)), term_of_lib(t)) for (u, ty), t in ts
+                ),
+                type_substitution=tuple((Uid(u), type_of_lib(ty)) for u, ty in tys),
+                premise=proof_term_of_lib(p),
+                id=x.id,
+                conclusion=concl,
+                _raw=x,
+            )
+        case lib.Proof_View_T_deduction(premises=ps):
+            return DeductionProof(
+                premises=tuple((n, tuple(proof_term_of_lib(p) for p in group)) for n, group in ps),
+                id=x.id,
+                conclusion=concl,
+                _raw=x,
+            )
+        case lib.Proof_View_T_rule(rule=r, args=args):
+            return RuleProof(
+                rule=r, arguments=tuple(proof_argument_of_lib(a) for a in args), id=x.id, conclusion=concl, _raw=x
+            )
+
+
+@dataclass(slots=True, frozen=True)
+class ProofFound:
+    """Type returned on success for verify"""
+
+    anchor: Anchor
+    proof: ProofTerm
+    """Proof term."""
+    sub_anchor: SubAnchor | None
+    _raw: lib.Tasks_PO_res_proof_found[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class VerifiedUpto:
+    """Type returned on success for verify"""
+
+    anchor: Anchor
+    upto: int
+    _raw: lib.Tasks_PO_res_verified_upto = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class Instance:
+    """Success case for instance"""
+
+    anchor: Anchor
+    model: Model
+    _raw: lib.Tasks_PO_res_instance[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class TestOk:
+    """Test didn't find a counter-example"""
+
+    _raw: lib.Tasks_PO_res_success[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+ProofObligationSuccess = ProofFound | Instance | VerifiedUpto | TestOk
+
+
+@dataclass(slots=True, frozen=True)
+class NoProof:
+    """Error case for verify (the PO failed)"""
+
+    error: ErrorCore
+    counter_model: Model | None
+    subgoals: tuple[Sequent, ...]
+    sub_anchor: SubAnchor | None
+    _raw: lib.Tasks_PO_res_no_proof[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class Unsat:
+    """Error case for instance"""
+
+    anchor: Anchor
+    error: ErrorCore
+    proof: ProofTerm
+    """Proof term for unsat."""
+    sub_anchor: SubAnchor | None
+    _raw: lib.Tasks_PO_res_unsat[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class InvalidModel:
+    """Model validation failure"""
+
+    error: ErrorCore
+    model: Model
+    _raw: lib.Tasks_PO_res_error[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class ProofObligationError:
+    error: ErrorCore
+    _raw: lib.Tasks_PO_res_error[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+ProofObligationFailure = NoProof | Unsat | InvalidModel | ProofObligationError
+
+
+def proof_obligation_result_of_lib(
+    x: lib.Tasks_PO_res_result[lib.Tasks_PO_res_success[lib.Mir_Term, lib.Mir_Type], lib.Mir_Term, lib.Mir_Type],
+) -> ProofObligationSuccess | ProofObligationFailure:
+    """Convert a library proof obligation result into the matching success or failure variant"""
+    match x:
+        case lib.Tasks_PO_res_success_Proof(arg=r):
+            return ProofFound(
+                anchor=anchor_of_lib(r.anchor),
+                proof=proof_term_of_lib(r.proof),
+                sub_anchor=None if r.sub_anchor is None else SubAnchor.of_lib(r.sub_anchor),
+                _raw=r,
+            )
+        case lib.Tasks_PO_res_success_Instance(arg=r):
+            return Instance(anchor=anchor_of_lib(r.anchor), model=Model.of_lib(r.model), _raw=r)
+        case lib.Tasks_PO_res_success_Verified_upto(arg=r):
+            return VerifiedUpto(anchor=anchor_of_lib(r.anchor), upto=upto_of_lib(r.upto), _raw=r)
+        case lib.Tasks_PO_res_success_Test_ok():
+            return TestOk(_raw=x)
+        case lib.Tasks_PO_res_error_No_proof(arg=r):
+            return NoProof(
+                error=ErrorCore.of_lib(r.err),
+                counter_model=None if r.counter_model is None else Model.of_lib(r.counter_model),
+                subgoals=tuple(Sequent.of_lib(sg) for sg in r.subgoals),
+                sub_anchor=None if r.sub_anchor is None else SubAnchor.of_lib(r.sub_anchor),
+                _raw=r,
+            )
+        case lib.Tasks_PO_res_error_Unsat(arg=r):
+            return Unsat(
+                anchor=anchor_of_lib(r.anchor),
+                error=ErrorCore.of_lib(r.err),
+                proof=proof_term_of_lib(r.proof),
+                sub_anchor=None if r.sub_anchor is None else SubAnchor.of_lib(r.sub_anchor),
+                _raw=r,
+            )
+        case lib.Tasks_PO_res_error_Invalid_model(args=(e, m)):
+            return InvalidModel(error=ErrorCore.of_lib(e), model=Model.of_lib(m), _raw=x)
+        case lib.Tasks_PO_res_error_Error(arg=e):
+            return ProofObligationError(error=ErrorCore.of_lib(e), _raw=x)
 
 
 class ProofObligationTaskResult:
@@ -195,7 +539,7 @@ class ProofObligationTaskResult:
     class Subresult:
         """The result for one subgoal of a proof obligation"""
 
-        sub_anchor: lib.Sub_anchor
+        sub_anchor: SubAnchor
         """The anchor identifying the subgoal"""
         goal: Sequent
         """The subgoal"""
@@ -208,7 +552,7 @@ class ProofObligationTaskResult:
         @classmethod
         def of_lib(cls, sr: lib.Tasks_PO_res_sub_res[lib.Mir_Term]) -> "ProofObligationTaskResult.Subresult":
             return cls(
-                sub_anchor=sr.sub_anchor,
+                sub_anchor=SubAnchor.of_lib(sr.sub_anchor),
                 goal=Sequent.of_lib(sr.goal),
                 sub_goals=tuple(Sequent.of_lib(sg) for sg in sr.sub_goals),
                 res=sr.res,
@@ -229,80 +573,67 @@ class ProofObligationTaskResult:
         """The cstore key of the proof obligation task this is the result for"""
         return self._data.from_.key
 
+    @cached_property
+    def result(self) -> ProofObligationSuccess | ProofObligationFailure:
+        """The result"""
+        return proof_obligation_result_of_lib(self._data.res)
+
     @property
     def proved(self) -> bool:
         """Whether the goal was proved or, for instance queries, an instance found"""
-        match self._data.res:
-            case lib.Tasks_PO_res_success_Proof():
-                return True
-            case lib.Tasks_PO_res_success_Instance():
-                return True
-            case _:
-                return False
+        return isinstance(self.result, (ProofFound, Instance))
 
-    @cached_property
+    @property
     def model(self) -> Model | None:
         """The counter-model if the proof failed, or the instance found, if any"""
-        match self._data.res:
-            case lib.Tasks_PO_res_error_No_proof(x):
-                if x.counter_model is not None:
-                    return Model.of_lib(x.counter_model)
-                else:
-                    return None
-            case lib.Tasks_PO_res_success_Instance(x):
-                return Model.of_lib(x.model)
+        match self.result:
+            case NoProof(counter_model=m):
+                return m
+            case Instance(model=m):
+                return m
+            case _:
+                return None
+
+    @property
+    def subgoals(self) -> list[Sequent] | None:
+        """The remaining subgoals, if no proof was found"""
+        match self.result:
+            case NoProof(subgoals=sgs):
+                return list(sgs)
+            case _:
+                return None
+
+    @property
+    def proof(self) -> ProofTerm | None:
+        """The proof term, if a proof was found"""
+        match self.result:
+            case ProofFound(proof=p):
+                return p
+            case _:
+                return None
+
+    @property
+    def anchor(self) -> Anchor | None:
+        """The anchor of the proof, if a proof was found"""
+        match self.result:
+            case ProofFound(anchor=a):
+                return a
+            case _:
+                return None
+
+    @property
+    def sub_anchor(self) -> SubAnchor | None:
+        """The sub-anchor of the proof or the failed proof attempt, if any"""
+        match self.result:
+            case ProofFound(sub_anchor=sa) | NoProof(sub_anchor=sa):
+                return sa
             case _:
                 return None
 
     @cached_property
-    def subgoals(self) -> list[Sequent] | None:
-        """The remaining subgoals, if no proof was found"""
-        match self._data.res:
-            case lib.Tasks_PO_res_error_No_proof(x):
-                return [Sequent.of_lib(sg) for sg in x.subgoals]
-            case _:
-                return None
-
-    @property
-    def proof(self) -> lib.Proof_Proof_term_t_poly[lib.Mir_Term, lib.Mir_Type] | None:
-        """The proof term, if a proof was found"""
-        match self._data.res:
-            case lib.Tasks_PO_res_success_Proof(x):
-                return x.proof
-            case _:
-                return None
-
-    @property
-    def anchor(self) -> lib.Anchor | None:
-        """The anchor of the proof, if a proof was found"""
-        match self._data.res:
-            case lib.Tasks_PO_res_success_Proof(x):
-                return x.anchor
-            case _:
-                return None
-
-    @property
-    def sub_anchor(self) -> lib.Sub_anchor | None:
-        """The sub-anchor of the proof or the failed proof attempt, if any"""
-        match self._data.res:
-            case lib.Tasks_PO_res_success_Proof(x):
-                return x.sub_anchor
-            case lib.Tasks_PO_res_error_No_proof(x):
-                return x.sub_anchor
-            case _:
-                return None
-
-    @property
-    def result(self) -> lib.Tasks_PO_res_result[
-        lib.Tasks_PO_res_success[lib.Mir_Term, lib.Mir_Type], lib.Mir_Term, lib.Mir_Type
-    ]:
-        """The result as returned by the library"""
-        return self._data.res
-
-    @property
-    def statistics(self) -> lib.Statistics:
+    def statistics(self) -> Statistics:
         """Statistics about the proof attempt"""
-        return self._data.stats
+        return Statistics.of_lib(self._data.stats)
 
     @property
     def report(self) -> lib.In_mem_archive[lib.Report_Report]:
@@ -317,6 +648,19 @@ class ProofObligationTaskResult:
 
     def __str__(self) -> str:
         return f"proof: {self.proof} subgoals: {self.subgoals} model: {self.model}"
+
+
+@dataclass(slots=True, frozen=True)
+class EvaluationStatistics:
+    """Evaluation statistics for the whole task"""
+
+    compile_time: float
+    exec_time: float
+    _raw: lib.Tasks_Eval_res_stats = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Tasks_Eval_res_stats) -> "EvaluationStatistics":
+        return cls(compile_time=x.compile_time, exec_time=x.exec_time, _raw=x)
 
 
 class EvaluationTaskResult:
@@ -342,13 +686,46 @@ class EvaluationTaskResult:
             case _:
                 raise Exception(f"Unexpected result type '{type(self._data.res)}'")
 
-    @property
-    def statistics(self) -> lib.Tasks_Eval_res_stats:
+    @cached_property
+    def statistics(self) -> EvaluationStatistics:
         """Statistics about the evaluation"""
-        return self._data.stats
+        return EvaluationStatistics.of_lib(self._data.stats)
 
     def __str__(self) -> str:
         return str(self.value)
+
+
+@dataclass(slots=True, frozen=True)
+class UnknownStatus:
+    _raw: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class FeasibleStatus:
+    model: Model
+    _raw: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class FeasibilityCheckFailedStatus:
+    """Trying to assess feasibility failed, eg with a timeout"""
+
+    message: str
+    _raw: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+RegionStatus = UnknownStatus | FeasibleStatus | FeasibilityCheckFailedStatus
+
+
+def region_status_of_lib(x: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type]) -> RegionStatus:
+    """Convert a library region status into the matching `RegionStatus` variant"""
+    match x:
+        case lib.Common_Region_status_Unknown():
+            return UnknownStatus(_raw=x)
+        case lib.Common_Region_status_Feasible(arg=m):
+            return FeasibleStatus(model=Model.of_lib(m), _raw=x)
+        case lib.Common_Region_status_Feasibility_check_failed(arg=msg):
+            return FeasibilityCheckFailedStatus(message=msg, _raw=x)
 
 
 def _meta_of_lib(m: lib.Common_Region_meta[lib.Mir_Term]) -> "Decomposition.Region.Meta":
@@ -398,7 +775,7 @@ class Decomposition:
         """The function's result for inputs in the region"""
         meta: dict[str, Meta]
         """Metadata attached to the region, by name"""
-        status: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type]
+        status: RegionStatus
         """Whether the region is known to be feasible"""
         _raw: lib.Mir_Region_Region = field(repr=False, compare=False)
 
@@ -408,18 +785,18 @@ class Decomposition:
                 constraints=tuple(term_of_lib(c) for c in r.constraints),
                 invariant=term_of_lib(r.invariant),
                 meta={k: _meta_of_lib(v) for k, v in r.meta},
-                status=r.status,
+                status=region_status_of_lib(r.status),
                 _raw=r,
             )
 
         def __str__(self) -> str:
             constraints = "; ".join(str(c) for c in self.constraints)
             match self.status:
-                case lib.Common_Region_status_Unknown():
+                case UnknownStatus():
                     status = "unknown"
-                case lib.Common_Region_status_Feasible():
+                case FeasibleStatus():
                     status = "feasible"
-                case lib.Common_Region_status_Feasibility_check_failed(arg=msg):
+                case FeasibilityCheckFailedStatus(message=msg):
                     status = f"feasibility check failed: {msg}"
             return f"constraints: [{constraints}] invariant: {self.invariant} status: {status}"
 
@@ -468,10 +845,10 @@ class DecompositionTaskResult:
     def _result(self) -> lib.Tasks_Decomp_res_result[lib.Tasks_Decomp_res_success[lib.Mir_Term, lib.Mir_Type]]:
         return self._data.res
 
-    @property
-    def statistics(self) -> lib.Statistics:
+    @cached_property
+    def statistics(self) -> Statistics:
         """Statistics about the decomposition"""
-        return self._data.stats
+        return Statistics.of_lib(self._data.stats)
 
     @property
     def report(self) -> lib.In_mem_archive[lib.Report_Report]:
@@ -490,12 +867,12 @@ class DecompositionTaskResult:
             case _:
                 return False
 
-    @property
-    def anchor(self) -> lib.Anchor | None:
+    @cached_property
+    def anchor(self) -> Anchor | None:
         """The anchor of the decomposition, if it succeeded"""
         match self._result:
             case lib.Tasks_Decomp_res_success(anchor, _):
-                return anchor
+                return anchor_of_lib(anchor)
             case lib.Tasks_Decomp_res_error_Error():
                 return None
             case _:
@@ -512,14 +889,14 @@ class DecompositionTaskResult:
             case _:
                 return None
 
-    @property
-    def error(self) -> lib.Error_Error_core | None:
+    @cached_property
+    def error(self) -> ErrorCore | None:
         """The error, if the decomposition failed"""
         match self._result:
             case lib.Tasks_Decomp_res_success(_, _):
                 return None
             case lib.Tasks_Decomp_res_error_Error(arg):
-                return arg
+                return ErrorCore.of_lib(arg)
             case _:
                 return None
 
@@ -763,12 +1140,12 @@ class DefaultTheoremTactic:
 
     max_steps: int
     """The maximum number of proof steps"""
-    upto: lib.Upto | None
+    upto: int | None
     """The bound for bounded verification, if any"""
     _raw: lib.Mir_Tactic = field(repr=False, compare=False)
 
     def __str__(self) -> str:
-        upto = "None" if self.upto is None else f"{self.upto.arg} steps"
+        upto = "None" if self.upto is None else f"{self.upto} steps"
         return f"DefaultTheoremTactic(max_steps={self.max_steps}, upto={upto})"
 
 
@@ -810,7 +1187,9 @@ def tactic_of_lib(t: lib.Mir_Tactic) -> Tactic:
         case lib.Common_Tactic_t_poly_Default_termination(max_steps=max_steps, basis=basis):
             return DefaultTerminationTactic(max_steps=max_steps, basis=frozenset(Uid(f) for f in basis), _raw=t)
         case lib.Common_Tactic_t_poly_Default_thm(max_steps=max_steps, upto=upto):
-            return DefaultTheoremTactic(max_steps=max_steps, upto=upto, _raw=t)
+            return DefaultTheoremTactic(
+                max_steps=max_steps, upto=None if upto is None else upto_of_lib(upto), _raw=t
+            )
         case lib.Common_Tactic_t_poly_Default_test(num_steps=num_steps, seed=seed):
             return DefaultTestTactic(num_steps=num_steps, seed=seed, _raw=t)
         case lib.Common_Tactic_t_poly_Term(arg=(vs, term)):
@@ -831,13 +1210,13 @@ class ProofObligation:
     """The tactic to use"""
     isInstance: bool
     """Whether this is an instance query rather than a proof"""
-    anchor: lib.Anchor
+    anchor: Anchor
     """Where the proof obligation comes from"""
     timeout: int | None
     """The timeout, if any"""
-    upto: lib.Upto | None
+    upto: int | None
     """The bound for bounded verification, if any"""
-    verify_kind: lib.Common_Verify_kind | None
+    verify_kind: VerifyKind | None
     """The kind of verification, if any"""
     named_hypotheses: tuple[tuple[str, Term], ...]
     """Named hypotheses available for the proof"""
@@ -851,10 +1230,10 @@ class ProofObligation:
             goal=(tuple(var_term_of_var(v) for v in vs), term_of_lib(t)),
             tactic=tactic_of_lib(po.tactic),
             isInstance=po.is_instance,
-            anchor=po.anchor,
+            anchor=anchor_of_lib(po.anchor),
             timeout=po.timeout,
-            upto=po.upto,
-            verify_kind=po.verify_kind,
+            upto=None if po.upto is None else upto_of_lib(po.upto),
+            verify_kind=None if po.verify_kind is None else verify_kind_of_lib(po.verify_kind),
             named_hypotheses=tuple((n, term_of_lib(h)) for (n, h) in po.named_hypotheses),
             _raw=po,
         )
@@ -941,13 +1320,13 @@ class EvaluationTask(Task):
         _, t = self._eval_task.term
         return term_of_lib(t)
 
-    @property
-    def anchor(self) -> lib.Anchor:
+    @cached_property
+    def anchor(self) -> Anchor:
         """Where the evaluation comes from
 
         Fetched on first access, see `Task`
         """
-        return self._eval_task.anchor
+        return anchor_of_lib(self._eval_task.anchor)
 
     @property
     def timeout(self) -> int | None:
@@ -964,6 +1343,46 @@ class EvaluationTask(Task):
         Fetched on first access, see `Task`
         """
         return DB(self._eval_task.db, self._artifact("eval_task").storage)
+
+
+class LiftBool(Enum):
+    DEFAULT = "default"
+    """Includes the rules [x1 && x2] --> [if x1 then x2 else false] [x1 || x2] -->
+    [if x1 then true else x2] [x1 ==> x2] --> [if x1 then x2 else true]"""
+    NESTED_EQUALITIES = "nested_equalities"
+    """Extends [Default] with the rules [(x = y) = z] --> [if x = y then z else not z]
+    [z = (x = y)] --> [if z then (x = y) else not (x = y)]"""
+    EQUALITIES = "equalities"
+    """Extends [Default] with the rule [x = y] --> [if x = y then true else false]"""
+    ALL = "all"
+    """Extends [Default] with the rule [(t : bool)] --> [if t then true else false]"""
+
+
+def lift_bool_of_lib(x: lib.Common_Decomp_lift_bool) -> LiftBool:
+    """Convert a library `lift_bool` into the matching `LiftBool`"""
+    match x:
+        case lib.Common_Decomp_lift_bool_Default():
+            return LiftBool.DEFAULT
+        case lib.Common_Decomp_lift_bool_Nested_equalities():
+            return LiftBool.NESTED_EQUALITIES
+        case lib.Common_Decomp_lift_bool_Equalities():
+            return LiftBool.EQUALITIES
+        case lib.Common_Decomp_lift_bool_All():
+            return LiftBool.ALL
+
+
+class EnumerationStyle(Enum):
+    ADDITIVE = "additive"
+    MULTIPLICATIVE = "multiplicative"
+
+
+def enumeration_style_of_lib(x: lib.Tasks_Decomp_task_enumeration_style) -> EnumerationStyle:
+    """Convert a library enumeration style into the matching `EnumerationStyle`"""
+    match x:
+        case lib.Tasks_Decomp_task_enumeration_style_Additive():
+            return EnumerationStyle.ADDITIVE
+        case lib.Tasks_Decomp_task_enumeration_style_Multiplicative():
+            return EnumerationStyle.MULTIPLICATIVE
 
 
 class DecompositionRequest:
@@ -983,7 +1402,7 @@ class DecompositionRequest:
         """Rule specs to use during decomposition"""
         ctx_simp: bool
         """Whether to simplify regions in their context"""
-        lift_bool: lib.Common_Decomp_lift_bool
+        lift_bool: LiftBool
         """How Boolean subterms are lifted into region constraints"""
         prune: bool
         """Whether to prune infeasible regions"""
@@ -1097,7 +1516,7 @@ class DecompositionRequest:
         """The decomposition to enumerate"""
         ds: tuple["DecompositionRequest.Request", ...]
         """The decompositions to enumerate over"""
-        style: lib.Tasks_Decomp_task_enumeration_style | None
+        style: EnumerationStyle | None
         """Additive or multiplicative enumeration; `None` means additive"""
         _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
@@ -1119,7 +1538,7 @@ def decomp_request_of_lib(d: lib.Tasks_Decomp_task_Mir_decomp) -> DecompositionR
                 basis=frozenset(Uid(u) for u in a.basis),
                 rule_specs=frozenset(Uid(u) for u in a.rule_specs),
                 ctx_simp=a.ctx_simp,
-                lift_bool=a.lift_bool,
+                lift_bool=lift_bool_of_lib(a.lift_bool),
                 prune=a.prune,
                 _raw=d,
             )
@@ -1149,7 +1568,7 @@ def decomp_request_of_lib(d: lib.Tasks_Decomp_task_Mir_decomp) -> DecompositionR
             return DecompositionRequest.Enumerate(
                 d_f=decomp_request_of_lib(d_f),
                 ds=tuple(decomp_request_of_lib(x) for x in ds),
-                style=style,
+                style=None if style is None else enumeration_style_of_lib(style),
                 _raw=d,
             )
         case _:
@@ -1179,13 +1598,13 @@ class DecompositionTask(Task):
         """
         return decomp_request_of_lib(self._decomp_task.decomp)
 
-    @property
-    def anchor(self) -> lib.Anchor:
+    @cached_property
+    def anchor(self) -> Anchor:
         """Where the decomposition comes from
 
         Fetched on first access, see `Task`
         """
-        return self._decomp_task.anchor
+        return anchor_of_lib(self._decomp_task.anchor)
 
     @property
     def timeout(self) -> int | None:
