@@ -17,9 +17,6 @@ from imandrax_api import lib
 # functions, lifted lambdas, correct types, inferred type variables, ...), and
 # those processes are not replicated on the client side.
 
-# `Imandrax_api.Uid`
-# ==================
-
 
 class Uid:
     """A unique identifier"""
@@ -64,14 +61,6 @@ class Uid:
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self})"
-
-
-# `Imandrax_api_mir.Type`
-# =======================
-
-
-# Types
-# -----
 
 
 class Type:
@@ -156,10 +145,6 @@ class ConstructedType(Type):
         return f"{elems}{self.constructor}"
 
 
-# Type definitions
-# ----------------
-
-
 @dataclass(slots=True, frozen=True, repr=False)
 class TypeDefinition:
     """A type definition"""
@@ -211,10 +196,6 @@ class TypeDefinition:
         return f"{type(self).__name__}({self})"
 
 
-# `Imandrax_api_mir.Typed_symbol`
-# ===============================
-
-
 @dataclass(slots=True, frozen=True)
 class TypedSymbol:
     """A symbol together with its type schema"""
@@ -228,10 +209,6 @@ class TypedSymbol:
     @classmethod
     def of_lib(cls, x: lib.Mir_Typed_symbol) -> "TypedSymbol":
         return cls(id=Uid(x.id), type_schema=x.ty, _raw=x)
-
-
-# `Imandrax_api_mir.Applied_symbol`
-# =================================
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -264,10 +241,6 @@ class AppliedSymbol:
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self})"
-
-
-# `Imandrax_api_mir.Term`
-# =======================
 
 
 class Term:
@@ -661,10 +634,6 @@ class Sequence(Term):
         return "; ".join(str(t) for t in [*self.prefix, self.last])
 
 
-# `Imandrax_api_mir.Sequent`
-# ==========================
-
-
 @dataclass(slots=True, frozen=True)
 class Sequent:
     """A sequent"""
@@ -682,10 +651,6 @@ class Sequent:
             conclusions=tuple((n, term_of_lib(t)) for (n, t) in x.concls),
             _raw=x,
         )
-
-
-# `Imandrax_api_mir.Fun_def`
-# ==========================
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -735,10 +700,6 @@ def _definition_str(keyword: str, f: FunctionDefinition) -> str:
     """`<keyword> <name> <args> = <body>`"""
     args = "".join(f" {a}" for a in f.arguments)
     return f"{keyword} {f.name}{args} = {f.body}"
-
-
-# `Imandrax_api_mir.Decl`
-# =======================
 
 
 class Declaration:
@@ -855,10 +816,6 @@ def _decl_uid(d: lib.Mir_Decl) -> Uid:
             return Uid(v.verify_link.f_name)
 
 
-# `Imandrax_api_mir.Pattern_head`
-# ===============================
-
-
 class PatternHead:
     """The head of a rule pattern: a symbol, a type, or a datatype operation"""
 
@@ -906,10 +863,6 @@ class DatatypeOpHead(PatternHead):
 
     def __str__(self) -> str:
         return "<datatype op>"
-
-
-# `Imandrax_api_mir.Db_ser`
-# =========================
 
 
 class DB:

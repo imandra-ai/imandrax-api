@@ -128,12 +128,7 @@ class Artifact:
 
 
 # Like the classes in `mir`, the classes for library types below are frozen dataclasses
-# converted eagerly, keeping the library value in the hidden field `_raw`. Sections are
-# named after the OCaml module the library type comes from.
-
-
-# `Imandrax_api_mir.Model`
-# ========================
+# converted eagerly, keeping the library value in the hidden field `_raw`.
 
 
 @dataclass(slots=True, frozen=True)
@@ -191,10 +186,6 @@ class Model:
 
     def __str__(self) -> str:
         return f"types: {self.types} constants: {self.constants} functions: {self.functions}"
-
-
-# `Imandrax_api_tasks.PO_res`
-# ===========================
 
 
 class ProofObligationTaskResult:
@@ -328,10 +319,6 @@ class ProofObligationTaskResult:
         return f"proof: {self.proof} subgoals: {self.subgoals} model: {self.model}"
 
 
-# `Imandrax_api_tasks.Eval_res`
-# =============================
-
-
 class EvaluationTaskResult:
     """The result of an evaluation task"""
 
@@ -364,10 +351,6 @@ class EvaluationTaskResult:
         return str(self.value)
 
 
-# `Imandrax_api_mir.Fun_decomp`
-# =============================
-
-
 def _meta_of_lib(m: lib.Common_Region_meta[lib.Mir_Term]) -> "Decomposition.Region.Meta":
     """Convert a library region metadata value into a Python value"""
     match m:
@@ -392,9 +375,6 @@ def _meta_of_lib(m: lib.Common_Region_meta[lib.Mir_Term]) -> "Decomposition.Regi
 @dataclass(slots=True, frozen=True)
 class Decomposition:
     """A region decomposition of a function"""
-
-    # `Imandrax_api_mir.Region`
-    # -------------------------
 
     @dataclass(slots=True, frozen=True, repr=False)
     class Region:
@@ -465,10 +445,6 @@ class Decomposition:
 
     def __str__(self) -> str:
         return str(list(self.regions))
-
-
-# `Imandrax_api_tasks.Decomp_res`
-# ===============================
 
 
 class DecompositionTaskResult:
@@ -766,10 +742,6 @@ def _task_result_of_artifact(artifact: Artifact) -> TaskResult:
             raise Exception(f"Unexpected result artifact kind '{artifact.kind}'")
 
 
-# `Imandrax_api_mir.Tactic`
-# =========================
-
-
 class Tactic:
     """A tactic used to discharge a proof obligation"""
 
@@ -856,10 +828,6 @@ def tactic_of_lib(t: lib.Mir_Tactic) -> Tactic:
             assert_never(t)
 
 
-# `Imandrax_api_mir.Proof_obligation`
-# ===================================
-
-
 @dataclass(slots=True, frozen=True)
 class ProofObligation:
     """A proof obligation: a goal to prove and the tactic to use"""
@@ -899,10 +867,6 @@ class ProofObligation:
             named_hypotheses=tuple((n, term_of_lib(h)) for (n, h) in po.named_hypotheses),
             _raw=po,
         )
-
-
-# `Imandrax_api_tasks.PO_task`
-# ============================
 
 
 class ProofObligationTask(Task):
@@ -951,10 +915,6 @@ class ProofObligationTask(Task):
         Fetched on first access, see `Task`
         """
         return DB(self._po_task.db, self._artifact("po_task").storage)
-
-
-# `Imandrax_api_tasks.Eval_task`
-# ==============================
 
 
 class EvaluationTask(Task):
@@ -1013,10 +973,6 @@ class EvaluationTask(Task):
         Fetched on first access, see `Task`
         """
         return DB(self._eval_task.db, self._artifact("eval_task").storage)
-
-
-# `Imandrax_api_tasks.Decomp_task`
-# ================================
 
 
 class DecompositionRequest:

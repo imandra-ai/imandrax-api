@@ -5,8 +5,6 @@ from typing import override
 import mir
 from imandrax_api import lib
 
-# `Imandrax_api_eval.Value`
-# =========================
 
 # Like the classes in `mir`, values are frozen dataclasses converted eagerly by
 # `value_of_lib`, keeping the library value they were converted from in the hidden
