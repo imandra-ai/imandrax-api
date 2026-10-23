@@ -1741,6 +1741,94 @@ class EliminationRule:
         )
 
 
+@dataclass(slots=True, frozen=True)
+class FunctionInterpretation:
+    """The interpretation of a function in a model: a table of cases"""
+
+    arguments: tuple[Var, ...]
+    """The function's parameters"""
+    return_type: Type
+    """The function's return type"""
+    cases: dict[tuple[Term, ...], Term]
+    """The function's value for specific arguments"""
+    else_: Term
+    """The function's value for all other arguments"""
+    _raw: lib.Common_Model_fi[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Common_Model_fi[lib.Mir_Term, lib.Mir_Type]) -> "FunctionInterpretation":
+        return cls(
+            arguments=tuple(var_term_of_var(a) for a in x.fi_args),
+            return_type=type_of_lib(x.fi_ty_ret),
+            cases={tuple(term_of_lib(k) for k in ks): term_of_lib(v) for (ks, v) in x.fi_cases},
+            else_=term_of_lib(x.fi_else),
+            _raw=x,
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class FiniteTypeInterpretation:
+    """interpretation of the type as a finite domain"""
+
+    elements: tuple[Term, ...]
+    _raw: lib.Common_Model_ty_def[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class UnitAliasTypeInterpretation:
+    """Interpretation of the type as an alias to [unit]"""
+
+    type: Type
+    _raw: lib.Common_Model_ty_def[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+TypeInterpretation = FiniteTypeInterpretation | UnitAliasTypeInterpretation
+"""The interpretation of a type in a model"""
+
+
+def type_interpretation_of_lib(x: lib.Common_Model_ty_def[lib.Mir_Term, lib.Mir_Type]) -> TypeInterpretation:
+    """Convert a library type interpretation into the matching `TypeInterpretation` variant"""
+    match x:
+        case lib.Common_Model_ty_def_Ty_finite(arg=ts):
+            return FiniteTypeInterpretation(elements=tuple(term_of_lib(t) for t in ts), _raw=x)
+        case lib.Common_Model_ty_def_Ty_alias_unit(arg=ty):
+            return UnitAliasTypeInterpretation(type=type_of_lib(ty), _raw=x)
+
+
+@dataclass(slots=True, frozen=True)
+class Model:
+    """A model, e.g. a counter-model or an instance"""
+
+    types: dict[Type, TypeInterpretation]
+    """The interpretations of types"""
+    constants: dict[AppliedSymbol, Term]
+    """The values of constants"""
+    functions: dict[AppliedSymbol, FunctionInterpretation]
+    """The interpretations of functions"""
+    representable: bool
+    """Can it be entirely represented into OCaml? Not the case if it contains irrational reals"""
+    completed: bool
+    """Indicates whether the model has been completed"""
+    type_substitution: tuple[tuple[Uid, Type], ...]
+    """Types that had new ones substituted during model extraction."""
+    _raw: lib.Mir_Model = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, x: lib.Mir_Model) -> "Model":
+        return cls(
+            types={type_of_lib(t): type_interpretation_of_lib(d) for (t, d) in x.tys},
+            constants={AppliedSymbol.of_lib(s): term_of_lib(t) for (s, t) in x.consts},
+            functions={AppliedSymbol.of_lib(s): FunctionInterpretation.of_lib(f) for (s, f) in x.funs},
+            representable=x.representable,
+            completed=x.completed,
+            type_substitution=tuple((Uid(u), type_of_lib(t)) for u, t in x.ty_subst),
+            _raw=x,
+        )
+
+    def __str__(self) -> str:
+        return f"types: {self.types} constants: {self.constants} functions: {self.functions}"
+
+
 class DB:
     """A database of symbols
 
