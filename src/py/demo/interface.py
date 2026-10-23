@@ -742,21 +742,8 @@ def _task_result_of_artifact(artifact: Artifact) -> TaskResult:
             raise Exception(f"Unexpected result artifact kind '{artifact.kind}'")
 
 
-class Tactic:
-    """A tactic used to discharge a proof obligation"""
-
-    __slots__ = ()
-    _raw: lib.Mir_Tactic
-
-    def __str__(self) -> str:
-        return "<tactic>"
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
-
-
-@dataclass(slots=True, frozen=True, repr=False)
-class DefaultTerminationTactic(Tactic):
+@dataclass(slots=True, frozen=True)
+class DefaultTerminationTactic:
     """The default tactic for termination proofs"""
 
     max_steps: int
@@ -770,8 +757,8 @@ class DefaultTerminationTactic(Tactic):
         return f"DefaultTerminationTactic(max_steps={self.max_steps}, basis={basis})"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class DefaultTheoremTactic(Tactic):
+@dataclass(slots=True, frozen=True)
+class DefaultTheoremTactic:
     """The default tactic for theorems"""
 
     max_steps: int
@@ -785,8 +772,8 @@ class DefaultTheoremTactic(Tactic):
         return f"DefaultTheoremTactic(max_steps={self.max_steps}, upto={upto})"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class DefaultTestTactic(Tactic):
+@dataclass(slots=True, frozen=True)
+class DefaultTestTactic:
     """The default tactic for tests"""
 
     num_steps: int | None
@@ -799,8 +786,8 @@ class DefaultTestTactic(Tactic):
         return f"DefaultTestTactic(num_steps={self.num_steps}, seed={self.seed})"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class TermTactic(Tactic):
+@dataclass(slots=True, frozen=True)
+class TermTactic:
     """A tactic given as a term"""
 
     variables: tuple[Var, ...]
@@ -813,8 +800,12 @@ class TermTactic(Tactic):
         return str(self.term)
 
 
+Tactic = DefaultTerminationTactic | DefaultTheoremTactic | DefaultTestTactic | TermTactic
+"""A tactic used to discharge a proof obligation"""
+
+
 def tactic_of_lib(t: lib.Mir_Tactic) -> Tactic:
-    """Convert a library tactic into the matching `Tactic` subclass"""
+    """Convert a library tactic into the matching `Tactic` variant"""
     match t:
         case lib.Common_Tactic_t_poly_Default_termination(max_steps=max_steps, basis=basis):
             return DefaultTerminationTactic(max_steps=max_steps, basis=frozenset(Uid(f) for f in basis), _raw=t)
@@ -978,20 +969,8 @@ class EvaluationTask(Task):
 class DecompositionRequest:
     """A decomposition request"""
 
-    class Request:
-        """A description of the decomposition to compute; requests can be combined"""
-
-        __slots__ = ()
-        _raw: lib.Tasks_Decomp_task_Mir_decomp
-
-        def __str__(self) -> str:
-            return "<decomposition request>"
-
-        def __repr__(self) -> str:
-            return f"{type(self).__name__}({self})"
-
-    @dataclass(slots=True, frozen=True, repr=False)
-    class Function(Request):
+    @dataclass(slots=True, frozen=True)
+    class Function:
         """Decompose a function"""
 
         function: Uid
@@ -1015,8 +994,8 @@ class DecompositionRequest:
             prune = " ~prune:true" if self.prune else ""
             return f"decomp {self.function}{assuming}{prune}"
 
-    @dataclass(slots=True, frozen=True, repr=False)
-    class Term(Request):
+    @dataclass(slots=True, frozen=True)
+    class Term:
         """Decompose a term"""
 
         term: Term
@@ -1026,8 +1005,8 @@ class DecompositionRequest:
         def __str__(self) -> str:
             return f"term {self.term}"
 
-    @dataclass(slots=True, frozen=True, repr=False)
-    class Return(Request):
+    @dataclass(slots=True, frozen=True)
+    class Return:
         """An already computed decomposition, returned as is (e.g. as a base case of a merge)"""
 
         decomposition: Decomposition
@@ -1037,8 +1016,8 @@ class DecompositionRequest:
         def __str__(self) -> str:
             return f"return <decomposition of {self.decomposition.id}>"
 
-    @dataclass(slots=True, frozen=True, repr=False)
-    class Prune(Request):
+    @dataclass(slots=True, frozen=True)
+    class Prune:
         """Prune the infeasible regions of a decomposition"""
 
         request: "DecompositionRequest.Request"
@@ -1048,8 +1027,8 @@ class DecompositionRequest:
         def __str__(self) -> str:
             return f"prune ({self.request})"
 
-    @dataclass(slots=True, frozen=True, repr=False)
-    class Merge(Request):
+    @dataclass(slots=True, frozen=True)
+    class Merge:
         """Merge two decompositions"""
 
         left: "DecompositionRequest.Request"
@@ -1061,8 +1040,8 @@ class DecompositionRequest:
         def __str__(self) -> str:
             return f"merge ({self.left}) ({self.right})"
 
-    @dataclass(slots=True, frozen=True, repr=False)
-    class CompoundMerge(Request):
+    @dataclass(slots=True, frozen=True)
+    class CompoundMerge:
         """Compound-merge two decompositions"""
 
         left: "DecompositionRequest.Request"
@@ -1074,8 +1053,8 @@ class DecompositionRequest:
         def __str__(self) -> str:
             return f"compound_merge ({self.left}) ({self.right})"
 
-    @dataclass(slots=True, frozen=True, repr=False)
-    class Combine(Request):
+    @dataclass(slots=True, frozen=True)
+    class Combine:
         """Combine the regions of a decomposition"""
 
         request: "DecompositionRequest.Request"
@@ -1085,8 +1064,8 @@ class DecompositionRequest:
         def __str__(self) -> str:
             return f"combine ({self.request})"
 
-    @dataclass(slots=True, frozen=True, repr=False)
-    class Get(Request):
+    @dataclass(slots=True, frozen=True)
+    class Get:
         """A decomposition bound by name in an enclosing `Let`"""
 
         name: str
@@ -1096,8 +1075,8 @@ class DecompositionRequest:
         def __str__(self) -> str:
             return f"get {self.name}"
 
-    @dataclass(slots=True, frozen=True, repr=False)
-    class Let(Request):
+    @dataclass(slots=True, frozen=True)
+    class Let:
         """Bind decompositions to names, for use (via `Get`) in `and_then`"""
 
         bindings: tuple[tuple[str, "DecompositionRequest.Request"], ...]
@@ -1110,8 +1089,8 @@ class DecompositionRequest:
             bindings = " and ".join(f"{n} = {d}" for n, d in self.bindings)
             return f"let {bindings} in {self.and_then}"
 
-    @dataclass(slots=True, frozen=True, repr=False)
-    class Enumerate(Request):
+    @dataclass(slots=True, frozen=True)
+    class Enumerate:
         """Enumerate the decomposition `d_f` over the decompositions `ds`"""
 
         d_f: "DecompositionRequest.Request"
@@ -1126,9 +1105,12 @@ class DecompositionRequest:
             ds = ", ".join(str(d) for d in self.ds)
             return f"enumerate ({self.d_f}) [{ds}]"
 
+    Request = Function | Term | Return | Prune | Merge | CompoundMerge | Combine | Get | Let | Enumerate
+    """A description of the decomposition to compute; requests can be combined"""
+
 
 def decomp_request_of_lib(d: lib.Tasks_Decomp_task_Mir_decomp) -> DecompositionRequest.Request:
-    """Convert a library decomposition request into the matching `Request` subclass"""
+    """Convert a library decomposition request into the matching `Request` variant"""
     match d:
         case lib.Tasks_Decomp_task_decomp_poly_Decomp(arg=a):
             return DecompositionRequest.Function(

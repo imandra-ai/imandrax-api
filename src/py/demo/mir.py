@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import dataclasses
 import re
@@ -5,7 +7,7 @@ import re
 from collections.abc import Callable, Iterable, Iterator, Sized
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import ClassVar, Never, assert_never, override
+from typing import ClassVar, Never, assert_never, cast, override
 
 from imandrax_api import lib
 
@@ -63,7 +65,7 @@ class Uid:
         return f"{type(self).__name__}({self})"
 
 
-class Type:
+class _Type:
     """A type"""
 
     __slots__ = ()
@@ -92,7 +94,7 @@ def type_of_lib(x: lib.Mir_Type) -> Type:
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class TypeVariable(Type):
+class TypeVariable(_Type):
     """A type variable"""
 
     name: Uid
@@ -104,7 +106,7 @@ class TypeVariable(Type):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class ArrowType(Type):
+class ArrowType(_Type):
     """A function type `a -> b`"""
 
     domain: Type
@@ -117,7 +119,7 @@ class ArrowType(Type):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class TupleType(Type):
+class TupleType(_Type):
     """A tuple type `a * b * ...`"""
 
     elements: tuple[Type, ...]
@@ -130,7 +132,7 @@ class TupleType(Type):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class ConstructedType(Type):
+class ConstructedType(_Type):
     """A type constructor applied to type arguments, e.g. `int list`"""
 
     constructor: Uid
@@ -143,6 +145,10 @@ class ConstructedType(Type):
         if len(elems) > 0:
             elems += " "
         return f"{elems}{self.constructor}"
+
+
+Type = TypeVariable | ArrowType | TupleType | ConstructedType
+"""A type"""
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -243,26 +249,26 @@ class AppliedSymbol:
         return f"{type(self).__name__}({self})"
 
 
-class Term:
+class _Term:
     """A term"""
 
     __slots__ = ()
     _raw: lib.Mir_Term
 
     @property
-    def subterms(self) -> list["Term"]:
+    def subterms(self) -> list[Term]:
         """The immediate subterms of this term"""
         return []
 
-    def __iter__(self) -> Iterator["Term"]:
+    def __iter__(self) -> Iterator[Term]:
         """Iterate over this term and all of its subterms, recursively, parents before children"""
-        stack: list[Term] = [self]
+        stack: list[Term] = [cast(Term, self)]
         while stack:
             t = stack.pop()
             yield t
             stack.extend(reversed(t.subterms))
 
-    def iter(self, f: Callable[["Term"], None]) -> None:
+    def iter(self, f: Callable[[Term], None]) -> None:
         """Call `f` on this term and on all of its subterms, recursively, parents before children"""
         for t in self:
             f(t)
@@ -324,7 +330,7 @@ def term_of_lib(x: lib.Mir_Term) -> Term:
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Constant(Term):
+class Constant(_Term):
     """A constant"""
 
     value: lib.Const
@@ -351,7 +357,7 @@ class Constant(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class If(Term):
+class If(_Term):
     """A conditional `if c then a else b`"""
 
     condition: Term
@@ -373,7 +379,7 @@ class If(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Apply(Term):
+class Apply(_Term):
     """A function application"""
 
     function: Term
@@ -397,7 +403,7 @@ class Apply(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Var(Term):
+class Var(_Term):
     """A variable"""
 
     var: lib.Mir_Var = field(hash=False)
@@ -415,7 +421,7 @@ def var_term_of_var(x: lib.Mir_Var) -> Var:
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Symbol(Term):
+class Symbol(_Term):
     """A symbol"""
 
     symbol: AppliedSymbol
@@ -428,7 +434,7 @@ class Symbol(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Construct(Term):
+class Construct(_Term):
     """A constructor applied to arguments"""
 
     constructor: AppliedSymbol
@@ -459,7 +465,7 @@ class Construct(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Destruct(Term):
+class Destruct(_Term):
     """A destructor term. (The `index`-th argument of a term built with `constructor`.)"""
 
     constructor: AppliedSymbol
@@ -481,7 +487,7 @@ class Destruct(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class IsA(Term):
+class IsA(_Term):
     """A test whether a term was built with `constructor`"""
 
     constructor: AppliedSymbol
@@ -501,7 +507,7 @@ class IsA(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Tuple(Term):
+class Tuple(_Term):
     """A tuple"""
 
     elements: tuple[Term, ...]
@@ -522,7 +528,7 @@ class Tuple(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Field(Term):
+class Field(_Term):
     """A record field"""
 
     field: AppliedSymbol
@@ -543,7 +549,7 @@ class Field(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class TupleField(Term):
+class TupleField(_Term):
     """A tuple field"""
 
     index: int
@@ -563,7 +569,7 @@ class TupleField(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Record(Term):
+class Record(_Term):
     """A record"""
 
     rows: tuple[tuple[AppliedSymbol, Term], ...]
@@ -587,7 +593,7 @@ class Record(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Case(Term):
+class Case(_Term):
     """A pattern match on `scrutinee`"""
 
     scrutinee: Term
@@ -615,7 +621,7 @@ class Case(Term):
 
 
 @dataclass(slots=True, frozen=True, repr=False)
-class Sequence(Term):
+class Sequence(_Term):
     """A sequence `t1; ...; tn; last`"""
 
     prefix: tuple[Term, ...]
@@ -632,6 +638,12 @@ class Sequence(Term):
     @override
     def __str__(self) -> str:
         return "; ".join(str(t) for t in [*self.prefix, self.last])
+
+
+Term = (
+    Constant | If | Apply | Var | Symbol | Construct | Destruct | IsA | Tuple | Field | TupleField | Record | Case | Sequence
+)
+"""A term"""
 
 
 @dataclass(slots=True, frozen=True)
@@ -702,26 +714,8 @@ def _definition_str(keyword: str, f: FunctionDefinition) -> str:
     return f"{keyword} {f.name}{args} = {f.body}"
 
 
-class Declaration:
-    """A declaration: a function, type, theorem, rule spec or verify declaration"""
-
-    __slots__ = ()
-    _raw: lib.Mir_Decl
-
-    kind: ClassVar[str]
-    """The kind of declaration: `function`, `type`, `theorem`, `rule_spec` or `verify`"""
-
-    @property
-    def id(self) -> Uid:
-        """The identifier of the declaration (for theorems etc., the linked function's)"""
-        return _decl_uid(self._raw)
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
-
-
 def declaration_of_lib(x: lib.Mir_Decl) -> Declaration:
-    """Convert a library declaration into the matching `Declaration` subclass"""
+    """Convert a library declaration into the matching `Declaration` variant"""
     match x:
         case lib.Common_Decl_t_poly_Fun(arg=f):
             return FunctionDeclaration(function=FunctionDefinition.of_lib(f), _raw=x)
@@ -735,32 +729,40 @@ def declaration_of_lib(x: lib.Mir_Decl) -> Declaration:
             return VerifyDeclaration(verify=v, function=FunctionDefinition.of_lib(v.verify_link), _raw=x)
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class FunctionDeclaration(Declaration):
+@dataclass(slots=True, frozen=True)
+class FunctionDeclaration:
     kind: ClassVar[str] = "function"
 
     function: FunctionDefinition
     """The function defined"""
     _raw: lib.Mir_Decl = field(repr=False, compare=False)
 
+    @property
+    def id(self) -> Uid:
+        return self.function.name
+
     def __str__(self) -> str:
         return str(self.function)
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class TypeDeclaration(Declaration):
+@dataclass(slots=True, frozen=True)
+class TypeDeclaration:
     kind: ClassVar[str] = "type"
 
     type: TypeDefinition
     """The type defined"""
     _raw: lib.Mir_Decl = field(repr=False, compare=False)
 
+    @property
+    def id(self) -> Uid:
+        return self.type.name
+
     def __str__(self) -> str:
         return str(self.type)
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class TheoremDeclaration(Declaration):
+@dataclass(slots=True, frozen=True)
+class TheoremDeclaration:
     kind: ClassVar[str] = "theorem"
 
     theorem: lib.Mir_Theorem
@@ -769,12 +771,16 @@ class TheoremDeclaration(Declaration):
     """The linked function"""
     _raw: lib.Mir_Decl = field(repr=False, compare=False)
 
+    @property
+    def id(self) -> Uid:
+        return self.function.name
+
     def __str__(self) -> str:
         return _definition_str(self.kind, self.function)
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class RuleSpecDeclaration(Declaration):
+@dataclass(slots=True, frozen=True)
+class RuleSpecDeclaration:
     kind: ClassVar[str] = "rule_spec"
 
     rule_spec: lib.Common_Rule_spec_t_poly[lib.Mir_Term, lib.Mir_Type]
@@ -783,12 +789,16 @@ class RuleSpecDeclaration(Declaration):
     """The linked function"""
     _raw: lib.Mir_Decl = field(repr=False, compare=False)
 
+    @property
+    def id(self) -> Uid:
+        return self.function.name
+
     def __str__(self) -> str:
         return _definition_str(self.kind, self.function)
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class VerifyDeclaration(Declaration):
+@dataclass(slots=True, frozen=True)
+class VerifyDeclaration:
     kind: ClassVar[str] = "verify"
 
     verify: lib.Common_Verify_t_poly[lib.Mir_Term, lib.Mir_Type]
@@ -797,8 +807,21 @@ class VerifyDeclaration(Declaration):
     """The linked function"""
     _raw: lib.Mir_Decl = field(repr=False, compare=False)
 
+    @property
+    def id(self) -> Uid:
+        return self.function.name
+
     def __str__(self) -> str:
         return _definition_str(self.kind, self.function)
+
+
+Declaration = FunctionDeclaration | TypeDeclaration | TheoremDeclaration | RuleSpecDeclaration | VerifyDeclaration
+"""A declaration: a function, type, theorem, rule spec or verify declaration
+
+Every variant has `id`, the identifier of the declaration (for theorems etc., the linked
+function's), and `kind`, the kind of declaration: `function`, `type`, `theorem`, `rule_spec` or
+`verify`.
+"""
 
 
 def _decl_uid(d: lib.Mir_Decl) -> Uid:
@@ -816,18 +839,8 @@ def _decl_uid(d: lib.Mir_Decl) -> Uid:
             return Uid(v.verify_link.f_name)
 
 
-class PatternHead:
-    """The head of a rule pattern: a symbol, a type, or a datatype operation"""
-
-    __slots__ = ()
-    _raw: lib.Mir_Pattern_head
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
-
-
 def pattern_head_of_lib(x: lib.Mir_Pattern_head) -> PatternHead:
-    """Convert a library pattern head into the matching `PatternHead` subclass"""
+    """Convert a library pattern head into the matching `PatternHead` variant"""
     match x:
         case lib.Common_Pattern_head_t_poly_PH_id(arg=uid):
             return SymbolHead(uid=Uid(uid), _raw=x)
@@ -837,8 +850,8 @@ def pattern_head_of_lib(x: lib.Mir_Pattern_head) -> PatternHead:
             return DatatypeOpHead(_raw=x)
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class SymbolHead(PatternHead):
+@dataclass(slots=True, frozen=True)
+class SymbolHead:
     uid: Uid
     """The symbol's uid"""
     _raw: lib.Mir_Pattern_head = field(repr=False, compare=False)
@@ -847,8 +860,8 @@ class SymbolHead(PatternHead):
         return str(self.uid)
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class TypeHead(PatternHead):
+@dataclass(slots=True, frozen=True)
+class TypeHead:
     type: Type
     """The type"""
     _raw: lib.Mir_Pattern_head = field(repr=False, compare=False)
@@ -857,12 +870,16 @@ class TypeHead(PatternHead):
         return str(self.type)
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class DatatypeOpHead(PatternHead):
+@dataclass(slots=True, frozen=True)
+class DatatypeOpHead:
     _raw: lib.Mir_Pattern_head = field(repr=False, compare=False)
 
     def __str__(self) -> str:
         return "<datatype op>"
+
+
+PatternHead = SymbolHead | TypeHead | DatatypeOpHead
+"""The head of a rule pattern: a symbol, a type, or a datatype operation"""
 
 
 class DB:

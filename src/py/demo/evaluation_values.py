@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from fractions import Fraction
 from typing import override
@@ -13,21 +15,8 @@ from imandrax_api import lib
 type _View = lib.Eval_Value_view[lib.Eval_Value, lib.Eval_Value_erased_closure]
 
 
-class Value:
-    """A value produced by evaluation; base class of all value kinds."""
-
-    __slots__ = ()
-    _raw: _View
-
-    def __str__(self) -> str:
-        return "<value>"
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
-
-
-@dataclass(slots=True, frozen=True, repr=False)
-class True_(Value):
+@dataclass(slots=True, frozen=True)
+class True_:
     """The boolean `true`."""
 
     _raw: _View = field(repr=False, compare=False)
@@ -37,8 +26,8 @@ class True_(Value):
         return "true"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class False_(Value):
+@dataclass(slots=True, frozen=True)
+class False_:
     """The boolean `false`."""
 
     _raw: _View = field(repr=False, compare=False)
@@ -48,8 +37,8 @@ class False_(Value):
         return "false"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class Int(Value):
+@dataclass(slots=True, frozen=True)
+class Int:
     """An integer, stored in `value`."""
 
     value: int
@@ -60,8 +49,8 @@ class Int(Value):
         return str(self.value)
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class Real(Value):
+@dataclass(slots=True, frozen=True)
+class Real:
     """A real number, stored exactly as a `Fraction` in `value`."""
 
     value: Fraction
@@ -72,8 +61,8 @@ class Real(Value):
         return str(self.value)
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class String(Value):
+@dataclass(slots=True, frozen=True)
+class String:
     """A string, stored in `value`."""
 
     value: str
@@ -84,8 +73,8 @@ class String(Value):
         return f'"{self.value}"'
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class Constructor(Value):
+@dataclass(slots=True, frozen=True)
+class Constructor:
     """A data constructor applied to arguments, e.g. `Some 3` or `None`.
 
     `name` is the constructor's name, `index` its position among the type's constructors, and
@@ -104,8 +93,8 @@ class Constructor(Value):
         return f"{self.name} ({', '.join(str(a) for a in self.args)})"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class Tuple(Value):
+@dataclass(slots=True, frozen=True)
+class Tuple:
     """A tuple; `elements` holds its components in order."""
 
     elements: tuple[Value, ...]
@@ -116,8 +105,8 @@ class Tuple(Value):
         return f"({', '.join(str(e) for e in self.elements)})"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class Record(Value):
+@dataclass(slots=True, frozen=True)
+class Record:
     """A record; `name` identifies the record type and `fields` maps field names to values."""
 
     name: str
@@ -129,8 +118,8 @@ class Record(Value):
         return "{" + "; ".join(f"{k} = {x}" for k, x in self.fields.items()) + "}"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class QuotedTerm(Value):
+@dataclass(slots=True, frozen=True)
+class QuotedTerm:
     """A quoted term: a MIR function with parameters `params` and body `body`."""
 
     params: tuple[mir.Var, ...]
@@ -142,8 +131,8 @@ class QuotedTerm(Value):
         return "<quoted term>"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class Uid(Value):
+@dataclass(slots=True, frozen=True)
+class Uid:
     """A unique identifier, stored in `uid` and printed by name."""
 
     uid: mir.Uid
@@ -154,8 +143,8 @@ class Uid(Value):
         return self.uid.short_name
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class Closure(Value):
+@dataclass(slots=True, frozen=True)
+class Closure:
     """A function value; its code is not sent to the client, so it prints as `<fun>`."""
 
     closure: lib.Eval_Value_erased_closure
@@ -166,8 +155,8 @@ class Closure(Value):
         return "<fun>"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class Custom(Value):
+@dataclass(slots=True, frozen=True)
+class Custom:
     """A custom value.
 
     The library cannot decode custom values yet (decoding raises an error), so this class is
@@ -191,8 +180,8 @@ def _ordinal_str(o: lib.Eval_Ordinal) -> str:
             return f"({_ordinal_str(a)}, {n}, {_ordinal_str(b)})"
 
 
-@dataclass(slots=True, frozen=True, repr=False)
-class Ordinal(Value):
+@dataclass(slots=True, frozen=True)
+class Ordinal:
     """An ordinal, stored in `value`."""
 
     value: lib.Eval_Ordinal
@@ -201,6 +190,12 @@ class Ordinal(Value):
     @override
     def __str__(self) -> str:
         return _ordinal_str(self.value)
+
+
+Value = (
+    True_ | False_ | Int | Real | String | Constructor | Tuple | Record | QuotedTerm | Uid | Closure | Custom | Ordinal
+)
+"""A value produced by evaluation"""
 
 
 def value_of_lib(x: _View) -> Value:
