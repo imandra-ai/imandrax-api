@@ -145,6 +145,7 @@ async def main():
             raise AssertionError("po_res artifact never became available")
 
         art = await c.get_artifact(async_task, kind="po_res")
+        assert art.WhichOneof("result") == "ok", f"get_artifact failed: {art.error}"
         assert art.ok.kind == "po_res", f"unexpected kind {art.ok.kind}"
         assert len(art.ok.data) > 0, "po_res artifact is empty"
         async_res = xtypes.read_artifact_data(data=art.ok.data, kind="po_res")

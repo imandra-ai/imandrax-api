@@ -32,20 +32,23 @@ decl_f = c.get_decls(names=["f", "totally_unknown"])
 print("get_decls:", decl_f)
 
 art_show = c.get_artifact_zip(task2, kind="show")
-print(f'art show size={len(art_show.art_zip)}')
+assert art_show.WhichOneof("result") == "ok", f"get_artifact_zip failed: {art_show.error}"
+print(f'art show size={len(art_show.ok.art_zip)}')
 
 art_po_task = c.get_artifact_zip(task2, kind="po_task")
-print(f'art po task size: {len(art_po_task.art_zip)}')
+assert art_po_task.WhichOneof("result") == "ok", f"get_artifact_zip failed: {art_po_task.error}"
+print(f'art po task size: {len(art_po_task.ok.art_zip)}')
 
 with open('art.po_task.zip', 'wb') as f:
-    f.write(art_po_task.art_zip)
+    f.write(art_po_task.ok.art_zip)
 
 art_po_res = c.get_artifact_zip(task2, kind="po_res")
-print(f'art po res: {len(art_po_res.art_zip)}')
+assert art_po_res.WhichOneof("result") == "ok", f"get_artifact_zip failed: {art_po_res.error}"
+print(f'art po res: {len(art_po_res.ok.art_zip)}')
 with open('art.po_res.zip', 'wb') as f:
-    f.write(art_po_res.art_zip)
+    f.write(art_po_res.ok.art_zip)
 
 with open('art.po_res.zip', 'wb') as f:
-    f.write(art_po_res.art_zip)
+    f.write(art_po_res.ok.art_zip)
 
 del c
