@@ -1,11 +1,25 @@
+from dataclasses import dataclass, field
 from fractions import Fraction
 from typing import override
 
+import mir
 from imandrax_api import lib
+
+# `Imandrax_api_eval.Value`
+# =========================
+
+# Like the classes in `mir`, values are frozen dataclasses converted eagerly by
+# `value_of_lib`, keeping the library value they were converted from in the hidden
+# field `_raw`.
+
+type _View = lib.Eval_Value_view[lib.Eval_Value, lib.Eval_Value_erased_closure]
 
 
 class Value:
     """A value produced by evaluation; base class of all value kinds."""
+
+    __slots__ = ()
+    _raw: _View
 
     def __str__(self) -> str:
         return "<value>"
@@ -14,66 +28,65 @@ class Value:
         return f"{type(self).__name__}({self})"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class True_(Value):
     """The boolean `true`."""
 
-    def __init__(self):
-        pass
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
         return "true"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class False_(Value):
     """The boolean `false`."""
 
-    def __init__(self):
-        pass
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
         return "false"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class Int(Value):
     """An integer, stored in `value`."""
 
-    def __init__(self, v: lib.Eval_Value_view_V_int[lib.Eval_Value, lib.Eval_Value_erased_closure]):
-        self.value: int = v.arg
+    value: int
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
         return str(self.value)
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class Real(Value):
     """A real number, stored exactly as a `Fraction` in `value`."""
 
-    def __init__(
-        self, v: lib.Eval_Value_view_V_real[lib.Eval_Value, lib.Eval_Value_erased_closure]
-    ):
-        num, den = v.arg
-        self.value: Fraction = Fraction(num, den)
+    value: Fraction
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
         return str(self.value)
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class String(Value):
     """A string, stored in `value`."""
 
-    def __init__(
-        self, v: lib.Eval_Value_view_V_string[lib.Eval_Value, lib.Eval_Value_erased_closure]
-    ):
-        self.value: str = v.arg
+    value: str
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
         return f'"{self.value}"'
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class Constructor(Value):
     """A data constructor applied to arguments, e.g. `Some 3` or `None`.
 
@@ -81,13 +94,10 @@ class Constructor(Value):
     `args` its arguments.
     """
 
-    def __init__(
-        self, v: lib.Eval_Value_view_V_cstor[lib.Eval_Value, lib.Eval_Value_erased_closure]
-    ):
-        descriptor, args = v.args
-        self.name: str = descriptor.cd_name.name
-        self.index: int = descriptor.cd_idx
-        self.args: list[Value] = [value_of_lib(a.v) for a in args]
+    name: str
+    index: int
+    args: tuple[Value, ...]
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
@@ -96,75 +106,69 @@ class Constructor(Value):
         return f"{self.name} ({', '.join(str(a) for a in self.args)})"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class Tuple(Value):
     """A tuple; `elements` holds its components in order."""
 
-    def __init__(
-        self, v: lib.Eval_Value_view_V_tuple[lib.Eval_Value, lib.Eval_Value_erased_closure]
-    ):
-        self.elements: list[Value] = [value_of_lib(e.v) for e in v.arg]
+    elements: tuple[Value, ...]
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
         return f"({', '.join(str(e) for e in self.elements)})"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class Record(Value):
     """A record; `name` identifies the record type and `fields` maps field names to values."""
 
-    def __init__(
-        self, v: lib.Eval_Value_view_V_record[lib.Eval_Value, lib.Eval_Value_erased_closure]
-    ):
-        descriptor, values = v.args
-        self.name: str = descriptor.rd_name.name
-        self.fields: dict[str, Value] = {
-            f.name: value_of_lib(x.v) for f, x in zip(descriptor.rd_fields, values)
-        }
+    name: str
+    fields: dict[str, Value]
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
         return "{" + "; ".join(f"{k} = {x}" for k, x in self.fields.items()) + "}"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class QuotedTerm(Value):
     """A quoted term: a MIR function with parameters `params` and body `body`."""
 
-    def __init__(
-        self, v: lib.Eval_Value_view_V_quoted_term[lib.Eval_Value, lib.Eval_Value_erased_closure]
-    ):
-        params, body = v.arg
-        self.params: list[lib.Mir_Var] = params
-        self.body: lib.Mir_Term = body
+    params: tuple[mir.Var, ...]
+    body: mir.Term
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
         return "<quoted term>"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class Uid(Value):
     """A unique identifier, stored in `uid` and printed by name."""
 
-    def __init__(self, v: lib.Eval_Value_view_V_uid[lib.Eval_Value, lib.Eval_Value_erased_closure]):
-        self.uid: lib.Uid = v.arg
+    uid: mir.Uid
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
-        return self.uid.name
+        return self.uid.short_name
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class Closure(Value):
     """A function value; its code is not sent to the client, so it prints as `<fun>`."""
 
-    def __init__(
-        self, v: lib.Eval_Value_view_V_closure[lib.Eval_Value, lib.Eval_Value_erased_closure]
-    ):
-        self.closure: lib.Eval_Value_erased_closure = v.arg
+    closure: lib.Eval_Value_erased_closure
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
         return "<fun>"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class Custom(Value):
     """A custom value.
 
@@ -172,10 +176,8 @@ class Custom(Value):
     currently never produced.
     """
 
-    def __init__(
-        self, v: lib.Eval_Value_view_V_custom[lib.Eval_Value, lib.Eval_Value_erased_closure]
-    ):
-        self.value: lib.Eval__Value_Custom_value = v.arg
+    value: lib.Eval__Value_Custom_value
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
@@ -191,20 +193,19 @@ def _ordinal_str(o: lib.Eval_Ordinal) -> str:
             return f"({_ordinal_str(a)}, {n}, {_ordinal_str(b)})"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class Ordinal(Value):
     """An ordinal, stored in `value`."""
 
-    def __init__(
-        self, v: lib.Eval_Value_view_V_ordinal[lib.Eval_Value, lib.Eval_Value_erased_closure]
-    ):
-        self.value: lib.Eval_Ordinal = v.arg
+    value: lib.Eval_Ordinal
+    _raw: _View = field(repr=False, compare=False)
 
     @override
     def __str__(self) -> str:
         return _ordinal_str(self.value)
 
 
-def value_of_lib(x: lib.Eval_Value_view[lib.Eval_Value, lib.Eval_Value_erased_closure]) -> Value:
+def value_of_lib(x: _View) -> Value:
     """Convert an evaluation value from `imandrax_api.lib` into the matching `Value` subclass.
 
     Nested values (constructor arguments, tuple elements, record fields) are converted
@@ -212,30 +213,41 @@ def value_of_lib(x: lib.Eval_Value_view[lib.Eval_Value, lib.Eval_Value_erased_cl
     """
     match x:
         case lib.Eval_Value_view_V_true():
-            return True_()
+            return True_(_raw=x)
         case lib.Eval_Value_view_V_false():
-            return False_()
-        case lib.Eval_Value_view_V_int():
-            return Int(x)
-        case lib.Eval_Value_view_V_real():
-            return Real(x)
-        case lib.Eval_Value_view_V_string():
-            return String(x)
-        case lib.Eval_Value_view_V_cstor():
-            return Constructor(x)
-        case lib.Eval_Value_view_V_tuple():
-            return Tuple(x)
-        case lib.Eval_Value_view_V_record():
-            return Record(x)
-        case lib.Eval_Value_view_V_quoted_term():
-            return QuotedTerm(x)
-        case lib.Eval_Value_view_V_uid():
-            return Uid(x)
-        case lib.Eval_Value_view_V_closure():
-            return Closure(x)
-        case lib.Eval_Value_view_V_custom():
-            return Custom(x)
-        case lib.Eval_Value_view_V_ordinal():
-            return Ordinal(x)
+            return False_(_raw=x)
+        case lib.Eval_Value_view_V_int(arg=n):
+            return Int(value=n, _raw=x)
+        case lib.Eval_Value_view_V_real(arg=(num, den)):
+            return Real(value=Fraction(num, den), _raw=x)
+        case lib.Eval_Value_view_V_string(arg=s):
+            return String(value=s, _raw=x)
+        case lib.Eval_Value_view_V_cstor(args=(descriptor, args)):
+            return Constructor(
+                name=descriptor.cd_name.name,
+                index=descriptor.cd_idx,
+                args=tuple(value_of_lib(a.v) for a in args),
+                _raw=x,
+            )
+        case lib.Eval_Value_view_V_tuple(arg=elements):
+            return Tuple(elements=tuple(value_of_lib(e.v) for e in elements), _raw=x)
+        case lib.Eval_Value_view_V_record(args=(descriptor, values)):
+            return Record(
+                name=descriptor.rd_name.name,
+                fields={f.name: value_of_lib(v.v) for f, v in zip(descriptor.rd_fields, values)},
+                _raw=x,
+            )
+        case lib.Eval_Value_view_V_quoted_term(arg=(params, body)):
+            return QuotedTerm(
+                params=tuple(mir.var_term_of_var(p) for p in params), body=mir.term_of_lib(body), _raw=x
+            )
+        case lib.Eval_Value_view_V_uid(arg=u):
+            return Uid(uid=mir.Uid(u), _raw=x)
+        case lib.Eval_Value_view_V_closure(arg=c):
+            return Closure(closure=c, _raw=x)
+        case lib.Eval_Value_view_V_custom(arg=c):
+            return Custom(value=c, _raw=x)
+        case lib.Eval_Value_view_V_ordinal(arg=o):
+            return Ordinal(value=o, _raw=x)
         case _:
             raise Exception("Unexpected evaluation value")

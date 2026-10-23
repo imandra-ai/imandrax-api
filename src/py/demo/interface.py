@@ -2,6 +2,7 @@
 import asyncio
 import weakref
 from collections.abc import Awaitable
+from dataclasses import dataclass, field
 from fractions import Fraction
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, Self, assert_never
@@ -126,31 +127,38 @@ class Artifact:
         return {s.key: s.value for s in self._raw.storage}
 
 
+# Like the classes in `mir`, the classes for library types below are frozen dataclasses
+# converted eagerly, keeping the library value in the hidden field `_raw`. Sections are
+# named after the OCaml module the library type comes from.
+
+
+# `Imandrax_api_mir.Model`
+# ========================
+
+
+@dataclass(slots=True, frozen=True)
 class FunctionInterpretation:
     """The interpretation of a function in a model: a table of cases"""
 
-    def __init__(self, x: lib.Common_Model_fi[lib.Mir_Term, lib.Mir_Type]):
-        self._raw = x
+    arguments: tuple[Var, ...]
+    """The function's parameters"""
+    return_type: Type
+    """The function's return type"""
+    cases: dict[tuple[Term, ...], Term]
+    """The function's value for specific arguments"""
+    else_: Term
+    """The function's value for all other arguments"""
+    _raw: lib.Common_Model_fi[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
 
-    @property
-    def arguments(self) -> list[Var]:
-        """The function's parameters"""
-        return [var_term_of_var(a) for a in self._raw.fi_args]
-
-    @property
-    def return_type(self) -> Type:
-        """The function's return type"""
-        return type_of_lib(self._raw.fi_ty_ret)
-
-    @property
-    def cases(self) -> dict[tuple[Term, ...], Term]:
-        """The function's value for specific arguments"""
-        return {tuple(term_of_lib(k) for k in x): term_of_lib(y) for (x, y) in self._raw.fi_cases}
-
-    @property
-    def else_(self) -> Term:
-        """The function's value for all other arguments"""
-        return term_of_lib(self._raw.fi_else)
+    @classmethod
+    def of_lib(cls, x: lib.Common_Model_fi[lib.Mir_Term, lib.Mir_Type]) -> "FunctionInterpretation":
+        return cls(
+            arguments=tuple(var_term_of_var(a) for a in x.fi_args),
+            return_type=type_of_lib(x.fi_ty_ret),
+            cases={tuple(term_of_lib(k) for k in ks): term_of_lib(v) for (ks, v) in x.fi_cases},
+            else_=term_of_lib(x.fi_else),
+            _raw=x,
+        )
 
 
 class TypeInterpretation:
@@ -160,59 +168,61 @@ class TypeInterpretation:
         self._raw = x
 
 
+@dataclass(slots=True, frozen=True)
 class Model:
     """A model, e.g. a counter-model or an instance"""
 
-    def __init__(self, x: lib.Mir_Model):
-        self._raw = x
+    types: dict[Type, TypeInterpretation]
+    """The interpretations of types"""
+    constants: dict[AppliedSymbol, Term]
+    """The values of constants"""
+    functions: dict[AppliedSymbol, FunctionInterpretation]
+    """The interpretations of functions"""
+    _raw: lib.Mir_Model = field(repr=False, compare=False)
 
-    @property
-    def constants(self) -> dict[AppliedSymbol, Term]:
-        """The values of constants"""
-        return {AppliedSymbol(s): term_of_lib(t) for (s, t) in self._raw.consts}
-
-    @property
-    def functions(self) -> dict[AppliedSymbol, FunctionInterpretation]:
-        """The interpretations of functions"""
-        return {AppliedSymbol(s): FunctionInterpretation(t) for (s, t) in self._raw.funs}
-
-    @property
-    def types(self) -> dict[Type, TypeInterpretation]:
-        """The interpretations of types"""
-        return {type_of_lib(x): TypeInterpretation(y) for (x, y) in self._raw.tys}
+    @classmethod
+    def of_lib(cls, x: lib.Mir_Model) -> "Model":
+        return cls(
+            types={type_of_lib(t): TypeInterpretation(d) for (t, d) in x.tys},
+            constants={AppliedSymbol.of_lib(s): term_of_lib(t) for (s, t) in x.consts},
+            functions={AppliedSymbol.of_lib(s): FunctionInterpretation.of_lib(f) for (s, f) in x.funs},
+            _raw=x,
+        )
 
     def __str__(self) -> str:
         return f"types: {self.types} constants: {self.constants} functions: {self.functions}"
 
 
+# `Imandrax_api_tasks.PO_res`
+# ===========================
+
+
 class ProofObligationTaskResult:
     """The result of a proof obligation task"""
 
+    @dataclass(slots=True, frozen=True)
     class Subresult:
         """The result for one subgoal of a proof obligation"""
 
-        def __init__(self, sr: lib.Tasks_PO_res_sub_res[lib.Mir_Term]):
-            self._raw = sr
+        sub_anchor: lib.Sub_anchor
+        """The anchor identifying the subgoal"""
+        goal: Sequent
+        """The subgoal"""
+        sub_goals: tuple[Sequent, ...]
+        """The subgoals the goal was split into"""
+        res: str | None
+        """The result for the subgoal, if any"""
+        _raw: lib.Tasks_PO_res_sub_res[lib.Mir_Term] = field(repr=False, compare=False)
 
-        @property
-        def sub_anchor(self) -> lib.Sub_anchor:
-            """The anchor identifying the subgoal"""
-            return self._raw.sub_anchor
-
-        @property
-        def goal(self) -> Sequent:
-            """The subgoal"""
-            return Sequent(self._raw.goal)
-
-        @property
-        def sub_goals(self) -> list[Sequent]:
-            """The subgoals the goal was split into"""
-            return [Sequent(sg) for sg in self._raw.sub_goals]
-
-        @property
-        def res(self) -> str | None:
-            """The result for the subgoal, if any"""
-            return self._raw.res
+        @classmethod
+        def of_lib(cls, sr: lib.Tasks_PO_res_sub_res[lib.Mir_Term]) -> "ProofObligationTaskResult.Subresult":
+            return cls(
+                sub_anchor=sr.sub_anchor,
+                goal=Sequent.of_lib(sr.goal),
+                sub_goals=tuple(Sequent.of_lib(sg) for sg in sr.sub_goals),
+                res=sr.res,
+                _raw=sr,
+            )
 
     def __init__(self, artifact: Artifact):
         if artifact.kind != "po_res":
@@ -239,26 +249,26 @@ class ProofObligationTaskResult:
             case _:
                 return False
 
-    @property
+    @cached_property
     def model(self) -> Model | None:
         """The counter-model if the proof failed, or the instance found, if any"""
         match self._data.res:
             case lib.Tasks_PO_res_error_No_proof(x):
                 if x.counter_model is not None:
-                    return Model(x.counter_model)
+                    return Model.of_lib(x.counter_model)
                 else:
                     return None
             case lib.Tasks_PO_res_success_Instance(x):
-                return Model(x.model)
+                return Model.of_lib(x.model)
             case _:
                 return None
 
-    @property
+    @cached_property
     def subgoals(self) -> list[Sequent] | None:
         """The remaining subgoals, if no proof was found"""
         match self._data.res:
             case lib.Tasks_PO_res_error_No_proof(x):
-                return [Sequent(sg) for sg in x.subgoals]
+                return [Sequent.of_lib(sg) for sg in x.subgoals]
             case _:
                 return None
 
@@ -309,13 +319,17 @@ class ProofObligationTaskResult:
         """The report of the proof attempt"""
         return self._data.report
 
-    @property
+    @cached_property
     def subresults(self) -> list[list[Subresult]]:
         """The results for the individual subgoals"""
-        return [[ProofObligationTaskResult.Subresult(s) for s in sl] for sl in self._data.sub_res]
+        return [[ProofObligationTaskResult.Subresult.of_lib(s) for s in sl] for sl in self._data.sub_res]
 
     def __str__(self) -> str:
         return f"proof: {self.proof} subgoals: {self.subgoals} model: {self.model}"
+
+
+# `Imandrax_api_tasks.Eval_res`
+# =============================
 
 
 class EvaluationTaskResult:
@@ -330,7 +344,7 @@ class EvaluationTaskResult:
             raise Exception(f"Unexpected result type '{type(d)}'")
         self._data: lib.Tasks_Eval_res = d
 
-    @property
+    @cached_property
     def value(self) -> Value:
         """The value the term evaluated to; raises if evaluation failed"""
         match self._data.res:
@@ -350,72 +364,73 @@ class EvaluationTaskResult:
         return str(self.value)
 
 
+# `Imandrax_api_mir.Fun_decomp`
+# =============================
+
+
+def _meta_of_lib(m: lib.Common_Region_meta[lib.Mir_Term]) -> "Decomposition.Region.Meta":
+    """Convert a library region metadata value into a Python value"""
+    match m:
+        case lib.Common_Region_meta_Null():
+            return None
+        case lib.Common_Region_meta_Bool(arg=b):
+            return b
+        case lib.Common_Region_meta_Int(arg=n):
+            return n
+        case lib.Common_Region_meta_Real(arg=(num, den)):
+            return Fraction(num, den)
+        case lib.Common_Region_meta_String(arg=s):
+            return s
+        case lib.Common_Region_meta_Assoc(arg=kvs):
+            return {k: _meta_of_lib(v) for k, v in kvs}
+        case lib.Common_Region_meta_Term(arg=t):
+            return term_of_lib(t)
+        case lib.Common_Region_meta_List(arg=xs):
+            return [_meta_of_lib(x) for x in xs]
+
+
+@dataclass(slots=True, frozen=True)
 class Decomposition:
     """A region decomposition of a function"""
 
+    # `Imandrax_api_mir.Region`
+    # -------------------------
+
+    @dataclass(slots=True, frozen=True, repr=False)
     class Region:
         """A region of the input space, given by constraints, and the result in it"""
 
-        class Meta:
-            """A metadata value attached to a region"""
+        type Meta = (
+            None
+            | bool
+            | int
+            | Fraction  # real/rational
+            | str
+            | Term
+            | dict[str, Decomposition.Region.Meta]
+            | list[Decomposition.Region.Meta]
+        )
+        """A metadata value attached to a region"""
 
-            type Value = (
-                None
-                | bool
-                | int
-                | Fraction  # real/rational
-                | str
-                | Term
-                | dict[str, Decomposition.Region.Meta.Value]
-                | list[Decomposition.Region.Meta.Value]
+        constraints: tuple[Term, ...]
+        """The constraints on the inputs that define the region"""
+        invariant: Term
+        """The function's result for inputs in the region"""
+        meta: dict[str, Meta]
+        """Metadata attached to the region, by name"""
+        status: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type]
+        """Whether the region is known to be feasible"""
+        _raw: lib.Mir_Region_Region = field(repr=False, compare=False)
+
+        @classmethod
+        def of_lib(cls, r: lib.Mir_Region_Region) -> "Decomposition.Region":
+            return cls(
+                constraints=tuple(term_of_lib(c) for c in r.constraints),
+                invariant=term_of_lib(r.invariant),
+                meta={k: _meta_of_lib(v) for k, v in r.meta},
+                status=r.status,
+                _raw=r,
             )
-
-            def __init__(self, m: lib.Common_Region_meta[lib.Mir_Term]):
-                self._raw = m
-
-            @property
-            def value(self) -> Value:
-                """The metadata as a Python value"""
-                match self._raw:
-                    case lib.Common_Region_meta_Null():
-                        return None
-                    case lib.Common_Region_meta_Bool(arg=b):
-                        return b
-                    case lib.Common_Region_meta_Int(arg=n):
-                        return n
-                    case lib.Common_Region_meta_Real(arg=(num, den)):
-                        return Fraction(num, den)
-                    case lib.Common_Region_meta_String(arg=s):
-                        return s
-                    case lib.Common_Region_meta_Assoc(arg=kvs):
-                        return {k: Decomposition.Region.Meta(v).value for k, v in kvs}
-                    case lib.Common_Region_meta_Term(arg=t):
-                        return term_of_lib(t)
-                    case lib.Common_Region_meta_List(arg=xs):
-                        return [Decomposition.Region.Meta(x).value for x in xs]
-
-        def __init__(self, r: lib.Mir_Region_Region):
-            self._raw = r
-
-        @property
-        def constraints(self) -> list[Term]:
-            """The constraints on the inputs that define the region"""
-            return [term_of_lib(c) for c in self._raw.constraints]
-
-        @property
-        def invariant(self) -> Term:
-            """The function's result for inputs in the region"""
-            return term_of_lib(self._raw.invariant)
-
-        @property
-        def meta(self) -> dict[str, lib.Common_Region_meta[lib.Mir_Term]]:
-            """Metadata attached to the region, by name"""
-            return {k: v for k, v in self._raw.meta}
-
-        @property
-        def status(self) -> lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type]:
-            """Whether the region is known to be feasible"""
-            return self._raw.status
 
         def __str__(self) -> str:
             constraints = "; ".join(str(c) for c in self.constraints)
@@ -431,26 +446,29 @@ class Decomposition:
         def __repr__(self) -> str:
             return f"{type(self).__name__}({self})"
 
-    def __init__(self, d: lib.Mir_Fun_decomp):
-        self._raw = d
+    id: Uid
+    """The identifier of the decomposed function"""
+    arguments: tuple[Var, ...]
+    """The decomposed function's parameters"""
+    regions: tuple[Region, ...]
+    """The regions"""
+    _raw: lib.Mir_Fun_decomp = field(repr=False, compare=False)
 
-    @property
-    def id(self) -> Uid:
-        """The identifier of the decomposed function"""
-        return Uid(self._raw.f_id)
-
-    @property
-    def arguments(self) -> list[Var]:
-        """The decomposed function's parameters"""
-        return [var_term_of_var(a) for a in self._raw.f_args]
-
-    @property
-    def regions(self) -> list[Region]:
-        """The regions"""
-        return [Decomposition.Region(r) for r in self._raw.regions]
+    @classmethod
+    def of_lib(cls, d: lib.Mir_Fun_decomp) -> "Decomposition":
+        return cls(
+            id=Uid(d.f_id),
+            arguments=tuple(var_term_of_var(a) for a in d.f_args),
+            regions=tuple(Decomposition.Region.of_lib(r) for r in d.regions),
+            _raw=d,
+        )
 
     def __str__(self) -> str:
-        return str(self.regions)
+        return str(list(self.regions))
+
+
+# `Imandrax_api_tasks.Decomp_res`
+# ===============================
 
 
 class DecompositionTaskResult:
@@ -507,12 +525,12 @@ class DecompositionTaskResult:
             case _:
                 return None
 
-    @property
+    @cached_property
     def decomposition(self) -> Decomposition | None:
         """The decomposition, if it succeeded"""
         match self._result:
             case lib.Tasks_Decomp_res_success(_, decomp):
-                return Decomposition(decomp)
+                return Decomposition.of_lib(decomp)
             case lib.Tasks_Decomp_res_error_Error():
                 return None
             case _:
@@ -748,11 +766,15 @@ def _task_result_of_artifact(artifact: Artifact) -> TaskResult:
             raise Exception(f"Unexpected result artifact kind '{artifact.kind}'")
 
 
+# `Imandrax_api_mir.Tactic`
+# =========================
+
+
 class Tactic:
     """A tactic used to discharge a proof obligation"""
 
-    def __init__(self, t: lib.Mir_Tactic):
-        self._raw = t
+    __slots__ = ()
+    _raw: lib.Mir_Tactic
 
     def __str__(self) -> str:
         return "<tactic>"
@@ -761,154 +783,126 @@ class Tactic:
         return f"{type(self).__name__}({self})"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class DefaultTerminationTactic(Tactic):
     """The default tactic for termination proofs"""
 
-    def __init__(self, t: lib.Common_Tactic_t_poly_Default_termination[lib.Mir_Term, lib.Mir_Type]):
-        self._raw = t
-
-    @property
-    def max_steps(self) -> int:
-        """The maximum number of proof steps"""
-        return self._raw.max_steps
-
-    @property
-    def basis(self) -> set[Uid]:
-        """The function basis of the termination proof"""
-        return {Uid(f) for f in self._raw.basis}
+    max_steps: int
+    """The maximum number of proof steps"""
+    basis: frozenset[Uid]
+    """The function basis of the termination proof"""
+    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
 
     def __str__(self) -> str:
         basis = "{" + ", ".join(sorted(u.full_name for u in self.basis)) + "}"
         return f"DefaultTerminationTactic(max_steps={self.max_steps}, basis={basis})"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class DefaultTheoremTactic(Tactic):
     """The default tactic for theorems"""
 
-    def __init__(self, t: lib.Common_Tactic_t_poly_Default_thm[lib.Mir_Term, lib.Mir_Type]):
-        self._raw = t
-
-    @property
-    def max_steps(self) -> int:
-        """The maximum number of proof steps"""
-        return self._raw.max_steps
-
-    @property
-    def upto(self) -> lib.Upto | None:
-        """The bound for bounded verification, if any"""
-        return self._raw.upto
+    max_steps: int
+    """The maximum number of proof steps"""
+    upto: lib.Upto | None
+    """The bound for bounded verification, if any"""
+    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
 
     def __str__(self) -> str:
         upto = "None" if self.upto is None else f"{self.upto.arg} steps"
         return f"DefaultTheoremTactic(max_steps={self.max_steps}, upto={upto})"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class DefaultTestTactic(Tactic):
     """The default tactic for tests"""
 
-    def __init__(self, t: lib.Common_Tactic_t_poly_Default_test[lib.Mir_Term, lib.Mir_Type]):
-        self._raw = t
-
-    @property
-    def num_steps(self) -> int | None:
-        """The number of test steps, if limited"""
-        return self._raw.num_steps
-
-    @property
-    def seed(self) -> int | None:
-        """The random seed, if fixed"""
-        return self._raw.seed
+    num_steps: int | None
+    """The number of test steps, if limited"""
+    seed: int | None
+    """The random seed, if fixed"""
+    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
 
     def __str__(self) -> str:
         return f"DefaultTestTactic(num_steps={self.num_steps}, seed={self.seed})"
 
 
+@dataclass(slots=True, frozen=True, repr=False)
 class TermTactic(Tactic):
     """A tactic given as a term"""
 
-    def __init__(self, t: lib.Common_Tactic_t_poly_Term[lib.Mir_Term, lib.Mir_Type]):
-        self._raw = t
-
-    @property
-    def variables(self) -> list[Var]:
-        """The variables bound in the tactic term"""
-        return [var_term_of_var(v) for v in self._raw.arg[0]]
-
-    @property
-    def term(self) -> Term:
-        """The tactic term"""
-        return term_of_lib(self._raw.arg[1])
+    variables: tuple[Var, ...]
+    """The variables bound in the tactic term"""
+    term: Term
+    """The tactic term"""
+    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
 
     def __str__(self) -> str:
         return str(self.term)
 
 
 def tactic_of_lib(t: lib.Mir_Tactic) -> Tactic:
-    """Wrap a library tactic in the matching `Tactic` subclass"""
+    """Convert a library tactic into the matching `Tactic` subclass"""
     match t:
-        case lib.Common_Tactic_t_poly_Default_termination():
-            return DefaultTerminationTactic(t)
-        case lib.Common_Tactic_t_poly_Default_thm():
-            return DefaultTheoremTactic(t)
-        case lib.Common_Tactic_t_poly_Default_test():
-            return DefaultTestTactic(t)
-        case lib.Common_Tactic_t_poly_Term():
-            return TermTactic(t)
+        case lib.Common_Tactic_t_poly_Default_termination(max_steps=max_steps, basis=basis):
+            return DefaultTerminationTactic(max_steps=max_steps, basis=frozenset(Uid(f) for f in basis), _raw=t)
+        case lib.Common_Tactic_t_poly_Default_thm(max_steps=max_steps, upto=upto):
+            return DefaultTheoremTactic(max_steps=max_steps, upto=upto, _raw=t)
+        case lib.Common_Tactic_t_poly_Default_test(num_steps=num_steps, seed=seed):
+            return DefaultTestTactic(num_steps=num_steps, seed=seed, _raw=t)
+        case lib.Common_Tactic_t_poly_Term(arg=(vs, term)):
+            return TermTactic(variables=tuple(var_term_of_var(v) for v in vs), term=term_of_lib(term), _raw=t)
         case _:
             assert_never(t)
 
 
+# `Imandrax_api_mir.Proof_obligation`
+# ===================================
+
+
+@dataclass(slots=True, frozen=True)
 class ProofObligation:
     """A proof obligation: a goal to prove and the tactic to use"""
 
-    def __init__(self, po: lib.Mir_Proof_obligation):
-        self._raw = po
+    description: str
+    """A description of the proof obligation"""
+    goal: tuple[tuple[Var, ...], Term]
+    """The goal: its variables and the term to prove"""
+    tactic: Tactic
+    """The tactic to use"""
+    isInstance: bool
+    """Whether this is an instance query rather than a proof"""
+    anchor: lib.Anchor
+    """Where the proof obligation comes from"""
+    timeout: int | None
+    """The timeout, if any"""
+    upto: lib.Upto | None
+    """The bound for bounded verification, if any"""
+    verify_kind: lib.Common_Verify_kind | None
+    """The kind of verification, if any"""
+    named_hypotheses: tuple[tuple[str, Term], ...]
+    """Named hypotheses available for the proof"""
+    _raw: lib.Mir_Proof_obligation = field(repr=False, compare=False)
 
-    @property
-    def description(self) -> str:
-        """A description of the proof obligation"""
-        return self._raw.descr
+    @classmethod
+    def of_lib(cls, po: lib.Mir_Proof_obligation) -> "ProofObligation":
+        vs, t = po.goal
+        return cls(
+            description=po.descr,
+            goal=(tuple(var_term_of_var(v) for v in vs), term_of_lib(t)),
+            tactic=tactic_of_lib(po.tactic),
+            isInstance=po.is_instance,
+            anchor=po.anchor,
+            timeout=po.timeout,
+            upto=po.upto,
+            verify_kind=po.verify_kind,
+            named_hypotheses=tuple((n, term_of_lib(h)) for (n, h) in po.named_hypotheses),
+            _raw=po,
+        )
 
-    @property
-    def goal(self) -> tuple[list[Var], Term]:
-        """The goal: its variables and the term to prove"""
-        vs, t = self._raw.goal
-        return ([var_term_of_var(v) for v in vs], term_of_lib(t))
 
-    @property
-    def tactic(self) -> Tactic:
-        """The tactic to use"""
-        return tactic_of_lib(self._raw.tactic)
-
-    @property
-    def isInstance(self) -> bool:
-        """Whether this is an instance query rather than a proof"""
-        return self._raw.is_instance
-
-    @property
-    def anchor(self) -> lib.Anchor:
-        """Where the proof obligation comes from"""
-        return self._raw.anchor
-
-    @property
-    def timeout(self) -> int | None:
-        """The timeout, if any"""
-        return self._raw.timeout
-
-    @property
-    def upto(self) -> lib.Upto | None:
-        """The bound for bounded verification, if any"""
-        return self._raw.upto
-
-    @property
-    def verify_kind(self) -> lib.Common_Verify_kind | None:
-        """The kind of verification, if any"""
-        return self._raw.verify_kind
-
-    @property
-    def named_hypotheses(self) -> list[tuple[str, Term]]:
-        """Named hypotheses available for the proof"""
-        return [(n, term_of_lib(t)) for (n, t) in self._raw.named_hypotheses]
+# `Imandrax_api_tasks.PO_task`
+# ============================
 
 
 class ProofObligationTask(Task):
@@ -926,13 +920,13 @@ class ProofObligationTask(Task):
             raise Exception(f"Unexpected task artifact type '{type(d)}'")
         return d
 
-    @property
+    @cached_property
     def proof_obligation(self) -> ProofObligation:
         """The proof obligation to check
 
         Fetched on first access, see `Task`
         """
-        return ProofObligation(self._po_task.po)
+        return ProofObligation.of_lib(self._po_task.po)
 
     @property
     def from_sym(self) -> str:
@@ -959,6 +953,10 @@ class ProofObligationTask(Task):
         return DB(self._po_task.db, self._artifact("po_task").storage)
 
 
+# `Imandrax_api_tasks.Eval_task`
+# ==============================
+
+
 class EvaluationTask(Task):
     """An evaluation task"""
 
@@ -974,7 +972,7 @@ class EvaluationTask(Task):
             raise Exception(f"Unexpected task artifact type '{type(d)}'")
         return d
 
-    @property
+    @cached_property
     def variables(self) -> list[Var]:
         """The variables bound in the term
 
@@ -983,7 +981,7 @@ class EvaluationTask(Task):
         vs, _ = self._eval_task.term
         return [var_term_of_var(v) for v in vs]
 
-    @property
+    @cached_property
     def term(self) -> Term:
         """The term to evaluate
 
@@ -1017,11 +1015,18 @@ class EvaluationTask(Task):
         return DB(self._eval_task.db, self._artifact("eval_task").storage)
 
 
+# `Imandrax_api_tasks.Decomp_task`
+# ================================
+
+
 class DecompositionRequest:
     """A decomposition request"""
 
     class Request:
         """A description of the decomposition to compute; requests can be combined"""
+
+        __slots__ = ()
+        _raw: lib.Tasks_Decomp_task_Mir_decomp
 
         def __str__(self) -> str:
             return "<decomposition request>"
@@ -1029,201 +1034,137 @@ class DecompositionRequest:
         def __repr__(self) -> str:
             return f"{type(self).__name__}({self})"
 
+    @dataclass(slots=True, frozen=True, repr=False)
     class Function(Request):
         """Decompose a function"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Decomp[lib.Mir_Term, lib.Mir_Type]):
-            self._raw = d
-
-        @property
-        def function(self) -> Uid:
-            """The function to decompose"""
-            return Uid(self._raw.arg.f_id)
-
-        @property
-        def assuming(self) -> Uid | None:
-            """The side condition the decomposition assumes, if any"""
-            assuming = self._raw.arg.assuming
-            return None if assuming is None else Uid(assuming)
-
-        @property
-        def basis(self) -> set[Uid]:
-            """Functions not to unfold during decomposition"""
-            return {Uid(u) for u in self._raw.arg.basis}
-
-        @property
-        def rule_specs(self) -> set[Uid]:
-            """Rule specs to use during decomposition"""
-            return {Uid(u) for u in self._raw.arg.rule_specs}
-
-        @property
-        def ctx_simp(self) -> bool:
-            """Whether to simplify regions in their context"""
-            return self._raw.arg.ctx_simp
-
-        @property
-        def lift_bool(self) -> lib.Common_Decomp_lift_bool:
-            """How Boolean subterms are lifted into region constraints"""
-            return self._raw.arg.lift_bool
-
-        @property
-        def prune(self) -> bool:
-            """Whether to prune infeasible regions"""
-            return self._raw.arg.prune
+        function: Uid
+        """The function to decompose"""
+        assuming: Uid | None
+        """The side condition the decomposition assumes, if any"""
+        basis: frozenset[Uid]
+        """Functions not to unfold during decomposition"""
+        rule_specs: frozenset[Uid]
+        """Rule specs to use during decomposition"""
+        ctx_simp: bool
+        """Whether to simplify regions in their context"""
+        lift_bool: lib.Common_Decomp_lift_bool
+        """How Boolean subterms are lifted into region constraints"""
+        prune: bool
+        """Whether to prune infeasible regions"""
+        _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
             assuming = "" if self.assuming is None else f" ~assuming:{self.assuming}"
             prune = " ~prune:true" if self.prune else ""
             return f"decomp {self.function}{assuming}{prune}"
 
+    @dataclass(slots=True, frozen=True, repr=False)
     class Term(Request):
         """Decompose a term"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Term[lib.Mir_Term, lib.Mir_Type]):
-            self._raw = d
-
-        @property
-        def term(self) -> Term:
-            """The term to decompose"""
-            return term_of_lib(self._raw.arg)
+        term: Term
+        """The term to decompose"""
+        _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
             return f"term {self.term}"
 
+    @dataclass(slots=True, frozen=True, repr=False)
     class Return(Request):
         """An already computed decomposition, returned as is (e.g. as a base case of a merge)"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Return[lib.Mir_Term, lib.Mir_Type]):
-            self._raw = d
-
-        @property
-        def decomposition(self) -> Decomposition:
-            """The decomposition"""
-            return Decomposition(self._raw.arg)
+        decomposition: Decomposition
+        """The decomposition"""
+        _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
             return f"return <decomposition of {self.decomposition.id}>"
 
+    @dataclass(slots=True, frozen=True, repr=False)
     class Prune(Request):
         """Prune the infeasible regions of a decomposition"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Prune[lib.Mir_Term, lib.Mir_Type]):
-            self._raw = d
-
-        @property
-        def request(self) -> "DecompositionRequest.Request":
-            """The decomposition to prune"""
-            return decomp_request_of_lib(self._raw.arg)
+        request: "DecompositionRequest.Request"
+        """The decomposition to prune"""
+        _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
             return f"prune ({self.request})"
 
+    @dataclass(slots=True, frozen=True, repr=False)
     class Merge(Request):
         """Merge two decompositions"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Merge[lib.Mir_Term, lib.Mir_Type]):
-            self._raw = d
-
-        @property
-        def left(self) -> "DecompositionRequest.Request":
-            """The first decomposition"""
-            return decomp_request_of_lib(self._raw.args[0])
-
-        @property
-        def right(self) -> "DecompositionRequest.Request":
-            """The second decomposition"""
-            return decomp_request_of_lib(self._raw.args[1])
+        left: "DecompositionRequest.Request"
+        """The first decomposition"""
+        right: "DecompositionRequest.Request"
+        """The second decomposition"""
+        _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
             return f"merge ({self.left}) ({self.right})"
 
+    @dataclass(slots=True, frozen=True, repr=False)
     class CompoundMerge(Request):
         """Compound-merge two decompositions"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Compound_merge[lib.Mir_Term, lib.Mir_Type]):
-            self._raw = d
-
-        @property
-        def left(self) -> "DecompositionRequest.Request":
-            """The first decomposition"""
-            return decomp_request_of_lib(self._raw.args[0])
-
-        @property
-        def right(self) -> "DecompositionRequest.Request":
-            """The second decomposition"""
-            return decomp_request_of_lib(self._raw.args[1])
+        left: "DecompositionRequest.Request"
+        """The first decomposition"""
+        right: "DecompositionRequest.Request"
+        """The second decomposition"""
+        _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
             return f"compound_merge ({self.left}) ({self.right})"
 
+    @dataclass(slots=True, frozen=True, repr=False)
     class Combine(Request):
         """Combine the regions of a decomposition"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Combine[lib.Mir_Term, lib.Mir_Type]):
-            self._raw = d
-
-        @property
-        def request(self) -> "DecompositionRequest.Request":
-            """The decomposition whose regions are combined"""
-            return decomp_request_of_lib(self._raw.arg)
+        request: "DecompositionRequest.Request"
+        """The decomposition whose regions are combined"""
+        _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
             return f"combine ({self.request})"
 
+    @dataclass(slots=True, frozen=True, repr=False)
     class Get(Request):
         """A decomposition bound by name in an enclosing `Let`"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Get[lib.Mir_Term, lib.Mir_Type]):
-            self._raw = d
-
-        @property
-        def name(self) -> str:
-            """The name of the binding"""
-            return self._raw.arg
+        name: str
+        """The name of the binding"""
+        _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
             return f"get {self.name}"
 
+    @dataclass(slots=True, frozen=True, repr=False)
     class Let(Request):
         """Bind decompositions to names, for use (via `Get`) in `and_then`"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Let[lib.Mir_Term, lib.Mir_Type]):
-            self._raw = d
-
-        @property
-        def bindings(self) -> list[tuple[str, "DecompositionRequest.Request"]]:
-            """The names and the decompositions bound to them"""
-            return [(n, decomp_request_of_lib(d)) for n, d in self._raw.bindings]
-
-        @property
-        def and_then(self) -> "DecompositionRequest.Request":
-            """The decomposition computed with the bindings in scope"""
-            return decomp_request_of_lib(self._raw.and_then)
+        bindings: tuple[tuple[str, "DecompositionRequest.Request"], ...]
+        """The names and the decompositions bound to them"""
+        and_then: "DecompositionRequest.Request"
+        """The decomposition computed with the bindings in scope"""
+        _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
             bindings = " and ".join(f"{n} = {d}" for n, d in self.bindings)
             return f"let {bindings} in {self.and_then}"
 
+    @dataclass(slots=True, frozen=True, repr=False)
     class Enumerate(Request):
         """Enumerate the decomposition `d_f` over the decompositions `ds`"""
 
-        def __init__(self, d: lib.Tasks_Decomp_task_decomp_poly_Enumerate[lib.Mir_Term, lib.Mir_Type]):
-            self._raw = d
-
-        @property
-        def d_f(self) -> "DecompositionRequest.Request":
-            """The decomposition to enumerate"""
-            return decomp_request_of_lib(self._raw.d_f)
-
-        @property
-        def ds(self) -> list["DecompositionRequest.Request"]:
-            """The decompositions to enumerate over"""
-            return [decomp_request_of_lib(d) for d in self._raw.ds]
-
-        @property
-        def style(self) -> lib.Tasks_Decomp_task_enumeration_style | None:
-            """Additive or multiplicative enumeration; `None` means additive"""
-            return self._raw.style
+        d_f: "DecompositionRequest.Request"
+        """The decomposition to enumerate"""
+        ds: tuple["DecompositionRequest.Request", ...]
+        """The decompositions to enumerate over"""
+        style: lib.Tasks_Decomp_task_enumeration_style | None
+        """Additive or multiplicative enumeration; `None` means additive"""
+        _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
             ds = ", ".join(str(d) for d in self.ds)
@@ -1231,28 +1172,48 @@ class DecompositionRequest:
 
 
 def decomp_request_of_lib(d: lib.Tasks_Decomp_task_Mir_decomp) -> DecompositionRequest.Request:
-    """Wrap a library decomposition request in the matching `Request` subclass"""
+    """Convert a library decomposition request into the matching `Request` subclass"""
     match d:
-        case lib.Tasks_Decomp_task_decomp_poly_Decomp():
-            return DecompositionRequest.Function(d)
-        case lib.Tasks_Decomp_task_decomp_poly_Term():
-            return DecompositionRequest.Term(d)
-        case lib.Tasks_Decomp_task_decomp_poly_Return():
-            return DecompositionRequest.Return(d)
-        case lib.Tasks_Decomp_task_decomp_poly_Prune():
-            return DecompositionRequest.Prune(d)
-        case lib.Tasks_Decomp_task_decomp_poly_Merge():
-            return DecompositionRequest.Merge(d)
-        case lib.Tasks_Decomp_task_decomp_poly_Compound_merge():
-            return DecompositionRequest.CompoundMerge(d)
-        case lib.Tasks_Decomp_task_decomp_poly_Combine():
-            return DecompositionRequest.Combine(d)
-        case lib.Tasks_Decomp_task_decomp_poly_Get():
-            return DecompositionRequest.Get(d)
-        case lib.Tasks_Decomp_task_decomp_poly_Let():
-            return DecompositionRequest.Let(d)
-        case lib.Tasks_Decomp_task_decomp_poly_Enumerate():
-            return DecompositionRequest.Enumerate(d)
+        case lib.Tasks_Decomp_task_decomp_poly_Decomp(arg=a):
+            return DecompositionRequest.Function(
+                function=Uid(a.f_id),
+                assuming=None if a.assuming is None else Uid(a.assuming),
+                basis=frozenset(Uid(u) for u in a.basis),
+                rule_specs=frozenset(Uid(u) for u in a.rule_specs),
+                ctx_simp=a.ctx_simp,
+                lift_bool=a.lift_bool,
+                prune=a.prune,
+                _raw=d,
+            )
+        case lib.Tasks_Decomp_task_decomp_poly_Term(arg=t):
+            return DecompositionRequest.Term(term=term_of_lib(t), _raw=d)
+        case lib.Tasks_Decomp_task_decomp_poly_Return(arg=fd):
+            return DecompositionRequest.Return(decomposition=Decomposition.of_lib(fd), _raw=d)
+        case lib.Tasks_Decomp_task_decomp_poly_Prune(arg=r):
+            return DecompositionRequest.Prune(request=decomp_request_of_lib(r), _raw=d)
+        case lib.Tasks_Decomp_task_decomp_poly_Merge(args=(l, r)):
+            return DecompositionRequest.Merge(left=decomp_request_of_lib(l), right=decomp_request_of_lib(r), _raw=d)
+        case lib.Tasks_Decomp_task_decomp_poly_Compound_merge(args=(l, r)):
+            return DecompositionRequest.CompoundMerge(
+                left=decomp_request_of_lib(l), right=decomp_request_of_lib(r), _raw=d
+            )
+        case lib.Tasks_Decomp_task_decomp_poly_Combine(arg=r):
+            return DecompositionRequest.Combine(request=decomp_request_of_lib(r), _raw=d)
+        case lib.Tasks_Decomp_task_decomp_poly_Get(arg=name):
+            return DecompositionRequest.Get(name=name, _raw=d)
+        case lib.Tasks_Decomp_task_decomp_poly_Let(bindings=bindings, and_then=and_then):
+            return DecompositionRequest.Let(
+                bindings=tuple((n, decomp_request_of_lib(b)) for n, b in bindings),
+                and_then=decomp_request_of_lib(and_then),
+                _raw=d,
+            )
+        case lib.Tasks_Decomp_task_decomp_poly_Enumerate(d_f=d_f, ds=ds, style=style):
+            return DecompositionRequest.Enumerate(
+                d_f=decomp_request_of_lib(d_f),
+                ds=tuple(decomp_request_of_lib(x) for x in ds),
+                style=style,
+                _raw=d,
+            )
         case _:
             assert_never(d)
 
@@ -1272,7 +1233,7 @@ class DecompositionTask(Task):
             raise Exception(f"Unexpected task artifact type '{type(d)}'")
         return d
 
-    @property
+    @cached_property
     def decomp(self) -> DecompositionRequest.Request:
         """The decomposition request
 
