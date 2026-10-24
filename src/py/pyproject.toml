@@ -26,6 +26,7 @@ package-dir = { "imandrax_api" = "." }
 strict = ["**"]
 venvPath = "."
 venv = ".venv"
+extraPaths = ["imandrax-api/src", "demo"]
 
 [tool.pytest.ini_options]
 # This directory is named `py`, which collides with the `py` distribution that
@@ -43,3 +44,7 @@ exclude = ["lib/__init__.py", "bindings/"]
 
 [dependency-groups]
 dev = ["aiohttp>=3.13.2", "pyright>=1.1.408", "pytest>=9.1.1"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
