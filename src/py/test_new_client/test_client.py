@@ -1,0 +1,217 @@
+"""Fetching task artifacts with `Client` and `AsyncClient`
+
+- tasks hold only a weak reference to their client: fetching after the client is gone raises,
+  but what was fetched before stays accessible, including attributes derived from it
+- with an `AsyncClient`, artifacts are fetched with `await task.awaitable.<attribute>` or
+  `await task.fetch_all()`; accessing them before raises `NotFetchedError`
+"""
+
+import asyncio
+import gc
+import os
+import weakref
+from typing import Any
+
+import pytest
+
+import imandrax_api
+from imandrax_api.bindings import task_pb2
+from imandrax_api.bindings.api_pb2 import ArtifactResult
+from imandrax_api.demo.interface import (
+    AsyncClient,
+    Client,
+    ClientGoneError,
+    EvalSrcResponse,
+    NoClientError,
+    NotFetchedError,
+    ProofObligationTask,
+    ProofObligationTaskResult,
+    Task,
+    task_of_raw,
+)
+from imandrax_api.demo.mir import DB
+
+SRC = "theorem succ_gt x = x + 1 > x"
+
+
+def api_key() -> str | None:
+    return os.environ.get("IMANDRAX_API_KEY") or os.environ.get("IMANDRA_UNI_KEY")
+
+
+def mk_client() -> Client:
+    return Client(url=imandrax_api.url_prod, api_key=api_key())
+
+
+def mk_async_client() -> AsyncClient:
+    return AsyncClient(url=imandrax_api.url_prod, api_key=api_key())
+
+
+def get_the_task[T: Task](rsp: EvalSrcResponse, cls: type[T]) -> T:
+    (t,) = [t for t in rsp.tasks if isinstance(t, cls)]
+    return t
+
+
+def assert_weak_ref_gone(ref: weakref.ref[Any]) -> None:
+    """Collect garbage and check the object behind `ref` is gone"""
+    gc.collect()
+    assert ref() is None
+
+
+# Tasks, without a server
+# =======================
+
+
+def test_task_without_client_raises_on_fetch():
+    pb_task = task_pb2.Task(
+        id=task_pb2.TaskID(id="task:test"), kind=task_pb2.TASK_CHECK_PO
+    )
+    t = task_of_raw(pb_task)
+    assert isinstance(t, ProofObligationTask)
+
+    with pytest.raises(NoClientError):
+        _ = t.proof_obligation
+    with pytest.raises(NoClientError):
+        _ = t.result
+    with pytest.raises(NoClientError):
+        asyncio.run(t.fetch_all())
+
+
+# Client
+# ======
+
+
+def test_kill_then_access_raises():
+    client = mk_client()
+    po = get_the_task(client.eval_src(SRC), ProofObligationTask)
+
+    ref = weakref.ref(client)
+    del client
+    assert_weak_ref_gone(ref)
+
+    with pytest.raises(ClientGoneError):
+        _ = po.proof_obligation
+    with pytest.raises(ClientGoneError):
+        _ = po.result
+
+
+def test_access_kill_access_again():
+    client = mk_client()
+    po = get_the_task(client.eval_src(SRC), ProofObligationTask)
+    po_ = po.proof_obligation
+    res = po.result
+
+    ref = weakref.ref(client)
+    del client
+    assert_weak_ref_gone(ref)
+
+    assert po.proof_obligation is po_
+    assert po.result is res
+
+
+def test_access_kill_access_derived_from_same_artifact():
+    client = mk_client()
+    po = get_the_task(client.eval_src(SRC), ProofObligationTask)
+    # Fetches the `po_task` artifact, which `from_sym` and `db` are also decoded from
+    _ = po.proof_obligation
+    ref = weakref.ref(client)
+    del client
+    assert_weak_ref_gone(ref)
+    assert po.from_sym == "succ_gt"
+    assert isinstance(po.db, DB)
+
+    # The result is in the `po_res` artifact, never fetched
+    with pytest.raises(ClientGoneError):
+        _ = po.result
+
+
+# AsyncClient
+# ===========
+
+
+def test_async_access_before_fetch_raises():
+    async def main() -> None:
+        async with mk_async_client() as client:
+            po = get_the_task(await client.eval_src(SRC), ProofObligationTask)
+
+            with pytest.raises(NotFetchedError) as e:
+                _ = po.proof_obligation
+            assert e.value.kind == "po_task"
+            with pytest.raises(NotFetchedError) as e:
+                _ = po.result
+            assert e.value.kind == "po_res"
+
+    asyncio.run(main())
+
+
+def test_async_awaitable_fetches_then_plain_access():
+    async def main() -> None:
+        async with mk_async_client() as client:
+            po = get_the_task(await client.eval_src(SRC), ProofObligationTask)
+            po_ = await po.awaitable.proof_obligation
+            assert po.proof_obligation is po_
+            # Derived from the same artifact
+            assert po.from_sym == "succ_gt"
+            # The result is another artifact
+            with pytest.raises(NotFetchedError):
+                _ = po.result
+            res = await po.awaitable.result
+            assert po.result is res
+
+    asyncio.run(main())
+
+
+def test_async_fetch_all():
+    async def main() -> None:
+        async with mk_async_client() as client:
+            po = get_the_task(await client.eval_src(SRC), ProofObligationTask)
+            await po.fetch_all()
+
+            # Every artifact is fetched, so plain access does not raise `NotFetchedError`
+            _ = po.proof_obligation
+            assert isinstance(po.result, ProofObligationTaskResult)
+
+    asyncio.run(main())
+
+
+def test_async_access_kill_access_again():
+    async def main() -> None:
+        client = mk_async_client()
+        async with client:
+            po = get_the_task(await client.eval_src(SRC), ProofObligationTask)
+            po_ = await po.awaitable.proof_obligation
+        ref = weakref.ref(client)
+        del client
+        assert_weak_ref_gone(ref)
+
+        # Fetched before, through `awaitable` or not
+        assert po.proof_obligation is po_
+        assert await po.awaitable.proof_obligation is po_
+
+        # Derived from the same artifact
+        assert po.from_sym == "succ_gt"
+        assert await po.awaitable.from_sym == "succ_gt"
+
+        with pytest.raises(ClientGoneError):
+            await po.awaitable.result
+
+    asyncio.run(main())
+
+def test_async_concurrent_accesses_share_one_fetch():
+    async def main() -> None:
+        async with mk_async_client() as client:
+            po = get_the_task(await client.eval_src(SRC), ProofObligationTask)
+            fetched: list[str] = []
+            get_artifact = client._client.get_artifact  # pyright: ignore[reportPrivateUsage]
+
+            async def recording_get_artifact(
+                task: task_pb2.Task, kind: str, timeout: float | None = None
+            ) -> ArtifactResult:
+                fetched.append(kind)
+                return await get_artifact(task, kind, timeout)
+
+            client._client.get_artifact = recording_get_artifact  # pyright: ignore[reportPrivateUsage]
+            r1, r2 = await asyncio.gather(po.awaitable.result, po.awaitable.result)
+            assert r1 is r2
+            assert fetched == ["po_res"]
+
+    asyncio.run(main())
