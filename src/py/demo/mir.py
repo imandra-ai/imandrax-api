@@ -1,3 +1,20 @@
+"""Python view of MIR, the intermediate representation ImandraX produces from IML
+
+Types, terms, declarations, rules, models and the symbol database (`DB`) that
+tasks and their results refer to.
+
+Each class is converted from the matching `imandrax_api.lib` value, which it keeps in
+the hidden `_raw` field.
+"""
+
+# Note: general transformation rules:
+# - use more readable and _Pythonic_ names
+# - variants without fields -> enum
+# - variant -> union of dataclasses
+# - records wrapping a variant -> one base class for the record's fields, dataclasses subclassing the base class, plus the union
+# - `'term` / `'ty` type parameters are specialized with MIR term and type
+# - Some classes irrelvant to users are skipped, e.g.: Anchor, SubAnchor
+
 from __future__ import annotations
 
 import base64
