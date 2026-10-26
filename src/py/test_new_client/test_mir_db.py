@@ -198,21 +198,21 @@ def test_theorem_as_rewrite_rule(db: DB):
 
 
 def test_theorem_as_forward_chaining_rule(db: DB):
+    """`theorem sum_nonneg xs = ... ==> sum xs >= 0 [@@by auto] [@@fc]`"""
     sum_nonneg: Uid = uid_of_short_name(db, "sum_nonneg")
-    assert len(db.thm_as_fc[sum_nonneg]) == 1
-    assert sum_nonneg in db.inst_rules
-    assert len(db.rule_spec_fc[sum_nonneg]) == 1
 
-    # CR: ?
+    assert len(db.thm_as_fc[sum_nonneg]) == 1, "sum_nonneg should become a fc rule"
+    assert sum_nonneg in db.inst_rules, "sum_nonneg should be in inst rules"
+    assert len(db.rule_spec_fc[sum_nonneg]) == 1, "sum_nonneg should be in rule spec fc"
 
     # The trigger is indexed by the head of its pattern, here `sum`
-    sum_heads = [
+    sum_heads: list[SymbolHead] = [
         h
         for h in db.fc
         if isinstance(h, SymbolHead) and h.uid == uid_of_short_name(db, "sum")
     ]
-    assert len(sum_heads) == 1
-    assert len(db.fc[sum_heads[0]]) == 1
+    assert len(sum_heads) == 1, "sum should be a fc trigger head"
+    assert len(db.fc[sum_heads[0]]) == 1, "sum should trigger exactly one fc rule"
 
 
 # Prelude
