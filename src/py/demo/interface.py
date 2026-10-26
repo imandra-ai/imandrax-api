@@ -330,10 +330,8 @@ def proof_term_of_lib(x: lib.Proof_Proof_term_t_poly[lib.Mir_Term, lib.Mir_Type]
 class ProofFound:
     """Type returned on success for verify"""
 
-    anchor: Anchor
     proof: ProofTerm
     """Proof term."""
-    sub_anchor: SubAnchor | None
     _raw: lib.Tasks_PO_res_proof_found[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
 
 
@@ -341,7 +339,6 @@ class ProofFound:
 class VerifiedUpto:
     """Type returned on success for verify"""
 
-    anchor: Anchor
     upto: int
     _raw: lib.Tasks_PO_res_verified_upto = field(repr=False, compare=False)
 
@@ -350,7 +347,6 @@ class VerifiedUpto:
 class Instance:
     """Success case for instance"""
 
-    anchor: Anchor
     model: Model
     _raw: lib.Tasks_PO_res_instance[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
 
@@ -372,7 +368,6 @@ class NoProof:
     error: ErrorCore
     counter_model: Model | None
     subgoals: tuple[Sequent, ...]
-    sub_anchor: SubAnchor | None
     _raw: lib.Tasks_PO_res_no_proof[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
 
 
@@ -380,11 +375,9 @@ class NoProof:
 class Unsat:
     """Error case for instance"""
 
-    anchor: Anchor
     error: ErrorCore
     proof: ProofTerm
     """Proof term for unsat."""
-    sub_anchor: SubAnchor | None
     _raw: lib.Tasks_PO_res_unsat[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
 
 
@@ -413,15 +406,13 @@ def proof_obligation_result_of_lib(
     match x:
         case lib.Tasks_PO_res_success_Proof(arg=r):
             return ProofFound(
-                anchor=anchor_of_lib(r.anchor),
                 proof=proof_term_of_lib(r.proof),
-                sub_anchor=None if r.sub_anchor is None else SubAnchor.of_lib(r.sub_anchor),
                 _raw=r,
             )
         case lib.Tasks_PO_res_success_Instance(arg=r):
-            return Instance(anchor=anchor_of_lib(r.anchor), model=Model.of_lib(r.model), _raw=r)
+            return Instance(model=Model.of_lib(r.model), _raw=r)
         case lib.Tasks_PO_res_success_Verified_upto(arg=r):
-            return VerifiedUpto(anchor=anchor_of_lib(r.anchor), upto=upto_of_lib(r.upto), _raw=r)
+            return VerifiedUpto(upto=upto_of_lib(r.upto), _raw=r)
         case lib.Tasks_PO_res_success_Test_ok():
             return TestOk(_raw=x)
         case lib.Tasks_PO_res_error_No_proof(arg=r):
@@ -429,15 +420,12 @@ def proof_obligation_result_of_lib(
                 error=ErrorCore.of_lib(r.err),
                 counter_model=None if r.counter_model is None else Model.of_lib(r.counter_model),
                 subgoals=tuple(Sequent.of_lib(sg) for sg in r.subgoals),
-                sub_anchor=None if r.sub_anchor is None else SubAnchor.of_lib(r.sub_anchor),
                 _raw=r,
             )
         case lib.Tasks_PO_res_error_Unsat(arg=r):
             return Unsat(
-                anchor=anchor_of_lib(r.anchor),
                 error=ErrorCore.of_lib(r.err),
                 proof=proof_term_of_lib(r.proof),
-                sub_anchor=None if r.sub_anchor is None else SubAnchor.of_lib(r.sub_anchor),
                 _raw=r,
             )
         case lib.Tasks_PO_res_error_Invalid_model(args=(e, m)):
@@ -453,8 +441,6 @@ class ProofObligationTaskResult:
     class Subresult:
         """The result for one subgoal of a proof obligation"""
 
-        sub_anchor: SubAnchor
-        """The anchor identifying the subgoal"""
         goal: Sequent
         """The subgoal"""
         sub_goals: tuple[Sequent, ...]
@@ -466,7 +452,6 @@ class ProofObligationTaskResult:
         @classmethod
         def of_lib(cls, sr: lib.Tasks_PO_res_sub_res[lib.Mir_Term]) -> "ProofObligationTaskResult.Subresult":
             return cls(
-                sub_anchor=SubAnchor.of_lib(sr.sub_anchor),
                 goal=Sequent.of_lib(sr.goal),
                 sub_goals=tuple(Sequent.of_lib(sg) for sg in sr.sub_goals),
                 res=sr.res,
@@ -523,24 +508,6 @@ class ProofObligationTaskResult:
         match self.result:
             case ProofFound(proof=p):
                 return p
-            case _:
-                return None
-
-    @property
-    def anchor(self) -> Anchor | None:
-        """The anchor of the proof, if a proof was found"""
-        match self.result:
-            case ProofFound(anchor=a):
-                return a
-            case _:
-                return None
-
-    @property
-    def sub_anchor(self) -> SubAnchor | None:
-        """The sub-anchor of the proof or the failed proof attempt, if any"""
-        match self.result:
-            case ProofFound(sub_anchor=sa) | NoProof(sub_anchor=sa):
-                return sa
             case _:
                 return None
 
@@ -778,17 +745,6 @@ class DecompositionTaskResult:
                 return False
             case _:
                 return False
-
-    @cached_property
-    def anchor(self) -> Anchor | None:
-        """The anchor of the decomposition, if it succeeded"""
-        match self._result:
-            case lib.Tasks_Decomp_res_success(anchor, _):
-                return anchor_of_lib(anchor)
-            case lib.Tasks_Decomp_res_error_Error():
-                return None
-            case _:
-                return None
 
     @cached_property
     def decomposition(self) -> Decomposition | None:
@@ -1122,8 +1078,6 @@ class ProofObligation:
     """The tactic to use"""
     isInstance: bool
     """Whether this is an instance query rather than a proof"""
-    anchor: Anchor
-    """Where the proof obligation comes from"""
     timeout: int | None
     """The timeout, if any"""
     upto: int | None
@@ -1142,7 +1096,6 @@ class ProofObligation:
             goal=(tuple(var_term_of_var(v) for v in vs), term_of_lib(t)),
             tactic=tactic_of_lib(po.tactic),
             isInstance=po.is_instance,
-            anchor=anchor_of_lib(po.anchor),
             timeout=po.timeout,
             upto=None if po.upto is None else upto_of_lib(po.upto),
             verify_kind=None if po.verify_kind is None else verify_kind_of_lib(po.verify_kind),
@@ -1231,14 +1184,6 @@ class EvaluationTask(Task):
         """
         _, t = self._eval_task.term
         return term_of_lib(t)
-
-    @cached_property
-    def anchor(self) -> Anchor:
-        """Where the evaluation comes from
-
-        Fetched on first access, see `Task`
-        """
-        return anchor_of_lib(self._eval_task.anchor)
 
     @property
     def timeout(self) -> int | None:
@@ -1509,14 +1454,6 @@ class DecompositionTask(Task):
         Fetched on first access, see `Task`
         """
         return decomp_request_of_lib(self._decomp_task.decomp)
-
-    @cached_property
-    def anchor(self) -> Anchor:
-        """Where the decomposition comes from
-
-        Fetched on first access, see `Task`
-        """
-        return anchor_of_lib(self._decomp_task.anchor)
 
     @property
     def timeout(self) -> int | None:

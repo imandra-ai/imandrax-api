@@ -80,58 +80,6 @@ class Cname:
         return cls(name=x.name, chash=x.chash, is_key=x.is_key, _raw=x)
 
 
-@dataclass(slots=True, frozen=True)
-class NamedAnchor:
-    cname: Cname
-    _raw: lib.Anchor = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class EvalAnchor:
-    index: int
-    _raw: lib.Anchor = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class ProofCheckAnchor:
-    anchor: Anchor
-    _raw: lib.Anchor = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class DecompAnchor:
-    anchor: Anchor
-    _raw: lib.Anchor = field(repr=False, compare=False)
-
-
-Anchor = NamedAnchor | EvalAnchor | ProofCheckAnchor | DecompAnchor
-
-
-def anchor_of_lib(x: lib.Anchor) -> Anchor:
-    """Convert a library anchor into the matching `Anchor` variant"""
-    match x:
-        case lib.Anchor_Named(arg=c):
-            return NamedAnchor(cname=Cname.of_lib(c), _raw=x)
-        case lib.Anchor_Eval(arg=n):
-            return EvalAnchor(index=n, _raw=x)
-        case lib.Anchor_Proof_check(arg=a):
-            return ProofCheckAnchor(anchor=anchor_of_lib(a), _raw=x)
-        case lib.Anchor_Decomp(arg=a):
-            return DecompAnchor(anchor=anchor_of_lib(a), _raw=x)
-
-
-@dataclass(slots=True, frozen=True)
-class SubAnchor:
-    fname: str
-    """name of the symbol containing this sub-anchor in its definition"""
-    anchor: int
-    _raw: lib.Sub_anchor = field(repr=False, compare=False)
-
-    @classmethod
-    def of_lib(cls, x: lib.Sub_anchor) -> SubAnchor:
-        return cls(fname=x.fname, anchor=x.anchor, _raw=x)
-
-
 # `Upto.t` has the single constructor `N_steps of int`, so it is represented by that number of
 # steps.
 
@@ -635,7 +583,6 @@ class _Term:
     """A term"""
 
     type: Type
-    sub_anchor: SubAnchor | None = field(compare=False)
     _raw: lib.Mir_Term = field(repr=False, compare=False)
 
     @property
@@ -666,17 +613,15 @@ class _Term:
 def term_of_lib(x: lib.Mir_Term) -> Term:
     """Convert a library term into the matching `Term` variant, including all its subterms"""
     ty = type_of_lib(x.ty)
-    sa = None if x.sub_anchor is None else SubAnchor.of_lib(x.sub_anchor)
     match x.view:
         case lib.Mir_Term_view_Const(arg=c):
-            return Constant(value=const_of_lib(c), type=ty, sub_anchor=sa, _raw=x)
+            return Constant(value=const_of_lib(c), type=ty, _raw=x)
         case lib.Mir_Term_view_If(args=(c, a, b)):
             return If(
                 condition=term_of_lib(c),
                 then_branch=term_of_lib(a),
                 else_branch=term_of_lib(b),
                 type=ty,
-                sub_anchor=sa,
                 _raw=x,
             )
         case lib.Mir_Term_view_Apply(f=f, l=l):
@@ -684,40 +629,37 @@ def term_of_lib(x: lib.Mir_Term) -> Term:
                 function=term_of_lib(f),
                 arguments=tuple(term_of_lib(t) for t in l),
                 type=ty,
-                sub_anchor=sa,
                 _raw=x,
             )
         case lib.Mir_Term_view_Var(arg=v):
-            return Var(var=Variable.of_lib(v), type=ty, sub_anchor=sa, _raw=x)
+            return Var(var=Variable.of_lib(v), type=ty, _raw=x)
         case lib.Mir_Term_view_Sym(arg=s):
-            return Symbol(symbol=AppliedSymbol.of_lib(s), type=ty, sub_anchor=sa, _raw=x)
+            return Symbol(symbol=AppliedSymbol.of_lib(s), type=ty, _raw=x)
         case lib.Mir_Term_view_Construct(c=c, args=args, labels=labels):
             return Construct(
                 constructor=AppliedSymbol.of_lib(c),
                 arguments=tuple(term_of_lib(t) for t in args),
                 labels=None if labels is None else tuple(Uid(l) for l in labels),
                 type=ty,
-                sub_anchor=sa,
                 _raw=x,
             )
         case lib.Mir_Term_view_Destruct(c=c, i=i, t=t):
             return Destruct(
-                constructor=AppliedSymbol.of_lib(c), index=i, term=term_of_lib(t), type=ty, sub_anchor=sa, _raw=x
+                constructor=AppliedSymbol.of_lib(c), index=i, term=term_of_lib(t), type=ty, _raw=x
             )
         case lib.Mir_Term_view_Is_a(c=c, t=t):
-            return IsA(constructor=AppliedSymbol.of_lib(c), term=term_of_lib(t), type=ty, sub_anchor=sa, _raw=x)
+            return IsA(constructor=AppliedSymbol.of_lib(c), term=term_of_lib(t), type=ty, _raw=x)
         case lib.Mir_Term_view_Tuple(l=l):
-            return Tuple(elements=tuple(term_of_lib(t) for t in l), type=ty, sub_anchor=sa, _raw=x)
+            return Tuple(elements=tuple(term_of_lib(t) for t in l), type=ty, _raw=x)
         case lib.Mir_Term_view_Field(f=f, t=t):
-            return Field(field=AppliedSymbol.of_lib(f), term=term_of_lib(t), type=ty, sub_anchor=sa, _raw=x)
+            return Field(field=AppliedSymbol.of_lib(f), term=term_of_lib(t), type=ty, _raw=x)
         case lib.Mir_Term_view_Tuple_field(i=i, t=t):
-            return TupleField(index=i, term=term_of_lib(t), type=ty, sub_anchor=sa, _raw=x)
+            return TupleField(index=i, term=term_of_lib(t), type=ty, _raw=x)
         case lib.Mir_Term_view_Record(rows=rows, rest=rest):
             return Record(
                 rows=tuple((AppliedSymbol.of_lib(f), term_of_lib(t)) for f, t in rows),
                 rest=None if rest is None else term_of_lib(rest),
                 type=ty,
-                sub_anchor=sa,
                 _raw=x,
             )
         case lib.Mir_Term_view_Case(u=u, cases=cases, default=default):
@@ -726,12 +668,11 @@ def term_of_lib(x: lib.Mir_Term) -> Term:
                 cases=tuple((AppliedSymbol.of_lib(c), term_of_lib(t)) for c, t in cases),
                 default=None if default is None else term_of_lib(default),
                 type=ty,
-                sub_anchor=sa,
                 _raw=x,
             )
         case lib.Mir_Term_view_Sequence(args=(prefix, last)):
             return Sequence(
-                prefix=tuple(term_of_lib(t) for t in prefix), last=term_of_lib(last), type=ty, sub_anchor=sa, _raw=x
+                prefix=tuple(term_of_lib(t) for t in prefix), last=term_of_lib(last), type=ty, _raw=x
             )
         case _:
             assert_never(x.view)
@@ -808,7 +749,7 @@ class Var(_Term):
 def var_term_of_var(x: lib.Mir_Var) -> Var:
     """Turn a library variable into a `Var` term"""
     raw = lib.Mir_Term(view=(lib.Mir_Term_view_Var(arg=x)), ty=x.ty, sub_anchor=None)
-    return Var(var=Variable.of_lib(x), type=type_of_lib(x.ty), sub_anchor=None, _raw=raw)
+    return Var(var=Variable.of_lib(x), type=type_of_lib(x.ty), _raw=raw)
 
 
 @dataclass(slots=True, frozen=True, repr=False)
