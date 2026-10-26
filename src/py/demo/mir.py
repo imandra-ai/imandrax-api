@@ -1958,30 +1958,32 @@ class DB:
         return {u: [RewriteRule.of_lib(r) for r in rs] for u, rs in self._raw_rule_spec_rw_rules.items()}
 
     def __str__(self) -> str:
-        def uids(us: Iterable[Uid]) -> str:
-            return "{" + ", ".join(sorted(str(u) for u in us)) + "}"
+        def uids(us: Iterable[Uid]) -> list[str]:
+            return sorted(str(u) for u in us)
 
-        def counts(entries: Iterable[tuple[Uid | PatternHead, Sized]]) -> str:
-            return "{" + ", ".join(f"{u}: {len(xs)}" for u, xs in entries) + "}"
+        def counts(entries: Iterable[tuple[Uid | PatternHead, Sized]]) -> list[str]:
+            return sorted(f"{u}: {len(xs)}" for u, xs in entries)
 
-        return ", ".join(
-            [
-                f"decls: {len(self.decls)}",
-                f"disabled: {uids(self.disabled)}",
-                f"rw_rules: {counts(self.rw_rules.items())}",
-                f"fc: {counts(self.fc.items())}",
-                f"elim: {counts(self.elim.items())}",
-                f"gen: {counts(self.gen.items())}",
-                f"admission: {uids(self.admission.keys())}",
-                f"thm_as_rw: {counts(self.thm_as_rw.items())}",
-                f"thm_as_fc: {counts(self.thm_as_fc.items())}",
-                f"thm_as_elim: {counts(self.thm_as_elim.items())}",
-                f"thm_as_gen: {uids(self.thm_as_gen.keys())}",
-                f"inst_rules: {uids(self.inst_rules.keys())}",
-                f"rule_spec_fc: {counts(self.rule_spec_fc.items())}",
-                f"rule_spec_rw_rules: {counts(self.rule_spec_rw_rules.items())}",
-            ]
-        )
+        sections: list[tuple[str, list[str]]] = [
+            ("disabled", uids(self.disabled)),
+            ("rw_rules", counts(self.rw_rules.items())),
+            ("fc", counts(self.fc.items())),
+            ("elim", counts(self.elim.items())),
+            ("gen", counts(self.gen.items())),
+            ("admission", uids(self.admission.keys())),
+            ("thm_as_rw", counts(self.thm_as_rw.items())),
+            ("thm_as_fc", counts(self.thm_as_fc.items())),
+            ("thm_as_elim", counts(self.thm_as_elim.items())),
+            ("thm_as_gen", uids(self.thm_as_gen.keys())),
+            ("inst_rules", uids(self.inst_rules.keys())),
+            ("rule_spec_fc", counts(self.rule_spec_fc.items())),
+            ("rule_spec_rw_rules", counts(self.rule_spec_rw_rules.items())),
+        ]
+        lines = [f"decls: {len(self.decls)}"]
+        for name, items in sections:
+            lines.append(f"{name}:" if items else f"{name}: {{}}")
+            lines.extend(f"  {x}" for x in items)
+        return "\n".join(lines)
 
     def find_declaration(self, x: Uid) -> Declaration | None:
         """The declaration with uid `x`, or `None`"""
