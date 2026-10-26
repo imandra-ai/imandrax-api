@@ -26,7 +26,7 @@ package-dir = { "imandrax_api" = "." }
 strict = ["**"]
 venvPath = "."
 venv = ".venv"
-extraPaths = ["imandrax-api/src", "demo"]
+extraPaths = ["imandrax-api/src"]
 
 [tool.pytest.ini_options]
 # This directory is named `py`, which collides with the `py` distribution that

@@ -13,11 +13,9 @@ from imandrax_api import lib
 
 from imandrax_api.bindings import error_pb2, locs_pb2, task_pb2, artmsg_pb2, api_pb2, simple_api_pb2
 
-from evaluation_values import Value, value_of_lib
-
-from mir import *
-
-from report import Report
+from .evaluation_values import Value, value_of_lib
+from .mir import *
+from .report import Report
 
 if TYPE_CHECKING:
     from imandrax_api.client import AsyncClient as AsyncClient_

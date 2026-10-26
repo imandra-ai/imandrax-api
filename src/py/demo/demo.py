@@ -3,7 +3,7 @@ import traceback
 from pathlib import Path
 
 import imandrax_api
-from interface import *
+from imandrax_api.demo.interface import *
 
 
 def main():

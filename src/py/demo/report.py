@@ -7,7 +7,8 @@ from dataclasses import dataclass, field
 from enum import KEEP, Flag
 
 from imandrax_api import lib
-from mir import (
+
+from .mir import (
     InstantiationRule,
     Model,
     RewriteRule,

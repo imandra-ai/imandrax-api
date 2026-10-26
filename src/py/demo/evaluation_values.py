@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 from fractions import Fraction
 from typing import assert_never, override
 
-import mir
 from imandrax_api import lib
 
+from . import mir
 
 # Like the classes in `mir`, values are frozen dataclasses converted eagerly by
 # `value_of_lib`, keeping the library value they were converted from in the hidden
