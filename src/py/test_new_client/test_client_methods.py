@@ -23,6 +23,7 @@ from imandrax_api.demo.interface import (
     ModelKind,
     ModelOutput,
     OneshotResult,
+    ProofObligationResult,
     ProofObligationTask,
     ServerVersion,
     TestResult,
@@ -94,12 +95,34 @@ def test_eval_src_async_only_and_task_filter(client: Client):
     assert rsp.po_results == ()
 
 
+def test_eval_src_po_results(client: Client):
+    src = """theorem good x = x + 1 > x
+theorem bad x = x > 0"""
+    good, bad = client.eval_src(src).po_results
+
+    assert good.origin.from_sym == "good"
+    assert isinstance(good.res, ProofObligationResult.Proof)
+    assert good.outcome == "proof"
+    assert good.errors == ()
+
+    assert bad.origin.from_sym == "bad"
+    assert isinstance(bad.res, ProofObligationResult.Instance)
+    assert bad.outcome == "instance"
+    cx: ModelOutput | None = bad.res.model
+    assert cx is not None
+    assert cx.kind == ModelKind.COUNTER_EXAMPLE
+    assert "x = 0" in cx.src
+    (e,) = bad.errors
+    assert "counter-satisfiable" in str(e)
+
+
 # Verify, instance and test
 # =========================
 
 
 def test_verify_name_proved(client: Client):
     r: VerifyResult = client.verify_name("nonneg")
+    assert isinstance(r.res, VerifyResult.Proved)
     assert r.outcome == "proved"
     assert r.proved and not r.refuted
     assert r.counter_example is None
@@ -112,6 +135,8 @@ def test_verify_src_refuted(client: Client):
     assert r.refuted and not r.proved
     assert r.proof_pp is None
 
+    assert isinstance(r.res, VerifyResult.Refuted)
+
     cx: ModelOutput | None = r.counter_example
     assert cx is not None
     assert cx.kind == ModelKind.COUNTER_EXAMPLE
@@ -122,6 +147,7 @@ def test_verify_src_refuted(client: Client):
 
 def test_instance_src_sat(client: Client):
     r: InstanceResult = client.instance_src("fun x -> f x = 5")
+    assert isinstance(r.res, InstanceResult.Sat)
     assert r.outcome == "sat"
     assert r.found
     inst: ModelOutput | None = r.instance
@@ -134,6 +160,7 @@ def test_instance_src_sat(client: Client):
 
 def test_instance_src_unsat(client: Client):
     r: InstanceResult = client.instance_src("fun x -> f x < 0")
+    assert isinstance(r.res, InstanceResult.Unsat)
     assert r.outcome == "unsat"
     assert not r.found
     assert r.instance is None
@@ -146,7 +173,7 @@ def test_instance_name(client: Client):
 
 def test_test_src_counter_example(client: Client):
     r: TestResult = client.test_src("fun x -> f x > 0", seed=1)
-    assert isinstance(r, TestResult)
+    assert isinstance(r.res, TestResult.CounterExample)
     assert r.outcome == "counter_example"
     cx = r.counter_example
     assert cx is not None
@@ -155,6 +182,7 @@ def test_test_src_counter_example(client: Client):
 
 def test_test_name_no_counter_example(client: Client):
     r: TestResult = client.test_name("nonneg", seed=1)
+    assert r.res == TestResult.Err()
     assert r.outcome == "err"
     assert r.counter_example is None
     (e,) = r.errors

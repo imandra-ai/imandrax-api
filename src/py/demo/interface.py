@@ -9,7 +9,7 @@ from enum import Enum
 from fractions import Fraction
 from functools import cached_property
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Self, assert_never
+from typing import TYPE_CHECKING, Any, Literal, Self, assert_never
 
 import imandrax_api
 from imandrax_api import lib
@@ -1556,6 +1556,48 @@ class Origin:
 class ProofObligationResult:
     """A proof obligation result in an `eval_src` response"""
 
+    @dataclass(slots=True, frozen=True)
+    class Unknown:
+        """The proof obligation could not be decided"""
+
+        message: str
+
+    @dataclass(slots=True, frozen=True)
+    class Err:
+        """Checking failed; the errors are in `ProofObligationResult.errors`"""
+
+    @dataclass(slots=True, frozen=True)
+    class Proof:
+        """The goal was proved"""
+
+        proof_pp: str | None
+        """The pretty-printed proof, if the server sent it"""
+
+    @dataclass(slots=True, frozen=True)
+    class Instance:
+        """A model was found: an instance of an `instance` goal, or a counter-example to a theorem
+        or `verify` goal (reported with an error)"""
+
+        model: "ModelOutput | None"
+        """The model, if the server sent it"""
+
+    @dataclass(slots=True, frozen=True)
+    class VerifiedUpto:
+        """The goal was verified up to a bound"""
+
+        message: str | None
+
+    @dataclass(slots=True, frozen=True)
+    class TestOk:
+        """Testing found no counter-example"""
+
+    Res = Unknown | Err | Proof | Instance | VerifiedUpto | TestOk
+    """The outcome of the proof obligation"""
+
+    res: Res | None
+    """The outcome of the proof obligation, `None` if the server sent none"""
+    errors: tuple[Error, ...]
+    """Errors reported while checking the proof obligation"""
     task: Task
     """The proof obligation's task"""
     origin: Origin
@@ -1564,7 +1606,52 @@ class ProofObligationResult:
 
     @classmethod
     def of_raw(cls, x: simple_api_pb2.PO_Res, client: "Client | AsyncClient | None" = None) -> "ProofObligationResult":
-        return cls(task=task_of_raw(x.task, client), origin=Origin.of_raw(x.origin), _raw=x)
+        res: ProofObligationResult.Res | None
+        match x.WhichOneof("res"):
+            case "unknown":
+                res = ProofObligationResult.Unknown(message=x.unknown.msg)
+            case "err":
+                res = ProofObligationResult.Err()
+            case "proof":
+                res = ProofObligationResult.Proof(proof_pp=x.proof.proof_pp if x.proof.HasField("proof_pp") else None)
+            case "instance":
+                res = ProofObligationResult.Instance(
+                    model=ModelOutput.of_raw(x.instance.model) if x.instance.HasField("model") else None
+                )
+            case "verified_upto":
+                res = ProofObligationResult.VerifiedUpto(
+                    message=x.verified_upto.msg if x.verified_upto.HasField("msg") else None
+                )
+            case "test_ok":
+                res = ProofObligationResult.TestOk()
+            case _:
+                res = None
+        return cls(
+            res=res,
+            errors=tuple(Error.of_raw(e) for e in x.errors),
+            task=task_of_raw(x.task, client),
+            origin=Origin.of_raw(x.origin),
+            _raw=x,
+        )
+
+    @property
+    def outcome(self) -> Literal["unknown", "err", "proof", "instance", "verified_upto", "test_ok"] | None:
+        """One of `unknown`, `err`, `proof`, `instance`, `verified_upto` and `test_ok`"""
+        match self.res:
+            case ProofObligationResult.Unknown():
+                return "unknown"
+            case ProofObligationResult.Err():
+                return "err"
+            case ProofObligationResult.Proof():
+                return "proof"
+            case ProofObligationResult.Instance():
+                return "instance"
+            case ProofObligationResult.VerifiedUpto():
+                return "verified_upto"
+            case ProofObligationResult.TestOk():
+                return "test_ok"
+            case None:
+                return None
 
 
 @dataclass(slots=True, frozen=True)
@@ -1737,14 +1824,42 @@ class ModelOutput:
 class VerifyResult:
     """The result of a `verify_src` or `verify_name` request"""
 
-    outcome: str | None
-    """One of `unknown`, `err`, `proved`, `refuted` and `verified_upto`"""
-    proof_pp: str | None
-    """The pretty-printed proof, if the goal was proved and the server sent it"""
-    counter_example: ModelOutput | None
-    """The counter-example, if the goal was refuted"""
-    message: str | None
-    """The message for an `unknown` or `verified_upto` outcome, if any"""
+    @dataclass(slots=True, frozen=True)
+    class Unknown:
+        """Verification could not decide the goal"""
+
+        message: str
+
+    @dataclass(slots=True, frozen=True)
+    class Err:
+        """Verification failed; the errors are in `VerifyResult.errors`"""
+
+    @dataclass(slots=True, frozen=True)
+    class Proved:
+        """The goal was proved"""
+
+        proof_pp: str | None
+        """The pretty-printed proof, if the server sent it"""
+
+    @dataclass(slots=True, frozen=True)
+    class Refuted:
+        """A counter-example was found"""
+
+        counter_example: ModelOutput | None
+        """The counter-example, if the server sent it"""
+
+    @dataclass(slots=True, frozen=True)
+    class VerifiedUpto:
+        """The goal was verified up to a bound"""
+
+        message: str | None
+
+    Res = Unknown | Err | Proved | Refuted | VerifiedUpto
+    """The outcome of verification"""
+
+    res: Res | None
+    """The outcome of verification, `None` if the server sent none"""
+    # CR: can `None` ever happens?
     errors: tuple[Error, ...]
     """Errors reported during verification"""
     task: Task
@@ -1753,53 +1868,115 @@ class VerifyResult:
 
     @classmethod
     def of_raw(cls, x: simple_api_pb2.VerifyRes, client: "Client | AsyncClient | None" = None) -> "VerifyResult":
-        outcome = x.WhichOneof("res")
-        match outcome:
+        res: VerifyResult.Res | None
+        match x.WhichOneof("res"):
             case "unknown":
-                message = x.unknown.msg
-            case "verified_upto" if x.verified_upto.HasField("msg"):
-                message = x.verified_upto.msg
+                res = VerifyResult.Unknown(message=x.unknown.msg)
+            case "err":
+                res = VerifyResult.Err()
+            case "proved":
+                res = VerifyResult.Proved(proof_pp=x.proved.proof_pp if x.proved.HasField("proof_pp") else None)
+            case "refuted":
+                res = VerifyResult.Refuted(
+                    counter_example=ModelOutput.of_raw(x.refuted.model) if x.refuted.HasField("model") else None
+                )
+            case "verified_upto":
+                res = VerifyResult.VerifiedUpto(
+                    message=x.verified_upto.msg if x.verified_upto.HasField("msg") else None
+                )
             case _:
-                message = None
+                res = None
         return cls(
-            outcome=outcome,
-            proof_pp=x.proved.proof_pp if outcome == "proved" and x.proved.HasField("proof_pp") else None,
-            counter_example=(
-                ModelOutput.of_raw(x.refuted.model) if outcome == "refuted" and x.refuted.HasField("model") else None
-            ),
-            message=message,
+            res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
             task=task_of_raw(x.task, client),
             _raw=x,
         )
 
     def __str__(self) -> str:
+        # TODO: create one?
         return f"{self._raw}"
+
+    @property
+    def outcome(self) -> Literal["unknown", "err", "proved", "refuted", "verified_upto"] | None:
+        """One of `unknown`, `err`, `proved`, `refuted` and `verified_upto`"""
+        match self.res:
+            case VerifyResult.Unknown():
+                return "unknown"
+            case VerifyResult.Err():
+                return "err"
+            case VerifyResult.Proved():
+                return "proved"
+            case VerifyResult.Refuted():
+                return "refuted"
+            case VerifyResult.VerifiedUpto():
+                return "verified_upto"
+            case None:
+                return None
 
     @property
     def proved(self) -> bool:
         """Whether the goal was proved"""
-        return self.outcome == "proved"
+        return isinstance(self.res, VerifyResult.Proved)
 
     @property
     def refuted(self) -> bool:
         """Whether a counter-example was found"""
-        return self.outcome == "refuted"
+        return isinstance(self.res, VerifyResult.Refuted)
+
+    @property
+    def proof_pp(self) -> str | None:
+        """The pretty-printed proof, if the goal was proved and the server sent it"""
+        return self.res.proof_pp if isinstance(self.res, VerifyResult.Proved) else None
+
+    @property
+    def counter_example(self) -> ModelOutput | None:
+        """The counter-example, if the goal was refuted"""
+        return self.res.counter_example if isinstance(self.res, VerifyResult.Refuted) else None
+
+    @property
+    def message(self) -> str | None:
+        """The message for an `unknown` or `verified_upto` outcome, if any"""
+        match self.res:
+            case VerifyResult.Unknown(message=m) | VerifyResult.VerifiedUpto(message=m):
+                return m
+            case _:
+                return None
 
 
 @dataclass(slots=True, frozen=True)
 class InstanceResult:
     """The result of an `instance_src` or `instance_name` request"""
 
-    # CR: should this be enum instead?
-    outcome: str | None
-    """One of `unknown`, `err`, `unsat` and `sat`"""
-    instance: ModelOutput | None
-    """The instance, if one was found"""
-    proof_pp: str | None
-    """The pretty-printed proof of unsatisfiability, if any"""
-    message: str | None
-    """The message for an `unknown` outcome"""
+    @dataclass(slots=True, frozen=True)
+    class Unknown:
+        """The instance search could not decide the goal"""
+
+        message: str
+
+    @dataclass(slots=True, frozen=True)
+    class Err:
+        """The instance search failed; the errors are in `InstanceResult.errors`"""
+
+    @dataclass(slots=True, frozen=True)
+    class Unsat:
+        """The goal has no instance"""
+
+        proof_pp: str | None
+        """The pretty-printed proof of unsatisfiability, if the server sent it"""
+
+    @dataclass(slots=True, frozen=True)
+    class Sat:
+        """An instance was found"""
+
+        instance: ModelOutput | None
+        """The instance, if the server sent it"""
+
+    Res = Unknown | Err | Unsat | Sat
+    """The outcome of the instance search"""
+
+    res: Res | None
+    """The outcome of the instance search, `None` if the server sent none"""
     errors: tuple[Error, ...]
     """Errors reported during the instance search"""
     task: Task
@@ -1808,12 +1985,20 @@ class InstanceResult:
 
     @classmethod
     def of_raw(cls, x: simple_api_pb2.InstanceRes, client: "Client | AsyncClient | None" = None) -> "InstanceResult":
-        outcome = x.WhichOneof("res")
+        res: InstanceResult.Res | None
+        match x.WhichOneof("res"):
+            case "unknown":
+                res = InstanceResult.Unknown(message=x.unknown.msg)
+            case "err":
+                res = InstanceResult.Err()
+            case "unsat":
+                res = InstanceResult.Unsat(proof_pp=x.unsat.proof_pp if x.unsat.HasField("proof_pp") else None)
+            case "sat":
+                res = InstanceResult.Sat(instance=ModelOutput.of_raw(x.sat.model) if x.sat.HasField("model") else None)
+            case _:
+                res = None
         return cls(
-            outcome=outcome,
-            instance=ModelOutput.of_raw(x.sat.model) if outcome == "sat" and x.sat.HasField("model") else None,
-            proof_pp=x.unsat.proof_pp if outcome == "unsat" and x.unsat.HasField("proof_pp") else None,
-            message=x.unknown.msg if outcome == "unknown" else None,
+            res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
             task=task_of_raw(x.task, client),
             _raw=x,
@@ -1823,9 +2008,39 @@ class InstanceResult:
         return f"{self._raw}"
 
     @property
+    def outcome(self) -> Literal["unknown", "err", "unsat", "sat"] | None:
+        """One of `unknown`, `err`, `unsat` and `sat`"""
+        match self.res:
+            case InstanceResult.Unknown():
+                return "unknown"
+            case InstanceResult.Err():
+                return "err"
+            case InstanceResult.Unsat():
+                return "unsat"
+            case InstanceResult.Sat():
+                return "sat"
+            case None:
+                return None
+
+    @property
     def found(self) -> bool:
         """Whether an instance was found"""
-        return self.outcome == "sat"
+        return isinstance(self.res, InstanceResult.Sat)
+
+    @property
+    def instance(self) -> ModelOutput | None:
+        """The instance, if one was found"""
+        return self.res.instance if isinstance(self.res, InstanceResult.Sat) else None
+
+    @property
+    def proof_pp(self) -> str | None:
+        """The pretty-printed proof of unsatisfiability, if any"""
+        return self.res.proof_pp if isinstance(self.res, InstanceResult.Unsat) else None
+
+    @property
+    def message(self) -> str | None:
+        """The message for an `unknown` outcome"""
+        return self.res.message if isinstance(self.res, InstanceResult.Unknown) else None
 
 
 @dataclass(slots=True, frozen=True)
@@ -1834,14 +2049,26 @@ class TestResult:
 
     __test__ = False  # otherwise pytest will collect this as test
 
-    outcome: str | None
-    """One of `err` and `counter_example`
+    @dataclass(slots=True, frozen=True)
+    class Err:
+        """Testing failed, or found no counter-example; the errors are in `TestResult.errors`
 
-    Testing that finds no counter-example is reported as `err`, with an error of kind
-    `NoCounterExample`
-    """
-    counter_example: ModelOutput | None
-    """The counter-example, if one was found"""
+        Testing that finds no counter-example is reported this way, with an error of kind
+        `NoCounterExample`
+        """
+
+    @dataclass(slots=True, frozen=True)
+    class CounterExample:
+        """A counter-example was found"""
+
+        counter_example: ModelOutput | None
+        """The counter-example, if the server sent it"""
+
+    Res = Err | CounterExample
+    """The outcome of testing"""
+
+    res: Res | None
+    """The outcome of testing, `None` if the server sent none"""
     errors: tuple[Error, ...]
     """Errors reported during testing"""
     task: Task
@@ -1850,14 +2077,20 @@ class TestResult:
 
     @classmethod
     def of_raw(cls, x: simple_api_pb2.TestRes, client: "Client | AsyncClient | None" = None) -> "TestResult":
-        outcome = x.WhichOneof("res")
+        res: TestResult.Res | None
+        match x.WhichOneof("res"):
+            case "err":
+                res = TestResult.Err()
+            case "counter_example":
+                res = TestResult.CounterExample(
+                    counter_example=(
+                        ModelOutput.of_raw(x.counter_example.model) if x.counter_example.HasField("model") else None
+                    )
+                )
+            case _:
+                res = None
         return cls(
-            outcome=outcome,
-            counter_example=(
-                ModelOutput.of_raw(x.counter_example.model)
-                if outcome == "counter_example" and x.counter_example.HasField("model")
-                else None
-            ),
+            res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
             task=task_of_raw(x.task, client),
             _raw=x,
@@ -1865,6 +2098,26 @@ class TestResult:
 
     def __str__(self) -> str:
         return f"{self._raw}"
+
+    @property
+    def outcome(self) -> Literal["err", "counter_example"] | None:
+        """One of `err` and `counter_example`
+
+        Testing that finds no counter-example is reported as `err`, with an error of kind
+        `NoCounterExample`
+        """
+        match self.res:
+            case TestResult.Err():
+                return "err"
+            case TestResult.CounterExample():
+                return "counter_example"
+            case None:
+                return None
+
+    @property
+    def counter_example(self) -> ModelOutput | None:
+        """The counter-example, if one was found"""
+        return self.res.counter_example if isinstance(self.res, TestResult.CounterExample) else None
 
 
 @dataclass(slots=True, frozen=True)
