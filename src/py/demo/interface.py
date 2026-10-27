@@ -82,7 +82,7 @@ class Error:
         self._raw = error
 
     def __str__(self) -> str:
-        return f"Error: {self.message}"
+        return f"{self.kind}: {self.message}"
 
     def __repr__(self) -> str:
         return f"{self.message}"
@@ -94,8 +94,11 @@ class Error:
 
     @property
     def kind(self) -> str:
-        """The kind of error"""
-        return self._raw.kind
+        """The kind of error, e.g. `TypeErr`"""
+        import re
+        # The server sends the kind printed as an OCaml record, `{ Kind.name = "TypeErr" }`
+        m = re.fullmatch(r'\{ Kind\.name = "(.*)" \}', self._raw.kind)
+        return self._raw.kind if m is None else m.group(1)
 
     @property
     def stack(self) -> list[Message]:
