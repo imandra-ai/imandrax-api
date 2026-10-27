@@ -1,17 +1,27 @@
 # pyright: reportPrivateUsage=false
 import asyncio
+import json
 import weakref
 from collections.abc import Awaitable
 from dataclasses import dataclass, field
 from enum import Enum
 from fractions import Fraction
 from functools import cached_property
+from types import TracebackType
 from typing import TYPE_CHECKING, Any, Self, assert_never
 
 import imandrax_api
 from imandrax_api import lib
-
-from imandrax_api.bindings import error_pb2, locs_pb2, task_pb2, artmsg_pb2, api_pb2, simple_api_pb2
+from imandrax_api.bindings import (
+    api_pb2,
+    artmsg_pb2,
+    error_pb2,
+    locs_pb2,
+    simple_api_pb2,
+    system_pb2,
+    task_pb2,
+)
+from imandrax_api.client import decomp
 
 from .evaluation_values import Value, value_of_lib
 from .mir import *
@@ -1568,6 +1578,8 @@ class DecompositionResult:
         """Errors reported during decomposition"""
         return [Error(e) for e in self._raw.errors]
 
+    # TODO: more utils to decode artifact and check regions?
+
 
 class EvalOutput:
     """The output of an `eval` in evaluated source"""
@@ -1639,6 +1651,352 @@ class EvalSrcResponse:
         return self._decomp_results
 
 
+def _decode_artifact(artifact: artmsg_pb2.Artifact, kind: str) -> lib.Artifact:
+    """Decode the data of `artifact`, checking that it has kind `kind`"""
+    if artifact.kind != kind:
+        raise Exception(f"Unexpected artifact kind '{artifact.kind}'")
+    return lib.read_artifact_data(artifact.data, artifact.kind)
+
+
+def _model_of_artifact(artifact: artmsg_pb2.Artifact) -> Model:
+    d = _decode_artifact(artifact, "mir.model")
+    if not isinstance(d, lib.Common_Model_t_poly):
+        raise Exception(f"Unexpected model artifact type '{type(d)}'")
+    return Model.of_lib(d)
+
+
+def _term_of_artifact(artifact: artmsg_pb2.Artifact) -> Term:
+    d = _decode_artifact(artifact, "term")
+    if not isinstance(d, lib.Mir_Term):
+        raise Exception(f"Unexpected term artifact type '{type(d)}'")
+    return term_of_lib(d)
+
+
+def _type_of_artifact(artifact: artmsg_pb2.Artifact) -> Type:
+    d = _decode_artifact(artifact, "ty")
+    if not isinstance(d, lib.Mir_Type):
+        raise Exception(f"Unexpected type artifact type '{type(d)}'")
+    return type_of_lib(d)
+
+
+class ModelKind(Enum):
+    COUNTER_EXAMPLE = "counter_example"
+    INSTANCE = "instance"
+
+
+class ModelOutput:
+    """A model returned by `verify_*`, `instance_*` or `test_*`"""
+
+    def __init__(self, model: simple_api_pb2.Model):
+        self._raw: simple_api_pb2.Model = model
+
+    def __str__(self) -> str:
+        return self.src
+
+    @property
+    def kind(self) -> ModelKind:
+        """Whether the model is a counter-example or an instance"""
+        match self._raw.m_type:
+            case simple_api_pb2.Counter_example:
+                return ModelKind.COUNTER_EXAMPLE
+            case simple_api_pb2.Instance:
+                return ModelKind.INSTANCE
+            case _:
+                raise Exception(f"Unexpected model type '{self._raw.m_type}'")
+
+    @property
+    def src(self) -> str:
+        """The model as IML source"""
+        return self._raw.src
+
+    @cached_property
+    def model(self) -> Model | None:
+        """The model, decoded from its artifact, if the server sent one"""
+        if not self._raw.HasField("artifact"):
+            return None
+        return _model_of_artifact(self._raw.artifact)
+
+
+class VerifyResult:
+    """The result of a `verify_src` or `verify_name` request"""
+
+    def __init__(self, res: simple_api_pb2.VerifyRes, client: "Client | AsyncClient | None" = None):
+        self._raw: simple_api_pb2.VerifyRes = res
+        self._task: Task = task_of_raw(res.task, client)
+
+    def __str__(self) -> str:
+        return f"{self._raw}"
+
+    @property
+    def outcome(self) -> str | None:
+        """One of `unknown`, `err`, `proved`, `refuted` and `verified_upto`"""
+        return self._raw.WhichOneof("res")
+
+    @property
+    def proved(self) -> bool:
+        """Whether the goal was proved"""
+        return self.outcome == "proved"
+
+    @property
+    def refuted(self) -> bool:
+        """Whether a counter-example was found"""
+        return self.outcome == "refuted"
+
+    @property
+    def proof_pp(self) -> str | None:
+        """The pretty-printed proof, if the goal was proved and the server sent it"""
+        if self.outcome != "proved" or not self._raw.proved.HasField("proof_pp"):
+            return None
+        return self._raw.proved.proof_pp
+
+    @property
+    def counter_example(self) -> ModelOutput | None:
+        """The counter-example, if the goal was refuted"""
+        if self.outcome != "refuted" or not self._raw.refuted.HasField("model"):
+            return None
+        return ModelOutput(self._raw.refuted.model)
+
+    @property
+    def message(self) -> str | None:
+        """The message for an `unknown` or `verified_upto` outcome, if any"""
+        match self.outcome:
+            case "unknown":
+                return self._raw.unknown.msg
+            case "verified_upto" if self._raw.verified_upto.HasField("msg"):
+                return self._raw.verified_upto.msg
+            case _:
+                return None
+
+    @property
+    def errors(self) -> list[Error]:
+        """Errors reported during verification"""
+        return [Error(e) for e in self._raw.errors]
+
+    @property
+    def task(self) -> Task:
+        """The verification task"""
+        return self._task
+
+
+class InstanceResult:
+    """The result of an `instance_src` or `instance_name` request"""
+
+    def __init__(self, res: simple_api_pb2.InstanceRes, client: "Client | AsyncClient | None" = None):
+        self._raw: simple_api_pb2.InstanceRes = res
+        self._task: Task = task_of_raw(res.task, client)
+
+    def __str__(self) -> str:
+        return f"{self._raw}"
+
+    @property
+    def outcome(self) -> str | None:
+        """One of `unknown`, `err`, `unsat` and `sat`"""
+        # CR: should this be enum instead?
+        return self._raw.WhichOneof("res")
+
+    @property
+    def found(self) -> bool:
+        """Whether an instance was found"""
+        return self.outcome == "sat"
+
+    @property
+    def instance(self) -> ModelOutput | None:
+        """The instance, if one was found"""
+        if self.outcome != "sat" or not self._raw.sat.HasField("model"):
+            return None
+        return ModelOutput(self._raw.sat.model)
+
+    @property
+    def proof_pp(self) -> str | None:
+        """The pretty-printed proof of unsatisfiability, if any"""
+        if self.outcome != "unsat" or not self._raw.unsat.HasField("proof_pp"):
+            return None
+        return self._raw.unsat.proof_pp
+
+    @property
+    def message(self) -> str | None:
+        """The message for an `unknown` outcome"""
+        return self._raw.unknown.msg if self.outcome == "unknown" else None
+
+    @property
+    def errors(self) -> list[Error]:
+        """Errors reported during the instance search"""
+        return [Error(e) for e in self._raw.errors]
+
+    @property
+    def task(self) -> Task:
+        """The instance task"""
+        return self._task
+
+
+class TestResult:
+    """The result of a `test_src` or `test_name` request"""
+    __test__ = False  # otherwise pytest will collect this
+
+    def __init__(self, res: simple_api_pb2.TestRes, client: "Client | AsyncClient | None" = None):
+        self._raw: simple_api_pb2.TestRes = res
+        self._task: Task = task_of_raw(res.task, client)
+
+    def __str__(self) -> str:
+        return f"{self._raw}"
+
+    @property
+    def outcome(self) -> str | None:
+        """One of `err` and `counter_example`
+
+        Testing that finds no counter-example is reported as `err`, with an error of kind
+        `NoCounterExample`
+        """
+        return self._raw.WhichOneof("res")
+
+    @property
+    def counter_example(self) -> ModelOutput | None:
+        """The counter-example, if one was found"""
+        if self.outcome != "counter_example" or not self._raw.counter_example.HasField("model"):
+            return None
+        return ModelOutput(self._raw.counter_example.model)
+
+    @property
+    def errors(self) -> list[Error]:
+        """Errors reported during testing"""
+        return [Error(e) for e in self._raw.errors]
+
+    @property
+    def task(self) -> Task:
+        """The test task"""
+        return self._task
+
+
+class TypecheckResult:
+    """The result of a `typecheck` request"""
+
+    def __init__(self, res: simple_api_pb2.TypecheckRes):
+        self._raw: simple_api_pb2.TypecheckRes = res
+
+    @property
+    def success(self) -> bool:
+        """Whether the source typechecked"""
+        return self._raw.success
+
+    @cached_property
+    def types(self) -> Any:
+        """The inferred types, decoded from JSON"""
+        return json.loads(self._raw.types) if self._raw.types else None
+
+    @property
+    def errors(self) -> list[Error]:
+        """Errors reported during typechecking"""
+        return [Error(e) for e in self._raw.errors]
+
+
+class OneshotResult:
+    """The result of a `oneshot` request"""
+
+    def __init__(self, res: simple_api_pb2.OneshotRes):
+        self._raw: simple_api_pb2.OneshotRes = res
+
+    @property
+    def results(self) -> list[str]:
+        """The results, as strings"""
+        return list(self._raw.results)
+
+    @property
+    def detailed_results(self) -> list[str]:
+        """The results, in more detail"""
+        return list(self._raw.detailed_results)
+
+    @property
+    def errors(self) -> list[str]:
+        """The errors, as strings"""
+        return list(self._raw.errors)
+
+    @property
+    def time_s(self) -> float:
+        """The time the request took on the server, in seconds"""
+        return self._raw.stats.time
+
+
+class CodeSnippetResult:
+    """The result of an `eval_code_snippet` request"""
+
+    def __init__(self, res: api_pb2.CodeSnippetEvalResult, client: "Client | AsyncClient | None" = None):
+        self._raw: api_pb2.CodeSnippetEvalResult = res
+        self._tasks: list[Task] = [task_of_raw(t, client) for t in res.tasks]
+
+    @property
+    def success(self) -> bool:
+        """Whether the snippet was evaluated without errors"""
+        # The server reports some errors, e.g. type errors, with `EVAL_OK`
+        return self._raw.res == api_pb2.EVAL_OK and not self._raw.errors
+
+    @property
+    def duration_s(self) -> float:
+        """The time evaluation took, in seconds"""
+        return self._raw.duration_s
+
+    @property
+    def tasks(self) -> list[Task]:
+        """The tasks created during evaluation"""
+        return self._tasks
+
+    @property
+    def errors(self) -> list[Error]:
+        """Errors reported during evaluation"""
+        return [Error(e) for e in self._raw.errors]
+
+
+@dataclass(slots=True, frozen=True)
+class ServerVersion:
+    """The server's version"""
+
+    version: str
+    git_version: str | None
+    _raw: system_pb2.VersionResponse = field(repr=False, compare=False)
+
+    @classmethod
+    def of_raw(cls, x: system_pb2.VersionResponse) -> "ServerVersion":
+        return cls(version=x.version, git_version=x.git_version if x.HasField("git_version") else None, _raw=x)
+
+
+@dataclass(slots=True, frozen=True)
+class GcStatistics:
+    """The server's garbage collector statistics"""
+
+    heap_size_bytes: int
+    major_collections: int
+    minor_collections: int
+    _raw: system_pb2.Gc_stats = field(repr=False, compare=False)
+
+    @classmethod
+    def of_raw(cls, x: system_pb2.Gc_stats) -> "GcStatistics":
+        return cls(
+            heap_size_bytes=x.heap_size_B,
+            major_collections=x.major_collections,
+            minor_collections=x.minor_collections,
+            _raw=x,
+        )
+
+
+def _artifact_kinds_of_result(res: api_pb2.ArtifactListResult) -> list[str]:
+    match res.WhichOneof("result"):
+        case "error":
+            raise Exception(f"{Error(res.error)}")
+        case "ok":
+            return list(res.ok.kinds)
+        case _:
+            raise Exception("Artifact list result has neither `error` nor `ok`")
+
+
+def _artifact_zip_of_result(res: api_pb2.ArtifactZipResult) -> bytes:
+    match res.WhichOneof("result"):
+        case "error":
+            raise Exception(f"{Error(res.error)}")
+        case "ok":
+            return res.ok.art_zip
+        case _:
+            raise Exception("Artifact zip result has neither `error` nor `ok`")
+
+
 class Client:
     """A client for the ImandraX API"""
 
@@ -1662,15 +2020,215 @@ class Client:
             create_if_not_found=create_if_not_found,
         )
 
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self._client.__exit__()
+
     def status(self):
         """The server's status"""
         return self._client.status()
 
-    def eval_src(self, src: str, **kwargs: Any) -> EvalSrcResponse:
-        """Evaluate IML source; other keyword arguments go to `imandrax_api.Client.eval_src`"""
-        return EvalSrcResponse(self._client.eval_src(src, **kwargs), self)
+    def eval_src(
+        self,
+        src: str,
+        timeout: float | None = None,
+        async_only: bool | None = None,
+        task_filter: list[str] | None = None,
+    ) -> EvalSrcResponse:
+        """Evaluate IML source
 
-    # TODO: Add all the other client functions
+        `async_only` returns without waiting for task results; `task_filter` holds glob patterns
+        selecting the tasks to start, see `imandrax_api.Client.eval_src`
+        """
+        return EvalSrcResponse(
+            self._client.eval_src(
+                src, timeout=timeout, async_only=async_only, task_filter=task_filter
+            ),
+            self,
+        )
+
+    @property
+    def session_id(self) -> str:
+        """The ID of the client's session"""
+        return self._client.session_id
+
+    def decompose(
+        self,
+        name: str,
+        assuming: str | None = None,
+        basis: list[str] | None = None,
+        rule_specs: list[str] | None = None,
+        prune: bool | None = None,
+        ctx_simp: bool | None = None,
+        lift_bool: simple_api_pb2.LiftBool | None = None,
+        timeout: float | None = None,
+        string_results: bool | None = None,
+        compute_timeout: int | None = None,
+    ) -> DecompositionResult:
+        """Decompose the function `name`; see `imandrax_api.Client.decompose`"""
+        return DecompositionResult(
+            self._client.decompose(
+                name,
+                assuming=assuming,
+                basis=basis,
+                rule_specs=rule_specs,
+                prune=prune,
+                ctx_simp=ctx_simp,
+                lift_bool=lift_bool,
+                timeout=timeout,
+                string_results=string_results,
+                compute_timeout=compute_timeout,
+            ),
+            self,
+        )
+
+    def decompose_full(
+        self,
+        # TODO: we should have a Decomp combinator class here?
+        d: decomp.Decomp,
+        timeout: float | None = None,
+        string_results: bool | None = None,
+        compute_timeout: int | None = None,
+    ) -> DecompositionResult:
+        """Compute the decomposition `d`, built with `imandrax_api.client.decomp`"""
+        return DecompositionResult(
+            self._client.decompose_full(
+                d,
+                timeout=timeout,
+                string_results=string_results,
+                compute_timeout=compute_timeout,
+            ),
+            self,
+        )
+
+    def verify_src(
+        self, src: str, hints: str | None = None, timeout: float | None = None
+    ) -> VerifyResult:
+        """Verify the goal given as IML source"""
+        return VerifyResult(
+            self._client.verify_src(src, hints=hints, timeout=timeout), self
+        )
+
+    def verify_name(
+        self, name: str, hints: str | None = None, timeout: float | None = None
+    ) -> VerifyResult:
+        """Verify the predicate `name`"""
+        return VerifyResult(
+            self._client.verify_name(name, hints=hints, timeout=timeout), self
+        )
+
+    def instance_src(
+        self, src: str, hints: str | None = None, timeout: float | None = None
+    ) -> InstanceResult:
+        """Search for an instance of the goal given as IML source"""
+        return InstanceResult(
+            self._client.instance_src(src, hints=hints, timeout=timeout), self
+        )
+
+    def instance_name(
+        self, name: str, hints: str | None = None, timeout: float | None = None
+    ) -> InstanceResult:
+        """Search for an instance of the predicate `name`"""
+        return InstanceResult(
+            self._client.instance_name(name, hints=hints, timeout=timeout), self
+        )
+
+    def test_src(
+        self, src: str, seed: int | None = None, timeout: float | None = None
+    ) -> TestResult:
+        """Test the goal given as IML source with random inputs"""
+        return TestResult(self._client.test_src(src, seed=seed, timeout=timeout), self)
+
+    def test_name(
+        self, name: str, seed: int | None = None, timeout: float | None = None
+    ) -> TestResult:
+        """Test the predicate `name` with random inputs"""
+        return TestResult(
+            self._client.test_name(name, seed=seed, timeout=timeout), self
+        )
+
+    def typecheck(self, src: str, timeout: float | None = None) -> TypecheckResult:
+        """Typecheck IML source"""
+        return TypecheckResult(self._client.typecheck(src, timeout=timeout))
+
+    def oneshot(
+        self,
+        input: str,
+        compute_timeout: float | None = None,
+        timeout: float | None = None,
+    ) -> OneshotResult:
+        """Evaluate IML code in a sessionless, self-contained request"""
+        return OneshotResult(
+            self._client.oneshot(
+                input, compute_timeout=compute_timeout, timeout=timeout
+            )
+        )
+
+    def eval_code_snippet(
+        self,
+        code: str,
+        task_filter: list[str] | None = None,
+        timeout: float | None = None,
+    ) -> CodeSnippetResult:
+        """Evaluate a code snippet; `task_filter` selects tasks to start, as in `eval_src`"""
+        return CodeSnippetResult(
+            self._client.eval_code_snippet(
+                code, task_filter=task_filter, timeout=timeout
+            ),
+            self,
+        )
+
+    def parse_term(self, code: str, timeout: float | None = None) -> Term:
+        """Parse and typecheck a term"""
+        return _term_of_artifact(
+            _artifact_of_result(self._client.parse_term(code, timeout=timeout))._raw
+        )
+
+    def parse_type(self, code: str, timeout: float | None = None) -> Type:
+        """Parse and typecheck a type"""
+        return _type_of_artifact(
+            _artifact_of_result(self._client.parse_type(code, timeout=timeout))._raw
+        )
+
+    def list_artifacts(self, task: Task, timeout: float | None = None) -> list[str]:
+        """The kinds of the artifacts available for `task`"""
+        return _artifact_kinds_of_result(
+            self._client.list_artifacts(task._raw, timeout=timeout)
+        )
+
+    def get_artifact(
+        self, task: Task, kind: str, timeout: float | None = None
+    ) -> Artifact:
+        """The artifact of kind `kind` of `task`"""
+        return _artifact_of_result(
+            self._client.get_artifact(task._raw, kind, timeout=timeout)
+        )
+
+    def get_artifact_zip(
+        self, task: Task, kind: str, timeout: float | None = None
+    ) -> bytes:
+        """The artifact of kind `kind` of `task`, as a zip file"""
+        return _artifact_zip_of_result(
+            self._client.get_artifact_zip(task._raw, kind, timeout=timeout)
+        )
+
+    def keep_session_alive(self, timeout: float | None = None) -> None:
+        """Make sure the session remains active"""
+        self._client.keep_session_alive(timeout=timeout)
+
+    def version(self, timeout: float | None = None) -> ServerVersion:
+        """The server's version"""
+        return ServerVersion.of_raw(self._client.version(timeout=timeout))
+
+    def gc_stats(self, timeout: float | None = None) -> GcStatistics:
+        """The server's garbage collector statistics"""
+        return GcStatistics.of_raw(self._client.gc_stats(timeout=timeout))
+
+    def release_memory(self, timeout: float | None = None) -> GcStatistics:
+        """Ask the server to release memory; returns its garbage collector statistics"""
+        return GcStatistics.of_raw(self._client.release_memory(timeout=timeout))
 
 
 class AsyncClient:
@@ -1702,15 +2260,223 @@ class AsyncClient:
         await self._client.__aenter__()
         return self
 
-    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         await self._client.__aexit__(exc_type, exc_val, exc_tb)
 
     async def status(self):
         """The server's status"""
         return await self._client.status()
 
-    async def eval_src(self, src: str, **kwargs: Any) -> EvalSrcResponse:
-        """Evaluate IML source; other keyword arguments go to `imandrax_api.AsyncClient.eval_src`"""
-        return EvalSrcResponse(await self._client.eval_src(src, **kwargs), self)
+    async def eval_src(
+        self,
+        src: str,
+        timeout: float | None = None,
+        async_only: bool | None = None,
+        task_filter: list[str] | None = None,
+    ) -> EvalSrcResponse:
+        """Evaluate IML source
 
-    # TODO: Add all the other client functions
+        `async_only` returns without waiting for task results; `task_filter` holds glob patterns
+        selecting the tasks to start, see `imandrax_api.Client.eval_src`
+        """
+        return EvalSrcResponse(
+            await self._client.eval_src(
+                src, timeout=timeout, async_only=async_only, task_filter=task_filter
+            ),
+            self,
+        )
+
+    @property
+    def session_id(self) -> str | None:
+        """The ID of the client's session"""
+        return self._client.session_id
+
+    async def decompose(
+        self,
+        name: str,
+        assuming: str | None = None,
+        basis: list[str] | None = None,
+        rule_specs: list[str] | None = None,
+        prune: bool | None = None,
+        ctx_simp: bool | None = None,
+        lift_bool: simple_api_pb2.LiftBool | None = None,
+        timeout: float | None = None,
+        string_results: bool | None = None,
+        compute_timeout: int | None = None,
+    ) -> DecompositionResult:
+        """Decompose the function `name`; see `imandrax_api.Client.decompose`"""
+        return DecompositionResult(
+            await self._client.decompose(
+                name,
+                assuming=assuming,
+                basis=basis,
+                rule_specs=rule_specs,
+                prune=prune,
+                ctx_simp=ctx_simp,
+                lift_bool=lift_bool,
+                timeout=timeout,
+                string_results=string_results,
+                compute_timeout=compute_timeout,
+            ),
+            self,
+        )
+
+    async def decompose_full(
+        self,
+        d: decomp.Decomp,
+        timeout: float | None = None,
+        string_results: bool | None = None,
+        compute_timeout: int | None = None,
+    ) -> DecompositionResult:
+        """Compute the decomposition `d`, built with `imandrax_api.client.decomp`"""
+        return DecompositionResult(
+            await self._client.decompose_full(
+                d,
+                timeout=timeout,
+                string_results=string_results,
+                compute_timeout=compute_timeout,
+            ),
+            self,
+        )
+
+    async def verify_src(
+        self, src: str, hints: str | None = None, timeout: float | None = None
+    ) -> VerifyResult:
+        """Verify the goal given as IML source"""
+        return VerifyResult(
+            await self._client.verify_src(src, hints=hints, timeout=timeout), self
+        )
+
+    async def verify_name(
+        self, name: str, hints: str | None = None, timeout: float | None = None
+    ) -> VerifyResult:
+        """Verify the predicate `name`"""
+        return VerifyResult(
+            await self._client.verify_name(name, hints=hints, timeout=timeout), self
+        )
+
+    async def instance_src(
+        self, src: str, hints: str | None = None, timeout: float | None = None
+    ) -> InstanceResult:
+        """Search for an instance of the goal given as IML source"""
+        return InstanceResult(
+            await self._client.instance_src(src, hints=hints, timeout=timeout), self
+        )
+
+    async def instance_name(
+        self, name: str, hints: str | None = None, timeout: float | None = None
+    ) -> InstanceResult:
+        """Search for an instance of the predicate `name`"""
+        return InstanceResult(
+            await self._client.instance_name(name, hints=hints, timeout=timeout), self
+        )
+
+    async def test_src(
+        self, src: str, seed: int | None = None, timeout: float | None = None
+    ) -> TestResult:
+        """Test the goal given as IML source with random inputs"""
+        return TestResult(
+            await self._client.test_src(src, seed=seed, timeout=timeout), self
+        )
+
+    async def test_name(
+        self, name: str, seed: int | None = None, timeout: float | None = None
+    ) -> TestResult:
+        """Test the predicate `name` with random inputs"""
+        return TestResult(
+            await self._client.test_name(name, seed=seed, timeout=timeout), self
+        )
+
+    async def typecheck(
+        self, src: str, timeout: float | None = None
+    ) -> TypecheckResult:
+        """Typecheck IML source"""
+        return TypecheckResult(await self._client.typecheck(src, timeout=timeout))
+
+    async def oneshot(
+        self,
+        input: str,
+        compute_timeout: float | None = None,
+        timeout: float | None = None,
+    ) -> OneshotResult:
+        """Evaluate IML code in a sessionless, self-contained request"""
+        return OneshotResult(
+            await self._client.oneshot(
+                input, compute_timeout=compute_timeout, timeout=timeout
+            )
+        )
+
+    async def eval_code_snippet(
+        self,
+        code: str,
+        task_filter: list[str] | None = None,
+        timeout: float | None = None,
+    ) -> CodeSnippetResult:
+        """Evaluate a code snippet; `task_filter` selects tasks to start, as in `eval_src`"""
+        return CodeSnippetResult(
+            await self._client.eval_code_snippet(
+                code, task_filter=task_filter, timeout=timeout
+            ),
+            self,
+        )
+
+    async def parse_term(self, code: str, timeout: float | None = None) -> Term:
+        """Parse and typecheck a term"""
+        return _term_of_artifact(
+            _artifact_of_result(
+                await self._client.parse_term(code, timeout=timeout)
+            )._raw
+        )
+
+    async def parse_type(self, code: str, timeout: float | None = None) -> Type:
+        """Parse and typecheck a type"""
+        return _type_of_artifact(
+            _artifact_of_result(
+                await self._client.parse_type(code, timeout=timeout)
+            )._raw
+        )
+
+    async def list_artifacts(
+        self, task: Task, timeout: float | None = None
+    ) -> list[str]:
+        """The kinds of the artifacts available for `task`"""
+        return _artifact_kinds_of_result(
+            await self._client.list_artifacts(task._raw, timeout=timeout)
+        )
+
+    async def get_artifact(
+        self, task: Task, kind: str, timeout: float | None = None
+    ) -> Artifact:
+        """The artifact of kind `kind` of `task`"""
+        return _artifact_of_result(
+            await self._client.get_artifact(task._raw, kind, timeout=timeout)
+        )
+
+    async def get_artifact_zip(
+        self, task: Task, kind: str, timeout: float | None = None
+    ) -> bytes:
+        """The artifact of kind `kind` of `task`, as a zip file"""
+        return _artifact_zip_of_result(
+            await self._client.get_artifact_zip(task._raw, kind, timeout=timeout)
+        )
+
+    async def keep_session_alive(self, timeout: float | None = None) -> None:
+        """Make sure the session remains active"""
+        await self._client.keep_session_alive(timeout=timeout)
+
+    async def version(self, timeout: float | None = None) -> ServerVersion:
+        """The server's version"""
+        return ServerVersion.of_raw(await self._client.version(timeout=timeout))
+
+    async def gc_stats(self, timeout: float | None = None) -> GcStatistics:
+        """The server's garbage collector statistics"""
+        return GcStatistics.of_raw(await self._client.gc_stats(timeout=timeout))
+
+    async def release_memory(self, timeout: float | None = None) -> GcStatistics:
+        """Ask the server to release memory; returns its garbage collector statistics"""
+        return GcStatistics.of_raw(await self._client.release_memory(timeout=timeout))
