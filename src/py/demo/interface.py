@@ -845,6 +845,10 @@ class Task:
 
     `await t.fetch_all()` fetches all of the task's artifacts, after which every attribute can be
     accessed without `t.awaitable`.
+
+    Tasks are equal when their ids are. Task ids are content-addressed, so equal tasks describe
+    the same work, even when they come from different clients; each still fetches its artifacts
+    on its own.
     """
 
     class Kind:
@@ -891,6 +895,14 @@ class Task:
         self._client: weakref.ref[Client | AsyncClient] | None = None if client is None else weakref.ref(client)
         self._artifacts: dict[str, Artifact] = {}
         self._pending: dict[str, asyncio.Future[Artifact]] = {}
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Task):
+            return NotImplemented
+        return self._raw.id.id == other._raw.id.id
+
+    def __hash__(self) -> int:
+        return hash(self._raw.id.id)
 
     @property
     def id(self) -> TaskID:
@@ -1538,9 +1550,6 @@ class Origin:
     @classmethod
     def of_raw(cls, x: task_pb2.Origin) -> "Origin":
         return cls(from_sym=x.from_sym, count=x.count, _raw=x)
-
-
-# The results below that hold a `Task` compare it as `Task` does
 
 
 @dataclass(slots=True, frozen=True)

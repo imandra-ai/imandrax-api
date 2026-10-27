@@ -80,6 +80,34 @@ def test_task_without_client_raises_on_fetch():
 # ======
 
 
+def test_task_equality():
+    """Tasks are equal when their ids are."""
+
+    def mk_pb_task(
+        id: str, kind: task_pb2.TaskKind = task_pb2.TASK_CHECK_PO
+    ) -> task_pb2.Task:
+        return task_pb2.Task(id=task_pb2.TaskID(id=id), kind=kind)
+
+    t1 = task_of_raw(mk_pb_task("task:po:a"))
+    t2 = task_of_raw(mk_pb_task("task:po:a"))
+    assert t1 is not t2
+    assert t1 == t2
+    assert hash(t1) == hash(t2)
+    assert len({t1, t2}) == 1
+
+    assert t1 != task_of_raw(mk_pb_task("task:po:b"))
+    assert t1 != "task:po:a"
+
+    # Same IML source in two sessions gives equal tasks and responses
+    with mk_client() as c1, mk_client() as c2:
+        r1, r2 = c1.eval_src(SRC), c2.eval_src(SRC)
+        assert r1.tasks == r2.tasks
+        assert r1 == r2
+
+        other = c1.eval_src("theorem other x = x + 2 > x")
+        assert set(other.tasks).isdisjoint(r1.tasks)
+
+
 def test_kill_then_access_raises():
     client = mk_client()
     po = get_the_task(client.eval_src(SRC), ProofObligationTask)
@@ -195,6 +223,7 @@ def test_async_access_kill_access_again():
             await po.awaitable.result
 
     asyncio.run(main())
+
 
 def test_async_concurrent_accesses_share_one_fetch():
     async def main() -> None:
