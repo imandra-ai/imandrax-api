@@ -91,7 +91,7 @@ def test_eval_src_async_only_and_task_filter(client: Client):
     assert len(pos) == 1, "expect: 1 PO task"
     assert [po.from_sym for po in pos] == ["t1"]
     # Not waited for when async_only=True
-    assert rsp.po_results == []
+    assert rsp.po_results == ()
 
 
 # Verify, instance and test
@@ -103,7 +103,7 @@ def test_verify_name_proved(client: Client):
     assert r.outcome == "proved"
     assert r.proved and not r.refuted
     assert r.counter_example is None
-    assert r.errors == []
+    assert r.errors == ()
 
 
 def test_verify_src_refuted(client: Client):
@@ -167,7 +167,7 @@ def test_test_name_no_counter_example(client: Client):
 
 def test_decompose(client: Client):
     r: DecompositionResult = client.decompose("f")
-    assert r.errors == []
+    assert r.errors == ()
     assert isinstance(r.task, DecompositionTask)
 
     # TODO: more checks on regions
@@ -179,7 +179,7 @@ def test_decompose(client: Client):
 def test_decompose_full(client: Client):
     # TODO: should exists a test for testing decomp combinators
     r = client.decompose_full(decomp.prune(decomp.by_name("f")))
-    assert r.errors == []
+    assert r.errors == ()
     assert r.artifact is not None
 
 
@@ -202,7 +202,7 @@ def test_typecheck_error(client: Client):
 
 def test_oneshot(client: Client):
     r: OneshotResult = client.oneshot("let h = 1")
-    assert r.errors == []
+    assert r.errors == ()
     assert len(r.results) == 1
     assert r.time_s >= 0
 
@@ -210,7 +210,7 @@ def test_oneshot(client: Client):
 def test_eval_code_snippet(client: Client):
     r: CodeSnippetResult = client.eval_code_snippet("theorem snippet_thm x = f x >= 0")
     assert r.success
-    assert r.errors == []
+    assert r.errors == ()
     # Its result may not be available yet, similar to async_only=True
     (po,) = [t for t in r.tasks if isinstance(t, ProofObligationTask)]
     assert po.from_sym == "snippet_thm"
@@ -327,7 +327,7 @@ def test_async_methods():
             assert (await c.decompose_full(decomp.by_name("f"))).artifact is not None
 
             assert (await c.typecheck("let g y = y + 1")).success
-            assert (await c.oneshot("let h = 1")).errors == []
+            assert (await c.oneshot("let h = 1")).errors == ()
             assert (await c.eval_code_snippet("let k = 2")).success
             assert isinstance(await c.parse_term("f 3"), Term)
             assert isinstance(await c.parse_type("int"), Type)

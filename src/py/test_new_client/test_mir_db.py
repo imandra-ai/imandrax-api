@@ -72,7 +72,7 @@ def c() -> Client:
     return c
 
 
-def tasks_of_eval_src(c: Client, src: str) -> list[Task]:
+def tasks_of_eval_src(c: Client, src: str) -> tuple[Task, ...]:
     eval_res: EvalSrcResponse = c.eval_src(src)
     return eval_res.tasks
 

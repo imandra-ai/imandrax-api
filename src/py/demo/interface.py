@@ -1,6 +1,7 @@
 # pyright: reportPrivateUsage=false
 import asyncio
 import json
+import re
 import weakref
 from collections.abc import Awaitable
 from dataclasses import dataclass, field
@@ -51,35 +52,75 @@ class NotFetchedError(Exception):
         self.kind: str = kind
 
 
+@dataclass(slots=True, frozen=True)
+class Location:
+    """A source location"""
+
+    file: str | None
+    start: tuple[int, int]
+    """The start, as `(line, column)`"""
+    stop: tuple[int, int]
+    """The end, as `(line, column)`"""
+    _raw: locs_pb2.Location = field(repr=False, compare=False)
+
+    @classmethod
+    def of_raw(cls, x: locs_pb2.Location) -> "Location":
+        return cls(
+            file=x.file if x.HasField("file") else None,
+            start=(x.start.line, x.start.col),
+            stop=(x.stop.line, x.stop.col),
+            _raw=x,
+        )
+
+    def __str__(self) -> str:
+        (l1, c1), (l2, c2) = self.start, self.stop
+        return f"{self.file or '<none>'}:{l1}:{c1}-{l2}:{c2}"
+
+
+@dataclass(slots=True, frozen=True)
 class Error:
     """An error reported by the server"""
 
+    @dataclass(slots=True, frozen=True)
     class Message:
         """An error message, with source locations and an optional backtrace"""
 
-        def __init__(self, msg: error_pb2.Error.Message):
-            self._raw = msg
+        message: str
+        """The message text"""
+        locations: tuple[Location, ...]
+        """The source locations the message refers to"""
+        backtrace: str = field(repr=False)
+        """The backtrace, if any"""
+        _raw: error_pb2.Error.Message = field(repr=False, compare=False)
+
+        @classmethod
+        def of_raw(cls, x: error_pb2.Error.Message) -> "Error.Message":
+            return cls(message=x.msg, locations=tuple(Location.of_raw(l) for l in x.locs), backtrace=x.backtrace, _raw=x)
 
         def __str__(self) -> str:
-            return f"{self.message}"
+            return self.message
 
-        @property
-        def message(self) -> str:
-            """The message text"""
-            return self._raw.msg
+    kind: str
+    """The kind of error, e.g. `TypeErr`"""
+    message: Message
+    """The main error message"""
+    stack: tuple[Message, ...]
+    """Further messages giving context for the error"""
+    process: str
+    """The process in which the error occurred"""
+    _raw: error_pb2.Error = field(repr=False, compare=False)
 
-        @property
-        def locations(self) -> list[locs_pb2.Location]:
-            """The source locations the message refers to"""
-            return [l for l in self._raw.locs]
-
-        @property
-        def backtrace(self) -> str:
-            """The backtrace, if any"""
-            return self._raw.backtrace
-
-    def __init__(self, error: error_pb2.Error):
-        self._raw = error
+    @classmethod
+    def of_raw(cls, x: error_pb2.Error) -> "Error":
+        # The server sends the kind printed as an OCaml record, `{ Kind.name = "TypeErr" }`
+        m = re.fullmatch(r'\{ Kind\.name = "(.*)" \}', x.kind)
+        return cls(
+            kind=x.kind if m is None else m.group(1),
+            message=Error.Message.of_raw(x.msg),
+            stack=tuple(Error.Message.of_raw(m) for m in x.stack),
+            process=x.process,
+            _raw=x,
+        )
 
     def __str__(self) -> str:
         return f"{self.kind}: {self.message}"
@@ -87,62 +128,35 @@ class Error:
     def __repr__(self) -> str:
         return f"{self.message}"
 
-    @property
-    def message(self) -> Message:
-        """The main error message"""
-        return Error.Message(self._raw.msg)
 
-    @property
-    def kind(self) -> str:
-        """The kind of error, e.g. `TypeErr`"""
-        import re
-        # The server sends the kind printed as an OCaml record, `{ Kind.name = "TypeErr" }`
-        m = re.fullmatch(r'\{ Kind\.name = "(.*)" \}', self._raw.kind)
-        return self._raw.kind if m is None else m.group(1)
-
-    @property
-    def stack(self) -> list[Message]:
-        """Further messages giving context for the error"""
-        return [Error.Message(m) for m in self._raw.stack]
-
-    @property
-    def process(self) -> str:
-        """The process in which the error occurred"""
-        return self._raw.process
-
-
+@dataclass(slots=True, frozen=True)
 class Artifact:
     """A serialized artifact (task data or a task result) fetched from the server"""
 
-    def __init__(self, artifact: artmsg_pb2.Artifact):
-        self._raw = artifact
+    kind: str
+    """The artifact kind, e.g. `po_task` or `eval_res`"""
+    data: bytes = field(repr=False)
+    """The serialized artifact data"""
+    api_version: str
+    """The API version the artifact was produced with"""
+    storage: dict[str, bytes] = field(repr=False)
+    """Additional stored data the artifact refers to, by key"""
+    _raw: artmsg_pb2.Artifact = field(repr=False, compare=False)
+
+    @classmethod
+    def of_raw(cls, x: artmsg_pb2.Artifact) -> "Artifact":
+        return cls(
+            kind=x.kind,
+            data=x.data,
+            api_version=x.api_version,
+            storage={s.key: s.value for s in x.storage},
+            _raw=x,
+        )
+
+    # TODO: add decode method?
 
     def __str__(self) -> str:
         return f"{self._raw}"
-
-    @property
-    def kind(self) -> str:
-        """The artifact kind, e.g. `po_task` or `eval_res`"""
-        return self._raw.kind
-
-    @property
-    def data(self) -> bytes:
-        """The serialized artifact data"""
-        return self._raw.data
-
-    @property
-    def api_version(self) -> str:
-        """The API version the artifact was produced with"""
-        return self._raw.api_version
-
-    @property
-    def storage(self) -> dict[str, bytes]:
-        """Additional stored data the artifact refers to, by key"""
-        return {s.key: s.value for s in self._raw.storage}
-
-
-# Like the classes in `mir`, the classes for library types below are frozen dataclasses
-# converted eagerly, keeping the library value in the hidden field `_raw`.
 
 
 @dataclass(slots=True, frozen=True)
@@ -786,14 +800,19 @@ class DecompositionTaskResult:
             return f"Decomposition error: {self.error}"
 
 
+@dataclass(slots=True, frozen=True)
 class TaskID:
     """A task identifier"""
+    # TODO: maybe we just make this class a string?
+    id: str
+    _raw: task_pb2.TaskID = field(repr=False, compare=False)
 
-    def __init__(self, task_id: task_pb2.TaskID):
-        self._raw: task_pb2.TaskID = task_id
+    @classmethod
+    def of_raw(cls, x: task_pb2.TaskID) -> "TaskID":
+        return cls(id=x.id, _raw=x)
 
     def __str__(self) -> str:
-        return self._raw.id
+        return self.id
 
 
 type TaskResult = ProofObligationTaskResult | EvaluationTaskResult | DecompositionTaskResult
@@ -876,7 +895,7 @@ class Task:
     @property
     def id(self) -> TaskID:
         """The task's identifier"""
-        return TaskID(self._raw.id)
+        return TaskID.of_raw(self._raw.id)
 
     @property
     def kind(self) -> Kind:
@@ -979,9 +998,9 @@ class Task:
 def _artifact_of_result(res: api_pb2.ArtifactResult) -> Artifact:
     match res.WhichOneof("result"):
         case "error":
-            raise Exception(f"{Error(res.error)}")
+            raise Exception(f"{Error.of_raw(res.error)}")
         case "ok":
-            return Artifact(res.ok)
+            return Artifact.of_raw(res.ok)
         case _:
             raise Exception("Artifact result has neither `error` nor `ok`")
 
@@ -1506,152 +1525,137 @@ def task_of_raw(t: task_pb2.Task, client: "Client | AsyncClient | None" = None) 
             return Task(t, client)
 
 
+@dataclass(slots=True, frozen=True)
 class Origin:
     """Where a task came from"""
 
-    def __init__(self, origin: task_pb2.Origin):
-        self._raw: task_pb2.Origin = origin
+    from_sym: str
+    """The symbol the task was generated from"""
+    count: int
+    """Distinguishes tasks generated from the same symbol"""
+    _raw: task_pb2.Origin = field(repr=False, compare=False)
 
-    @property
-    def from_sym(self) -> str:
-        """The symbol the task was generated from"""
-        return self._raw.from_sym
-
-    @property
-    def count(self) -> int:
-        """Distinguishes tasks generated from the same symbol"""
-        return self._raw.count
+    @classmethod
+    def of_raw(cls, x: task_pb2.Origin) -> "Origin":
+        return cls(from_sym=x.from_sym, count=x.count, _raw=x)
 
 
+# The results below that hold a `Task` compare it as `Task` does
+
+
+@dataclass(slots=True, frozen=True)
 class ProofObligationResult:
     """A proof obligation result in an `eval_src` response"""
 
-    def __init__(self, po_result: simple_api_pb2.PO_Res, client: "Client | AsyncClient | None" = None):
-        self._raw: simple_api_pb2.PO_Res = po_result
-        self._task: Task = task_of_raw(po_result.task, client)
+    task: Task
+    """The proof obligation's task"""
+    origin: Origin
+    """Where the proof obligation came from"""
+    _raw: simple_api_pb2.PO_Res = field(repr=False, compare=False)
 
-    @property
-    def task(self) -> Task:
-        """The proof obligation's task"""
-        return self._task
-
-    @property
-    def origin(self) -> Origin:
-        """Where the proof obligation came from"""
-        return Origin(self._raw.origin)
+    @classmethod
+    def of_raw(cls, x: simple_api_pb2.PO_Res, client: "Client | AsyncClient | None" = None) -> "ProofObligationResult":
+        return cls(task=task_of_raw(x.task, client), origin=Origin.of_raw(x.origin), _raw=x)
 
 
+@dataclass(slots=True, frozen=True)
 class EvaluationResult:
     """The result of an evaluation request"""
 
-    def __init__(self, eval_result: simple_api_pb2.EvalRes):
-        self._raw: simple_api_pb2.EvalRes = eval_result
+    success: bool
+    """Whether evaluation succeeded"""
+    errors: tuple[Error, ...]
+    """Errors reported during evaluation"""
+    _raw: simple_api_pb2.EvalRes = field(repr=False, compare=False)
 
-    @property
-    def success(self) -> bool:
-        """Whether evaluation succeeded"""
-        return self._raw.success
-
-    @property
-    def errors(self) -> list[Error]:
-        """Errors reported during evaluation"""
-        return [Error(e) for e in self._raw.errors]
+    @classmethod
+    def of_raw(cls, x: simple_api_pb2.EvalRes) -> "EvaluationResult":
+        return cls(success=x.success, errors=tuple(Error.of_raw(e) for e in x.errors), _raw=x)
 
 
+@dataclass(slots=True, frozen=True)
 class DecompositionResult:
     """The result of a decomposition request"""
 
-    def __init__(self, decomp_result: simple_api_pb2.DecomposeRes, client: "Client | AsyncClient | None" = None):
-        self._raw: simple_api_pb2.DecomposeRes = decomp_result
-        self._task: Task = task_of_raw(decomp_result.task, client)
+    artifact: Artifact | None
+    """The decomposition artifact"""
+    task: Task
+    """The decomposition task"""
+    errors: tuple[Error, ...]
+    """Errors reported during decomposition"""
+    _raw: simple_api_pb2.DecomposeRes = field(repr=False, compare=False)
 
-    @property
-    def artifact(self) -> Artifact | None:
-        """The decomposition artifact"""
-        if self._raw.WhichOneof("res") != "artifact": return None
-        return Artifact(self._raw.artifact)
-
-    @property
-    def task(self) -> Task:
-        """The decomposition task"""
-        return self._task
-
-    @property
-    def errors(self) -> list[Error]:
-        """Errors reported during decomposition"""
-        return [Error(e) for e in self._raw.errors]
+    @classmethod
+    def of_raw(
+        cls, x: simple_api_pb2.DecomposeRes, client: "Client | AsyncClient | None" = None
+    ) -> "DecompositionResult":
+        return cls(
+            artifact=Artifact.of_raw(x.artifact) if x.WhichOneof("res") == "artifact" else None,
+            task=task_of_raw(x.task, client),
+            errors=tuple(Error.of_raw(e) for e in x.errors),
+            _raw=x,
+        )
 
     # TODO: more utils to decode artifact and check regions?
 
 
+@dataclass(slots=True, frozen=True)
 class EvalOutput:
     """The output of an `eval` in evaluated source"""
 
-    def __init__(self, eval_output: simple_api_pb2.EvalOutput):
-        self._raw: simple_api_pb2.EvalOutput = eval_output
+    success: bool
+    """Whether evaluation succeeded"""
+    as_ocaml: str
+    """The value printed as OCaml, if available"""
+    errors: tuple[Error, ...]
+    """Errors reported during evaluation"""
+    _raw: simple_api_pb2.EvalOutput = field(repr=False, compare=False)
 
-    @property
-    def success(self) -> bool:
-        """Whether evaluation succeeded"""
-        return self._raw.success
-
-    @property
-    def as_ocaml(self) -> str:
-        """The value printed as OCaml, if available"""
-        return self._raw.value_as_ocaml
-
-    @property
-    def errors(self) -> list[Error]:
-        """Errors reported during evaluation"""
-        return [Error(e) for e in self._raw.errors]
+    @classmethod
+    def of_raw(cls, x: simple_api_pb2.EvalOutput) -> "EvalOutput":
+        return cls(
+            success=x.success,
+            as_ocaml=x.value_as_ocaml,
+            errors=tuple(Error.of_raw(e) for e in x.errors),
+            _raw=x,
+        )
 
 
+@dataclass(slots=True, frozen=True)
 class EvalSrcResponse:
     """The response to an `eval_src` request"""
 
-    def __init__(self, res: simple_api_pb2.EvalRes, client: "Client | AsyncClient | None" = None):
-        self._raw: simple_api_pb2.EvalRes = res
-        self._tasks: list[Task] = [task_of_raw(t, client) for t in res.tasks]
-        self._po_results = [ProofObligationResult(pr, client) for pr in res.po_results]
-        self._decomp_results = [DecompositionResult(dr, client) for dr in res.decomp_results]
+    success: bool
+    """Whether the request succeeded; errors in the source are reported in `errors`"""
+    messages: tuple[str, ...]
+    """Messages printed while processing the source"""
+    errors: tuple[Error, ...]
+    """Errors reported while processing the source"""
+    tasks: tuple[Task, ...]
+    """The tasks created while processing the source"""
+    po_results: tuple[ProofObligationResult, ...]
+    """The results of the source's proof obligations"""
+    eval_results: tuple[EvalOutput, ...]
+    """The outputs of the source's `eval` statements"""
+    decomp_results: tuple[DecompositionResult, ...]
+    """The results of the source's decompositions"""
+    _raw: simple_api_pb2.EvalRes = field(repr=False, compare=False)
+
+    @classmethod
+    def of_raw(cls, x: simple_api_pb2.EvalRes, client: "Client | AsyncClient | None" = None) -> "EvalSrcResponse":
+        return cls(
+            success=x.success,
+            messages=tuple(x.messages),
+            errors=tuple(Error.of_raw(e) for e in x.errors),
+            tasks=tuple(task_of_raw(t, client) for t in x.tasks),
+            po_results=tuple(ProofObligationResult.of_raw(r, client) for r in x.po_results),
+            eval_results=tuple(EvalOutput.of_raw(r) for r in x.eval_results),
+            decomp_results=tuple(DecompositionResult.of_raw(r, client) for r in x.decomp_results),
+            _raw=x,
+        )
 
     def __str__(self) -> str:
         return f"{self._raw}"
-
-    @property
-    def success(self) -> bool:
-        """Whether the source was processed successfully"""
-        return self._raw.success
-
-    @property
-    def messages(self) -> list[str]:
-        """Messages printed while processing the source"""
-        return [m for m in self._raw.messages]
-
-    @property
-    def errors(self) -> list[Error]:
-        """Errors reported while processing the source"""
-        return [Error(e) for e in self._raw.errors]
-
-    @property
-    def tasks(self) -> list[Task]:
-        """The tasks created while processing the source"""
-        return self._tasks
-
-    @property
-    def po_results(self) -> list[ProofObligationResult]:
-        """The results of the source's proof obligations"""
-        return self._po_results
-
-    @property
-    def eval_results(self) -> list[EvalOutput]:
-        """The outputs of the source's `eval` statements"""
-        return [EvalOutput(er) for er in self._raw.eval_results]
-
-    @property
-    def decomp_results(self) -> list[DecompositionResult]:
-        """The results of the source's decompositions"""
-        return self._decomp_results
 
 
 def _decode_artifact(artifact: artmsg_pb2.Artifact, kind: str) -> lib.Artifact:
@@ -1687,53 +1691,81 @@ class ModelKind(Enum):
     INSTANCE = "instance"
 
 
+# Not slotted, so that `model` can be a `cached_property`
+@dataclass(frozen=True)
 class ModelOutput:
     """A model returned by `verify_*`, `instance_*` or `test_*`"""
 
-    def __init__(self, model: simple_api_pb2.Model):
-        self._raw: simple_api_pb2.Model = model
+    kind: ModelKind
+    """Whether the model is a counter-example or an instance"""
+    src: str
+    """The model as IML source"""
+    _raw: simple_api_pb2.Model = field(repr=False, compare=False)
+
+    @classmethod
+    def of_raw(cls, x: simple_api_pb2.Model) -> "ModelOutput":
+        match x.m_type:
+            case simple_api_pb2.Counter_example:
+                kind = ModelKind.COUNTER_EXAMPLE
+            case simple_api_pb2.Instance:
+                kind = ModelKind.INSTANCE
+            case _:
+                raise Exception(f"Unexpected model type '{x.m_type}'")
+        return cls(kind=kind, src=x.src, _raw=x)
 
     def __str__(self) -> str:
         return self.src
 
-    @property
-    def kind(self) -> ModelKind:
-        """Whether the model is a counter-example or an instance"""
-        match self._raw.m_type:
-            case simple_api_pb2.Counter_example:
-                return ModelKind.COUNTER_EXAMPLE
-            case simple_api_pb2.Instance:
-                return ModelKind.INSTANCE
-            case _:
-                raise Exception(f"Unexpected model type '{self._raw.m_type}'")
-
-    @property
-    def src(self) -> str:
-        """The model as IML source"""
-        return self._raw.src
-
     @cached_property
     def model(self) -> Model | None:
-        """The model, decoded from its artifact, if the server sent one"""
+        """The model, decoded from its artifact on first access, if the server sent one"""
         if not self._raw.HasField("artifact"):
             return None
         return _model_of_artifact(self._raw.artifact)
 
 
+@dataclass(slots=True, frozen=True)
 class VerifyResult:
     """The result of a `verify_src` or `verify_name` request"""
 
-    def __init__(self, res: simple_api_pb2.VerifyRes, client: "Client | AsyncClient | None" = None):
-        self._raw: simple_api_pb2.VerifyRes = res
-        self._task: Task = task_of_raw(res.task, client)
+    outcome: str | None
+    """One of `unknown`, `err`, `proved`, `refuted` and `verified_upto`"""
+    proof_pp: str | None
+    """The pretty-printed proof, if the goal was proved and the server sent it"""
+    counter_example: ModelOutput | None
+    """The counter-example, if the goal was refuted"""
+    message: str | None
+    """The message for an `unknown` or `verified_upto` outcome, if any"""
+    errors: tuple[Error, ...]
+    """Errors reported during verification"""
+    task: Task
+    """The verification task"""
+    _raw: simple_api_pb2.VerifyRes = field(repr=False, compare=False)
+
+    @classmethod
+    def of_raw(cls, x: simple_api_pb2.VerifyRes, client: "Client | AsyncClient | None" = None) -> "VerifyResult":
+        outcome = x.WhichOneof("res")
+        match outcome:
+            case "unknown":
+                message = x.unknown.msg
+            case "verified_upto" if x.verified_upto.HasField("msg"):
+                message = x.verified_upto.msg
+            case _:
+                message = None
+        return cls(
+            outcome=outcome,
+            proof_pp=x.proved.proof_pp if outcome == "proved" and x.proved.HasField("proof_pp") else None,
+            counter_example=(
+                ModelOutput.of_raw(x.refuted.model) if outcome == "refuted" and x.refuted.HasField("model") else None
+            ),
+            message=message,
+            errors=tuple(Error.of_raw(e) for e in x.errors),
+            task=task_of_raw(x.task, client),
+            _raw=x,
+        )
 
     def __str__(self) -> str:
         return f"{self._raw}"
-
-    @property
-    def outcome(self) -> str | None:
-        """One of `unknown`, `err`, `proved`, `refuted` and `verified_upto`"""
-        return self._raw.WhichOneof("res")
 
     @property
     def proved(self) -> bool:
@@ -1745,207 +1777,160 @@ class VerifyResult:
         """Whether a counter-example was found"""
         return self.outcome == "refuted"
 
-    @property
-    def proof_pp(self) -> str | None:
-        """The pretty-printed proof, if the goal was proved and the server sent it"""
-        if self.outcome != "proved" or not self._raw.proved.HasField("proof_pp"):
-            return None
-        return self._raw.proved.proof_pp
 
-    @property
-    def counter_example(self) -> ModelOutput | None:
-        """The counter-example, if the goal was refuted"""
-        if self.outcome != "refuted" or not self._raw.refuted.HasField("model"):
-            return None
-        return ModelOutput(self._raw.refuted.model)
-
-    @property
-    def message(self) -> str | None:
-        """The message for an `unknown` or `verified_upto` outcome, if any"""
-        match self.outcome:
-            case "unknown":
-                return self._raw.unknown.msg
-            case "verified_upto" if self._raw.verified_upto.HasField("msg"):
-                return self._raw.verified_upto.msg
-            case _:
-                return None
-
-    @property
-    def errors(self) -> list[Error]:
-        """Errors reported during verification"""
-        return [Error(e) for e in self._raw.errors]
-
-    @property
-    def task(self) -> Task:
-        """The verification task"""
-        return self._task
-
-
+@dataclass(slots=True, frozen=True)
 class InstanceResult:
     """The result of an `instance_src` or `instance_name` request"""
 
-    def __init__(self, res: simple_api_pb2.InstanceRes, client: "Client | AsyncClient | None" = None):
-        self._raw: simple_api_pb2.InstanceRes = res
-        self._task: Task = task_of_raw(res.task, client)
+    # CR: should this be enum instead?
+    outcome: str | None
+    """One of `unknown`, `err`, `unsat` and `sat`"""
+    instance: ModelOutput | None
+    """The instance, if one was found"""
+    proof_pp: str | None
+    """The pretty-printed proof of unsatisfiability, if any"""
+    message: str | None
+    """The message for an `unknown` outcome"""
+    errors: tuple[Error, ...]
+    """Errors reported during the instance search"""
+    task: Task
+    """The instance task"""
+    _raw: simple_api_pb2.InstanceRes = field(repr=False, compare=False)
+
+    @classmethod
+    def of_raw(cls, x: simple_api_pb2.InstanceRes, client: "Client | AsyncClient | None" = None) -> "InstanceResult":
+        outcome = x.WhichOneof("res")
+        return cls(
+            outcome=outcome,
+            instance=ModelOutput.of_raw(x.sat.model) if outcome == "sat" and x.sat.HasField("model") else None,
+            proof_pp=x.unsat.proof_pp if outcome == "unsat" and x.unsat.HasField("proof_pp") else None,
+            message=x.unknown.msg if outcome == "unknown" else None,
+            errors=tuple(Error.of_raw(e) for e in x.errors),
+            task=task_of_raw(x.task, client),
+            _raw=x,
+        )
 
     def __str__(self) -> str:
         return f"{self._raw}"
-
-    @property
-    def outcome(self) -> str | None:
-        """One of `unknown`, `err`, `unsat` and `sat`"""
-        # CR: should this be enum instead?
-        return self._raw.WhichOneof("res")
 
     @property
     def found(self) -> bool:
         """Whether an instance was found"""
         return self.outcome == "sat"
 
-    @property
-    def instance(self) -> ModelOutput | None:
-        """The instance, if one was found"""
-        if self.outcome != "sat" or not self._raw.sat.HasField("model"):
-            return None
-        return ModelOutput(self._raw.sat.model)
 
-    @property
-    def proof_pp(self) -> str | None:
-        """The pretty-printed proof of unsatisfiability, if any"""
-        if self.outcome != "unsat" or not self._raw.unsat.HasField("proof_pp"):
-            return None
-        return self._raw.unsat.proof_pp
-
-    @property
-    def message(self) -> str | None:
-        """The message for an `unknown` outcome"""
-        return self._raw.unknown.msg if self.outcome == "unknown" else None
-
-    @property
-    def errors(self) -> list[Error]:
-        """Errors reported during the instance search"""
-        return [Error(e) for e in self._raw.errors]
-
-    @property
-    def task(self) -> Task:
-        """The instance task"""
-        return self._task
-
-
+@dataclass(slots=True, frozen=True)
 class TestResult:
     """The result of a `test_src` or `test_name` request"""
-    __test__ = False  # otherwise pytest will collect this
 
-    def __init__(self, res: simple_api_pb2.TestRes, client: "Client | AsyncClient | None" = None):
-        self._raw: simple_api_pb2.TestRes = res
-        self._task: Task = task_of_raw(res.task, client)
+    __test__ = False  # otherwise pytest will collect this as test
+
+    outcome: str | None
+    """One of `err` and `counter_example`
+
+    Testing that finds no counter-example is reported as `err`, with an error of kind
+    `NoCounterExample`
+    """
+    counter_example: ModelOutput | None
+    """The counter-example, if one was found"""
+    errors: tuple[Error, ...]
+    """Errors reported during testing"""
+    task: Task
+    """The test task"""
+    _raw: simple_api_pb2.TestRes = field(repr=False, compare=False)
+
+    @classmethod
+    def of_raw(cls, x: simple_api_pb2.TestRes, client: "Client | AsyncClient | None" = None) -> "TestResult":
+        outcome = x.WhichOneof("res")
+        return cls(
+            outcome=outcome,
+            counter_example=(
+                ModelOutput.of_raw(x.counter_example.model)
+                if outcome == "counter_example" and x.counter_example.HasField("model")
+                else None
+            ),
+            errors=tuple(Error.of_raw(e) for e in x.errors),
+            task=task_of_raw(x.task, client),
+            _raw=x,
+        )
 
     def __str__(self) -> str:
         return f"{self._raw}"
 
-    @property
-    def outcome(self) -> str | None:
-        """One of `err` and `counter_example`
 
-        Testing that finds no counter-example is reported as `err`, with an error of kind
-        `NoCounterExample`
-        """
-        return self._raw.WhichOneof("res")
-
-    @property
-    def counter_example(self) -> ModelOutput | None:
-        """The counter-example, if one was found"""
-        if self.outcome != "counter_example" or not self._raw.counter_example.HasField("model"):
-            return None
-        return ModelOutput(self._raw.counter_example.model)
-
-    @property
-    def errors(self) -> list[Error]:
-        """Errors reported during testing"""
-        return [Error(e) for e in self._raw.errors]
-
-    @property
-    def task(self) -> Task:
-        """The test task"""
-        return self._task
-
-
+@dataclass(slots=True, frozen=True)
 class TypecheckResult:
     """The result of a `typecheck` request"""
 
-    def __init__(self, res: simple_api_pb2.TypecheckRes):
-        self._raw: simple_api_pb2.TypecheckRes = res
+    success: bool
+    """Whether the source typechecked"""
+    types: Any
+    """The inferred types, decoded from JSON"""
+    errors: tuple[Error, ...]
+    """Errors reported during typechecking"""
+    _raw: simple_api_pb2.TypecheckRes = field(repr=False, compare=False)
 
-    @property
-    def success(self) -> bool:
-        """Whether the source typechecked"""
-        return self._raw.success
-
-    @cached_property
-    def types(self) -> Any:
-        """The inferred types, decoded from JSON"""
-        return json.loads(self._raw.types) if self._raw.types else None
-
-    @property
-    def errors(self) -> list[Error]:
-        """Errors reported during typechecking"""
-        return [Error(e) for e in self._raw.errors]
+    @classmethod
+    def of_raw(cls, x: simple_api_pb2.TypecheckRes) -> "TypecheckResult":
+        return cls(
+            success=x.success,
+            types=json.loads(x.types) if x.types else None,
+            errors=tuple(Error.of_raw(e) for e in x.errors),
+            _raw=x,
+        )
 
 
+@dataclass(slots=True, frozen=True)
 class OneshotResult:
     """The result of a `oneshot` request"""
 
-    def __init__(self, res: simple_api_pb2.OneshotRes):
-        self._raw: simple_api_pb2.OneshotRes = res
+    results: tuple[str, ...]
+    """The results, as strings"""
+    detailed_results: tuple[str, ...]
+    """The results, in more detail"""
+    errors: tuple[str, ...]
+    """The errors, as strings"""
+    time_s: float
+    """The time the request took on the server, in seconds"""
+    _raw: simple_api_pb2.OneshotRes = field(repr=False, compare=False)
 
-    @property
-    def results(self) -> list[str]:
-        """The results, as strings"""
-        return list(self._raw.results)
-
-    @property
-    def detailed_results(self) -> list[str]:
-        """The results, in more detail"""
-        return list(self._raw.detailed_results)
-
-    @property
-    def errors(self) -> list[str]:
-        """The errors, as strings"""
-        return list(self._raw.errors)
-
-    @property
-    def time_s(self) -> float:
-        """The time the request took on the server, in seconds"""
-        return self._raw.stats.time
+    @classmethod
+    def of_raw(cls, x: simple_api_pb2.OneshotRes) -> "OneshotResult":
+        return cls(
+            results=tuple(x.results),
+            detailed_results=tuple(x.detailed_results),
+            errors=tuple(x.errors),
+            time_s=x.stats.time,
+            _raw=x,
+        )
 
 
+@dataclass(slots=True, frozen=True)
 class CodeSnippetResult:
     """The result of an `eval_code_snippet` request"""
 
-    def __init__(self, res: api_pb2.CodeSnippetEvalResult, client: "Client | AsyncClient | None" = None):
-        self._raw: api_pb2.CodeSnippetEvalResult = res
-        self._tasks: list[Task] = [task_of_raw(t, client) for t in res.tasks]
+    success: bool
+    """Whether the snippet was evaluated without errors"""
+    duration_s: float
+    """The time evaluation took, in seconds"""
+    tasks: tuple[Task, ...]
+    """The tasks created during evaluation"""
+    errors: tuple[Error, ...]
+    """Errors reported during evaluation"""
+    _raw: api_pb2.CodeSnippetEvalResult = field(repr=False, compare=False)
 
-    @property
-    def success(self) -> bool:
-        """Whether the snippet was evaluated without errors"""
-        # The server reports some errors, e.g. type errors, with `EVAL_OK`
-        return self._raw.res == api_pb2.EVAL_OK and not self._raw.errors
-
-    @property
-    def duration_s(self) -> float:
-        """The time evaluation took, in seconds"""
-        return self._raw.duration_s
-
-    @property
-    def tasks(self) -> list[Task]:
-        """The tasks created during evaluation"""
-        return self._tasks
-
-    @property
-    def errors(self) -> list[Error]:
-        """Errors reported during evaluation"""
-        return [Error(e) for e in self._raw.errors]
+    @classmethod
+    def of_raw(
+        cls, x: api_pb2.CodeSnippetEvalResult, client: "Client | AsyncClient | None" = None
+    ) -> "CodeSnippetResult":
+        return cls(
+            # The server reports some errors, e.g. type errors, with `EVAL_OK`
+            success=x.res == api_pb2.EVAL_OK and not x.errors,
+            duration_s=x.duration_s,
+            tasks=tuple(task_of_raw(t, client) for t in x.tasks),
+            errors=tuple(Error.of_raw(e) for e in x.errors),
+            _raw=x,
+        )
 
 
 @dataclass(slots=True, frozen=True)
@@ -1983,7 +1968,7 @@ class GcStatistics:
 def _artifact_kinds_of_result(res: api_pb2.ArtifactListResult) -> list[str]:
     match res.WhichOneof("result"):
         case "error":
-            raise Exception(f"{Error(res.error)}")
+            raise Exception(f"{Error.of_raw(res.error)}")
         case "ok":
             return list(res.ok.kinds)
         case _:
@@ -1993,7 +1978,7 @@ def _artifact_kinds_of_result(res: api_pb2.ArtifactListResult) -> list[str]:
 def _artifact_zip_of_result(res: api_pb2.ArtifactZipResult) -> bytes:
     match res.WhichOneof("result"):
         case "error":
-            raise Exception(f"{Error(res.error)}")
+            raise Exception(f"{Error.of_raw(res.error)}")
         case "ok":
             return res.ok.art_zip
         case _:
@@ -2045,7 +2030,7 @@ class Client:
         `async_only` returns without waiting for task results; `task_filter` holds glob patterns
         selecting the tasks to start, see `imandrax_api.Client.eval_src`
         """
-        return EvalSrcResponse(
+        return EvalSrcResponse.of_raw(
             self._client.eval_src(
                 src, timeout=timeout, async_only=async_only, task_filter=task_filter
             ),
@@ -2071,7 +2056,7 @@ class Client:
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
         """Decompose the function `name`; see `imandrax_api.Client.decompose`"""
-        return DecompositionResult(
+        return DecompositionResult.of_raw(
             self._client.decompose(
                 name,
                 assuming=assuming,
@@ -2096,7 +2081,7 @@ class Client:
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
         """Compute the decomposition `d`, built with `imandrax_api.client.decomp`"""
-        return DecompositionResult(
+        return DecompositionResult.of_raw(
             self._client.decompose_full(
                 d,
                 timeout=timeout,
@@ -2110,7 +2095,7 @@ class Client:
         self, src: str, hints: str | None = None, timeout: float | None = None
     ) -> VerifyResult:
         """Verify the goal given as IML source"""
-        return VerifyResult(
+        return VerifyResult.of_raw(
             self._client.verify_src(src, hints=hints, timeout=timeout), self
         )
 
@@ -2118,7 +2103,7 @@ class Client:
         self, name: str, hints: str | None = None, timeout: float | None = None
     ) -> VerifyResult:
         """Verify the predicate `name`"""
-        return VerifyResult(
+        return VerifyResult.of_raw(
             self._client.verify_name(name, hints=hints, timeout=timeout), self
         )
 
@@ -2126,7 +2111,7 @@ class Client:
         self, src: str, hints: str | None = None, timeout: float | None = None
     ) -> InstanceResult:
         """Search for an instance of the goal given as IML source"""
-        return InstanceResult(
+        return InstanceResult.of_raw(
             self._client.instance_src(src, hints=hints, timeout=timeout), self
         )
 
@@ -2134,7 +2119,7 @@ class Client:
         self, name: str, hints: str | None = None, timeout: float | None = None
     ) -> InstanceResult:
         """Search for an instance of the predicate `name`"""
-        return InstanceResult(
+        return InstanceResult.of_raw(
             self._client.instance_name(name, hints=hints, timeout=timeout), self
         )
 
@@ -2142,19 +2127,19 @@ class Client:
         self, src: str, seed: int | None = None, timeout: float | None = None
     ) -> TestResult:
         """Test the goal given as IML source with random inputs"""
-        return TestResult(self._client.test_src(src, seed=seed, timeout=timeout), self)
+        return TestResult.of_raw(self._client.test_src(src, seed=seed, timeout=timeout), self)
 
     def test_name(
         self, name: str, seed: int | None = None, timeout: float | None = None
     ) -> TestResult:
         """Test the predicate `name` with random inputs"""
-        return TestResult(
+        return TestResult.of_raw(
             self._client.test_name(name, seed=seed, timeout=timeout), self
         )
 
     def typecheck(self, src: str, timeout: float | None = None) -> TypecheckResult:
-        """Typecheck IML source"""
-        return TypecheckResult(self._client.typecheck(src, timeout=timeout))
+        """Typecheck IML source, adding its definitions to the session"""
+        return TypecheckResult.of_raw(self._client.typecheck(src, timeout=timeout))
 
     def oneshot(
         self,
@@ -2163,7 +2148,7 @@ class Client:
         timeout: float | None = None,
     ) -> OneshotResult:
         """Evaluate IML code in a sessionless, self-contained request"""
-        return OneshotResult(
+        return OneshotResult.of_raw(
             self._client.oneshot(
                 input, compute_timeout=compute_timeout, timeout=timeout
             )
@@ -2176,7 +2161,7 @@ class Client:
         timeout: float | None = None,
     ) -> CodeSnippetResult:
         """Evaluate a code snippet; `task_filter` selects tasks to start, as in `eval_src`"""
-        return CodeSnippetResult(
+        return CodeSnippetResult.of_raw(
             self._client.eval_code_snippet(
                 code, task_filter=task_filter, timeout=timeout
             ),
@@ -2287,7 +2272,7 @@ class AsyncClient:
         `async_only` returns without waiting for task results; `task_filter` holds glob patterns
         selecting the tasks to start, see `imandrax_api.Client.eval_src`
         """
-        return EvalSrcResponse(
+        return EvalSrcResponse.of_raw(
             await self._client.eval_src(
                 src, timeout=timeout, async_only=async_only, task_filter=task_filter
             ),
@@ -2313,7 +2298,7 @@ class AsyncClient:
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
         """Decompose the function `name`; see `imandrax_api.Client.decompose`"""
-        return DecompositionResult(
+        return DecompositionResult.of_raw(
             await self._client.decompose(
                 name,
                 assuming=assuming,
@@ -2337,7 +2322,7 @@ class AsyncClient:
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
         """Compute the decomposition `d`, built with `imandrax_api.client.decomp`"""
-        return DecompositionResult(
+        return DecompositionResult.of_raw(
             await self._client.decompose_full(
                 d,
                 timeout=timeout,
@@ -2351,7 +2336,7 @@ class AsyncClient:
         self, src: str, hints: str | None = None, timeout: float | None = None
     ) -> VerifyResult:
         """Verify the goal given as IML source"""
-        return VerifyResult(
+        return VerifyResult.of_raw(
             await self._client.verify_src(src, hints=hints, timeout=timeout), self
         )
 
@@ -2359,7 +2344,7 @@ class AsyncClient:
         self, name: str, hints: str | None = None, timeout: float | None = None
     ) -> VerifyResult:
         """Verify the predicate `name`"""
-        return VerifyResult(
+        return VerifyResult.of_raw(
             await self._client.verify_name(name, hints=hints, timeout=timeout), self
         )
 
@@ -2367,7 +2352,7 @@ class AsyncClient:
         self, src: str, hints: str | None = None, timeout: float | None = None
     ) -> InstanceResult:
         """Search for an instance of the goal given as IML source"""
-        return InstanceResult(
+        return InstanceResult.of_raw(
             await self._client.instance_src(src, hints=hints, timeout=timeout), self
         )
 
@@ -2375,7 +2360,7 @@ class AsyncClient:
         self, name: str, hints: str | None = None, timeout: float | None = None
     ) -> InstanceResult:
         """Search for an instance of the predicate `name`"""
-        return InstanceResult(
+        return InstanceResult.of_raw(
             await self._client.instance_name(name, hints=hints, timeout=timeout), self
         )
 
@@ -2383,7 +2368,7 @@ class AsyncClient:
         self, src: str, seed: int | None = None, timeout: float | None = None
     ) -> TestResult:
         """Test the goal given as IML source with random inputs"""
-        return TestResult(
+        return TestResult.of_raw(
             await self._client.test_src(src, seed=seed, timeout=timeout), self
         )
 
@@ -2391,15 +2376,15 @@ class AsyncClient:
         self, name: str, seed: int | None = None, timeout: float | None = None
     ) -> TestResult:
         """Test the predicate `name` with random inputs"""
-        return TestResult(
+        return TestResult.of_raw(
             await self._client.test_name(name, seed=seed, timeout=timeout), self
         )
 
     async def typecheck(
         self, src: str, timeout: float | None = None
     ) -> TypecheckResult:
-        """Typecheck IML source"""
-        return TypecheckResult(await self._client.typecheck(src, timeout=timeout))
+        """Typecheck IML source, adding its definitions to the session"""
+        return TypecheckResult.of_raw(await self._client.typecheck(src, timeout=timeout))
 
     async def oneshot(
         self,
@@ -2408,7 +2393,7 @@ class AsyncClient:
         timeout: float | None = None,
     ) -> OneshotResult:
         """Evaluate IML code in a sessionless, self-contained request"""
-        return OneshotResult(
+        return OneshotResult.of_raw(
             await self._client.oneshot(
                 input, compute_timeout=compute_timeout, timeout=timeout
             )
@@ -2421,7 +2406,7 @@ class AsyncClient:
         timeout: float | None = None,
     ) -> CodeSnippetResult:
         """Evaluate a code snippet; `task_filter` selects tasks to start, as in `eval_src`"""
-        return CodeSnippetResult(
+        return CodeSnippetResult.of_raw(
             await self._client.eval_code_snippet(
                 code, task_filter=task_filter, timeout=timeout
             ),
