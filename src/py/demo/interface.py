@@ -1655,21 +1655,6 @@ class ProofObligationResult:
 
 
 @dataclass(slots=True, frozen=True)
-class EvaluationResult:
-    """The result of an evaluation request"""
-
-    success: bool
-    """Whether evaluation succeeded"""
-    errors: tuple[Error, ...]
-    """Errors reported during evaluation"""
-    _raw: simple_api_pb2.EvalRes = field(repr=False, compare=False)
-
-    @classmethod
-    def of_raw(cls, x: simple_api_pb2.EvalRes) -> "EvaluationResult":
-        return cls(success=x.success, errors=tuple(Error.of_raw(e) for e in x.errors), _raw=x)
-
-
-@dataclass(slots=True, frozen=True)
 class DecompositionResult:
     """The result of a decomposition request"""
 
@@ -1817,7 +1802,7 @@ class ModelOutput:
 
 
 @dataclass(slots=True, frozen=True)
-class VerifyResult:
+class VerifyResponse:
     """The result of a `verify_src` or `verify_name` request"""
 
     @dataclass(slots=True, frozen=True)
@@ -1828,7 +1813,7 @@ class VerifyResult:
 
     @dataclass(slots=True, frozen=True)
     class Err:
-        """Verification failed; the errors are in `VerifyResult.errors`"""
+        """Verification failed; the errors are in `VerifyResponse.errors`"""
 
     @dataclass(slots=True, frozen=True)
     class Proved:
@@ -1863,21 +1848,21 @@ class VerifyResult:
     _raw: simple_api_pb2.VerifyRes = field(repr=False, compare=False)
 
     @classmethod
-    def of_raw(cls, x: simple_api_pb2.VerifyRes, client: "Client | AsyncClient | None" = None) -> "VerifyResult":
-        res: VerifyResult.Res | None
+    def of_raw(cls, x: simple_api_pb2.VerifyRes, client: "Client | AsyncClient | None" = None) -> "VerifyResponse":
+        res: VerifyResponse.Res | None
         match x.WhichOneof("res"):
             case "unknown":
-                res = VerifyResult.Unknown(message=x.unknown.msg)
+                res = VerifyResponse.Unknown(message=x.unknown.msg)
             case "err":
-                res = VerifyResult.Err()
+                res = VerifyResponse.Err()
             case "proved":
-                res = VerifyResult.Proved(proof_pp=x.proved.proof_pp if x.proved.HasField("proof_pp") else None)
+                res = VerifyResponse.Proved(proof_pp=x.proved.proof_pp if x.proved.HasField("proof_pp") else None)
             case "refuted":
-                res = VerifyResult.Refuted(
+                res = VerifyResponse.Refuted(
                     counter_example=ModelOutput.of_raw(x.refuted.model) if x.refuted.HasField("model") else None
                 )
             case "verified_upto":
-                res = VerifyResult.VerifiedUpto(
+                res = VerifyResponse.VerifiedUpto(
                     message=x.verified_upto.msg if x.verified_upto.HasField("msg") else None
                 )
             case _:
@@ -1897,15 +1882,15 @@ class VerifyResult:
     def outcome(self) -> Literal["unknown", "err", "proved", "refuted", "verified_upto"] | None:
         """One of `unknown`, `err`, `proved`, `refuted` and `verified_upto`"""
         match self.res:
-            case VerifyResult.Unknown():
+            case VerifyResponse.Unknown():
                 return "unknown"
-            case VerifyResult.Err():
+            case VerifyResponse.Err():
                 return "err"
-            case VerifyResult.Proved():
+            case VerifyResponse.Proved():
                 return "proved"
-            case VerifyResult.Refuted():
+            case VerifyResponse.Refuted():
                 return "refuted"
-            case VerifyResult.VerifiedUpto():
+            case VerifyResponse.VerifiedUpto():
                 return "verified_upto"
             case None:
                 return None
@@ -1913,35 +1898,35 @@ class VerifyResult:
     @property
     def proved(self) -> bool:
         """Whether the goal was proved"""
-        return isinstance(self.res, VerifyResult.Proved)
+        return isinstance(self.res, VerifyResponse.Proved)
 
     @property
     def refuted(self) -> bool:
         """Whether a counter-example was found"""
-        return isinstance(self.res, VerifyResult.Refuted)
+        return isinstance(self.res, VerifyResponse.Refuted)
 
     @property
     def proof_pp(self) -> str | None:
         """The pretty-printed proof, if the goal was proved and the server sent it"""
-        return self.res.proof_pp if isinstance(self.res, VerifyResult.Proved) else None
+        return self.res.proof_pp if isinstance(self.res, VerifyResponse.Proved) else None
 
     @property
     def counter_example(self) -> ModelOutput | None:
         """The counter-example, if the goal was refuted"""
-        return self.res.counter_example if isinstance(self.res, VerifyResult.Refuted) else None
+        return self.res.counter_example if isinstance(self.res, VerifyResponse.Refuted) else None
 
     @property
     def message(self) -> str | None:
         """The message for an `unknown` or `verified_upto` outcome, if any"""
         match self.res:
-            case VerifyResult.Unknown(message=m) | VerifyResult.VerifiedUpto(message=m):
+            case VerifyResponse.Unknown(message=m) | VerifyResponse.VerifiedUpto(message=m):
                 return m
             case _:
                 return None
 
 
 @dataclass(slots=True, frozen=True)
-class InstanceResult:
+class InstanceResponse:
     """The result of an `instance_src` or `instance_name` request"""
 
     @dataclass(slots=True, frozen=True)
@@ -1952,7 +1937,7 @@ class InstanceResult:
 
     @dataclass(slots=True, frozen=True)
     class Err:
-        """The instance search failed; the errors are in `InstanceResult.errors`"""
+        """The instance search failed; the errors are in `InstanceResponse.errors`"""
 
     @dataclass(slots=True, frozen=True)
     class Unsat:
@@ -1980,17 +1965,17 @@ class InstanceResult:
     _raw: simple_api_pb2.InstanceRes = field(repr=False, compare=False)
 
     @classmethod
-    def of_raw(cls, x: simple_api_pb2.InstanceRes, client: "Client | AsyncClient | None" = None) -> "InstanceResult":
-        res: InstanceResult.Res | None
+    def of_raw(cls, x: simple_api_pb2.InstanceRes, client: "Client | AsyncClient | None" = None) -> "InstanceResponse":
+        res: InstanceResponse.Res | None
         match x.WhichOneof("res"):
             case "unknown":
-                res = InstanceResult.Unknown(message=x.unknown.msg)
+                res = InstanceResponse.Unknown(message=x.unknown.msg)
             case "err":
-                res = InstanceResult.Err()
+                res = InstanceResponse.Err()
             case "unsat":
-                res = InstanceResult.Unsat(proof_pp=x.unsat.proof_pp if x.unsat.HasField("proof_pp") else None)
+                res = InstanceResponse.Unsat(proof_pp=x.unsat.proof_pp if x.unsat.HasField("proof_pp") else None)
             case "sat":
-                res = InstanceResult.Sat(instance=ModelOutput.of_raw(x.sat.model) if x.sat.HasField("model") else None)
+                res = InstanceResponse.Sat(instance=ModelOutput.of_raw(x.sat.model) if x.sat.HasField("model") else None)
             case _:
                 res = None
         return cls(
@@ -2007,13 +1992,13 @@ class InstanceResult:
     def outcome(self) -> Literal["unknown", "err", "unsat", "sat"] | None:
         """One of `unknown`, `err`, `unsat` and `sat`"""
         match self.res:
-            case InstanceResult.Unknown():
+            case InstanceResponse.Unknown():
                 return "unknown"
-            case InstanceResult.Err():
+            case InstanceResponse.Err():
                 return "err"
-            case InstanceResult.Unsat():
+            case InstanceResponse.Unsat():
                 return "unsat"
-            case InstanceResult.Sat():
+            case InstanceResponse.Sat():
                 return "sat"
             case None:
                 return None
@@ -2021,33 +2006,33 @@ class InstanceResult:
     @property
     def found(self) -> bool:
         """Whether an instance was found"""
-        return isinstance(self.res, InstanceResult.Sat)
+        return isinstance(self.res, InstanceResponse.Sat)
 
     @property
     def instance(self) -> ModelOutput | None:
         """The instance, if one was found"""
-        return self.res.instance if isinstance(self.res, InstanceResult.Sat) else None
+        return self.res.instance if isinstance(self.res, InstanceResponse.Sat) else None
 
     @property
     def proof_pp(self) -> str | None:
         """The pretty-printed proof of unsatisfiability, if any"""
-        return self.res.proof_pp if isinstance(self.res, InstanceResult.Unsat) else None
+        return self.res.proof_pp if isinstance(self.res, InstanceResponse.Unsat) else None
 
     @property
     def message(self) -> str | None:
         """The message for an `unknown` outcome"""
-        return self.res.message if isinstance(self.res, InstanceResult.Unknown) else None
+        return self.res.message if isinstance(self.res, InstanceResponse.Unknown) else None
 
 
 @dataclass(slots=True, frozen=True)
-class TestResult:
+class TestResponse:
     """The result of a `test_src` or `test_name` request"""
 
     __test__ = False  # otherwise pytest will collect this as test
 
     @dataclass(slots=True, frozen=True)
     class Err:
-        """Testing failed, or found no counter-example; the errors are in `TestResult.errors`
+        """Testing failed, or found no counter-example; the errors are in `TestResponse.errors`
 
         Testing that finds no counter-example is reported this way, with an error of kind
         `NoCounterExample`
@@ -2072,13 +2057,13 @@ class TestResult:
     _raw: simple_api_pb2.TestRes = field(repr=False, compare=False)
 
     @classmethod
-    def of_raw(cls, x: simple_api_pb2.TestRes, client: "Client | AsyncClient | None" = None) -> "TestResult":
-        res: TestResult.Res | None
+    def of_raw(cls, x: simple_api_pb2.TestRes, client: "Client | AsyncClient | None" = None) -> "TestResponse":
+        res: TestResponse.Res | None
         match x.WhichOneof("res"):
             case "err":
-                res = TestResult.Err()
+                res = TestResponse.Err()
             case "counter_example":
-                res = TestResult.CounterExample(
+                res = TestResponse.CounterExample(
                     counter_example=(
                         ModelOutput.of_raw(x.counter_example.model) if x.counter_example.HasField("model") else None
                     )
@@ -2103,9 +2088,9 @@ class TestResult:
         `NoCounterExample`
         """
         match self.res:
-            case TestResult.Err():
+            case TestResponse.Err():
                 return "err"
-            case TestResult.CounterExample():
+            case TestResponse.CounterExample():
                 return "counter_example"
             case None:
                 return None
@@ -2113,11 +2098,11 @@ class TestResult:
     @property
     def counter_example(self) -> ModelOutput | None:
         """The counter-example, if one was found"""
-        return self.res.counter_example if isinstance(self.res, TestResult.CounterExample) else None
+        return self.res.counter_example if isinstance(self.res, TestResponse.CounterExample) else None
 
 
 @dataclass(slots=True, frozen=True)
-class TypecheckResult:
+class TypecheckResponse:
     """The result of a `typecheck` request"""
 
     success: bool
@@ -2129,7 +2114,7 @@ class TypecheckResult:
     _raw: simple_api_pb2.TypecheckRes = field(repr=False, compare=False)
 
     @classmethod
-    def of_raw(cls, x: simple_api_pb2.TypecheckRes) -> "TypecheckResult":
+    def of_raw(cls, x: simple_api_pb2.TypecheckRes) -> "TypecheckResponse":
         return cls(
             success=x.success,
             types=json.loads(x.types) if x.types else None,
@@ -2139,7 +2124,7 @@ class TypecheckResult:
 
 
 @dataclass(slots=True, frozen=True)
-class OneshotResult:
+class OneshotResponse:
     """The result of a `oneshot` request"""
 
     results: tuple[str, ...]
@@ -2153,7 +2138,7 @@ class OneshotResult:
     _raw: simple_api_pb2.OneshotRes = field(repr=False, compare=False)
 
     @classmethod
-    def of_raw(cls, x: simple_api_pb2.OneshotRes) -> "OneshotResult":
+    def of_raw(cls, x: simple_api_pb2.OneshotRes) -> "OneshotResponse":
         return cls(
             results=tuple(x.results),
             detailed_results=tuple(x.detailed_results),
@@ -2164,7 +2149,7 @@ class OneshotResult:
 
 
 @dataclass(slots=True, frozen=True)
-class CodeSnippetResult:
+class CodeSnippetResponse:
     """The result of an `eval_code_snippet` request"""
 
     res: Literal["ok", "errors"]
@@ -2180,7 +2165,7 @@ class CodeSnippetResult:
     @classmethod
     def of_raw(
         cls, x: api_pb2.CodeSnippetEvalResult, client: "Client | AsyncClient | None" = None
-    ) -> "CodeSnippetResult":
+    ) -> "CodeSnippetResponse":
         res: Literal["ok", "errors"]
         match x.res:
             case api_pb2.EVAL_OK:
@@ -2339,62 +2324,62 @@ class Client:
 
     def verify_src(
         self, src: str, hints: str | None = None, timeout: float | None = None
-    ) -> VerifyResult:
+    ) -> VerifyResponse:
         """Verify the goal given as IML source"""
-        return VerifyResult.of_raw(
+        return VerifyResponse.of_raw(
             self._client.verify_src(src, hints=hints, timeout=timeout), self
         )
 
     def verify_name(
         self, name: str, hints: str | None = None, timeout: float | None = None
-    ) -> VerifyResult:
+    ) -> VerifyResponse:
         """Verify the predicate `name`"""
-        return VerifyResult.of_raw(
+        return VerifyResponse.of_raw(
             self._client.verify_name(name, hints=hints, timeout=timeout), self
         )
 
     def instance_src(
         self, src: str, hints: str | None = None, timeout: float | None = None
-    ) -> InstanceResult:
+    ) -> InstanceResponse:
         """Search for an instance of the goal given as IML source"""
-        return InstanceResult.of_raw(
+        return InstanceResponse.of_raw(
             self._client.instance_src(src, hints=hints, timeout=timeout), self
         )
 
     def instance_name(
         self, name: str, hints: str | None = None, timeout: float | None = None
-    ) -> InstanceResult:
+    ) -> InstanceResponse:
         """Search for an instance of the predicate `name`"""
-        return InstanceResult.of_raw(
+        return InstanceResponse.of_raw(
             self._client.instance_name(name, hints=hints, timeout=timeout), self
         )
 
     def test_src(
         self, src: str, seed: int | None = None, timeout: float | None = None
-    ) -> TestResult:
+    ) -> TestResponse:
         """Test the goal given as IML source with random inputs"""
-        return TestResult.of_raw(self._client.test_src(src, seed=seed, timeout=timeout), self)
+        return TestResponse.of_raw(self._client.test_src(src, seed=seed, timeout=timeout), self)
 
     def test_name(
         self, name: str, seed: int | None = None, timeout: float | None = None
-    ) -> TestResult:
+    ) -> TestResponse:
         """Test the predicate `name` with random inputs"""
-        return TestResult.of_raw(
+        return TestResponse.of_raw(
             self._client.test_name(name, seed=seed, timeout=timeout), self
         )
 
-    def typecheck(self, src: str, timeout: float | None = None) -> TypecheckResult:
+    def typecheck(self, src: str, timeout: float | None = None) -> TypecheckResponse:
         """Typecheck IML source, adding its definitions to the session"""
-        return TypecheckResult.of_raw(self._client.typecheck(src, timeout=timeout))
+        return TypecheckResponse.of_raw(self._client.typecheck(src, timeout=timeout))
 
     def oneshot(
         self,
         input: str,
         compute_timeout: float | None = None,
         timeout: float | None = None,
-    ) -> OneshotResult:
+    ) -> OneshotResponse:
         """Evaluate IML code in a sessionless, self-contained request"""
-        return OneshotResult.of_raw(
+        return OneshotResponse.of_raw(
             self._client.oneshot(
                 input, compute_timeout=compute_timeout, timeout=timeout
             )
@@ -2405,9 +2390,9 @@ class Client:
         code: str,
         task_filter: list[str] | None = None,
         timeout: float | None = None,
-    ) -> CodeSnippetResult:
+    ) -> CodeSnippetResponse:
         """Evaluate a code snippet; `task_filter` selects tasks to start, as in `eval_src`"""
-        return CodeSnippetResult.of_raw(
+        return CodeSnippetResponse.of_raw(
             self._client.eval_code_snippet(
                 code, task_filter=task_filter, timeout=timeout
             ),
@@ -2572,66 +2557,66 @@ class AsyncClient:
 
     async def verify_src(
         self, src: str, hints: str | None = None, timeout: float | None = None
-    ) -> VerifyResult:
+    ) -> VerifyResponse:
         """Verify the goal given as IML source"""
-        return VerifyResult.of_raw(
+        return VerifyResponse.of_raw(
             await self._client.verify_src(src, hints=hints, timeout=timeout), self
         )
 
     async def verify_name(
         self, name: str, hints: str | None = None, timeout: float | None = None
-    ) -> VerifyResult:
+    ) -> VerifyResponse:
         """Verify the predicate `name`"""
-        return VerifyResult.of_raw(
+        return VerifyResponse.of_raw(
             await self._client.verify_name(name, hints=hints, timeout=timeout), self
         )
 
     async def instance_src(
         self, src: str, hints: str | None = None, timeout: float | None = None
-    ) -> InstanceResult:
+    ) -> InstanceResponse:
         """Search for an instance of the goal given as IML source"""
-        return InstanceResult.of_raw(
+        return InstanceResponse.of_raw(
             await self._client.instance_src(src, hints=hints, timeout=timeout), self
         )
 
     async def instance_name(
         self, name: str, hints: str | None = None, timeout: float | None = None
-    ) -> InstanceResult:
+    ) -> InstanceResponse:
         """Search for an instance of the predicate `name`"""
-        return InstanceResult.of_raw(
+        return InstanceResponse.of_raw(
             await self._client.instance_name(name, hints=hints, timeout=timeout), self
         )
 
     async def test_src(
         self, src: str, seed: int | None = None, timeout: float | None = None
-    ) -> TestResult:
+    ) -> TestResponse:
         """Test the goal given as IML source with random inputs"""
-        return TestResult.of_raw(
+        return TestResponse.of_raw(
             await self._client.test_src(src, seed=seed, timeout=timeout), self
         )
 
     async def test_name(
         self, name: str, seed: int | None = None, timeout: float | None = None
-    ) -> TestResult:
+    ) -> TestResponse:
         """Test the predicate `name` with random inputs"""
-        return TestResult.of_raw(
+        return TestResponse.of_raw(
             await self._client.test_name(name, seed=seed, timeout=timeout), self
         )
 
     async def typecheck(
         self, src: str, timeout: float | None = None
-    ) -> TypecheckResult:
+    ) -> TypecheckResponse:
         """Typecheck IML source, adding its definitions to the session"""
-        return TypecheckResult.of_raw(await self._client.typecheck(src, timeout=timeout))
+        return TypecheckResponse.of_raw(await self._client.typecheck(src, timeout=timeout))
 
     async def oneshot(
         self,
         input: str,
         compute_timeout: float | None = None,
         timeout: float | None = None,
-    ) -> OneshotResult:
+    ) -> OneshotResponse:
         """Evaluate IML code in a sessionless, self-contained request"""
-        return OneshotResult.of_raw(
+        return OneshotResponse.of_raw(
             await self._client.oneshot(
                 input, compute_timeout=compute_timeout, timeout=timeout
             )
@@ -2642,9 +2627,9 @@ class AsyncClient:
         code: str,
         task_filter: list[str] | None = None,
         timeout: float | None = None,
-    ) -> CodeSnippetResult:
+    ) -> CodeSnippetResponse:
         """Evaluate a code snippet; `task_filter` selects tasks to start, as in `eval_src`"""
-        return CodeSnippetResult.of_raw(
+        return CodeSnippetResponse.of_raw(
             await self._client.eval_code_snippet(
                 code, task_filter=task_filter, timeout=timeout
             ),

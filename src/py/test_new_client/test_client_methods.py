@@ -14,19 +14,19 @@ from imandrax_api.demo.interface import (
     Artifact,
     AsyncClient,
     Client,
-    CodeSnippetResult,
+    CodeSnippetResponse,
     DecompositionResult,
     DecompositionTask,
     EvalSrcResponse,
-    InstanceResult,
+    InstanceResponse,
     ModelOutput,
-    OneshotResult,
+    OneshotResponse,
     ProofObligationResult,
     ProofObligationTask,
     ServerVersion,
-    TestResult,
-    TypecheckResult,
-    VerifyResult,
+    TestResponse,
+    TypecheckResponse,
+    VerifyResponse,
 )
 from imandrax_api.demo.mir import ArrowType, Term, Type
 
@@ -110,8 +110,8 @@ theorem bad x = x > 0"""
 
 
 def test_verify_name_proved(client: Client):
-    r: VerifyResult = client.verify_name("nonneg")
-    assert isinstance(r.res, VerifyResult.Proved)
+    r: VerifyResponse = client.verify_name("nonneg")
+    assert isinstance(r.res, VerifyResponse.Proved)
     assert r.outcome == "proved"
     assert r.proved and not r.refuted
     assert r.counter_example is None
@@ -119,12 +119,12 @@ def test_verify_name_proved(client: Client):
 
 
 def test_verify_src_refuted(client: Client):
-    r: VerifyResult = client.verify_src("fun x -> f x > 0")
+    r: VerifyResponse = client.verify_src("fun x -> f x > 0")
     assert r.outcome == "refuted"
     assert r.refuted and not r.proved
     assert r.proof_pp is None
 
-    assert isinstance(r.res, VerifyResult.Refuted)
+    assert isinstance(r.res, VerifyResponse.Refuted)
 
     cx: ModelOutput | None = r.counter_example
     assert cx is not None
@@ -135,8 +135,8 @@ def test_verify_src_refuted(client: Client):
 
 
 def test_instance_src_sat(client: Client):
-    r: InstanceResult = client.instance_src("fun x -> f x = 5")
-    assert isinstance(r.res, InstanceResult.Sat)
+    r: InstanceResponse = client.instance_src("fun x -> f x = 5")
+    assert isinstance(r.res, InstanceResponse.Sat)
     assert r.outcome == "sat"
     assert r.found
     inst: ModelOutput | None = r.instance
@@ -148,8 +148,8 @@ def test_instance_src_sat(client: Client):
 
 
 def test_instance_src_unsat(client: Client):
-    r: InstanceResult = client.instance_src("fun x -> f x < 0")
-    assert isinstance(r.res, InstanceResult.Unsat)
+    r: InstanceResponse = client.instance_src("fun x -> f x < 0")
+    assert isinstance(r.res, InstanceResponse.Unsat)
     assert r.outcome == "unsat"
     assert not r.found
     assert r.instance is None
@@ -161,8 +161,8 @@ def test_instance_name(client: Client):
 
 
 def test_test_src_counter_example(client: Client):
-    r: TestResult = client.test_src("fun x -> f x > 0", seed=1)
-    assert isinstance(r.res, TestResult.CounterExample)
+    r: TestResponse = client.test_src("fun x -> f x > 0", seed=1)
+    assert isinstance(r.res, TestResponse.CounterExample)
     assert r.outcome == "counter_example"
     cx = r.counter_example
     assert cx is not None
@@ -170,8 +170,8 @@ def test_test_src_counter_example(client: Client):
 
 
 def test_test_name_no_counter_example(client: Client):
-    r: TestResult = client.test_name("nonneg", seed=1)
-    assert r.res == TestResult.Err()
+    r: TestResponse = client.test_name("nonneg", seed=1)
+    assert r.res == TestResponse.Err()
     assert r.outcome == "err"
     assert r.counter_example is None
     (e,) = r.errors
@@ -206,7 +206,7 @@ def test_decompose_full(client: Client):
 
 def test_typecheck(client: Client):
     r = client.typecheck("let g y = y + 1")
-    assert isinstance(r, TypecheckResult)
+    assert isinstance(r, TypecheckResponse)
     assert r.success
     assert r.types == [{"name": "g", "ty": "int -> int", "line": 1, "column": 1}]
 
@@ -218,14 +218,16 @@ def test_typecheck_error(client: Client):
 
 
 def test_oneshot(client: Client):
-    r: OneshotResult = client.oneshot("let h = 1")
+    r: OneshotResponse = client.oneshot("let h = 1")
     assert r.errors == ()
     assert len(r.results) == 1
     assert r.time_s >= 0
 
 
 def test_eval_code_snippet(client: Client):
-    r: CodeSnippetResult = client.eval_code_snippet("theorem snippet_thm x = f x >= 0")
+    r: CodeSnippetResponse = client.eval_code_snippet(
+        "theorem snippet_thm x = f x >= 0"
+    )
     assert r.res == "ok"
     assert r.errors == ()
     # Its result may not be available yet, similar to async_only=True
