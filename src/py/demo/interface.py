@@ -22,7 +22,6 @@ from imandrax_api.bindings import (
     system_pb2,
     task_pb2,
 )
-from imandrax_api.client import decomp
 
 from .errors import ImandraXError, UnexpectedResponseError
 from .evaluation_values import Value, value_of_lib
@@ -31,6 +30,8 @@ from .report import Report
 
 if TYPE_CHECKING:
     from imandrax_api.client import AsyncClient as AsyncClient_
+
+    from . import decomp
 
 
 class ServerError(ImandraXError):
@@ -1315,7 +1316,7 @@ def enumeration_style_of_lib(x: lib.Tasks_Decomp_task_enumeration_style) -> Enum
 
 
 class DecompositionRequest:
-    """A decomposition request"""
+    """A decomposition request, as resolved by the server for a task (`DecompositionTask.decomp`)"""
 
     @dataclass(slots=True, frozen=True)
     class Function:
@@ -1696,7 +1697,7 @@ class DecompositionResult:
     """The result of a decomposition request"""
 
     artifact: Artifact | None
-    """The decomposition artifact"""
+    """The decomposition artifact, None if decomp has error"""
     task: Task
     """The decomposition task"""
     errors: tuple[Error, ...]
@@ -2340,12 +2341,11 @@ class Client:
     def decompose_full(
         self,
         # TODO: we should have a Decomp combinator class here?
-        d: decomp.Decomp,
+        d: "decomp.Decomp",
         timeout: float | None = None,
         string_results: bool | None = None,
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
-        """Compute the decomposition `d`, built with `imandrax_api.client.decomp`"""
         return DecompositionResult.of_raw(
             self._client.decompose_full(
                 d,
@@ -2573,12 +2573,11 @@ class AsyncClient:
 
     async def decompose_full(
         self,
-        d: decomp.Decomp,
+        d: "decomp.Decomp",
         timeout: float | None = None,
         string_results: bool | None = None,
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
-        """Compute the decomposition `d`, built with `imandrax_api.client.decomp`"""
         return DecompositionResult.of_raw(
             await self._client.decompose_full(
                 d,

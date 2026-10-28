@@ -9,7 +9,7 @@ import pytest
 from inline_snapshot import snapshot
 
 import imandrax_api
-from imandrax_api.client import decomp
+from imandrax_api.demo import decomp
 from imandrax_api.demo.interface import (
     Artifact,
     AsyncClient,
@@ -18,6 +18,7 @@ from imandrax_api.demo.interface import (
     Decomposition,
     DecompositionResult,
     DecompositionTask,
+    DecompositionTaskResult,
     EvalSrcResponse,
     InstanceResponse,
     ModelOutput,
@@ -202,6 +203,24 @@ def test_decompose_full(client: Client):
     r = client.decompose_full(decomp.prune(decomp.by_name("f")))
     assert r.errors == ()
     assert r.artifact is not None
+
+
+def test_decompose_full_from_artifact(client: Client):
+    art: Artifact | None= client.decompose("f").artifact
+    assert art is not None
+
+    (task,) = [
+        t
+        for t in client.eval_src("let g x = if x > 0 then 1 else 2\n[@@decomp top ()]").tasks
+        if isinstance(t, DecompositionTask)
+    ]
+    res = task.result
+    assert isinstance(res, DecompositionTaskResult)
+
+    for a in [art._raw, art, res]:  # pyright: ignore[reportPrivateUsage]
+        r = client.decompose_full(decomp.from_artifact(a))
+        assert r.errors == ()
+        assert r.artifact is not None
 
 
 # Source and lookups
