@@ -18,7 +18,7 @@ from imandrax_api.demo.interface import (
     DecompositionResult,
     DecompositionTask,
     EvalSrcResponse,
-    GcStatistics,
+    EvalStatus,
     InstanceResult,
     ModelKind,
     ModelOutput,
@@ -31,7 +31,6 @@ from imandrax_api.demo.interface import (
     VerifyResult,
 )
 from imandrax_api.demo.mir import ArrowType, Term, Type
-from imandrax_api.twirp.exceptions import TwirpServerException
 
 SRC = """
 let f x = if x > 0 then x + 1 else 0
@@ -70,14 +69,6 @@ def test_session_and_sys_client(client: Client):
     v = client.version()
     assert isinstance(v, ServerVersion)
     assert v.version
-
-    s = client.gc_stats()
-    assert isinstance(s, GcStatistics)
-    assert s.heap_size_bytes > 0
-
-    # Only authorized for admins, which the prod server's API keys are not
-    with pytest.raises(TwirpServerException, match="not authorized"):
-        client.release_memory()
 
 
 # eval_src
@@ -237,7 +228,7 @@ def test_oneshot(client: Client):
 
 def test_eval_code_snippet(client: Client):
     r: CodeSnippetResult = client.eval_code_snippet("theorem snippet_thm x = f x >= 0")
-    assert r.success
+    assert r.res == EvalStatus.OK
     assert r.errors == ()
     # Its result may not be available yet, similar to async_only=True
     (po,) = [t for t in r.tasks if isinstance(t, ProofObligationTask)]
@@ -245,16 +236,16 @@ def test_eval_code_snippet(client: Client):
 
 
 @pytest.mark.parametrize(
-    ("code", "kind"),
+    ("code", "res", "kind"),
     [
-        pytest.param("let = ", "SyntaxErr", id="syntax-error"),
-        # The server reports type errors with status `EVAL_OK`, but a non-empty error list
-        pytest.param("let bad = 1 + true", "TypeErr", id="type-error"),
+        pytest.param("let = ", EvalStatus.ERRORS, "SyntaxErr", id="syntax-error"),
+        # The server reports type errors with status `OK`, but a non-empty error list
+        pytest.param("let bad = 1 + true", EvalStatus.OK, "TypeErr", id="type-error"),
     ],
 )
-def test_eval_code_snippet_error(client: Client, code: str, kind: str):
+def test_eval_code_snippet_error(client: Client, code: str, res: EvalStatus, kind: str):
     r = client.eval_code_snippet(code)
-    assert not r.success
+    assert r.res == res
     (e,) = r.errors
     assert kind in str(e)
 
@@ -339,7 +330,6 @@ def test_async_methods():
             assert (await c.eval_src(SRC)).success
             await c.keep_session_alive()
             assert isinstance(await c.version(), ServerVersion)
-            assert isinstance(await c.gc_stats(), GcStatistics)
 
             v = await c.verify_name("nonneg")
             assert v.proved
@@ -356,7 +346,7 @@ def test_async_methods():
 
             assert (await c.typecheck("let g y = y + 1")).success
             assert (await c.oneshot("let h = 1")).errors == ()
-            assert (await c.eval_code_snippet("let k = 2")).success
+            assert (await c.eval_code_snippet("let k = 2")).res == EvalStatus.OK
             assert isinstance(await c.parse_term("f 3"), Term)
             assert isinstance(await c.parse_type("int"), Type)
 

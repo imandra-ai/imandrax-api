@@ -2167,12 +2167,17 @@ class OneshotResult:
         )
 
 
+class EvalStatus(Enum):
+    OK = "ok"
+    ERRORS = "errors"
+
+
 @dataclass(slots=True, frozen=True)
 class CodeSnippetResult:
     """The result of an `eval_code_snippet` request"""
 
-    success: bool
-    """Whether the snippet was evaluated without errors"""
+    res: EvalStatus
+    """The evaluation status reported by the server; `errors` can be non-empty even when it is `OK`"""
     duration_s: float
     """The time evaluation took, in seconds"""
     tasks: tuple[Task, ...]
@@ -2185,9 +2190,15 @@ class CodeSnippetResult:
     def of_raw(
         cls, x: api_pb2.CodeSnippetEvalResult, client: "Client | AsyncClient | None" = None
     ) -> "CodeSnippetResult":
+        match x.res:
+            case api_pb2.EVAL_OK:
+                res = EvalStatus.OK
+            case api_pb2.EVAL_ERRORS:
+                res = EvalStatus.ERRORS
+            case _:
+                raise Exception(f"Unexpected eval result '{x.res}'")
         return cls(
-            # The server reports some errors, e.g. type errors, with `EVAL_OK`
-            success=x.res == api_pb2.EVAL_OK and not x.errors,
+            res=res,
             duration_s=x.duration_s,
             tasks=tuple(task_of_raw(t, client) for t in x.tasks),
             errors=tuple(Error.of_raw(e) for e in x.errors),
