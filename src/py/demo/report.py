@@ -8,6 +8,7 @@ from enum import KEEP, Flag
 
 from imandrax_api import lib
 
+from .errors import UnexpectedResponseError
 from .mir import (
     InstantiationRule,
     Model,
@@ -491,7 +492,7 @@ class Report:
     def of_archive(cls, x: lib.In_mem_archive[lib.Report_Report]) -> Report:
         """Decode a report from the in-memory archive it is sent in"""
         if x.ty != "report_ser.mir":
-            raise Exception(f"Unexpected report archive type '{x.ty}'")
+            raise UnexpectedResponseError(f"Unexpected report archive type '{x.ty}'")
         # Compressed archives hold raw deflate data, without a zlib header
         data = zlib.decompress(x.data, -zlib.MAX_WBITS) if x.compressed else x.data
         d = lib.twine.Decoder(data)

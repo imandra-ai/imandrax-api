@@ -24,6 +24,7 @@ from imandrax_api.bindings import (
 )
 from imandrax_api.client import decomp
 
+from .errors import ImandraXError, UnexpectedResponseError
 from .evaluation_values import Value, value_of_lib
 from .mir import *
 from .report import Report
@@ -32,15 +33,23 @@ if TYPE_CHECKING:
     from imandrax_api.client import AsyncClient as AsyncClient_
 
 
-class ClientGoneError(Exception):
+class ServerError(ImandraXError):
+    """The server reported an error"""
+
+    def __init__(self, error: "Error | ErrorCore"):
+        super().__init__(str(error))
+        self.error: Error | ErrorCore = error
+
+
+class ClientGoneError(ImandraXError):
     """Task data was fetched after the client that created the task was garbage-collected"""
 
 
-class NoClientError(Exception):
+class NoClientError(ImandraXError):
     """Task data that is not fetched yet was accessed on a task created without a client"""
 
 
-class NotFetchedError(Exception):
+class NotFetchedError(ImandraXError):
     """An artifact of a task from an `AsyncClient` was accessed before it was fetched
 
     Fetch it by accessing the attribute with `await task.awaitable.<attribute>` first
@@ -485,11 +494,11 @@ class ProofObligationTaskResult:
 
     def __init__(self, artifact: Artifact):
         if artifact.kind != "po_res":
-            raise Exception(f"Unexpected artifact kind '{artifact.kind}'")
+            raise ValueError(f"Expected an artifact of kind 'po_res', got '{artifact.kind}'")
         self._artifact: Artifact = artifact
         d = lib.read_artifact_data(artifact.data, artifact.kind)
         if not (isinstance(d, lib.Tasks_PO_res_shallow_poly)):
-            raise Exception(f"Unexpected result type '{type(d)}'")
+            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
         self._data: lib.Tasks_PO_res_Shallow = d
 
     @property
@@ -579,11 +588,11 @@ class EvaluationTaskResult:
 
     def __init__(self, artifact: Artifact):
         if artifact.kind != "eval_res":
-            raise Exception(f"Unexpected artifact kind '{artifact.kind}'")
+            raise ValueError(f"Expected an artifact of kind 'eval_res', got '{artifact.kind}'")
         self._artifact: Artifact = artifact
         d = lib.read_artifact_data(artifact.data, artifact.kind)
         if not (isinstance(d, lib.Tasks_Eval_res)):
-            raise Exception(f"Unexpected result type '{type(d)}'")
+            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
         self._data: lib.Tasks_Eval_res = d
 
     @cached_property
@@ -591,11 +600,11 @@ class EvaluationTaskResult:
         """The value the term evaluated to; raises if evaluation failed"""
         match self._data.res:
             case lib.Error_Error_core(_) as e:
-                raise Exception(f"'{e}'")
+                raise ServerError(ErrorCore.of_lib(e))
             case lib.Tasks_Eval_res_success(x):
                 return value_of_lib(x.v)
             case _:
-                raise Exception(f"Unexpected result type '{type(self._data.res)}'")
+                raise UnexpectedResponseError(f"Unexpected result type '{type(self._data.res)}'")
 
     @cached_property
     def statistics(self) -> EvaluationStatistics:
@@ -744,11 +753,11 @@ class DecompositionTaskResult:
 
     def __init__(self, artifact: Artifact):
         if artifact.kind != "decomp_res":
-            raise Exception(f"Unexpected artifact kind '{artifact.kind}'")
+            raise ValueError(f"Expected an artifact of kind 'decomp_res', got '{artifact.kind}'")
         self._artifact: Artifact = artifact
         d = lib.read_artifact_data(artifact.data, artifact.kind)
         if not (isinstance(d, lib.Tasks_Decomp_res_shallow_poly)):
-            raise Exception(f"Unexpected result type '{type(d)}'")
+            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
         self._data: lib.Tasks_Decomp_res_Shallow = d
 
     @property
@@ -864,11 +873,22 @@ class Task:
     """
 
     _artifact_kind: ClassVar[str | None] = None
-    """The artifact kind of the task's data, `None` if tasks of this kind have no data"""
+    """The artifact kind of the task's data, `None` if it is not known for the task's kind"""
     _result_artifact_kind: ClassVar[str | None] = None
-    """The artifact kind of the task's result, `None` if tasks of this kind have no result"""
+    """The artifact kind of the task's result, `None` if it is not known for the task's kind"""
 
     def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
+        # A plain `Task` is only for task kinds without a subclass, whose artifact kinds are not
+        # known; other kinds need their subclass, which `task_of_raw` picks
+        if type(self) is Task and task.kind in (
+            task_pb2.TASK_EVAL,
+            task_pb2.TASK_CHECK_PO,
+            task_pb2.TASK_PROOF_CHECK,
+            task_pb2.TASK_DECOMP,
+        ):
+            raise ValueError(
+                f"Tasks of kind {task_pb2.TaskKind.Name(task.kind)} need their `Task` subclass; use `task_of_raw`"
+            )
         self._raw: task_pb2.Task = task
         # The task holds only a weak reference to the client, so it does not keep the client alive;
         # fetching after the client is gone raises `ClientGoneError`.
@@ -919,7 +939,7 @@ class Task:
         """
         kind = self._artifact_kind
         if kind is None:
-            raise Exception(f"tasks of kind {self.kind} have no data")
+            raise UnexpectedResponseError(f"No known data artifact kind for tasks of kind {self._raw.kind}")
         return self._artifact(kind)
 
     @cached_property
@@ -930,7 +950,7 @@ class Task:
         """
         kind = self._result_artifact_kind
         if kind is None:
-            raise Exception(f"tasks of kind {self.kind} have no result")
+            raise UnexpectedResponseError(f"No known result artifact kind for tasks of kind {self._raw.kind}")
         return _task_result_of_artifact(self._artifact(kind))
 
     async def fetch_all(self) -> None:
@@ -1002,11 +1022,11 @@ class Task:
 def _artifact_of_result(res: api_pb2.ArtifactResult) -> Artifact:
     match res.WhichOneof("result"):
         case "error":
-            raise Exception(f"{Error.of_raw(res.error)}")
+            raise ServerError(Error.of_raw(res.error))
         case "ok":
             return Artifact.of_raw(res.ok)
         case _:
-            raise Exception("Artifact result has neither `error` nor `ok`")
+            raise UnexpectedResponseError("Artifact result has neither `error` nor `ok`")
 
 
 def _task_result_of_artifact(artifact: Artifact) -> TaskResult:
@@ -1017,8 +1037,10 @@ def _task_result_of_artifact(artifact: Artifact) -> TaskResult:
             return EvaluationTaskResult(artifact)
         case "decomp_res":
             return DecompositionTaskResult(artifact)
+        case "proof_check_res":
+            raise UnexpectedResponseError("Decoding results of kind 'proof_check_res' is not implemented")
         case _:
-            raise Exception(f"Unexpected result artifact kind '{artifact.kind}'")
+            raise UnexpectedResponseError(f"Unexpected result artifact kind '{artifact.kind}'")
 
 
 @dataclass(slots=True, frozen=True)
@@ -1153,7 +1175,7 @@ class ProofObligationTask(Task):
         artifact = self._artifact("po_task")
         d = lib.read_artifact_data(artifact.data, artifact.kind)
         if not (isinstance(d, lib.Tasks_PO_task_t_poly)):
-            raise Exception(f"Unexpected task artifact type '{type(d)}'")
+            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
         return d
 
     @cached_property
@@ -1204,7 +1226,7 @@ class EvaluationTask(Task):
         artifact = self._artifact("eval_task")
         d = lib.read_artifact_data(artifact.data, artifact.kind)
         if not (isinstance(d, lib.Tasks_Eval_task_t_poly)):
-            raise Exception(f"Unexpected task artifact type '{type(d)}'")
+            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
         return d
 
     @cached_property
@@ -1487,7 +1509,7 @@ class DecompositionTask(Task):
         artifact = self._artifact("decomp_task")
         d = lib.read_artifact_data(artifact.data, artifact.kind)
         if not (isinstance(d, lib.Tasks_Decomp_task_t_poly)):
-            raise Exception(f"Unexpected task artifact type '{type(d)}'")
+            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
         return d
 
     @cached_property
@@ -1687,9 +1709,11 @@ class DecompositionResult:
         """The decomposition, decoded from `artifact` on first access, if the request succeeded"""
         if self.artifact is None:
             return None
+        if self.artifact.kind != "mir.fun_decomp":
+            raise ValueError(f"Expected an artifact of kind 'mir.fun_decomp', got '{self.artifact.kind}'")
         d = lib.read_artifact_data(self.artifact.data, self.artifact.kind)
         if not isinstance(d, lib.Common_Fun_decomp_t_poly):
-            raise Exception(f"Unexpected decomposition artifact type '{type(d)}'")
+            raise UnexpectedResponseError(f"Artifact of kind '{self.artifact.kind}' decoded to unexpected type '{type(d)}'")
         return Decomposition.of_lib(d)
 
 
@@ -1752,28 +1776,28 @@ class EvalSrcResponse:
 def _decode_artifact(artifact: artmsg_pb2.Artifact, kind: str) -> lib.Artifact:
     """Decode the data of `artifact`, checking that it has kind `kind`"""
     if artifact.kind != kind:
-        raise Exception(f"Unexpected artifact kind '{artifact.kind}'")
+        raise UnexpectedResponseError(f"Unexpected artifact kind '{artifact.kind}'")
     return lib.read_artifact_data(artifact.data, artifact.kind)
 
 
 def _model_of_artifact(artifact: artmsg_pb2.Artifact) -> Model:
     d = _decode_artifact(artifact, "mir.model")
     if not isinstance(d, lib.Common_Model_t_poly):
-        raise Exception(f"Unexpected model artifact type '{type(d)}'")
+        raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
     return Model.of_lib(d)
 
 
 def _term_of_artifact(artifact: artmsg_pb2.Artifact) -> Term:
     d = _decode_artifact(artifact, "term")
     if not isinstance(d, lib.Mir_Term):
-        raise Exception(f"Unexpected term artifact type '{type(d)}'")
+        raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
     return term_of_lib(d)
 
 
 def _type_of_artifact(artifact: artmsg_pb2.Artifact) -> Type:
     d = _decode_artifact(artifact, "ty")
     if not isinstance(d, lib.Mir_Type):
-        raise Exception(f"Unexpected type artifact type '{type(d)}'")
+        raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
     return type_of_lib(d)
 
 
@@ -1797,7 +1821,7 @@ class ModelOutput:
             case simple_api_pb2.Instance:
                 kind = "instance"
             case _:
-                raise Exception(f"Unexpected model type '{x.m_type}'")
+                raise UnexpectedResponseError(f"Unexpected model type '{x.m_type}'")
         return cls(kind=kind, src=x.src, _raw=x)
 
     def __str__(self) -> str:
@@ -2173,7 +2197,7 @@ class CodeSnippetResponse:
             case api_pb2.EVAL_ERRORS:
                 res = "errors"
             case _:
-                raise Exception(f"Unexpected eval result '{x.res}'")
+                raise UnexpectedResponseError(f"Unexpected eval result '{x.res}'")
         return cls(
             res=res,
             duration_s=x.duration_s,
@@ -2199,21 +2223,21 @@ class ServerVersion:
 def _artifact_kinds_of_result(res: api_pb2.ArtifactListResult) -> list[str]:
     match res.WhichOneof("result"):
         case "error":
-            raise Exception(f"{Error.of_raw(res.error)}")
+            raise ServerError(Error.of_raw(res.error))
         case "ok":
             return list(res.ok.kinds)
         case _:
-            raise Exception("Artifact list result has neither `error` nor `ok`")
+            raise UnexpectedResponseError("Artifact list result has neither `error` nor `ok`")
 
 
 def _artifact_zip_of_result(res: api_pb2.ArtifactZipResult) -> bytes:
     match res.WhichOneof("result"):
         case "error":
-            raise Exception(f"{Error.of_raw(res.error)}")
+            raise ServerError(Error.of_raw(res.error))
         case "ok":
             return res.ok.art_zip
         case _:
-            raise Exception("Artifact zip result has neither `error` nor `ok`")
+            raise UnexpectedResponseError("Artifact zip result has neither `error` nor `ok`")
 
 
 class Client:

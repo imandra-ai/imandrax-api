@@ -29,6 +29,8 @@ from typing import ClassVar, Never, assert_never, cast, override
 
 from imandrax_api import lib
 
+from .errors import UnexpectedResponseError
+
 # Note: all __str__ in there are purely for debugging purposes. There is no MIR
 # text format; MIR is only exchanged in byte-serialized form and there is no
 # parser that would turn text into MIR data structures. The reason is that
@@ -471,7 +473,7 @@ def type_kind_of_lib(x: lib.Ty_view_decl[lib.Uid, lib.Mir_Type, Never]) -> TypeK
         case lib.Ty_view_decl_Record(arg=rows):
             return RecordTypeKind(fields=tuple(FieldDefinition.of_lib(r) for r in rows), _raw=x)
         case lib.Ty_view_decl_Alias():
-            raise Exception("unexpected alias in a type definition")
+            raise UnexpectedResponseError("unexpected alias in a type definition")
         case lib.Ty_view_decl_Skolem():
             return SkolemTypeKind(_raw=x)
         case lib.Ty_view_decl_Builtin(arg=b):
@@ -1873,7 +1875,7 @@ class DB:
                 case lib.Common_Db_op_t_poly_Op_add_rule_spec_rw((uid, rules)):
                     self._raw_rule_spec_rw_rules.setdefault(Uid(uid), []).extend(rules)
                 case _:
-                    raise Exception("unknown MIR database operation")
+                    raise UnexpectedResponseError("unknown MIR database operation")
 
     @cached_property
     def _tys(self) -> dict[Uid, TypeDefinition]:
