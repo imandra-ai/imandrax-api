@@ -2,15 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from fractions import Fraction
-from typing import assert_never, override
+from typing import assert_never
 
 from imandrax_api import lib
 
 from . import mir
-
-# Like the classes in `mir`, values are frozen dataclasses converted eagerly by
-# `value_of_lib`, keeping the library value they were converted from in the hidden
-# field `_raw`.
 
 type _View = lib.Eval_Value_view[lib.Eval_Value, lib.Eval_Value_erased_closure]
 
@@ -21,7 +17,6 @@ class True_:
 
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return "true"
 
@@ -32,7 +27,6 @@ class False_:
 
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return "false"
 
@@ -44,7 +38,6 @@ class Int:
     value: int
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return str(self.value)
 
@@ -56,7 +49,6 @@ class Real:
     value: Fraction
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return str(self.value)
 
@@ -68,7 +60,6 @@ class String:
     value: str
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return f'"{self.value}"'
 
@@ -86,7 +77,6 @@ class Constructor:
     args: tuple[Value, ...]
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         if not self.args:
             return self.name
@@ -100,7 +90,6 @@ class Tuple:
     elements: tuple[Value, ...]
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return f"({', '.join(str(e) for e in self.elements)})"
 
@@ -113,7 +102,6 @@ class Record:
     fields: dict[str, Value]
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return "{" + "; ".join(f"{k} = {x}" for k, x in self.fields.items()) + "}"
 
@@ -126,7 +114,6 @@ class QuotedTerm:
     body: mir.Term
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return "<quoted term>"
 
@@ -138,7 +125,6 @@ class Uid:
     uid: mir.Uid
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return self.uid.short_name
 
@@ -150,7 +136,6 @@ class Closure:
     missing: int
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return "<fun>"
 
@@ -166,7 +151,6 @@ class Custom:
     value: lib.Eval__Value_Custom_value
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return "<custom>"
 
@@ -178,7 +162,6 @@ class Ordinal:
     value: OrdinalExpr
     _raw: _View = field(repr=False, compare=False)
 
-    @override
     def __str__(self) -> str:
         return str(self.value)
 
