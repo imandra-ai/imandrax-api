@@ -18,9 +18,7 @@ from imandrax_api.demo.interface import (
     DecompositionResult,
     DecompositionTask,
     EvalSrcResponse,
-    EvalStatus,
     InstanceResult,
-    ModelKind,
     ModelOutput,
     OneshotResult,
     ProofObligationResult,
@@ -101,7 +99,7 @@ theorem bad x = x > 0"""
     assert bad.outcome == "instance"
     cx: ModelOutput | None = bad.res.model
     assert cx is not None
-    assert cx.kind == ModelKind.COUNTER_EXAMPLE
+    assert cx.kind == "counter_example"
     assert "x = 0" in cx.src
     (e,) = bad.errors
     assert "counter-satisfiable" in str(e)
@@ -130,7 +128,7 @@ def test_verify_src_refuted(client: Client):
 
     cx: ModelOutput | None = r.counter_example
     assert cx is not None
-    assert cx.kind == ModelKind.COUNTER_EXAMPLE
+    assert cx.kind == "counter_example"
     assert "x = 0" in cx.src
 
     assert cx.model is not None
@@ -143,7 +141,7 @@ def test_instance_src_sat(client: Client):
     assert r.found
     inst: ModelOutput | None = r.instance
     assert inst is not None
-    assert inst.kind == ModelKind.INSTANCE
+    assert inst.kind == "instance"
     assert "x = 4" in inst.src
 
     assert inst.model is not None
@@ -228,7 +226,7 @@ def test_oneshot(client: Client):
 
 def test_eval_code_snippet(client: Client):
     r: CodeSnippetResult = client.eval_code_snippet("theorem snippet_thm x = f x >= 0")
-    assert r.res == EvalStatus.OK
+    assert r.res == "ok"
     assert r.errors == ()
     # Its result may not be available yet, similar to async_only=True
     (po,) = [t for t in r.tasks if isinstance(t, ProofObligationTask)]
@@ -238,12 +236,12 @@ def test_eval_code_snippet(client: Client):
 @pytest.mark.parametrize(
     ("code", "res", "kind"),
     [
-        pytest.param("let = ", EvalStatus.ERRORS, "SyntaxErr", id="syntax-error"),
-        # The server reports type errors with status `OK`, but a non-empty error list
-        pytest.param("let bad = 1 + true", EvalStatus.OK, "TypeErr", id="type-error"),
+        pytest.param("let = ", "errors", "SyntaxErr", id="syntax-error"),
+        # The server reports type errors with status "ok", but a non-empty error list
+        pytest.param("let bad = 1 + true", "ok", "TypeErr", id="type-error"),
     ],
 )
-def test_eval_code_snippet_error(client: Client, code: str, res: EvalStatus, kind: str):
+def test_eval_code_snippet_error(client: Client, code: str, res: str, kind: str):
     r = client.eval_code_snippet(code)
     assert r.res == res
     (e,) = r.errors
@@ -346,7 +344,7 @@ def test_async_methods():
 
             assert (await c.typecheck("let g y = y + 1")).success
             assert (await c.oneshot("let h = 1")).errors == ()
-            assert (await c.eval_code_snippet("let k = 2")).res == EvalStatus.OK
+            assert (await c.eval_code_snippet("let k = 2")).res == "ok"
             assert isinstance(await c.parse_term("f 3"), Term)
             assert isinstance(await c.parse_type("int"), Type)
 

@@ -22,7 +22,7 @@ import re
 
 from collections.abc import Callable, Iterable, Iterator, Sized
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from fractions import Fraction
 from functools import cached_property
 from typing import ClassVar, Never, assert_never, cast, override
@@ -1243,7 +1243,7 @@ class RuleSpec:
         )
 
 
-class VerifyKind(Enum):
+class VerifyKind(StrEnum):
     VERIFY = "verify"
     INSTANCE = "instance"
     TEST = "test"
@@ -1639,7 +1639,7 @@ class Trigger:
         )
 
 
-class InstantiationRuleKind(Enum):
+class InstantiationRuleKind(StrEnum):
     FORWARD_CHAINING = "forward_chaining"
     GENERALIZATION = "generalization"
 

@@ -5,7 +5,7 @@ import re
 import weakref
 from collections.abc import Awaitable
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from fractions import Fraction
 from functools import cached_property
 from types import TracebackType
@@ -1244,7 +1244,7 @@ class EvaluationTask(Task):
         return DB(self._eval_task.db, self._artifact("eval_task").storage)
 
 
-class LiftBool(Enum):
+class LiftBool(StrEnum):
     DEFAULT = "default"
     """Includes the rules [x1 && x2] --> [if x1 then x2 else false] [x1 || x2] -->
     [if x1 then true else x2] [x1 ==> x2] --> [if x1 then x2 else true]"""
@@ -1270,7 +1270,7 @@ def lift_bool_of_lib(x: lib.Common_Decomp_lift_bool) -> LiftBool:
             return LiftBool.ALL
 
 
-class EnumerationStyle(Enum):
+class EnumerationStyle(StrEnum):
     ADDITIVE = "additive"
     MULTIPLICATIVE = "multiplicative"
 
@@ -1782,17 +1782,12 @@ def _type_of_artifact(artifact: artmsg_pb2.Artifact) -> Type:
     return type_of_lib(d)
 
 
-class ModelKind(Enum):
-    COUNTER_EXAMPLE = "counter_example"
-    INSTANCE = "instance"
-
-
 # Not slotted, so that `model` can be a `cached_property`
 @dataclass(frozen=True)
 class ModelOutput:
     """A model returned by `verify_*`, `instance_*` or `test_*`"""
 
-    kind: ModelKind
+    kind: Literal["counter_example", "instance"]
     """Whether the model is a counter-example or an instance"""
     src: str
     """The model as IML source"""
@@ -1800,11 +1795,12 @@ class ModelOutput:
 
     @classmethod
     def of_raw(cls, x: simple_api_pb2.Model) -> "ModelOutput":
+        kind: Literal["counter_example", "instance"]
         match x.m_type:
             case simple_api_pb2.Counter_example:
-                kind = ModelKind.COUNTER_EXAMPLE
+                kind = "counter_example"
             case simple_api_pb2.Instance:
-                kind = ModelKind.INSTANCE
+                kind = "instance"
             case _:
                 raise Exception(f"Unexpected model type '{x.m_type}'")
         return cls(kind=kind, src=x.src, _raw=x)
@@ -2167,17 +2163,12 @@ class OneshotResult:
         )
 
 
-class EvalStatus(Enum):
-    OK = "ok"
-    ERRORS = "errors"
-
-
 @dataclass(slots=True, frozen=True)
 class CodeSnippetResult:
     """The result of an `eval_code_snippet` request"""
 
-    res: EvalStatus
-    """The evaluation status reported by the server; `errors` can be non-empty even when it is `OK`"""
+    res: Literal["ok", "errors"]
+    """The evaluation status reported by the server; `errors` can be non-empty even when it is `"ok"`"""
     duration_s: float
     """The time evaluation took, in seconds"""
     tasks: tuple[Task, ...]
@@ -2190,11 +2181,12 @@ class CodeSnippetResult:
     def of_raw(
         cls, x: api_pb2.CodeSnippetEvalResult, client: "Client | AsyncClient | None" = None
     ) -> "CodeSnippetResult":
+        res: Literal["ok", "errors"]
         match x.res:
             case api_pb2.EVAL_OK:
-                res = EvalStatus.OK
+                res = "ok"
             case api_pb2.EVAL_ERRORS:
-                res = EvalStatus.ERRORS
+                res = "errors"
             case _:
                 raise Exception(f"Unexpected eval result '{x.res}'")
         return cls(
