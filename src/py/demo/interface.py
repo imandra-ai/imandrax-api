@@ -9,7 +9,7 @@ from enum import StrEnum
 from fractions import Fraction
 from functools import cached_property
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Literal, Self, assert_never
+from typing import TYPE_CHECKING, Any, Literal, Self, assert_never, ClassVar
 
 import imandrax_api
 from imandrax_api import lib
@@ -863,42 +863,10 @@ class Task:
     on its own.
     """
 
-    class Kind:
-        """The kind of a task"""
-
-        def __init__(self, kind: task_pb2.TaskKind):
-            self._raw: task_pb2.TaskKind = kind
-
-        def __str__(self) -> str:
-            return task_pb2.TaskKind.Name(self._raw)
-
-        def corresponding_artifact_kind(self) -> str | None:
-            """The artifact kind of the data of tasks of this kind, `None` if they have no data"""
-            match self._raw:
-                case task_pb2.TASK_EVAL:
-                    return "eval_task"
-                case task_pb2.TASK_CHECK_PO:
-                    return "po_task"
-                case task_pb2.TASK_PROOF_CHECK:
-                    return "proof_check_task"
-                case task_pb2.TASK_DECOMP:
-                    return "decomp_task"
-                case _:
-                    return None
-
-        def corresponding_result_artifact_kind(self) -> str | None:
-            """The artifact kind of the results of tasks of this kind, `None` if they have no result"""
-            match self._raw:
-                case task_pb2.TASK_EVAL:
-                    return "eval_res"
-                case task_pb2.TASK_CHECK_PO:
-                    return "po_res"
-                case task_pb2.TASK_PROOF_CHECK:
-                    return "proof_check_res"
-                case task_pb2.TASK_DECOMP:
-                    return "decomp_res"
-                case _:
-                    return None
+    _artifact_kind: ClassVar[str | None] = None
+    """The artifact kind of the task's data, `None` if tasks of this kind have no data"""
+    _result_artifact_kind: ClassVar[str | None] = None
+    """The artifact kind of the task's result, `None` if tasks of this kind have no result"""
 
     def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         self._raw: task_pb2.Task = task
@@ -925,9 +893,18 @@ class Task:
         return TaskID.of_raw(self._raw.id)
 
     @property
-    def kind(self) -> Kind:
-        """The task's kind"""
-        return Task.Kind(self._raw.kind)
+    def kind(self) -> Literal["eval", "check_po", "proof_check", "decomp", "unspecified"]:
+        match self._raw.kind:
+            case task_pb2.TASK_EVAL:
+                return "eval"
+            case task_pb2.TASK_CHECK_PO:
+                return "check_po"
+            case task_pb2.TASK_PROOF_CHECK:
+                return "proof_check"
+            case task_pb2.TASK_DECOMP:
+                return "decomp"
+            case task_pb2.TASK_UNSPECIFIED | _:
+                return "unspecified"
 
     @property
     def awaitable(self) -> AwaitableAttrs:
@@ -940,7 +917,7 @@ class Task:
 
         Fetched on first access, see `Task`
         """
-        kind = self.kind.corresponding_artifact_kind()
+        kind = self._artifact_kind
         if kind is None:
             raise Exception(f"tasks of kind {self.kind} have no data")
         return self._artifact(kind)
@@ -951,7 +928,7 @@ class Task:
 
         Fetched on first access, see `Task`
         """
-        kind = self.kind.corresponding_result_artifact_kind()
+        kind = self._result_artifact_kind
         if kind is None:
             raise Exception(f"tasks of kind {self.kind} have no result")
         return _task_result_of_artifact(self._artifact(kind))
@@ -961,7 +938,7 @@ class Task:
 
         After this, every attribute can be accessed without `t.awaitable`.
         """
-        kinds = [self.kind.corresponding_artifact_kind(), self.kind.corresponding_result_artifact_kind()]
+        kinds = [self._artifact_kind, self._result_artifact_kind]
         kinds = [k for k in kinds if k is not None and k not in self._artifacts]
         if not kinds:
             return
@@ -1164,6 +1141,9 @@ class ProofObligation:
 class ProofObligationTask(Task):
     """A proof obligation task"""
 
+    _artifact_kind = "po_task"
+    _result_artifact_kind = "po_res"
+
     def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         assert task.kind == task_pb2.TASK_CHECK_PO
         super().__init__(task, client)
@@ -1211,6 +1191,9 @@ class ProofObligationTask(Task):
 
 class EvaluationTask(Task):
     """An evaluation task"""
+
+    _artifact_kind = "eval_task"
+    _result_artifact_kind = "eval_res"
 
     def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         assert task.kind == task_pb2.TASK_EVAL
@@ -1492,6 +1475,9 @@ def decomp_request_of_lib(d: lib.Tasks_Decomp_task_Mir_decomp) -> DecompositionR
 class DecompositionTask(Task):
     """A decomposition task"""
 
+    _artifact_kind = "decomp_task"
+    _result_artifact_kind = "decomp_res"
+
     def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         assert task.kind == task_pb2.TASK_DECOMP
         super().__init__(task, client)
@@ -1531,6 +1517,9 @@ class DecompositionTask(Task):
 
 class ProofCheckTask(Task):
     """A proof checking task"""
+
+    _artifact_kind = "proof_check_task"
+    _result_artifact_kind = "proof_check_res"
 
     def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         assert task.kind == task_pb2.TASK_PROOF_CHECK
