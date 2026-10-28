@@ -126,7 +126,7 @@ class Error:
         return f"{self.kind}: {self.message}"
 
     def __repr__(self) -> str:
-        return f"{self.message}"
+        return f"Error(kind={self.kind!r}, message={self.message.message!r})"
 
 
 @dataclass(slots=True, frozen=True)
@@ -155,8 +155,8 @@ class Artifact:
 
     # TODO: add decode method?
 
-    def __str__(self) -> str:
-        return f"{self._raw}"
+    def __repr__(self) -> str:
+        return f"Artifact(kind={self.kind!r}, data=<{len(self.data)} bytes>, api_version={self.api_version!r})"
 
 
 @dataclass(slots=True, frozen=True)
@@ -552,7 +552,13 @@ class ProofObligationTaskResult:
         return [[ProofObligationTaskResult.Subresult.of_lib(s) for s in sl] for sl in self._data.sub_res]
 
     def __str__(self) -> str:
-        return f"proof: {self.proof} subgoals: {self.subgoals} model: {self.model}"
+        return f"proof: {self.proof}\nsubgoals: {self.subgoals}\nmodel: {self.model}"
+
+    def __repr__(self) -> str:
+        # Shows `proved` once `result` has been accessed and cached
+        if "result" not in self.__dict__:
+            return f"ProofObligationTaskResult(from_={self.from_!r})"
+        return f"ProofObligationTaskResult(from_={self.from_!r}, proved={self.proved})"
 
 
 @dataclass(slots=True, frozen=True)
@@ -598,6 +604,10 @@ class EvaluationTaskResult:
 
     def __str__(self) -> str:
         return str(self.value)
+
+    def __repr__(self) -> str:
+        success = isinstance(self._data.res, lib.Tasks_Eval_res_success)
+        return f"EvaluationTaskResult(success={success})"
 
 
 @dataclass(slots=True, frozen=True)
@@ -799,11 +809,13 @@ class DecompositionTaskResult:
         else:
             return f"Decomposition error: {self.error}"
 
+    def __repr__(self) -> str:
+        return f"DecompositionTaskResult(from_={self.from_!r}, success={self.success})"
+
 
 @dataclass(slots=True, frozen=True)
 class TaskID:
     """A task identifier"""
-    # TODO: maybe we just make this class a string?
     id: str
     _raw: task_pb2.TaskID = field(repr=False, compare=False)
 
@@ -903,6 +915,9 @@ class Task:
 
     def __hash__(self) -> int:
         return hash(self._raw.id.id)
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(id={self._raw.id.id!r})"
 
     @property
     def id(self) -> TaskID:
@@ -1744,9 +1759,6 @@ class EvalSrcResponse:
             _raw=x,
         )
 
-    def __str__(self) -> str:
-        return f"{self._raw}"
-
 
 def _decode_artifact(artifact: artmsg_pb2.Artifact, kind: str) -> lib.Artifact:
     """Decode the data of `artifact`, checking that it has kind `kind`"""
@@ -1883,10 +1895,6 @@ class VerifyResponse:
             _raw=x,
         )
 
-    def __str__(self) -> str:
-        # TODO: create one?
-        return f"{self._raw}"
-
     @property
     def outcome(self) -> Literal["unknown", "err", "proved", "refuted", "verified_upto"] | None:
         """One of `unknown`, `err`, `proved`, `refuted` and `verified_upto`"""
@@ -1994,9 +2002,6 @@ class InstanceResponse:
             _raw=x,
         )
 
-    def __str__(self) -> str:
-        return f"{self._raw}"
-
     @property
     def outcome(self) -> Literal["unknown", "err", "unsat", "sat"] | None:
         """One of `unknown`, `err`, `unsat` and `sat`"""
@@ -2085,9 +2090,6 @@ class TestResponse:
             task=task_of_raw(x.task, client),
             _raw=x,
         )
-
-    def __str__(self) -> str:
-        return f"{self._raw}"
 
     @property
     def outcome(self) -> Literal["err", "counter_example"] | None:
