@@ -2208,25 +2208,6 @@ class ServerVersion:
         return cls(version=x.version, git_version=x.git_version if x.HasField("git_version") else None, _raw=x)
 
 
-@dataclass(slots=True, frozen=True)
-class GcStatistics:
-    """The server's garbage collector statistics"""
-
-    heap_size_bytes: int
-    major_collections: int
-    minor_collections: int
-    _raw: system_pb2.Gc_stats = field(repr=False, compare=False)
-
-    @classmethod
-    def of_raw(cls, x: system_pb2.Gc_stats) -> "GcStatistics":
-        return cls(
-            heap_size_bytes=x.heap_size_B,
-            major_collections=x.major_collections,
-            minor_collections=x.minor_collections,
-            _raw=x,
-        )
-
-
 def _artifact_kinds_of_result(res: api_pb2.ArtifactListResult) -> list[str]:
     match res.WhichOneof("result"):
         case "error":
@@ -2472,14 +2453,6 @@ class Client:
         """The server's version"""
         return ServerVersion.of_raw(self._client.version(timeout=timeout))
 
-    def gc_stats(self, timeout: float | None = None) -> GcStatistics:
-        """The server's garbage collector statistics"""
-        return GcStatistics.of_raw(self._client.gc_stats(timeout=timeout))
-
-    def release_memory(self, timeout: float | None = None) -> GcStatistics:
-        """Ask the server to release memory; returns its garbage collector statistics"""
-        return GcStatistics.of_raw(self._client.release_memory(timeout=timeout))
-
 
 class AsyncClient:
     """An asynchronous client for the ImandraX API; use it as `async with AsyncClient(...) as c`
@@ -2722,11 +2695,3 @@ class AsyncClient:
     async def version(self, timeout: float | None = None) -> ServerVersion:
         """The server's version"""
         return ServerVersion.of_raw(await self._client.version(timeout=timeout))
-
-    async def gc_stats(self, timeout: float | None = None) -> GcStatistics:
-        """The server's garbage collector statistics"""
-        return GcStatistics.of_raw(await self._client.gc_stats(timeout=timeout))
-
-    async def release_memory(self, timeout: float | None = None) -> GcStatistics:
-        """Ask the server to release memory; returns its garbage collector statistics"""
-        return GcStatistics.of_raw(await self._client.release_memory(timeout=timeout))
