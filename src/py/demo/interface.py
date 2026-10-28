@@ -9,7 +9,7 @@ from enum import StrEnum
 from fractions import Fraction
 from functools import cached_property
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Literal, Self, assert_never, ClassVar
+from typing import TYPE_CHECKING, Any, Literal, Self, assert_never, ClassVar, cast, get_origin
 
 import imandrax_api
 from imandrax_api import lib
@@ -163,7 +163,26 @@ class Artifact:
             _raw=x,
         )
 
-    # TODO: add decode method?
+    def decode_as[T](self, expected_type: type[T]) -> T:
+        """Decode the data as `expected_type`
+
+        Args:
+            expected_type: The class the data should decode to. Pass a generic class specialized,
+                e.g. `lib.Common_Model_t_poly[lib.Mir_Term, lib.Mir_Type]`, to get a fully typed
+                result. Only the class is checked; the type arguments are not.
+
+        Raises:
+            UnexpectedResponseError: if the artifact kind is unknown, or the data does not decode to
+                the `expected_type`.
+        """
+        if self.kind not in lib.artifact_decoders:
+            raise UnexpectedResponseError(f"Unknown artifact kind '{self.kind}'")
+        d = lib.read_artifact_data(self.data, self.kind)
+        cls = get_origin(expected_type) or expected_type  # `Foo[A, B]` -> `Foo`; plain `Foo` stays
+        if not isinstance(d, cls):
+            raise UnexpectedResponseError(f"Artifact of kind '{self.kind}' decoded to unexpected type '{type(d)}'")
+        # `isinstance` cannot narrow to `T` here, as it checks the class without type arguments
+        return cast(T, d)
 
     def __repr__(self) -> str:
         return f"Artifact(kind={self.kind!r}, data=<{len(self.data)} bytes>, api_version={self.api_version!r})"
@@ -497,10 +516,7 @@ class ProofObligationTaskResult:
         if artifact.kind != "po_res":
             raise ValueError(f"Expected an artifact of kind 'po_res', got '{artifact.kind}'")
         self._artifact: Artifact = artifact
-        d = lib.read_artifact_data(artifact.data, artifact.kind)
-        if not (isinstance(d, lib.Tasks_PO_res_shallow_poly)):
-            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
-        self._data: lib.Tasks_PO_res_Shallow = d
+        self._data = artifact.decode_as(lib.Tasks_PO_res_shallow_poly[lib.Mir_Term, lib.Mir_Type])
 
     @property
     def from_(self) -> str:
@@ -591,10 +607,7 @@ class EvaluationTaskResult:
         if artifact.kind != "eval_res":
             raise ValueError(f"Expected an artifact of kind 'eval_res', got '{artifact.kind}'")
         self._artifact: Artifact = artifact
-        d = lib.read_artifact_data(artifact.data, artifact.kind)
-        if not (isinstance(d, lib.Tasks_Eval_res)):
-            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
-        self._data: lib.Tasks_Eval_res = d
+        self._data = artifact.decode_as(lib.Tasks_Eval_res)
 
     @cached_property
     def value(self) -> Value:
@@ -756,10 +769,7 @@ class DecompositionTaskResult:
         if artifact.kind != "decomp_res":
             raise ValueError(f"Expected an artifact of kind 'decomp_res', got '{artifact.kind}'")
         self._artifact: Artifact = artifact
-        d = lib.read_artifact_data(artifact.data, artifact.kind)
-        if not (isinstance(d, lib.Tasks_Decomp_res_shallow_poly)):
-            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
-        self._data: lib.Tasks_Decomp_res_Shallow = d
+        self._data = artifact.decode_as(lib.Tasks_Decomp_res_shallow_poly[lib.Mir_Term, lib.Mir_Type])
 
     @property
     def from_(self) -> str:
@@ -1031,13 +1041,13 @@ class Task:
 
 
 def _artifact_of_result(res: api_pb2.ArtifactResult) -> Artifact:
-    match res.WhichOneof("result"):
+    match (res_tag := res.WhichOneof("result")):
         case "error":
             raise ServerError(Error.of_raw(res.error))
         case "ok":
             return Artifact.of_raw(res.ok)
         case _:
-            raise UnexpectedResponseError("Artifact result has neither `error` nor `ok`")
+            raise UnexpectedResponseError(f"Artifact result has neither `error` nor `ok`: {res_tag}")
 
 
 def _task_result_of_artifact(artifact: Artifact) -> TaskResult:
@@ -1183,11 +1193,7 @@ class ProofObligationTask(Task):
 
     @cached_property
     def _po_task(self) -> lib.Tasks_PO_task_Mir:
-        artifact = self._artifact("po_task")
-        d = lib.read_artifact_data(artifact.data, artifact.kind)
-        if not (isinstance(d, lib.Tasks_PO_task_t_poly)):
-            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
-        return d
+        return self._artifact("po_task").decode_as(lib.Tasks_PO_task_t_poly[lib.Mir_Term, lib.Mir_Type])
 
     @cached_property
     def proof_obligation(self) -> ProofObligation:
@@ -1234,11 +1240,7 @@ class EvaluationTask(Task):
 
     @cached_property
     def _eval_task(self) -> lib.Tasks_Eval_task_Mir:
-        artifact = self._artifact("eval_task")
-        d = lib.read_artifact_data(artifact.data, artifact.kind)
-        if not (isinstance(d, lib.Tasks_Eval_task_t_poly)):
-            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
-        return d
+        return self._artifact("eval_task").decode_as(lib.Tasks_Eval_task_t_poly[lib.Mir_Term, lib.Mir_Type])
 
     @cached_property
     def variables(self) -> list[Var]:
@@ -1517,11 +1519,7 @@ class DecompositionTask(Task):
 
     @cached_property
     def _decomp_task(self) -> lib.Tasks_Decomp_task_Mir:
-        artifact = self._artifact("decomp_task")
-        d = lib.read_artifact_data(artifact.data, artifact.kind)
-        if not (isinstance(d, lib.Tasks_Decomp_task_t_poly)):
-            raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
-        return d
+        return self._artifact("decomp_task").decode_as(lib.Tasks_Decomp_task_t_poly[lib.Mir_Term, lib.Mir_Type])
 
     @cached_property
     def decomp(self) -> DecompositionRequest.Request:
@@ -1720,12 +1718,7 @@ class DecompositionResult:
         """The decomposition, decoded from `artifact` on first access, if the request succeeded"""
         if self.artifact is None:
             return None
-        if self.artifact.kind != "mir.fun_decomp":
-            raise ValueError(f"Expected an artifact of kind 'mir.fun_decomp', got '{self.artifact.kind}'")
-        d = lib.read_artifact_data(self.artifact.data, self.artifact.kind)
-        if not isinstance(d, lib.Common_Fun_decomp_t_poly):
-            raise UnexpectedResponseError(f"Artifact of kind '{self.artifact.kind}' decoded to unexpected type '{type(d)}'")
-        return Decomposition.of_lib(d)
+        return Decomposition.of_lib(self.artifact.decode_as(lib.Common_Fun_decomp_t_poly[lib.Mir_Term, lib.Mir_Type]))
 
 
 @dataclass(slots=True, frozen=True)
@@ -1784,34 +1777,6 @@ class EvalSrcResponse:
         )
 
 
-def _decode_artifact(artifact: artmsg_pb2.Artifact, kind: str) -> lib.Artifact:
-    """Decode the data of `artifact`, checking that it has kind `kind`"""
-    if artifact.kind != kind:
-        raise UnexpectedResponseError(f"Unexpected artifact kind '{artifact.kind}'")
-    return lib.read_artifact_data(artifact.data, artifact.kind)
-
-
-def _model_of_artifact(artifact: artmsg_pb2.Artifact) -> Model:
-    d = _decode_artifact(artifact, "mir.model")
-    if not isinstance(d, lib.Common_Model_t_poly):
-        raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
-    return Model.of_lib(d)
-
-
-def _term_of_artifact(artifact: artmsg_pb2.Artifact) -> Term:
-    d = _decode_artifact(artifact, "term")
-    if not isinstance(d, lib.Mir_Term):
-        raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
-    return term_of_lib(d)
-
-
-def _type_of_artifact(artifact: artmsg_pb2.Artifact) -> Type:
-    d = _decode_artifact(artifact, "ty")
-    if not isinstance(d, lib.Mir_Type):
-        raise UnexpectedResponseError(f"Artifact of kind '{artifact.kind}' decoded to unexpected type '{type(d)}'")
-    return type_of_lib(d)
-
-
 # Not slotted for cached_property
 @dataclass(frozen=True)
 class ModelOutput:
@@ -1843,7 +1808,8 @@ class ModelOutput:
         """The model, decoded from its artifact on first access, if the server sent one"""
         if not self._raw.HasField("artifact"):
             return None
-        return _model_of_artifact(self._raw.artifact)
+        artifact = Artifact.of_raw(self._raw.artifact)
+        return Model.of_lib(artifact.decode_as(lib.Common_Model_t_poly[lib.Mir_Term, lib.Mir_Type]))
 
 
 @dataclass(slots=True, frozen=True)
@@ -2435,15 +2401,13 @@ class Client:
 
     def parse_term(self, code: str, timeout: float | None = None) -> Term:
         """Parse and typecheck a term"""
-        return _term_of_artifact(
-            _artifact_of_result(self._client.parse_term(code, timeout=timeout))._raw
-        )
+        artifact = _artifact_of_result(self._client.parse_term(code, timeout=timeout))
+        return term_of_lib(artifact.decode_as(lib.Mir_Term))
 
     def parse_type(self, code: str, timeout: float | None = None) -> Type:
         """Parse and typecheck a type"""
-        return _type_of_artifact(
-            _artifact_of_result(self._client.parse_type(code, timeout=timeout))._raw
-        )
+        artifact = _artifact_of_result(self._client.parse_type(code, timeout=timeout))
+        return type_of_lib(artifact.decode_as(lib.Mir_Type))
 
     def list_artifacts(self, task: Task, timeout: float | None = None) -> list[str]:
         """The kinds of the artifacts available for `task`"""
@@ -2671,19 +2635,13 @@ class AsyncClient:
 
     async def parse_term(self, code: str, timeout: float | None = None) -> Term:
         """Parse and typecheck a term"""
-        return _term_of_artifact(
-            _artifact_of_result(
-                await self._client.parse_term(code, timeout=timeout)
-            )._raw
-        )
+        artifact = _artifact_of_result(await self._client.parse_term(code, timeout=timeout))
+        return term_of_lib(artifact.decode_as(lib.Mir_Term))
 
     async def parse_type(self, code: str, timeout: float | None = None) -> Type:
         """Parse and typecheck a type"""
-        return _type_of_artifact(
-            _artifact_of_result(
-                await self._client.parse_type(code, timeout=timeout)
-            )._raw
-        )
+        artifact = _artifact_of_result(await self._client.parse_type(code, timeout=timeout))
+        return type_of_lib(artifact.decode_as(lib.Mir_Type))
 
     async def list_artifacts(
         self, task: Task, timeout: float | None = None
