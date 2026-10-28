@@ -24,6 +24,7 @@ from imandrax_api.demo.interface import (
     EvalSrcResponse,
     NoClientError,
     NotFetchedError,
+    ProofObligation,
     ProofObligationTask,
     ProofObligationTaskResult,
     Task,
@@ -150,6 +151,28 @@ def test_access_kill_access_derived_from_same_artifact():
     # The result is in the `po_res` artifact, never fetched
     with pytest.raises(ClientGoneError):
         _ = po.result
+
+
+def test_kill_set_client_access():
+    """A task whose client is gone fetches with another client"""
+
+    with mk_client() as client:
+        po_task: ProofObligationTask = get_the_task(client.eval_src(SRC), ProofObligationTask)
+        po: ProofObligation = po_task.proof_obligation
+
+    ref = weakref.ref(client)
+    del client
+    assert_weak_ref_gone(ref)
+
+    with pytest.raises(ClientGoneError):
+        _ = po_task.result
+
+    assert po_task.proof_obligation is po, "Accessing cached property after client is gone should be fine"
+
+    with mk_client() as c2:
+        po_task.set_client(c2)
+        assert po_task.proof_obligation is po
+        assert isinstance(po_task.result, ProofObligationTaskResult)
 
 
 # AsyncClient

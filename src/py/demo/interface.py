@@ -864,6 +864,8 @@ class Task:
       can be accessed as usual. Accessing it before raises `NotFetchedError`.
     - With no client, nothing is fetched; accessing an artifact raises `NoClientError`.
 
+    `t.set_client(client)` sets the client to fetch with, e.g. after the original one is gone.
+
     `await t.fetch_all()` fetches all of the task's artifacts, after which every attribute can be
     accessed without `t.awaitable`.
 
@@ -968,12 +970,20 @@ class Task:
             for k in kinds:
                 self._artifact(k)
 
+    def set_client(self, client: "Client | AsyncClient") -> None:
+        self._client = weakref.ref(client)
+
     def _get_client(self) -> "Client | AsyncClient":
         if self._client is None:
-            raise NoClientError(f"task {self.id} has no client to fetch its data with")
+            raise NoClientError(
+                f"task {self.id} has no client to fetch its data with; set one with `task.set_client(client)`"
+            )
         client = self._client()
         if client is None:
-            raise ClientGoneError(f"the client of task {self.id} is gone; keep it alive while fetching")
+            raise ClientGoneError(
+                f"the client of task {self.id} is gone; keep it alive while fetching, "
+                "or set another with `task.set_client(client)`"
+            )
         return client
 
     def _artifact(self, kind: str) -> Artifact:
