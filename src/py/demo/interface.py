@@ -6,7 +6,6 @@ import weakref
 from collections.abc import Awaitable
 from dataclasses import dataclass, field
 from enum import StrEnum
-from fractions import Fraction
 from functools import cached_property
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Literal, Self, assert_never, ClassVar, cast, get_origin
@@ -23,43 +22,22 @@ from imandrax_api.bindings import (
     task_pb2,
 )
 
-from .errors import ImandraXError, UnexpectedResponseError
+from .errors import (
+    ClientGoneError,
+    NoClientError,
+    NotFetchedError,
+    ServerError,
+    UnexpectedResponseError,
+)
 from .evaluation_values import Value, value_of_lib
 from .mir import *
+from .proof import ProofTerm, proof_term_of_lib
 from .report import Report
 
 if TYPE_CHECKING:
     from imandrax_api.client import AsyncClient as AsyncClient_
 
     from . import decomp
-
-
-class ServerError(ImandraXError):
-    """The server reported an error"""
-
-    def __init__(self, error: "Error | ErrorCore"):
-        super().__init__(str(error))
-        self.error: Error | ErrorCore = error
-
-
-class ClientGoneError(ImandraXError):
-    """Task data was fetched after the client that created the task was garbage-collected"""
-
-
-class NoClientError(ImandraXError):
-    """Task data that is not fetched yet was accessed on a task created without a client"""
-
-
-class NotFetchedError(ImandraXError):
-    """An artifact of a task from an `AsyncClient` was accessed before it was fetched
-
-    Fetch it by accessing the attribute with `await task.awaitable.<attribute>` first
-    """
-
-    def __init__(self, task: "Task", kind: str):
-        super().__init__(f"artifact {kind!r} of task {task.id} not fetched; use `await task.awaitable.<attribute>` first")
-        self.task: Task = task
-        self.kind: str = kind
 
 
 @dataclass(slots=True, frozen=True)
@@ -235,149 +213,6 @@ class ErrorCore:
             stack=tuple(ErrorMessage.of_lib(m) for m in x.stack),
             _raw=x,
         )
-
-
-@dataclass(slots=True, frozen=True)
-class TermArgument:
-    term: Term
-    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class TypeArgument:
-    type: Type
-    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class IntArgument:
-    value: int
-    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class StringArgument:
-    value: str
-    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class ListArgument:
-    elements: tuple["ProofArgument", ...]
-    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class DictArgument:
-    entries: tuple[tuple[str, "ProofArgument"], ...]
-    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class SequentArgument:
-    sequent: Sequent
-    _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-ProofArgument = (
-    TermArgument | TypeArgument | IntArgument | StringArgument | ListArgument | DictArgument | SequentArgument
-)
-
-
-def proof_argument_of_lib(x: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type]) -> ProofArgument:
-    """Convert a library proof rule argument into the matching `ProofArgument` variant"""
-    match x:
-        case lib.Proof_Arg_A_term(arg=t):
-            return TermArgument(term=term_of_lib(t), _raw=x)
-        case lib.Proof_Arg_A_ty(arg=ty):
-            return TypeArgument(type=type_of_lib(ty), _raw=x)
-        case lib.Proof_Arg_A_int(arg=n):
-            return IntArgument(value=n, _raw=x)
-        case lib.Proof_Arg_A_string(arg=st):
-            return StringArgument(value=st, _raw=x)
-        case lib.Proof_Arg_A_list(arg=xs):
-            return ListArgument(elements=tuple(proof_argument_of_lib(a) for a in xs), _raw=x)
-        case lib.Proof_Arg_A_dict(arg=kvs):
-            return DictArgument(entries=tuple((k, proof_argument_of_lib(v)) for k, v in kvs), _raw=x)
-        case lib.Proof_Arg_A_seq(arg=sq):
-            return SequentArgument(sequent=Sequent.of_lib(sq), _raw=x)
-
-
-# The variants of a proof term are those of its view, from `Imandrax_api_proof.View`.
-
-
-@dataclass(slots=True, frozen=True, kw_only=True)
-class _ProofTerm:
-    """A proof term"""
-
-    id: int
-    """unique generative id"""
-    conclusion: Sequent
-    _raw: lib.Proof_Proof_term_t_poly[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class AssumeProof(_ProofTerm):
-    """The rest of the proof is elsewhere. This can be replaced with the actual proof of this proof's
-    goal."""
-
-
-@dataclass(slots=True, frozen=True)
-class SubstProof(_ProofTerm):
-    """Instantiation of a previous step"""
-
-    term_substitution: tuple[tuple[Variable, Term], ...]
-    type_substitution: tuple[tuple[Uid, Type], ...]
-    premise: "ProofTerm"
-
-
-@dataclass(slots=True, frozen=True)
-class DeductionProof(_ProofTerm):
-    premises: tuple[tuple[str, tuple["ProofTerm", ...]], ...]
-    """Groups of premises. The conclusion should be provable via QF_UF reasoning from the conjunction
-    of all premises."""
-
-
-@dataclass(slots=True, frozen=True)
-class RuleProof(_ProofTerm):
-    """A leaf rule, e.g. an axiom or a particular theory rule."""
-
-    rule: str
-    arguments: tuple[ProofArgument, ...]
-
-
-ProofTerm = AssumeProof | SubstProof | DeductionProof | RuleProof
-"""A proof term"""
-
-
-def proof_term_of_lib(x: lib.Proof_Proof_term_t_poly[lib.Mir_Term, lib.Mir_Type]) -> ProofTerm:
-    """Convert a library proof term into the matching `ProofTerm` variant"""
-    concl = Sequent.of_lib(x.concl)
-    match x.view:
-        case lib.Proof_View_T_assume():
-            return AssumeProof(id=x.id, conclusion=concl, _raw=x)
-        case lib.Proof_View_T_subst(t_subst=ts, ty_subst=tys, premise=p):
-            return SubstProof(
-                term_substitution=tuple(
-                    (Variable.of_lib(lib.Common_Var_t_poly(id=u, ty=ty)), term_of_lib(t)) for (u, ty), t in ts
-                ),
-                type_substitution=tuple((Uid(u), type_of_lib(ty)) for u, ty in tys),
-                premise=proof_term_of_lib(p),
-                id=x.id,
-                conclusion=concl,
-                _raw=x,
-            )
-        case lib.Proof_View_T_deduction(premises=ps):
-            return DeductionProof(
-                premises=tuple((n, tuple(proof_term_of_lib(p) for p in group)) for n, group in ps),
-                id=x.id,
-                conclusion=concl,
-                _raw=x,
-            )
-        case lib.Proof_View_T_rule(rule=r, args=args):
-            return RuleProof(
-                rule=r, arguments=tuple(proof_argument_of_lib(a) for a in args), id=x.id, conclusion=concl, _raw=x
-            )
 
 
 @dataclass(slots=True, frozen=True)
@@ -631,135 +466,6 @@ class EvaluationTaskResult:
     def __repr__(self) -> str:
         success = isinstance(self._data.res, lib.Tasks_Eval_res_success)
         return f"EvaluationTaskResult(success={success})"
-
-
-@dataclass(slots=True, frozen=True)
-class UnknownStatus:
-    _raw: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class FeasibleStatus:
-    model: Model
-    _raw: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-@dataclass(slots=True, frozen=True)
-class FeasibilityCheckFailedStatus:
-    """Trying to assess feasibility failed, eg with a timeout"""
-
-    message: str
-    _raw: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
-
-
-RegionStatus = UnknownStatus | FeasibleStatus | FeasibilityCheckFailedStatus
-
-
-def region_status_of_lib(x: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type]) -> RegionStatus:
-    """Convert a library region status into the matching `RegionStatus` variant"""
-    match x:
-        case lib.Common_Region_status_Unknown():
-            return UnknownStatus(_raw=x)
-        case lib.Common_Region_status_Feasible(arg=m):
-            return FeasibleStatus(model=Model.of_lib(m), _raw=x)
-        case lib.Common_Region_status_Feasibility_check_failed(arg=msg):
-            return FeasibilityCheckFailedStatus(message=msg, _raw=x)
-
-
-def _meta_of_lib(m: lib.Common_Region_meta[lib.Mir_Term]) -> "Decomposition.Region.Meta":
-    """Convert a library region metadata value into a Python value"""
-    match m:
-        case lib.Common_Region_meta_Null():
-            return None
-        case lib.Common_Region_meta_Bool(arg=b):
-            return b
-        case lib.Common_Region_meta_Int(arg=n):
-            return n
-        case lib.Common_Region_meta_Real(arg=(num, den)):
-            return Fraction(num, den)
-        case lib.Common_Region_meta_String(arg=s):
-            return s
-        case lib.Common_Region_meta_Assoc(arg=kvs):
-            return {k: _meta_of_lib(v) for k, v in kvs}
-        case lib.Common_Region_meta_Term(arg=t):
-            return term_of_lib(t)
-        case lib.Common_Region_meta_List(arg=xs):
-            return [_meta_of_lib(x) for x in xs]
-
-
-@dataclass(slots=True, frozen=True)
-class Decomposition:
-    """A region decomposition of a function"""
-
-    @dataclass(slots=True, frozen=True, repr=False)
-    class Region:
-        """A region of the input space, given by constraints, and the result in it"""
-
-        type Meta = (
-            None
-            | bool
-            | int
-            | Fraction  # real/rational
-            | str
-            | Term
-            | dict[str, Decomposition.Region.Meta]
-            | list[Decomposition.Region.Meta]
-        )
-        """A metadata value attached to a region"""
-
-        constraints: tuple[Term, ...]
-        """The constraints on the inputs that define the region"""
-        invariant: Term
-        """The function's result for inputs in the region"""
-        meta: dict[str, Meta]
-        """Metadata attached to the region, by name"""
-        status: RegionStatus
-        """Whether the region is known to be feasible"""
-        _raw: lib.Mir_Region_Region = field(repr=False, compare=False)
-
-        @classmethod
-        def of_lib(cls, r: lib.Mir_Region_Region) -> "Decomposition.Region":
-            return cls(
-                constraints=tuple(term_of_lib(c) for c in r.constraints),
-                invariant=term_of_lib(r.invariant),
-                meta={k: _meta_of_lib(v) for k, v in r.meta},
-                status=region_status_of_lib(r.status),
-                _raw=r,
-            )
-
-        def __str__(self) -> str:
-            constraints = "; ".join(str(c) for c in self.constraints)
-            match self.status:
-                case UnknownStatus():
-                    status = "unknown"
-                case FeasibleStatus():
-                    status = "feasible"
-                case FeasibilityCheckFailedStatus(message=msg):
-                    status = f"feasibility check failed: {msg}"
-            return f"constraints: [{constraints}] invariant: {self.invariant} status: {status}"
-
-        def __repr__(self) -> str:
-            return f"{type(self).__name__}({self})"
-
-    id: Uid
-    """The identifier of the decomposed function"""
-    arguments: tuple[Var, ...]
-    """The decomposed function's parameters"""
-    regions: tuple[Region, ...]
-    """The regions"""
-    _raw: lib.Mir_Fun_decomp = field(repr=False, compare=False)
-
-    @classmethod
-    def of_lib(cls, d: lib.Mir_Fun_decomp) -> "Decomposition":
-        return cls(
-            id=Uid(d.f_id),
-            arguments=tuple(var_term_of_var(a) for a in d.f_args),
-            regions=tuple(Decomposition.Region.of_lib(r) for r in d.regions),
-            _raw=d,
-        )
-
-    def __str__(self) -> str:
-        return str(list(self.regions))
 
 
 class DecompositionTaskResult:
@@ -1062,85 +768,6 @@ def _task_result_of_artifact(artifact: Artifact) -> TaskResult:
             raise UnexpectedResponseError("Decoding results of kind 'proof_check_res' is not implemented")
         case _:
             raise UnexpectedResponseError(f"Unexpected result artifact kind '{artifact.kind}'")
-
-
-@dataclass(slots=True, frozen=True)
-class DefaultTerminationTactic:
-    """The default tactic for termination proofs"""
-
-    max_steps: int
-    """The maximum number of proof steps"""
-    basis: frozenset[Uid]
-    """The function basis of the termination proof"""
-    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
-
-    def __str__(self) -> str:
-        basis = "{" + ", ".join(sorted(u.full_name for u in self.basis)) + "}"
-        return f"DefaultTerminationTactic(max_steps={self.max_steps}, basis={basis})"
-
-
-@dataclass(slots=True, frozen=True)
-class DefaultTheoremTactic:
-    """The default tactic for theorems"""
-
-    max_steps: int
-    """The maximum number of proof steps"""
-    upto: int | None
-    """The bound for bounded verification, if any"""
-    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
-
-    def __str__(self) -> str:
-        upto = "None" if self.upto is None else f"{self.upto} steps"
-        return f"DefaultTheoremTactic(max_steps={self.max_steps}, upto={upto})"
-
-
-@dataclass(slots=True, frozen=True)
-class DefaultTestTactic:
-    """The default tactic for tests"""
-
-    num_steps: int | None
-    """The number of test steps, if limited"""
-    seed: int | None
-    """The random seed, if fixed"""
-    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
-
-    def __str__(self) -> str:
-        return f"DefaultTestTactic(num_steps={self.num_steps}, seed={self.seed})"
-
-
-@dataclass(slots=True, frozen=True)
-class TermTactic:
-    """A tactic given as a term"""
-
-    variables: tuple[Var, ...]
-    """The variables bound in the tactic term"""
-    term: Term
-    """The tactic term"""
-    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
-
-    def __str__(self) -> str:
-        return str(self.term)
-
-
-Tactic = DefaultTerminationTactic | DefaultTheoremTactic | DefaultTestTactic | TermTactic
-"""A tactic used to discharge a proof obligation"""
-
-
-def tactic_of_lib(t: lib.Mir_Tactic) -> Tactic:
-    """Convert a library tactic into the matching `Tactic` variant"""
-    match t:
-        case lib.Common_Tactic_t_poly_Default_termination(max_steps=max_steps, basis=basis):
-            return DefaultTerminationTactic(max_steps=max_steps, basis=frozenset(Uid(f) for f in basis), _raw=t)
-        case lib.Common_Tactic_t_poly_Default_thm(max_steps=max_steps, upto=upto):
-            return DefaultTheoremTactic(
-                max_steps=max_steps, upto=None if upto is None else upto_of_lib(upto), _raw=t
-            )
-        case lib.Common_Tactic_t_poly_Default_test(num_steps=num_steps, seed=seed):
-            return DefaultTestTactic(num_steps=num_steps, seed=seed, _raw=t)
-        case lib.Common_Tactic_t_poly_Term(arg=(vs, term)):
-            return TermTactic(variables=tuple(var_term_of_var(v) for v in vs), term=term_of_lib(term), _raw=t)
-        case _:
-            assert_never(t)
 
 
 @dataclass(slots=True, frozen=True)

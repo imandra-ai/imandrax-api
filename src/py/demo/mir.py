@@ -1098,6 +1098,85 @@ class Hints:
 
 
 @dataclass(slots=True, frozen=True)
+class DefaultTerminationTactic:
+    """The default tactic for termination proofs"""
+
+    max_steps: int
+    """The maximum number of proof steps"""
+    basis: frozenset[Uid]
+    """The function basis of the termination proof"""
+    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        basis = "{" + ", ".join(sorted(u.full_name for u in self.basis)) + "}"
+        return f"DefaultTerminationTactic(max_steps={self.max_steps}, basis={basis})"
+
+
+@dataclass(slots=True, frozen=True)
+class DefaultTheoremTactic:
+    """The default tactic for theorems"""
+
+    max_steps: int
+    """The maximum number of proof steps"""
+    upto: int | None
+    """The bound for bounded verification, if any"""
+    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        upto = "None" if self.upto is None else f"{self.upto} steps"
+        return f"DefaultTheoremTactic(max_steps={self.max_steps}, upto={upto})"
+
+
+@dataclass(slots=True, frozen=True)
+class DefaultTestTactic:
+    """The default tactic for tests"""
+
+    num_steps: int | None
+    """The number of test steps, if limited"""
+    seed: int | None
+    """The random seed, if fixed"""
+    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return f"DefaultTestTactic(num_steps={self.num_steps}, seed={self.seed})"
+
+
+@dataclass(slots=True, frozen=True)
+class TermTactic:
+    """A tactic given as a term"""
+
+    variables: tuple[Var, ...]
+    """The variables bound in the tactic term"""
+    term: Term
+    """The tactic term"""
+    _raw: lib.Mir_Tactic = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return str(self.term)
+
+
+Tactic = DefaultTerminationTactic | DefaultTheoremTactic | DefaultTestTactic | TermTactic
+"""A tactic used to discharge a proof obligation"""
+
+
+def tactic_of_lib(t: lib.Mir_Tactic) -> Tactic:
+    """Convert a library tactic into the matching `Tactic` variant"""
+    match t:
+        case lib.Common_Tactic_t_poly_Default_termination(max_steps=max_steps, basis=basis):
+            return DefaultTerminationTactic(max_steps=max_steps, basis=frozenset(Uid(f) for f in basis), _raw=t)
+        case lib.Common_Tactic_t_poly_Default_thm(max_steps=max_steps, upto=upto):
+            return DefaultTheoremTactic(
+                max_steps=max_steps, upto=None if upto is None else upto_of_lib(upto), _raw=t
+            )
+        case lib.Common_Tactic_t_poly_Default_test(num_steps=num_steps, seed=seed):
+            return DefaultTestTactic(num_steps=num_steps, seed=seed, _raw=t)
+        case lib.Common_Tactic_t_poly_Term(arg=(vs, term)):
+            return TermTactic(variables=tuple(var_term_of_var(v) for v in vs), term=term_of_lib(term), _raw=t)
+        case _:
+            assert_never(t)
+
+
+@dataclass(slots=True, frozen=True)
 class DefinedFunctionKind:
     is_macro: bool
     from_lambda: bool
@@ -1787,6 +1866,135 @@ class Model:
 
     def __str__(self) -> str:
         return f"types: {self.types} constants: {self.constants} functions: {self.functions}"
+
+
+@dataclass(slots=True, frozen=True)
+class UnknownStatus:
+    _raw: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class FeasibleStatus:
+    model: Model
+    _raw: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+@dataclass(slots=True, frozen=True)
+class FeasibilityCheckFailedStatus:
+    """Trying to assess feasibility failed, eg with a timeout"""
+
+    message: str
+    _raw: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+
+RegionStatus = UnknownStatus | FeasibleStatus | FeasibilityCheckFailedStatus
+
+
+def region_status_of_lib(x: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type]) -> RegionStatus:
+    """Convert a library region status into the matching `RegionStatus` variant"""
+    match x:
+        case lib.Common_Region_status_Unknown():
+            return UnknownStatus(_raw=x)
+        case lib.Common_Region_status_Feasible(arg=m):
+            return FeasibleStatus(model=Model.of_lib(m), _raw=x)
+        case lib.Common_Region_status_Feasibility_check_failed(arg=msg):
+            return FeasibilityCheckFailedStatus(message=msg, _raw=x)
+
+
+def _meta_of_lib(m: lib.Common_Region_meta[lib.Mir_Term]) -> "Decomposition.Region.Meta":
+    """Convert a library region metadata value into a Python value"""
+    match m:
+        case lib.Common_Region_meta_Null():
+            return None
+        case lib.Common_Region_meta_Bool(arg=b):
+            return b
+        case lib.Common_Region_meta_Int(arg=n):
+            return n
+        case lib.Common_Region_meta_Real(arg=(num, den)):
+            return Fraction(num, den)
+        case lib.Common_Region_meta_String(arg=s):
+            return s
+        case lib.Common_Region_meta_Assoc(arg=kvs):
+            return {k: _meta_of_lib(v) for k, v in kvs}
+        case lib.Common_Region_meta_Term(arg=t):
+            return term_of_lib(t)
+        case lib.Common_Region_meta_List(arg=xs):
+            return [_meta_of_lib(x) for x in xs]
+
+
+@dataclass(slots=True, frozen=True)
+class Decomposition:
+    """A region decomposition of a function"""
+
+    @dataclass(slots=True, frozen=True, repr=False)
+    class Region:
+        """A region of the input space, given by constraints, and the result in it"""
+
+        type Meta = (
+            None
+            | bool
+            | int
+            | Fraction  # real/rational
+            | str
+            | Term
+            | dict[str, Decomposition.Region.Meta]
+            | list[Decomposition.Region.Meta]
+        )
+        """A metadata value attached to a region"""
+
+        constraints: tuple[Term, ...]
+        """The constraints on the inputs that define the region"""
+        invariant: Term
+        """The function's result for inputs in the region"""
+        meta: dict[str, Meta]
+        """Metadata attached to the region, by name"""
+        status: RegionStatus
+        """Whether the region is known to be feasible"""
+        _raw: lib.Mir_Region_Region = field(repr=False, compare=False)
+
+        @classmethod
+        def of_lib(cls, r: lib.Mir_Region_Region) -> "Decomposition.Region":
+            return cls(
+                constraints=tuple(term_of_lib(c) for c in r.constraints),
+                invariant=term_of_lib(r.invariant),
+                meta={k: _meta_of_lib(v) for k, v in r.meta},
+                status=region_status_of_lib(r.status),
+                _raw=r,
+            )
+
+        def __str__(self) -> str:
+            constraints = "; ".join(str(c) for c in self.constraints)
+            match self.status:
+                case UnknownStatus():
+                    status = "unknown"
+                case FeasibleStatus():
+                    status = "feasible"
+                case FeasibilityCheckFailedStatus(message=msg):
+                    status = f"feasibility check failed: {msg}"
+            return f"constraints: [{constraints}] invariant: {self.invariant} status: {status}"
+
+        def __repr__(self) -> str:
+            return f"{type(self).__name__}({self})"
+
+    id: Uid
+    """The identifier of the decomposed function"""
+    arguments: tuple[Var, ...]
+    """The decomposed function's parameters"""
+    regions: tuple[Region, ...]
+    """The regions"""
+    _raw: lib.Mir_Fun_decomp = field(repr=False, compare=False)
+
+    @classmethod
+    def of_lib(cls, d: lib.Mir_Fun_decomp) -> "Decomposition":
+        return cls(
+            id=Uid(d.f_id),
+            arguments=tuple(var_term_of_var(a) for a in d.f_args),
+            regions=tuple(Decomposition.Region.of_lib(r) for r in d.regions),
+            _raw=d,
+        )
+
+    def __str__(self) -> str:
+        return str(list(self.regions))
 
 
 class DB:
