@@ -1654,7 +1654,8 @@ class ProofObligationResult:
                 return None
 
 
-@dataclass(slots=True, frozen=True)
+# Not slotted for cached_property
+@dataclass(frozen=True)
 class DecompositionResult:
     """The result of a decomposition request"""
 
@@ -1677,7 +1678,15 @@ class DecompositionResult:
             _raw=x,
         )
 
-    # TODO: more utils to decode artifact and check regions?
+    @cached_property
+    def decomposition(self) -> Decomposition | None:
+        """The decomposition, decoded from `artifact` on first access, if the request succeeded"""
+        if self.artifact is None:
+            return None
+        d = lib.read_artifact_data(self.artifact.data, self.artifact.kind)
+        if not isinstance(d, lib.Common_Fun_decomp_t_poly):
+            raise Exception(f"Unexpected decomposition artifact type '{type(d)}'")
+        return Decomposition.of_lib(d)
 
 
 @dataclass(slots=True, frozen=True)
@@ -1767,7 +1776,7 @@ def _type_of_artifact(artifact: artmsg_pb2.Artifact) -> Type:
     return type_of_lib(d)
 
 
-# Not slotted, so that `model` can be a `cached_property`
+# Not slotted for cached_property
 @dataclass(frozen=True)
 class ModelOutput:
     """A model returned by `verify_*`, `instance_*` or `test_*`"""

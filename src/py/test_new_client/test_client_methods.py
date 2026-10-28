@@ -15,6 +15,7 @@ from imandrax_api.demo.interface import (
     AsyncClient,
     Client,
     CodeSnippetResponse,
+    Decomposition,
     DecompositionResult,
     DecompositionTask,
     EvalSrcResponse,
@@ -187,10 +188,13 @@ def test_decompose(client: Client):
     assert r.errors == ()
     assert isinstance(r.task, DecompositionTask)
 
-    # TODO: more checks on regions
     art = r.artifact
     assert art is not None
     assert art.kind == "mir.fun_decomp"
+
+    d: Decomposition | None = r.decomposition
+    assert d is not None
+    assert len(d.regions) == 2, "expected: two regions for `if x > 0 then x + 1 else 0`"
 
 
 def test_decompose_full(client: Client):
