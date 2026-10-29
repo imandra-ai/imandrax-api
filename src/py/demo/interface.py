@@ -785,6 +785,7 @@ class ProofObligation:
     """The goal: its variables and the term to prove"""
     tactic: Tactic
     """The tactic to use"""
+    # CR: why is this camel case? should it be snake case?
     isInstance: bool
     """Whether this is an instance query rather than a proof"""
     timeout: int | None
@@ -1878,9 +1879,8 @@ class Client:
     def __exit__(self, *_: object) -> None:
         self._client.__exit__()
 
-    def status(self):
-        """The server's status"""
-        return self._client.status()
+    def status(self) -> str:
+        return self._client.status().msg
 
     def eval_src(
         self,
@@ -2109,9 +2109,8 @@ class AsyncClient:
     ) -> None:
         await self._client.__aexit__(exc_type, exc_val, exc_tb)
 
-    async def status(self):
-        """The server's status"""
-        return await self._client.status()
+    async def status(self) -> str:
+        return (await self._client.status()).msg
 
     async def eval_src(
         self,

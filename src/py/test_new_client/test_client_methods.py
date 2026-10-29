@@ -70,6 +70,8 @@ def test_session_and_sys_client(client: Client):
     assert isinstance(v, ServerVersion)
     assert v.version
 
+    assert client.status() == "OK"
+
 
 # eval_src
 # ========
@@ -206,12 +208,14 @@ def test_decompose_full(client: Client):
 
 
 def test_decompose_full_from_artifact(client: Client):
-    art: Artifact | None= client.decompose("f").artifact
+    art: Artifact | None = client.decompose("f").artifact
     assert art is not None
 
     (task,) = [
         t
-        for t in client.eval_src("let g x = if x > 0 then 1 else 2\n[@@decomp top ()]").tasks
+        for t in client.eval_src(
+            "let g x = if x > 0 then 1 else 2\n[@@decomp top ()]"
+        ).tasks
         if isinstance(t, DecompositionTask)
     ]
     res = task.result
