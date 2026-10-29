@@ -1,0 +1,102 @@
+{
+  "class": "ProofObligationTask",
+  "artifact": "Artifact(kind='po_task', data=<159 bytes>, api_version='v21')",
+  "awaitable": {
+    "class": "AwaitableAttrs"
+  },
+  "count": 7003,
+  "db": {
+    "class": "DB",
+    "admission": [],
+    "decls": [],
+    "disabled": [],
+    "elim": [],
+    "fc": [],
+    "gen": [],
+    "inst_rules": [],
+    "rule_spec_fc": [],
+    "rule_spec_rw_rules": [],
+    "rw_rules": [],
+    "thm_as_elim": [],
+    "thm_as_fc": [],
+    "thm_as_gen": [],
+    "thm_as_rw": []
+  },
+  "from_sym": "f_7002",
+  "id": {
+    "class": "TaskID",
+    "id": "golden"
+  },
+  "kind": "check_po",
+  "proof_obligation": {
+    "class": "ProofObligation",
+    "description": "descr_7004",
+    "goal": [
+      [
+        {
+          "class": "Var",
+          "type": "ConstructedType(int)",
+          "var": {
+            "class": "Variable",
+            "id": "Uid(x/2)",
+            "type": "ConstructedType(int)"
+          }
+        }
+      ],
+      {
+        "class": "Apply",
+        "type": "ConstructedType(bool)",
+        "function": {
+          "class": "Symbol",
+          "type": "ArrowType(int -> int -> bool)",
+          "symbol": {
+            "class": "AppliedSymbol",
+            "symbol": {
+              "class": "TypedSymbol",
+              "id": "Uid(gt)",
+              "type_schema": {
+                "class": "TypeSchema",
+                "parameters": [],
+                "type": "ArrowType(int -> int -> bool)"
+              }
+            },
+            "type_arguments": [],
+            "type": "ArrowType(int -> int -> bool)"
+          }
+        },
+        "arguments": [
+          {
+            "class": "Var",
+            "type": "ConstructedType(int)",
+            "var": {
+              "class": "Variable",
+              "id": "Uid(x/2)",
+              "type": "ConstructedType(int)"
+            }
+          },
+          {
+            "class": "Constant",
+            "type": "ConstructedType(int)",
+            "value": {
+              "class": "IntConst",
+              "value": 0
+            }
+          }
+        ]
+      }
+    ],
+    "tactic": {
+      "class": "DefaultTestTactic",
+      "num_steps": null,
+      "seed": null
+    },
+    "isInstance": false,
+    "timeout": null,
+    "upto": null,
+    "verify_kind": null,
+    "named_hypotheses": []
+  },
+  "result": {
+    "raises": "NoClientError: task golden has no client to fetch its data with; set one with `task.set_client(client)`"
+  }
+}

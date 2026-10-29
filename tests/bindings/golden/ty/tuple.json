@@ -1,0 +1,7 @@
+{
+  "class": "TupleType",
+  "elements": [
+    "ConstructedType(int)",
+    "ConstructedType(bool)"
+  ]
+}

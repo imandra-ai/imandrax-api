@@ -1,0 +1,9 @@
+{
+  "class": "Var",
+  "type": "ConstructedType(int)",
+  "var": {
+    "class": "Variable",
+    "id": "Uid(x/2)",
+    "type": "ConstructedType(int)"
+  }
+}

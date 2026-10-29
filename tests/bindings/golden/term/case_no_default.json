@@ -1,0 +1,40 @@
+{
+  "class": "Case",
+  "type": "ConstructedType(int)",
+  "scrutinee": {
+    "class": "Var",
+    "type": "ConstructedType(shape)",
+    "var": {
+      "class": "Variable",
+      "id": "Uid(s/4)",
+      "type": "ConstructedType(shape)"
+    }
+  },
+  "cases": [
+    [
+      {
+        "class": "AppliedSymbol",
+        "symbol": {
+          "class": "TypedSymbol",
+          "id": "Uid(Circle)",
+          "type_schema": {
+            "class": "TypeSchema",
+            "parameters": [],
+            "type": "ArrowType(int -> shape)"
+          }
+        },
+        "type_arguments": [],
+        "type": "ArrowType(int -> shape)"
+      },
+      {
+        "class": "Constant",
+        "type": "ConstructedType(int)",
+        "value": {
+          "class": "IntConst",
+          "value": 1
+        }
+      }
+    ]
+  ],
+  "default": null
+}

@@ -1,0 +1,71 @@
+{
+  "class": "FunctionDeclaration",
+  "function": {
+    "class": "FunctionDefinition",
+    "name": "Uid(f/4L78YRxL0UtNLw1seKDejZjHRyF5EvJ6x/Z7Bkdr3j0=)",
+    "type_parameters": [],
+    "type": "ArrowType(int -> int)",
+    "arguments": [
+      {
+        "class": "Var",
+        "type": "ConstructedType(int)",
+        "var": {
+          "class": "Variable",
+          "id": "Uid(x/2)",
+          "type": "ConstructedType(int)"
+        }
+      }
+    ],
+    "body": {
+      "class": "Apply",
+      "type": "ConstructedType(int)",
+      "function": {
+        "class": "Symbol",
+        "type": "ArrowType(int -> int)",
+        "symbol": {
+          "class": "AppliedSymbol",
+          "symbol": {
+            "class": "TypedSymbol",
+            "id": "Uid(succ)",
+            "type_schema": {
+              "class": "TypeSchema",
+              "parameters": [],
+              "type": "ArrowType(int -> int)"
+            }
+          },
+          "type_arguments": [],
+          "type": "ArrowType(int -> int)"
+        }
+      },
+      "arguments": [
+        {
+          "class": "Var",
+          "type": "ConstructedType(int)",
+          "var": {
+            "class": "Variable",
+            "id": "Uid(x/2)",
+            "type": "ConstructedType(int)"
+          }
+        }
+      ]
+    },
+    "clique": null,
+    "kind": {
+      "class": "DefinedFunctionKind",
+      "is_macro": false,
+      "from_lambda": false
+    },
+    "hints": {
+      "class": "Hints",
+      "validation_strategy": {
+        "class": "NoValidate"
+      },
+      "unroll_definition": null,
+      "enable": [],
+      "disable": [],
+      "timeout": null,
+      "admission": null,
+      "decomp": null
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "class": "Symbol",
+  "type": "ArrowType(int -> int)",
+  "symbol": {
+    "class": "AppliedSymbol",
+    "symbol": {
+      "class": "TypedSymbol",
+      "id": "Uid(id)",
+      "type_schema": {
+        "class": "TypeSchema",
+        "parameters": [
+          "Uid(a/1)"
+        ],
+        "type": "ArrowType(a/1 -> a/1)"
+      }
+    },
+    "type_arguments": [
+      "ConstructedType(int)"
+    ],
+    "type": "ArrowType(int -> int)"
+  }
+}

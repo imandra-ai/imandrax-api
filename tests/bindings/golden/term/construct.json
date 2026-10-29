@@ -1,0 +1,29 @@
+{
+  "class": "Construct",
+  "type": "ConstructedType(shape)",
+  "constructor": {
+    "class": "AppliedSymbol",
+    "symbol": {
+      "class": "TypedSymbol",
+      "id": "Uid(Circle)",
+      "type_schema": {
+        "class": "TypeSchema",
+        "parameters": [],
+        "type": "ArrowType(int -> shape)"
+      }
+    },
+    "type_arguments": [],
+    "type": "ArrowType(int -> shape)"
+  },
+  "arguments": [
+    {
+      "class": "Constant",
+      "type": "ConstructedType(int)",
+      "value": {
+        "class": "IntConst",
+        "value": 2
+      }
+    }
+  ],
+  "labels": null
+}

@@ -1,0 +1,59 @@
+{
+  "class": "ProofObligationTaskResult",
+  "from_": "hash:po_4007:n6gkmergQequUIDXJYFJA6FfrXa0jg-7rP7AyUtIo2w=",
+  "model": null,
+  "proof": null,
+  "proved": false,
+  "report": {
+    "class": "Report",
+    "events": [
+      {
+        "class": "EnterSpan",
+        "timestamp": 3200.0,
+        "event": {
+          "class": "EnterTactic",
+          "tactic": "outer"
+        }
+      },
+      {
+        "class": "InstantEvent",
+        "timestamp": 3201.0,
+        "event": {
+          "class": "Title",
+          "text": "inside"
+        }
+      },
+      {
+        "class": "EnterSpan",
+        "timestamp": 3202.0,
+        "event": {
+          "class": "EnterTactic",
+          "tactic": "inner"
+        }
+      },
+      {
+        "class": "ExitSpan",
+        "timestamp": 3203.0
+      },
+      {
+        "class": "ExitSpan",
+        "timestamp": 3204.0
+      }
+    ]
+  },
+  "result": {
+    "class": "TestOk"
+  },
+  "statistics": {
+    "class": "Statistics",
+    "time_s": 1003.5,
+    "tactic": [
+      [
+        "steps_0004",
+        "1005"
+      ]
+    ]
+  },
+  "subgoals": null,
+  "subresults": []
+}

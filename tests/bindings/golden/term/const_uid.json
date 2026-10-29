@@ -1,0 +1,8 @@
+{
+  "class": "Constant",
+  "type": "ConstructedType(uid)",
+  "value": {
+    "class": "UidConst",
+    "uid": "Uid(u_1007)"
+  }
+}

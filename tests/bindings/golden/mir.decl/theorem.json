@@ -1,0 +1,243 @@
+{
+  "class": "TheoremDeclaration",
+  "theorem": {
+    "class": "Theorem",
+    "function": {
+      "class": "FunctionDefinition",
+      "name": "Uid(thm/9pzcw4OoHIS6OyFfWyfEAdaieu+NdlQL5rR2zIOBfOA=)",
+      "type_parameters": [],
+      "type": "ArrowType(int -> bool)",
+      "arguments": [
+        {
+          "class": "Var",
+          "type": "ConstructedType(int)",
+          "var": {
+            "class": "Variable",
+            "id": "Uid(x/2)",
+            "type": "ConstructedType(int)"
+          }
+        }
+      ],
+      "body": {
+        "class": "Apply",
+        "type": "ConstructedType(bool)",
+        "function": {
+          "class": "Symbol",
+          "type": "ArrowType(int -> int -> bool)",
+          "symbol": {
+            "class": "AppliedSymbol",
+            "symbol": {
+              "class": "TypedSymbol",
+              "id": "Uid(gt)",
+              "type_schema": {
+                "class": "TypeSchema",
+                "parameters": [],
+                "type": "ArrowType(int -> int -> bool)"
+              }
+            },
+            "type_arguments": [],
+            "type": "ArrowType(int -> int -> bool)"
+          }
+        },
+        "arguments": [
+          {
+            "class": "Var",
+            "type": "ConstructedType(int)",
+            "var": {
+              "class": "Variable",
+              "id": "Uid(x/2)",
+              "type": "ConstructedType(int)"
+            }
+          },
+          {
+            "class": "Constant",
+            "type": "ConstructedType(int)",
+            "value": {
+              "class": "IntConst",
+              "value": 0
+            }
+          }
+        ]
+      },
+      "clique": null,
+      "kind": {
+        "class": "DefinedFunctionKind",
+        "is_macro": false,
+        "from_lambda": false
+      },
+      "hints": {
+        "class": "Hints",
+        "validation_strategy": {
+          "class": "NoValidate"
+        },
+        "unroll_definition": null,
+        "enable": [],
+        "disable": [],
+        "timeout": null,
+        "admission": null,
+        "decomp": null
+      }
+    },
+    "rewriting": true,
+    "perm_restrict": false,
+    "forward_chaining": true,
+    "elimination": false,
+    "generalization": false,
+    "triggers": [
+      [
+        {
+          "class": "Var",
+          "type": "ConstructedType(int)",
+          "var": {
+            "class": "Variable",
+            "id": "Uid(x/2)",
+            "type": "ConstructedType(int)"
+          }
+        },
+        {
+          "class": "NoTrigger"
+        }
+      ],
+      [
+        {
+          "class": "Var",
+          "type": "ConstructedType(int)",
+          "var": {
+            "class": "Variable",
+            "id": "Uid(x/2)",
+            "type": "ConstructedType(int)"
+          }
+        },
+        {
+          "class": "AnonymousTrigger"
+        }
+      ],
+      [
+        {
+          "class": "Var",
+          "type": "ConstructedType(int)",
+          "var": {
+            "class": "Variable",
+            "id": "Uid(x/2)",
+            "type": "ConstructedType(int)"
+          }
+        },
+        {
+          "class": "NamedTrigger",
+          "index": 2007
+        }
+      ],
+      [
+        {
+          "class": "Var",
+          "type": "ConstructedType(int)",
+          "var": {
+            "class": "Variable",
+            "id": "Uid(x/2)",
+            "type": "ConstructedType(int)"
+          }
+        },
+        {
+          "class": "RewriteTrigger"
+        }
+      ]
+    ],
+    "is_axiom": false,
+    "by": [
+      [
+        {
+          "class": "Variable",
+          "id": "Uid(x/2)",
+          "type": "ConstructedType(int)"
+        }
+      ],
+      {
+        "class": "Apply",
+        "type": "ConstructedType(bool)",
+        "function": {
+          "class": "Symbol",
+          "type": "ArrowType(int -> int -> bool)",
+          "symbol": {
+            "class": "AppliedSymbol",
+            "symbol": {
+              "class": "TypedSymbol",
+              "id": "Uid(gt)",
+              "type_schema": {
+                "class": "TypeSchema",
+                "parameters": [],
+                "type": "ArrowType(int -> int -> bool)"
+              }
+            },
+            "type_arguments": [],
+            "type": "ArrowType(int -> int -> bool)"
+          }
+        },
+        "arguments": [
+          {
+            "class": "Var",
+            "type": "ConstructedType(int)",
+            "var": {
+              "class": "Variable",
+              "id": "Uid(x/2)",
+              "type": "ConstructedType(int)"
+            }
+          },
+          {
+            "class": "Constant",
+            "type": "ConstructedType(int)",
+            "value": {
+              "class": "IntConst",
+              "value": 0
+            }
+          }
+        ]
+      }
+    ],
+    "named_hypotheses": [
+      [
+        "h_2008",
+        {
+          "class": "Apply",
+          "type": "ConstructedType(bool)",
+          "function": {
+            "class": "Symbol",
+            "type": "ArrowType(int -> int -> bool)",
+            "symbol": {
+              "class": "AppliedSymbol",
+              "symbol": {
+                "class": "TypedSymbol",
+                "id": "Uid(gt)",
+                "type_schema": {
+                  "class": "TypeSchema",
+                  "parameters": [],
+                  "type": "ArrowType(int -> int -> bool)"
+                }
+              },
+              "type_arguments": [],
+              "type": "ArrowType(int -> int -> bool)"
+            }
+          },
+          "arguments": [
+            {
+              "class": "Var",
+              "type": "ConstructedType(int)",
+              "var": {
+                "class": "Variable",
+                "id": "Uid(x/2)",
+                "type": "ConstructedType(int)"
+              }
+            },
+            {
+              "class": "Constant",
+              "type": "ConstructedType(int)",
+              "value": {
+                "class": "IntConst",
+                "value": 0
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  }
+}

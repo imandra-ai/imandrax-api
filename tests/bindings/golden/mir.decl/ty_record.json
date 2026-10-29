@@ -1,0 +1,29 @@
+{
+  "class": "TypeDeclaration",
+  "type": {
+    "class": "TypeDefinition",
+    "name": "Uid(point/nq7+4xOzoabhHq5XZQXwQi2OQB/IPjGB18sPVnpc6QI=)",
+    "parameters": [],
+    "kind": {
+      "class": "RecordTypeKind",
+      "fields": [
+        {
+          "class": "FieldDefinition",
+          "name": "Uid(x/0WHXEUWr7sXvFavPBFnOxgonMh4vCsDves5SVPWURHY=)",
+          "type": "ConstructedType(int)",
+          "doc": null
+        },
+        {
+          "class": "FieldDefinition",
+          "name": "Uid(y/r/qzkS7Lhl+D/XazpL8qn8VpLWNaVERPRUNcv0rJuEs=)",
+          "type": "ConstructedType(int)",
+          "doc": "doc_2006"
+        }
+      ]
+    },
+    "clique": [
+      "Uid(point/nq7+4xOzoabhHq5XZQXwQi2OQB/IPjGB18sPVnpc6QI=)"
+    ],
+    "timeout": 2001
+  }
+}

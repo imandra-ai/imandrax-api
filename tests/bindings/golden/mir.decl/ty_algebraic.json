@@ -1,0 +1,46 @@
+{
+  "class": "TypeDeclaration",
+  "type": {
+    "class": "TypeDefinition",
+    "name": "Uid(option/PqWGVkdKHcCv4C6D4w9jaq9kfmoh9rfUHmszfTwhGN8=)",
+    "parameters": [
+      "Uid(a/1)"
+    ],
+    "kind": {
+      "class": "AlgebraicTypeKind",
+      "constructors": [
+        {
+          "class": "ConstructorDefinition",
+          "name": "Uid(None/BHOAx12NoOhN8V+CGGMvMcpwWBQtdfpO4iWuo+ix2oI=)",
+          "labels": null,
+          "arguments": [],
+          "doc": null
+        },
+        {
+          "class": "ConstructorDefinition",
+          "name": "Uid(Some/1+cX2zu9kvmo7HG1uN2kMe5ejuUSH4qhqihjFNpEgPA=)",
+          "labels": null,
+          "arguments": [
+            "TypeVariable(a/1)"
+          ],
+          "doc": "doc_2005"
+        },
+        {
+          "class": "ConstructorDefinition",
+          "name": "Uid(Pair/8sjtQBq/vkRJy4NG0Tdt0b8CCMaxDFATdeFw+BO6/50=)",
+          "labels": [
+            "Uid(fst)",
+            "Uid(snd)"
+          ],
+          "arguments": [
+            "ConstructedType(int)",
+            "ConstructedType(int)"
+          ],
+          "doc": null
+        }
+      ]
+    },
+    "clique": null,
+    "timeout": 2001
+  }
+}

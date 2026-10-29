@@ -1,0 +1,39 @@
+{
+  "class": "Record",
+  "type": "ConstructedType(point)",
+  "rows": [
+    [
+      {
+        "class": "AppliedSymbol",
+        "symbol": {
+          "class": "TypedSymbol",
+          "id": "Uid(x)",
+          "type_schema": {
+            "class": "TypeSchema",
+            "parameters": [],
+            "type": "ArrowType(point -> int)"
+          }
+        },
+        "type_arguments": [],
+        "type": "ArrowType(point -> int)"
+      },
+      {
+        "class": "Constant",
+        "type": "ConstructedType(int)",
+        "value": {
+          "class": "IntConst",
+          "value": 1
+        }
+      }
+    ]
+  ],
+  "rest": {
+    "class": "Var",
+    "type": "ConstructedType(point)",
+    "var": {
+      "class": "Variable",
+      "id": "Uid(p/3)",
+      "type": "ConstructedType(point)"
+    }
+  }
+}

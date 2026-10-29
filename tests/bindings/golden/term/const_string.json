@@ -1,0 +1,8 @@
+{
+  "class": "Constant",
+  "type": "ConstructedType(string)",
+  "value": {
+    "class": "StringConst",
+    "value": "hi_1002"
+  }
+}

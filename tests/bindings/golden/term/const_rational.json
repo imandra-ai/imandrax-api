@@ -1,0 +1,8 @@
+{
+  "class": "Constant",
+  "type": "ConstructedType(real)",
+  "value": {
+    "class": "RationalConst",
+    "value": "Fraction(1003, 1004)"
+  }
+}

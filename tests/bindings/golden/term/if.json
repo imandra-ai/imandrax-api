@@ -1,0 +1,28 @@
+{
+  "class": "If",
+  "type": "ConstructedType(int)",
+  "condition": {
+    "class": "Constant",
+    "type": "ConstructedType(bool)",
+    "value": {
+      "class": "BoolConst",
+      "value": true
+    }
+  },
+  "then_branch": {
+    "class": "Constant",
+    "type": "ConstructedType(int)",
+    "value": {
+      "class": "IntConst",
+      "value": 1
+    }
+  },
+  "else_branch": {
+    "class": "Constant",
+    "type": "ConstructedType(int)",
+    "value": {
+      "class": "IntConst",
+      "value": 2
+    }
+  }
+}

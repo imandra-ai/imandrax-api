@@ -1,0 +1,28 @@
+{
+  "class": "EvaluationTaskResult",
+  "statistics": {
+    "class": "EvaluationStatistics",
+    "compile_time": 5010.5,
+    "exec_time": 5011.25
+  },
+  "value": {
+    "class": "Record",
+    "name": "point",
+    "fields": [
+      [
+        "x",
+        {
+          "class": "Int",
+          "value": 1
+        }
+      ],
+      [
+        "y",
+        {
+          "class": "Int",
+          "value": 2
+        }
+      ]
+    ]
+  }
+}

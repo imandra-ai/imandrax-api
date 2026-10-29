@@ -1,0 +1,697 @@
+{
+  "class": "ProofObligationTaskResult",
+  "from_": "hash:po_4007:n6gkmergQequUIDXJYFJA6FfrXa0jg-7rP7AyUtIo2w=",
+  "model": null,
+  "proof": null,
+  "proved": false,
+  "report": {
+    "class": "Report",
+    "events": [
+      {
+        "class": "EnterSpan",
+        "timestamp": 3200.0,
+        "event": {
+          "class": "EnterTactic",
+          "tactic": "outer"
+        }
+      },
+      {
+        "class": "InstantEvent",
+        "timestamp": 3201.0,
+        "event": {
+          "class": "Title",
+          "text": "inside"
+        }
+      },
+      {
+        "class": "EnterSpan",
+        "timestamp": 3202.0,
+        "event": {
+          "class": "EnterTactic",
+          "tactic": "inner"
+        }
+      },
+      {
+        "class": "ExitSpan",
+        "timestamp": 3203.0
+      },
+      {
+        "class": "ExitSpan",
+        "timestamp": 3204.0
+      }
+    ]
+  },
+  "result": {
+    "class": "Unsat",
+    "error": {
+      "class": "ErrorCore",
+      "process": "golden_0001",
+      "kind": "GoldenError0002",
+      "message": {
+        "class": "ErrorMessage",
+        "message": "unsat",
+        "backtrace": null
+      },
+      "stack": []
+    },
+    "proof": {
+      "class": "DeductionProof",
+      "id": 4,
+      "conclusion": {
+        "class": "Sequent",
+        "hypotheses": [
+          [
+            "h_3002",
+            {
+              "class": "Apply",
+              "type": "ConstructedType(bool)",
+              "function": {
+                "class": "Symbol",
+                "type": "ArrowType(int -> int -> bool)",
+                "symbol": {
+                  "class": "AppliedSymbol",
+                  "symbol": {
+                    "class": "TypedSymbol",
+                    "id": "Uid(gt)",
+                    "type_schema": {
+                      "class": "TypeSchema",
+                      "parameters": [],
+                      "type": "ArrowType(int -> int -> bool)"
+                    }
+                  },
+                  "type_arguments": [],
+                  "type": "ArrowType(int -> int -> bool)"
+                }
+              },
+              "arguments": [
+                {
+                  "class": "Var",
+                  "type": "ConstructedType(int)",
+                  "var": {
+                    "class": "Variable",
+                    "id": "Uid(x/2)",
+                    "type": "ConstructedType(int)"
+                  }
+                },
+                {
+                  "class": "Constant",
+                  "type": "ConstructedType(int)",
+                  "value": {
+                    "class": "IntConst",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          ],
+          [
+            null,
+            {
+              "class": "Constant",
+              "type": "ConstructedType(bool)",
+              "value": {
+                "class": "BoolConst",
+                "value": true
+              }
+            }
+          ]
+        ],
+        "conclusions": [
+          [
+            "c_3003",
+            {
+              "class": "Apply",
+              "type": "ConstructedType(bool)",
+              "function": {
+                "class": "Symbol",
+                "type": "ArrowType(int -> int -> bool)",
+                "symbol": {
+                  "class": "AppliedSymbol",
+                  "symbol": {
+                    "class": "TypedSymbol",
+                    "id": "Uid(gt)",
+                    "type_schema": {
+                      "class": "TypeSchema",
+                      "parameters": [],
+                      "type": "ArrowType(int -> int -> bool)"
+                    }
+                  },
+                  "type_arguments": [],
+                  "type": "ArrowType(int -> int -> bool)"
+                }
+              },
+              "arguments": [
+                {
+                  "class": "Var",
+                  "type": "ConstructedType(int)",
+                  "var": {
+                    "class": "Variable",
+                    "id": "Uid(x/2)",
+                    "type": "ConstructedType(int)"
+                  }
+                },
+                {
+                  "class": "Constant",
+                  "type": "ConstructedType(int)",
+                  "value": {
+                    "class": "IntConst",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          ]
+        ]
+      },
+      "premises": [
+        [
+          "cc_4006",
+          [
+            {
+              "class": "SubstProof",
+              "id": 3,
+              "conclusion": {
+                "class": "Sequent",
+                "hypotheses": [
+                  [
+                    "h_3002",
+                    {
+                      "class": "Apply",
+                      "type": "ConstructedType(bool)",
+                      "function": {
+                        "class": "Symbol",
+                        "type": "ArrowType(int -> int -> bool)",
+                        "symbol": {
+                          "class": "AppliedSymbol",
+                          "symbol": {
+                            "class": "TypedSymbol",
+                            "id": "Uid(gt)",
+                            "type_schema": {
+                              "class": "TypeSchema",
+                              "parameters": [],
+                              "type": "ArrowType(int -> int -> bool)"
+                            }
+                          },
+                          "type_arguments": [],
+                          "type": "ArrowType(int -> int -> bool)"
+                        }
+                      },
+                      "arguments": [
+                        {
+                          "class": "Var",
+                          "type": "ConstructedType(int)",
+                          "var": {
+                            "class": "Variable",
+                            "id": "Uid(x/2)",
+                            "type": "ConstructedType(int)"
+                          }
+                        },
+                        {
+                          "class": "Constant",
+                          "type": "ConstructedType(int)",
+                          "value": {
+                            "class": "IntConst",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  [
+                    null,
+                    {
+                      "class": "Constant",
+                      "type": "ConstructedType(bool)",
+                      "value": {
+                        "class": "BoolConst",
+                        "value": true
+                      }
+                    }
+                  ]
+                ],
+                "conclusions": [
+                  [
+                    "c_3003",
+                    {
+                      "class": "Apply",
+                      "type": "ConstructedType(bool)",
+                      "function": {
+                        "class": "Symbol",
+                        "type": "ArrowType(int -> int -> bool)",
+                        "symbol": {
+                          "class": "AppliedSymbol",
+                          "symbol": {
+                            "class": "TypedSymbol",
+                            "id": "Uid(gt)",
+                            "type_schema": {
+                              "class": "TypeSchema",
+                              "parameters": [],
+                              "type": "ArrowType(int -> int -> bool)"
+                            }
+                          },
+                          "type_arguments": [],
+                          "type": "ArrowType(int -> int -> bool)"
+                        }
+                      },
+                      "arguments": [
+                        {
+                          "class": "Var",
+                          "type": "ConstructedType(int)",
+                          "var": {
+                            "class": "Variable",
+                            "id": "Uid(x/2)",
+                            "type": "ConstructedType(int)"
+                          }
+                        },
+                        {
+                          "class": "Constant",
+                          "type": "ConstructedType(int)",
+                          "value": {
+                            "class": "IntConst",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              },
+              "term_substitution": [
+                [
+                  {
+                    "class": "Variable",
+                    "id": "Uid(x/2)",
+                    "type": "ConstructedType(int)"
+                  },
+                  {
+                    "class": "Constant",
+                    "type": "ConstructedType(int)",
+                    "value": {
+                      "class": "IntConst",
+                      "value": 1
+                    }
+                  }
+                ]
+              ],
+              "type_substitution": [
+                [
+                  "Uid(a/1)",
+                  "ConstructedType(int)"
+                ]
+              ],
+              "premise": {
+                "class": "AssumeProof",
+                "id": 4001,
+                "conclusion": {
+                  "class": "Sequent",
+                  "hypotheses": [
+                    [
+                      "h_3002",
+                      {
+                        "class": "Apply",
+                        "type": "ConstructedType(bool)",
+                        "function": {
+                          "class": "Symbol",
+                          "type": "ArrowType(int -> int -> bool)",
+                          "symbol": {
+                            "class": "AppliedSymbol",
+                            "symbol": {
+                              "class": "TypedSymbol",
+                              "id": "Uid(gt)",
+                              "type_schema": {
+                                "class": "TypeSchema",
+                                "parameters": [],
+                                "type": "ArrowType(int -> int -> bool)"
+                              }
+                            },
+                            "type_arguments": [],
+                            "type": "ArrowType(int -> int -> bool)"
+                          }
+                        },
+                        "arguments": [
+                          {
+                            "class": "Var",
+                            "type": "ConstructedType(int)",
+                            "var": {
+                              "class": "Variable",
+                              "id": "Uid(x/2)",
+                              "type": "ConstructedType(int)"
+                            }
+                          },
+                          {
+                            "class": "Constant",
+                            "type": "ConstructedType(int)",
+                            "value": {
+                              "class": "IntConst",
+                              "value": 0
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    [
+                      null,
+                      {
+                        "class": "Constant",
+                        "type": "ConstructedType(bool)",
+                        "value": {
+                          "class": "BoolConst",
+                          "value": true
+                        }
+                      }
+                    ]
+                  ],
+                  "conclusions": [
+                    [
+                      "c_3003",
+                      {
+                        "class": "Apply",
+                        "type": "ConstructedType(bool)",
+                        "function": {
+                          "class": "Symbol",
+                          "type": "ArrowType(int -> int -> bool)",
+                          "symbol": {
+                            "class": "AppliedSymbol",
+                            "symbol": {
+                              "class": "TypedSymbol",
+                              "id": "Uid(gt)",
+                              "type_schema": {
+                                "class": "TypeSchema",
+                                "parameters": [],
+                                "type": "ArrowType(int -> int -> bool)"
+                              }
+                            },
+                            "type_arguments": [],
+                            "type": "ArrowType(int -> int -> bool)"
+                          }
+                        },
+                        "arguments": [
+                          {
+                            "class": "Var",
+                            "type": "ConstructedType(int)",
+                            "var": {
+                              "class": "Variable",
+                              "id": "Uid(x/2)",
+                              "type": "ConstructedType(int)"
+                            }
+                          },
+                          {
+                            "class": "Constant",
+                            "type": "ConstructedType(int)",
+                            "value": {
+                              "class": "IntConst",
+                              "value": 0
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              }
+            },
+            {
+              "class": "RuleProof",
+              "id": 2,
+              "conclusion": {
+                "class": "Sequent",
+                "hypotheses": [
+                  [
+                    "h_3002",
+                    {
+                      "class": "Apply",
+                      "type": "ConstructedType(bool)",
+                      "function": {
+                        "class": "Symbol",
+                        "type": "ArrowType(int -> int -> bool)",
+                        "symbol": {
+                          "class": "AppliedSymbol",
+                          "symbol": {
+                            "class": "TypedSymbol",
+                            "id": "Uid(gt)",
+                            "type_schema": {
+                              "class": "TypeSchema",
+                              "parameters": [],
+                              "type": "ArrowType(int -> int -> bool)"
+                            }
+                          },
+                          "type_arguments": [],
+                          "type": "ArrowType(int -> int -> bool)"
+                        }
+                      },
+                      "arguments": [
+                        {
+                          "class": "Var",
+                          "type": "ConstructedType(int)",
+                          "var": {
+                            "class": "Variable",
+                            "id": "Uid(x/2)",
+                            "type": "ConstructedType(int)"
+                          }
+                        },
+                        {
+                          "class": "Constant",
+                          "type": "ConstructedType(int)",
+                          "value": {
+                            "class": "IntConst",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  [
+                    null,
+                    {
+                      "class": "Constant",
+                      "type": "ConstructedType(bool)",
+                      "value": {
+                        "class": "BoolConst",
+                        "value": true
+                      }
+                    }
+                  ]
+                ],
+                "conclusions": [
+                  [
+                    "c_3003",
+                    {
+                      "class": "Apply",
+                      "type": "ConstructedType(bool)",
+                      "function": {
+                        "class": "Symbol",
+                        "type": "ArrowType(int -> int -> bool)",
+                        "symbol": {
+                          "class": "AppliedSymbol",
+                          "symbol": {
+                            "class": "TypedSymbol",
+                            "id": "Uid(gt)",
+                            "type_schema": {
+                              "class": "TypeSchema",
+                              "parameters": [],
+                              "type": "ArrowType(int -> int -> bool)"
+                            }
+                          },
+                          "type_arguments": [],
+                          "type": "ArrowType(int -> int -> bool)"
+                        }
+                      },
+                      "arguments": [
+                        {
+                          "class": "Var",
+                          "type": "ConstructedType(int)",
+                          "var": {
+                            "class": "Variable",
+                            "id": "Uid(x/2)",
+                            "type": "ConstructedType(int)"
+                          }
+                        },
+                        {
+                          "class": "Constant",
+                          "type": "ConstructedType(int)",
+                          "value": {
+                            "class": "IntConst",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              },
+              "rule": "axiom_4002",
+              "arguments": [
+                {
+                  "class": "TermArgument",
+                  "term": {
+                    "class": "Var",
+                    "type": "ConstructedType(int)",
+                    "var": {
+                      "class": "Variable",
+                      "id": "Uid(x/2)",
+                      "type": "ConstructedType(int)"
+                    }
+                  }
+                },
+                {
+                  "class": "TypeArgument",
+                  "type": "ConstructedType(int)"
+                },
+                {
+                  "class": "IntArgument",
+                  "value": 4003
+                },
+                {
+                  "class": "StringArgument",
+                  "value": "s_4004"
+                },
+                {
+                  "class": "ListArgument",
+                  "elements": [
+                    {
+                      "class": "IntArgument",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "class": "DictArgument",
+                  "entries": [
+                    [
+                      "k_4005",
+                      {
+                        "class": "IntArgument",
+                        "value": 2
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "class": "SequentArgument",
+                  "sequent": {
+                    "class": "Sequent",
+                    "hypotheses": [
+                      [
+                        "h_3002",
+                        {
+                          "class": "Apply",
+                          "type": "ConstructedType(bool)",
+                          "function": {
+                            "class": "Symbol",
+                            "type": "ArrowType(int -> int -> bool)",
+                            "symbol": {
+                              "class": "AppliedSymbol",
+                              "symbol": {
+                                "class": "TypedSymbol",
+                                "id": "Uid(gt)",
+                                "type_schema": {
+                                  "class": "TypeSchema",
+                                  "parameters": [],
+                                  "type": "ArrowType(int -> int -> bool)"
+                                }
+                              },
+                              "type_arguments": [],
+                              "type": "ArrowType(int -> int -> bool)"
+                            }
+                          },
+                          "arguments": [
+                            {
+                              "class": "Var",
+                              "type": "ConstructedType(int)",
+                              "var": {
+                                "class": "Variable",
+                                "id": "Uid(x/2)",
+                                "type": "ConstructedType(int)"
+                              }
+                            },
+                            {
+                              "class": "Constant",
+                              "type": "ConstructedType(int)",
+                              "value": {
+                                "class": "IntConst",
+                                "value": 0
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      [
+                        null,
+                        {
+                          "class": "Constant",
+                          "type": "ConstructedType(bool)",
+                          "value": {
+                            "class": "BoolConst",
+                            "value": true
+                          }
+                        }
+                      ]
+                    ],
+                    "conclusions": [
+                      [
+                        "c_3003",
+                        {
+                          "class": "Apply",
+                          "type": "ConstructedType(bool)",
+                          "function": {
+                            "class": "Symbol",
+                            "type": "ArrowType(int -> int -> bool)",
+                            "symbol": {
+                              "class": "AppliedSymbol",
+                              "symbol": {
+                                "class": "TypedSymbol",
+                                "id": "Uid(gt)",
+                                "type_schema": {
+                                  "class": "TypeSchema",
+                                  "parameters": [],
+                                  "type": "ArrowType(int -> int -> bool)"
+                                }
+                              },
+                              "type_arguments": [],
+                              "type": "ArrowType(int -> int -> bool)"
+                            }
+                          },
+                          "arguments": [
+                            {
+                              "class": "Var",
+                              "type": "ConstructedType(int)",
+                              "var": {
+                                "class": "Variable",
+                                "id": "Uid(x/2)",
+                                "type": "ConstructedType(int)"
+                              }
+                            },
+                            {
+                              "class": "Constant",
+                              "type": "ConstructedType(int)",
+                              "value": {
+                                "class": "IntConst",
+                                "value": 0
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        ]
+      ]
+    }
+  },
+  "statistics": {
+    "class": "Statistics",
+    "time_s": 1003.5,
+    "tactic": [
+      [
+        "steps_0004",
+        "1005"
+      ]
+    ]
+  },
+  "subgoals": null,
+  "subresults": []
+}

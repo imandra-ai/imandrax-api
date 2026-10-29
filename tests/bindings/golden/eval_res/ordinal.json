@@ -1,0 +1,23 @@
+{
+  "class": "EvaluationTaskResult",
+  "statistics": {
+    "class": "EvaluationStatistics",
+    "compile_time": 5010.5,
+    "exec_time": 5011.25
+  },
+  "value": {
+    "class": "Ordinal",
+    "value": {
+      "class": "ConsOrdinal",
+      "exponent": {
+        "class": "IntOrdinal",
+        "value": 5007
+      },
+      "coefficient": 5008,
+      "rest": {
+        "class": "IntOrdinal",
+        "value": 5009
+      }
+    }
+  }
+}

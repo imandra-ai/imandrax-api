@@ -1,0 +1,88 @@
+{
+  "class": "FunctionDeclaration",
+  "function": {
+    "class": "FunctionDefinition",
+    "name": "Uid(plus/Zy/fMpN0Qs0aCtiyA5J9X0A8DwVGI1iQtFbLRR33ZFg=)",
+    "type_parameters": [],
+    "type": "ArrowType(int -> int)",
+    "arguments": [
+      {
+        "class": "Var",
+        "type": "ConstructedType(int)",
+        "var": {
+          "class": "Variable",
+          "id": "Uid(x/2)",
+          "type": "ConstructedType(int)"
+        }
+      }
+    ],
+    "body": {
+      "class": "Apply",
+      "type": "ConstructedType(int)",
+      "function": {
+        "class": "Symbol",
+        "type": "ArrowType(int -> int)",
+        "symbol": {
+          "class": "AppliedSymbol",
+          "symbol": {
+            "class": "TypedSymbol",
+            "id": "Uid(succ)",
+            "type_schema": {
+              "class": "TypeSchema",
+              "parameters": [],
+              "type": "ArrowType(int -> int)"
+            }
+          },
+          "type_arguments": [],
+          "type": "ArrowType(int -> int)"
+        }
+      },
+      "arguments": [
+        {
+          "class": "Var",
+          "type": "ConstructedType(int)",
+          "var": {
+            "class": "Variable",
+            "id": "Uid(x/2)",
+            "type": "ConstructedType(int)"
+          }
+        }
+      ]
+    },
+    "clique": null,
+    "kind": {
+      "class": "BuiltinFunctionKind",
+      "builtin": {
+        "class": "BuiltinFunction",
+        "id": {
+          "class": "Uid",
+          "builtin_kind": {
+            "class": "LogicCoreBuiltin",
+            "name": "+"
+          },
+          "full_name": "+",
+          "short_name": "+"
+        },
+        "kind": {
+          "class": "LogicCoreBuiltin",
+          "name": "+"
+        },
+        "left_associative": true,
+        "commutative": true,
+        "connective": false
+      }
+    },
+    "hints": {
+      "class": "Hints",
+      "validation_strategy": {
+        "class": "NoValidate"
+      },
+      "unroll_definition": null,
+      "enable": [],
+      "disable": [],
+      "timeout": null,
+      "admission": null,
+      "decomp": null
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "class": "Report",
+  "events": [
+    {
+      "class": "EnterSpan",
+      "timestamp": 3200.0,
+      "event": {
+        "class": "EnterTactic",
+        "tactic": "outer"
+      }
+    },
+    {
+      "class": "InstantEvent",
+      "timestamp": 3201.0,
+      "event": {
+        "class": "Title",
+        "text": "inside"
+      }
+    },
+    {
+      "class": "EnterSpan",
+      "timestamp": 3202.0,
+      "event": {
+        "class": "EnterTactic",
+        "tactic": "inner"
+      }
+    },
+    {
+      "class": "ExitSpan",
+      "timestamp": 3203.0
+    },
+    {
+      "class": "ExitSpan",
+      "timestamp": 3204.0
+    }
+  ]
+}

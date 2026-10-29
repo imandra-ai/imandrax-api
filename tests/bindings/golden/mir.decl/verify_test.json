@@ -1,0 +1,88 @@
+{
+  "class": "VerifyDeclaration",
+  "verify": {
+    "class": "Verify",
+    "function": {
+      "class": "FunctionDefinition",
+      "name": "Uid(t/vqS7/kTy20yeMndcEXjDke4iFVMWvnUL6MnRVgbl3xA=)",
+      "type_parameters": [],
+      "type": "ArrowType(int -> bool)",
+      "arguments": [
+        {
+          "class": "Var",
+          "type": "ConstructedType(int)",
+          "var": {
+            "class": "Variable",
+            "id": "Uid(x/2)",
+            "type": "ConstructedType(int)"
+          }
+        }
+      ],
+      "body": {
+        "class": "Apply",
+        "type": "ConstructedType(bool)",
+        "function": {
+          "class": "Symbol",
+          "type": "ArrowType(int -> int -> bool)",
+          "symbol": {
+            "class": "AppliedSymbol",
+            "symbol": {
+              "class": "TypedSymbol",
+              "id": "Uid(gt)",
+              "type_schema": {
+                "class": "TypeSchema",
+                "parameters": [],
+                "type": "ArrowType(int -> int -> bool)"
+              }
+            },
+            "type_arguments": [],
+            "type": "ArrowType(int -> int -> bool)"
+          }
+        },
+        "arguments": [
+          {
+            "class": "Var",
+            "type": "ConstructedType(int)",
+            "var": {
+              "class": "Variable",
+              "id": "Uid(x/2)",
+              "type": "ConstructedType(int)"
+            }
+          },
+          {
+            "class": "Constant",
+            "type": "ConstructedType(int)",
+            "value": {
+              "class": "IntConst",
+              "value": 0
+            }
+          }
+        ]
+      },
+      "clique": null,
+      "kind": {
+        "class": "DefinedFunctionKind",
+        "is_macro": false,
+        "from_lambda": false
+      },
+      "hints": {
+        "class": "Hints",
+        "validation_strategy": {
+          "class": "NoValidate"
+        },
+        "unroll_definition": null,
+        "enable": [],
+        "disable": [],
+        "timeout": null,
+        "admission": null,
+        "decomp": null
+      }
+    },
+    "simplify": true,
+    "nonlinear": false,
+    "upto": null,
+    "kind": "VerifyKind.TEST",
+    "minimize": [],
+    "by": null
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "class": "Constant",
+  "type": "ConstructedType(float)",
+  "value": {
+    "class": "FloatConst",
+    "value": 1005.5
+  }
+}

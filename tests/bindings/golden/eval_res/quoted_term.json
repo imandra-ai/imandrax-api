@@ -1,0 +1,63 @@
+{
+  "class": "EvaluationTaskResult",
+  "statistics": {
+    "class": "EvaluationStatistics",
+    "compile_time": 5010.5,
+    "exec_time": 5011.25
+  },
+  "value": {
+    "class": "QuotedTerm",
+    "params": [
+      {
+        "class": "Var",
+        "type": "ConstructedType(int)",
+        "var": {
+          "class": "Variable",
+          "id": "Uid(x/2)",
+          "type": "ConstructedType(int)"
+        }
+      }
+    ],
+    "body": {
+      "class": "Apply",
+      "type": "ConstructedType(bool)",
+      "function": {
+        "class": "Symbol",
+        "type": "ArrowType(int -> int -> bool)",
+        "symbol": {
+          "class": "AppliedSymbol",
+          "symbol": {
+            "class": "TypedSymbol",
+            "id": "Uid(gt)",
+            "type_schema": {
+              "class": "TypeSchema",
+              "parameters": [],
+              "type": "ArrowType(int -> int -> bool)"
+            }
+          },
+          "type_arguments": [],
+          "type": "ArrowType(int -> int -> bool)"
+        }
+      },
+      "arguments": [
+        {
+          "class": "Var",
+          "type": "ConstructedType(int)",
+          "var": {
+            "class": "Variable",
+            "id": "Uid(x/2)",
+            "type": "ConstructedType(int)"
+          }
+        },
+        {
+          "class": "Constant",
+          "type": "ConstructedType(int)",
+          "value": {
+            "class": "IntConst",
+            "value": 0
+          }
+        }
+      ]
+    }
+  }
+}

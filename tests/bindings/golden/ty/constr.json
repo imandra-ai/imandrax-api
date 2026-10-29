@@ -1,0 +1,7 @@
+{
+  "class": "ConstructedType",
+  "constructor": "Uid(list)",
+  "arguments": [
+    "ConstructedType(int)"
+  ]
+}

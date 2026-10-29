@@ -34,7 +34,10 @@ extraPaths = ["imandrax-api/src"]
 # name `py.lib.test_twine` and fail to import it.
 # TODO(long-term): move tests under $ROOT/src/py to $ROOT/tests/
 addopts = "--import-mode=importlib"
-testpaths = ["lib", "../../tests/client/py"]
+testpaths = ["lib", "../../tests/client/py", "../../tests/bindings"]
+# For the bindings tests' helper modules, e.g. `shapes`: importlib mode does not add test
+# directories to `sys.path`
+pythonpath = ["../../tests/bindings"]
 
 [tool.ruff]
 indent-width = 4

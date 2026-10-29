@@ -1,0 +1,28 @@
+{
+  "class": "Destruct",
+  "type": "ConstructedType(int)",
+  "constructor": {
+    "class": "AppliedSymbol",
+    "symbol": {
+      "class": "TypedSymbol",
+      "id": "Uid(Circle)",
+      "type_schema": {
+        "class": "TypeSchema",
+        "parameters": [],
+        "type": "ArrowType(int -> shape)"
+      }
+    },
+    "type_arguments": [],
+    "type": "ArrowType(int -> shape)"
+  },
+  "index": 1016,
+  "term": {
+    "class": "Var",
+    "type": "ConstructedType(shape)",
+    "var": {
+      "class": "Variable",
+      "id": "Uid(s/4)",
+      "type": "ConstructedType(shape)"
+    }
+  }
+}

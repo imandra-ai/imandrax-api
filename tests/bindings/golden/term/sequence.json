@@ -1,0 +1,30 @@
+{
+  "class": "Sequence",
+  "type": "ConstructedType(int)",
+  "prefix": [
+    {
+      "class": "Constant",
+      "type": "ConstructedType(int)",
+      "value": {
+        "class": "IntConst",
+        "value": 1
+      }
+    },
+    {
+      "class": "Constant",
+      "type": "ConstructedType(int)",
+      "value": {
+        "class": "IntConst",
+        "value": 2
+      }
+    }
+  ],
+  "last": {
+    "class": "Constant",
+    "type": "ConstructedType(int)",
+    "value": {
+      "class": "IntConst",
+      "value": 3
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "class": "TypeDeclaration",
+  "type": {
+    "class": "TypeDefinition",
+    "name": "Uid(other/ljluD9pCiSrt+EzAjF2P1NnyaB8mkm+zDwgSfyaRQeU=)",
+    "parameters": [],
+    "kind": {
+      "class": "OtherTypeKind"
+    },
+    "clique": null,
+    "timeout": null
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "class": "EvaluationTask",
+  "artifact": "Artifact(kind='eval_task', data=<103 bytes>, api_version='v21')",
+  "awaitable": {
+    "class": "AwaitableAttrs"
+  },
+  "db": {
+    "class": "DB",
+    "admission": [],
+    "decls": [],
+    "disabled": [],
+    "elim": [],
+    "fc": [],
+    "gen": [],
+    "inst_rules": [],
+    "rule_spec_fc": [],
+    "rule_spec_rw_rules": [],
+    "rw_rules": [],
+    "thm_as_elim": [],
+    "thm_as_fc": [],
+    "thm_as_gen": [],
+    "thm_as_rw": []
+  },
+  "id": {
+    "class": "TaskID",
+    "id": "golden"
+  },
+  "kind": "eval",
+  "result": {
+    "raises": "NoClientError: task golden has no client to fetch its data with; set one with `task.set_client(client)`"
+  },
+  "term": {
+    "class": "Apply",
+    "type": "ConstructedType(int)",
+    "function": {
+      "class": "Symbol",
+      "type": "ArrowType(int -> int)",
+      "symbol": {
+        "class": "AppliedSymbol",
+        "symbol": {
+          "class": "TypedSymbol",
+          "id": "Uid(succ)",
+          "type_schema": {
+            "class": "TypeSchema",
+            "parameters": [],
+            "type": "ArrowType(int -> int)"
+          }
+        },
+        "type_arguments": [],
+        "type": "ArrowType(int -> int)"
+      }
+    },
+    "arguments": [
+      {
+        "class": "Var",
+        "type": "ConstructedType(int)",
+        "var": {
+          "class": "Variable",
+          "id": "Uid(x/2)",
+          "type": "ConstructedType(int)"
+        }
+      }
+    ]
+  },
+  "timeout": 7201,
+  "variables": [
+    {
+      "class": "Var",
+      "type": "ConstructedType(int)",
+      "var": {
+        "class": "Variable",
+        "id": "Uid(x/2)",
+        "type": "ConstructedType(int)"
+      }
+    }
+  ]
+}

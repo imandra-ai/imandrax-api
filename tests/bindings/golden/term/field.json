@@ -1,0 +1,27 @@
+{
+  "class": "Field",
+  "type": "ConstructedType(int)",
+  "field": {
+    "class": "AppliedSymbol",
+    "symbol": {
+      "class": "TypedSymbol",
+      "id": "Uid(x)",
+      "type_schema": {
+        "class": "TypeSchema",
+        "parameters": [],
+        "type": "ArrowType(point -> int)"
+      }
+    },
+    "type_arguments": [],
+    "type": "ArrowType(point -> int)"
+  },
+  "term": {
+    "class": "Var",
+    "type": "ConstructedType(point)",
+    "var": {
+      "class": "Variable",
+      "id": "Uid(p/3)",
+      "type": "ConstructedType(point)"
+    }
+  }
+}

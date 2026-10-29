@@ -1,0 +1,19 @@
+{
+  "class": "EvaluationTaskResult",
+  "statistics": {
+    "class": "EvaluationStatistics",
+    "compile_time": 5010.5,
+    "exec_time": 5011.25
+  },
+  "value": {
+    "class": "Constructor",
+    "name": "Some",
+    "index": 5005,
+    "args": [
+      {
+        "class": "Int",
+        "value": 1
+      }
+    ]
+  }
+}

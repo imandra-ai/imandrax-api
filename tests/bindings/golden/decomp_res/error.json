@@ -1,0 +1,64 @@
+{
+  "class": "DecompositionTaskResult",
+  "decomposition": null,
+  "error": {
+    "class": "ErrorCore",
+    "process": "golden_0001",
+    "kind": "GoldenError0002",
+    "message": {
+      "class": "ErrorMessage",
+      "message": "decomp failed",
+      "backtrace": null
+    },
+    "stack": []
+  },
+  "from_": "hash:decomp:KHN2C3epGrL9Iu_niBr6Zi8FPF7JqoNBEBauDc4l9Ew=",
+  "report": {
+    "class": "Report",
+    "events": [
+      {
+        "class": "EnterSpan",
+        "timestamp": 3200.0,
+        "event": {
+          "class": "EnterTactic",
+          "tactic": "outer"
+        }
+      },
+      {
+        "class": "InstantEvent",
+        "timestamp": 3201.0,
+        "event": {
+          "class": "Title",
+          "text": "inside"
+        }
+      },
+      {
+        "class": "EnterSpan",
+        "timestamp": 3202.0,
+        "event": {
+          "class": "EnterTactic",
+          "tactic": "inner"
+        }
+      },
+      {
+        "class": "ExitSpan",
+        "timestamp": 3203.0
+      },
+      {
+        "class": "ExitSpan",
+        "timestamp": 3204.0
+      }
+    ]
+  },
+  "statistics": {
+    "class": "Statistics",
+    "time_s": 1003.5,
+    "tactic": [
+      [
+        "steps_0004",
+        "1005"
+      ]
+    ]
+  },
+  "success": false
+}

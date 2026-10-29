@@ -1,0 +1,8 @@
+{
+  "class": "Constant",
+  "type": "ConstructedType(real)",
+  "value": {
+    "class": "RealApproxConst",
+    "value": "1006.41?"
+  }
+}

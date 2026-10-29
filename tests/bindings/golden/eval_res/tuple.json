@@ -1,0 +1,20 @@
+{
+  "class": "EvaluationTaskResult",
+  "statistics": {
+    "class": "EvaluationStatistics",
+    "compile_time": 5010.5,
+    "exec_time": 5011.25
+  },
+  "value": {
+    "class": "Tuple",
+    "elements": [
+      {
+        "class": "Int",
+        "value": 1
+      },
+      {
+        "class": "True_"
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "class": "TypeDeclaration",
+  "type": {
+    "class": "TypeDefinition",
+    "name": "Uid(int/5jCEoqjoi7rmMdKUimtaubPAaZxO2nH2AYjg8VHcuxc=)",
+    "parameters": [],
+    "kind": {
+      "class": "BuiltinTypeKind",
+      "sort": {
+        "class": "BuiltinSort",
+        "id": {
+          "class": "Uid",
+          "builtin_kind": {
+            "class": "LogicCoreBuiltin",
+            "name": "int"
+          },
+          "full_name": "int",
+          "short_name": "int"
+        },
+        "kind": {
+          "class": "LogicCoreBuiltin",
+          "name": "int"
+        }
+      }
+    },
+    "clique": null,
+    "timeout": 2001
+  }
+}

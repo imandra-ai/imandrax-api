@@ -1,0 +1,661 @@
+{
+  "class": "DecompositionTask",
+  "artifact": "Artifact(kind='decomp_task', data=<1423 bytes>, api_version='v21')",
+  "awaitable": {
+    "class": "AwaitableAttrs"
+  },
+  "db": {
+    "class": "DB",
+    "admission": [],
+    "decls": [],
+    "disabled": [],
+    "elim": [],
+    "fc": [],
+    "gen": [],
+    "inst_rules": [],
+    "rule_spec_fc": [],
+    "rule_spec_rw_rules": [],
+    "rw_rules": [],
+    "thm_as_elim": [],
+    "thm_as_fc": [],
+    "thm_as_gen": [],
+    "thm_as_rw": []
+  },
+  "decomp": {
+    "class": "DecompositionRequest.Let",
+    "bindings": [
+      [
+        "d_7101",
+        {
+          "class": "DecompositionRequest.Function",
+          "function": "Uid(f)",
+          "assuming": "Uid(pre)",
+          "basis": [
+            "Uid(b)"
+          ],
+          "rule_specs": [
+            "Uid(rule/yK/tkIkQIgZ43km3clP8IaoEAK40Mt9WY3eFjUw0YXw=)"
+          ],
+          "ctx_simp": true,
+          "lift_bool": "LiftBool.DEFAULT",
+          "prune": false
+        }
+      ]
+    ],
+    "and_then": {
+      "class": "DecompositionRequest.Enumerate",
+      "d_f": {
+        "class": "DecompositionRequest.Merge",
+        "left": {
+          "class": "DecompositionRequest.Get",
+          "name": "d_7101"
+        },
+        "right": {
+          "class": "DecompositionRequest.CompoundMerge",
+          "left": {
+            "class": "DecompositionRequest.Term",
+            "term": {
+              "class": "Var",
+              "type": "ConstructedType(int)",
+              "var": {
+                "class": "Variable",
+                "id": "Uid(x/2)",
+                "type": "ConstructedType(int)"
+              }
+            }
+          },
+          "right": {
+            "class": "DecompositionRequest.Return",
+            "decomposition": {
+              "class": "Decomposition",
+              "id": "Uid(f)",
+              "arguments": [
+                {
+                  "class": "Var",
+                  "type": "ConstructedType(int)",
+                  "var": {
+                    "class": "Variable",
+                    "id": "Uid(x/2)",
+                    "type": "ConstructedType(int)"
+                  }
+                }
+              ],
+              "regions": [
+                {
+                  "class": "Decomposition.Region",
+                  "constraints": [
+                    {
+                      "class": "Apply",
+                      "type": "ConstructedType(bool)",
+                      "function": {
+                        "class": "Symbol",
+                        "type": "ArrowType(int -> int -> bool)",
+                        "symbol": {
+                          "class": "AppliedSymbol",
+                          "symbol": {
+                            "class": "TypedSymbol",
+                            "id": "Uid(gt)",
+                            "type_schema": {
+                              "class": "TypeSchema",
+                              "parameters": [],
+                              "type": "ArrowType(int -> int -> bool)"
+                            }
+                          },
+                          "type_arguments": [],
+                          "type": "ArrowType(int -> int -> bool)"
+                        }
+                      },
+                      "arguments": [
+                        {
+                          "class": "Var",
+                          "type": "ConstructedType(int)",
+                          "var": {
+                            "class": "Variable",
+                            "id": "Uid(x/2)",
+                            "type": "ConstructedType(int)"
+                          }
+                        },
+                        {
+                          "class": "Constant",
+                          "type": "ConstructedType(int)",
+                          "value": {
+                            "class": "IntConst",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "invariant": {
+                    "class": "Constant",
+                    "type": "ConstructedType(int)",
+                    "value": {
+                      "class": "IntConst",
+                      "value": 1
+                    }
+                  },
+                  "meta": [
+                    [
+                      "null_6001",
+                      null
+                    ],
+                    [
+                      "bool",
+                      true
+                    ],
+                    [
+                      "int",
+                      6002
+                    ],
+                    [
+                      "real",
+                      "Fraction(6003, 6004)"
+                    ],
+                    [
+                      "string",
+                      "s_6005"
+                    ],
+                    [
+                      "assoc",
+                      [
+                        [
+                          "k_6006",
+                          2
+                        ]
+                      ]
+                    ],
+                    [
+                      "term",
+                      {
+                        "class": "Var",
+                        "type": "ConstructedType(int)",
+                        "var": {
+                          "class": "Variable",
+                          "id": "Uid(x/2)",
+                          "type": "ConstructedType(int)"
+                        }
+                      }
+                    ],
+                    [
+                      "list",
+                      [
+                        null,
+                        false
+                      ]
+                    ]
+                  ],
+                  "status": {
+                    "class": "UnknownStatus"
+                  }
+                },
+                {
+                  "class": "Decomposition.Region",
+                  "constraints": [
+                    {
+                      "class": "Apply",
+                      "type": "ConstructedType(bool)",
+                      "function": {
+                        "class": "Symbol",
+                        "type": "ArrowType(int -> int -> bool)",
+                        "symbol": {
+                          "class": "AppliedSymbol",
+                          "symbol": {
+                            "class": "TypedSymbol",
+                            "id": "Uid(gt)",
+                            "type_schema": {
+                              "class": "TypeSchema",
+                              "parameters": [],
+                              "type": "ArrowType(int -> int -> bool)"
+                            }
+                          },
+                          "type_arguments": [],
+                          "type": "ArrowType(int -> int -> bool)"
+                        }
+                      },
+                      "arguments": [
+                        {
+                          "class": "Var",
+                          "type": "ConstructedType(int)",
+                          "var": {
+                            "class": "Variable",
+                            "id": "Uid(x/2)",
+                            "type": "ConstructedType(int)"
+                          }
+                        },
+                        {
+                          "class": "Constant",
+                          "type": "ConstructedType(int)",
+                          "value": {
+                            "class": "IntConst",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "invariant": {
+                    "class": "Constant",
+                    "type": "ConstructedType(int)",
+                    "value": {
+                      "class": "IntConst",
+                      "value": 1
+                    }
+                  },
+                  "meta": [
+                    [
+                      "null_6001",
+                      null
+                    ],
+                    [
+                      "bool",
+                      true
+                    ],
+                    [
+                      "int",
+                      6002
+                    ],
+                    [
+                      "real",
+                      "Fraction(6003, 6004)"
+                    ],
+                    [
+                      "string",
+                      "s_6005"
+                    ],
+                    [
+                      "assoc",
+                      [
+                        [
+                          "k_6006",
+                          2
+                        ]
+                      ]
+                    ],
+                    [
+                      "term",
+                      {
+                        "class": "Var",
+                        "type": "ConstructedType(int)",
+                        "var": {
+                          "class": "Variable",
+                          "id": "Uid(x/2)",
+                          "type": "ConstructedType(int)"
+                        }
+                      }
+                    ],
+                    [
+                      "list",
+                      [
+                        null,
+                        false
+                      ]
+                    ]
+                  ],
+                  "status": {
+                    "class": "FeasibleStatus",
+                    "model": {
+                      "class": "Model",
+                      "types": [
+                        [
+                          "ConstructedType(shape)",
+                          {
+                            "class": "FiniteTypeInterpretation",
+                            "elements": [
+                              {
+                                "class": "Constant",
+                                "type": "ConstructedType(int)",
+                                "value": {
+                                  "class": "IntConst",
+                                  "value": 0
+                                }
+                              },
+                              {
+                                "class": "Constant",
+                                "type": "ConstructedType(int)",
+                                "value": {
+                                  "class": "IntConst",
+                                  "value": 1
+                                }
+                              }
+                            ]
+                          }
+                        ],
+                        [
+                          "ConstructedType(unit_alias)",
+                          {
+                            "class": "UnitAliasTypeInterpretation",
+                            "type": "ConstructedType(unit)"
+                          }
+                        ]
+                      ],
+                      "constants": [
+                        [
+                          {
+                            "class": "AppliedSymbol",
+                            "symbol": {
+                              "class": "TypedSymbol",
+                              "id": "Uid(c)",
+                              "type_schema": {
+                                "class": "TypeSchema",
+                                "parameters": [],
+                                "type": "ConstructedType(int)"
+                              }
+                            },
+                            "type_arguments": [],
+                            "type": "ConstructedType(int)"
+                          },
+                          {
+                            "class": "Constant",
+                            "type": "ConstructedType(int)",
+                            "value": {
+                              "class": "IntConst",
+                              "value": 3
+                            }
+                          }
+                        ]
+                      ],
+                      "functions": [
+                        [
+                          {
+                            "class": "AppliedSymbol",
+                            "symbol": {
+                              "class": "TypedSymbol",
+                              "id": "Uid(succ)",
+                              "type_schema": {
+                                "class": "TypeSchema",
+                                "parameters": [],
+                                "type": "ArrowType(int -> int)"
+                              }
+                            },
+                            "type_arguments": [],
+                            "type": "ArrowType(int -> int)"
+                          },
+                          {
+                            "class": "FunctionInterpretation",
+                            "arguments": [
+                              {
+                                "class": "Var",
+                                "type": "ConstructedType(int)",
+                                "var": {
+                                  "class": "Variable",
+                                  "id": "Uid(x/2)",
+                                  "type": "ConstructedType(int)"
+                                }
+                              }
+                            ],
+                            "return_type": "ConstructedType(int)",
+                            "cases": [
+                              [
+                                [
+                                  {
+                                    "class": "Apply",
+                                    "type": "ConstructedType(bool)",
+                                    "function": {
+                                      "class": "Symbol",
+                                      "type": "ArrowType(int -> int -> bool)",
+                                      "symbol": {
+                                        "class": "AppliedSymbol",
+                                        "symbol": {
+                                          "class": "TypedSymbol",
+                                          "id": "Uid(gt)",
+                                          "type_schema": {
+                                            "class": "TypeSchema",
+                                            "parameters": [],
+                                            "type": "ArrowType(int -> int -> bool)"
+                                          }
+                                        },
+                                        "type_arguments": [],
+                                        "type": "ArrowType(int -> int -> bool)"
+                                      }
+                                    },
+                                    "arguments": [
+                                      {
+                                        "class": "Var",
+                                        "type": "ConstructedType(int)",
+                                        "var": {
+                                          "class": "Variable",
+                                          "id": "Uid(x/2)",
+                                          "type": "ConstructedType(int)"
+                                        }
+                                      },
+                                      {
+                                        "class": "Constant",
+                                        "type": "ConstructedType(int)",
+                                        "value": {
+                                          "class": "IntConst",
+                                          "value": 0
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ],
+                                {
+                                  "class": "Constant",
+                                  "type": "ConstructedType(int)",
+                                  "value": {
+                                    "class": "IntConst",
+                                    "value": 1
+                                  }
+                                }
+                              ],
+                              [
+                                [],
+                                {
+                                  "class": "Constant",
+                                  "type": "ConstructedType(int)",
+                                  "value": {
+                                    "class": "IntConst",
+                                    "value": 2
+                                  }
+                                }
+                              ]
+                            ],
+                            "else_": {
+                              "class": "Constant",
+                              "type": "ConstructedType(int)",
+                              "value": {
+                                "class": "IntConst",
+                                "value": 0
+                              }
+                            }
+                          }
+                        ]
+                      ],
+                      "representable": true,
+                      "completed": false,
+                      "type_substitution": [
+                        [
+                          "Uid(a/1)",
+                          "ConstructedType(int)"
+                        ]
+                      ]
+                    }
+                  }
+                },
+                {
+                  "class": "Decomposition.Region",
+                  "constraints": [
+                    {
+                      "class": "Apply",
+                      "type": "ConstructedType(bool)",
+                      "function": {
+                        "class": "Symbol",
+                        "type": "ArrowType(int -> int -> bool)",
+                        "symbol": {
+                          "class": "AppliedSymbol",
+                          "symbol": {
+                            "class": "TypedSymbol",
+                            "id": "Uid(gt)",
+                            "type_schema": {
+                              "class": "TypeSchema",
+                              "parameters": [],
+                              "type": "ArrowType(int -> int -> bool)"
+                            }
+                          },
+                          "type_arguments": [],
+                          "type": "ArrowType(int -> int -> bool)"
+                        }
+                      },
+                      "arguments": [
+                        {
+                          "class": "Var",
+                          "type": "ConstructedType(int)",
+                          "var": {
+                            "class": "Variable",
+                            "id": "Uid(x/2)",
+                            "type": "ConstructedType(int)"
+                          }
+                        },
+                        {
+                          "class": "Constant",
+                          "type": "ConstructedType(int)",
+                          "value": {
+                            "class": "IntConst",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "invariant": {
+                    "class": "Constant",
+                    "type": "ConstructedType(int)",
+                    "value": {
+                      "class": "IntConst",
+                      "value": 1
+                    }
+                  },
+                  "meta": [
+                    [
+                      "null_6001",
+                      null
+                    ],
+                    [
+                      "bool",
+                      true
+                    ],
+                    [
+                      "int",
+                      6002
+                    ],
+                    [
+                      "real",
+                      "Fraction(6003, 6004)"
+                    ],
+                    [
+                      "string",
+                      "s_6005"
+                    ],
+                    [
+                      "assoc",
+                      [
+                        [
+                          "k_6006",
+                          2
+                        ]
+                      ]
+                    ],
+                    [
+                      "term",
+                      {
+                        "class": "Var",
+                        "type": "ConstructedType(int)",
+                        "var": {
+                          "class": "Variable",
+                          "id": "Uid(x/2)",
+                          "type": "ConstructedType(int)"
+                        }
+                      }
+                    ],
+                    [
+                      "list",
+                      [
+                        null,
+                        false
+                      ]
+                    ]
+                  ],
+                  "status": {
+                    "class": "FeasibilityCheckFailedStatus",
+                    "message": "timeout_6007"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "ds": [
+        {
+          "class": "DecompositionRequest.Enumerate",
+          "d_f": {
+            "class": "DecompositionRequest.Prune",
+            "request": {
+              "class": "DecompositionRequest.Function",
+              "function": "Uid(f)",
+              "assuming": null,
+              "basis": [
+                "Uid(b)"
+              ],
+              "rule_specs": [
+                "Uid(rule/yK/tkIkQIgZ43km3clP8IaoEAK40Mt9WY3eFjUw0YXw=)"
+              ],
+              "ctx_simp": true,
+              "lift_bool": "LiftBool.NESTED_EQUALITIES",
+              "prune": false
+            }
+          },
+          "ds": [],
+          "style": null
+        },
+        {
+          "class": "DecompositionRequest.Enumerate",
+          "d_f": {
+            "class": "DecompositionRequest.Combine",
+            "request": {
+              "class": "DecompositionRequest.Function",
+              "function": "Uid(f)",
+              "assuming": null,
+              "basis": [
+                "Uid(b)"
+              ],
+              "rule_specs": [
+                "Uid(rule/yK/tkIkQIgZ43km3clP8IaoEAK40Mt9WY3eFjUw0YXw=)"
+              ],
+              "ctx_simp": true,
+              "lift_bool": "LiftBool.EQUALITIES",
+              "prune": false
+            }
+          },
+          "ds": [
+            {
+              "class": "DecompositionRequest.Function",
+              "function": "Uid(f)",
+              "assuming": null,
+              "basis": [
+                "Uid(b)"
+              ],
+              "rule_specs": [
+                "Uid(rule/yK/tkIkQIgZ43km3clP8IaoEAK40Mt9WY3eFjUw0YXw=)"
+              ],
+              "ctx_simp": true,
+              "lift_bool": "LiftBool.ALL",
+              "prune": false
+            }
+          ],
+          "style": "EnumerationStyle.ADDITIVE"
+        }
+      ],
+      "style": "EnumerationStyle.MULTIPLICATIVE"
+    }
+  },
+  "id": {
+    "class": "TaskID",
+    "id": "golden"
+  },
+  "kind": "decomp",
+  "result": {
+    "raises": "NoClientError: task golden has no client to fetch its data with; set one with `task.set_client(client)`"
+  },
+  "timeout": null
+}

@@ -1,0 +1,17 @@
+; Generates the golden cases in `golden/`, see test_golden.py
+
+(executable
+ (name gen)
+ (flags :standard -alert -expert)
+ (libraries
+  imandrakit
+  imandrakit.error
+  imandrax-api
+  imandrax-api.mir
+  imandrax-api.artifact
+  imandrax-api.ca-store
+  imandrax-api.proof
+  imandrax-api.report
+  imandrax-api.eval
+  imandrax-api.tasks
+  zarith))

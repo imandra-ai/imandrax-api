@@ -1,0 +1,16 @@
+{
+  "class": "Constant",
+  "type": "ConstructedType(uid)",
+  "value": {
+    "class": "UidConst",
+    "uid": {
+      "class": "Uid",
+      "builtin_kind": {
+        "class": "TacticBuiltin",
+        "name": "tac_1012"
+      },
+      "full_name": "t",
+      "short_name": "t"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "class": "Constant",
+  "type": "ConstructedType(uid)",
+  "value": {
+    "class": "UidConst",
+    "uid": {
+      "class": "Uid",
+      "builtin_kind": {
+        "class": "LogicCoreBuiltin",
+        "name": "core_1010"
+      },
+      "full_name": "lc",
+      "short_name": "lc"
+    }
+  }
+}

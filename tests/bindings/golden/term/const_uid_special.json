@@ -1,0 +1,16 @@
+{
+  "class": "Constant",
+  "type": "ConstructedType(uid)",
+  "value": {
+    "class": "UidConst",
+    "uid": {
+      "class": "Uid",
+      "builtin_kind": {
+        "class": "SpecialBuiltin",
+        "tag": "tag_1011"
+      },
+      "full_name": "s",
+      "short_name": "s"
+    }
+  }
+}

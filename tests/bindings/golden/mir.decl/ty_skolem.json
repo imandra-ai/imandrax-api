@@ -1,0 +1,13 @@
+{
+  "class": "TypeDeclaration",
+  "type": {
+    "class": "TypeDefinition",
+    "name": "Uid(skolem/hKHrUHmVGNFKwj4Dl2qFE4VMuZnN4jyGOPhZiGgrAPY=)",
+    "parameters": [],
+    "kind": {
+      "class": "SkolemTypeKind"
+    },
+    "clique": null,
+    "timeout": 2001
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "class": "Constant",
+  "type": "ConstructedType(uid)",
+  "value": {
+    "class": "UidConst",
+    "uid": {
+      "class": "Uid",
+      "builtin_kind": {
+        "class": "DecompBuiltin",
+        "name": "decomp_1013"
+      },
+      "full_name": "d",
+      "short_name": "d"
+    }
+  }
+}

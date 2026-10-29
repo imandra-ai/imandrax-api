@@ -1,0 +1,412 @@
+{
+  "class": "ProofObligationTaskResult",
+  "from_": "hash:po_4007:n6gkmergQequUIDXJYFJA6FfrXa0jg-7rP7AyUtIo2w=",
+  "model": {
+    "class": "Model",
+    "types": [
+      [
+        "ConstructedType(shape)",
+        {
+          "class": "FiniteTypeInterpretation",
+          "elements": [
+            {
+              "class": "Constant",
+              "type": "ConstructedType(int)",
+              "value": {
+                "class": "IntConst",
+                "value": 0
+              }
+            },
+            {
+              "class": "Constant",
+              "type": "ConstructedType(int)",
+              "value": {
+                "class": "IntConst",
+                "value": 1
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "ConstructedType(unit_alias)",
+        {
+          "class": "UnitAliasTypeInterpretation",
+          "type": "ConstructedType(unit)"
+        }
+      ]
+    ],
+    "constants": [
+      [
+        {
+          "class": "AppliedSymbol",
+          "symbol": {
+            "class": "TypedSymbol",
+            "id": "Uid(c)",
+            "type_schema": {
+              "class": "TypeSchema",
+              "parameters": [],
+              "type": "ConstructedType(int)"
+            }
+          },
+          "type_arguments": [],
+          "type": "ConstructedType(int)"
+        },
+        {
+          "class": "Constant",
+          "type": "ConstructedType(int)",
+          "value": {
+            "class": "IntConst",
+            "value": 3
+          }
+        }
+      ]
+    ],
+    "functions": [
+      [
+        {
+          "class": "AppliedSymbol",
+          "symbol": {
+            "class": "TypedSymbol",
+            "id": "Uid(succ)",
+            "type_schema": {
+              "class": "TypeSchema",
+              "parameters": [],
+              "type": "ArrowType(int -> int)"
+            }
+          },
+          "type_arguments": [],
+          "type": "ArrowType(int -> int)"
+        },
+        {
+          "class": "FunctionInterpretation",
+          "arguments": [
+            {
+              "class": "Var",
+              "type": "ConstructedType(int)",
+              "var": {
+                "class": "Variable",
+                "id": "Uid(x/2)",
+                "type": "ConstructedType(int)"
+              }
+            }
+          ],
+          "return_type": "ConstructedType(int)",
+          "cases": [
+            [
+              [
+                {
+                  "class": "Apply",
+                  "type": "ConstructedType(bool)",
+                  "function": {
+                    "class": "Symbol",
+                    "type": "ArrowType(int -> int -> bool)",
+                    "symbol": {
+                      "class": "AppliedSymbol",
+                      "symbol": {
+                        "class": "TypedSymbol",
+                        "id": "Uid(gt)",
+                        "type_schema": {
+                          "class": "TypeSchema",
+                          "parameters": [],
+                          "type": "ArrowType(int -> int -> bool)"
+                        }
+                      },
+                      "type_arguments": [],
+                      "type": "ArrowType(int -> int -> bool)"
+                    }
+                  },
+                  "arguments": [
+                    {
+                      "class": "Var",
+                      "type": "ConstructedType(int)",
+                      "var": {
+                        "class": "Variable",
+                        "id": "Uid(x/2)",
+                        "type": "ConstructedType(int)"
+                      }
+                    },
+                    {
+                      "class": "Constant",
+                      "type": "ConstructedType(int)",
+                      "value": {
+                        "class": "IntConst",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              ],
+              {
+                "class": "Constant",
+                "type": "ConstructedType(int)",
+                "value": {
+                  "class": "IntConst",
+                  "value": 1
+                }
+              }
+            ],
+            [
+              [],
+              {
+                "class": "Constant",
+                "type": "ConstructedType(int)",
+                "value": {
+                  "class": "IntConst",
+                  "value": 2
+                }
+              }
+            ]
+          ],
+          "else_": {
+            "class": "Constant",
+            "type": "ConstructedType(int)",
+            "value": {
+              "class": "IntConst",
+              "value": 0
+            }
+          }
+        }
+      ]
+    ],
+    "representable": true,
+    "completed": false,
+    "type_substitution": [
+      [
+        "Uid(a/1)",
+        "ConstructedType(int)"
+      ]
+    ]
+  },
+  "proof": null,
+  "proved": true,
+  "report": {
+    "class": "Report",
+    "events": [
+      {
+        "class": "EnterSpan",
+        "timestamp": 3200.0,
+        "event": {
+          "class": "EnterTactic",
+          "tactic": "outer"
+        }
+      },
+      {
+        "class": "InstantEvent",
+        "timestamp": 3201.0,
+        "event": {
+          "class": "Title",
+          "text": "inside"
+        }
+      },
+      {
+        "class": "EnterSpan",
+        "timestamp": 3202.0,
+        "event": {
+          "class": "EnterTactic",
+          "tactic": "inner"
+        }
+      },
+      {
+        "class": "ExitSpan",
+        "timestamp": 3203.0
+      },
+      {
+        "class": "ExitSpan",
+        "timestamp": 3204.0
+      }
+    ]
+  },
+  "result": {
+    "class": "Instance",
+    "model": {
+      "class": "Model",
+      "types": [
+        [
+          "ConstructedType(shape)",
+          {
+            "class": "FiniteTypeInterpretation",
+            "elements": [
+              {
+                "class": "Constant",
+                "type": "ConstructedType(int)",
+                "value": {
+                  "class": "IntConst",
+                  "value": 0
+                }
+              },
+              {
+                "class": "Constant",
+                "type": "ConstructedType(int)",
+                "value": {
+                  "class": "IntConst",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        ],
+        [
+          "ConstructedType(unit_alias)",
+          {
+            "class": "UnitAliasTypeInterpretation",
+            "type": "ConstructedType(unit)"
+          }
+        ]
+      ],
+      "constants": [
+        [
+          {
+            "class": "AppliedSymbol",
+            "symbol": {
+              "class": "TypedSymbol",
+              "id": "Uid(c)",
+              "type_schema": {
+                "class": "TypeSchema",
+                "parameters": [],
+                "type": "ConstructedType(int)"
+              }
+            },
+            "type_arguments": [],
+            "type": "ConstructedType(int)"
+          },
+          {
+            "class": "Constant",
+            "type": "ConstructedType(int)",
+            "value": {
+              "class": "IntConst",
+              "value": 3
+            }
+          }
+        ]
+      ],
+      "functions": [
+        [
+          {
+            "class": "AppliedSymbol",
+            "symbol": {
+              "class": "TypedSymbol",
+              "id": "Uid(succ)",
+              "type_schema": {
+                "class": "TypeSchema",
+                "parameters": [],
+                "type": "ArrowType(int -> int)"
+              }
+            },
+            "type_arguments": [],
+            "type": "ArrowType(int -> int)"
+          },
+          {
+            "class": "FunctionInterpretation",
+            "arguments": [
+              {
+                "class": "Var",
+                "type": "ConstructedType(int)",
+                "var": {
+                  "class": "Variable",
+                  "id": "Uid(x/2)",
+                  "type": "ConstructedType(int)"
+                }
+              }
+            ],
+            "return_type": "ConstructedType(int)",
+            "cases": [
+              [
+                [
+                  {
+                    "class": "Apply",
+                    "type": "ConstructedType(bool)",
+                    "function": {
+                      "class": "Symbol",
+                      "type": "ArrowType(int -> int -> bool)",
+                      "symbol": {
+                        "class": "AppliedSymbol",
+                        "symbol": {
+                          "class": "TypedSymbol",
+                          "id": "Uid(gt)",
+                          "type_schema": {
+                            "class": "TypeSchema",
+                            "parameters": [],
+                            "type": "ArrowType(int -> int -> bool)"
+                          }
+                        },
+                        "type_arguments": [],
+                        "type": "ArrowType(int -> int -> bool)"
+                      }
+                    },
+                    "arguments": [
+                      {
+                        "class": "Var",
+                        "type": "ConstructedType(int)",
+                        "var": {
+                          "class": "Variable",
+                          "id": "Uid(x/2)",
+                          "type": "ConstructedType(int)"
+                        }
+                      },
+                      {
+                        "class": "Constant",
+                        "type": "ConstructedType(int)",
+                        "value": {
+                          "class": "IntConst",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  }
+                ],
+                {
+                  "class": "Constant",
+                  "type": "ConstructedType(int)",
+                  "value": {
+                    "class": "IntConst",
+                    "value": 1
+                  }
+                }
+              ],
+              [
+                [],
+                {
+                  "class": "Constant",
+                  "type": "ConstructedType(int)",
+                  "value": {
+                    "class": "IntConst",
+                    "value": 2
+                  }
+                }
+              ]
+            ],
+            "else_": {
+              "class": "Constant",
+              "type": "ConstructedType(int)",
+              "value": {
+                "class": "IntConst",
+                "value": 0
+              }
+            }
+          }
+        ]
+      ],
+      "representable": true,
+      "completed": false,
+      "type_substitution": [
+        [
+          "Uid(a/1)",
+          "ConstructedType(int)"
+        ]
+      ]
+    }
+  },
+  "statistics": {
+    "class": "Statistics",
+    "time_s": 1003.5,
+    "tactic": [
+      [
+        "steps_0004",
+        "1005"
+      ]
+    ]
+  },
+  "subgoals": null,
+  "subresults": []
+}
