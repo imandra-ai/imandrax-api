@@ -8,13 +8,12 @@
 
 import asyncio
 import gc
-import os
 import weakref
+from collections.abc import Callable
 from typing import Any
 
 import pytest
 
-import imandrax_api
 from imandrax_api.bindings import task_pb2
 from imandrax_api.bindings.api_pb2 import ArtifactResult
 from imandrax_api.demo.interface import (
@@ -33,18 +32,6 @@ from imandrax_api.demo.interface import (
 from imandrax_api.demo.mir import DB
 
 SRC = "theorem succ_gt x = x + 1 > x"
-
-
-def api_key() -> str | None:
-    return os.environ.get("IMANDRAX_API_KEY") or os.environ.get("IMANDRA_UNI_KEY")
-
-
-def mk_client() -> Client:
-    return Client(url=imandrax_api.url_prod, api_key=api_key())
-
-
-def mk_async_client() -> AsyncClient:
-    return AsyncClient(url=imandrax_api.url_prod, api_key=api_key())
 
 
 def get_the_task[T: Task](rsp: EvalSrcResponse, cls: type[T]) -> T:
@@ -81,7 +68,7 @@ def test_task_without_client_raises_on_fetch():
 # ======
 
 
-def test_task_equality():
+def test_task_equality(mk_client: Callable[[], Client]):
     """Tasks are equal when their ids are."""
 
     def mk_pb_task(
@@ -109,7 +96,7 @@ def test_task_equality():
         assert set(other.tasks).isdisjoint(r1.tasks)
 
 
-def test_kill_then_access_raises():
+def test_kill_then_access_raises(mk_client: Callable[[], Client]):
     client = mk_client()
     po = get_the_task(client.eval_src(SRC), ProofObligationTask)
 
@@ -123,7 +110,7 @@ def test_kill_then_access_raises():
         _ = po.result
 
 
-def test_access_kill_access_again():
+def test_access_kill_access_again(mk_client: Callable[[], Client]):
     client = mk_client()
     po = get_the_task(client.eval_src(SRC), ProofObligationTask)
     po_ = po.proof_obligation
@@ -137,7 +124,7 @@ def test_access_kill_access_again():
     assert po.result is res
 
 
-def test_access_kill_access_derived_from_same_artifact():
+def test_access_kill_access_derived_from_same_artifact(mk_client: Callable[[], Client]):
     client = mk_client()
     po = get_the_task(client.eval_src(SRC), ProofObligationTask)
     # Fetches the `po_task` artifact, which `from_sym` and `db` are also decoded from
@@ -153,11 +140,13 @@ def test_access_kill_access_derived_from_same_artifact():
         _ = po.result
 
 
-def test_kill_set_client_access():
+def test_kill_set_client_access(mk_client: Callable[[], Client]):
     """A task whose client is gone fetches with another client"""
 
     with mk_client() as client:
-        po_task: ProofObligationTask = get_the_task(client.eval_src(SRC), ProofObligationTask)
+        po_task: ProofObligationTask = get_the_task(
+            client.eval_src(SRC), ProofObligationTask
+        )
         po: ProofObligation = po_task.proof_obligation
 
     ref = weakref.ref(client)
@@ -167,7 +156,9 @@ def test_kill_set_client_access():
     with pytest.raises(ClientGoneError):
         _ = po_task.result
 
-    assert po_task.proof_obligation is po, "Accessing cached property after client is gone should be fine"
+    assert po_task.proof_obligation is po, (
+        "Accessing cached property after client is gone should be fine"
+    )
 
     with mk_client() as c2:
         po_task.set_client(c2)
@@ -179,7 +170,7 @@ def test_kill_set_client_access():
 # ===========
 
 
-def test_async_access_before_fetch_raises():
+def test_async_access_before_fetch_raises(mk_async_client: Callable[[], AsyncClient]):
     async def main() -> None:
         async with mk_async_client() as client:
             po = get_the_task(await client.eval_src(SRC), ProofObligationTask)
@@ -194,7 +185,9 @@ def test_async_access_before_fetch_raises():
     asyncio.run(main())
 
 
-def test_async_awaitable_fetches_then_plain_access():
+def test_async_awaitable_fetches_then_plain_access(
+    mk_async_client: Callable[[], AsyncClient],
+):
     async def main() -> None:
         async with mk_async_client() as client:
             po = get_the_task(await client.eval_src(SRC), ProofObligationTask)
@@ -211,7 +204,7 @@ def test_async_awaitable_fetches_then_plain_access():
     asyncio.run(main())
 
 
-def test_async_fetch_all():
+def test_async_fetch_all(mk_async_client: Callable[[], AsyncClient]):
     async def main() -> None:
         async with mk_async_client() as client:
             po = get_the_task(await client.eval_src(SRC), ProofObligationTask)
@@ -224,7 +217,7 @@ def test_async_fetch_all():
     asyncio.run(main())
 
 
-def test_async_access_kill_access_again():
+def test_async_access_kill_access_again(mk_async_client: Callable[[], AsyncClient]):
     async def main() -> None:
         client = mk_async_client()
         async with client:
@@ -248,7 +241,9 @@ def test_async_access_kill_access_again():
     asyncio.run(main())
 
 
-def test_async_concurrent_accesses_share_one_fetch():
+def test_async_concurrent_accesses_share_one_fetch(
+    mk_async_client: Callable[[], AsyncClient],
+):
     async def main() -> None:
         async with mk_async_client() as client:
             po = get_the_task(await client.eval_src(SRC), ProofObligationTask)

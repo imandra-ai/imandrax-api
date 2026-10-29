@@ -1,14 +1,12 @@
 import asyncio
 import inspect
-import os
 import zipfile
-from collections.abc import Iterator
+from collections.abc import Callable
 from io import BytesIO
 
 import pytest
 from inline_snapshot import snapshot
 
-import imandrax_api
 from imandrax_api.demo import decomp
 from imandrax_api.demo.interface import (
     Artifact,
@@ -38,24 +36,11 @@ let nonneg x = f x >= 0
 """
 
 
-def api_key() -> str | None:
-    return os.environ.get("IMANDRAX_API_KEY") or os.environ.get("IMANDRA_UNI_KEY")
-
-
-def mk_client() -> Client:
-    return Client(url=imandrax_api.url_prod, api_key=api_key())
-
-
-def mk_async_client() -> AsyncClient:
-    return AsyncClient(url=imandrax_api.url_prod, api_key=api_key())
-
-
 @pytest.fixture(scope="module")
-def client() -> Iterator[Client]:
+def client(c: Client) -> Client:
     """A client whose session has `SRC` loaded"""
-    with mk_client() as c:
-        assert c.eval_src(SRC).success
-        yield c
+    assert c.eval_src(SRC).success
+    return c
 
 
 # Session and server
@@ -350,13 +335,14 @@ def test_sync_async_client_parity():
         assert inspect.signature(a) == inspect.signature(s), name
 
 
-def test_async_methods():
+def test_async_methods(mk_async_client: Callable[[], AsyncClient]):
     async def main() -> None:
         async with mk_async_client() as c:
             assert c.session_id
             assert (await c.eval_src(SRC)).success
             await c.keep_session_alive()
             assert isinstance(await c.version(), ServerVersion)
+            assert (await c.status()) == 'OK'
 
             v = await c.verify_name("nonneg")
             assert v.proved

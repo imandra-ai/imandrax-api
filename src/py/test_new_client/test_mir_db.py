@@ -6,12 +6,10 @@
 Additionally, also test the raw-lib-type->lib-type conversion roundtrip for declarations in the DB
 """
 
-import os
 from collections.abc import Iterable
 
 import pytest
 
-import imandrax_api
 from imandrax_api.demo.interface import (
     Client,
     EvalSrcResponse,
@@ -67,13 +65,6 @@ verify true
 
 # Setup
 # ====================
-
-
-@pytest.fixture(scope="module")
-def c() -> Client:
-    api_key = os.environ.get("IMANDRAX_API_KEY") or os.environ.get("IMANDRA_UNI_KEY")
-    c = Client(url=imandrax_api.url_prod, api_key=api_key)
-    return c
 
 
 def tasks_of_eval_src(c: Client, src: str) -> tuple[Task, ...]:
