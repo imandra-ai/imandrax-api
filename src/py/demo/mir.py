@@ -73,6 +73,15 @@ class Uid:
             case _:
                 return self._raw.name
 
+    @property
+    def builtin_kind(self) -> BuiltinDataKind | None:
+        """What a builtin uid stands for, e.g. a logic core symbol or a tactic; `None` for other uids"""
+        match self._raw.view:
+            case lib.Uid_view_Builtin(kind=kind):
+                return builtin_data_kind_of_lib(kind)
+            case _:
+                return None
+
     def __str__(self) -> str:
         return self.full_name
 
