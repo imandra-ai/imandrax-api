@@ -92,7 +92,7 @@ class Uid:
         return hash(self._raw)
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
+        return f"<{type(self).__name__} {self}>"
 
 
 @dataclass(slots=True, frozen=True)
@@ -328,7 +328,7 @@ class _Type:
         return "<type>"
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
+        return f"<{type(self).__name__} {self}>"
 
 
 def type_of_lib(x: lib.Mir_Type) -> Type:
@@ -531,7 +531,7 @@ class TypeDefinition:
                 return head
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
+        return f"<{type(self).__name__} {self}>"
 
 
 @dataclass(slots=True, frozen=True)
@@ -604,7 +604,7 @@ class AppliedSymbol:
         return f"{self.id} : {self.type}"
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
+        return f"<{type(self).__name__} {self}>"
 
 
 @dataclass(slots=True, frozen=True, kw_only=True, repr=False)
@@ -636,7 +636,7 @@ class _Term:
         return "<term>"
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
+        return f"<{type(self).__name__} {self}>"
 
 
 def term_of_lib(x: lib.Mir_Term) -> Term:
@@ -761,6 +761,11 @@ class Apply(_Term):
             return elems
         else:
             return f"({elems})"
+
+    # Potential builder style repr
+    # def __repr__(self) -> str:
+    #     args = ", ".join(str(a) for a in self.arguments)
+    #     return f"Apply(function={self.function}, arguments=({args},))"
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -1258,7 +1263,7 @@ class FunctionDefinition:
         return _definition_str("let", self)
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self})"
+        return f"<{type(self).__name__} {self}>"
 
 
 def _definition_str(keyword: str, f: FunctionDefinition) -> str:
@@ -1984,7 +1989,7 @@ class Decomposition:
             return f"constraints: [{constraints}] invariant: {self.invariant} status: {status}"
 
         def __repr__(self) -> str:
-            return f"{type(self).__name__}({self})"
+            return f"<{type(self).__name__} {self}>"
 
     id: Uid
     """The identifier of the decomposed function"""
