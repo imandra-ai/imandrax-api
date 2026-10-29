@@ -4,3 +4,4 @@ __pycache__
 build
 *.whl
 env
+.hypothesis
