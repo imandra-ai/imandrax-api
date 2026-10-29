@@ -781,6 +781,7 @@ class ProofObligation:
 
     description: str
     """A description of the proof obligation"""
+    # CR: should we create a property for goal[0] and goal[1]
     goal: tuple[tuple[Var, ...], Term]
     """The goal: its variables and the term to prove"""
     tactic: Tactic
