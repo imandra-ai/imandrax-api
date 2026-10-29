@@ -29,6 +29,7 @@ from typing import ClassVar, Never, assert_never, cast, override
 
 from imandrax_api import lib
 
+from ._utils import FrozenMap
 from .errors import UnexpectedResponseError
 
 # Note: all __str__ in there are purely for debugging purposes. There is no MIR
@@ -1788,7 +1789,7 @@ class FunctionInterpretation:
     """The function's parameters"""
     return_type: Type
     """The function's return type"""
-    cases: dict[tuple[Term, ...], Term]
+    cases: FrozenMap[tuple[Term, ...], Term]
     """The function's value for specific arguments"""
     else_: Term
     """The function's value for all other arguments"""
@@ -1799,7 +1800,7 @@ class FunctionInterpretation:
         return cls(
             arguments=tuple(var_term_of_var(a) for a in x.fi_args),
             return_type=type_of_lib(x.fi_ty_ret),
-            cases={tuple(term_of_lib(k) for k in ks): term_of_lib(v) for (ks, v) in x.fi_cases},
+            cases=FrozenMap((tuple(term_of_lib(k) for k in ks), term_of_lib(v)) for (ks, v) in x.fi_cases),
             else_=term_of_lib(x.fi_else),
             _raw=x,
         )
@@ -1838,11 +1839,11 @@ def type_interpretation_of_lib(x: lib.Common_Model_ty_def[lib.Mir_Term, lib.Mir_
 class Model:
     """A model, e.g. a counter-model or an instance"""
 
-    types: dict[Type, TypeInterpretation]
+    types: FrozenMap[Type, TypeInterpretation]
     """The interpretations of types"""
-    constants: dict[AppliedSymbol, Term]
+    constants: FrozenMap[AppliedSymbol, Term]
     """The values of constants"""
-    functions: dict[AppliedSymbol, FunctionInterpretation]
+    functions: FrozenMap[AppliedSymbol, FunctionInterpretation]
     """The interpretations of functions"""
     representable: bool
     """Can it be entirely represented into OCaml? Not the case if it contains irrational reals"""
@@ -1855,9 +1856,9 @@ class Model:
     @classmethod
     def of_lib(cls, x: lib.Mir_Model) -> "Model":
         return cls(
-            types={type_of_lib(t): type_interpretation_of_lib(d) for (t, d) in x.tys},
-            constants={AppliedSymbol.of_lib(s): term_of_lib(t) for (s, t) in x.consts},
-            functions={AppliedSymbol.of_lib(s): FunctionInterpretation.of_lib(f) for (s, f) in x.funs},
+            types=FrozenMap((type_of_lib(t), type_interpretation_of_lib(d)) for (t, d) in x.tys),
+            constants=FrozenMap((AppliedSymbol.of_lib(s), term_of_lib(t)) for (s, t) in x.consts),
+            functions=FrozenMap((AppliedSymbol.of_lib(s), FunctionInterpretation.of_lib(f)) for (s, f) in x.funs),
             representable=x.representable,
             completed=x.completed,
             type_substitution=tuple((Uid(u), type_of_lib(t)) for u, t in x.ty_subst),
@@ -1915,11 +1916,11 @@ def _meta_of_lib(m: lib.Common_Region_meta[lib.Mir_Term]) -> "Decomposition.Regi
         case lib.Common_Region_meta_String(arg=s):
             return s
         case lib.Common_Region_meta_Assoc(arg=kvs):
-            return {k: _meta_of_lib(v) for k, v in kvs}
+            return FrozenMap((k, _meta_of_lib(v)) for k, v in kvs)
         case lib.Common_Region_meta_Term(arg=t):
             return term_of_lib(t)
         case lib.Common_Region_meta_List(arg=xs):
-            return [_meta_of_lib(x) for x in xs]
+            return tuple(_meta_of_lib(x) for x in xs)
 
 
 @dataclass(slots=True, frozen=True)
@@ -1937,8 +1938,8 @@ class Decomposition:
             | Fraction  # real/rational
             | str
             | Term
-            | dict[str, Decomposition.Region.Meta]
-            | list[Decomposition.Region.Meta]
+            | FrozenMap[str, Decomposition.Region.Meta]
+            | tuple[Decomposition.Region.Meta, ...]
         )
         """A metadata value attached to a region"""
 
@@ -1946,7 +1947,7 @@ class Decomposition:
         """The constraints on the inputs that define the region"""
         invariant: Term
         """The function's result for inputs in the region"""
-        meta: dict[str, Meta]
+        meta: FrozenMap[str, Meta]
         """Metadata attached to the region, by name"""
         status: RegionStatus
         """Whether the region is known to be feasible"""
@@ -1957,7 +1958,7 @@ class Decomposition:
             return cls(
                 constraints=tuple(term_of_lib(c) for c in r.constraints),
                 invariant=term_of_lib(r.invariant),
-                meta={k: _meta_of_lib(v) for k, v in r.meta},
+                meta=FrozenMap((k, _meta_of_lib(v)) for k, v in r.meta),
                 status=region_status_of_lib(r.status),
                 _raw=r,
             )
