@@ -1,6 +1,7 @@
 """Test MIR DB
 - type / function search features
 - prelude declarations should be in the DB
+- lifted lambdas can be told apart by their full uid names
 
 Additionally, also test the raw-lib-type->lib-type conversion roundtrip for declarations in the DB
 """
@@ -47,6 +48,8 @@ let add_one (x: my_int) : my_int = x + 1
 let area (s: shape) : int = match s with Circle r -> 3 * r * r | Rect { w; h } -> w * h
 let rec sum (xs: int list) : int = match xs with [] -> 0 | x :: tl -> x + sum tl
 let g (x: int) = x + 1
+let inc_all (xs: int list) : int list = List.map (fun x -> x + 1) xs
+let add_all (y: int) (xs: int list) : int list = List.map (fun x -> x + y) xs
 
 theorem g_gt x = g x > x [@@rw]
 theorem sum_nonneg xs = List.for_all (fun x -> x >= 0) xs ==> sum xs >= 0 [@@by auto] [@@fc]
@@ -57,6 +60,7 @@ let h (p: point) = p.x + p.y
 [@@decomp top ()]
 
 verify (fun x -> h { x; y = 1 } > x)
+instance (fun (xs: int list) (y: int) -> inc_all xs <> List.map (fun x -> x * y) xs)
 
 verify true
 """
@@ -78,16 +82,21 @@ def tasks_of_eval_src(c: Client, src: str) -> tuple[Task, ...]:
 
 
 @pytest.fixture(scope="module")
-def db(c: Client) -> DB:
+def tasks(c: Client) -> tuple[Task, ...]:
+    """The tasks of `SRC`"""
+    return tasks_of_eval_src(c, SRC)
+
+
+@pytest.fixture(scope="module")
+def db(tasks: tuple[Task, ...]) -> DB:
     """The DB of the final `verify true` in `SRC`"""
-    tasks = tasks_of_eval_src(c, SRC)
     # Tasks come newest first
     assert isinstance(tasks[0], ProofObligationTask)
     return tasks[0].db
 
 
-def uid_of_short_name(db: DB, short_name: str) -> Uid:
-    """The uid of the unique declaration called `short_name`"""
+def search_uid_by_short_name(db: DB, short_name: str) -> Uid:
+    """Search UID in MIR DB by short name. Raises if not found."""
     (uid,) = [u for u in db.decls if u.short_name == short_name]
     return uid
 
@@ -104,7 +113,7 @@ def test_declaration_kinds(db: DB):
     kinds = {
         name: decl.kind
         for name in ["shape", "point", "area", "sum", "g", "g_gt", "sum_nonneg", "h"]
-        if (decl := db.find_declaration(uid_of_short_name(db, name))) is not None
+        if (decl := db.find_declaration(search_uid_by_short_name(db, name))) is not None
     }
     assert kinds == {
         "shape": "type",
@@ -120,8 +129,8 @@ def test_declaration_kinds(db: DB):
 
 def test_theorem_declaration(db: DB):
     # `theorem g_gt x = g x > x [@@rw]`
-    g_gt: Uid = uid_of_short_name(db, "g_gt")
-    g: Uid = uid_of_short_name(db, "g")
+    g_gt: Uid = search_uid_by_short_name(db, "g_gt")
+    g: Uid = search_uid_by_short_name(db, "g")
 
     decl: Declaration | None = db.find_declaration(g_gt)
     assert isinstance(decl, TheoremDeclaration)
@@ -147,20 +156,20 @@ def test_theorem_declaration(db: DB):
 
 def test_type_definitions(db: DB):
     # shape variant
-    shape: TypeDefinition | None = db.find_type(uid_of_short_name(db, "shape"))
+    shape: TypeDefinition | None = db.find_type(search_uid_by_short_name(db, "shape"))
     assert shape is not None
     assert isinstance(shape.kind, AlgebraicTypeKind)
     assert [c.name.short_name for c in shape.kind.constructors] == ["Circle", "Rect"]
 
     # point record
-    point: TypeDefinition | None = db.find_type(uid_of_short_name(db, "point"))
+    point: TypeDefinition | None = db.find_type(search_uid_by_short_name(db, "point"))
     assert point is not None
     assert isinstance(point.kind, RecordTypeKind)
     assert [f.name.short_name for f in point.kind.fields] == ["x", "y"]
 
     # Functions are not types and vice versa
-    assert db.find_type(uid_of_short_name(db, "area")) is None
-    assert db.find_function(uid_of_short_name(db, "shape")) is None
+    assert db.find_type(search_uid_by_short_name(db, "area")) is None
+    assert db.find_function(search_uid_by_short_name(db, "shape")) is None
 
 
 def test_type_aliases_are_expanded(db: DB):
@@ -171,20 +180,22 @@ def test_type_aliases_are_expanded(db: DB):
     assert db.find_declaration_re("my_int") == {}
 
     # ...and declarations using it see `int` instead
-    add_one = db.find_function(uid_of_short_name(db, "add_one"))
+    add_one = db.find_function(search_uid_by_short_name(db, "add_one"))
     assert add_one is not None
     assert str(add_one.type) == "int -> int"
 
 
 def test_find_re_matches_full_name_from_start(db: DB):
     # The full name is `<short name>/<content hash>`
-    assert set(db.find_function_re("sum/")) == {uid_of_short_name(db, "sum")}
-    assert set(db.find_type_re("point/")) == {uid_of_short_name(db, "point")}
-    assert set(db.find_declaration_re("g_gt/")) == {uid_of_short_name(db, "g_gt")}
+    assert set(db.find_function_re("sum/")) == {search_uid_by_short_name(db, "sum")}
+    assert set(db.find_type_re("point/")) == {search_uid_by_short_name(db, "point")}
+    assert set(db.find_declaration_re("g_gt/")) == {
+        search_uid_by_short_name(db, "g_gt")
+    }
 
     # `re.match` semantics: anchored at the start, not at the end
     assert db.find_function_re("um/") == {}
-    assert uid_of_short_name(db, "sum_nonneg") in db.find_function_re("sum")
+    assert search_uid_by_short_name(db, "sum_nonneg") in db.find_function_re("sum")
 
 
 # Rules
@@ -192,14 +203,14 @@ def test_find_re_matches_full_name_from_start(db: DB):
 
 
 def test_theorem_as_rewrite_rule(db: DB):
-    g_gt: Uid = uid_of_short_name(db, "g_gt")
+    g_gt: Uid = search_uid_by_short_name(db, "g_gt")
     assert len(db.thm_as_rw[g_gt]) == 1
     assert len(db.rule_spec_rw_rules[g_gt]) == 1
 
 
 def test_theorem_as_forward_chaining_rule(db: DB):
     """`theorem sum_nonneg xs = ... ==> sum xs >= 0 [@@by auto] [@@fc]`"""
-    sum_nonneg: Uid = uid_of_short_name(db, "sum_nonneg")
+    sum_nonneg: Uid = search_uid_by_short_name(db, "sum_nonneg")
 
     assert len(db.thm_as_fc[sum_nonneg]) == 1, "sum_nonneg should become a fc rule"
     assert sum_nonneg in db.inst_rules, "sum_nonneg should be in inst rules"
@@ -209,10 +220,74 @@ def test_theorem_as_forward_chaining_rule(db: DB):
     sum_heads: list[SymbolHead] = [
         h
         for h in db.fc
-        if isinstance(h, SymbolHead) and h.uid == uid_of_short_name(db, "sum")
+        if isinstance(h, SymbolHead) and h.uid == search_uid_by_short_name(db, "sum")
     ]
     assert len(sum_heads) == 1, "sum should be a fc trigger head"
     assert len(db.fc[sum_heads[0]]) == 1, "sum should trigger exactly one fc rule"
+
+
+# Lambdas
+# =======
+
+
+def _lambdas_of_term(t: Term) -> list[Uid]:
+    lams: list[Uid] = []
+    for term in t:
+        term: Term
+        if isinstance(term, Symbol) and term.symbol.id.short_name == "$lambda":
+            lams.append(term.symbol.id)
+    return lams
+
+
+def _lambdas_of_func_body(fun: FunctionDefinition) -> list[Uid]:
+    return _lambdas_of_term(fun.body)
+
+
+def test_search_lifted_lambdas(tasks: tuple[Task, ...], db: DB):
+    """MIR DB should enable disambiguating two lambdas"""
+    # 1. `fun x -> x + 1` in `inc_all`
+    inc_all: Uid = search_uid_by_short_name(db, "inc_all")
+    inc_all_f = db.find_function(inc_all)
+    assert inc_all_f is not None
+    lambdas_in_inc_all = _lambdas_of_func_body(inc_all_f)
+    assert len(lambdas_in_inc_all) == 1
+
+    lambda_inc: FunctionDefinition | None = db.find_function(lambdas_in_inc_all[0])
+    assert lambda_inc is not None
+    assert "x = (+ x 1)" in repr(lambda_inc)
+
+    # 2. `fun x -> x + y` in `add_all`
+    add_all: Uid = search_uid_by_short_name(db, "add_all")
+    add_all_f = db.find_function(add_all)
+    assert add_all_f is not None
+    lambdas_in_add_all = _lambdas_of_func_body(add_all_f)
+    assert len(lambdas_in_add_all) == 1
+
+    lambda_add: FunctionDefinition | None = db.find_function(lambdas_in_add_all[0])
+    assert lambda_add is not None
+    assert "y x = (+ x y)" in repr(lambda_add)
+
+    # 3. `fun x -> x * y` in the goal of the `instance`
+    instance: ProofObligationTask
+    (instance,) = [
+        t
+        for t in tasks
+        if isinstance(t, ProofObligationTask) and t.proof_obligation.isInstance
+    ]
+    _vars, goal = instance.proof_obligation.goal
+    lambdas_in_goal = _lambdas_of_term(goal)
+    assert len(lambdas_in_goal) == 1
+
+    lambda_mul: FunctionDefinition | None = db.find_function(lambdas_in_goal[0])
+    assert lambda_mul is not None
+    assert "y x = (* x y)" in repr(lambda_mul)
+
+    assert (
+        lambda_inc.name.short_name
+        == lambda_add.name.short_name
+        == lambda_mul.name.short_name
+        == "$lambda"
+    ), "Lambdas are ambiguous in short name"
 
 
 # Prelude
@@ -221,7 +296,7 @@ def test_theorem_as_forward_chaining_rule(db: DB):
 
 def test_prelude_builtin_types(db: DB):
     for name in ["int", "bool", "float", "real", "string"]:
-        ty = db.find_type(uid_of_short_name(db, name))
+        ty = db.find_type(search_uid_by_short_name(db, name))
         assert ty is not None
         assert isinstance(ty.kind, BuiltinTypeKind)
 
@@ -230,7 +305,7 @@ def test_prelude_algebraic_types(db: DB):
     constructors = {
         name: [c.name.short_name for c in ty.kind.constructors]
         for name in ["list", "option", "Ordinal.t", "Peano_nat.t"]
-        if (ty := db.find_type(uid_of_short_name(db, name))) is not None
+        if (ty := db.find_type(search_uid_by_short_name(db, name))) is not None
         and isinstance(ty.kind, AlgebraicTypeKind)
     }
     assert constructors == {
@@ -244,14 +319,14 @@ def test_prelude_algebraic_types(db: DB):
 def test_prelude_builtin_uids_have_no_content_hash(db: DB):
     """Declarations marked `[@@builtin ...]` are referred to by name alone and the others by `<short name>/<content hash>`"""
     for name in ["int", "list", "List.hd", "Ordinal.<<"]:
-        assert uid_of_short_name(db, name).full_name == name
+        assert search_uid_by_short_name(db, name).full_name == name
     for name in ["either", "LChar.t", "List.length", "List.rev"]:
-        assert uid_of_short_name(db, name).full_name.startswith(f"{name}/")
+        assert search_uid_by_short_name(db, name).full_name.startswith(f"{name}/")
 
 
 def test_prelude_functions(db: DB):
     # List.length
-    length = db.find_function(uid_of_short_name(db, "List.length"))
+    length = db.find_function(search_uid_by_short_name(db, "List.length"))
     assert length is not None
     assert isinstance(length.kind, DefinedFunctionKind)
     assert [str(a) for a in length.arguments] == ["l"]
@@ -260,12 +335,12 @@ def test_prelude_functions(db: DB):
     assert length.clique == {length.name}
 
     # List.hd
-    hd = db.find_function(uid_of_short_name(db, "List.hd"))
+    hd = db.find_function(search_uid_by_short_name(db, "List.hd"))
     assert hd is not None
     assert isinstance(hd.kind, BuiltinFunctionKind)
 
     # id
-    ident = db.find_function(uid_of_short_name(db, "id"))
+    ident = db.find_function(search_uid_by_short_name(db, "id"))
     assert ident is not None
     assert ident.clique is None
 
@@ -320,7 +395,7 @@ def test_disabled_symbols(db: DB):
     reason="disabled uids are generative (e.g. `g/19390`), not the content hashed uid `g` is declared under",
 )
 def test_disabled_symbols_resolve_to_declarations(db: DB):
-    assert db.disabled == {uid_of_short_name(db, "g")}
+    assert db.disabled == {search_uid_by_short_name(db, "g")}
 
 
 # ====================
