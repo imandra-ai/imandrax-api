@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from functools import cached_property
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Literal, Self, assert_never, ClassVar, cast, get_origin
+from typing import TYPE_CHECKING, Any, Literal, Self, TypeAliasType, assert_never, ClassVar, cast, get_origin
 
 import imandrax_api
 from imandrax_api import lib
@@ -152,7 +152,12 @@ class Artifact:
         Raises:
             UnexpectedResponseError: if the artifact kind is unknown, or the data does not decode to
                 the `expected_type`.
+            TypeError: if `expected_type` is a type alias, e.g. `lib.Mir_Model`, not a class.
         """
+        if isinstance(expected_type, TypeAliasType):  # pyright: ignore[reportUnnecessaryIsInstance]
+            value = expected_type.__value__
+            hint = f"pass the class it names, `{value}`" if isinstance(get_origin(value), type) else "it is a union"
+            raise TypeError(f"`{expected_type.__name__}` is a type alias, not a class: {hint}")
         if self.kind not in lib.artifact_decoders:
             raise UnexpectedResponseError(f"Unknown artifact kind '{self.kind}'")
         d = lib.read_artifact_data(self.data, self.kind)
