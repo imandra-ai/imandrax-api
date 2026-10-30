@@ -108,9 +108,9 @@ class Record:
 
 @dataclass(slots=True, frozen=True)
 class QuotedTerm:
-    """A quoted term: a MIR function with parameters `params` and body `body`."""
+    """A quoted term: a MIR function, `fun variables -> body`"""
 
-    params: tuple[mir.Var, ...]
+    variables: tuple[mir.Variable, ...]
     body: mir.Term
     _raw: _View = field(repr=False, compare=False)
 
@@ -206,7 +206,7 @@ def value_of_lib(x: _View) -> Value:
             )
         case lib.Eval_Value_view_V_quoted_term(arg=(params, body)):
             return QuotedTerm(
-                params=tuple(mir.var_term_of_var(p) for p in params), body=mir.term_of_lib(body), _raw=x
+                variables=tuple(mir.Variable.of_lib(v) for v in params), body=mir.term_of_lib(body), _raw=x
             )
         case lib.Eval_Value_view_V_uid(arg=u):
             return Uid(uid=mir.Uid(u), _raw=x)

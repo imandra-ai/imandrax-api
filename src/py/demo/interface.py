@@ -375,12 +375,33 @@ class ProofObligationTaskResult:
 
     @property
     def proved(self) -> bool:
-        """Whether the goal was proved or, for instance queries, an instance found"""
-        return isinstance(self.result, (ProofFound, Instance))
+        """Whether the goal was proved
+
+        Verifying up to a bound (`VerifiedUpto`) or testing without finding a counter-example
+        (`TestOk`) is not a proof.
+        """
+        return isinstance(self.result, ProofFound)
+
+    @property
+    def found(self) -> bool:
+        """Whether an instance was found, for instance queries"""
+        return isinstance(self.result, Instance)
+
+    @property
+    def error(self) -> ErrorCore | None:
+        """The error, if the proof obligation failed"""
+        match self.result:
+            case NoProof(error=e) | Unsat(error=e) | InvalidModel(error=e) | ProofObligationError(error=e):
+                return e
+            case _:
+                return None
 
     @property
     def model(self) -> Model | None:
-        """The counter-model if the proof failed, or the instance found, if any"""
+        """The counter-model if the proof failed, or the instance found, if any
+
+        A model that failed validation (`InvalidModel`) is not included; it is in `result`.
+        """
         match self.result:
             case NoProof(counter_model=m):
                 return m
@@ -400,9 +421,9 @@ class ProofObligationTaskResult:
 
     @property
     def proof(self) -> ProofTerm | None:
-        """The proof term, if a proof was found"""
+        """The proof term, if any: of the goal, or for instance queries, of the goal having no instance"""
         match self.result:
-            case ProofFound(proof=p):
+            case ProofFound(proof=p) | Unsat(proof=p):
                 return p
             case _:
                 return None
@@ -454,16 +475,28 @@ class EvaluationTaskResult:
         self._artifact: Artifact = artifact
         self._data = artifact.decode_as(lib.Tasks_Eval_res)
 
+    @property
+    def success(self) -> bool:
+        """Whether the evaluation succeeded"""
+        return isinstance(self._data.res, lib.Tasks_Eval_res_success)
+
     @cached_property
-    def value(self) -> Value:
-        """The value the term evaluated to; raises if evaluation failed"""
+    def value(self) -> Value | None:
+        """The value the term evaluated to, if the evaluation succeeded"""
         match self._data.res:
-            case lib.Error_Error_core(_) as e:
-                raise ServerError(ErrorCore.of_lib(e))
             case lib.Tasks_Eval_res_success(x):
                 return value_of_lib(x.v)
             case _:
-                raise UnexpectedResponseError(f"Unexpected result type '{type(self._data.res)}'")
+                return None
+
+    @cached_property
+    def error(self) -> ErrorCore | None:
+        """The error, if the evaluation failed"""
+        match self._data.res:
+            case lib.Error_Error_core(_) as e:
+                return ErrorCore.of_lib(e)
+            case _:
+                return None
 
     @cached_property
     def statistics(self) -> EvaluationStatistics:
@@ -471,11 +504,13 @@ class EvaluationTaskResult:
         return EvaluationStatistics.of_lib(self._data.stats)
 
     def __str__(self) -> str:
-        return str(self.value)
+        if self.success:
+            return str(self.value)
+        else:
+            return f"Evaluation error: {self.error}"
 
     def __repr__(self) -> str:
-        success = isinstance(self._data.res, lib.Tasks_Eval_res_success)
-        return f"EvaluationTaskResult(success={success})"
+        return f"EvaluationTaskResult(success={self.success})"
 
 
 class DecompositionTaskResult:
@@ -785,8 +820,8 @@ class ProofObligation:
     description: str
     """A description of the proof obligation"""
     # CR: should we create a property for goal[0] and goal[1]
-    goal: tuple[tuple[Var, ...], Term]
-    """The goal: its variables and the term to prove"""
+    goal: tuple[tuple[Variable, ...], Term]
+    """The goal, `fun variables -> body`"""
     tactic: Tactic
     """The tactic to use"""
     is_instance: bool
@@ -806,7 +841,7 @@ class ProofObligation:
         vs, t = po.goal
         return cls(
             description=po.descr,
-            goal=(tuple(var_term_of_var(v) for v in vs), term_of_lib(t)),
+            goal=(tuple(Variable.of_lib(v) for v in vs), term_of_lib(t)),
             tactic=tactic_of_lib(po.tactic),
             is_instance=po.is_instance,
             timeout=po.timeout,
@@ -815,6 +850,16 @@ class ProofObligation:
             named_hypotheses=tuple((n, term_of_lib(h)) for (n, h) in po.named_hypotheses),
             _raw=po,
         )
+
+    @property
+    def goal_variables(self) -> tuple[Variable, ...]:
+        """The variables bound in the goal"""
+        return self.goal[0]
+
+    @property
+    def goal_body(self) -> Term:
+        """The goal's body, the term to prove"""
+        return self.goal[1]
 
 
 class ProofObligationTask(Task):
@@ -879,13 +924,13 @@ class EvaluationTask(Task):
         return self._artifact("eval_task").decode_as(lib.Tasks_Eval_task_t_poly[lib.Mir_Term, lib.Mir_Type])
 
     @cached_property
-    def variables(self) -> list[Var]:
+    def variables(self) -> list[Variable]:
         """The variables bound in the term
 
         Fetched on first access, see `Task`
         """
         vs, _ = self._eval_task.term
-        return [var_term_of_var(v) for v in vs]
+        return [Variable.of_lib(v) for v in vs]
 
     @cached_property
     def term(self) -> Term:
@@ -1325,6 +1370,35 @@ class ProofObligationResult:
             case None:
                 return None
 
+    @property
+    def proved(self) -> bool:
+        """Whether the goal was proved"""
+        return isinstance(self.res, ProofObligationResult.Proof)
+
+    @property
+    def found(self) -> bool:
+        """Whether a model was found: an instance, or a counter-example to a theorem or `verify` goal"""
+        return isinstance(self.res, ProofObligationResult.Instance)
+
+    @property
+    def proof_pp(self) -> str | None:
+        """The pretty-printed proof, if the goal was proved and the server sent it"""
+        return self.res.proof_pp if isinstance(self.res, ProofObligationResult.Proof) else None
+
+    @property
+    def model(self) -> "ModelOutput | None":
+        """The model, if one was found and the server sent it"""
+        return self.res.model if isinstance(self.res, ProofObligationResult.Instance) else None
+
+    @property
+    def message(self) -> str | None:
+        """The message for an `unknown` or `verified_upto` outcome, if any"""
+        match self.res:
+            case ProofObligationResult.Unknown(message=m) | ProofObligationResult.VerifiedUpto(message=m):
+                return m
+            case _:
+                return None
+
 
 # Not slotted for cached_property
 @dataclass(frozen=True)
@@ -1349,6 +1423,11 @@ class DecompositionResult:
             errors=tuple(Error.of_raw(e) for e in x.errors),
             _raw=x,
         )
+
+    @property
+    def success(self) -> bool:
+        """Whether the decomposition succeeded"""
+        return self.artifact is not None
 
     @cached_property
     def decomposition(self) -> Decomposition | None:
@@ -1732,6 +1811,11 @@ class TestResponse:
                 return "counter_example"
             case None:
                 return None
+
+    @property
+    def refuted(self) -> bool:
+        """Whether a counter-example was found"""
+        return isinstance(self.res, TestResponse.CounterExample)
 
     @property
     def counter_example(self) -> ModelOutput | None:

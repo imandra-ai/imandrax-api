@@ -534,9 +534,9 @@ class TypeDefinition:
         return f"<{type(self).__name__} {self}>"
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(slots=True, frozen=True, repr=False)
 class Variable:
-    # class name collide with Var of term, thus it's called Variable
+    # Note: from `Imandrax_api_mir.Var.t`; class name collide with Var of term, thus it's called Variable
     # Variables are equal when their ids are, as in OCaml's `Var.equal`
     id: Uid
     type: Type = field(compare=False)
@@ -548,6 +548,9 @@ class Variable:
 
     def __str__(self) -> str:
         return self.id.short_name
+
+    def __repr__(self) -> str:
+        return f"<{type(self).__name__} {self}>"
 
 
 @dataclass(slots=True, frozen=True)
@@ -1060,7 +1063,18 @@ class Validate:
     """Validate using this tactic for POs"""
 
     tactic: tuple[tuple[Variable, ...], Term] | None
+    """The tactic, `fun variables -> body`, if any"""
     _raw: lib.Common_Hints_validation_strategy[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+    @property
+    def tactic_variables(self) -> tuple[Variable, ...] | None:
+        """The variables bound in the tactic, if any"""
+        return None if self.tactic is None else self.tactic[0]
+
+    @property
+    def tactic_body(self) -> Term | None:
+        """The tactic's body, if any"""
+        return None if self.tactic is None else self.tactic[1]
 
 
 @dataclass(slots=True, frozen=True)
@@ -1161,7 +1175,7 @@ class DefaultTestTactic:
 class TermTactic:
     """A tactic given as a term"""
 
-    variables: tuple[Var, ...]
+    variables: tuple[Variable, ...]
     """The variables bound in the tactic term"""
     term: Term
     """The tactic term"""
@@ -1187,7 +1201,7 @@ def tactic_of_lib(t: lib.Mir_Tactic) -> Tactic:
         case lib.Common_Tactic_t_poly_Default_test(num_steps=num_steps, seed=seed):
             return DefaultTestTactic(num_steps=num_steps, seed=seed, _raw=t)
         case lib.Common_Tactic_t_poly_Term(arg=(vs, term)):
-            return TermTactic(variables=tuple(var_term_of_var(v) for v in vs), term=term_of_lib(term), _raw=t)
+            return TermTactic(variables=tuple(Variable.of_lib(v) for v in vs), term=term_of_lib(term), _raw=t)
         case _:
             assert_never(t)
 
@@ -1234,7 +1248,7 @@ class FunctionDefinition:
     """The type variables the function's type is generic over"""
     type: Type
     """The function's type"""
-    arguments: tuple[Var, ...]
+    arguments: tuple[Variable, ...]
     """The function's parameters"""
     body: Term
     """The function's body"""
@@ -1252,7 +1266,7 @@ class FunctionDefinition:
             name=Uid(x.f_name),
             type_parameters=tuple(Uid(p) for p in x.f_ty.params),
             type=type_of_lib(x.f_ty.ty),
-            arguments=tuple(var_term_of_var(a) for a in x.f_args),
+            arguments=tuple(Variable.of_lib(a) for a in x.f_args),
             body=term_of_lib(x.f_body),
             clique=None if x.f_clique is None else frozenset(Uid(u) for u in x.f_clique),
             kind=function_kind_of_lib(x.f_kind),
@@ -1292,8 +1306,19 @@ class Theorem:
     triggers: tuple[PreTrigger, ...]
     is_axiom: bool
     by: tuple[tuple[Variable, ...], Term]
+    """The proof, `fun variables -> body`"""
     named_hypotheses: tuple[tuple[str, Term], ...]
     _raw: lib.Mir_Theorem = field(repr=False, compare=False)
+
+    @property
+    def by_variables(self) -> tuple[Variable, ...]:
+        """The variables bound in the proof"""
+        return self.by[0]
+
+    @property
+    def by_body(self) -> Term:
+        """The proof's body"""
+        return self.by[1]
 
     @classmethod
     def of_lib(cls, x: lib.Mir_Theorem) -> Theorem:
@@ -1372,7 +1397,18 @@ class Verify:
     minimize: tuple[Term, ...]
     """arithmetic terms to minimize in models"""
     by: tuple[tuple[Variable, ...], Term] | None
+    """The proof, `fun variables -> body`, if any"""
     _raw: lib.Common_Verify_t_poly[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+    @property
+    def by_variables(self) -> tuple[Variable, ...] | None:
+        """The variables bound in the proof, if any"""
+        return None if self.by is None else self.by[0]
+
+    @property
+    def by_body(self) -> Term | None:
+        """The proof's body, if any"""
+        return None if self.by is None else self.by[1]
 
     @classmethod
     def of_lib(cls, x: lib.Common_Verify_t_poly[lib.Mir_Term, lib.Mir_Type]) -> Verify:
@@ -1810,7 +1846,7 @@ class FunctionInterpretation:
         rhs: Term
         """The function's value when the case fires"""
 
-    arguments: tuple[Var, ...]
+    arguments: tuple[Variable, ...]
     """The function's parameters"""
     return_type: Type
     """The function's return type"""
@@ -1823,7 +1859,7 @@ class FunctionInterpretation:
     @classmethod
     def of_lib(cls, x: lib.Common_Model_fi[lib.Mir_Term, lib.Mir_Type]) -> "FunctionInterpretation":
         return cls(
-            arguments=tuple(var_term_of_var(a) for a in x.fi_args),
+            arguments=tuple(Variable.of_lib(a) for a in x.fi_args),
             return_type=type_of_lib(x.fi_ty_ret),
             cases=tuple(
                 FunctionInterpretation.FiCase(guards=tuple(term_of_lib(g) for g in gs), rhs=term_of_lib(rhs))
@@ -2007,7 +2043,7 @@ class Decomposition:
 
     id: Uid
     """The identifier of the decomposed function"""
-    arguments: tuple[Var, ...]
+    arguments: tuple[Variable, ...]
     """The decomposed function's parameters"""
     regions: tuple[Region, ...]
     """The regions"""
@@ -2017,7 +2053,7 @@ class Decomposition:
     def of_lib(cls, d: lib.Mir_Fun_decomp) -> "Decomposition":
         return cls(
             id=Uid(d.f_id),
-            arguments=tuple(var_term_of_var(a) for a in d.f_args),
+            arguments=tuple(Variable.of_lib(a) for a in d.f_args),
             regions=tuple(Decomposition.Region.of_lib(r) for r in d.regions),
             _raw=d,
         )

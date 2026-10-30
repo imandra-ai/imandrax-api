@@ -40,6 +40,7 @@ from imandrax_api.demo.mir import (
     Type,
     Uid,
     Var,
+    Variable,
 )
 
 SRC = """
@@ -77,8 +78,8 @@ def get_the_po(tasks: tuple[Task, ...], is_instance: bool) -> ProofObligationTas
     return t
 
 
-def vars_in_subterms(t: Term) -> set[Var]:
-    return {x for x in t if isinstance(x, Var)}
+def vars_in_subterms(t: Term) -> set[Variable]:
+    return {x.var for x in t if isinstance(x, Var)}
 
 
 def assert_symbols_defined_in_db(t: Term, db: DB) -> None:
@@ -180,10 +181,10 @@ def test_theorem(tasks: tuple[Task, ...]):
 ProofObligation(
     description='prove theorem thm1',
     goal=(
-        (<Var xs>,),
+        (<Variable xs>,),
         <Apply (= (f/<hash> xs) (List.map/<hash> $lambda/<hash> xs))>,
     ),
-    tactic=TermTactic(variables=(<Var _x_0>,), term=<Apply (Tactic.default _x_0)>),
+    tactic=TermTactic(variables=(<Variable _x_0>,), term=<Apply (Tactic.default _x_0)>),
     is_instance=False,
     timeout=None,
     upto=None,
@@ -216,7 +217,7 @@ def test_instance(tasks: tuple[Task, ...]):
 ProofObligation(
     description='prove verify statement _instance_7_1',
     goal=(
-        (<Var xs>, <Var y>),
+        (<Variable xs>, <Variable y>),
         <Apply (<> (f/<hash> xs) (List.map/<hash> ($lambda/<hash> y) xs))>,
     ),
     tactic=DefaultTheoremTactic(max_steps=100, upto=None),
@@ -237,13 +238,14 @@ ProofObligation(
 
     res = t.result
     assert isinstance(res, ProofObligationTaskResult)
-    assert res.proved == True, "For an instance, 'proved' means an instance was found"
+    assert res.found
+    assert not res.proved
     assert isinstance(res.result, Instance)
 
     model: Model | None = res.model
     assert model
 
-    goal_var_types: dict[Uid, Type] = {v.var.id: v.type for v in vars}
+    goal_var_types: dict[Uid, Type] = {v.id: v.type for v in vars}
     model_var_types: dict[Uid, Type] = {sym.id: sym.type for sym in model.constants}
     model_value_types: dict[Uid, Type] = {sym.id: value.type for sym, value in model.constants.items()}
     assert model_var_types == goal_var_types, (
@@ -290,7 +292,7 @@ Apply(
         """\
 Decomposition(
     id=<Uid f/<hash>>,
-    arguments=(<Var xs>,),
+    arguments=(<Variable xs>,),
     regions=(
         <Region constraints: [true] invariant: (List.map/<hash> $lambda/<hash> xs) status: feasible>,
     ),
@@ -312,7 +314,7 @@ Decomposition(
 
     # A feasible region comes with a model of `f`'s arguments
     assert isinstance(region.status, FeasibleStatus)
-    f_arg_types = {a.var.id: a.type for a in d.arguments}
+    f_arg_types = {a.id: a.type for a in d.arguments}
     region_model = region.status.model
     model_var_types = {sym.id: sym.type for sym in region_model.constants}
     assert model_var_types == f_arg_types, (
