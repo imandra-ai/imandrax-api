@@ -72,7 +72,7 @@ def get_the_po(tasks: tuple[Task, ...], is_instance: bool) -> ProofObligationTas
         t
         for t in tasks
         if isinstance(t, ProofObligationTask)
-        and t.proof_obligation.isInstance == is_instance
+        and t.proof_obligation.is_instance == is_instance
     ]
     return t
 
@@ -123,7 +123,7 @@ def _layout(
     return f"{open}\n{body},\n{close}"
 
 
-_HASH = re.compile(r"/[A-Za-z0-9+/]{43}=")
+_HASH = re.compile(r"/[A-Za-z0-9_-]{43}")
 
 
 def ctor_repr(x: object, depth: int = 1) -> str:
@@ -184,7 +184,7 @@ ProofObligation(
         <Apply (= (f/<hash> xs) (List.map/<hash> $lambda/<hash> xs))>,
     ),
     tactic=TermTactic(variables=(<Var _x_0>,), term=<Apply (Tactic.default _x_0)>),
-    isInstance=False,
+    is_instance=False,
     timeout=None,
     upto=None,
     verify_kind=<VerifyKind.VERIFY: 'verify'>,
@@ -220,7 +220,7 @@ ProofObligation(
         <Apply (<> (f/<hash> xs) (List.map/<hash> ($lambda/<hash> y) xs))>,
     ),
     tactic=DefaultTheoremTactic(max_steps=100, upto=None),
-    isInstance=True,
+    is_instance=True,
     timeout=None,
     upto=None,
     verify_kind=<VerifyKind.INSTANCE: 'instance'>,

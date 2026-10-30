@@ -43,7 +43,7 @@ instance (fun (xs: int list) (y : int) -> f xs <> List.map (fun x -> x + y) xs)
                         vars, goal_term = po.goal
                         vars = " ".join(str(v) for v in vars)
                         # Note: instances are also proof obligations (just with a negated goal)
-                        name = "Instance" if po.isInstance else "Goal"
+                        name = "Instance" if po.is_instance else "Goal"
                         print(f"  {name}: (fun {vars} -> {goal_term})")
                         print(f"  Tactic: {t.proof_obligation.tactic}")
                         if t.db:

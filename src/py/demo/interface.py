@@ -77,13 +77,18 @@ class Error:
         """The message text"""
         locations: tuple[Location, ...]
         """The source locations the message refers to"""
-        backtrace: str = field(repr=False)
+        backtrace: str | None = field(repr=False)
         """The backtrace, if any"""
         _raw: error_pb2.Error.Message = field(repr=False, compare=False)
 
         @classmethod
         def of_raw(cls, x: error_pb2.Error.Message) -> "Error.Message":
-            return cls(message=x.msg, locations=tuple(Location.of_raw(l) for l in x.locs), backtrace=x.backtrace, _raw=x)
+            return cls(
+                message=x.msg,
+                locations=tuple(Location.of_raw(l) for l in x.locs),
+                backtrace=x.backtrace if x.HasField("backtrace") else None,
+                _raw=x,
+            )
 
         def __str__(self) -> str:
             return self.message
@@ -94,8 +99,8 @@ class Error:
     """The main error message"""
     stack: tuple[Message, ...]
     """Further messages giving context for the error"""
-    process: str
-    """The process in which the error occurred"""
+    process: str | None
+    """The process in which the error occurred, if known"""
     _raw: error_pb2.Error = field(repr=False, compare=False)
 
     @classmethod
@@ -106,7 +111,7 @@ class Error:
             kind=x.kind if m is None else m.group(1),
             message=Error.Message.of_raw(x.msg),
             stack=tuple(Error.Message.of_raw(m) for m in x.stack),
-            process=x.process,
+            process=x.process if x.HasField("process") else None,
             _raw=x,
         )
 
@@ -340,7 +345,7 @@ class ProofObligationTaskResult:
         sub_goals: tuple[Sequent, ...]
         """The subgoals the goal was split into"""
         res: str | None
-        """The result for the subgoal, if any"""
+        """`None` if the subgoal was handled successfully, otherwise the error message"""
         _raw: lib.Tasks_PO_res_sub_res[lib.Mir_Term] = field(repr=False, compare=False)
 
         @classmethod
@@ -769,8 +774,6 @@ def _task_result_of_artifact(artifact: Artifact) -> TaskResult:
             return EvaluationTaskResult(artifact)
         case "decomp_res":
             return DecompositionTaskResult(artifact)
-        case "proof_check_res":
-            raise UnexpectedResponseError("Decoding results of kind 'proof_check_res' is not implemented")
         case _:
             raise UnexpectedResponseError(f"Unexpected result artifact kind '{artifact.kind}'")
 
@@ -786,8 +789,7 @@ class ProofObligation:
     """The goal: its variables and the term to prove"""
     tactic: Tactic
     """The tactic to use"""
-    # CR: why is this camel case? should it be snake case?
-    isInstance: bool
+    is_instance: bool
     """Whether this is an instance query rather than a proof"""
     timeout: int | None
     """The timeout, if any"""
@@ -806,7 +808,7 @@ class ProofObligation:
             description=po.descr,
             goal=(tuple(var_term_of_var(v) for v in vs), term_of_lib(t)),
             tactic=tactic_of_lib(po.tactic),
-            isInstance=po.is_instance,
+            is_instance=po.is_instance,
             timeout=po.timeout,
             upto=None if po.upto is None else upto_of_lib(po.upto),
             verify_kind=None if po.verify_kind is None else verify_kind_of_lib(po.verify_kind),
@@ -846,7 +848,7 @@ class ProofObligationTask(Task):
         return self._po_task.from_sym
 
     @property
-    def count(self) -> int | None:
+    def count(self) -> int:
         """Distinguishes proof obligations generated from the same symbol
 
         Fetched on first access, see `Task`
@@ -1183,8 +1185,9 @@ class DecompositionTask(Task):
 class ProofCheckTask(Task):
     """A proof checking task"""
 
-    _artifact_kind = "proof_check_task"
-    _result_artifact_kind = "proof_check_res"
+    # The API defines no artifact kinds for proof checking
+    _artifact_kind = None
+    _result_artifact_kind = None
 
     def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
         assert task.kind == task_pb2.TASK_PROOF_CHECK
@@ -1361,7 +1364,7 @@ class EvalOutput:
 
     success: bool
     """Whether evaluation succeeded"""
-    as_ocaml: str
+    as_ocaml: str | None
     """The value printed as OCaml, if available"""
     errors: tuple[Error, ...]
     """Errors reported during evaluation"""
@@ -1371,7 +1374,7 @@ class EvalOutput:
     def of_raw(cls, x: simple_api_pb2.EvalOutput) -> "EvalOutput":
         return cls(
             success=x.success,
-            as_ocaml=x.value_as_ocaml,
+            as_ocaml=x.value_as_ocaml if x.HasField("value_as_ocaml") else None,
             errors=tuple(Error.of_raw(e) for e in x.errors),
             _raw=x,
         )

@@ -65,7 +65,7 @@ class Uid:
                         pass
                 return f"{self._raw.name}/{id}{suffix}"
             case lib.Uid_view_Cname(cname):
-                return f"{self._raw.name}/{base64.b64encode(cname.chash).decode()}"
+                return f"{self._raw.name}/{base64.urlsafe_b64encode(cname.chash).decode().rstrip('=')}"
             case lib.Uid_view_Persistent():
                 return self._raw.name
             case lib.Uid_view_Builtin():
@@ -537,8 +537,9 @@ class TypeDefinition:
 @dataclass(slots=True, frozen=True)
 class Variable:
     # class name collide with Var of term, thus it's called Variable
+    # Variables are equal when their ids are, as in OCaml's `Var.equal`
     id: Uid
-    type: Type
+    type: Type = field(compare=False)
     _raw: lib.Mir_Var = field(repr=False, compare=False)
 
     @classmethod
@@ -1797,16 +1798,26 @@ class EliminationRule:
 
 @dataclass(slots=True, frozen=True)
 class FunctionInterpretation:
-    """The interpretation of a function in a model: a table of cases"""
+    """The interpretation of a function in a model: a list of cases and a default"""
+
+    @dataclass(slots=True, frozen=True)
+    class FiCase:
+        """For inputs with `sigma` the substitution mapping the function's `arguments` to them, if
+        every `sigma(guard)` holds, the function is equal to `sigma(rhs)`"""
+
+        guards: tuple[Term, ...]
+        """The conditions under which the case fires"""
+        rhs: Term
+        """The function's value when the case fires"""
 
     arguments: tuple[Var, ...]
     """The function's parameters"""
     return_type: Type
     """The function's return type"""
-    cases: FrozenMap[tuple[Term, ...], Term]
-    """The function's value for specific arguments"""
+    cases: tuple[FiCase, ...]
+    """The cases, in order"""
     else_: Term
-    """The function's value for all other arguments"""
+    """The function's value if none of the cases fires"""
     _raw: lib.Common_Model_fi[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
 
     @classmethod
@@ -1814,7 +1825,10 @@ class FunctionInterpretation:
         return cls(
             arguments=tuple(var_term_of_var(a) for a in x.fi_args),
             return_type=type_of_lib(x.fi_ty_ret),
-            cases=FrozenMap((tuple(term_of_lib(k) for k in ks), term_of_lib(v)) for (ks, v) in x.fi_cases),
+            cases=tuple(
+                FunctionInterpretation.FiCase(guards=tuple(term_of_lib(g) for g in gs), rhs=term_of_lib(rhs))
+                for (gs, rhs) in x.fi_cases
+            ),
             else_=term_of_lib(x.fi_else),
             _raw=x,
         )

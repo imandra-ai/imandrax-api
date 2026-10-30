@@ -263,7 +263,7 @@ def test_search_lifted_lambdas(tasks: tuple[Task, ...], db: DB):
     (instance,) = [
         t
         for t in tasks
-        if isinstance(t, ProofObligationTask) and t.proof_obligation.isInstance
+        if isinstance(t, ProofObligationTask) and t.proof_obligation.is_instance
     ]
     _vars, goal = instance.proof_obligation.goal
     lambdas_in_goal = _lambdas_of_term(goal)
