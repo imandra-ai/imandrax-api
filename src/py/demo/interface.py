@@ -205,6 +205,9 @@ class ErrorMessage:
     def of_lib(cls, x: lib.Error_Error_core_message) -> "ErrorMessage":
         return cls(message=x.msg, backtrace=x.bt, _raw=x)
 
+    def __str__(self) -> str:
+        return self.message
+
 
 @dataclass(slots=True, frozen=True)
 class ErrorCore:
@@ -223,6 +226,9 @@ class ErrorCore:
             stack=tuple(ErrorMessage.of_lib(m) for m in x.stack),
             _raw=x,
         )
+
+    def __str__(self) -> str:
+        return f"{self.kind}: {self.message}"
 
 
 @dataclass(slots=True, frozen=True)

@@ -1,4 +1,8 @@
 """Python views for `Imandrax_api_proof` OCaml module"""
+# Note:
+# Proof terms form a DAG: a sub-proof can be the premise of several steps, and the OCaml side
+# keeps it shared. `proof_term_of_lib` converts each occurrence separately, so a shared
+# sub-proof is converted, and held in memory, once per occurrence.
 
 from dataclasses import dataclass, field
 

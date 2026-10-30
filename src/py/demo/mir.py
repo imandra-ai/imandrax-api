@@ -65,13 +65,22 @@ class Uid:
                         pass
                 return f"{self._raw.name}/{id}{suffix}"
             case lib.Uid_view_Cname(cname):
-                return f"{self._raw.name}/{base64.urlsafe_b64encode(cname.chash).decode().rstrip('=')}"
+                return f"{self._raw.name}/{_chash_str(cname.chash)}"
             case lib.Uid_view_Persistent():
                 return self._raw.name
             case lib.Uid_view_Builtin():
                 return self._raw.name
             case _:
                 return self._raw.name
+
+    @property
+    def cname(self) -> Cname | None:
+        """The content-addressed name, for uids named by the hash of their definition; `None` for other uids"""
+        match self._raw.view:
+            case lib.Uid_view_Cname(cname):
+                return Cname.of_lib(cname)
+            case _:
+                return None
 
     @property
     def builtin_kind(self) -> BuiltinDataKind | None:
@@ -107,6 +116,19 @@ class Cname:
     @classmethod
     def of_lib(cls, x: lib.Cname) -> Cname:
         return cls(name=x.name, chash=x.chash, is_key=x.is_key, _raw=x)
+
+    @property
+    def abbrev(self) -> str:
+        """The name with an abbreviated hash, for display"""
+        return f"{self.name}/{_chash_str(self.chash[:6])}"
+
+    def __str__(self) -> str:
+        return f"{self.name}/{_chash_str(self.chash)}"
+
+
+def _chash_str(chash: bytes) -> str:
+    """A content hash as the server prints it: URI-safe base64, without padding"""
+    return base64.urlsafe_b64encode(chash).decode().rstrip("=")
 
 
 # `Upto.t` has the single constructor `N_steps of int`, so it is represented by that number of
@@ -285,10 +307,16 @@ class BuiltinSort:
 class NoTrigger:
     _raw: lib.As_trigger = field(repr=False, compare=False)
 
+    def __str__(self) -> str:
+        return "none"
+
 
 @dataclass(slots=True, frozen=True)
 class AnonymousTrigger:
     _raw: lib.As_trigger = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return "anon"
 
 
 @dataclass(slots=True, frozen=True)
@@ -296,10 +324,16 @@ class NamedTrigger:
     index: int
     _raw: lib.As_trigger = field(repr=False, compare=False)
 
+    def __str__(self) -> str:
+        return str(self.index)
+
 
 @dataclass(slots=True, frozen=True)
 class RewriteTrigger:
     _raw: lib.As_trigger = field(repr=False, compare=False)
+
+    def __str__(self) -> str:
+        return "rw"
 
 
 AsTrigger = NoTrigger | AnonymousTrigger | NamedTrigger | RewriteTrigger
@@ -1029,6 +1063,40 @@ class Sequent:
             _raw=x,
         )
 
+    @property
+    def hypothesis_terms(self) -> tuple[Term, ...]:
+        """The hypotheses, without their names"""
+        return tuple(t for _, t in self.hypotheses)
+
+    @property
+    def conclusion_terms(self) -> tuple[Term, ...]:
+        """The conclusions, without their names"""
+        return tuple(t for _, t in self.conclusions)
+
+    def find_hypothesis(self, name: str) -> tuple[str | None, Term] | None:
+        """The hypothesis named `name`, if any"""
+        return next((h for h in self.hypotheses if h[0] == name), None)
+
+    def find_conclusion(self, name: str) -> tuple[str | None, Term] | None:
+        """The conclusion named `name`, if any"""
+        return next((c for c in self.conclusions if c[0] == name), None)
+
+    def find_term(self, name: str) -> tuple[str | None, Term] | None:
+        """The hypothesis named `name`, or else the conclusion named `name`, if any"""
+        return self.find_hypothesis(name) or self.find_conclusion(name)
+
+    def __str__(self) -> str:
+        # As OCaml's `Sequent.pp_seq`: unnamed hypotheses and conclusions are numbered by position
+        hyps = [f"{n}: {t}" if n is not None else f"H{i}. {t}" for i, (n, t) in enumerate(self.hypotheses)]
+        if not self.conclusions:
+            concls = ["false"]
+        elif len(self.conclusions) == 1:
+            ((n, c),) = self.conclusions
+            concls = [f"{n}: {c}" if n is not None else str(c)]
+        else:
+            concls = [f"{n}: {c}" if n is not None else f"C{i}. {c}" for i, (n, c) in enumerate(self.conclusions)]
+        return "\n".join([*hyps, "|" + "-" * 70, *(f" {c}" for c in concls)])
+
 
 PreTrigger = tuple[Term, AsTrigger]
 """A single item in a trigger"""
@@ -1320,6 +1388,11 @@ class Theorem:
         """The proof's body"""
         return self.by[1]
 
+    @property
+    def name(self) -> Uid:
+        """The theorem's name, that of its `function`"""
+        return self.function.name
+
     @classmethod
     def of_lib(cls, x: lib.Mir_Theorem) -> Theorem:
         return cls(
@@ -1352,6 +1425,11 @@ class RuleSpec:
     triggers: tuple[PreTrigger, ...]
     """explicit rule triggers"""
     _raw: lib.Common_Rule_spec_t_poly[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+
+    @property
+    def name(self) -> Uid:
+        """The rule spec's name, that of its `function`"""
+        return self.function.name
 
     @classmethod
     def of_lib(cls, x: lib.Common_Rule_spec_t_poly[lib.Mir_Term, lib.Mir_Type]) -> RuleSpec:
@@ -1409,6 +1487,11 @@ class Verify:
     def by_body(self) -> Term | None:
         """The proof's body, if any"""
         return None if self.by is None else self.by[1]
+
+    @property
+    def name(self) -> Uid:
+        """The verify statement's name, that of its `function`"""
+        return self.function.name
 
     @classmethod
     def of_lib(cls, x: lib.Common_Verify_t_poly[lib.Mir_Term, lib.Mir_Type]) -> Verify:
@@ -1805,17 +1888,18 @@ class InstantiationRule:
 
 @dataclass(slots=True, frozen=True)
 class EliminationRule:
+    # Elimination rules are equal when their names are, as in OCaml's `Elimination_rule.equal`
     name: Uid
     """name of theorem giving rise to this elim rule"""
-    guard: tuple[Term, ...]
+    guard: tuple[Term, ...] = field(compare=False)
     """elimination hypotheses"""
-    lhs: Term
+    lhs: Term = field(compare=False)
     """the `body' of the rule, at the theorem level"""
-    rhs: Variable
+    rhs: Variable = field(compare=False)
     """the RHS / elimination variable"""
-    destructors: tuple[FoPattern, ...]
+    destructors: tuple[FoPattern, ...] = field(compare=False)
     """destructor terms of the rule, as patterns"""
-    destructor_terms: tuple[Term, ...]
+    destructor_terms: tuple[Term, ...] = field(compare=False)
     """destructor terms of the rule, as terms"""
     _raw: lib.Mir_Elimination_rule = field(repr=False, compare=False)
 

@@ -77,7 +77,23 @@ class Constructor:
     args: tuple[Value, ...]
     _raw: _View = field(repr=False, compare=False)
 
+    def _as_list(self) -> tuple[Value, ...] | None:
+        """For pretty-printing"""
+        elements: list[Value] = []
+        v: Value = self
+        while True:
+            match v:
+                case Constructor(name="::", args=(head, tail)):
+                    elements.append(head)
+                    v = tail
+                case Constructor(name="[]", args=()):
+                    return tuple(elements)
+                case _:
+                    return None
+
     def __str__(self) -> str:
+        if (elements := self._as_list()) is not None:
+            return "[" + "; ".join(str(e) for e in elements) + "]"
         if not self.args:
             return self.name
         return f"{self.name} ({', '.join(str(a) for a in self.args)})"
@@ -131,13 +147,13 @@ class Uid:
 
 @dataclass(slots=True, frozen=True)
 class Closure:
-    """A function value; its code is not sent to the client, so it prints as `<fun>`."""
+    """A function value; its code is not sent to the client, so it prints as `<closure missing=n>`."""
 
     missing: int
     _raw: _View = field(repr=False, compare=False)
 
     def __str__(self) -> str:
-        return "<fun>"
+        return f"<closure missing={self.missing}>"
 
 
 @dataclass(slots=True, frozen=True)
@@ -239,7 +255,22 @@ class ConsOrdinal:
     _raw: lib.Eval_Ordinal = field(repr=False, compare=False)
 
     def __str__(self) -> str:
-        return f"({self.exponent}, {self.coefficient}, {self.rest})"
+        """Cantor normal form, e.g. `2·ω^3 + ω + 5`"""
+        # as OCaml's `Ordinal.pp`
+        coefficient = "" if self.coefficient == 1 else f"{self.coefficient}·"
+        match self.exponent:
+            case IntOrdinal(value=1):
+                power = ""
+            case IntOrdinal():
+                power = f"^{self.exponent}"
+            case ConsOrdinal():
+                power = f"^({self.exponent})"
+        match self.rest:
+            case IntOrdinal(value=0):
+                rest = ""
+            case _:
+                rest = f" + {self.rest}"
+        return f"{coefficient}ω{power}{rest}"
 
 
 OrdinalExpr = IntOrdinal | ConsOrdinal
