@@ -2,6 +2,7 @@
 - type / function search features
 - prelude declarations should be in the DB
 - lifted lambdas can be told apart by their full uid names
+- every uid declarations and rules refer to can be found in the DB
 
 Additionally, also test the raw-lib-type->lib-type conversion roundtrip for declarations in the DB
 """
@@ -21,8 +22,10 @@ from imandrax_api.demo.mir import (
     DB,
     AlgebraicTypeKind,
     Apply,
+    ArrowType,
     BuiltinFunctionKind,
     BuiltinTypeKind,
+    ConstructedType,
     Declaration,
     DefinedFunctionKind,
     FunctionDefinition,
@@ -31,7 +34,10 @@ from imandrax_api.demo.mir import (
     SymbolHead,
     Term,
     TheoremDeclaration,
+    TupleType,
+    Type,
     TypeDeclaration,
+    TypeVariable,
     Uid,
     declaration_of_lib,
     term_of_lib,
@@ -387,6 +393,77 @@ def test_disabled_symbols(db: DB):
 )
 def test_disabled_symbols_resolve_to_declarations(db: DB):
     assert db.disabled == {search_uid_by_short_name(db, "g")}
+
+
+# References
+# ==========
+
+
+def test_lookups_agree_with_declarations(db: DB):
+    """`find_function` and `find_type` find what each declaration declares"""
+    for uid, decl in db.decls.items():
+        match decl:
+            case TypeDeclaration(type=ty):
+                assert db.find_type(uid) == ty, uid
+            case _:
+                assert db.find_function(uid) == decl.function, uid
+
+
+def test_symbols_resolve_to_declarations(db: DB):
+    """Every symbol a function refers to is declared in the DB"""
+    bodies = [
+        d.function.body for d in db.decls.values() if not isinstance(d, TypeDeclaration)
+    ]
+    symbols = {x.symbol.id for body in bodies for x in body if isinstance(x, Symbol)}
+    assert symbols
+    assert {u for u in symbols if db.find_declaration(u) is None} == set()
+
+
+def constructed_types(ty: Type) -> Iterable[ConstructedType]:
+    match ty:
+        case ArrowType(domain=d, codomain=cd):
+            yield from constructed_types(d)
+            yield from constructed_types(cd)
+        case TupleType(elements=ts):
+            for t in ts:
+                yield from constructed_types(t)
+        case ConstructedType(arguments=ts):
+            yield ty
+            for t in ts:
+                yield from constructed_types(t)
+        case TypeVariable():
+            pass
+
+
+def test_type_constructors_resolve_to_type_definitions(db: DB):
+    """Every type constructor in a function's type or terms is defined in the DB"""
+    functions = [
+        d.function for d in db.decls.values() if not isinstance(d, TypeDeclaration)
+    ]
+    types = [f.type for f in functions] + [x.type for f in functions for x in f.body]
+    constructors = {t.constructor for ty in types for t in constructed_types(ty)}
+    assert constructors
+    assert {u for u in constructors if db.find_type(u) is None} == set()
+
+
+def test_rules_refer_to_theorems(db: DB):
+    """Rules and triggers are derived from theorems, which they refer to by uid"""
+    uids = [
+        *db.thm_as_rw,
+        *db.thm_as_fc,
+        *db.thm_as_elim,
+        *db.thm_as_gen,
+        *db.inst_rules,
+    ]
+    uids += [r.name for rs in db.rw_rules.values() for r in rs]
+    uids += [
+        t.instantiation_rule_name
+        for ts in [*db.fc.values(), *db.gen.values()]
+        for t in ts
+    ]
+    assert uids
+    for u in uids:
+        assert isinstance(db.find_declaration(u), TheoremDeclaration), u
 
 
 # ====================
