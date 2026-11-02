@@ -34,6 +34,8 @@ __all__ = [
 def from_artifact(
     art: artmsg_pb2.Artifact | Artifact | DecompositionTaskResult,
 ) -> Decomp:
+    """Resume from a decomposition previously returned as an artifact, e.g.
+    `DecompositionResult.artifact` or a `DecompositionTaskResult`"""
     match art:
         case artmsg_pb2.Artifact():
             raw = art

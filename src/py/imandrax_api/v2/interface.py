@@ -213,7 +213,7 @@ class Statistics:
     """Tactic Execution Statistics"""
 
     time_s: float
-    """Execution time"""
+    """Execution time, in seconds"""
     tactic: tuple[tuple[str, str], ...] | None
     """Tactic-level statistics"""
     _raw: lib.Statistics = field(repr=False, compare=False)
@@ -430,7 +430,7 @@ class ProofObligationTaskResult:
 
     @property
     def from_(self) -> str:
-        """The cstore key of the proof obligation task this is the result for"""
+        """The content-addressed storage key of the proof obligation this is the result for"""
         return self._data.from_.key
 
     @cached_property
@@ -509,6 +509,7 @@ class ProofObligationTaskResult:
         return Report.of_archive(self._data.report)
 
     @cached_property
+    # TODO: make clear what the outer list of `subresults` groups by
     def subresults(self) -> list[list[Subresult]]:
         """The results for the individual subgoals"""
         return [
@@ -531,7 +532,9 @@ class EvaluationStatistics:
     """Evaluation statistics for the whole task"""
 
     compile_time: float
+    """Compilation time, in seconds"""
     exec_time: float
+    """Execution time, in seconds"""
     _raw: lib.Tasks_Eval_res_stats = field(repr=False, compare=False)
 
     @classmethod
@@ -603,7 +606,7 @@ class DecompositionTaskResult:
 
     @property
     def from_(self) -> str:
-        """The cstore key of the decomposition task this is the result for"""
+        """The content-addressed storage key of the decomposition request this is the result for"""
         return self._data.from_.key
 
     @property
@@ -792,6 +795,9 @@ class Task:
         """The task's data
 
         Fetched on first access, see `Task`
+
+        Raises:
+            UnexpectedResponseError: for a task kind without a data artifact
         """
         kind = self._artifact_kind
         if kind is None:
@@ -805,6 +811,9 @@ class Task:
         """The task's result
 
         Fetched on first access, see `Task`
+
+        Raises:
+            UnexpectedResponseError: for a task kind without a result artifact
         """
         kind = self._result_artifact_kind
         if kind is None:
@@ -829,6 +838,10 @@ class Task:
                 self._artifact(k)
 
     def set_client(self, client: "Client | AsyncClient") -> None:
+        """Fetch the task's artifacts with `client` from now on, e.g. after the original one is gone
+
+        The task only holds a weak reference to `client`: keep it alive while fetching.
+        """
         self._client = weakref.ref(client)
 
     def _get_client(self) -> "Client | AsyncClient":
@@ -928,7 +941,6 @@ class ProofObligation:
 
     description: str
     """A description of the proof obligation"""
-    # CR: should we create a property for goal[0] and goal[1]
     goal: tuple[tuple[Variable, ...], Term]
     """The goal, `fun variables -> body`"""
     tactic: Tactic
@@ -1376,7 +1388,10 @@ class DecompositionTask(Task):
 
 
 class ProofCheckTask(Task):
-    """A proof checking task"""
+    """A proof checking task
+
+    It has no data or result artifact: `artifact` and `result` raise `UnexpectedResponseError`.
+    """
 
     # The API defines no artifact kinds for proof checking
     _artifact_kind = None
@@ -2202,7 +2217,18 @@ def _artifact_zip_of_result(res: api_pb2.ArtifactZipResult) -> bytes:
 
 
 class Client:
-    """A client for the ImandraX API"""
+    """A client for the ImandraX API
+
+    Args:
+        url: The server's URL, e.g. `imandrax_api.v2.url_prod`
+        server_path_prefix: The path of the API on the server
+        auth_token: The token to authenticate with; `api_key` takes precedence if both are given
+        api_key: The API key to authenticate with
+        timeout: The HTTP request timeout, in seconds, of methods called with `timeout=None`
+        session_id: The session to reopen; a new one is created if `None`
+        create_if_not_found: Whether to create a new session if `session_id` is not found,
+            instead of raising
+    """
 
     def __init__(
         self,
@@ -2231,6 +2257,7 @@ class Client:
         self._client.__exit__()
 
     def status(self) -> str:
+        """The server's status message"""
         return self._client.status().msg
 
     def eval_src(
@@ -2242,8 +2269,12 @@ class Client:
     ) -> EvalSrcResponse:
         """Evaluate IML source
 
-        `async_only` returns without waiting for task results; `task_filter` holds glob patterns
-        selecting the tasks to start, see `imandrax_api.v1.Client.eval_src`
+        Args:
+            src: The IML source
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+            async_only: Whether to return without waiting for task results
+            task_filter: Glob patterns (`*`, `?`, `[...]`) selecting the tasks to start; all tasks
+                by default. Tasks without names are matched as `anonymous`.
         """
         return EvalSrcResponse.of_raw(
             self._client.eval_src(
@@ -2272,8 +2303,18 @@ class Client:
     ) -> DecompositionResult:
         """Decompose the function `name`
 
-        `timeout` is the HTTP request timeout and `compute_timeout` the server-side compute
-        timeout, see `imandrax_api.v1.Client.decompose`
+        Args:
+            name: The function to decompose
+            assuming: The side condition function the decomposition assumes
+            basis: Functions not to unfold during decomposition
+            rule_specs: Rule specs to use during decomposition
+            prune: Whether to prune infeasible regions
+            ctx_simp: Whether to simplify regions in their context
+            lift_bool: How Boolean subterms are lifted into region constraints
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+            string_results: Whether to also return each region's constraints and invariant in IML
+                syntax, as `Region.constraints_str` and `Region.invariant_str`
+            compute_timeout: The server-side compute timeout
         """
         return DecompositionResult.of_raw(
             self._client.decompose(
@@ -2298,6 +2339,15 @@ class Client:
         string_results: bool | None = None,
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
+        """Run a decomposition request
+
+        Args:
+            d: The decomposition, built with the constructors in `imandrax_api.v2.decomp`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+            string_results: Whether to also return each region's constraints and invariant in IML
+                syntax, as `Region.constraints_str` and `Region.invariant_str`
+            compute_timeout: The server-side compute timeout
+        """
         return DecompositionResult.of_raw(
             self._client.decompose_full(
                 d,
@@ -2311,7 +2361,13 @@ class Client:
     def verify_src(
         self, src: str, hints: str | None = None, timeout: float | None = None
     ) -> VerifyResponse:
-        """Verify the goal given as IML source"""
+        """Verify the goal given as IML source
+
+        Args:
+            src: The goal, as IML source
+            hints: IML attribute text for the goal, e.g. `[@@by auto]`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return VerifyResponse.of_raw(
             self._client.verify_src(src, hints=hints, timeout=timeout), self
         )
@@ -2319,7 +2375,13 @@ class Client:
     def verify_name(
         self, name: str, hints: str | None = None, timeout: float | None = None
     ) -> VerifyResponse:
-        """Verify the predicate `name`"""
+        """Verify the predicate `name`
+
+        Args:
+            name: The predicate to verify
+            hints: IML attribute text for the goal, e.g. `[@@by auto]`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return VerifyResponse.of_raw(
             self._client.verify_name(name, hints=hints, timeout=timeout), self
         )
@@ -2327,7 +2389,13 @@ class Client:
     def instance_src(
         self, src: str, hints: str | None = None, timeout: float | None = None
     ) -> InstanceResponse:
-        """Search for an instance of the goal given as IML source"""
+        """Search for an instance of the goal given as IML source
+
+        Args:
+            src: The goal, as IML source
+            hints: IML attribute text for the goal, e.g. `[@@by auto]`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return InstanceResponse.of_raw(
             self._client.instance_src(src, hints=hints, timeout=timeout), self
         )
@@ -2335,7 +2403,13 @@ class Client:
     def instance_name(
         self, name: str, hints: str | None = None, timeout: float | None = None
     ) -> InstanceResponse:
-        """Search for an instance of the predicate `name`"""
+        """Search for an instance of the predicate `name`
+
+        Args:
+            name: The predicate to search an instance of
+            hints: IML attribute text for the goal, e.g. `[@@by auto]`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return InstanceResponse.of_raw(
             self._client.instance_name(name, hints=hints, timeout=timeout), self
         )
@@ -2343,7 +2417,13 @@ class Client:
     def test_src(
         self, src: str, seed: int | None = None, timeout: float | None = None
     ) -> TestResponse:
-        """Test the goal given as IML source with random inputs"""
+        """Test the goal given as IML source with random inputs
+
+        Args:
+            src: The goal, as IML source
+            seed: The random seed
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return TestResponse.of_raw(
             self._client.test_src(src, seed=seed, timeout=timeout), self
         )
@@ -2351,13 +2431,24 @@ class Client:
     def test_name(
         self, name: str, seed: int | None = None, timeout: float | None = None
     ) -> TestResponse:
-        """Test the predicate `name` with random inputs"""
+        """Test the predicate `name` with random inputs
+
+        Args:
+            name: The predicate to test
+            seed: The random seed
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return TestResponse.of_raw(
             self._client.test_name(name, seed=seed, timeout=timeout), self
         )
 
     def typecheck(self, src: str, timeout: float | None = None) -> TypecheckResponse:
-        """Typecheck IML source, adding its definitions to the session"""
+        """Typecheck IML source, adding its definitions to the session
+
+        Args:
+            src: The IML source
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return TypecheckResponse.of_raw(self._client.typecheck(src, timeout=timeout))
 
     def oneshot(
@@ -2366,7 +2457,13 @@ class Client:
         compute_timeout: float | None = None,
         timeout: float | None = None,
     ) -> OneshotResponse:
-        """Evaluate IML code in a sessionless, self-contained request"""
+        """Evaluate IML code in a sessionless, self-contained request
+
+        Args:
+            input: The IML code
+            compute_timeout: The server-side compute timeout
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return OneshotResponse.of_raw(
             self._client.oneshot(
                 input, compute_timeout=compute_timeout, timeout=timeout
@@ -2379,7 +2476,14 @@ class Client:
         task_filter: list[str] | None = None,
         timeout: float | None = None,
     ) -> CodeSnippetResponse:
-        """Evaluate a code snippet; `task_filter` selects tasks to start, as in `eval_src`"""
+        """Evaluate a code snippet
+
+        Args:
+            code: The IML code
+            task_filter: Glob patterns (`*`, `?`, `[...]`) selecting the tasks to start; all tasks
+                by default. Tasks without names are matched as `anonymous`.
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return CodeSnippetResponse.of_raw(
             self._client.eval_code_snippet(
                 code, task_filter=task_filter, timeout=timeout
@@ -2388,17 +2492,32 @@ class Client:
         )
 
     def parse_term(self, code: str, timeout: float | None = None) -> Term:
-        """Parse and typecheck a term"""
+        """Parse and typecheck a term
+
+        Args:
+            code: The term, as IML source
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         artifact = _artifact_of_result(self._client.parse_term(code, timeout=timeout))
         return term_of_lib(artifact.decode_as(lib.Mir_Term))
 
     def parse_type(self, code: str, timeout: float | None = None) -> Type:
-        """Parse and typecheck a type"""
+        """Parse and typecheck a type
+
+        Args:
+            code: The type, as IML source
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         artifact = _artifact_of_result(self._client.parse_type(code, timeout=timeout))
         return type_of_lib(artifact.decode_as(lib.Mir_Type))
 
     def list_artifacts(self, task: Task, timeout: float | None = None) -> list[str]:
-        """The kinds of the artifacts available for `task`"""
+        """The kinds of the artifacts available for `task`
+
+        Args:
+            task: The task
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return _artifact_kinds_of_result(
             self._client.list_artifacts(task._raw, timeout=timeout)
         )
@@ -2406,7 +2525,13 @@ class Client:
     def get_artifact(
         self, task: Task, kind: str, timeout: float | None = None
     ) -> Artifact:
-        """The artifact of kind `kind` of `task`"""
+        """The artifact of kind `kind` of `task`
+
+        Args:
+            task: The task
+            kind: The artifact kind, one of `list_artifacts(task)`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return _artifact_of_result(
             self._client.get_artifact(task._raw, kind, timeout=timeout)
         )
@@ -2414,24 +2539,49 @@ class Client:
     def get_artifact_zip(
         self, task: Task, kind: str, timeout: float | None = None
     ) -> bytes:
-        """The artifact of kind `kind` of `task`, as a zip file"""
+        """The artifact of kind `kind` of `task`, as a zip file
+
+        Args:
+            task: The task
+            kind: The artifact kind, one of `list_artifacts(task)`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return _artifact_zip_of_result(
             self._client.get_artifact_zip(task._raw, kind, timeout=timeout)
         )
 
     def keep_session_alive(self, timeout: float | None = None) -> None:
-        """Make sure the session remains active"""
+        """Make sure the session remains active
+
+        Args:
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         self._client.keep_session_alive(timeout=timeout)
 
     def version(self, timeout: float | None = None) -> ServerVersion:
-        """The server's version"""
+        """The server's version
+
+        Args:
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return ServerVersion.of_raw(self._client.version(timeout=timeout))
 
 
 class AsyncClient:
     """An asynchronous client for the ImandraX API; use it as `async with AsyncClient(...) as c`
 
-    Needs the optional `aiohttp` dependency."""
+    Needs the optional `aiohttp` dependency.
+
+    Args:
+        url: The server's URL, e.g. `imandrax_api.v2.url_prod`
+        server_path_prefix: The path of the API on the server
+        auth_token: The token to authenticate with; `api_key` takes precedence if both are given
+        api_key: The API key to authenticate with
+        timeout: The HTTP request timeout, in seconds, of methods called with `timeout=None`
+        session_id: The session to reopen when entering `async with`; a new one is created if `None`
+        create_if_not_found: Whether to create a new session if `session_id` is not found,
+            instead of raising
+    """
 
     def __init__(
         self,
@@ -2466,6 +2616,7 @@ class AsyncClient:
         await self._client.__aexit__(exc_type, exc_val, exc_tb)
 
     async def status(self) -> str:
+        """The server's status message"""
         return (await self._client.status()).msg
 
     async def eval_src(
@@ -2477,8 +2628,12 @@ class AsyncClient:
     ) -> EvalSrcResponse:
         """Evaluate IML source
 
-        `async_only` returns without waiting for task results; `task_filter` holds glob patterns
-        selecting the tasks to start, see `imandrax_api.v1.Client.eval_src`
+        Args:
+            src: The IML source
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+            async_only: Whether to return without waiting for task results
+            task_filter: Glob patterns (`*`, `?`, `[...]`) selecting the tasks to start; all tasks
+                by default. Tasks without names are matched as `anonymous`.
         """
         return EvalSrcResponse.of_raw(
             await self._client.eval_src(
@@ -2489,7 +2644,7 @@ class AsyncClient:
 
     @property
     def session_id(self) -> str | None:
-        """The ID of the client's session"""
+        """The ID of the client's session, `None` until `async with` creates one"""
         return self._client.session_id
 
     async def decompose(
@@ -2507,8 +2662,18 @@ class AsyncClient:
     ) -> DecompositionResult:
         """Decompose the function `name`
 
-        `timeout` is the HTTP request timeout and `compute_timeout` the server-side compute
-        timeout, see `imandrax_api.v1.Client.decompose`
+        Args:
+            name: The function to decompose
+            assuming: The side condition function the decomposition assumes
+            basis: Functions not to unfold during decomposition
+            rule_specs: Rule specs to use during decomposition
+            prune: Whether to prune infeasible regions
+            ctx_simp: Whether to simplify regions in their context
+            lift_bool: How Boolean subterms are lifted into region constraints
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+            string_results: Whether to also return each region's constraints and invariant in IML
+                syntax, as `Region.constraints_str` and `Region.invariant_str`
+            compute_timeout: The server-side compute timeout
         """
         return DecompositionResult.of_raw(
             await self._client.decompose(
@@ -2533,6 +2698,15 @@ class AsyncClient:
         string_results: bool | None = None,
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
+        """Run a decomposition request
+
+        Args:
+            d: The decomposition, built with the constructors in `imandrax_api.v2.decomp`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+            string_results: Whether to also return each region's constraints and invariant in IML
+                syntax, as `Region.constraints_str` and `Region.invariant_str`
+            compute_timeout: The server-side compute timeout
+        """
         return DecompositionResult.of_raw(
             await self._client.decompose_full(
                 d,
@@ -2546,7 +2720,13 @@ class AsyncClient:
     async def verify_src(
         self, src: str, hints: str | None = None, timeout: float | None = None
     ) -> VerifyResponse:
-        """Verify the goal given as IML source"""
+        """Verify the goal given as IML source
+
+        Args:
+            src: The goal, as IML source
+            hints: IML attribute text for the goal, e.g. `[@@by auto]`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return VerifyResponse.of_raw(
             await self._client.verify_src(src, hints=hints, timeout=timeout), self
         )
@@ -2554,7 +2734,13 @@ class AsyncClient:
     async def verify_name(
         self, name: str, hints: str | None = None, timeout: float | None = None
     ) -> VerifyResponse:
-        """Verify the predicate `name`"""
+        """Verify the predicate `name`
+
+        Args:
+            name: The predicate to verify
+            hints: IML attribute text for the goal, e.g. `[@@by auto]`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return VerifyResponse.of_raw(
             await self._client.verify_name(name, hints=hints, timeout=timeout), self
         )
@@ -2562,7 +2748,13 @@ class AsyncClient:
     async def instance_src(
         self, src: str, hints: str | None = None, timeout: float | None = None
     ) -> InstanceResponse:
-        """Search for an instance of the goal given as IML source"""
+        """Search for an instance of the goal given as IML source
+
+        Args:
+            src: The goal, as IML source
+            hints: IML attribute text for the goal, e.g. `[@@by auto]`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return InstanceResponse.of_raw(
             await self._client.instance_src(src, hints=hints, timeout=timeout), self
         )
@@ -2570,7 +2762,13 @@ class AsyncClient:
     async def instance_name(
         self, name: str, hints: str | None = None, timeout: float | None = None
     ) -> InstanceResponse:
-        """Search for an instance of the predicate `name`"""
+        """Search for an instance of the predicate `name`
+
+        Args:
+            name: The predicate to search an instance of
+            hints: IML attribute text for the goal, e.g. `[@@by auto]`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return InstanceResponse.of_raw(
             await self._client.instance_name(name, hints=hints, timeout=timeout), self
         )
@@ -2578,7 +2776,13 @@ class AsyncClient:
     async def test_src(
         self, src: str, seed: int | None = None, timeout: float | None = None
     ) -> TestResponse:
-        """Test the goal given as IML source with random inputs"""
+        """Test the goal given as IML source with random inputs
+
+        Args:
+            src: The goal, as IML source
+            seed: The random seed
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return TestResponse.of_raw(
             await self._client.test_src(src, seed=seed, timeout=timeout), self
         )
@@ -2586,7 +2790,13 @@ class AsyncClient:
     async def test_name(
         self, name: str, seed: int | None = None, timeout: float | None = None
     ) -> TestResponse:
-        """Test the predicate `name` with random inputs"""
+        """Test the predicate `name` with random inputs
+
+        Args:
+            name: The predicate to test
+            seed: The random seed
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return TestResponse.of_raw(
             await self._client.test_name(name, seed=seed, timeout=timeout), self
         )
@@ -2594,7 +2804,12 @@ class AsyncClient:
     async def typecheck(
         self, src: str, timeout: float | None = None
     ) -> TypecheckResponse:
-        """Typecheck IML source, adding its definitions to the session"""
+        """Typecheck IML source, adding its definitions to the session
+
+        Args:
+            src: The IML source
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return TypecheckResponse.of_raw(
             await self._client.typecheck(src, timeout=timeout)
         )
@@ -2605,7 +2820,13 @@ class AsyncClient:
         compute_timeout: float | None = None,
         timeout: float | None = None,
     ) -> OneshotResponse:
-        """Evaluate IML code in a sessionless, self-contained request"""
+        """Evaluate IML code in a sessionless, self-contained request
+
+        Args:
+            input: The IML code
+            compute_timeout: The server-side compute timeout
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return OneshotResponse.of_raw(
             await self._client.oneshot(
                 input, compute_timeout=compute_timeout, timeout=timeout
@@ -2618,7 +2839,14 @@ class AsyncClient:
         task_filter: list[str] | None = None,
         timeout: float | None = None,
     ) -> CodeSnippetResponse:
-        """Evaluate a code snippet; `task_filter` selects tasks to start, as in `eval_src`"""
+        """Evaluate a code snippet
+
+        Args:
+            code: The IML code
+            task_filter: Glob patterns (`*`, `?`, `[...]`) selecting the tasks to start; all tasks
+                by default. Tasks without names are matched as `anonymous`.
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return CodeSnippetResponse.of_raw(
             await self._client.eval_code_snippet(
                 code, task_filter=task_filter, timeout=timeout
@@ -2627,14 +2855,24 @@ class AsyncClient:
         )
 
     async def parse_term(self, code: str, timeout: float | None = None) -> Term:
-        """Parse and typecheck a term"""
+        """Parse and typecheck a term
+
+        Args:
+            code: The term, as IML source
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         artifact = _artifact_of_result(
             await self._client.parse_term(code, timeout=timeout)
         )
         return term_of_lib(artifact.decode_as(lib.Mir_Term))
 
     async def parse_type(self, code: str, timeout: float | None = None) -> Type:
-        """Parse and typecheck a type"""
+        """Parse and typecheck a type
+
+        Args:
+            code: The type, as IML source
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         artifact = _artifact_of_result(
             await self._client.parse_type(code, timeout=timeout)
         )
@@ -2643,7 +2881,12 @@ class AsyncClient:
     async def list_artifacts(
         self, task: Task, timeout: float | None = None
     ) -> list[str]:
-        """The kinds of the artifacts available for `task`"""
+        """The kinds of the artifacts available for `task`
+
+        Args:
+            task: The task
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return _artifact_kinds_of_result(
             await self._client.list_artifacts(task._raw, timeout=timeout)
         )
@@ -2651,7 +2894,13 @@ class AsyncClient:
     async def get_artifact(
         self, task: Task, kind: str, timeout: float | None = None
     ) -> Artifact:
-        """The artifact of kind `kind` of `task`"""
+        """The artifact of kind `kind` of `task`
+
+        Args:
+            task: The task
+            kind: The artifact kind, one of `list_artifacts(task)`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return _artifact_of_result(
             await self._client.get_artifact(task._raw, kind, timeout=timeout)
         )
@@ -2659,15 +2908,29 @@ class AsyncClient:
     async def get_artifact_zip(
         self, task: Task, kind: str, timeout: float | None = None
     ) -> bytes:
-        """The artifact of kind `kind` of `task`, as a zip file"""
+        """The artifact of kind `kind` of `task`, as a zip file
+
+        Args:
+            task: The task
+            kind: The artifact kind, one of `list_artifacts(task)`
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return _artifact_zip_of_result(
             await self._client.get_artifact_zip(task._raw, kind, timeout=timeout)
         )
 
     async def keep_session_alive(self, timeout: float | None = None) -> None:
-        """Make sure the session remains active"""
+        """Make sure the session remains active
+
+        Args:
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         await self._client.keep_session_alive(timeout=timeout)
 
     async def version(self, timeout: float | None = None) -> ServerVersion:
-        """The server's version"""
+        """The server's version
+
+        Args:
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
         return ServerVersion.of_raw(await self._client.version(timeout=timeout))

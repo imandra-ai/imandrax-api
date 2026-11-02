@@ -33,7 +33,8 @@ class NoClientError(ImandraXError):
 class NotFetchedError(ImandraXError):
     """An artifact of a task from an `AsyncClient` was accessed before it was fetched
 
-    Fetch it by accessing the attribute with `await task.awaitable.<attribute>` first
+    Fetch it by accessing the attribute with `await task.awaitable.<attribute>` first, or fetch all
+    of the task's artifacts with `await task.fetch_all()`
     """
 
     def __init__(self, task: Task, kind: str):
