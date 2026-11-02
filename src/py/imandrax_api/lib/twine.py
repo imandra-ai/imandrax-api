@@ -3,8 +3,9 @@ from __future__ import annotations  # https://peps.python.org/pep-0563/
 
 import json
 import struct
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Protocol
+from typing import Any, Protocol
 
 offset = int
 
@@ -135,7 +136,7 @@ class Decoder:
         off = self._deref(off=off)
         high, low = self.__first_byte(off=off)
         if high == 0 and low == 2:
-            return None
+            return
         else:
             raise Error(f"expected bool, but high={high}, low={low} at off=0x{off:x}")
 
@@ -348,7 +349,7 @@ class Constructor[Args]:
     args: Args
 
 
-type value = (
+type value = (  # noqa: PYI042
     None
     | int
     | str
@@ -360,7 +361,7 @@ type value = (
     | Tag["value"]
 )
 
-type shallow_value = (
+type shallow_value = (  # noqa: PYI042
     None
     | int
     | str

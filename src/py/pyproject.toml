@@ -43,7 +43,16 @@ testpaths = ["imandrax_api/lib", "../../tests/client/py"]
 indent-width = 4
 target-version = "py312"
 
-exclude = ["imandrax_api/lib/__init__.py", "imandrax_api/bindings/"]
+exclude = [
+    "imandrax_api/lib/__init__.py",
+    "imandrax_api/bindings/",
+    # vendored from twirpy
+    "imandrax_api/twirp/",
+]
+
+[tool.ruff.lint]
+# deprecated client; formatted but not linted
+exclude = ["imandrax_api/v1/**"]
 
 [dependency-groups]
 dev = [
@@ -52,6 +61,7 @@ dev = [
     "inline-snapshot>=0.36.1",
     "pyright>=1.1.408",
     "pytest>=9.1.1",
+    "ruff==0.16.3",
 ]
 
 [tool.black]

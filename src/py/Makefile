@@ -5,7 +5,7 @@ echo-version:
 
 API_TYPES_VERSION=$(shell cat ../core/API_TYPES_VERSION)
 imandrax_api/api_types_version.py:
-	@echo "api_types_version = 'v$(API_TYPES_VERSION)'" > $@
+	@echo 'api_types_version = "v$(API_TYPES_VERSION)"' > $@
 
 build: clean imandrax_api/api_types_version.py
 	uv build --wheel
@@ -15,6 +15,12 @@ clean:
 
 typecheck:
 	uv run pyright -p pyproject.toml imandrax_api/
+
+lint:
+	uv run ruff check .
+
+format-check:
+	uv run ruff format --check .
 
 unit-test:
 	uv run pytest
