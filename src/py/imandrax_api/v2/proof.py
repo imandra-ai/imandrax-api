@@ -67,7 +67,6 @@ ProofArgument = (
 def proof_argument_of_lib(
     x: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type],
 ) -> ProofArgument:
-    """Convert a library proof rule argument into the matching `ProofArgument` variant"""
     match x:
         case lib.Proof_Arg_A_term(arg=t):
             return TermArgument(term=term_of_lib(t), _raw=x)
@@ -138,7 +137,6 @@ ProofTerm = AssumeProof | SubstProof | DeductionProof | RuleProof
 def proof_term_of_lib(
     x: lib.Proof_Proof_term_t_poly[lib.Mir_Term, lib.Mir_Type],
 ) -> ProofTerm:
-    """Convert a library proof term into the matching `ProofTerm` variant"""
     concl = Sequent.of_lib(x.concl)
     match x.view:
         case lib.Proof_View_T_assume():

@@ -42,7 +42,13 @@ from .errors import UnexpectedResponseError
 
 
 class Uid:
-    """A unique identifier"""
+    """A unique identifier of a symbol, type or variable
+
+    Besides its name, a uid can have a suffix telling apart uids with the same name: a generative
+    id for local variables, or the hash of its definition for content-addressed uids (see `cname`).
+    Builtin uids (see `builtin_kind`) and persistent uids are named by their name alone.
+    `short_name` is the name and `full_name` the name with its suffix.
+    """
 
     def __init__(self, x: lib.Uid):
         self._raw = x
@@ -217,7 +223,6 @@ Const = (
 
 
 def const_of_lib(x: lib.Const) -> Const:
-    """Convert a library constant into the matching `Const` variant"""
     match x:
         case lib.Const_Const_float(arg=f):
             return FloatConst(value=f, _raw=x)
@@ -263,7 +268,6 @@ BuiltinDataKind = LogicCoreBuiltin | SpecialBuiltin | TacticBuiltin | DecompBuil
 
 
 def builtin_data_kind_of_lib(x: lib.Builtin_data_kind) -> BuiltinDataKind:
-    """Convert a library builtin kind into the matching `BuiltinDataKind` variant"""
     match x:
         case lib.Builtin_data_kind_Logic_core(logic_core_name=n):
             return LogicCoreBuiltin(name=n, _raw=x)
@@ -277,8 +281,6 @@ def builtin_data_kind_of_lib(x: lib.Builtin_data_kind) -> BuiltinDataKind:
 
 @dataclass(slots=True, frozen=True)
 class BuiltinFunction:
-    """Builtin functions"""
-
     id: Uid
     kind: BuiltinDataKind
     left_associative: bool
@@ -300,8 +302,6 @@ class BuiltinFunction:
 
 @dataclass(slots=True, frozen=True)
 class BuiltinSort:
-    """Builtin sorts"""
-
     id: Uid
     kind: BuiltinDataKind
     _raw: lib.Builtin_Ty = field(repr=False, compare=False)
@@ -348,7 +348,6 @@ AsTrigger = NoTrigger | AnonymousTrigger | NamedTrigger | RewriteTrigger
 
 
 def as_trigger_of_lib(x: lib.As_trigger) -> AsTrigger:
-    """Convert a library `As_trigger` into the matching `AsTrigger` variant"""
     match x:
         case lib.As_trigger_Trig_none():
             return NoTrigger(_raw=x)
@@ -374,7 +373,6 @@ class _Type:
 
 
 def type_of_lib(x: lib.Mir_Type) -> Type:
-    """Convert a library type into the matching `Type` variant"""
     match x.view:
         case lib.Ty_view_view_Var(arg=v):
             return TypeVariable(name=Uid(v), _raw=x)
@@ -392,8 +390,6 @@ def type_of_lib(x: lib.Mir_Type) -> Type:
 
 @dataclass(slots=True, frozen=True, repr=False)
 class TypeVariable(_Type):
-    """A type variable"""
-
     name: Uid
 
     @override
@@ -538,7 +534,6 @@ TypeKind = (
 
 
 def type_kind_of_lib(x: lib.Ty_view_decl[lib.Uid, lib.Mir_Type, Never]) -> TypeKind:
-    """Convert a library type declaration into the matching `TypeKind` variant"""
     match x:
         case lib.Ty_view_decl_Algebraic(arg=rows):
             return AlgebraicTypeKind(
@@ -561,8 +556,6 @@ def type_kind_of_lib(x: lib.Ty_view_decl[lib.Uid, lib.Mir_Type, Never]) -> TypeK
 
 @dataclass(slots=True, frozen=True, repr=False)
 class TypeDefinition:
-    """A type definition"""
-
     name: Uid
     """The type's name"""
     parameters: tuple[Uid, ...]
@@ -638,9 +631,7 @@ class TypedSymbol:
     """A symbol together with its type schema"""
 
     id: Uid
-    """The symbol's unique identifier"""
     type_schema: TypeSchema
-    """The symbol's type schema"""
     _raw: lib.Mir_Typed_symbol = field(repr=False, compare=False)
 
     @classmethod
@@ -727,7 +718,6 @@ class _Term:
 
 
 def term_of_lib(x: lib.Mir_Term) -> Term:
-    """Convert a library term into the matching `Term` variant, including all its subterms"""
     ty = type_of_lib(x.ty)
     match x.view:
         case lib.Mir_Term_view_Const(arg=c):
@@ -812,10 +802,7 @@ def term_of_lib(x: lib.Mir_Term) -> Term:
 
 @dataclass(slots=True, frozen=True, repr=False)
 class Constant(_Term):
-    """A constant"""
-
     value: Const
-    """The constant's value"""
 
     @override
     def __str__(self) -> str:
@@ -827,7 +814,6 @@ class If(_Term):
     """A conditional `if c then a else b`"""
 
     condition: Term
-    """The condition"""
     then_branch: Term
     """The term evaluated if the condition is true"""
     else_branch: Term
@@ -873,7 +859,7 @@ class Apply(_Term):
 
 @dataclass(slots=True, frozen=True, repr=False)
 class Var(_Term):
-    """A variable"""
+    """A local variable, e.g. a function argument"""
 
     var: Variable
     """The variable, with its type"""
@@ -891,7 +877,7 @@ def var_term_of_var(x: lib.Mir_Var) -> Var:
 
 @dataclass(slots=True, frozen=True, repr=False)
 class Symbol(_Term):
-    """A symbol"""
+    """A reference to a declared symbol, e.g. a function, by its uid"""
 
     symbol: AppliedSymbol
     """The symbol, instantiated at its type"""
@@ -973,8 +959,6 @@ class IsA(_Term):
 
 @dataclass(slots=True, frozen=True, repr=False)
 class Tuple(_Term):
-    """A tuple"""
-
     elements: tuple[Term, ...]
     """The tuple's elements"""
 
@@ -993,7 +977,7 @@ class Tuple(_Term):
 
 @dataclass(slots=True, frozen=True, repr=False)
 class Field(_Term):
-    """A record field"""
+    """An access to a field of a record"""
 
     field: AppliedSymbol
     """The field being accessed"""
@@ -1012,7 +996,7 @@ class Field(_Term):
 
 @dataclass(slots=True, frozen=True, repr=False)
 class TupleField(_Term):
-    """A tuple field"""
+    """An access to a component of a tuple, by its position"""
 
     index: int
     """The position of the accessed component"""
@@ -1221,15 +1205,12 @@ def _to_python(t: Term, db: DB | None = None) -> PyValue:
 def _binder_of_lib(
     x: tuple[list[lib.Mir_Var], lib.Mir_Term],
 ) -> tuple[tuple[Variable, ...], Term]:
-    """Convert a library `fun vars -> body` pair"""
     vs, t = x
     return (tuple(Variable.of_lib(v) for v in vs), term_of_lib(t))
 
 
 @dataclass(slots=True, frozen=True)
 class Sequent:
-    """A sequent"""
-
     hypotheses: tuple[tuple[str | None, Term], ...]
     """The hypotheses, each with an optional name"""
     conclusions: tuple[tuple[str | None, Term], ...]
@@ -1350,7 +1331,6 @@ ValidationStrategy = Validate | NoValidate
 def validation_strategy_of_lib(
     x: lib.Common_Hints_validation_strategy[lib.Mir_Term, lib.Mir_Type],
 ) -> ValidationStrategy:
-    """Convert a library validation strategy into the matching `ValidationStrategy` variant"""
     match x:
         case lib.Common_Hints_validation_strategy_VS_validate(tactic=t):
             return Validate(tactic=None if t is None else _binder_of_lib(t), _raw=x)
@@ -1453,7 +1433,6 @@ Tactic = (
 
 
 def tactic_of_lib(t: lib.Mir_Tactic) -> Tactic:
-    """Convert a library tactic into the matching `Tactic` variant"""
     match t:
         case lib.Common_Tactic_t_poly_Default_termination(
             max_steps=max_steps, basis=basis
@@ -1501,7 +1480,6 @@ FunctionKind = DefinedFunctionKind | BuiltinFunctionKind | OpaqueFunctionKind
 
 
 def function_kind_of_lib(x: lib.Common_Fun_def_fun_kind) -> FunctionKind:
-    """Convert a library function kind into the matching `FunctionKind` variant"""
     match x:
         case lib.Common_Fun_def_fun_kind_Fun_defined(is_macro=m, from_lambda=l):
             return DefinedFunctionKind(is_macro=m, from_lambda=l, _raw=x)
@@ -1513,14 +1491,10 @@ def function_kind_of_lib(x: lib.Common_Fun_def_fun_kind) -> FunctionKind:
 
 @dataclass(slots=True, frozen=True, repr=False)
 class FunctionDefinition:
-    """A function definition"""
-
     name: Uid
-    """The function's name"""
     type_parameters: tuple[Uid, ...]
     """The type variables the function's type is generic over"""
     type: Type
-    """The function's type"""
     arguments: tuple[Variable, ...]
     """The function's parameters"""
     body: Term
@@ -1663,7 +1637,6 @@ class VerifyKind(StrEnum):
 
 
 def verify_kind_of_lib(x: lib.Common_Verify_kind) -> VerifyKind:
-    """Convert a library verify kind into the matching `VerifyKind`"""
     match x:
         case lib.Common_Verify_kind_K_verify():
             return VerifyKind.VERIFY
@@ -1723,7 +1696,6 @@ class Verify:
 
 
 def declaration_of_lib(x: lib.Mir_Decl) -> Declaration:
-    """Convert a library declaration into the matching `Declaration` variant"""
     match x:
         case lib.Common_Decl_t_poly_Fun(arg=f):
             return FunctionDeclaration(function=FunctionDefinition.of_lib(f), _raw=x)
@@ -1863,7 +1835,6 @@ def _decl_uid(d: lib.Mir_Decl) -> Uid:
 
 
 def pattern_head_of_lib(x: lib.Mir_Pattern_head) -> PatternHead:
-    """Convert a library pattern head into the matching `PatternHead` variant"""
     match x:
         case lib.Common_Pattern_head_t_poly_PH_id(arg=uid):
             return SymbolHead(uid=Uid(uid), _raw=x)
@@ -1890,7 +1861,6 @@ class TypeHead:
     """The pattern is just a variable, so its head is its type"""
 
     type: Type
-    """The type"""
     _raw: lib.Mir_Pattern_head = field(repr=False, compare=False)
 
     def __str__(self) -> str:
@@ -1985,7 +1955,6 @@ FoPattern = (
 
 
 def fo_pattern_of_lib(x: lib.Mir_Fo_pattern) -> FoPattern:
-    """Convert a library first-order pattern into the matching `FoPattern` variant"""
     ty = type_of_lib(x.ty)
     match x.view:
         case lib.Common_Fo_pattern_view_FO_any():
@@ -2030,8 +1999,6 @@ def fo_pattern_of_lib(x: lib.Mir_Fo_pattern) -> FoPattern:
 
 @dataclass(slots=True, frozen=True)
 class RewriteRule:
-    """A rewrite rule"""
-
     name: Uid
     """name of theorem that gives this rewrite rule"""
     head: PatternHead
@@ -2094,7 +2061,6 @@ class InstantiationRuleKind(StrEnum):
 def instantiation_rule_kind_of_lib(
     x: lib.Common_Instantiation_rule_kind,
 ) -> InstantiationRuleKind:
-    """Convert a library instantiation rule kind into the matching `InstantiationRuleKind`"""
     match x:
         case lib.Common_Instantiation_rule_kind_IR_forward_chaining():
             return InstantiationRuleKind.FORWARD_CHAINING
@@ -2220,7 +2186,6 @@ TypeInterpretation = FiniteTypeInterpretation | UnitAliasTypeInterpretation
 def type_interpretation_of_lib(
     x: lib.Common_Model_ty_def[lib.Mir_Term, lib.Mir_Type],
 ) -> TypeInterpretation:
-    """Convert a library type interpretation into the matching `TypeInterpretation` variant"""
     match x:
         case lib.Common_Model_ty_def_Ty_finite(arg=ts):
             return FiniteTypeInterpretation(
@@ -2318,7 +2283,6 @@ RegionStatus = UnknownStatus | FeasibleStatus | FeasibilityCheckFailedStatus
 def region_status_of_lib(
     x: lib.Common_Region_status[lib.Mir_Term, lib.Mir_Type],
 ) -> RegionStatus:
-    """Convert a library region status into the matching `RegionStatus` variant"""
     match x:
         case lib.Common_Region_status_Unknown():
             return UnknownStatus(_raw=x)
@@ -2329,7 +2293,6 @@ def region_status_of_lib(
 
 
 def _meta_of_lib(m: lib.Common_Region_meta[lib.Mir_Term]) -> Decomposition.Region.Meta:
-    """Convert a library region metadata value into a Python value"""
     match m:
         case lib.Common_Region_meta_Null():
             return None

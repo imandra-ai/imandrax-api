@@ -201,7 +201,6 @@ def test_decompose_unknown_name_no_task(client: Client):
 
 
 def test_decompose_full(client: Client):
-    # TODO: should exists a test for testing decomp combinators
     r = client.decompose_full(decomp.prune(decomp.by_name("f")))
     assert r.errors == ()
     assert r.artifact is not None

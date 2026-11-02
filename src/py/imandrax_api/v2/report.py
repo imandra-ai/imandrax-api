@@ -144,7 +144,6 @@ class RichText:
 
 
 def rich_text_item_of_lib(x: lib.Report_Rtext_item[lib.Mir_Term]) -> RichTextItem:
-    """Convert a library rich text item into the matching `RichTextItem` variant"""
     match x:
         case lib.Report_Rtext_item_S(arg=s):
             return PlainText(text=s, _raw=x)
@@ -383,7 +382,6 @@ AtomicEvent = (
 
 
 def atomic_event_of_lib(x: lib.Report_Atomic_event_Mir) -> AtomicEvent:
-    """Convert a library atomic event into the matching `AtomicEvent` variant"""
     match x:
         case lib.Report_Atomic_event_poly_E_message(arg=t):
             return Message(text=RichText.of_lib(t), _raw=x)
@@ -466,7 +464,6 @@ LinearEvent = InstantEvent | EnterSpan | ExitSpan
 
 
 def linear_event_of_lib(x: lib.Report_Report_event) -> LinearEvent:
-    """Convert a library linear report event into the matching `LinearEvent` variant"""
     match x:
         case lib.Report_Event_t_linear_EL_atomic(ts=ts, ev=ev):
             return InstantEvent(timestamp=ts, event=atomic_event_of_lib(ev), _raw=x)

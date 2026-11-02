@@ -268,7 +268,6 @@ class ProofFound:
     """The goal was proved"""
 
     proof: ProofTerm
-    """Proof term."""
     _raw: lib.Tasks_PO_res_proof_found[lib.Mir_Term, lib.Mir_Type] = field(
         repr=False, compare=False
     )
@@ -356,7 +355,6 @@ def proof_obligation_result_of_lib(
         lib.Tasks_PO_res_success[lib.Mir_Term, lib.Mir_Type], lib.Mir_Term, lib.Mir_Type
     ],
 ) -> ProofObligationSuccess | ProofObligationFailure:
-    """Convert a library proof obligation result into the matching success or failure variant"""
     match x:
         case lib.Tasks_PO_res_success_Proof(arg=r):
             return ProofFound(
@@ -435,7 +433,6 @@ class ProofObligationTaskResult:
 
     @cached_property
     def result(self) -> ProofObligationSuccess | ProofObligationFailure:
-        """The result"""
         return proof_obligation_result_of_lib(self._data.res)
 
     @property
@@ -940,11 +937,9 @@ class ProofObligation:
     """A proof obligation: a goal to prove and the tactic to use"""
 
     description: str
-    """A description of the proof obligation"""
     goal: tuple[tuple[Variable, ...], Term]
     """The goal, `fun variables -> body`"""
     tactic: Tactic
-    """The tactic to use"""
     is_instance: bool
     """Whether this is an instance query rather than a proof"""
     timeout: int | None
@@ -988,8 +983,6 @@ class ProofObligation:
 
 
 class ProofObligationTask(Task):
-    """A proof obligation task"""
-
     _artifact_kind = "po_task"
     _result_artifact_kind = "po_res"
 
@@ -1039,8 +1032,6 @@ class ProofObligationTask(Task):
 
 
 class EvaluationTask(Task):
-    """An evaluation task"""
-
     _artifact_kind = "eval_task"
     _result_artifact_kind = "eval_res"
 
@@ -1120,7 +1111,6 @@ def _lift_bool_to_pb(x: LiftBool | None) -> simple_api_pb2.LiftBool | None:
 
 
 def lift_bool_of_lib(x: lib.Common_Decomp_lift_bool) -> LiftBool:
-    """Convert a library `lift_bool` into the matching `LiftBool`"""
     match x:
         case lib.Common_Decomp_lift_bool_Default():
             return LiftBool.DEFAULT
@@ -1140,7 +1130,6 @@ class EnumerationStyle(StrEnum):
 def enumeration_style_of_lib(
     x: lib.Tasks_Decomp_task_enumeration_style,
 ) -> EnumerationStyle:
-    """Convert a library enumeration style into the matching `EnumerationStyle`"""
     match x:
         case lib.Tasks_Decomp_task_enumeration_style_Additive():
             return EnumerationStyle.ADDITIVE
@@ -1192,7 +1181,6 @@ class DecompositionRequest:
         """An already computed decomposition, returned as is (e.g. as a base case of a merge)"""
 
         decomposition: Decomposition
-        """The decomposition"""
         _raw: lib.Tasks_Decomp_task_Mir_decomp = field(repr=False, compare=False)
 
         def __str__(self) -> str:
@@ -1305,7 +1293,6 @@ class DecompositionRequest:
 def decomp_request_of_lib(
     d: lib.Tasks_Decomp_task_Mir_decomp,
 ) -> DecompositionRequest.Request:
-    """Convert a library decomposition request into the matching `Request` variant"""
     match d:
         case lib.Tasks_Decomp_task_decomp_poly_Decomp(arg=a):
             return DecompositionRequest.Function(
@@ -1360,8 +1347,6 @@ def decomp_request_of_lib(
 
 
 class DecompositionTask(Task):
-    """A decomposition task"""
-
     _artifact_kind = "decomp_task"
     _result_artifact_kind = "decomp_res"
 
@@ -1802,7 +1787,6 @@ class VerifyResponse:
 
     res: Res | None
     """The outcome of verification, `None` if the server sent none"""
-    # CR: can `None` ever happens?
     errors: tuple[Error, ...]
     """Errors reported during verification"""
     task: ProofObligationTask | None

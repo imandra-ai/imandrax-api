@@ -201,11 +201,6 @@ Value = (
 
 
 def value_of_lib(x: _View) -> Value:
-    """Convert an evaluation value from `imandrax_api.lib` into the matching `Value` subclass.
-
-    Nested values (constructor arguments, tuple elements, record fields) are converted
-    recursively.
-    """
     match x:
         case lib.Eval_Value_view_V_true():
             return True_(_raw=x)
@@ -295,7 +290,6 @@ OrdinalExpr = IntOrdinal | ConsOrdinal
 
 
 def ordinal_expr_of_lib(x: lib.Eval_Ordinal) -> OrdinalExpr:
-    """Convert a library ordinal into the matching `OrdinalExpr` variant"""
     match x:
         case lib.Eval_Ordinal_Int(arg=n):
             return IntOrdinal(value=n, _raw=x)
