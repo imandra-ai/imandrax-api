@@ -800,14 +800,23 @@ class Task:
             art_req_res = await client._client.get_artifact(self._raw, kind)
             return _artifact_of_result(art_req_res)
 
+        def on_done(f: asyncio.Future[Artifact]) -> None:
+            # Runs once when the request finishes, whoever is still waiting for it
+            if self._pending.get(kind) is f:
+                del self._pending[kind]
+            # Cache a success; reading `exception()` also marks a failure as handled
+            if not f.cancelled() and f.exception() is None:
+                self._artifacts[kind] = f.result()
+
         # Concurrent first accesses share one request; a failed request is not cached, so the
-        # next access retries
-        if kind not in self._pending:
-            self._pending[kind] = asyncio.ensure_future(get_artifact())
-        try:
-            self._artifacts[kind] = await self._pending[kind]
-        finally:
-            self._pending.pop(kind, None)
+        # next access retries. `shield` keeps one caller's cancellation from cancelling the
+        # request for the others.
+        fut = self._pending.get(kind)
+        if fut is None:
+            fut = asyncio.ensure_future(get_artifact())
+            self._pending[kind] = fut
+            fut.add_done_callback(on_done)
+        self._artifacts[kind] = await asyncio.shield(fut)
 
 
 def _artifact_of_result(res: api_pb2.ArtifactResult) -> Artifact:

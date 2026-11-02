@@ -262,3 +262,77 @@ def test_async_concurrent_accesses_share_one_fetch(
             assert fetched == ["po_res"]
 
     asyncio.run(main())
+
+
+def test_async_cancelling_one_access_keeps_the_shared_fetch(
+    mk_async_client: Callable[[], AsyncClient],
+):
+    """Cancelling one of several concurrent accesses does not cancel the fetch for the others"""
+
+    async def main() -> None:
+        async with mk_async_client() as client:
+            po = get_the_task(await client.eval_src(SRC), ProofObligationTask)
+            fetched: list[str] = []
+            release = asyncio.Event()
+            get_artifact = client._client.get_artifact  # pyright: ignore[reportPrivateUsage]
+
+            async def gated_get_artifact(
+                task: task_pb2.Task, kind: str, timeout: float | None = None
+            ) -> ArtifactResult:
+                fetched.append(kind)
+                await release.wait()
+                return await get_artifact(task, kind, timeout)
+
+            client._client.get_artifact = gated_get_artifact  # pyright: ignore[reportPrivateUsage]
+            a = asyncio.ensure_future(po.awaitable.result)
+            b = asyncio.ensure_future(po.awaitable.result)
+            # Both accesses wait on the fetch once it has started
+            while not fetched:
+                await asyncio.sleep(0)
+
+            a.cancel()
+            release.set()
+            with pytest.raises(asyncio.CancelledError):
+                await a
+            assert isinstance(await b, ProofObligationTaskResult)
+            assert fetched == ["po_res"]
+
+    asyncio.run(main())
+
+
+def test_async_fetch_completes_when_all_accesses_are_cancelled(
+    mk_async_client: Callable[[], AsyncClient],
+):
+    """A fetch whose accesses were all cancelled still completes and is cached"""
+
+    async def main() -> None:
+        async with mk_async_client() as client:
+            po = get_the_task(await client.eval_src(SRC), ProofObligationTask)
+            fetched: list[str] = []
+            release = asyncio.Event()
+            get_artifact = client._client.get_artifact  # pyright: ignore[reportPrivateUsage]
+
+            async def gated_get_artifact(
+                task: task_pb2.Task, kind: str, timeout: float | None = None
+            ) -> ArtifactResult:
+                fetched.append(kind)
+                await release.wait()
+                return await get_artifact(task, kind, timeout)
+
+            client._client.get_artifact = gated_get_artifact  # pyright: ignore[reportPrivateUsage]
+            a = asyncio.ensure_future(po.awaitable.result)
+            while not fetched:
+                await asyncio.sleep(0)
+
+            a.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await a
+            release.set()
+
+            # The next access reuses the fetch instead of starting another
+            res = await po.awaitable.result
+            assert isinstance(res, ProofObligationTaskResult)
+            assert po.result is res
+            assert fetched == ["po_res"]
+
+    asyncio.run(main())
