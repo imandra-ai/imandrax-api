@@ -2,7 +2,7 @@
 import imandrax_api
 import imandrax_api.lib as xtypes
 
-with imandrax_api.Client(url="http://localhost:8082") as c:
+with imandrax_api.v1.Client(url="http://localhost:8082") as c:
     print(c.status())
 
     x1 = c.eval_src(src="let f x=x+1 ;;")

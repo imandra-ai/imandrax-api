@@ -2,7 +2,7 @@
 # pyright: basic
 """Test `to_python` on terms, models and region samples from the server, for fixed values.
 
-`src/py/test_new_client/test_to_python.py` tests `to_python` on random values without a server.
+`src/py/test_client_v2/test_to_python.py` tests `to_python` on random values without a server.
 """
 
 import os
@@ -11,8 +11,8 @@ from collections.abc import Callable, Iterator
 from fractions import Fraction
 
 import imandrax_api
-from imandrax_api.demo.interface import Client, DecompositionTask, InstanceResponse
-from imandrax_api.demo.mir import DB, Constructed, Decomposition, Model, PyValue
+from imandrax_api.v2.interface import Client, DecompositionTask, InstanceResponse
+from imandrax_api.v2.mir import DB, Constructed, Decomposition, Model, PyValue
 
 TYPES = """
 type rec_t = { a: int; b: bool list }

@@ -1,20 +1,20 @@
 # pyright: strict, reportUnknownMemberType=false, reportUnknownVariableType=false
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional, Self
+from typing import Any, Optional, Self
 
-import requests
+import aiohttp  # type: ignore[import-not-found]
 
 from .. import api_types_version
 from ..bindings import (
     api_pb2,
-    api_twirp,
+    api_twirp_async,
     session_pb2,
-    session_twirp,
+    session_twirp_async,
     simple_api_pb2,
-    simple_api_twirp,
+    simple_api_twirp_async,
     system_pb2,
-    system_twirp,
+    system_twirp_async,
     task_pb2,
     utils_pb2,
 )
@@ -22,23 +22,18 @@ from ..twirp.context import Context
 from ..twirp.errors import Errors
 from ..twirp.exceptions import TwirpServerException
 from . import decomp
-from ._common import is_session_not_found, mk_context, url_dev, url_prod
-
-if TYPE_CHECKING:
-    from ._async import AsyncClient
-
-__all__ = ["Client", "AsyncClient", "decomp", "url_dev", "url_prod"]
-
-# TODO: https://requests.readthedocs.io/en/latest/user/advanced/#example-automatic-retries (for calls that are idempotent, maybe we pass `idempotent=True` for them
+from ._common import is_session_not_found, mk_context, url_prod
 
 
-class Client:
-    _client: simple_api_twirp.SimpleClient
-    _api_client: api_twirp.EvalClient
-    _session_mgr: session_twirp.SessionManagerClient
-    _system_client: system_twirp.SystemClient
+class AsyncClient:
+    _client: simple_api_twirp_async.AsyncSimpleClient
+    _api_client: api_twirp_async.AsyncEvalClient
+    _session_mgr: session_twirp_async.AsyncSessionManagerClient
+    _system_client: system_twirp_async.AsyncSystemClient
     _timeout: float
     _sesh: session_pb2.Session
+    _session_id: str | None
+    _create_if_not_found: bool
 
     @staticmethod
     def mk_context() -> Context:
@@ -55,32 +50,34 @@ class Client:
         create_if_not_found: bool = False,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
-        self._session = requests.Session()
+        self._session: aiohttp.ClientSession = aiohttp.ClientSession()
+        self._session_id = session_id
+        self._create_if_not_found = create_if_not_found
         self._closed = False
         self._auth_token = api_key if api_key else auth_token
         if self._auth_token:
             self._session.headers["Authorization"] = f"Bearer {self._auth_token}"
         self._url = url
         self._server_path_prefix = server_path_prefix
-        self._client = simple_api_twirp.SimpleClient(
+        self._client = simple_api_twirp_async.AsyncSimpleClient(
             url,
             timeout=timeout,
             server_path_prefix=server_path_prefix,
             session=self._session,
         )
-        self._session_mgr = session_twirp.SessionManagerClient(
+        self._api_client = api_twirp_async.AsyncEvalClient(
             url,
             timeout=timeout,
             server_path_prefix=server_path_prefix,
             session=self._session,
         )
-        self._api_client = api_twirp.EvalClient(
+        self._session_mgr = session_twirp_async.AsyncSessionManagerClient(
             url,
             timeout=timeout,
             server_path_prefix=server_path_prefix,
             session=self._session,
         )
-        self._system_client = system_twirp.SystemClient(
+        self._system_client = system_twirp_async.AsyncSystemClient(
             url,
             timeout=timeout,
             server_path_prefix=server_path_prefix,
@@ -88,100 +85,80 @@ class Client:
         )
         self._timeout = timeout
 
+    async def __aenter__(self, *_: Any) -> Self:
+        await self._session.__aenter__()
         # Guard against session creation failures to avoid leaking the HTTP transport
         try:
-            if session_id is None:
+            if self._session_id is None:
                 try:
-                    self._sesh = self._client.create_session(
+                    session = await self._client.create_session(
                         ctx=self.mk_context(),
                         request=simple_api_pb2.SessionCreateReq(
                             api_version=api_types_version.api_types_version
                         ),
-                        timeout=timeout,
                     )
+                    self._sesh = session
+                    self._session_id = self._sesh.id
                 except TwirpServerException as ex:
-                    status_code: int | None = ex.meta.get("status_code")  # type: ignore[attr-defined]
-                    if status_code and status_code == Errors.get_status_code(
-                        Errors.InvalidArgument
-                    ):
+                    if ex.code == Errors.InvalidArgument:
                         raise Exception(
                             "API version mismatch. Try upgrading the imandrax-api package."
                         ) from ex
                     else:
                         raise ex
             else:
-                # Reopen the supplied session via the SessionManager.open_session
-                # RPC. If the server reports it as missing/expired, fall back to
-                # creating a fresh session.
-                self._sesh = session_pb2.Session(id=session_id)
+                self._sesh = session_pb2.Session(id=self._session_id)
                 try:
-                    self._session_mgr.open_session(
+                    await self._session_mgr.open_session(
                         ctx=self.mk_context(),
                         request=session_pb2.SessionOpen(
                             id=self._sesh,
                             api_version=api_types_version.api_types_version,
                         ),
-                        timeout=timeout,
                     )
                 except TwirpServerException as ex:
-                    if is_session_not_found(ex) and create_if_not_found:
-                        self._sesh = self._client.create_session(
+                    if is_session_not_found(ex) and self._create_if_not_found:
+                        self._sesh = await self._client.create_session(
                             ctx=self.mk_context(),
                             request=simple_api_pb2.SessionCreateReq(
                                 api_version=api_types_version.api_types_version
                             ),
-                            timeout=timeout,
                         )
+                        self._session_id = self._sesh.id
                     else:
                         raise
         except BaseException:
-            self._session.close()
+            await self._session.close()
             self._closed = True
             raise
-
-    def __enter__(self, *_: Any) -> Self:
         return self
 
-    def __exit__(self, *_: Any) -> None:
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if self._closed:
             return
         # Guard against session end failures to avoid leaking the HTTP transport.
         try:
             if hasattr(self, "_sesh"):
                 try:
-                    self._client.end_session(
+                    await self._client.end_session(
                         ctx=self.mk_context(), request=self._sesh, timeout=None
                     )
                 except TwirpServerException as e:
                     raise Exception("Error while ending session") from e
         finally:
-            self._session.close()
+            await self._session.__aexit__(exc_type, exc_val, exc_tb)
             self._closed = True
-
-    def __del__(self):
-        # Avoid errors during interpreter shutdown when modules may already be None
-        # Only attempt cleanup if we're not in shutdown state
-        try:
-            # Check if required modules are still available
-            if (
-                requests is not None  # pyright: ignore[reportUnnecessaryComparison]
-                and hasattr(self, "_session")
-            ):
-                self.__exit__()
-        except Exception:
-            # Silently ignore errors during cleanup to avoid spurious error messages
-            pass
 
     # Service Simple
     # ====================
 
-    def status(self) -> utils_pb2.StringMsg:
-        return self._client.status(
+    async def status(self) -> utils_pb2.StringMsg:
+        return await self._client.status(
             ctx=self.mk_context(),
             request=utils_pb2.Empty(),
         )
 
-    def eval_src(
+    async def eval_src(
         self,
         src: str,
         timeout: Optional[float] = None,
@@ -209,13 +186,13 @@ class Client:
         if async_only is not None:
             req.async_only = async_only
 
-        return self._client.eval_src(
+        return await self._client.eval_src(
             ctx=self.mk_context(),
             request=req,
             timeout=timeout,
         )
 
-    def decompose(
+    async def decompose(
         self,
         name: str,
         assuming: Optional[str] = None,
@@ -255,13 +232,13 @@ class Client:
         if compute_timeout is not None:
             req.timeout = compute_timeout
 
-        return self._client.decompose(
+        return await self._client.decompose(
             ctx=self.mk_context(),
             request=req,
             timeout=timeout,
         )
 
-    def decompose_full(
+    async def decompose_full(
         self,
         d: decomp.Decomp,
         timeout: Optional[float] = None,
@@ -271,7 +248,7 @@ class Client:
         """
         More expressive variant of `decompose`: `d` describes a tree of
         operations (decompose by name, merge, compound merge, prune, combine,
-        let-bind) built with the helpers in `imandrax_api.client.decomp`.
+        let-bind) built with the helpers in `imandrax_api.v1.decomp`.
 
         Args:
             d: the decomposition to perform
@@ -289,20 +266,20 @@ class Client:
         if compute_timeout is not None:
             req.timeout = compute_timeout
 
-        return self._client.decompose_full(
+        return await self._client.decompose_full(
             ctx=self.mk_context(),
             request=req,
             timeout=timeout,
         )
 
-    def verify_src(
+    async def verify_src(
         self,
         src: str,
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.VerifyRes:
         timeout = timeout or self._timeout
-        return self._client.verify_src(
+        return await self._client.verify_src(
             ctx=self.mk_context(),
             request=simple_api_pb2.VerifySrcReq(
                 src=src, session=self._sesh, hints=hints
@@ -310,14 +287,14 @@ class Client:
             timeout=timeout,
         )
 
-    def verify_name(
+    async def verify_name(
         self,
         name: str,
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.VerifyRes:
         timeout = timeout or self._timeout
-        return self._client.verify_name(
+        return await self._client.verify_name(
             ctx=self.mk_context(),
             request=simple_api_pb2.VerifyNameReq(
                 name=name, session=self._sesh, hints=hints
@@ -325,14 +302,14 @@ class Client:
             timeout=timeout,
         )
 
-    def instance_src(
+    async def instance_src(
         self,
         src: str,
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.InstanceRes:
         timeout = timeout or self._timeout
-        return self._client.instance_src(
+        return await self._client.instance_src(
             ctx=self.mk_context(),
             request=simple_api_pb2.InstanceSrcReq(
                 src=src, session=self._sesh, hints=hints
@@ -340,14 +317,14 @@ class Client:
             timeout=timeout,
         )
 
-    def instance_name(
+    async def instance_name(
         self,
         name: str,
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.InstanceRes:
         timeout = timeout or self._timeout
-        return self._client.instance_name(
+        return await self._client.instance_name(
             ctx=self.mk_context(),
             request=simple_api_pb2.InstanceNameReq(
                 name=name, session=self._sesh, hints=hints
@@ -355,7 +332,7 @@ class Client:
             timeout=timeout,
         )
 
-    def test_src(
+    async def test_src(
         self,
         src: str,
         seed: Optional[int] = None,
@@ -366,21 +343,21 @@ class Client:
             req.seed = seed
 
         timeout = timeout or self._timeout
-        return self._client.test_src(
+        return await self._client.test_src(
             ctx=self.mk_context(),
             request=req,
             timeout=timeout,
         )
 
-    def qcheck_src(
+    async def qcheck_src(
         self,
         src: str,
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.TestRes:
-        return self.test_src(src, seed, timeout)
+        return await self.test_src(src=src, seed=seed, timeout=timeout)
 
-    def test_name(
+    async def test_name(
         self,
         name: str,
         seed: Optional[int] = None,
@@ -391,31 +368,31 @@ class Client:
             req.seed = seed
 
         timeout = timeout or self._timeout
-        return self._client.test_name(
+        return await self._client.test_name(
             ctx=self.mk_context(),
             request=req,
             timeout=timeout,
         )
 
-    def qcheck_name(
+    async def qcheck_name(
         self,
         name: str,
         seed: Optional[int] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.TestRes:
-        return self.test_name(name, seed, timeout)
+        return await self.test_name(name=name, seed=seed, timeout=timeout)
 
-    def typecheck(
+    async def typecheck(
         self, src: str, timeout: Optional[float] = None
     ) -> simple_api_pb2.TypecheckRes:
         timeout = timeout or self._timeout
-        return self._client.typecheck(
+        return await self._client.typecheck(
             ctx=self.mk_context(),
             request=simple_api_pb2.TypecheckReq(src=src, session=self._sesh),
             timeout=timeout,
         )
 
-    def get_decls(
+    async def get_decls(
         self,
         names: list[str],
         timeout: Optional[float] = None,
@@ -427,7 +404,7 @@ class Client:
                 each declaration (`DeclWithName.str`).
         """
         timeout = timeout or self._timeout
-        return self._client.get_decls(
+        return await self._client.get_decls(
             ctx=self.mk_context(),
             request=simple_api_pb2.GetDeclsReq(
                 session=self._sesh, name=names, str=include_str
@@ -435,7 +412,7 @@ class Client:
             timeout=timeout,
         )
 
-    def oneshot(
+    async def oneshot(
         self,
         input: str,
         compute_timeout: Optional[float] = None,
@@ -455,7 +432,7 @@ class Client:
         if compute_timeout is not None:
             req.timeout = compute_timeout
 
-        return self._client.oneshot(
+        return await self._client.oneshot(
             ctx=self.mk_context(),
             request=req,
             timeout=timeout,
@@ -464,7 +441,7 @@ class Client:
     # Service Eval
     # ====================
 
-    def eval_code_snippet(
+    async def eval_code_snippet(
         self,
         code: str,
         task_filter: Optional[list[str]] = None,
@@ -476,7 +453,7 @@ class Client:
                 to be started during evaluation, as in `eval_src`.
         """
         timeout = timeout or self._timeout
-        return self._api_client.eval_code_snippet(
+        return await self._api_client.eval_code_snippet(
             ctx=self.mk_context(),
             request=api_pb2.CodeSnippet(
                 session=self._sesh, code=code, task_filter=task_filter
@@ -484,55 +461,55 @@ class Client:
             timeout=timeout,
         )
 
-    def parse_term(
+    async def parse_term(
         self, code: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactResult:
         """Parse and typecheck a term, returning it as an artifact."""
         timeout = timeout or self._timeout
-        return self._api_client.parse_term(
+        return await self._api_client.parse_term(
             ctx=self.mk_context(),
             request=api_pb2.CodeSnippet(session=self._sesh, code=code),
             timeout=timeout,
         )
 
-    def parse_type(
+    async def parse_type(
         self, code: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactResult:
         """Parse and typecheck a type, returning it as an artifact."""
         timeout = timeout or self._timeout
-        return self._api_client.parse_type(
+        return await self._api_client.parse_type(
             ctx=self.mk_context(),
             request=api_pb2.CodeSnippet(session=self._sesh, code=code),
             timeout=timeout,
         )
 
-    def list_artifacts(
+    async def list_artifacts(
         self, task: task_pb2.Task, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactListResult:
         timeout = timeout or self._timeout
-        return self._api_client.list_artifacts(
+        return await self._api_client.list_artifacts(
             ctx=self.mk_context(),
             request=api_pb2.ArtifactListQuery(task_id=task.id),
             timeout=timeout,
         )
 
-    def get_artifact(
+    async def get_artifact(
         self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactResult:
         """Obtain an artifact from a task."""
         timeout = timeout or self._timeout
-        return self._api_client.get_artifact(
+        return await self._api_client.get_artifact(
             ctx=self.mk_context(),
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
             timeout=timeout,
         )
 
-    def get_artifact_zip(
+    async def get_artifact_zip(
         self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactZipResult:
         """Obtain an artifact from a task as a zip file."""
         timeout = timeout or self._timeout
-        return self._api_client.get_artifact_zip(
+        return await self._api_client.get_artifact_zip(
             ctx=self.mk_context(),
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
             timeout=timeout,
@@ -542,13 +519,13 @@ class Client:
     # ====================
 
     @property
-    def session_id(self) -> str:
-        return self._sesh.id
+    def session_id(self) -> str | None:
+        return self._session_id
 
-    def keep_session_alive(self, timeout: Optional[float] = None) -> None:
+    async def keep_session_alive(self, timeout: Optional[float] = None) -> None:
         """Make sure the session remains active."""
         timeout = timeout or self._timeout
-        self._session_mgr.keep_session_alive(
+        await self._session_mgr.keep_session_alive(
             ctx=self.mk_context(),
             request=self._sesh,
             timeout=timeout,
@@ -557,44 +534,30 @@ class Client:
     # Service System
     # ====================
 
-    def version(self, timeout: Optional[float] = None) -> system_pb2.VersionResponse:
+    async def version(
+        self, timeout: Optional[float] = None
+    ) -> system_pb2.VersionResponse:
         timeout = timeout or self._timeout
-        return self._system_client.version(
+        return await self._system_client.version(
             ctx=self.mk_context(),
             request=utils_pb2.Empty(),
             timeout=timeout,
         )
 
-    def gc_stats(self, timeout: Optional[float] = None) -> system_pb2.Gc_stats:
+    async def gc_stats(self, timeout: Optional[float] = None) -> system_pb2.Gc_stats:
         timeout = timeout or self._timeout
-        return self._system_client.gc_stats(
+        return await self._system_client.gc_stats(
             ctx=self.mk_context(),
             request=utils_pb2.Empty(),
             timeout=timeout,
         )
 
-    def release_memory(self, timeout: Optional[float] = None) -> system_pb2.Gc_stats:
+    async def release_memory(
+        self, timeout: Optional[float] = None
+    ) -> system_pb2.Gc_stats:
         timeout = timeout or self._timeout
-        return self._system_client.release_memory(
+        return await self._system_client.release_memory(
             ctx=self.mk_context(),
             request=utils_pb2.Empty(),
             timeout=timeout,
         )
-
-
-def __getattr__(name: str) -> Any:
-    # Lazily expose ``AsyncClient`` so importing this package does not require
-    # the optional ``aiohttp`` dependency. The import raises ``ImportError``
-    # with a clear message if aiohttp is not installed.
-    #
-    # See PEP 562
-    if name == "AsyncClient":
-        try:
-            from ._async import AsyncClient
-        except ImportError as e:
-            raise ImportError(
-                "AsyncClient requires the optional 'aiohttp' dependency. "
-                "Install it with: pip install aiohttp"
-            ) from e
-        return AsyncClient
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

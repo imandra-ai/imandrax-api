@@ -28,9 +28,9 @@ genproto:
 
 genpython:
 	@make -s	install-go-protobuf-plugin -C src/py
-	#make genpython -C src/py/lib/ --debug
-	@make -s genpython -C src/py/lib/
-	@make -s genpython -C src/py/bindings/
+	#make genpython -C src/py/imandrax_api/lib/ --debug
+	@make -s genpython -C src/py/imandrax_api/lib/
+	@make -s genpython -C src/py/imandrax_api/bindings/
 
 genrust:
 	@make -s genrust -C src/rust/lib
@@ -94,7 +94,7 @@ bump-api-version:
 	echo "bumping version to $$v"; \
 	echo $$v > src/core/API_TYPES_VERSION; \
 	echo "let version = \"v$$v"\" > src/core/version_.ml; \
-    echo "api_types_version = 'v$$v'" > src/py/api_types_version.py; \
+    echo "api_types_version = 'v$$v'" > src/py/imandrax_api/api_types_version.py; \
     sed "s/version = \"0.[0-9.]*\"/version = \"0.$$v\"/" -i src/py/pyproject.toml; \
 	sed "s/(version 0.[0-9.]*/(version 0.$$v/" -i dune-project; \
 	sed "s/version: \"0.[0-9.]*/version: \"0.$$v/" -i *.opam

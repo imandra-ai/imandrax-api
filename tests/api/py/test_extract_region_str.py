@@ -10,7 +10,7 @@ import imandrax_api.lib as xtypes
 
 
 def main():
-    url = imandrax_api.url_dev
+    url = imandrax_api.v1.url_dev
     auth_token = os.environ.get("IMANDRAX_API_KEY")
     if auth_token is None:
         auth_path = os.path.expanduser("~/.config/imandrax/api_key")
@@ -24,7 +24,7 @@ def main():
         print(f"ERROR: API key is not set and could not be from {auth_path}")
         sys.exit(1)
 
-    c = imandrax_api.Client(url, auth_token=auth_token)
+    c = imandrax_api.v1.Client(url, auth_token=auth_token)
 
     status = c.status()
     assert status.msg, "status should return message"

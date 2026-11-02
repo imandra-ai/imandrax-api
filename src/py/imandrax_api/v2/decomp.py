@@ -1,11 +1,11 @@
 # pyright: reportPrivateUsage=false
 """Constructors for the decomposition request of `decompose_full`"""
-# Note: we reuse protobuf constructors in `imandrax_api.client.decomp`
+# Note: we reuse protobuf constructors in `imandrax_api.v1.decomp`
 # but allow `from_artifact` to take `Artifact` and `DecompositionTaskResult`
 
 from imandrax_api.bindings import artmsg_pb2
-from imandrax_api.client import decomp as _decomp
-from imandrax_api.client.decomp import (
+from imandrax_api.v1 import decomp as _decomp
+from imandrax_api.v1.decomp import (
     Decomp,
     by_name,
     combine,

@@ -14,7 +14,7 @@ from typing import cast
 import pytest
 from inline_snapshot import snapshot
 
-from imandrax_api.demo.interface import (
+from imandrax_api.v2.interface import (
     Client,
     DecompositionRequest,
     DecompositionTask,
@@ -29,7 +29,7 @@ from imandrax_api.demo.interface import (
     ProofObligationTaskResult,
     Task,
 )
-from imandrax_api.demo.mir import (
+from imandrax_api.v2.mir import (
     DB,
     Apply,
     Decomposition,

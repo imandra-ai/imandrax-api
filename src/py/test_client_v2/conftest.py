@@ -9,7 +9,7 @@ from collections.abc import Callable, Iterator
 import pytest
 
 import imandrax_api
-from imandrax_api.demo.interface import AsyncClient, Client
+from imandrax_api.v2.interface import AsyncClient, Client
 
 
 @pytest.fixture(scope="session")
@@ -19,12 +19,12 @@ def api_key() -> str | None:
 
 @pytest.fixture(scope="session")
 def mk_client(api_key: str | None) -> Callable[[], Client]:
-    return lambda: Client(url=imandrax_api.url_prod, api_key=api_key)
+    return lambda: Client(url=imandrax_api.v2.url_prod, api_key=api_key)
 
 
 @pytest.fixture(scope="session")
 def mk_async_client(api_key: str | None) -> Callable[[], AsyncClient]:
-    return lambda: AsyncClient(url=imandrax_api.url_prod, api_key=api_key)
+    return lambda: AsyncClient(url=imandrax_api.v2.url_prod, api_key=api_key)
 
 
 @pytest.fixture(scope="module")

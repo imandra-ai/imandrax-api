@@ -30,7 +30,7 @@ from collections.abc import Iterable, Iterator
 import pytest
 
 from imandrax_api import lib
-from imandrax_api.demo.interface import (
+from imandrax_api.v2.interface import (
     Client,
     DecompositionTask,
     DecompositionTaskResult,
@@ -40,7 +40,7 @@ from imandrax_api.demo.interface import (
     Task,
     TypeDeclaration,
 )
-from imandrax_api.demo.mir import (
+from imandrax_api.v2.mir import (
     DB,
     AlgebraicTypeKind,
     AppliedSymbol,
