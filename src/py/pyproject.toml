@@ -37,7 +37,7 @@ ignore = ["imandrax_api/bindings", "imandrax_api/twirp"]
 # name `py.lib.test_twine` and fail to import it.
 # TODO(long-term): move tests under $ROOT/src/py to $ROOT/tests/
 addopts = "--import-mode=importlib"
-testpaths = ["imandrax_api/lib", "test_client_v2", "../../tests/client/py"]
+testpaths = ["imandrax_api/lib", "../../tests/client/py"]
 markers = ["network: talks to an ImandraX server and needs an API key"]
 
 [tool.ruff]

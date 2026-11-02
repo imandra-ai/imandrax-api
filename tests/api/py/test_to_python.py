@@ -2,7 +2,7 @@
 # pyright: basic
 """Test `to_python` on terms, models and region samples from the server, for fixed values.
 
-`src/py/test_client_v2/test_to_python.py` tests `to_python` on random values without a server.
+`tests/client/py/v2/test_to_python.py` tests `to_python` on random values without a server.
 """
 
 import os
