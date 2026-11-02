@@ -55,6 +55,10 @@ exclude = [
 # deprecated client; formatted but not linted
 exclude = ["imandrax_api/v1/**"]
 
+[tool.ruff.lint.isort]
+# also first-party in ../../tests, which ruff can't infer from there
+known-first-party = ["imandrax_api"]
+
 [dependency-groups]
 dev = [
     "aiohttp>=3.13.2",

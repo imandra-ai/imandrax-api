@@ -7,6 +7,7 @@ an "Unclosed client session" warning).
 """
 # ai-disclosure: ai-generated
 # pyright: reportPrivateUsage=false
+# ruff: noqa: BLE001, S110
 
 import asyncio
 from typing import Any

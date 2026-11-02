@@ -17,10 +17,10 @@ typecheck:
 	uv run pyright -p pyproject.toml imandrax_api/
 
 lint:
-	uv run ruff check .
+	uv run ruff check . ../../tests/client/py
 
 format-check:
-	uv run ruff format --check .
+	uv run ruff format --check . ../../tests/client/py
 
 unit-test:
 	uv run pytest -m "not network"

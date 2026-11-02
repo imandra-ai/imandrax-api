@@ -10,8 +10,9 @@ import importlib
 import subprocess
 import sys
 
-import imandrax_api
 import pytest
+
+import imandrax_api
 from imandrax_api import v1
 
 
