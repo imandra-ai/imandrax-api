@@ -1,4 +1,17 @@
 # pyright: reportPrivateUsage=false
+#
+# Note [Result types]
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~
+# There are 3 layers of "result":
+# 1. Responses: what a client method returns, wraps proto reply message
+#   - named as `*Response`
+# 2. Per-item results in `EvalSrcResponse`: one per proof obligation, `eval`, and `[@@decomp top ...]`
+#   - named as `*Result` / `*Output`
+# 3. Task results: a task's result artifact
+#   - named as `*TaskResult`
+#
+# Exception: `DecompositionResult` is used both as `decompose` response in layer 1 and as an item in layer 2
+# It's the only client-method return type not named `*Response`
 import asyncio
 import json
 import re
@@ -453,10 +466,10 @@ class ProofObligationTaskResult:
         return f"proof: {self.proof}\nsubgoals: {self.subgoals}\nmodel: {self.model}"
 
     def __repr__(self) -> str:
-        # Shows `proved` once `result` has been accessed and cached
+        # Shows the kind of `result` once it has been accessed and cached
         if "result" not in self.__dict__:
             return f"ProofObligationTaskResult(from_={self.from_!r})"
-        return f"ProofObligationTaskResult(from_={self.from_!r}, proved={self.proved})"
+        return f"ProofObligationTaskResult(from_={self.from_!r}, result={type(self.result).__name__})"
 
 
 @dataclass(slots=True, frozen=True)
@@ -1260,6 +1273,16 @@ def task_of_raw(t: task_pb2.Task, client: "Client | AsyncClient | None" = None) 
             return Task(t, client)
 
 
+def _task_of_raw_as[T: Task](t: task_pb2.Task, cls: type[T], client: "Client | AsyncClient | None") -> T:
+    """Wrap a task that the response says is of the `Task` subclass `cls`"""
+    task = task_of_raw(t, client)
+    if not isinstance(task, cls):
+        raise UnexpectedResponseError(
+            f"Expected a {cls.__name__}, got a task of kind {task_pb2.TaskKind.Name(t.kind)}"
+        )
+    return task
+
+
 @dataclass(slots=True, frozen=True)
 class Origin:
     """Where a task came from"""
@@ -1321,7 +1344,7 @@ class ProofObligationResult:
     """The outcome of the proof obligation, `None` if the server sent none"""
     errors: tuple[Error, ...]
     """Errors reported while checking the proof obligation"""
-    task: Task
+    task: ProofObligationTask
     """The proof obligation's task"""
     origin: Origin
     """Where the proof obligation came from"""
@@ -1352,7 +1375,7 @@ class ProofObligationResult:
         return cls(
             res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
-            task=task_of_raw(x.task, client),
+            task=_task_of_raw_as(x.task, ProofObligationTask, client),
             origin=Origin.of_raw(x.origin),
             _raw=x,
         )
@@ -1413,8 +1436,8 @@ class DecompositionResult:
 
     artifact: Artifact | None
     """The decomposition artifact, None if decomp has error"""
-    task: Task
-    """The decomposition task"""
+    task: DecompositionTask | None
+    """The decomposition task, `None` if the request failed before one was created"""
     errors: tuple[Error, ...]
     """Errors reported during decomposition"""
     _raw: simple_api_pb2.DecomposeRes = field(repr=False, compare=False)
@@ -1425,7 +1448,7 @@ class DecompositionResult:
     ) -> "DecompositionResult":
         return cls(
             artifact=Artifact.of_raw(x.artifact) if x.WhichOneof("res") == "artifact" else None,
-            task=task_of_raw(x.task, client),
+            task=_task_of_raw_as(x.task, DecompositionTask, client) if x.HasField("task") else None,
             errors=tuple(Error.of_raw(e) for e in x.errors),
             _raw=x,
         )
@@ -1576,8 +1599,8 @@ class VerifyResponse:
     # CR: can `None` ever happens?
     errors: tuple[Error, ...]
     """Errors reported during verification"""
-    task: Task
-    """The verification task"""
+    task: ProofObligationTask | None
+    """The verification task, `None` if the request failed before one was created"""
     _raw: simple_api_pb2.VerifyRes = field(repr=False, compare=False)
 
     @classmethod
@@ -1603,7 +1626,7 @@ class VerifyResponse:
         return cls(
             res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
-            task=task_of_raw(x.task, client),
+            task=_task_of_raw_as(x.task, ProofObligationTask, client) if x.HasField("task") else None,
             _raw=x,
         )
 
@@ -1689,8 +1712,8 @@ class InstanceResponse:
     """The outcome of the instance search, `None` if the server sent none"""
     errors: tuple[Error, ...]
     """Errors reported during the instance search"""
-    task: Task
-    """The instance task"""
+    task: ProofObligationTask | None
+    """The instance task, `None` if the request failed before one was created"""
     _raw: simple_api_pb2.InstanceRes = field(repr=False, compare=False)
 
     @classmethod
@@ -1710,7 +1733,7 @@ class InstanceResponse:
         return cls(
             res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
-            task=task_of_raw(x.task, client),
+            task=_task_of_raw_as(x.task, ProofObligationTask, client) if x.HasField("task") else None,
             _raw=x,
         )
 
@@ -1778,8 +1801,8 @@ class TestResponse:
     """The outcome of testing, `None` if the server sent none"""
     errors: tuple[Error, ...]
     """Errors reported during testing"""
-    task: Task
-    """The test task"""
+    task: ProofObligationTask | None
+    """The test task, `None` if the request failed before one was created"""
     _raw: simple_api_pb2.TestRes = field(repr=False, compare=False)
 
     @classmethod
@@ -1799,7 +1822,7 @@ class TestResponse:
         return cls(
             res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
-            task=task_of_raw(x.task, client),
+            task=_task_of_raw_as(x.task, ProofObligationTask, client) if x.HasField("task") else None,
             _raw=x,
         )
 

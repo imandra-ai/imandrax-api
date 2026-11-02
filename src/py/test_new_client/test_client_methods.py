@@ -167,6 +167,13 @@ def test_test_name_no_counter_example(client: Client):
     assert e.kind == "NoCounterExample"
 
 
+def test_verify_src_type_error_no_task(client: Client):
+    r: VerifyResponse = client.verify_src("fun x -> f x + true")
+    assert r.task is None, "no task is created for ill-typed source"
+    (e,) = r.errors
+    assert e.kind == "TypeErr"
+
+
 # Decomposition
 # =============
 
@@ -174,7 +181,7 @@ def test_test_name_no_counter_example(client: Client):
 def test_decompose(client: Client):
     r: DecompositionResult = client.decompose("f")
     assert r.errors == ()
-    assert isinstance(r.task, DecompositionTask)
+    assert r.task is not None
 
     art = r.artifact
     assert art is not None
@@ -183,6 +190,14 @@ def test_decompose(client: Client):
     d: Decomposition | None = r.decomposition
     assert d is not None
     assert len(d.regions) == 2, "expected: two regions for `if x > 0 then x + 1 else 0`"
+
+
+def test_decompose_unknown_name_no_task(client: Client):
+    r: DecompositionResult = client.decompose("no_such_fn")
+    assert r.task is None, "no task is created for an unknown function"
+    assert r.artifact is None
+    (e,) = r.errors
+    assert e.kind == "DecompError"
 
 
 def test_decompose_full(client: Client):
@@ -284,6 +299,7 @@ def test_parse_term_error_raises(client: Client):
 
 def test_list_and_get_artifacts(client: Client):
     task = client.verify_name("nonneg").task
+    assert task is not None
     kinds: list[str] = client.list_artifacts(task)
     assert set(kinds) == snapshot({"po_res", "po_task", "report", "show"})
 
@@ -346,6 +362,7 @@ def test_async_methods(mk_async_client: Callable[[], AsyncClient]):
 
             v = await c.verify_name("nonneg")
             assert v.proved
+            assert v.task is not None
             assert (await c.verify_src("fun x -> f x > 0")).refuted
             assert (await c.instance_name("nonneg")).found
             assert (await c.instance_src("fun x -> f x = 5")).found
