@@ -277,9 +277,10 @@ def test_region_sample_and_strings(client: Client, tv: tuple[str, str, PyValue])
         assert r.invariant_str in ("0", "1")
         sample = r.sample(db)
         assert sample is not None and sample.keys() == {"x"}
-        assert same(r.sample_output, 1 if same(sample["x"], expected) else 0)
-        assert str(r.sample_output) == r.invariant_str
-    assert any(r.sample_output == 1 for r in d.regions)
+        output = r.sample_output(db)
+        assert same(output, 1 if same(sample["x"], expected) else 0)
+        assert str(output) == r.invariant_str
+    assert any(r.sample_output(db) == 1 for r in d.regions)
 
 
 def test_region_samples_nested_inline_records_with_db(client: Client):
@@ -302,7 +303,7 @@ let {f} (v: var_t option list) (p: var_t * int) (n: nest_t) =
         assert not bad, bad
 
     # The region with output 1 nests inline records in all of these ways
-    (hit,) = [r for r in d.regions if r.sample_output == 1]
+    (hit,) = [r for r in d.regions if r.sample_output(db) == 1]
     match hit.sample(db):
         case {
             "v": [Constructed("Some", (Constructed("A", ({"x": int(x), "y": str()},)),))],
@@ -312,3 +313,44 @@ let {f} (v: var_t option list) (p: var_t * int) (n: nest_t) =
             assert x > 5 and x2 > k
         case other:
             pytest.fail(f"unexpected sample {other}")
+
+
+@slow(20)
+@given(types)
+def test_region_output_of_identity_is_its_sample(client: Client, t: Ty):
+    """`let f x = x` returns its sample: given the DB, both come back the same, labels included"""
+    ty = iml_type(t)
+    f = f"same_{next(_fresh)}"
+    assert client.eval_src(f"let {f} (x: {ty}) = x").success
+    res = client.decompose(f, prune=True)
+    d = res.decomposition
+    assert d is not None, res.errors
+    db = decomposition_db(res)
+
+    for r in d.regions:
+        sample = r.sample(db)
+        assert sample is not None and sample.keys() == {"x"}
+        assert same(r.sample_output(db), sample["x"])
+        assert all(has_labels(c) for c in constructeds(sample["x"]))
+
+
+def test_region_output_passes_inline_records_through(client: Client):
+    """A result that contains part of the sample has the same labels as the sample, given the DB"""
+    f = "pass_through"
+    assert client.eval_src(f"""
+let {f} (v: var_t * nest_t) =
+  match v with
+  | (A {{x; _}}, N {{inner = A _; k}}) -> if x > k then Some v else None
+  | _ -> None""").success
+    res = client.decompose(f, prune=True)
+    d = res.decomposition
+    assert d is not None, res.errors
+    db = decomposition_db(res)
+
+    outputs = [(r.sample(db), r.sample_output(db)) for r in d.regions]
+    passed_through = [(s, o) for s, o in outputs if isinstance(o, Constructed) and o.name == "Some"]
+    assert len(passed_through) == 1
+    ((sample, output),) = passed_through
+    assert sample is not None
+    assert same(output, Constructed("Some", (sample["v"],)))
+    assert all(has_labels(c) for c in constructeds(output))

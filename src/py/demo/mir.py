@@ -2090,11 +2090,11 @@ class Decomposition:
                 _raw=r,
             )
 
-        # @property
         def sample(self, db: DB | None = None) -> dict[str, PyValue] | None:
             """An input in the region as plain Python data, by argument name, if the server sent one
 
-            The server sends one for feasible regions, i.e. when decomposing with `prune=True`.
+            The server sends one for feasible regions, i.e. when decomposing with `prune=True`. It can
+            leave out the labels of inline records; pass the decomposition task's `db` to restore them.
 
             Raises:
                 ValueError: if an argument's value is not a value, see `Term.to_python`
@@ -2108,9 +2108,11 @@ class Decomposition:
                 case m:
                     raise UnexpectedResponseError(f"expected the region's sample as terms, got {m}")
 
-        @property
         def sample_output(self, db: DB | None = None) -> PyValue | None:
             """The function's result on `sample`, as plain Python data, if the server sent one
+
+            Pass the same `db` as to `sample`: a result that contains part of the sample can lack
+            inline-record labels too.
 
             Raises:
                 ValueError: if the result is not a value, see `Term.to_python`
