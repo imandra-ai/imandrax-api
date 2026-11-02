@@ -8,7 +8,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from imandrax_api import lib
-from imandrax_api.demo.mir import DB, Constructed, PyValue, Uid, term_of_lib
+from imandrax_api.v2.mir import DB, Constructed, PyValue, Uid, term_of_lib
 
 
 def same(a: PyValue | None, b: PyValue | None) -> bool:

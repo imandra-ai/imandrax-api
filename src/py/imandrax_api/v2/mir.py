@@ -1125,6 +1125,8 @@ def _to_python(t: Term, db: DB | None = None) -> PyValue:
                                             },
                                         ),
                                     )
+                case _:
+                    pass
             return Constructed(c.id.short_name, tuple(_to_python(a, db) for a in args))
         case Construct(constructor=c, arguments=args, labels=tuple() as labels):
             return Constructed(c.id.short_name, ({l.short_name: _to_python(a, db) for l, a in zip(labels, args, strict=True)},))
