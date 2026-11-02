@@ -23,6 +23,7 @@ test: unit-test
 	uv run ../../tests/api/py/test_cloud_dev.py
 	uv run ../../tests/api/py/test_cloud_dev_async.py
 	uv run ../../tests/api/py/test_extract_region_str.py
+	uv run ../../tests/api/py/test_to_python.py
 
 pre-release-test: build  # Run pre-release tests with built wheel
 	@echo "Running pre-release tests with built wheel..."
