@@ -1066,7 +1066,7 @@ def _to_python(t: Term, db: DB | None = None) -> PyValue:
                         out_type = out_type.codomain
                     if isinstance(out_type, ConstructedType):
                         q = db.find_type(out_type.constructor)
-                        if isinstance(q.kind, AlgebraicTypeKind):
+                        if q is not None and isinstance(q.kind, AlgebraicTypeKind):
                             for cnstr in q.kind.constructors:
                                 if (
                                     cnstr.name == c.id
