@@ -633,7 +633,7 @@ class _Term:
         for t in self:
             f(t)
 
-    def to_python(self, db=None) -> PyValue:
+    def to_python(self, db: DB | None = None) -> PyValue:
         """This term as a plain Python value, e.g. the value of a constant in a model
 
         Integers, booleans and strings map to themselves, reals to `Fraction`, floats to `float`,
@@ -1030,7 +1030,7 @@ type PyValue = (
 """A term's value as plain Python data, see `Term.to_python`"""
 
 
-def _to_python(t: Term, db=None) -> PyValue:
+def _to_python(t: Term, db: DB | None = None) -> PyValue:
     match t:
         case Constant(value=BoolConst(value=b)):
             return b
@@ -1052,7 +1052,7 @@ def _to_python(t: Term, db=None) -> PyValue:
             # A list is a chain of `::` as deep as it is long: walk it in a loop, not a call per element
             xs: list[PyValue] = []
             while isinstance(t, Construct) and t.constructor.id.short_name == "::":
-                xs.append(_to_python(t.arguments[0]))
+                xs.append(_to_python(t.arguments[0], db))
                 t = t.arguments[1]
             if not (isinstance(t, Construct) and t.constructor.id.short_name == "[]"):
                 raise ValueError(f"Not a value: the list ends with {t}")
@@ -1077,18 +1077,18 @@ def _to_python(t: Term, db=None) -> PyValue:
                                         cnstr.name.short_name,
                                         (
                                             {
-                                                l.short_name: _to_python(v)
+                                                l.short_name: _to_python(v, db)
                                                 for l, v in zip(cnstr.labels, args)
                                             },
                                         ),
                                     )
-            return Constructed(c.id.short_name, tuple(_to_python(a) for a in args))
+            return Constructed(c.id.short_name, tuple(_to_python(a, db) for a in args))
         case Construct(constructor=c, arguments=args, labels=tuple() as labels):
-            return Constructed(c.id.short_name, ({l.short_name: _to_python(a) for l, a in zip(labels, args, strict=True)},))
+            return Constructed(c.id.short_name, ({l.short_name: _to_python(a, db) for l, a in zip(labels, args, strict=True)},))
         case Tuple(elements=es):
-            return tuple(_to_python(e) for e in es)
+            return tuple(_to_python(e, db) for e in es)
         case Record(rows=rows, rest=None):
-            return {f.id.short_name: _to_python(v) for f, v in rows}
+            return {f.id.short_name: _to_python(v, db) for f, v in rows}
         case _:
             raise ValueError(f"Not a value: {t}")
 
@@ -2091,7 +2091,7 @@ class Decomposition:
             )
 
         # @property
-        def sample(self, db=None) -> dict[str, PyValue] | None:
+        def sample(self, db: DB | None = None) -> dict[str, PyValue] | None:
             """An input in the region as plain Python data, by argument name, if the server sent one
 
             The server sends one for feasible regions, i.e. when decomposing with `prune=True`.
@@ -2109,7 +2109,7 @@ class Decomposition:
                     raise UnexpectedResponseError(f"expected the region's sample as terms, got {m}")
 
         @property
-        def sample_output(self, db=None) -> PyValue | None:
+        def sample_output(self, db: DB | None = None) -> PyValue | None:
             """The function's result on `sample`, as plain Python data, if the server sent one
 
             Raises:
