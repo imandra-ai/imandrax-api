@@ -20,6 +20,7 @@ from __future__ import annotations
 import base64
 import re
 
+from collections import Counter
 from collections.abc import Callable, Iterable, Iterator, Sized
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -670,6 +671,20 @@ class _Term:
         for t in self:
             f(t)
 
+    def to_python(self, db: DB | None = None) -> PyValue:
+        """This term as a plain Python value, e.g. the value of a constant in a model
+
+        Integers, booleans and strings map to themselves, reals to `Fraction`, floats to `float`,
+        lists to `list`, tuples to `tuple` (unit to `()`), records to `dict` by field name, uid
+        constants to their `Uid`, and other constructors to `Constructed`, including the elements
+        a model makes up for abstract types.
+
+        Raises:
+            ValueError: if the term is not a value, e.g. a variable, a function application
+                (which is how `Map.t` and `Set.t` values look), or an irrational real
+        """
+        return _to_python(cast(Term, self), db)
+
     def __str__(self) -> str:
         return "<term>"
 
@@ -1037,6 +1052,88 @@ Term = (
     Constant | If | Apply | Var | Symbol | Construct | Destruct | IsA | Tuple | Field | TupleField | Record | Case | Sequence
 )
 """A term"""
+
+
+@dataclass(slots=True, frozen=True)
+class Constructed:
+    """A constructor applied to arguments, as a Python value: `Some 3` is `Constructed("Some", (3,))`
+
+    The arguments of a constructor with an inline record, as in `A { x: int }` may be turned into a
+    single (one-tuple) argument containing a `dict` by providing the optional `db` argument to `Term._to_python`."""
+
+    name: str
+    """The constructor's name"""
+    args: tuple[PyValue, ...] = ()
+    """The constructor's arguments"""
+
+
+type PyValue = (
+    bool | int | Fraction | float | str | Uid | Constructed | list[PyValue] | tuple[PyValue, ...] | dict[str, PyValue]
+)
+"""A term's value as plain Python data, see `Term.to_python`"""
+
+
+def _to_python(t: Term, db: DB | None = None) -> PyValue:
+    match t:
+        case Constant(value=BoolConst(value=b)):
+            return b
+        case Constant(value=IntConst(value=n)):
+            return n
+        case Constant(value=RationalConst(value=q)):
+            return q
+        case Constant(value=FloatConst(value=f)):
+            return f
+        case Constant(value=StringConst(value=s)):
+            return s
+        case Constant(value=UidConst(uid=u)):
+            return u
+        case Constant(value=RealApproxConst(value=s)):
+            raise ValueError(f"The irrational real {s} has no exact Python value")
+        case Construct(constructor=c, arguments=()) if c.id.short_name == "()":
+            return ()
+        case Construct(constructor=c) if c.id.short_name in ("::", "[]"):
+            # A list is a chain of `::` as deep as it is long: walk it in a loop, not a call per element
+            xs: list[PyValue] = []
+            while isinstance(t, Construct) and t.constructor.id.short_name == "::":
+                xs.append(_to_python(t.arguments[0], db))
+                t = t.arguments[1]
+            if not (isinstance(t, Construct) and t.constructor.id.short_name == "[]"):
+                raise ValueError(f"Not a value: the list ends with {t}")
+            return xs
+        case Construct(constructor=c, arguments=args, labels=None):
+            match c.type:
+                case ArrowType() if db is not None:
+                    # Attempt to expand inline records if we have a DB.
+                    out_type = c.type
+                    while isinstance(out_type, ArrowType):
+                        out_type = out_type.codomain
+                    if isinstance(out_type, ConstructedType):
+                        q = db.find_type(out_type.constructor)
+                        if q is not None and isinstance(q.kind, AlgebraicTypeKind):
+                            for cnstr in q.kind.constructors:
+                                if (
+                                    cnstr.name == c.id
+                                    and cnstr.labels is not None
+                                    and len(cnstr.labels) == len(args)
+                                ):
+                                    return Constructed(
+                                        cnstr.name.short_name,
+                                        (
+                                            {
+                                                l.short_name: _to_python(v, db)
+                                                for l, v in zip(cnstr.labels, args)
+                                            },
+                                        ),
+                                    )
+            return Constructed(c.id.short_name, tuple(_to_python(a, db) for a in args))
+        case Construct(constructor=c, arguments=args, labels=tuple() as labels):
+            return Constructed(c.id.short_name, ({l.short_name: _to_python(a, db) for l, a in zip(labels, args, strict=True)},))
+        case Tuple(elements=es):
+            return tuple(_to_python(e, db) for e in es)
+        case Record(rows=rows, rest=None):
+            return {f.id.short_name: _to_python(v, db) for f, v in rows}
+        case _:
+            raise ValueError(f"Not a value: {t}")
 
 
 def _binder_of_lib(x: tuple[list[lib.Mir_Var], lib.Mir_Term]) -> tuple[tuple[Variable, ...], Term]:
@@ -2013,6 +2110,20 @@ class Model:
             _raw=x,
         )
 
+    def to_python(self) -> dict[str, PyValue]:
+        """The constants' values as plain Python data, by short name, e.g. `{"x": 3, "ys": []}`
+
+        Constants whose short names clash are keyed by full name instead.
+
+        Raises:
+            ValueError: if a constant's value is not a value, see `Term.to_python`
+        """
+        counts = Counter(s.id.short_name for s in self.constants)
+        return {
+            s.id.short_name if counts[s.id.short_name] == 1 else s.id.full_name: t.to_python()
+            for s, t in self.constants.items()
+        }
+
     def __str__(self) -> str:
         return f"types: {self.types} constants: {self.constants} functions: {self.functions}"
 
@@ -2071,6 +2182,13 @@ def _meta_of_lib(m: lib.Common_Region_meta[lib.Mir_Term]) -> "Decomposition.Regi
             return tuple(_meta_of_lib(x) for x in xs)
 
 
+def _meta_term(m: "Decomposition.Region.Meta") -> Term:
+    """`m`, which the server sends as a term"""
+    if not isinstance(m, _Term):
+        raise UnexpectedResponseError(f"expected a term in region metadata, got {m}")
+    return m
+
+
 @dataclass(slots=True, frozen=True)
 class Decomposition:
     """A region decomposition of a function"""
@@ -2110,6 +2228,67 @@ class Decomposition:
                 status=region_status_of_lib(r.status),
                 _raw=r,
             )
+
+        def sample(self, db: DB | None = None) -> dict[str, PyValue] | None:
+            """An input in the region as plain Python data, by argument name, if the server sent one
+
+            The server sends one for feasible regions, i.e. when decomposing with `prune=True`. It can
+            leave out the labels of inline records; pass the decomposition task's `db` to restore them.
+
+            Raises:
+                ValueError: if an argument's value is not a value, see `Term.to_python`
+                UnexpectedResponseError: if the server sent something other than terms
+            """
+            match self.meta.get("model"):
+                case None:
+                    return None
+                case FrozenMap() as m:
+                    return {k: _meta_term(v).to_python(db) for k, v in m.items()}
+                case m:
+                    raise UnexpectedResponseError(f"expected the region's sample as terms, got {m}")
+
+        def sample_output(self, db: DB | None = None) -> PyValue | None:
+            """The function's result on `sample`, as plain Python data, if the server sent one
+
+            Pass the same `db` as to `sample`: a result that contains part of the sample can lack
+            inline-record labels too.
+
+            Raises:
+                ValueError: if the result is not a value, see `Term.to_python`
+                UnexpectedResponseError: if the server sent something other than a term
+            """
+            match self.meta.get("model_eval"):
+                case None:
+                    return None
+                case m:
+                    return _meta_term(m).to_python(db)
+
+        @property
+        def constraints_str(self) -> tuple[str, ...] | None:
+            """The constraints in IML syntax, if requested with `string_results=True`"""
+            match self._str_meta("constraints"):
+                case None:
+                    return None
+                case tuple() as cs if all(isinstance(c, str) for c in cs):
+                    return cast(tuple[str, ...], cs)
+                case cs:
+                    raise UnexpectedResponseError(f"expected the region's constraints as strings, got {cs}")
+
+        @property
+        def invariant_str(self) -> str | None:
+            """The invariant in IML syntax, if requested with `string_results=True`"""
+            match self._str_meta("invariant"):
+                case None | str() as s:
+                    return s
+                case s:
+                    raise UnexpectedResponseError(f"expected the region's invariant as a string, got {s}")
+
+        def _str_meta(self, key: str) -> Decomposition.Region.Meta:
+            match self.meta.get("str"):
+                case FrozenMap() as m:
+                    return m.get(key)
+                case _:
+                    return None
 
         def __str__(self) -> str:
             constraints = "; ".join(str(c) for c in self.constraints)
