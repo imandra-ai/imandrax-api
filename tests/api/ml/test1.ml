@@ -15,21 +15,23 @@ let arts = C.list_artifacts c ~task:(Option.get task2.id) ()
 let () =
   Fmt.printf "artifacts for task2: %a@." C.API.pp_artifact_list_result arts
 
-let art_show = C.get_artifact_zip c ~task:(Option.get task2.id) ~kind:"show" ()
+let get_artifact_zip ~kind : C.API.artifact_zip =
+  match C.get_artifact_zip c ~task:(Option.get task2.id) ~kind () with
+  | C.API.Ok art -> art
+  | C.API.Error err ->
+    Fmt.printf "get_artifact_zip %S failed: %a@." kind C.API.pp_error err;
+    exit 1
+
+let art_show = get_artifact_zip ~kind:"show"
 let () = Fmt.printf "art show size=%d@." (Bytes.length art_show.art_zip)
-
-let art_po_task =
-  C.get_artifact_zip c ~task:(Option.get task2.id) ~kind:"po_task" ()
-
+let art_po_task = get_artifact_zip ~kind:"po_task"
 let () = Fmt.printf "art po_task size=%d@." (Bytes.length art_po_task.art_zip)
 
 let () =
   CCIO.File.write_exn "art.po_task.zip"
     (Bytes.unsafe_to_string art_po_task.art_zip)
 
-let art_po_res =
-  C.get_artifact_zip c ~task:(Option.get task2.id) ~kind:"po_res" ()
-
+let art_po_res = get_artifact_zip ~kind:"po_res"
 let () = Fmt.printf "art po_res size=%d@." (Bytes.length art_po_res.art_zip)
 
 let () =

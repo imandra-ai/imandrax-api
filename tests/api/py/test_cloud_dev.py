@@ -152,7 +152,7 @@ def main():
         raise AssertionError("po_res artifact never became available")
 
     art = c.get_artifact(async_task, kind="po_res")
-    print(art)
+    assert art.WhichOneof("result") == "ok", f"get_artifact failed: {art.error}"
     assert art.ok.kind == "po_res", f"unexpected kind {art.ok.kind}"
     assert len(art.ok.data) > 0, "po_res artifact is empty"
     async_res = xtypes.read_artifact_data(data=art.ok.data, kind="po_res")
@@ -186,10 +186,12 @@ def main():
     assert list(snip.errors) == [], f"snippet eval failed: {snip.errors}"
 
     term = c.parse_term(code="1 + 1")
+    assert term.WhichOneof("result") == "ok", f"parse_term failed: {term.error}"
     assert term.ok.kind == "term", f"unexpected kind {term.ok.kind}"
     assert len(term.ok.data) > 0, "term artifact is empty"
 
     ty = c.parse_type(code="int list")
+    assert ty.WhichOneof("result") == "ok", f"parse_type failed: {ty.error}"
     assert ty.ok.kind == "ty", f"unexpected kind {ty.ok.kind}"
     assert len(ty.ok.data) > 0, "type artifact is empty"
 

@@ -22,7 +22,7 @@ from ..twirp.context import Context
 from ..twirp.errors import Errors
 from ..twirp.exceptions import TwirpServerException
 from . import decomp
-from ._common import is_session_not_found, mk_context, url_prod
+from ._common import ClientClosedError, is_session_not_found, mk_context, url_prod
 
 
 class AsyncClient:
@@ -38,6 +38,13 @@ class AsyncClient:
     @staticmethod
     def mk_context() -> Context:
         return mk_context()
+
+    def _ctx(self) -> Context:
+        if self._closed:
+            raise ClientClosedError(
+                "the client is closed; use it inside its `async with` block"
+            )
+        return self.mk_context()
 
     def __init__(
         self,
@@ -92,7 +99,7 @@ class AsyncClient:
             if self._session_id is None:
                 try:
                     session = await self._client.create_session(
-                        ctx=self.mk_context(),
+                        ctx=self._ctx(),
                         request=simple_api_pb2.SessionCreateReq(
                             api_version=api_types_version.api_types_version
                         ),
@@ -110,7 +117,7 @@ class AsyncClient:
                 self._sesh = session_pb2.Session(id=self._session_id)
                 try:
                     await self._session_mgr.open_session(
-                        ctx=self.mk_context(),
+                        ctx=self._ctx(),
                         request=session_pb2.SessionOpen(
                             id=self._sesh,
                             api_version=api_types_version.api_types_version,
@@ -119,7 +126,7 @@ class AsyncClient:
                 except TwirpServerException as ex:
                     if is_session_not_found(ex) and self._create_if_not_found:
                         self._sesh = await self._client.create_session(
-                            ctx=self.mk_context(),
+                            ctx=self._ctx(),
                             request=simple_api_pb2.SessionCreateReq(
                                 api_version=api_types_version.api_types_version
                             ),
@@ -141,7 +148,7 @@ class AsyncClient:
             if hasattr(self, "_sesh"):
                 try:
                     await self._client.end_session(
-                        ctx=self.mk_context(), request=self._sesh, timeout=None
+                        ctx=self._ctx(), request=self._sesh, timeout=None
                     )
                 except TwirpServerException as e:
                     raise Exception("Error while ending session") from e
@@ -154,7 +161,7 @@ class AsyncClient:
 
     async def status(self) -> utils_pb2.StringMsg:
         return await self._client.status(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=utils_pb2.Empty(),
         )
 
@@ -187,7 +194,7 @@ class AsyncClient:
             req.async_only = async_only
 
         return await self._client.eval_src(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=req,
             timeout=timeout,
         )
@@ -233,7 +240,7 @@ class AsyncClient:
             req.timeout = compute_timeout
 
         return await self._client.decompose(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=req,
             timeout=timeout,
         )
@@ -267,7 +274,7 @@ class AsyncClient:
             req.timeout = compute_timeout
 
         return await self._client.decompose_full(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=req,
             timeout=timeout,
         )
@@ -280,7 +287,7 @@ class AsyncClient:
     ) -> simple_api_pb2.VerifyRes:
         timeout = timeout or self._timeout
         return await self._client.verify_src(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=simple_api_pb2.VerifySrcReq(
                 src=src, session=self._sesh, hints=hints
             ),
@@ -295,7 +302,7 @@ class AsyncClient:
     ) -> simple_api_pb2.VerifyRes:
         timeout = timeout or self._timeout
         return await self._client.verify_name(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=simple_api_pb2.VerifyNameReq(
                 name=name, session=self._sesh, hints=hints
             ),
@@ -310,7 +317,7 @@ class AsyncClient:
     ) -> simple_api_pb2.InstanceRes:
         timeout = timeout or self._timeout
         return await self._client.instance_src(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=simple_api_pb2.InstanceSrcReq(
                 src=src, session=self._sesh, hints=hints
             ),
@@ -325,7 +332,7 @@ class AsyncClient:
     ) -> simple_api_pb2.InstanceRes:
         timeout = timeout or self._timeout
         return await self._client.instance_name(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=simple_api_pb2.InstanceNameReq(
                 name=name, session=self._sesh, hints=hints
             ),
@@ -344,7 +351,7 @@ class AsyncClient:
 
         timeout = timeout or self._timeout
         return await self._client.test_src(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=req,
             timeout=timeout,
         )
@@ -369,7 +376,7 @@ class AsyncClient:
 
         timeout = timeout or self._timeout
         return await self._client.test_name(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=req,
             timeout=timeout,
         )
@@ -387,7 +394,7 @@ class AsyncClient:
     ) -> simple_api_pb2.TypecheckRes:
         timeout = timeout or self._timeout
         return await self._client.typecheck(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=simple_api_pb2.TypecheckReq(src=src, session=self._sesh),
             timeout=timeout,
         )
@@ -405,7 +412,7 @@ class AsyncClient:
         """
         timeout = timeout or self._timeout
         return await self._client.get_decls(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=simple_api_pb2.GetDeclsReq(
                 session=self._sesh, name=names, str=include_str
             ),
@@ -433,7 +440,7 @@ class AsyncClient:
             req.timeout = compute_timeout
 
         return await self._client.oneshot(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=req,
             timeout=timeout,
         )
@@ -454,7 +461,7 @@ class AsyncClient:
         """
         timeout = timeout or self._timeout
         return await self._api_client.eval_code_snippet(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=api_pb2.CodeSnippet(
                 session=self._sesh, code=code, task_filter=task_filter
             ),
@@ -467,7 +474,7 @@ class AsyncClient:
         """Parse and typecheck a term, returning it as an artifact."""
         timeout = timeout or self._timeout
         return await self._api_client.parse_term(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=api_pb2.CodeSnippet(session=self._sesh, code=code),
             timeout=timeout,
         )
@@ -478,7 +485,7 @@ class AsyncClient:
         """Parse and typecheck a type, returning it as an artifact."""
         timeout = timeout or self._timeout
         return await self._api_client.parse_type(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=api_pb2.CodeSnippet(session=self._sesh, code=code),
             timeout=timeout,
         )
@@ -488,7 +495,7 @@ class AsyncClient:
     ) -> api_pb2.ArtifactListResult:
         timeout = timeout or self._timeout
         return await self._api_client.list_artifacts(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=api_pb2.ArtifactListQuery(task_id=task.id),
             timeout=timeout,
         )
@@ -499,7 +506,7 @@ class AsyncClient:
         """Obtain an artifact from a task."""
         timeout = timeout or self._timeout
         return await self._api_client.get_artifact(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
             timeout=timeout,
         )
@@ -510,7 +517,7 @@ class AsyncClient:
         """Obtain an artifact from a task as a zip file."""
         timeout = timeout or self._timeout
         return await self._api_client.get_artifact_zip(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
             timeout=timeout,
         )
@@ -526,7 +533,7 @@ class AsyncClient:
         """Make sure the session remains active."""
         timeout = timeout or self._timeout
         await self._session_mgr.keep_session_alive(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=self._sesh,
             timeout=timeout,
         )
@@ -539,7 +546,7 @@ class AsyncClient:
     ) -> system_pb2.VersionResponse:
         timeout = timeout or self._timeout
         return await self._system_client.version(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=utils_pb2.Empty(),
             timeout=timeout,
         )
@@ -547,7 +554,7 @@ class AsyncClient:
     async def gc_stats(self, timeout: Optional[float] = None) -> system_pb2.Gc_stats:
         timeout = timeout or self._timeout
         return await self._system_client.gc_stats(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=utils_pb2.Empty(),
             timeout=timeout,
         )
@@ -557,7 +564,7 @@ class AsyncClient:
     ) -> system_pb2.Gc_stats:
         timeout = timeout or self._timeout
         return await self._system_client.release_memory(
-            ctx=self.mk_context(),
+            ctx=self._ctx(),
             request=utils_pb2.Empty(),
             timeout=timeout,
         )
