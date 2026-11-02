@@ -633,7 +633,7 @@ class _Term:
         for t in self:
             f(t)
 
-    def to_python(self) -> PyValue:
+    def to_python(self, db: DB | None = None) -> PyValue:
         """This term as a plain Python value, e.g. the value of a constant in a model
 
         Integers, booleans and strings map to themselves, reals to `Fraction`, floats to `float`,
@@ -645,7 +645,7 @@ class _Term:
             ValueError: if the term is not a value, e.g. a variable, a function application
                 (which is how `Map.t` and `Set.t` values look), or an irrational real
         """
-        return _to_python(cast(Term, self))
+        return _to_python(cast(Term, self), db)
 
     def __str__(self) -> str:
         return "<term>"
@@ -1015,8 +1015,8 @@ Term = (
 class Constructed:
     """A constructor applied to arguments, as a Python value: `Some 3` is `Constructed("Some", (3,))`
 
-    The arguments of a constructor with an inline record, as in `A {x = 1}`, are that one record,
-    as a `dict`, if the server sent the record's labels. (Region samples can lack them.)"""
+    The arguments of a constructor with an inline record, as in `A { x: int }` may be turned into a
+    single (one-tuple) argument containing a `dict` by providing the optional `db` argument to `Term._to_python`."""
 
     name: str
     """The constructor's name"""
@@ -1030,7 +1030,7 @@ type PyValue = (
 """A term's value as plain Python data, see `Term.to_python`"""
 
 
-def _to_python(t: Term) -> PyValue:
+def _to_python(t: Term, db: DB | None = None) -> PyValue:
     match t:
         case Constant(value=BoolConst(value=b)):
             return b
@@ -1052,19 +1052,43 @@ def _to_python(t: Term) -> PyValue:
             # A list is a chain of `::` as deep as it is long: walk it in a loop, not a call per element
             xs: list[PyValue] = []
             while isinstance(t, Construct) and t.constructor.id.short_name == "::":
-                xs.append(_to_python(t.arguments[0]))
+                xs.append(_to_python(t.arguments[0], db))
                 t = t.arguments[1]
             if not (isinstance(t, Construct) and t.constructor.id.short_name == "[]"):
                 raise ValueError(f"Not a value: the list ends with {t}")
             return xs
         case Construct(constructor=c, arguments=args, labels=None):
-            return Constructed(c.id.short_name, tuple(_to_python(a) for a in args))
+            match c.type:
+                case ArrowType() if db is not None:
+                    # Attempt to expand inline records if we have a DB.
+                    out_type = c.type
+                    while isinstance(out_type, ArrowType):
+                        out_type = out_type.codomain
+                    if isinstance(out_type, ConstructedType):
+                        q = db.find_type(out_type.constructor)
+                        if isinstance(q.kind, AlgebraicTypeKind):
+                            for cnstr in q.kind.constructors:
+                                if (
+                                    cnstr.name == c.id
+                                    and cnstr.labels is not None
+                                    and len(cnstr.labels) == len(args)
+                                ):
+                                    return Constructed(
+                                        cnstr.name.short_name,
+                                        (
+                                            {
+                                                l.short_name: _to_python(v, db)
+                                                for l, v in zip(cnstr.labels, args)
+                                            },
+                                        ),
+                                    )
+            return Constructed(c.id.short_name, tuple(_to_python(a, db) for a in args))
         case Construct(constructor=c, arguments=args, labels=tuple() as labels):
-            return Constructed(c.id.short_name, ({l.short_name: _to_python(a) for l, a in zip(labels, args, strict=True)},))
+            return Constructed(c.id.short_name, ({l.short_name: _to_python(a, db) for l, a in zip(labels, args, strict=True)},))
         case Tuple(elements=es):
-            return tuple(_to_python(e) for e in es)
+            return tuple(_to_python(e, db) for e in es)
         case Record(rows=rows, rest=None):
-            return {f.id.short_name: _to_python(v) for f, v in rows}
+            return {f.id.short_name: _to_python(v, db) for f, v in rows}
         case _:
             raise ValueError(f"Not a value: {t}")
 
@@ -2066,11 +2090,11 @@ class Decomposition:
                 _raw=r,
             )
 
-        @property
-        def sample(self) -> dict[str, PyValue] | None:
+        def sample(self, db: DB | None = None) -> dict[str, PyValue] | None:
             """An input in the region as plain Python data, by argument name, if the server sent one
 
-            The server sends one for feasible regions, i.e. when decomposing with `prune=True`.
+            The server sends one for feasible regions, i.e. when decomposing with `prune=True`. It can
+            leave out the labels of inline records; pass the decomposition task's `db` to restore them.
 
             Raises:
                 ValueError: if an argument's value is not a value, see `Term.to_python`
@@ -2080,13 +2104,15 @@ class Decomposition:
                 case None:
                     return None
                 case FrozenMap() as m:
-                    return {k: _meta_term(v).to_python() for k, v in m.items()}
+                    return {k: _meta_term(v).to_python(db) for k, v in m.items()}
                 case m:
                     raise UnexpectedResponseError(f"expected the region's sample as terms, got {m}")
 
-        @property
-        def sample_output(self) -> PyValue | None:
+        def sample_output(self, db: DB | None = None) -> PyValue | None:
             """The function's result on `sample`, as plain Python data, if the server sent one
+
+            Pass the same `db` as to `sample`: a result that contains part of the sample can lack
+            inline-record labels too.
 
             Raises:
                 ValueError: if the result is not a value, see `Term.to_python`
@@ -2096,7 +2122,7 @@ class Decomposition:
                 case None:
                     return None
                 case m:
-                    return _meta_term(m).to_python()
+                    return _meta_term(m).to_python(db)
 
         @property
         def constraints_str(self) -> tuple[str, ...] | None:

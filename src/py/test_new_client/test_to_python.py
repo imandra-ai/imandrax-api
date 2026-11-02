@@ -5,7 +5,7 @@ value `to_python` should give, and checks ImandraX's answers against it:
 - `parse_term` of the source converts to the value
 - the instance of `fun x -> x = <value>` has the model `{"x": <value>}`
 - each region of `let f x = if x = <value> then 1 else 0` has a sample with output 1 exactly when it
-  is the value
+  is the value, and given the decomposition's DB, the sample has its inline records' labels
 """
 
 import itertools
@@ -18,19 +18,23 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 import imandrax_api
-from imandrax_api.demo.interface import Client, InstanceResponse
-from imandrax_api.demo.mir import Constructed, PyValue
+from imandrax_api.demo.interface import Client, DecompositionResult, DecompositionTask, InstanceResponse
+from imandrax_api.demo.mir import DB, Constructed, PyValue
 
 TYPES = """
 type rec_t = { a: int; b: bool list }
 type var_t = A of { x: int; y: string } | B of int * string | C
+type nest_t = N of { inner: var_t; k: int } | M
 """
+
+# The labels of the inline records in `TYPES`, by constructor
+INLINE_RECORDS = {"A": {"x", "y"}, "N": {"inner", "k"}}
 
 # An IML type: a name, or ("list" | "option" | "tuple", argument types)
 type Ty = str | tuple[str, tuple[Ty, ...]]
 
 types: st.SearchStrategy[Ty] = st.recursive(
-    st.sampled_from(["int", "bool", "string", "real", "unit", "rec_t", "var_t"]),
+    st.sampled_from(["int", "bool", "string", "real", "unit", "rec_t", "var_t", "nest_t"]),
     lambda inner: st.one_of(
         st.tuples(st.sampled_from(["list", "option"]), st.tuples(inner)),
         st.tuples(st.just("tuple"), st.lists(inner, min_size=2, max_size=3).map(tuple)),
@@ -107,6 +111,18 @@ def values(t: Ty, via_model: bool) -> st.SearchStrategy[tuple[str, PyValue]]:
                 ),
                 st.just(("C", Constructed("C"))),
             )
+        case "nest_t":
+            return st.one_of(
+                st.tuples(values("var_t", via_model), values("int", via_model), st.booleans()).map(
+                    lambda p: (
+                        f"(N {{ inner = {p[0][0]}; k = {p[1][0]} }})"
+                        if p[2]
+                        else f"(N {{ k = {p[1][0]}; inner = {p[0][0]} }})",
+                        Constructed("N", ({"inner": p[0][1], "k": p[1][1]},)),
+                    )
+                ),
+                st.just(("M", Constructed("M"))),
+            )
         case ("list", (u,)):
             return st.lists(values(u, via_model), max_size=4).map(
                 lambda xs: ("[" + "; ".join(s for s, _ in xs) + "]", [v for _, v in xs])
@@ -144,22 +160,37 @@ def same(a: PyValue | None, b: PyValue | None) -> bool:
             return a == b
 
 
-def drop_labels(v: PyValue) -> PyValue:
-    """`v` with the inline record of `A` as plain arguments, as region samples can drop its labels,
-    see `test_region_sample_inline_record_labels`"""
+def constructeds(v: PyValue) -> Iterator[Constructed]:
+    """Every `Constructed` in `v`, at any depth"""
     match v:
-        case Constructed("A", (dict() as r,)):
-            return Constructed("A", tuple(drop_labels(x) for x in r.values()))
-        case Constructed(name, args):
-            return Constructed(name, tuple(drop_labels(a) for a in args))
-        case list():
-            return [drop_labels(x) for x in v]
-        case tuple():
-            return tuple(drop_labels(x) for x in v)
+        case Constructed(args=args):
+            yield v
+            for a in args:
+                yield from constructeds(a)
+        case list() | tuple():
+            for x in v:
+                yield from constructeds(x)
         case dict():
-            return {k: drop_labels(x) for k, x in v.items()}
+            for x in v.values():
+                yield from constructeds(x)
         case _:
-            return v
+            pass
+
+
+def has_labels(c: Constructed) -> bool:
+    """`c`, if it has an inline record, has it as one `dict` with its labels"""
+    match c.args:
+        case _ if c.name not in INLINE_RECORDS:
+            return True
+        case (dict() as r,):
+            return r.keys() == INLINE_RECORDS[c.name]
+        case _:
+            return False
+
+
+def decomposition_db(res: DecompositionResult) -> DB:
+    assert isinstance(res.task, DecompositionTask)
+    return res.task.db
 
 
 def api_key() -> str | None:
@@ -239,24 +270,87 @@ def test_region_sample_and_strings(client: Client, tv: tuple[str, str, PyValue])
     res = client.decompose(f, prune=True, string_results=True)
     d = res.decomposition
     assert d is not None, res.errors
+    db = decomposition_db(res)
 
     for r in d.regions:
         assert r.constraints_str is not None and len(r.constraints_str) == len(r.constraints)
         assert r.invariant_str in ("0", "1")
-        sample = r.sample
+        sample = r.sample(db)
         assert sample is not None and sample.keys() == {"x"}
-        is_it = same(drop_labels(sample["x"]), drop_labels(expected))
-        assert same(r.sample_output, 1 if is_it else 0)
-        assert str(r.sample_output) == r.invariant_str
-    assert any(r.sample_output == 1 for r in d.regions)
+        output = r.sample_output(db)
+        assert same(output, 1 if same(sample["x"], expected) else 0)
+        assert str(output) == r.invariant_str
+    assert any(r.sample_output(db) == 1 for r in d.regions)
 
 
-@pytest.mark.xfail(strict=True, reason='region samples can drop inline-record labels: A {x = 6; y = ""} comes back as A (6, "")')
-def test_region_sample_inline_record_labels(client: Client):
-    assert client.eval_src("let a_x (v: var_t) = match v with A {x; _} -> if x > 5 then 1 else 0 | _ -> 2").success
-    d = client.decompose("a_x", prune=True).decomposition
-    assert d is not None
-    samples = [r.sample["v"] for r in d.regions if r.sample is not None]
-    as_ = [s for s in samples if isinstance(s, Constructed) and s.name == "A"]
-    assert len(as_) == 2
-    assert all(len(a.args) == 1 and isinstance(a.args[0], dict) for a in as_)
+def test_region_samples_nested_inline_records_with_db(client: Client):
+    """Inline records keep their labels in a list, an option, a tuple, and in another inline record"""
+    f = "nested_inline"
+    assert client.eval_src(f"""
+let {f} (v: var_t option list) (p: var_t * int) (n: nest_t) =
+  match v, p, n with
+  | [Some (A {{x; _}})], (A _, _), N {{inner = A {{x = x2; _}}; k}} -> if x > 5 && x2 > k then 1 else 0
+  | _ -> 2""").success
+    res = client.decompose(f, prune=True)
+    d = res.decomposition
+    assert d is not None, res.errors
+    db = decomposition_db(res)
+
+    samples = [s for r in d.regions if (s := r.sample(db)) is not None]
+    assert len(samples) == len(d.regions)
+    for s in samples:
+        bad = [c for c in constructeds(s) if not has_labels(c)]
+        assert not bad, bad
+
+    # The region with output 1 nests inline records in all of these ways
+    (hit,) = [r for r in d.regions if r.sample_output(db) == 1]
+    match hit.sample(db):
+        case {
+            "v": [Constructed("Some", (Constructed("A", ({"x": int(x), "y": str()},)),))],
+            "p": (Constructed("A", ({"x": int(), "y": str()},)), int()),
+            "n": Constructed("N", ({"inner": Constructed("A", ({"x": int(x2), "y": str()},)), "k": int(k)},)),
+        }:
+            assert x > 5 and x2 > k
+        case other:
+            pytest.fail(f"unexpected sample {other}")
+
+
+@slow(20)
+@given(types)
+def test_region_output_of_identity_is_its_sample(client: Client, t: Ty):
+    """`let f x = x` returns its sample: given the DB, both come back the same, labels included"""
+    ty = iml_type(t)
+    f = f"same_{next(_fresh)}"
+    assert client.eval_src(f"let {f} (x: {ty}) = x").success
+    res = client.decompose(f, prune=True)
+    d = res.decomposition
+    assert d is not None, res.errors
+    db = decomposition_db(res)
+
+    for r in d.regions:
+        sample = r.sample(db)
+        assert sample is not None and sample.keys() == {"x"}
+        assert same(r.sample_output(db), sample["x"])
+        assert all(has_labels(c) for c in constructeds(sample["x"]))
+
+
+def test_region_output_passes_inline_records_through(client: Client):
+    """A result that contains part of the sample has the same labels as the sample, given the DB"""
+    f = "pass_through"
+    assert client.eval_src(f"""
+let {f} (v: var_t * nest_t) =
+  match v with
+  | (A {{x; _}}, N {{inner = A _; k}}) -> if x > k then Some v else None
+  | _ -> None""").success
+    res = client.decompose(f, prune=True)
+    d = res.decomposition
+    assert d is not None, res.errors
+    db = decomposition_db(res)
+
+    outputs = [(r.sample(db), r.sample_output(db)) for r in d.regions]
+    passed_through = [(s, o) for s, o in outputs if isinstance(o, Constructed) and o.name == "Some"]
+    assert len(passed_through) == 1
+    ((sample, output),) = passed_through
+    assert sample is not None
+    assert same(output, Constructed("Some", (sample["v"],)))
+    assert all(has_labels(c) for c in constructeds(output))
