@@ -1122,7 +1122,7 @@ class Constructed:
     """A constructor applied to arguments, as a Python value: `Some 3` is `Constructed("Some", (3,))`
 
     The arguments of a constructor with an inline record, as in `A { x: int }` may be turned into a
-    single (one-tuple) argument containing a `dict` by providing the optional `db` argument to `Term._to_python`."""
+    single (one-tuple) argument containing a `dict` by providing the optional `db` argument to `Term.to_python`."""
 
     name: str
     """The constructor's name"""
@@ -1621,7 +1621,7 @@ class Theorem:
 
 @dataclass(slots=True, frozen=True)
 class RuleSpec:
-    """A rule_spec_spec, entered with [rule_spec_spec foo x y = <formula using x,y>]"""
+    """A rule_spec, entered with `rule_spec foo x y = <formula using x,y>`"""
 
     forward_chaining: bool
     """forward chaining rule?"""
@@ -1887,7 +1887,7 @@ class SymbolHead:
 
 @dataclass(slots=True, frozen=True)
 class TypeHead:
-    """is just a variable"""
+    """The pattern is just a variable, so its head is its type"""
 
     type: Type
     """The type"""
@@ -2620,7 +2620,7 @@ class DB:
 
     @cached_property
     def rw_rules(self) -> dict[PatternHead, list[RewriteRule]]:
-        """Rewrite rules, by the uid of their pattern head"""
+        """Rewrite rules, by their pattern head"""
         return {
             h: [RewriteRule.of_lib(r) for r in rs]
             for h, rs in self._raw_rw_rules.items()
@@ -2628,12 +2628,12 @@ class DB:
 
     @cached_property
     def fc(self) -> dict[PatternHead, list[Trigger]]:
-        """Forward-chaining triggers, by the uid of their pattern head"""
+        """Forward-chaining triggers, by their pattern head"""
         return {h: [Trigger.of_lib(t) for t in ts] for h, ts in self._raw_fc.items()}
 
     @cached_property
     def elim(self) -> dict[PatternHead, list[EliminationRule]]:
-        """Elimination rules, by the uid of their pattern head"""
+        """Elimination rules, by their pattern head"""
         return {
             h: [EliminationRule.of_lib(r) for r in rs]
             for h, rs in self._raw_elim.items()
@@ -2641,7 +2641,7 @@ class DB:
 
     @cached_property
     def gen(self) -> dict[PatternHead, list[Trigger]]:
-        """Generalization triggers, by the uid of their pattern head"""
+        """Generalization triggers, by their pattern head"""
         return {h: [Trigger.of_lib(t) for t in ts] for h, ts in self._raw_gen.items()}
 
     @cached_property
@@ -2732,7 +2732,7 @@ class DB:
         return self._decls.get(x)
 
     def find_declaration_re(self, regex: str) -> dict[Uid, Declaration]:
-        """All declarations whose full name matches `regex`"""
+        """All declarations whose full name matches `regex` from its start"""
         rx = re.compile(regex)
         return {id: d for id, d in self._decls.items() if rx.match(id.full_name)}
 
@@ -2741,7 +2741,7 @@ class DB:
         return self._tys.get(x)
 
     def find_type_re(self, regex: str) -> dict[Uid, TypeDefinition]:
-        """All types whose full name matches `regex`"""
+        """All types whose full name matches `regex` from its start"""
         rx = re.compile(regex)
         return {id: t for id, t in self._tys.items() if rx.match(id.full_name)}
 
@@ -2750,6 +2750,6 @@ class DB:
         return self._funs.get(x)
 
     def find_function_re(self, regex: str) -> dict[Uid, FunctionDefinition]:
-        """All functions whose full name matches `regex`"""
+        """All functions whose full name matches `regex` from its start"""
         rx = re.compile(regex)
         return {id: f for id, f in self._funs.items() if rx.match(id.full_name)}

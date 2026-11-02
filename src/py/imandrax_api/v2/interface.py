@@ -265,7 +265,7 @@ class ErrorCore:
 
 @dataclass(slots=True, frozen=True)
 class ProofFound:
-    """Type returned on success for verify"""
+    """The goal was proved"""
 
     proof: ProofTerm
     """Proof term."""
@@ -276,9 +276,10 @@ class ProofFound:
 
 @dataclass(slots=True, frozen=True)
 class VerifiedUpto:
-    """Type returned on success for verify"""
+    """The goal was verified up to a bound, which is not a proof"""
 
     upto: int
+    """The number of steps the goal was verified up to"""
     _raw: lib.Tasks_PO_res_verified_upto = field(repr=False, compare=False)
 
 
@@ -1527,7 +1528,8 @@ class ProofObligationResult:
         Literal["unknown", "err", "proof", "instance", "verified_upto", "test_ok"]
         | None
     ):
-        """One of `unknown`, `err`, `proof`, `instance`, `verified_upto` and `test_ok`"""
+        """One of `unknown`, `err`, `proof`, `instance`, `verified_upto` and `test_ok`, or `None`
+        if the server sent none"""
         match self.res:
             case ProofObligationResult.Unknown():
                 return "unknown"
@@ -1591,7 +1593,7 @@ class DecompositionResult:
     """The result of a decomposition request"""
 
     artifact: Artifact | None
-    """The decomposition artifact, None if decomp has error"""
+    """The decomposition artifact, `None` if the decomposition failed"""
     task: DecompositionTask | None
     """The decomposition task, `None` if the request failed before one was created"""
     errors: tuple[Error, ...]
@@ -1820,7 +1822,8 @@ class VerifyResponse:
     def outcome(
         self,
     ) -> Literal["unknown", "err", "proved", "refuted", "verified_upto"] | None:
-        """One of `unknown`, `err`, `proved`, `refuted` and `verified_upto`"""
+        """One of `unknown`, `err`, `proved`, `refuted` and `verified_upto`, or `None` if the server
+        sent none"""
         match self.res:
             case VerifyResponse.Unknown():
                 return "unknown"
@@ -1946,7 +1949,7 @@ class InstanceResponse:
 
     @property
     def outcome(self) -> Literal["unknown", "err", "unsat", "sat"] | None:
-        """One of `unknown`, `err`, `unsat` and `sat`"""
+        """One of `unknown`, `err`, `unsat` and `sat`, or `None` if the server sent none"""
         match self.res:
             case InstanceResponse.Unknown():
                 return "unknown"
@@ -2045,7 +2048,7 @@ class TestResponse:
 
     @property
     def outcome(self) -> Literal["err", "counter_example"] | None:
-        """One of `err` and `counter_example`
+        """One of `err` and `counter_example`, or `None` if the server sent none
 
         Testing that finds no counter-example is reported as `err`, with an error of kind
         `NoCounterExample`
@@ -2267,7 +2270,11 @@ class Client:
         string_results: bool | None = None,
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
-        """Decompose the function `name`; see `imandrax_api.v1.Client.decompose`"""
+        """Decompose the function `name`
+
+        `timeout` is the HTTP request timeout and `compute_timeout` the server-side compute
+        timeout, see `imandrax_api.v1.Client.decompose`
+        """
         return DecompositionResult.of_raw(
             self._client.decompose(
                 name,
@@ -2286,7 +2293,6 @@ class Client:
 
     def decompose_full(
         self,
-        # TODO: we should have a Decomp combinator class here?
         d: "decomp.Decomp",
         timeout: float | None = None,
         string_results: bool | None = None,
@@ -2499,7 +2505,11 @@ class AsyncClient:
         string_results: bool | None = None,
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
-        """Decompose the function `name`; see `imandrax_api.v1.Client.decompose`"""
+        """Decompose the function `name`
+
+        `timeout` is the HTTP request timeout and `compute_timeout` the server-side compute
+        timeout, see `imandrax_api.v1.Client.decompose`
+        """
         return DecompositionResult.of_raw(
             await self._client.decompose(
                 name,
