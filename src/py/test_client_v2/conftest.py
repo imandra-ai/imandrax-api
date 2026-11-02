@@ -11,6 +11,15 @@ import pytest
 import imandrax_api
 from imandrax_api.v2.interface import AsyncClient, Client
 
+_NETWORK_FIXTURES = frozenset({"mk_client", "mk_async_client"})
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """mark every test that (transitively) builds a client as `network`."""
+    for item in items:
+        if _NETWORK_FIXTURES.intersection(getattr(item, "fixturenames", ())):
+            item.add_marker(pytest.mark.network)
+
 
 @pytest.fixture(scope="session")
 def api_key() -> str | None:
