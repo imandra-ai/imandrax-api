@@ -1104,6 +1104,21 @@ class LiftBool(StrEnum):
     """Extends [Default] with the rule [(t : bool)] --> [if t then true else false]"""
 
 
+def _lift_bool_to_pb(x: LiftBool | None) -> simple_api_pb2.LiftBool | None:
+    """`x` as the protobuf enum that requests take"""
+    match x:
+        case None:
+            return None
+        case LiftBool.DEFAULT:
+            return simple_api_pb2.Default
+        case LiftBool.NESTED_EQUALITIES:
+            return simple_api_pb2.NestedEqualities
+        case LiftBool.EQUALITIES:
+            return simple_api_pb2.Equalities
+        case LiftBool.ALL:
+            return simple_api_pb2.All
+
+
 def lift_bool_of_lib(x: lib.Common_Decomp_lift_bool) -> LiftBool:
     """Convert a library `lift_bool` into the matching `LiftBool`"""
     match x:
@@ -2296,7 +2311,7 @@ class Client:
         rule_specs: list[str] | None = None,
         prune: bool | None = None,
         ctx_simp: bool | None = None,
-        lift_bool: simple_api_pb2.LiftBool | None = None,
+        lift_bool: LiftBool | None = None,
         timeout: float | None = None,
         string_results: bool | None = None,
         compute_timeout: int | None = None,
@@ -2324,7 +2339,7 @@ class Client:
                 rule_specs=rule_specs,
                 prune=prune,
                 ctx_simp=ctx_simp,
-                lift_bool=lift_bool,
+                lift_bool=_lift_bool_to_pb(lift_bool),
                 timeout=timeout,
                 string_results=string_results,
                 compute_timeout=compute_timeout,
@@ -2339,10 +2354,11 @@ class Client:
         string_results: bool | None = None,
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
-        """Run a decomposition request
+        """A more expressive `decompose`: run a tree of decomposition operations, e.g. a merge of
+        decompositions of several functions
 
         Args:
-            d: The decomposition, built with the constructors in `imandrax_api.v2.decomp`
+            d: The decomposition request, built with the constructors in `imandrax_api.v2.decomp`
             timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
             string_results: Whether to also return each region's constraints and invariant in IML
                 syntax, as `Region.constraints_str` and `Region.invariant_str`
@@ -2655,7 +2671,7 @@ class AsyncClient:
         rule_specs: list[str] | None = None,
         prune: bool | None = None,
         ctx_simp: bool | None = None,
-        lift_bool: simple_api_pb2.LiftBool | None = None,
+        lift_bool: LiftBool | None = None,
         timeout: float | None = None,
         string_results: bool | None = None,
         compute_timeout: int | None = None,
@@ -2683,7 +2699,7 @@ class AsyncClient:
                 rule_specs=rule_specs,
                 prune=prune,
                 ctx_simp=ctx_simp,
-                lift_bool=lift_bool,
+                lift_bool=_lift_bool_to_pb(lift_bool),
                 timeout=timeout,
                 string_results=string_results,
                 compute_timeout=compute_timeout,
@@ -2698,10 +2714,11 @@ class AsyncClient:
         string_results: bool | None = None,
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
-        """Run a decomposition request
+        """A more expressive `decompose`: run a tree of decomposition operations, e.g. a merge of
+        decompositions of several functions
 
         Args:
-            d: The decomposition, built with the constructors in `imandrax_api.v2.decomp`
+            d: The decomposition request, built with the constructors in `imandrax_api.v2.decomp`
             timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
             string_results: Whether to also return each region's constraints and invariant in IML
                 syntax, as `Region.constraints_str` and `Region.invariant_str`
