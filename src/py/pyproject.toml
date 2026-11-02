@@ -22,13 +22,14 @@ packages = [
     "imandrax_api.v1",
     "imandrax_api.v2",
 ]
-package-dir = { "imandrax_api" = "." }
 
 [tool.pyright]
 strict = ["**"]
 venvPath = "."
 venv = ".venv"
 extraPaths = ["imandrax-api/src"]
+# generated protobuf/twirp code and the untyped twirp runtime
+ignore = ["imandrax_api/bindings", "imandrax_api/twirp"]
 
 [tool.pytest.ini_options]
 # This directory is named `py`, which collides with the `py` distribution that
@@ -36,13 +37,13 @@ extraPaths = ["imandrax-api/src"]
 # name `py.lib.test_twine` and fail to import it.
 # TODO(long-term): move tests under $ROOT/src/py to $ROOT/tests/
 addopts = "--import-mode=importlib"
-testpaths = ["lib", "../../tests/client/py"]
+testpaths = ["imandrax_api/lib", "../../tests/client/py"]
 
 [tool.ruff]
 indent-width = 4
 target-version = "py312"
 
-exclude = ["lib/__init__.py", "bindings/"]
+exclude = ["imandrax_api/lib/__init__.py", "imandrax_api/bindings/"]
 
 [dependency-groups]
 dev = [

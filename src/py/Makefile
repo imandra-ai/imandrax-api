@@ -4,17 +4,17 @@ echo-version:
 	@echo version: $(VERSION)
 
 API_TYPES_VERSION=$(shell cat ../core/API_TYPES_VERSION)
-api_types_version.py:
+imandrax_api/api_types_version.py:
 	@echo "api_types_version = 'v$(API_TYPES_VERSION)'" > $@
 
-build: clean api_types_version.py
+build: clean imandrax_api/api_types_version.py
 	uv build --wheel
 
 clean:
 	rm -rf build dist
 
 typecheck:
-	uv run pyright -p pyproject.toml __init__.py client/ lib/ v1/ v2/
+	uv run pyright -p pyproject.toml imandrax_api/
 
 unit-test:
 	uv run pytest
@@ -67,4 +67,4 @@ install-go-protobuf-plugin:
 	@echo "installing twirp plugin for protoc into `echo $(GOBIN)`"
 	cd protoc-gen-twirpy && GOBIN="`echo $(GOBIN)`" go install ./
 
-.PHONY: remove-wheels build genversion api_types_version.py test-setup-py-install unit-test test
+.PHONY: remove-wheels build genversion imandrax_api/api_types_version.py test-setup-py-install unit-test test
