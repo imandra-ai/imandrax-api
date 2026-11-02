@@ -255,7 +255,7 @@ class AsyncClient:
         """
         More expressive variant of `decompose`: `d` describes a tree of
         operations (decompose by name, merge, compound merge, prune, combine,
-        let-bind) built with the helpers in `imandrax_api.client.decomp`.
+        let-bind) built with the helpers in `imandrax_api.v1.decomp`.
 
         Args:
             d: the decomposition to perform

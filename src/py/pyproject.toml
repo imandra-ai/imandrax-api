@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "imandrax_api"
-version = "0.21.0"
+version = "0.21.0.1"
 description = "Imandrax API client library"
 requires-python = ">=3.12"
 dependencies = ["protobuf==5.29.6", "requests", "structlog"]
@@ -19,13 +19,17 @@ packages = [
     "imandrax_api.client",
     "imandrax_api.lib",
     "imandrax_api.twirp",
+    "imandrax_api.v1",
+    "imandrax_api.v2",
 ]
-package-dir = { "imandrax_api" = "." }
 
 [tool.pyright]
 strict = ["**"]
 venvPath = "."
 venv = ".venv"
+extraPaths = ["imandrax-api/src"]
+# generated protobuf/twirp code and the untyped twirp runtime
+ignore = ["imandrax_api/bindings", "imandrax_api/twirp"]
 
 [tool.pytest.ini_options]
 # This directory is named `py`, which collides with the `py` distribution that
@@ -33,13 +37,38 @@ venv = ".venv"
 # name `py.lib.test_twine` and fail to import it.
 # TODO(long-term): move tests under $ROOT/src/py to $ROOT/tests/
 addopts = "--import-mode=importlib"
-testpaths = ["lib", "../../tests/client/py"]
+testpaths = ["imandrax_api/lib", "../../tests/client/py"]
+markers = ["network: talks to an ImandraX server and needs an API key"]
 
 [tool.ruff]
 indent-width = 4
 target-version = "py312"
 
-exclude = ["lib/__init__.py", "bindings/"]
+exclude = [
+    "imandrax_api/lib/__init__.py",
+    "imandrax_api/bindings/",
+    # vendored from twirpy
+    "imandrax_api/twirp/",
+]
+
+[tool.ruff.lint]
+# deprecated client; formatted but not linted
+exclude = ["imandrax_api/v1/**"]
+
+[tool.ruff.lint.isort]
+# also first-party in ../../tests, which ruff can't infer from there
+known-first-party = ["imandrax_api"]
 
 [dependency-groups]
-dev = ["aiohttp>=3.13.2", "pyright>=1.1.408", "pytest>=9.1.1"]
+dev = [
+    "aiohttp>=3.13.2",
+    "hypothesis>=6.100",
+    "inline-snapshot>=0.36.1",
+    "pyright>=1.1.408",
+    "pytest>=9.1.1",
+    "ruff==0.16.3",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]

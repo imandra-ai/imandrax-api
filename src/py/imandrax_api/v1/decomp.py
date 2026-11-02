@@ -8,7 +8,7 @@ variable for reuse.
 
 Example:
 
-    from imandrax_api.client import decomp
+    from imandrax_api.v1 import decomp
 
     d = decomp.let(
         [("base", decomp.by_name("f", prune=True))],

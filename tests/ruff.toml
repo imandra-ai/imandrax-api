@@ -1,0 +1,3 @@
+# share the Python client's ruff config with editors, which otherwise fall back
+# to ruff's defaults here
+extend = "../src/py/pyproject.toml"

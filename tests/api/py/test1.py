@@ -8,7 +8,7 @@ def timeit(what: str, f, *args, **kwargs):
     print(f"{what} took {t_stop - t_start:.5}s")
     return res
 
-c = timeit("create client", lambda: imandrax_api.Client(url="http://localhost:8082"))
+c = timeit("create client", lambda: imandrax_api.v1.Client(url="http://localhost:8082"))
 c.status()
 
 x1 = timeit("eval1", lambda: c.eval_src(src="let f x=x+1 ;;"))

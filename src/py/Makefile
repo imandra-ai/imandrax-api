@@ -4,25 +4,35 @@ echo-version:
 	@echo version: $(VERSION)
 
 API_TYPES_VERSION=$(shell cat ../core/API_TYPES_VERSION)
-api_types_version.py:
-	@echo "api_types_version = 'v$(API_TYPES_VERSION)'" > $@
+imandrax_api/api_types_version.py:
+	@echo 'api_types_version = "v$(API_TYPES_VERSION)"' > $@
 
-build: clean api_types_version.py
+build: clean imandrax_api/api_types_version.py
 	uv build --wheel
 
 clean:
 	rm -rf build dist
 
 typecheck:
-	uv run pyright -p pyproject.toml __init__.py client/ lib/
+	uv run pyright -p pyproject.toml imandrax_api/
+
+lint:
+	uv run ruff check . ../../tests/client/py
+
+format-check:
+	uv run ruff format --check . ../../tests/client/py
 
 unit-test:
-	uv run pytest
+	uv run pytest -m "not network"
 
-test: unit-test
+network-test:
+	uv run pytest -m network
+
+test: unit-test network-test
 	uv run ../../tests/api/py/test_cloud_dev.py
 	uv run ../../tests/api/py/test_cloud_dev_async.py
 	uv run ../../tests/api/py/test_extract_region_str.py
+	uv run ../../tests/api/py/test_to_python.py
 
 pre-release-test: build  # Run pre-release tests with built wheel
 	@echo "Running pre-release tests with built wheel..."
@@ -66,4 +76,4 @@ install-go-protobuf-plugin:
 	@echo "installing twirp plugin for protoc into `echo $(GOBIN)`"
 	cd protoc-gen-twirpy && GOBIN="`echo $(GOBIN)`" go install ./
 
-.PHONY: remove-wheels build genversion api_types_version.py test-setup-py-install unit-test test
+.PHONY: remove-wheels build genversion imandrax_api/api_types_version.py test-setup-py-install unit-test test

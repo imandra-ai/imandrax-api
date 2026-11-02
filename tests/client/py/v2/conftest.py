@@ -1,0 +1,42 @@
+"""Clients shared by the tests
+
+client sharing is scoped by module so that IML loading won't shadow each other
+"""
+
+import os
+from collections.abc import Callable, Iterator
+
+import pytest
+
+import imandrax_api
+from imandrax_api.v2.interface import AsyncClient, Client
+
+_NETWORK_FIXTURES = frozenset({"mk_client", "mk_async_client"})
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """mark every test that (transitively) builds a client as `network`."""
+    for item in items:
+        if _NETWORK_FIXTURES.intersection(getattr(item, "fixturenames", ())):
+            item.add_marker(pytest.mark.network)
+
+
+@pytest.fixture(scope="session")
+def api_key() -> str | None:
+    return os.environ.get("IMANDRAX_API_KEY") or os.environ.get("IMANDRA_UNI_KEY")
+
+
+@pytest.fixture(scope="session")
+def mk_client(api_key: str | None) -> Callable[[], Client]:
+    return lambda: Client(url=imandrax_api.v2.url_prod, api_key=api_key)
+
+
+@pytest.fixture(scope="session")
+def mk_async_client(api_key: str | None) -> Callable[[], AsyncClient]:
+    return lambda: AsyncClient(url=imandrax_api.v2.url_prod, api_key=api_key)
+
+
+@pytest.fixture(scope="module")
+def c(mk_client: Callable[[], Client]) -> Iterator[Client]:
+    with mk_client() as c:
+        yield c

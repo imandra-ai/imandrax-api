@@ -7,13 +7,14 @@ an "Unclosed client session" warning).
 """
 # ai-disclosure: ai-generated
 # pyright: reportPrivateUsage=false
+# ruff: noqa: BLE001, S110
 
 import asyncio
 from typing import Any
 
-import imandrax_api.client as sync_client_mod
-from imandrax_api.client import Client, ClientClosedError
-from imandrax_api.client._async import AsyncClient
+import imandrax_api.v1 as sync_client_mod
+from imandrax_api.v1 import Client, ClientClosedError
+from imandrax_api.v1._async import AsyncClient
 
 URL = "http://127.0.0.1:1"
 
