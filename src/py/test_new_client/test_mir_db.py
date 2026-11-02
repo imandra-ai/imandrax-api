@@ -11,14 +11,14 @@ from collections.abc import Iterable
 
 import pytest
 
-from imandrax_api.demo.interface import (
+from imandrax_api.v2.interface import (
     Client,
     EvalSrcResponse,
     ProofObligationTask,
     Task,
     TypeDefinition,
 )
-from imandrax_api.demo.mir import (
+from imandrax_api.v2.mir import (
     DB,
     AlgebraicTypeKind,
     Apply,

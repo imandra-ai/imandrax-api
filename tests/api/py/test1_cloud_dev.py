@@ -1,6 +1,6 @@
 import imandrax_api, os, sys
 
-url = imandrax_api.url_dev
+url = imandrax_api.v1.url_dev
 
 auth_path = os.path.expanduser('~/.config/imandrax/api_key')
 try:
@@ -10,7 +10,7 @@ except e:
     print(f"could not read auth token in {auth_path}")
     sys.exit(1)
 
-c = imandrax_api.Client(url, auth_token = auth_token)
+c = imandrax_api.v1.Client(url, auth_token = auth_token)
 c.status()
 
 x1 = c.eval_src(src="let f x=x+1 ;;")

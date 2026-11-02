@@ -7,8 +7,8 @@ from io import BytesIO
 import pytest
 from inline_snapshot import snapshot
 
-from imandrax_api.demo import decomp
-from imandrax_api.demo.interface import (
+from imandrax_api.v2 import decomp
+from imandrax_api.v2.interface import (
     Artifact,
     AsyncClient,
     Client,
@@ -28,7 +28,7 @@ from imandrax_api.demo.interface import (
     TypecheckResponse,
     VerifyResponse,
 )
-from imandrax_api.demo.mir import ArrowType, Term, Type
+from imandrax_api.v2.mir import ArrowType, Term, Type
 
 SRC = """
 let f x = if x > 0 then x + 1 else 0

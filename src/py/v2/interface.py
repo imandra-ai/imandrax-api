@@ -23,7 +23,7 @@ from functools import cached_property
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Literal, Self, TypeAliasType, assert_never, ClassVar, cast, get_origin
 
-import imandrax_api
+from imandrax_api import v1
 from imandrax_api import lib
 from imandrax_api.bindings import (
     api_pb2,
@@ -48,7 +48,7 @@ from .proof import ProofTerm, proof_term_of_lib
 from .report import Report
 
 if TYPE_CHECKING:
-    from imandrax_api.client import AsyncClient as AsyncClient_
+    from imandrax_api.v1 import AsyncClient as AsyncClient_
 
     from . import decomp
 
@@ -1981,7 +1981,7 @@ class Client:
 
     def __init__(
         self,
-        url: str = imandrax_api.client.url_prod,
+        url: str = v1.url_prod,
         server_path_prefix: str = "/api/v1",
         auth_token: str | None = None,
         api_key: str | None = None,
@@ -1989,7 +1989,7 @@ class Client:
         session_id: str | None = None,
         create_if_not_found: bool = False,
     ):
-        self._client = imandrax_api.Client(
+        self._client = v1.Client(
             url=url,
             server_path_prefix=server_path_prefix,
             auth_token=auth_token,
@@ -2018,7 +2018,7 @@ class Client:
         """Evaluate IML source
 
         `async_only` returns without waiting for task results; `task_filter` holds glob patterns
-        selecting the tasks to start, see `imandrax_api.Client.eval_src`
+        selecting the tasks to start, see `imandrax_api.v1.Client.eval_src`
         """
         return EvalSrcResponse.of_raw(
             self._client.eval_src(
@@ -2045,7 +2045,7 @@ class Client:
         string_results: bool | None = None,
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
-        """Decompose the function `name`; see `imandrax_api.Client.decompose`"""
+        """Decompose the function `name`; see `imandrax_api.v1.Client.decompose`"""
         return DecompositionResult.of_raw(
             self._client.decompose(
                 name,
@@ -2205,7 +2205,7 @@ class AsyncClient:
 
     def __init__(
         self,
-        url: str = imandrax_api.client.url_prod,
+        url: str = v1.url_prod,
         server_path_prefix: str = "/api/v1",
         auth_token: str | None = None,
         api_key: str | None = None,
@@ -2213,7 +2213,7 @@ class AsyncClient:
         session_id: str | None = None,
         create_if_not_found: bool = False,
     ):
-        self._client: AsyncClient_ = imandrax_api.client.AsyncClient(
+        self._client: AsyncClient_ = v1.AsyncClient(
             url=url,
             server_path_prefix=server_path_prefix,
             auth_token=auth_token,
@@ -2248,7 +2248,7 @@ class AsyncClient:
         """Evaluate IML source
 
         `async_only` returns without waiting for task results; `task_filter` holds glob patterns
-        selecting the tasks to start, see `imandrax_api.Client.eval_src`
+        selecting the tasks to start, see `imandrax_api.v1.Client.eval_src`
         """
         return EvalSrcResponse.of_raw(
             await self._client.eval_src(
@@ -2275,7 +2275,7 @@ class AsyncClient:
         string_results: bool | None = None,
         compute_timeout: int | None = None,
     ) -> DecompositionResult:
-        """Decompose the function `name`; see `imandrax_api.Client.decompose`"""
+        """Decompose the function `name`; see `imandrax_api.v1.Client.decompose`"""
         return DecompositionResult.of_raw(
             await self._client.decompose(
                 name,

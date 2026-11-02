@@ -14,7 +14,7 @@ clean:
 	rm -rf build dist
 
 typecheck:
-	uv run pyright -p pyproject.toml __init__.py client/ lib/
+	uv run pyright -p pyproject.toml __init__.py client/ lib/ v1/ v2/
 
 unit-test:
 	uv run pytest

@@ -19,6 +19,8 @@ packages = [
     "imandrax_api.client",
     "imandrax_api.lib",
     "imandrax_api.twirp",
+    "imandrax_api.v1",
+    "imandrax_api.v2",
 ]
 package-dir = { "imandrax_api" = "." }
 

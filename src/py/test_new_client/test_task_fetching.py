@@ -16,7 +16,7 @@ import pytest
 
 from imandrax_api.bindings import task_pb2
 from imandrax_api.bindings.api_pb2 import ArtifactResult
-from imandrax_api.demo.interface import (
+from imandrax_api.v2.interface import (
     AsyncClient,
     Client,
     ClientGoneError,
@@ -29,7 +29,7 @@ from imandrax_api.demo.interface import (
     Task,
     task_of_raw,
 )
-from imandrax_api.demo.mir import DB
+from imandrax_api.v2.mir import DB
 
 SRC = "theorem succ_gt x = x + 1 > x"
 
