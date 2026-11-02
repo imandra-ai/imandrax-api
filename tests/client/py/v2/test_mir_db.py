@@ -93,7 +93,7 @@ def db(tasks: tuple[Task, ...]) -> DB:
 
 
 def search_uid_by_short_name(db: DB, short_name: str) -> Uid:
-    """Search UID in MIR DB by short name. Raises if not found."""
+    """The unique uid with this short name; raises unless there is exactly one"""
     (uid,) = [u for u in db.decls if u.short_name == short_name]
     return uid
 
@@ -170,7 +170,6 @@ def test_type_definitions(db: DB):
 
 
 def test_type_aliases_are_expanded(db: DB):
-    """type alias doesn't show up in the DB, neither as type declaration nor in referenced definition"""
     # `type my_int = int` is not a declaration of its own...
     assert "my_int" not in short_names(db.decls)
     assert db.find_type_re("my_int") == {}
@@ -240,8 +239,9 @@ def _lambdas_of_func_body(fun: FunctionDefinition) -> list[Uid]:
     return _lambdas_of_term(fun.body)
 
 
-def test_search_lifted_lambdas(tasks: tuple[Task, ...], db: DB):
-    """MIR DB should enable disambiguating two lambdas"""
+def test_lifted_lambdas_share_short_name_but_have_distinct_uids(
+    tasks: tuple[Task, ...], db: DB
+):
     # 1. `fun x -> x + 1` in `inc_all`
     inc_all: Uid = search_uid_by_short_name(db, "inc_all")
     inc_all_f = db.find_function(inc_all)
@@ -410,7 +410,6 @@ def test_lookups_agree_with_declarations(db: DB):
 
 
 def test_symbols_resolve_to_declarations(db: DB):
-    """Every symbol a function refers to is declared in the DB"""
     bodies = [
         d.function.body for d in db.decls.values() if not isinstance(d, TypeDeclaration)
     ]
@@ -470,7 +469,6 @@ def test_rules_refer_to_theorems(db: DB):
 
 
 def test_every_declaration_converts_from_raw_lib_types(db: DB):
-    """Test raw lib type conversion for all declarations in DB"""
     assert len(db.decls) > 100
     for uid, decl in db.decls.items():
         assert isinstance(decl, Declaration)

@@ -68,9 +68,7 @@ def test_task_without_client_raises_on_fetch():
 # ======
 
 
-def test_task_equality(mk_client: Callable[[], Client]):
-    """Tasks are equal when their ids are."""
-
+def test_tasks_are_equal_iff_ids_are_equal(mk_client: Callable[[], Client]):
     def mk_pb_task(
         id: str, kind: task_pb2.TaskKind = task_pb2.TASK_CHECK_PO
     ) -> task_pb2.Task:

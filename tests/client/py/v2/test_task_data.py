@@ -83,7 +83,7 @@ def vars_in_subterms(t: Term) -> set[Variable]:
 
 
 def assert_symbols_defined_in_db(t: Term, db: DB) -> None:
-    """Every symbol `t` refers to is declared in `db`"""
+    """`t` refers to at least one symbol, all declared in `db`"""
     uids: set[Uid] = {x.symbol.id for x in t if isinstance(x, Symbol)}
     assert uids, "Term should refer to at least one symbol"
     for u in uids:
