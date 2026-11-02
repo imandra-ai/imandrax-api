@@ -247,7 +247,9 @@ ProofObligation(
 
     goal_var_types: dict[Uid, Type] = {v.id: v.type for v in vars}
     model_var_types: dict[Uid, Type] = {sym.id: sym.type for sym in model.constants}
-    model_value_types: dict[Uid, Type] = {sym.id: value.type for sym, value in model.constants.items()}
+    model_value_types: dict[Uid, Type] = {
+        sym.id: value.type for sym, value in model.constants.items()
+    }
     assert model_var_types == goal_var_types, (
         "Model should give values to exactly the goal's variables, at their types"
     )

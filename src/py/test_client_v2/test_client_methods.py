@@ -358,7 +358,7 @@ def test_async_methods(mk_async_client: Callable[[], AsyncClient]):
             assert (await c.eval_src(SRC)).success
             await c.keep_session_alive()
             assert isinstance(await c.version(), ServerVersion)
-            assert (await c.status()) == 'OK'
+            assert (await c.status()) == "OK"
 
             v = await c.verify_name("nonneg")
             assert v.proved

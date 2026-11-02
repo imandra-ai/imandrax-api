@@ -49,7 +49,9 @@ def arrows(args: list[RawType], ret: RawType) -> RawType:
 
 def sym(name: str, t: RawType) -> lib.Mir_Applied_symbol:
     return lib.Common_Applied_symbol_t_poly(
-        sym=lib.Common_Typed_symbol_t_poly(id=uid(name), ty=lib.Common_Type_schema_t_poly(params=[], ty=t)),
+        sym=lib.Common_Typed_symbol_t_poly(
+            id=uid(name), ty=lib.Common_Type_schema_t_poly(params=[], ty=t)
+        ),
         args=[],
         ty=t,
     )
@@ -63,7 +65,9 @@ def const(c: lib.Const, t: RawType) -> RawTerm:
     return term(lib.Mir_Term_view_Const(arg=c), t)
 
 
-def construct(c: str, args: list[RawTerm], t: RawType, labels: list[str] | None = None) -> RawTerm:
+def construct(
+    c: str, args: list[RawTerm], t: RawType, labels: list[str] | None = None
+) -> RawTerm:
     """Constructor `c` of type `t` applied to `args`"""
     return term(
         lib.Mir_Term_view_Construct(
@@ -75,7 +79,9 @@ def construct(c: str, args: list[RawTerm], t: RawType, labels: list[str] | None 
     )
 
 
-INT, BOOL, STRING, REAL, UNIT = (ty(n) for n in ["int", "bool", "string", "real", "unit"])
+INT, BOOL, STRING, REAL, UNIT = (
+    ty(n) for n in ["int", "bool", "string", "real", "unit"]
+)
 REC_T, VAR_T, NEST_T = ty("rec_t"), ty("var_t"), ty("nest_t")
 
 
@@ -88,7 +94,11 @@ def raw_db() -> DB:
     """
     db = DB(lib.Common_Db_ser_t_poly(ops=[]), {})
     variants: dict[str, list[tuple[str, list[str] | None, list[RawType]]]] = {
-        "var_t": [("A", ["x", "y"], [INT, STRING]), ("B", None, [INT, STRING]), ("C", None, [])],
+        "var_t": [
+            ("A", ["x", "y"], [INT, STRING]),
+            ("B", None, [INT, STRING]),
+            ("C", None, []),
+        ],
         "nest_t": [("N", ["inner", "k"], [VAR_T, INT]), ("M", None, [])],
     }
     for name, rows in variants.items():
@@ -97,7 +107,12 @@ def raw_db() -> DB:
             params=[],
             decl=lib.Ty_view_decl_Algebraic(
                 arg=[
-                    lib.Ty_view_adt_row(c=uid(c), labels=None if ls is None else [uid(l) for l in ls], args=ts, doc=None)
+                    lib.Ty_view_adt_row(
+                        c=uid(c),
+                        labels=None if ls is None else [uid(l) for l in ls],
+                        args=ts,
+                        doc=None,
+                    )
                     for c, ls, ts in rows
                 ]
             ),
@@ -111,7 +126,9 @@ def raw_db() -> DB:
 type Ty = str | tuple[str, tuple[Ty, ...]]
 
 types: st.SearchStrategy[Ty] = st.recursive(
-    st.sampled_from(["int", "bool", "string", "real", "unit", "rec_t", "var_t", "nest_t"]),
+    st.sampled_from(
+        ["int", "bool", "string", "real", "unit", "rec_t", "var_t", "nest_t"]
+    ),
     lambda inner: st.one_of(
         st.tuples(st.sampled_from(["list", "option"]), st.tuples(inner)),
         st.tuples(st.just("tuple"), st.lists(inner, min_size=2, max_size=3).map(tuple)),
@@ -125,7 +142,9 @@ def raw_type(t: Ty) -> RawType:
         case str():
             return ty(t)
         case ("tuple", us):
-            return lib.Mir_Type(view=lib.Ty_view_view_Tuple(arg=[raw_type(u) for u in us]))
+            return lib.Mir_Type(
+                view=lib.Ty_view_view_Tuple(arg=[raw_type(u) for u in us])
+            )
         case (k, us):
             return ty(k, raw_type(us[0]))
 
@@ -155,23 +174,38 @@ def values(t: Ty, drop_labels: bool) -> st.SearchStrategy[tuple[RawTerm, PyValue
     If `drop_labels`, inline records can lack their labels."""
     match t:
         case "int":
-            return st.integers().map(lambda n: (const(lib.Const_Const_z(arg=n), INT), n))
+            return st.integers().map(
+                lambda n: (const(lib.Const_Const_z(arg=n), INT), n)
+            )
         case "bool":
-            return st.booleans().map(lambda b: (const(lib.Const_Const_bool(arg=b), BOOL), b))
+            return st.booleans().map(
+                lambda b: (const(lib.Const_Const_bool(arg=b), BOOL), b)
+            )
         case "string":
-            return st.text().map(lambda s: (const(lib.Const_Const_string(arg=s), STRING), s))
+            return st.text().map(
+                lambda s: (const(lib.Const_Const_string(arg=s), STRING), s)
+            )
         case "real":
             return st.fractions().map(
-                lambda q: (const(lib.Const_Const_q(arg=(q.numerator, q.denominator)), REAL), q)
+                lambda q: (
+                    const(lib.Const_Const_q(arg=(q.numerator, q.denominator)), REAL),
+                    q,
+                )
             )
         case "unit":
             return st.just((construct("()", [], UNIT), ()))
         case "rec_t":
-            return st.tuples(values("int", drop_labels), values(("list", ("bool",)), drop_labels)).map(
+            return st.tuples(
+                values("int", drop_labels), values(("list", ("bool",)), drop_labels)
+            ).map(
                 lambda ab: (
                     term(
                         lib.Mir_Term_view_Record(
-                            rows=[(sym("a", INT), ab[0][0]), (sym("b", ab[1][0].ty), ab[1][0])], rest=None
+                            rows=[
+                                (sym("a", INT), ab[0][0]),
+                                (sym("b", ab[1][0].ty), ab[1][0]),
+                            ],
+                            rest=None,
                         ),
                         REC_T,
                     ),
@@ -180,15 +214,36 @@ def values(t: Ty, drop_labels: bool) -> st.SearchStrategy[tuple[RawTerm, PyValue
             )
         case "var_t":
             return st.one_of(
-                inline_record("A", {"x": values("int", drop_labels), "y": values("string", drop_labels)}, VAR_T, drop_labels),
-                st.tuples(values("int", drop_labels), values("string", drop_labels)).map(
-                    lambda p: (construct("B", [p[0][0], p[1][0]], VAR_T), Constructed("B", (p[0][1], p[1][1])))
+                inline_record(
+                    "A",
+                    {
+                        "x": values("int", drop_labels),
+                        "y": values("string", drop_labels),
+                    },
+                    VAR_T,
+                    drop_labels,
+                ),
+                st.tuples(
+                    values("int", drop_labels), values("string", drop_labels)
+                ).map(
+                    lambda p: (
+                        construct("B", [p[0][0], p[1][0]], VAR_T),
+                        Constructed("B", (p[0][1], p[1][1])),
+                    )
                 ),
                 st.just((construct("C", [], VAR_T), Constructed("C"))),
             )
         case "nest_t":
             return st.one_of(
-                inline_record("N", {"inner": values("var_t", drop_labels), "k": values("int", drop_labels)}, NEST_T, drop_labels),
+                inline_record(
+                    "N",
+                    {
+                        "inner": values("var_t", drop_labels),
+                        "k": values("int", drop_labels),
+                    },
+                    NEST_T,
+                    drop_labels,
+                ),
                 st.just((construct("M", [], NEST_T), Constructed("M"))),
             )
         case ("list", (u,)):
@@ -205,7 +260,10 @@ def values(t: Ty, drop_labels: bool) -> st.SearchStrategy[tuple[RawTerm, PyValue
             return st.one_of(
                 st.just((construct("None", [], raw_type(t)), Constructed("None"))),
                 values(u, drop_labels).map(
-                    lambda x: (construct("Some", [x[0]], raw_type(t)), Constructed("Some", (x[1],)))
+                    lambda x: (
+                        construct("Some", [x[0]], raw_type(t)),
+                        Constructed("Some", (x[1],)),
+                    )
                 ),
             )
         case ("tuple", us):
@@ -232,5 +290,12 @@ def test_to_python_with_db_restores_inline_record_labels(tv: tuple[RawTerm, PyVa
 
 
 def test_to_python_without_db_keeps_unlabeled_arguments():
-    raw = construct("A", [const(lib.Const_Const_z(arg=1), INT), const(lib.Const_Const_string(arg="a"), STRING)], VAR_T)
+    raw = construct(
+        "A",
+        [
+            const(lib.Const_Const_z(arg=1), INT),
+            const(lib.Const_Const_string(arg="a"), STRING),
+        ],
+        VAR_T,
+    )
     assert same(term_of_lib(raw).to_python(), Constructed("A", (1, "a")))

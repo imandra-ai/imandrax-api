@@ -21,10 +21,19 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from functools import cached_property
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Literal, Self, TypeAliasType, assert_never, ClassVar, cast, get_origin
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Literal,
+    Self,
+    TypeAliasType,
+    assert_never,
+    cast,
+    get_origin,
+)
 
-from imandrax_api import v1
-from imandrax_api import lib
+from imandrax_api import lib, v1
 from imandrax_api.bindings import (
     api_pb2,
     artmsg_pb2,
@@ -174,14 +183,24 @@ class Artifact:
         """
         if isinstance(expected_type, TypeAliasType):  # pyright: ignore[reportUnnecessaryIsInstance]
             value = expected_type.__value__
-            hint = f"pass the class it names, `{value}`" if isinstance(get_origin(value), type) else "it is a union"
-            raise TypeError(f"`{expected_type.__name__}` is a type alias, not a class: {hint}")
+            hint = (
+                f"pass the class it names, `{value}`"
+                if isinstance(get_origin(value), type)
+                else "it is a union"
+            )
+            raise TypeError(
+                f"`{expected_type.__name__}` is a type alias, not a class: {hint}"
+            )
         if self.kind not in lib.artifact_decoders:
             raise UnexpectedResponseError(f"Unknown artifact kind '{self.kind}'")
         d = lib.read_artifact_data(self.data, self.kind)
-        cls = get_origin(expected_type) or expected_type  # `Foo[A, B]` -> `Foo`; plain `Foo` stays
+        cls = (
+            get_origin(expected_type) or expected_type
+        )  # `Foo[A, B]` -> `Foo`; plain `Foo` stays
         if not isinstance(d, cls):
-            raise UnexpectedResponseError(f"Artifact of kind '{self.kind}' decoded to unexpected type '{type(d)}'")
+            raise UnexpectedResponseError(
+                f"Artifact of kind '{self.kind}' decoded to unexpected type '{type(d)}'"
+            )
         # `isinstance` cannot narrow to `T` here, as it checks the class without type arguments
         return cast(T, d)
 
@@ -250,7 +269,9 @@ class ProofFound:
 
     proof: ProofTerm
     """Proof term."""
-    _raw: lib.Tasks_PO_res_proof_found[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+    _raw: lib.Tasks_PO_res_proof_found[lib.Mir_Term, lib.Mir_Type] = field(
+        repr=False, compare=False
+    )
 
 
 @dataclass(slots=True, frozen=True)
@@ -266,14 +287,18 @@ class Instance:
     """Success case for instance"""
 
     model: Model
-    _raw: lib.Tasks_PO_res_instance[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+    _raw: lib.Tasks_PO_res_instance[lib.Mir_Term, lib.Mir_Type] = field(
+        repr=False, compare=False
+    )
 
 
 @dataclass(slots=True, frozen=True)
 class TestOk:
     """Test didn't find a counter-example"""
 
-    _raw: lib.Tasks_PO_res_success[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+    _raw: lib.Tasks_PO_res_success[lib.Mir_Term, lib.Mir_Type] = field(
+        repr=False, compare=False
+    )
 
 
 ProofObligationSuccess = ProofFound | Instance | VerifiedUpto | TestOk
@@ -286,7 +311,9 @@ class NoProof:
     error: ErrorCore
     counter_model: Model | None
     subgoals: tuple[Sequent, ...]
-    _raw: lib.Tasks_PO_res_no_proof[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+    _raw: lib.Tasks_PO_res_no_proof[lib.Mir_Term, lib.Mir_Type] = field(
+        repr=False, compare=False
+    )
 
 
 @dataclass(slots=True, frozen=True)
@@ -296,7 +323,9 @@ class Unsat:
     error: ErrorCore
     proof: ProofTerm
     """Proof term for unsat."""
-    _raw: lib.Tasks_PO_res_unsat[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+    _raw: lib.Tasks_PO_res_unsat[lib.Mir_Term, lib.Mir_Type] = field(
+        repr=False, compare=False
+    )
 
 
 @dataclass(slots=True, frozen=True)
@@ -305,20 +334,26 @@ class InvalidModel:
 
     error: ErrorCore
     model: Model
-    _raw: lib.Tasks_PO_res_error[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+    _raw: lib.Tasks_PO_res_error[lib.Mir_Term, lib.Mir_Type] = field(
+        repr=False, compare=False
+    )
 
 
 @dataclass(slots=True, frozen=True)
 class ProofObligationError:
     error: ErrorCore
-    _raw: lib.Tasks_PO_res_error[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
+    _raw: lib.Tasks_PO_res_error[lib.Mir_Term, lib.Mir_Type] = field(
+        repr=False, compare=False
+    )
 
 
 ProofObligationFailure = NoProof | Unsat | InvalidModel | ProofObligationError
 
 
 def proof_obligation_result_of_lib(
-    x: lib.Tasks_PO_res_result[lib.Tasks_PO_res_success[lib.Mir_Term, lib.Mir_Type], lib.Mir_Term, lib.Mir_Type],
+    x: lib.Tasks_PO_res_result[
+        lib.Tasks_PO_res_success[lib.Mir_Term, lib.Mir_Type], lib.Mir_Term, lib.Mir_Type
+    ],
 ) -> ProofObligationSuccess | ProofObligationFailure:
     """Convert a library proof obligation result into the matching success or failure variant"""
     match x:
@@ -336,7 +371,9 @@ def proof_obligation_result_of_lib(
         case lib.Tasks_PO_res_error_No_proof(arg=r):
             return NoProof(
                 error=ErrorCore.of_lib(r.err),
-                counter_model=None if r.counter_model is None else Model.of_lib(r.counter_model),
+                counter_model=None
+                if r.counter_model is None
+                else Model.of_lib(r.counter_model),
                 subgoals=tuple(Sequent.of_lib(sg) for sg in r.subgoals),
                 _raw=r,
             )
@@ -347,7 +384,9 @@ def proof_obligation_result_of_lib(
                 _raw=r,
             )
         case lib.Tasks_PO_res_error_Invalid_model(args=(e, m)):
-            return InvalidModel(error=ErrorCore.of_lib(e), model=Model.of_lib(m), _raw=x)
+            return InvalidModel(
+                error=ErrorCore.of_lib(e), model=Model.of_lib(m), _raw=x
+            )
         case lib.Tasks_PO_res_error_Error(arg=e):
             return ProofObligationError(error=ErrorCore.of_lib(e), _raw=x)
 
@@ -368,7 +407,9 @@ class ProofObligationTaskResult:
         _raw: lib.Tasks_PO_res_sub_res[lib.Mir_Term] = field(repr=False, compare=False)
 
         @classmethod
-        def of_lib(cls, sr: lib.Tasks_PO_res_sub_res[lib.Mir_Term]) -> "ProofObligationTaskResult.Subresult":
+        def of_lib(
+            cls, sr: lib.Tasks_PO_res_sub_res[lib.Mir_Term]
+        ) -> "ProofObligationTaskResult.Subresult":
             return cls(
                 goal=Sequent.of_lib(sr.goal),
                 sub_goals=tuple(Sequent.of_lib(sg) for sg in sr.sub_goals),
@@ -378,9 +419,13 @@ class ProofObligationTaskResult:
 
     def __init__(self, artifact: Artifact):
         if artifact.kind != "po_res":
-            raise ValueError(f"Expected an artifact of kind 'po_res', got '{artifact.kind}'")
+            raise ValueError(
+                f"Expected an artifact of kind 'po_res', got '{artifact.kind}'"
+            )
         self._artifact: Artifact = artifact
-        self._data = artifact.decode_as(lib.Tasks_PO_res_shallow_poly[lib.Mir_Term, lib.Mir_Type])
+        self._data = artifact.decode_as(
+            lib.Tasks_PO_res_shallow_poly[lib.Mir_Term, lib.Mir_Type]
+        )
 
     @property
     def from_(self) -> str:
@@ -410,7 +455,12 @@ class ProofObligationTaskResult:
     def error(self) -> ErrorCore | None:
         """The error, if the proof obligation failed"""
         match self.result:
-            case NoProof(error=e) | Unsat(error=e) | InvalidModel(error=e) | ProofObligationError(error=e):
+            case (
+                NoProof(error=e)
+                | Unsat(error=e)
+                | InvalidModel(error=e)
+                | ProofObligationError(error=e)
+            ):
                 return e
             case _:
                 return None
@@ -460,7 +510,10 @@ class ProofObligationTaskResult:
     @cached_property
     def subresults(self) -> list[list[Subresult]]:
         """The results for the individual subgoals"""
-        return [[ProofObligationTaskResult.Subresult.of_lib(s) for s in sl] for sl in self._data.sub_res]
+        return [
+            [ProofObligationTaskResult.Subresult.of_lib(s) for s in sl]
+            for sl in self._data.sub_res
+        ]
 
     def __str__(self) -> str:
         return f"proof: {self.proof}\nsubgoals: {self.subgoals}\nmodel: {self.model}"
@@ -490,7 +543,9 @@ class EvaluationTaskResult:
 
     def __init__(self, artifact: Artifact):
         if artifact.kind != "eval_res":
-            raise ValueError(f"Expected an artifact of kind 'eval_res', got '{artifact.kind}'")
+            raise ValueError(
+                f"Expected an artifact of kind 'eval_res', got '{artifact.kind}'"
+            )
         self._artifact: Artifact = artifact
         self._data = artifact.decode_as(lib.Tasks_Eval_res)
 
@@ -537,9 +592,13 @@ class DecompositionTaskResult:
 
     def __init__(self, artifact: Artifact):
         if artifact.kind != "decomp_res":
-            raise ValueError(f"Expected an artifact of kind 'decomp_res', got '{artifact.kind}'")
+            raise ValueError(
+                f"Expected an artifact of kind 'decomp_res', got '{artifact.kind}'"
+            )
         self._artifact: Artifact = artifact
-        self._data = artifact.decode_as(lib.Tasks_Decomp_res_shallow_poly[lib.Mir_Term, lib.Mir_Type])
+        self._data = artifact.decode_as(
+            lib.Tasks_Decomp_res_shallow_poly[lib.Mir_Term, lib.Mir_Type]
+        )
 
     @property
     def from_(self) -> str:
@@ -547,7 +606,11 @@ class DecompositionTaskResult:
         return self._data.from_.key
 
     @property
-    def _result(self) -> lib.Tasks_Decomp_res_result[lib.Tasks_Decomp_res_success[lib.Mir_Term, lib.Mir_Type]]:
+    def _result(
+        self,
+    ) -> lib.Tasks_Decomp_res_result[
+        lib.Tasks_Decomp_res_success[lib.Mir_Term, lib.Mir_Type]
+    ]:
         return self._data.res
 
     @cached_property
@@ -606,6 +669,7 @@ class DecompositionTaskResult:
 @dataclass(slots=True, frozen=True)
 class TaskID:
     """A task identifier"""
+
     id: str
     _raw: task_pb2.TaskID = field(repr=False, compare=False)
 
@@ -617,7 +681,9 @@ class TaskID:
         return self.id
 
 
-type TaskResult = ProofObligationTaskResult | EvaluationTaskResult | DecompositionTaskResult
+type TaskResult = (
+    ProofObligationTaskResult | EvaluationTaskResult | DecompositionTaskResult
+)
 
 
 class AwaitableAttrs:
@@ -660,7 +726,9 @@ class Task:
     _result_artifact_kind: ClassVar[str | None] = None
     """The artifact kind of the task's result, `None` if it is not known for the task's kind"""
 
-    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
+    def __init__(
+        self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None
+    ):
         # A plain `Task` is only for task kinds without a subclass, whose artifact kinds are not
         # known; other kinds need their subclass, which `task_of_raw` picks
         if type(self) is Task and task.kind in (
@@ -675,7 +743,9 @@ class Task:
         self._raw: task_pb2.Task = task
         # The task holds only a weak reference to the client, so it does not keep the client alive;
         # fetching after the client is gone raises `ClientGoneError`.
-        self._client: weakref.ref[Client | AsyncClient] | None = None if client is None else weakref.ref(client)
+        self._client: weakref.ref[Client | AsyncClient] | None = (
+            None if client is None else weakref.ref(client)
+        )
         self._artifacts: dict[str, Artifact] = {}
         self._pending: dict[str, asyncio.Future[Artifact]] = {}
 
@@ -696,7 +766,9 @@ class Task:
         return TaskID.of_raw(self._raw.id)
 
     @property
-    def kind(self) -> Literal["eval", "check_po", "proof_check", "decomp", "unspecified"]:
+    def kind(
+        self,
+    ) -> Literal["eval", "check_po", "proof_check", "decomp", "unspecified"]:
         match self._raw.kind:
             case task_pb2.TASK_EVAL:
                 return "eval"
@@ -722,7 +794,9 @@ class Task:
         """
         kind = self._artifact_kind
         if kind is None:
-            raise UnexpectedResponseError(f"No known data artifact kind for tasks of kind {self._raw.kind}")
+            raise UnexpectedResponseError(
+                f"No known data artifact kind for tasks of kind {self._raw.kind}"
+            )
         return self._artifact(kind)
 
     @cached_property
@@ -733,7 +807,9 @@ class Task:
         """
         kind = self._result_artifact_kind
         if kind is None:
-            raise UnexpectedResponseError(f"No known result artifact kind for tasks of kind {self._raw.kind}")
+            raise UnexpectedResponseError(
+                f"No known result artifact kind for tasks of kind {self._raw.kind}"
+            )
         return _task_result_of_artifact(self._artifact(kind))
 
     async def fetch_all(self) -> None:
@@ -820,13 +896,15 @@ class Task:
 
 
 def _artifact_of_result(res: api_pb2.ArtifactResult) -> Artifact:
-    match (res_tag := res.WhichOneof("result")):
+    match res_tag := res.WhichOneof("result"):
         case "error":
             raise ServerError(Error.of_raw(res.error))
         case "ok":
             return Artifact.of_raw(res.ok)
         case _:
-            raise UnexpectedResponseError(f"Artifact result has neither `error` nor `ok`: {res_tag}")
+            raise UnexpectedResponseError(
+                f"Artifact result has neither `error` nor `ok`: {res_tag}"
+            )
 
 
 def _task_result_of_artifact(artifact: Artifact) -> TaskResult:
@@ -838,7 +916,9 @@ def _task_result_of_artifact(artifact: Artifact) -> TaskResult:
         case "decomp_res":
             return DecompositionTaskResult(artifact)
         case _:
-            raise UnexpectedResponseError(f"Unexpected result artifact kind '{artifact.kind}'")
+            raise UnexpectedResponseError(
+                f"Unexpected result artifact kind '{artifact.kind}'"
+            )
 
 
 @dataclass(slots=True, frozen=True)
@@ -874,8 +954,12 @@ class ProofObligation:
             is_instance=po.is_instance,
             timeout=po.timeout,
             upto=None if po.upto is None else upto_of_lib(po.upto),
-            verify_kind=None if po.verify_kind is None else verify_kind_of_lib(po.verify_kind),
-            named_hypotheses=tuple((n, term_of_lib(h)) for (n, h) in po.named_hypotheses),
+            verify_kind=None
+            if po.verify_kind is None
+            else verify_kind_of_lib(po.verify_kind),
+            named_hypotheses=tuple(
+                (n, term_of_lib(h)) for (n, h) in po.named_hypotheses
+            ),
             _raw=po,
         )
 
@@ -896,13 +980,17 @@ class ProofObligationTask(Task):
     _artifact_kind = "po_task"
     _result_artifact_kind = "po_res"
 
-    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
+    def __init__(
+        self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None
+    ):
         assert task.kind == task_pb2.TASK_CHECK_PO
         super().__init__(task, client)
 
     @cached_property
     def _po_task(self) -> lib.Tasks_PO_task_Mir:
-        return self._artifact("po_task").decode_as(lib.Tasks_PO_task_t_poly[lib.Mir_Term, lib.Mir_Type])
+        return self._artifact("po_task").decode_as(
+            lib.Tasks_PO_task_t_poly[lib.Mir_Term, lib.Mir_Type]
+        )
 
     @cached_property
     def proof_obligation(self) -> ProofObligation:
@@ -943,13 +1031,17 @@ class EvaluationTask(Task):
     _artifact_kind = "eval_task"
     _result_artifact_kind = "eval_res"
 
-    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
+    def __init__(
+        self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None
+    ):
         assert task.kind == task_pb2.TASK_EVAL
         super().__init__(task, client)
 
     @cached_property
     def _eval_task(self) -> lib.Tasks_Eval_task_Mir:
-        return self._artifact("eval_task").decode_as(lib.Tasks_Eval_task_t_poly[lib.Mir_Term, lib.Mir_Type])
+        return self._artifact("eval_task").decode_as(
+            lib.Tasks_Eval_task_t_poly[lib.Mir_Term, lib.Mir_Type]
+        )
 
     @cached_property
     def variables(self) -> list[Variable]:
@@ -1017,7 +1109,9 @@ class EnumerationStyle(StrEnum):
     MULTIPLICATIVE = "multiplicative"
 
 
-def enumeration_style_of_lib(x: lib.Tasks_Decomp_task_enumeration_style) -> EnumerationStyle:
+def enumeration_style_of_lib(
+    x: lib.Tasks_Decomp_task_enumeration_style,
+) -> EnumerationStyle:
     """Convert a library enumeration style into the matching `EnumerationStyle`"""
     match x:
         case lib.Tasks_Decomp_task_enumeration_style_Additive():
@@ -1165,11 +1259,24 @@ class DecompositionRequest:
             ds = ", ".join(str(d) for d in self.ds)
             return f"enumerate ({self.d_f}) [{ds}]"
 
-    Request = Function | Term | Return | Prune | Merge | CompoundMerge | Combine | Get | Let | Enumerate
+    Request = (
+        Function
+        | Term
+        | Return
+        | Prune
+        | Merge
+        | CompoundMerge
+        | Combine
+        | Get
+        | Let
+        | Enumerate
+    )
     """A description of the decomposition to compute; requests can be combined"""
 
 
-def decomp_request_of_lib(d: lib.Tasks_Decomp_task_Mir_decomp) -> DecompositionRequest.Request:
+def decomp_request_of_lib(
+    d: lib.Tasks_Decomp_task_Mir_decomp,
+) -> DecompositionRequest.Request:
     """Convert a library decomposition request into the matching `Request` variant"""
     match d:
         case lib.Tasks_Decomp_task_decomp_poly_Decomp(arg=a):
@@ -1186,20 +1293,28 @@ def decomp_request_of_lib(d: lib.Tasks_Decomp_task_Mir_decomp) -> DecompositionR
         case lib.Tasks_Decomp_task_decomp_poly_Term(arg=t):
             return DecompositionRequest.Term(term=term_of_lib(t), _raw=d)
         case lib.Tasks_Decomp_task_decomp_poly_Return(arg=fd):
-            return DecompositionRequest.Return(decomposition=Decomposition.of_lib(fd), _raw=d)
+            return DecompositionRequest.Return(
+                decomposition=Decomposition.of_lib(fd), _raw=d
+            )
         case lib.Tasks_Decomp_task_decomp_poly_Prune(arg=r):
             return DecompositionRequest.Prune(request=decomp_request_of_lib(r), _raw=d)
         case lib.Tasks_Decomp_task_decomp_poly_Merge(args=(l, r)):
-            return DecompositionRequest.Merge(left=decomp_request_of_lib(l), right=decomp_request_of_lib(r), _raw=d)
+            return DecompositionRequest.Merge(
+                left=decomp_request_of_lib(l), right=decomp_request_of_lib(r), _raw=d
+            )
         case lib.Tasks_Decomp_task_decomp_poly_Compound_merge(args=(l, r)):
             return DecompositionRequest.CompoundMerge(
                 left=decomp_request_of_lib(l), right=decomp_request_of_lib(r), _raw=d
             )
         case lib.Tasks_Decomp_task_decomp_poly_Combine(arg=r):
-            return DecompositionRequest.Combine(request=decomp_request_of_lib(r), _raw=d)
+            return DecompositionRequest.Combine(
+                request=decomp_request_of_lib(r), _raw=d
+            )
         case lib.Tasks_Decomp_task_decomp_poly_Get(arg=name):
             return DecompositionRequest.Get(name=name, _raw=d)
-        case lib.Tasks_Decomp_task_decomp_poly_Let(bindings=bindings, and_then=and_then):
+        case lib.Tasks_Decomp_task_decomp_poly_Let(
+            bindings=bindings, and_then=and_then
+        ):
             return DecompositionRequest.Let(
                 bindings=tuple((n, decomp_request_of_lib(b)) for n, b in bindings),
                 and_then=decomp_request_of_lib(and_then),
@@ -1222,13 +1337,17 @@ class DecompositionTask(Task):
     _artifact_kind = "decomp_task"
     _result_artifact_kind = "decomp_res"
 
-    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
+    def __init__(
+        self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None
+    ):
         assert task.kind == task_pb2.TASK_DECOMP
         super().__init__(task, client)
 
     @cached_property
     def _decomp_task(self) -> lib.Tasks_Decomp_task_Mir:
-        return self._artifact("decomp_task").decode_as(lib.Tasks_Decomp_task_t_poly[lib.Mir_Term, lib.Mir_Type])
+        return self._artifact("decomp_task").decode_as(
+            lib.Tasks_Decomp_task_t_poly[lib.Mir_Term, lib.Mir_Type]
+        )
 
     @cached_property
     def decomp(self) -> DecompositionRequest.Request:
@@ -1262,7 +1381,9 @@ class ProofCheckTask(Task):
     _artifact_kind = None
     _result_artifact_kind = None
 
-    def __init__(self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None):
+    def __init__(
+        self, task: task_pb2.Task, client: "Client | AsyncClient | None" = None
+    ):
         assert task.kind == task_pb2.TASK_PROOF_CHECK
         super().__init__(task, client)
 
@@ -1282,7 +1403,9 @@ def task_of_raw(t: task_pb2.Task, client: "Client | AsyncClient | None" = None) 
             return Task(t, client)
 
 
-def _task_of_raw_as[T: Task](t: task_pb2.Task, cls: type[T], client: "Client | AsyncClient | None") -> T:
+def _task_of_raw_as[T: Task](
+    t: task_pb2.Task, cls: type[T], client: "Client | AsyncClient | None"
+) -> T:
     """Wrap a task that the response says is of the `Task` subclass `cls`"""
     task = task_of_raw(t, client)
     if not isinstance(task, cls):
@@ -1360,7 +1483,9 @@ class ProofObligationResult:
     _raw: simple_api_pb2.PO_Res = field(repr=False, compare=False)
 
     @classmethod
-    def of_raw(cls, x: simple_api_pb2.PO_Res, client: "Client | AsyncClient | None" = None) -> "ProofObligationResult":
+    def of_raw(
+        cls, x: simple_api_pb2.PO_Res, client: "Client | AsyncClient | None" = None
+    ) -> "ProofObligationResult":
         res: ProofObligationResult.Res | None
         match x.WhichOneof("res"):
             case "unknown":
@@ -1368,14 +1493,20 @@ class ProofObligationResult:
             case "err":
                 res = ProofObligationResult.Err()
             case "proof":
-                res = ProofObligationResult.Proof(proof_pp=x.proof.proof_pp if x.proof.HasField("proof_pp") else None)
+                res = ProofObligationResult.Proof(
+                    proof_pp=x.proof.proof_pp if x.proof.HasField("proof_pp") else None
+                )
             case "instance":
                 res = ProofObligationResult.Instance(
-                    model=ModelOutput.of_raw(x.instance.model) if x.instance.HasField("model") else None
+                    model=ModelOutput.of_raw(x.instance.model)
+                    if x.instance.HasField("model")
+                    else None
                 )
             case "verified_upto":
                 res = ProofObligationResult.VerifiedUpto(
-                    message=x.verified_upto.msg if x.verified_upto.HasField("msg") else None
+                    message=x.verified_upto.msg
+                    if x.verified_upto.HasField("msg")
+                    else None
                 )
             case "test_ok":
                 res = ProofObligationResult.TestOk()
@@ -1390,7 +1521,12 @@ class ProofObligationResult:
         )
 
     @property
-    def outcome(self) -> Literal["unknown", "err", "proof", "instance", "verified_upto", "test_ok"] | None:
+    def outcome(
+        self,
+    ) -> (
+        Literal["unknown", "err", "proof", "instance", "verified_upto", "test_ok"]
+        | None
+    ):
         """One of `unknown`, `err`, `proof`, `instance`, `verified_upto` and `test_ok`"""
         match self.res:
             case ProofObligationResult.Unknown():
@@ -1421,18 +1557,29 @@ class ProofObligationResult:
     @property
     def proof_pp(self) -> str | None:
         """The pretty-printed proof, if the goal was proved and the server sent it"""
-        return self.res.proof_pp if isinstance(self.res, ProofObligationResult.Proof) else None
+        return (
+            self.res.proof_pp
+            if isinstance(self.res, ProofObligationResult.Proof)
+            else None
+        )
 
     @property
     def model(self) -> "ModelOutput | None":
         """The model, if one was found and the server sent it"""
-        return self.res.model if isinstance(self.res, ProofObligationResult.Instance) else None
+        return (
+            self.res.model
+            if isinstance(self.res, ProofObligationResult.Instance)
+            else None
+        )
 
     @property
     def message(self) -> str | None:
         """The message for an `unknown` or `verified_upto` outcome, if any"""
         match self.res:
-            case ProofObligationResult.Unknown(message=m) | ProofObligationResult.VerifiedUpto(message=m):
+            case (
+                ProofObligationResult.Unknown(message=m)
+                | ProofObligationResult.VerifiedUpto(message=m)
+            ):
                 return m
             case _:
                 return None
@@ -1453,11 +1600,17 @@ class DecompositionResult:
 
     @classmethod
     def of_raw(
-        cls, x: simple_api_pb2.DecomposeRes, client: "Client | AsyncClient | None" = None
+        cls,
+        x: simple_api_pb2.DecomposeRes,
+        client: "Client | AsyncClient | None" = None,
     ) -> "DecompositionResult":
         return cls(
-            artifact=Artifact.of_raw(x.artifact) if x.WhichOneof("res") == "artifact" else None,
-            task=_task_of_raw_as(x.task, DecompositionTask, client) if x.HasField("task") else None,
+            artifact=Artifact.of_raw(x.artifact)
+            if x.WhichOneof("res") == "artifact"
+            else None,
+            task=_task_of_raw_as(x.task, DecompositionTask, client)
+            if x.HasField("task")
+            else None,
             errors=tuple(Error.of_raw(e) for e in x.errors),
             _raw=x,
         )
@@ -1472,7 +1625,11 @@ class DecompositionResult:
         """The decomposition, decoded from `artifact` on first access, if the request succeeded"""
         if self.artifact is None:
             return None
-        return Decomposition.of_lib(self.artifact.decode_as(lib.Common_Fun_decomp_t_poly[lib.Mir_Term, lib.Mir_Type]))
+        return Decomposition.of_lib(
+            self.artifact.decode_as(
+                lib.Common_Fun_decomp_t_poly[lib.Mir_Term, lib.Mir_Type]
+            )
+        )
 
 
 @dataclass(slots=True, frozen=True)
@@ -1518,15 +1675,21 @@ class EvalSrcResponse:
     _raw: simple_api_pb2.EvalRes = field(repr=False, compare=False)
 
     @classmethod
-    def of_raw(cls, x: simple_api_pb2.EvalRes, client: "Client | AsyncClient | None" = None) -> "EvalSrcResponse":
+    def of_raw(
+        cls, x: simple_api_pb2.EvalRes, client: "Client | AsyncClient | None" = None
+    ) -> "EvalSrcResponse":
         return cls(
             success=x.success,
             messages=tuple(x.messages),
             errors=tuple(Error.of_raw(e) for e in x.errors),
             tasks=tuple(task_of_raw(t, client) for t in x.tasks),
-            po_results=tuple(ProofObligationResult.of_raw(r, client) for r in x.po_results),
+            po_results=tuple(
+                ProofObligationResult.of_raw(r, client) for r in x.po_results
+            ),
             eval_results=tuple(EvalOutput.of_raw(r) for r in x.eval_results),
-            decomp_results=tuple(DecompositionResult.of_raw(r, client) for r in x.decomp_results),
+            decomp_results=tuple(
+                DecompositionResult.of_raw(r, client) for r in x.decomp_results
+            ),
             _raw=x,
         )
 
@@ -1563,7 +1726,9 @@ class ModelOutput:
         if not self._raw.HasField("artifact"):
             return None
         artifact = Artifact.of_raw(self._raw.artifact)
-        return Model.of_lib(artifact.decode_as(lib.Common_Model_t_poly[lib.Mir_Term, lib.Mir_Type]))
+        return Model.of_lib(
+            artifact.decode_as(lib.Common_Model_t_poly[lib.Mir_Term, lib.Mir_Type])
+        )
 
 
 @dataclass(slots=True, frozen=True)
@@ -1613,7 +1778,9 @@ class VerifyResponse:
     _raw: simple_api_pb2.VerifyRes = field(repr=False, compare=False)
 
     @classmethod
-    def of_raw(cls, x: simple_api_pb2.VerifyRes, client: "Client | AsyncClient | None" = None) -> "VerifyResponse":
+    def of_raw(
+        cls, x: simple_api_pb2.VerifyRes, client: "Client | AsyncClient | None" = None
+    ) -> "VerifyResponse":
         res: VerifyResponse.Res | None
         match x.WhichOneof("res"):
             case "unknown":
@@ -1621,26 +1788,38 @@ class VerifyResponse:
             case "err":
                 res = VerifyResponse.Err()
             case "proved":
-                res = VerifyResponse.Proved(proof_pp=x.proved.proof_pp if x.proved.HasField("proof_pp") else None)
+                res = VerifyResponse.Proved(
+                    proof_pp=x.proved.proof_pp
+                    if x.proved.HasField("proof_pp")
+                    else None
+                )
             case "refuted":
                 res = VerifyResponse.Refuted(
-                    counter_example=ModelOutput.of_raw(x.refuted.model) if x.refuted.HasField("model") else None
+                    counter_example=ModelOutput.of_raw(x.refuted.model)
+                    if x.refuted.HasField("model")
+                    else None
                 )
             case "verified_upto":
                 res = VerifyResponse.VerifiedUpto(
-                    message=x.verified_upto.msg if x.verified_upto.HasField("msg") else None
+                    message=x.verified_upto.msg
+                    if x.verified_upto.HasField("msg")
+                    else None
                 )
             case _:
                 res = None
         return cls(
             res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
-            task=_task_of_raw_as(x.task, ProofObligationTask, client) if x.HasField("task") else None,
+            task=_task_of_raw_as(x.task, ProofObligationTask, client)
+            if x.HasField("task")
+            else None,
             _raw=x,
         )
 
     @property
-    def outcome(self) -> Literal["unknown", "err", "proved", "refuted", "verified_upto"] | None:
+    def outcome(
+        self,
+    ) -> Literal["unknown", "err", "proved", "refuted", "verified_upto"] | None:
         """One of `unknown`, `err`, `proved`, `refuted` and `verified_upto`"""
         match self.res:
             case VerifyResponse.Unknown():
@@ -1669,18 +1848,27 @@ class VerifyResponse:
     @property
     def proof_pp(self) -> str | None:
         """The pretty-printed proof, if the goal was proved and the server sent it"""
-        return self.res.proof_pp if isinstance(self.res, VerifyResponse.Proved) else None
+        return (
+            self.res.proof_pp if isinstance(self.res, VerifyResponse.Proved) else None
+        )
 
     @property
     def counter_example(self) -> ModelOutput | None:
         """The counter-example, if the goal was refuted"""
-        return self.res.counter_example if isinstance(self.res, VerifyResponse.Refuted) else None
+        return (
+            self.res.counter_example
+            if isinstance(self.res, VerifyResponse.Refuted)
+            else None
+        )
 
     @property
     def message(self) -> str | None:
         """The message for an `unknown` or `verified_upto` outcome, if any"""
         match self.res:
-            case VerifyResponse.Unknown(message=m) | VerifyResponse.VerifiedUpto(message=m):
+            case (
+                VerifyResponse.Unknown(message=m)
+                | VerifyResponse.VerifiedUpto(message=m)
+            ):
                 return m
             case _:
                 return None
@@ -1726,7 +1914,9 @@ class InstanceResponse:
     _raw: simple_api_pb2.InstanceRes = field(repr=False, compare=False)
 
     @classmethod
-    def of_raw(cls, x: simple_api_pb2.InstanceRes, client: "Client | AsyncClient | None" = None) -> "InstanceResponse":
+    def of_raw(
+        cls, x: simple_api_pb2.InstanceRes, client: "Client | AsyncClient | None" = None
+    ) -> "InstanceResponse":
         res: InstanceResponse.Res | None
         match x.WhichOneof("res"):
             case "unknown":
@@ -1734,15 +1924,23 @@ class InstanceResponse:
             case "err":
                 res = InstanceResponse.Err()
             case "unsat":
-                res = InstanceResponse.Unsat(proof_pp=x.unsat.proof_pp if x.unsat.HasField("proof_pp") else None)
+                res = InstanceResponse.Unsat(
+                    proof_pp=x.unsat.proof_pp if x.unsat.HasField("proof_pp") else None
+                )
             case "sat":
-                res = InstanceResponse.Sat(instance=ModelOutput.of_raw(x.sat.model) if x.sat.HasField("model") else None)
+                res = InstanceResponse.Sat(
+                    instance=ModelOutput.of_raw(x.sat.model)
+                    if x.sat.HasField("model")
+                    else None
+                )
             case _:
                 res = None
         return cls(
             res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
-            task=_task_of_raw_as(x.task, ProofObligationTask, client) if x.HasField("task") else None,
+            task=_task_of_raw_as(x.task, ProofObligationTask, client)
+            if x.HasField("task")
+            else None,
             _raw=x,
         )
 
@@ -1774,12 +1972,16 @@ class InstanceResponse:
     @property
     def proof_pp(self) -> str | None:
         """The pretty-printed proof of unsatisfiability, if any"""
-        return self.res.proof_pp if isinstance(self.res, InstanceResponse.Unsat) else None
+        return (
+            self.res.proof_pp if isinstance(self.res, InstanceResponse.Unsat) else None
+        )
 
     @property
     def message(self) -> str | None:
         """The message for an `unknown` outcome"""
-        return self.res.message if isinstance(self.res, InstanceResponse.Unknown) else None
+        return (
+            self.res.message if isinstance(self.res, InstanceResponse.Unknown) else None
+        )
 
 
 @dataclass(slots=True, frozen=True)
@@ -1815,7 +2017,9 @@ class TestResponse:
     _raw: simple_api_pb2.TestRes = field(repr=False, compare=False)
 
     @classmethod
-    def of_raw(cls, x: simple_api_pb2.TestRes, client: "Client | AsyncClient | None" = None) -> "TestResponse":
+    def of_raw(
+        cls, x: simple_api_pb2.TestRes, client: "Client | AsyncClient | None" = None
+    ) -> "TestResponse":
         res: TestResponse.Res | None
         match x.WhichOneof("res"):
             case "err":
@@ -1823,7 +2027,9 @@ class TestResponse:
             case "counter_example":
                 res = TestResponse.CounterExample(
                     counter_example=(
-                        ModelOutput.of_raw(x.counter_example.model) if x.counter_example.HasField("model") else None
+                        ModelOutput.of_raw(x.counter_example.model)
+                        if x.counter_example.HasField("model")
+                        else None
                     )
                 )
             case _:
@@ -1831,7 +2037,9 @@ class TestResponse:
         return cls(
             res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
-            task=_task_of_raw_as(x.task, ProofObligationTask, client) if x.HasField("task") else None,
+            task=_task_of_raw_as(x.task, ProofObligationTask, client)
+            if x.HasField("task")
+            else None,
             _raw=x,
         )
 
@@ -1858,7 +2066,11 @@ class TestResponse:
     @property
     def counter_example(self) -> ModelOutput | None:
         """The counter-example, if one was found"""
-        return self.res.counter_example if isinstance(self.res, TestResponse.CounterExample) else None
+        return (
+            self.res.counter_example
+            if isinstance(self.res, TestResponse.CounterExample)
+            else None
+        )
 
 
 @dataclass(slots=True, frozen=True)
@@ -1924,7 +2136,9 @@ class CodeSnippetResponse:
 
     @classmethod
     def of_raw(
-        cls, x: api_pb2.CodeSnippetEvalResult, client: "Client | AsyncClient | None" = None
+        cls,
+        x: api_pb2.CodeSnippetEvalResult,
+        client: "Client | AsyncClient | None" = None,
     ) -> "CodeSnippetResponse":
         res: Literal["ok", "errors"]
         match x.res:
@@ -1953,7 +2167,11 @@ class ServerVersion:
 
     @classmethod
     def of_raw(cls, x: system_pb2.VersionResponse) -> "ServerVersion":
-        return cls(version=x.version, git_version=x.git_version if x.HasField("git_version") else None, _raw=x)
+        return cls(
+            version=x.version,
+            git_version=x.git_version if x.HasField("git_version") else None,
+            _raw=x,
+        )
 
 
 def _artifact_kinds_of_result(res: api_pb2.ArtifactListResult) -> list[str]:
@@ -1963,7 +2181,9 @@ def _artifact_kinds_of_result(res: api_pb2.ArtifactListResult) -> list[str]:
         case "ok":
             return list(res.ok.kinds)
         case _:
-            raise UnexpectedResponseError("Artifact list result has neither `error` nor `ok`")
+            raise UnexpectedResponseError(
+                "Artifact list result has neither `error` nor `ok`"
+            )
 
 
 def _artifact_zip_of_result(res: api_pb2.ArtifactZipResult) -> bytes:
@@ -1973,7 +2193,9 @@ def _artifact_zip_of_result(res: api_pb2.ArtifactZipResult) -> bytes:
         case "ok":
             return res.ok.art_zip
         case _:
-            raise UnexpectedResponseError("Artifact zip result has neither `error` nor `ok`")
+            raise UnexpectedResponseError(
+                "Artifact zip result has neither `error` nor `ok`"
+            )
 
 
 class Client:
@@ -2116,7 +2338,9 @@ class Client:
         self, src: str, seed: int | None = None, timeout: float | None = None
     ) -> TestResponse:
         """Test the goal given as IML source with random inputs"""
-        return TestResponse.of_raw(self._client.test_src(src, seed=seed, timeout=timeout), self)
+        return TestResponse.of_raw(
+            self._client.test_src(src, seed=seed, timeout=timeout), self
+        )
 
     def test_name(
         self, name: str, seed: int | None = None, timeout: float | None = None
@@ -2361,7 +2585,9 @@ class AsyncClient:
         self, src: str, timeout: float | None = None
     ) -> TypecheckResponse:
         """Typecheck IML source, adding its definitions to the session"""
-        return TypecheckResponse.of_raw(await self._client.typecheck(src, timeout=timeout))
+        return TypecheckResponse.of_raw(
+            await self._client.typecheck(src, timeout=timeout)
+        )
 
     async def oneshot(
         self,
@@ -2392,12 +2618,16 @@ class AsyncClient:
 
     async def parse_term(self, code: str, timeout: float | None = None) -> Term:
         """Parse and typecheck a term"""
-        artifact = _artifact_of_result(await self._client.parse_term(code, timeout=timeout))
+        artifact = _artifact_of_result(
+            await self._client.parse_term(code, timeout=timeout)
+        )
         return term_of_lib(artifact.decode_as(lib.Mir_Term))
 
     async def parse_type(self, code: str, timeout: float | None = None) -> Type:
         """Parse and typecheck a type"""
-        artifact = _artifact_of_result(await self._client.parse_type(code, timeout=timeout))
+        artifact = _artifact_of_result(
+            await self._client.parse_type(code, timeout=timeout)
+        )
         return type_of_lib(artifact.decode_as(lib.Mir_Type))
 
     async def list_artifacts(

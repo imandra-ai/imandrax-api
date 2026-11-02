@@ -183,7 +183,19 @@ class Ordinal:
 
 
 Value = (
-    True_ | False_ | Int | Real | String | Constructor | Tuple | Record | QuotedTerm | Uid | Closure | Custom | Ordinal
+    True_
+    | False_
+    | Int
+    | Real
+    | String
+    | Constructor
+    | Tuple
+    | Record
+    | QuotedTerm
+    | Uid
+    | Closure
+    | Custom
+    | Ordinal
 )
 """A value produced by evaluation"""
 
@@ -217,12 +229,17 @@ def value_of_lib(x: _View) -> Value:
         case lib.Eval_Value_view_V_record(args=(descriptor, values)):
             return Record(
                 name=descriptor.rd_name.name,
-                fields={f.name: value_of_lib(v.v) for f, v in zip(descriptor.rd_fields, values)},
+                fields={
+                    f.name: value_of_lib(v.v)
+                    for f, v in zip(descriptor.rd_fields, values)
+                },
                 _raw=x,
             )
         case lib.Eval_Value_view_V_quoted_term(arg=(params, body)):
             return QuotedTerm(
-                variables=tuple(mir.Variable.of_lib(v) for v in params), body=mir.term_of_lib(body), _raw=x
+                variables=tuple(mir.Variable.of_lib(v) for v in params),
+                body=mir.term_of_lib(body),
+                _raw=x,
             )
         case lib.Eval_Value_view_V_uid(arg=u):
             return Uid(uid=mir.Uid(u), _raw=x)
@@ -283,4 +300,9 @@ def ordinal_expr_of_lib(x: lib.Eval_Ordinal) -> OrdinalExpr:
         case lib.Eval_Ordinal_Int(arg=n):
             return IntOrdinal(value=n, _raw=x)
         case lib.Eval_Ordinal_Cons(args=(a, n, b)):
-            return ConsOrdinal(exponent=ordinal_expr_of_lib(a), coefficient=n, rest=ordinal_expr_of_lib(b), _raw=x)
+            return ConsOrdinal(
+                exponent=ordinal_expr_of_lib(a),
+                coefficient=n,
+                rest=ordinal_expr_of_lib(b),
+                _raw=x,
+            )
