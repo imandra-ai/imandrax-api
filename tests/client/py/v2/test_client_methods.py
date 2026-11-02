@@ -338,7 +338,7 @@ def test_sync_async_client_parity():
             a_ret = inspect.signature(a.fget).return_annotation
             if name == "session_id":
                 # The async session is only created on `async with`
-                assert a_ret == s_ret | None
+                assert a_ret == f"{s_ret} | None"
             else:
                 assert a_ret == s_ret, name
             continue

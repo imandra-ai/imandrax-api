@@ -4,6 +4,8 @@
 # keeps it shared. `proof_term_of_lib` converts each occurrence separately, so a shared
 # sub-proof is converted, and held in memory, once per occurrence.
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 from imandrax_api import lib
@@ -37,13 +39,13 @@ class StringArgument:
 
 @dataclass(slots=True, frozen=True)
 class ListArgument:
-    elements: tuple["ProofArgument", ...]
+    elements: tuple[ProofArgument, ...]
     _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
 
 
 @dataclass(slots=True, frozen=True)
 class DictArgument:
-    entries: tuple[tuple[str, "ProofArgument"], ...]
+    entries: tuple[tuple[str, ProofArgument], ...]
     _raw: lib.Proof_Arg[lib.Mir_Term, lib.Mir_Type] = field(repr=False, compare=False)
 
 
@@ -112,12 +114,12 @@ class SubstProof(_ProofTerm):
 
     term_substitution: tuple[tuple[Variable, Term], ...]
     type_substitution: tuple[tuple[Uid, Type], ...]
-    premise: "ProofTerm"
+    premise: ProofTerm
 
 
 @dataclass(slots=True, frozen=True)
 class DeductionProof(_ProofTerm):
-    premises: tuple[tuple[str, tuple["ProofTerm", ...]], ...]
+    premises: tuple[tuple[str, tuple[ProofTerm, ...]], ...]
     """Groups of premises. The conclusion should be provable via QF_UF reasoning from the conjunction
     of all premises."""
 
