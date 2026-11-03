@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional, Self
 
 import requests
+import structlog
 
 from .. import api_types_version
 from ..bindings import (
@@ -23,6 +24,7 @@ from ..twirp.errors import Errors
 from ..twirp.exceptions import TwirpServerException
 from . import decomp
 from ._common import (
+    END_SESSION_TIMEOUT,
     ClientClosedError,
     is_session_not_found,
     mk_context,
@@ -41,6 +43,8 @@ __all__ = [
     "url_dev",
     "url_prod",
 ]
+
+log = structlog.get_logger(__name__)
 
 # TODO: https://requests.readthedocs.io/en/latest/user/advanced/#example-automatic-retries (for calls that are idempotent, maybe we pass `idempotent=True` for them
 
@@ -165,15 +169,21 @@ class Client:
     def __exit__(self, *_: Any) -> None:
         if self._closed:
             return
-        # Guard against session end failures to avoid leaking the HTTP transport.
+        # Ending the session is best-effort: a failure is only logged, so it
+        # neither replaces the outcome of the `with` body nor leaks the HTTP
+        # transport.
         try:
             if hasattr(self, "_sesh"):
                 try:
                     self._client.end_session(
-                        ctx=self._ctx(), request=self._sesh, timeout=None
+                        ctx=self._ctx(),
+                        request=self._sesh,
+                        timeout=END_SESSION_TIMEOUT,
                     )
-                except TwirpServerException as e:
-                    raise Exception("Error while ending session") from e
+                except Exception as e:
+                    log.warning(
+                        "failed to end session", session_id=self._sesh.id, error=repr(e)
+                    )
         finally:
             self._session.close()
             self._closed = True

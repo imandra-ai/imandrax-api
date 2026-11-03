@@ -5,6 +5,9 @@ from ..twirp.exceptions import TwirpServerException
 url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
 url_prod = "https://api.imandra.ai/internal/imandrax/"
 
+# `end_session` is best-effort cleanup when closing a client: it must not hang
+END_SESSION_TIMEOUT = 10.0
+
 
 class ClientClosedError(Exception):
     """A request was made on a client that has already been closed"""

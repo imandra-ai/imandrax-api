@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Optional, Self
 
 import aiohttp  # type: ignore[import-not-found]
+import structlog
 
 from .. import api_types_version
 from ..bindings import (
@@ -22,7 +23,15 @@ from ..twirp.context import Context
 from ..twirp.errors import Errors
 from ..twirp.exceptions import TwirpServerException
 from . import decomp
-from ._common import ClientClosedError, is_session_not_found, mk_context, url_prod
+from ._common import (
+    END_SESSION_TIMEOUT,
+    ClientClosedError,
+    is_session_not_found,
+    mk_context,
+    url_prod,
+)
+
+log = structlog.get_logger(__name__)
 
 
 class AsyncClient:
@@ -143,15 +152,21 @@ class AsyncClient:
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if self._closed:
             return
-        # Guard against session end failures to avoid leaking the HTTP transport.
+        # Ending the session is best-effort: a failure is only logged, so it
+        # neither replaces the outcome of the `async with` body nor leaks the
+        # HTTP transport.
         try:
             if hasattr(self, "_sesh"):
                 try:
                     await self._client.end_session(
-                        ctx=self._ctx(), request=self._sesh, timeout=None
+                        ctx=self._ctx(),
+                        request=self._sesh,
+                        timeout=END_SESSION_TIMEOUT,
                     )
-                except TwirpServerException as e:
-                    raise Exception("Error while ending session") from e
+                except Exception as e:
+                    log.warning(
+                        "failed to end session", session_id=self._sesh.id, error=repr(e)
+                    )
         finally:
             await self._session.__aexit__(exc_type, exc_val, exc_tb)
             self._closed = True
