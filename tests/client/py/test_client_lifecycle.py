@@ -199,12 +199,13 @@ def test_sync_end_session_failure_closes_transport(monkeypatch: Any) -> None:
         sync_client_mod.simple_api_twirp.SimpleClient, "end_session", end_unavailable
     )
 
-    with capture_logs() as logs, Client(url=URL) as c:
+    # a client timeout shorter than END_SESSION_TIMEOUT wins
+    with capture_logs() as logs, Client(url=URL, timeout=5) as c:
         pass
 
     assert c._closed
     assert created and created[-1].was_closed
-    assert end_timeouts == [END_SESSION_TIMEOUT]
+    assert end_timeouts == [5]
     assert [e["event"] for e in logs] == ["failed to end session"]
 
 

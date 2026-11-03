@@ -161,7 +161,7 @@ class AsyncClient:
                     await self._client.end_session(
                         ctx=self._ctx(),
                         request=self._sesh,
-                        timeout=END_SESSION_TIMEOUT,
+                        timeout=min(self._timeout, END_SESSION_TIMEOUT),
                     )
                 except Exception as e:
                     log.warning(
