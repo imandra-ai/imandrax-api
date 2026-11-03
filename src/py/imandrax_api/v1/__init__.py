@@ -77,10 +77,12 @@ class Client:
         timeout: int = 30,
         session_id: str | None = None,
         create_if_not_found: bool = False,
+        best_effort_close: bool = False,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session = requests.Session()
         self._closed = False
+        self._best_effort_close = best_effort_close
         self._auth_token = api_key if api_key else auth_token
         if self._auth_token:
             self._session.headers["Authorization"] = f"Bearer {self._auth_token}"
@@ -169,21 +171,30 @@ class Client:
     def __exit__(self, *_: Any) -> None:
         if self._closed:
             return
-        # Ending the session is best-effort: a failure is only logged, so it
-        # neither replaces the outcome of the `with` body nor leaks the HTTP
-        # transport.
+        # Guard against session end failures to avoid leaking the HTTP transport.
+        # With `best_effort_close`, a failure is only logged, so it doesn't
+        # replace the outcome of the `with` body.
         try:
             if hasattr(self, "_sesh"):
                 try:
                     self._client.end_session(
                         ctx=self._ctx(),
                         request=self._sesh,
-                        timeout=min(self._timeout, END_SESSION_TIMEOUT),
+                        timeout=min(self._timeout, END_SESSION_TIMEOUT)
+                        if self._best_effort_close
+                        else None,
                     )
                 except Exception as e:
-                    log.warning(
-                        "failed to end session", session_id=self._sesh.id, error=repr(e)
-                    )
+                    if self._best_effort_close:
+                        log.warning(
+                            "failed to end session",
+                            session_id=self._sesh.id,
+                            error=repr(e),
+                        )
+                    elif isinstance(e, TwirpServerException):
+                        raise Exception("Error while ending session") from e
+                    else:
+                        raise
         finally:
             self._session.close()
             self._closed = True

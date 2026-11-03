@@ -5,7 +5,7 @@ from ..twirp.exceptions import TwirpServerException
 url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
 url_prod = "https://api.imandra.ai/internal/imandrax/"
 
-# `end_session` is best-effort cleanup when closing a client: it must not hang
+# with `best_effort_close`, the longest a client waits for `end_session` on exit
 END_SESSION_TIMEOUT = 10.0
 
 

@@ -2215,6 +2215,9 @@ class Client:
         session_id: The session to reopen; a new one is created if `None`
         create_if_not_found: Whether to create a new session if `session_id` is not found,
             instead of raising
+        best_effort_close: Whether ending the session on exit is best-effort: it waits at most
+            10 seconds (or `timeout`, if shorter), and a failure is logged as a warning instead
+            of raised
     """
 
     def __init__(
@@ -2226,6 +2229,7 @@ class Client:
         timeout: int = 30,
         session_id: str | None = None,
         create_if_not_found: bool = False,
+        best_effort_close: bool = False,
     ):
         self._client = v1.Client(
             url=url,
@@ -2235,6 +2239,7 @@ class Client:
             timeout=timeout,
             session_id=session_id,
             create_if_not_found=create_if_not_found,
+            best_effort_close=best_effort_close,
         )
 
     def __enter__(self) -> Self:
@@ -2569,6 +2574,9 @@ class AsyncClient:
         session_id: The session to reopen when entering `async with`; a new one is created if `None`
         create_if_not_found: Whether to create a new session if `session_id` is not found,
             instead of raising
+        best_effort_close: Whether ending the session on exit is best-effort: it waits at most
+            10 seconds (or `timeout`, if shorter), and a failure is logged as a warning instead
+            of raised
     """
 
     def __init__(
@@ -2580,6 +2588,7 @@ class AsyncClient:
         timeout: int = 30,
         session_id: str | None = None,
         create_if_not_found: bool = False,
+        best_effort_close: bool = False,
     ):
         self._client: AsyncClient_ = v1.AsyncClient(
             url=url,
@@ -2589,6 +2598,7 @@ class AsyncClient:
             timeout=timeout,
             session_id=session_id,
             create_if_not_found=create_if_not_found,
+            best_effort_close=best_effort_close,
         )
 
     async def __aenter__(self) -> Self:

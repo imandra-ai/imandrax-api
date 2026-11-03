@@ -64,11 +64,13 @@ class AsyncClient:
         timeout: int = 30,
         session_id: str | None = None,
         create_if_not_found: bool = False,
+        best_effort_close: bool = False,
     ) -> None:
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session: aiohttp.ClientSession = aiohttp.ClientSession()
         self._session_id = session_id
         self._create_if_not_found = create_if_not_found
+        self._best_effort_close = best_effort_close
         self._closed = False
         self._auth_token = api_key if api_key else auth_token
         if self._auth_token:
@@ -152,21 +154,30 @@ class AsyncClient:
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if self._closed:
             return
-        # Ending the session is best-effort: a failure is only logged, so it
-        # neither replaces the outcome of the `async with` body nor leaks the
-        # HTTP transport.
+        # Guard against session end failures to avoid leaking the HTTP transport.
+        # With `best_effort_close`, a failure is only logged, so it doesn't
+        # replace the outcome of the `async with` body.
         try:
             if hasattr(self, "_sesh"):
                 try:
                     await self._client.end_session(
                         ctx=self._ctx(),
                         request=self._sesh,
-                        timeout=min(self._timeout, END_SESSION_TIMEOUT),
+                        timeout=min(self._timeout, END_SESSION_TIMEOUT)
+                        if self._best_effort_close
+                        else None,
                     )
                 except Exception as e:
-                    log.warning(
-                        "failed to end session", session_id=self._sesh.id, error=repr(e)
-                    )
+                    if self._best_effort_close:
+                        log.warning(
+                            "failed to end session",
+                            session_id=self._sesh.id,
+                            error=repr(e),
+                        )
+                    elif isinstance(e, TwirpServerException):
+                        raise Exception("Error while ending session") from e
+                    else:
+                        raise
         finally:
             await self._session.__aexit__(exc_type, exc_val, exc_tb)
             self._closed = True

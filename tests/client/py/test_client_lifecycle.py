@@ -5,9 +5,10 @@ only then issue the `create_session` / `open_session` RPC. When that RPC fails,
 nothing else closes the transport, which used to leak it (aiohttp reports it as
 an "Unclosed client session" warning).
 
-Ending the session on exit is best-effort: when `end_session` fails (the gateway
-often answers 503) the client logs it, and the `with` body's reply or exception
-is what the caller sees.
+By default a failed `end_session` on exit raises. With `best_effort_close` it is
+only logged (the gateway often answers 503), so the `with` body's reply or
+exception is what the caller sees, and the exit waits at most
+`END_SESSION_TIMEOUT`.
 """
 # ai-disclosure: ai-generated
 # pyright: reportPrivateUsage=false
@@ -15,10 +16,10 @@ is what the caller sees.
 import asyncio
 from typing import Any
 
+import pytest
 from structlog.testing import capture_logs
 
 import imandrax_api.v1 as sync_client_mod
-from imandrax_api import v2
 from imandrax_api.bindings import utils_pb2
 from imandrax_api.twirp.errors import Errors
 from imandrax_api.twirp.exceptions import TwirpServerException
@@ -72,8 +73,10 @@ def test_async_enter_failure_closes_transport() -> None:
     asyncio.run(go())
 
 
-def _mk_v2_async_client(end_timeouts: list[Any]) -> v2.AsyncClient:
-    """a v2 client whose `status` answers "ok" and whose `end_session` fails."""
+def _mk_async_client(
+    end_timeouts: list[Any], *, best_effort_close: bool
+) -> AsyncClient:
+    """a client whose `status` answers "ok" and whose `end_session` fails."""
 
     async def status_ok(**_: Any) -> utils_pb2.StringMsg:
         return utils_pb2.StringMsg(msg="ok")
@@ -82,24 +85,41 @@ def _mk_v2_async_client(end_timeouts: list[Any]) -> v2.AsyncClient:
         end_timeouts.append(kwargs.get("timeout"))
         raise _unavailable()
 
-    c = v2.AsyncClient(url=URL)
-    c._client._client.create_session = _create_ok
-    c._client._client.status = status_ok
-    c._client._client.end_session = end_unavailable
+    c = AsyncClient(url=URL, best_effort_close=best_effort_close)
+    c._client.create_session = _create_ok
+    c._client.status = status_ok
+    c._client.end_session = end_unavailable
     return c
 
 
-def test_async_end_session_failure_keeps_reply() -> None:
+def test_async_end_session_failure_raises() -> None:
     end_timeouts: list[Any] = []
 
     async def go() -> None:
-        c = _mk_v2_async_client(end_timeouts)
+        c = _mk_async_client(end_timeouts, best_effort_close=False)
+        with pytest.raises(Exception, match="Error while ending session") as ei:
+            async with c:
+                pass
+        assert isinstance(ei.value.__cause__, TwirpServerException)
+        assert c._session.closed
+        assert c._closed
+
+    asyncio.run(go())
+    # by default the exit waits for the server for as long as it takes
+    assert end_timeouts == [None]
+
+
+def test_async_best_effort_close_keeps_reply() -> None:
+    end_timeouts: list[Any] = []
+
+    async def go() -> None:
+        c = _mk_async_client(end_timeouts, best_effort_close=True)
         with capture_logs() as logs:
             async with c:
                 reply = await c.status()
-        assert reply == "ok"
-        assert c._client._session.closed
-        assert c._client._closed
+        assert reply.msg == "ok"
+        assert c._session.closed
+        assert c._closed
         assert [(e["log_level"], e["event"]) for e in logs] == [
             ("warning", "failed to end session")
         ]
@@ -109,17 +129,13 @@ def test_async_end_session_failure_keeps_reply() -> None:
     assert end_timeouts == [END_SESSION_TIMEOUT]
 
 
-def test_async_end_session_failure_keeps_body_exception() -> None:
+def test_async_best_effort_close_keeps_body_exception() -> None:
     async def go() -> None:
-        c = _mk_v2_async_client([])
-        try:
+        c = _mk_async_client([], best_effort_close=True)
+        with pytest.raises(_Raised):
             async with c:
                 raise _Raised()
-        except _Raised:
-            pass
-        else:
-            raise AssertionError("the body's exception should propagate")
-        assert c._client._session.closed
+        assert c._session.closed
 
     asyncio.run(go())
 
@@ -182,8 +198,8 @@ def test_sync_init_failure_closes_transport(
     assert created and created[-1].was_closed
 
 
-def test_sync_end_session_failure_closes_transport(monkeypatch: Any) -> None:
-    created = _record_sessions(monkeypatch)
+def _patch_sync_end_unavailable(monkeypatch: Any) -> list[Any]:
+    """make `end_session` fail; returns the timeouts it was called with."""
     end_timeouts: list[Any] = []
 
     def end_unavailable(*_: Any, **kwargs: Any) -> None:
@@ -198,9 +214,31 @@ def test_sync_end_session_failure_closes_transport(monkeypatch: Any) -> None:
     monkeypatch.setattr(
         sync_client_mod.simple_api_twirp.SimpleClient, "end_session", end_unavailable
     )
+    return end_timeouts
+
+
+def test_sync_end_session_failure_closes_transport(monkeypatch: Any) -> None:
+    created = _record_sessions(monkeypatch)
+    end_timeouts = _patch_sync_end_unavailable(monkeypatch)
+
+    c = Client(url=URL)
+    with pytest.raises(Exception, match="Error while ending session"):
+        c.__exit__()
+
+    assert c._closed
+    assert created and created[-1].was_closed
+    assert end_timeouts == [None]
+
+
+def test_sync_best_effort_close_logs(monkeypatch: Any) -> None:
+    created = _record_sessions(monkeypatch)
+    end_timeouts = _patch_sync_end_unavailable(monkeypatch)
 
     # a client timeout shorter than END_SESSION_TIMEOUT wins
-    with capture_logs() as logs, Client(url=URL, timeout=5) as c:
+    with (
+        capture_logs() as logs,
+        Client(url=URL, timeout=5, best_effort_close=True) as c,
+    ):
         pass
 
     assert c._closed
