@@ -20,6 +20,7 @@ from typing import Any
 import pytest
 
 import imandrax_api.v1 as sync_client_mod
+from imandrax_api import v2
 from imandrax_api.bindings import utils_pb2
 from imandrax_api.twirp.errors import Errors
 from imandrax_api.twirp.exceptions import TwirpServerException
@@ -229,6 +230,14 @@ def test_sync_end_session_failure_keeps_body_exception(monkeypatch: Any) -> None
     assert ei.value.__notes__ == [
         f"also failed to end session session-id: {_unavailable()!r}"
     ]
+
+
+def test_sync_v2_end_session_failure_keeps_body_exception(monkeypatch: Any) -> None:
+    # v2 must pass the body's exception on to v1's exit, or v1 can't keep it
+    _patch_sync_end_unavailable(monkeypatch)
+
+    with pytest.raises(_Raised), v2.Client(url=URL):
+        raise _Raised()
 
 
 def test_async_closed_client_raises() -> None:
