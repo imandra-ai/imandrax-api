@@ -5,12 +5,17 @@ from ..twirp.exceptions import TwirpServerException
 url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
 url_prod = "https://api.imandra.ai/internal/imandrax/"
 
-# with `best_effort_close`, the longest a client waits for `end_session` on exit
-END_SESSION_TIMEOUT = 10.0
-
 
 class ClientClosedError(Exception):
     """A request was made on a client that has already been closed"""
+
+
+class EndSessionError(Exception):
+    """`end_session` failed when the client exited"""
+
+    def __init__(self, session_id: str) -> None:
+        super().__init__(f"error while ending session {session_id}")
+        self.session_id = session_id
 
 
 def mk_context() -> Context:
