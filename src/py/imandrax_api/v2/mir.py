@@ -2359,41 +2359,58 @@ class Decomposition:
                 _raw=r,
             )
 
-        def sample(self, db: DB | None = None) -> dict[str, PyValue] | None:
-            """An input in the region as plain Python data, by argument name, if the server sent one
+        @property
+        def model(self) -> Model | None:
+            """The model of the region's constraints, if the region was proved feasible
 
-            The server sends one for feasible regions, i.e. when decomposing with `prune=True`. It can
-            leave out the labels of inline records; pass the decomposition task's `db` to restore them.
-
-            Raises:
-                ValueError: if an argument's value is not a value, see `Term.to_python`
-                UnexpectedResponseError: if the server sent something other than terms
+            Note: Pruning a decomposition checks each region's feasibility.
+            The model can bind more variables than the decomposed function's arguments,
+            e.g. after `enumerate_all`. Use UID to disambiguate variables with the same
+            short names.
             """
-            match self.meta.get("model"):
+            match self.status:
+                case FeasibleStatus(model=m):
+                    return m
+                case _:
+                    return None
+
+        @property
+        def model_eval(self) -> Term | None:
+            """The function's result on `model`, if the region was proved feasible"""
+            match self.meta.get("model_eval"):
                 case None:
                     return None
-                case FrozenMap() as m:
-                    return {k: _meta_term(v).to_python(db) for k, v in m.items()}
                 case m:
-                    raise UnexpectedResponseError(
-                        f"expected the region's sample as terms, got {m}"
-                    )
+                    return _meta_term(m)
+
+        def sample(self, db: DB | None = None) -> dict[Uid, PyValue] | None:
+            """The variables' values in `model` as plain Python data, if the region was proved feasible
+
+            Args:
+                db: The labels of inline records can be left out; pass the decomposition
+                task's `db` to restore them.
+
+            Raises:
+                ValueError: if a variable's value is not a value, see `Term.to_python`
+            """
+            m = self.model
+            if m is None:
+                return None
+            return {s.symbol.id: t.to_python(db) for s, t in m.constants.items()}
 
         def sample_output(self, db: DB | None = None) -> PyValue | None:
-            """The function's result on `sample`, as plain Python data, if the server sent one
+            """`model_eval` as plain Python data, if the region was proved feasible
 
-            Pass the same `db` as to `sample`: a result that contains part of the sample can lack
-            inline-record labels too.
+            Args:
+                db: The labels of inline records can be left out; pass the decomposition
+                task's `db` to restore them.
 
             Raises:
                 ValueError: if the result is not a value, see `Term.to_python`
                 UnexpectedResponseError: if the server sent something other than a term
             """
-            match self.meta.get("model_eval"):
-                case None:
-                    return None
-                case m:
-                    return _meta_term(m).to_python(db)
+            t = self.model_eval
+            return None if t is None else t.to_python(db)
 
         @property
         def constraints_str(self) -> tuple[str, ...] | None:
