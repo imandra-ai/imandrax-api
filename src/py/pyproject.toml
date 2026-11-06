@@ -68,6 +68,10 @@ dev = [
     "pytest>=9.1.1",
     "ruff==0.16.3",
 ]
+docs = [
+    "mkdocstrings[python]>=1.0.8",
+    "zensical>=0.0.74",
+]
 
 [tool.black]
 line-length = 100

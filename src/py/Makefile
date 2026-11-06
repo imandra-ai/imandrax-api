@@ -76,4 +76,10 @@ install-go-protobuf-plugin:
 	@echo "installing twirp plugin for protoc into `echo $(GOBIN)`"
 	cd protoc-gen-twirpy && GOBIN="`echo $(GOBIN)`" go install ./
 
-.PHONY: remove-wheels build genversion imandrax_api/api_types_version.py test-setup-py-install unit-test test
+docs:
+	uv run --group docs zensical build --strict
+
+docs-serve:
+	uv run --group docs zensical serve
+
+.PHONY: docs docs-serve remove-wheels build genversion imandrax_api/api_types_version.py test-setup-py-install unit-test test
