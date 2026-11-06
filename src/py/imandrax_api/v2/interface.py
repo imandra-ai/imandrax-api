@@ -2240,8 +2240,13 @@ class Client:
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, *_: object) -> None:
-        self._client.__exit__()
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        self._client.__exit__(exc_type, exc_val, exc_tb)
 
     def status(self) -> str:
         """The server's status message"""

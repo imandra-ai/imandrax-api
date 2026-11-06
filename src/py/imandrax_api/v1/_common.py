@@ -10,6 +10,14 @@ class ClientClosedError(Exception):
     """A request was made on a client that has already been closed"""
 
 
+class EndSessionError(Exception):
+    """`end_session` failed when the client exited"""
+
+    def __init__(self, session_id: str) -> None:
+        super().__init__(f"error while ending session {session_id}")
+        self.session_id = session_id
+
+
 def mk_context() -> Context:
     """Build a request context with the appropriate headers"""
     return Context(headers={"x-api-version": api_types_version.api_types_version})

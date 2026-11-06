@@ -24,6 +24,7 @@ from ..twirp.exceptions import TwirpServerException
 from . import decomp
 from ._common import (
     ClientClosedError,
+    EndSessionError,
     is_session_not_found,
     mk_context,
     url_dev,
@@ -37,6 +38,7 @@ __all__ = [
     "Client",
     "AsyncClient",
     "ClientClosedError",
+    "EndSessionError",
     "decomp",
     "url_dev",
     "url_prod",
@@ -162,7 +164,7 @@ class Client:
     def __enter__(self, *_: Any) -> Self:
         return self
 
-    def __exit__(self, *_: Any) -> None:
+    def __exit__(self, exc_type: Any = None, exc_val: Any = None, *_: Any) -> None:
         if self._closed:
             return
         # Guard against session end failures to avoid leaking the HTTP transport.
@@ -170,10 +172,20 @@ class Client:
             if hasattr(self, "_sesh"):
                 try:
                     self._client.end_session(
-                        ctx=self._ctx(), request=self._sesh, timeout=None
+                        ctx=self._ctx(),
+                        request=self._sesh,
+                        timeout=self._timeout,
                     )
-                except TwirpServerException as e:
-                    raise Exception("Error while ending session") from e
+                except Exception as e:
+                    if exc_type is not None:
+                        # the body already failed; propagate its error by returning
+                        exc_val.add_note(
+                            f"also failed to end session {self._sesh.id}: {e!r}"
+                        )
+                    elif isinstance(e, TwirpServerException):
+                        raise EndSessionError(self._sesh.id) from e
+                    else:
+                        raise
         finally:
             self._session.close()
             self._closed = True
