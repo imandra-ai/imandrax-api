@@ -12,7 +12,7 @@ from fractions import Fraction
 
 import imandrax_api
 from imandrax_api.v2.interface import Client, DecompositionTask, InstanceResponse
-from imandrax_api.v2.mir import DB, Constructed, Decomposition, Model, PyValue
+from imandrax_api.v2.mir import DB, Constructed, Decomposition, Model, PyValue, Uid
 
 TYPES = """
 type rec_t = { a: int; b: bool list }
@@ -88,6 +88,12 @@ def decompose(c: Client, f: str, src: str, string_results: bool = False) -> tupl
     return res.decomposition, res.task.db
 
 
+def arg_values(d: Decomposition, sample: dict[Uid, PyValue] | None) -> dict[str, PyValue]:
+    """The decomposed function's arguments in `sample`, by short name"""
+    assert sample is not None
+    return {a.id.short_name: sample[a.id] for a in d.arguments}
+
+
 def constructeds(v: PyValue) -> Iterator[Constructed]:
     """Every `Constructed` in `v`, at any depth"""
     match v:
@@ -154,8 +160,8 @@ def main():
             for r in d.regions:
                 assert r.constraints_str is not None and len(r.constraints_str) == len(r.constraints)
                 assert r.invariant_str in ("0", "1")
-                sample = r.sample(db)
-                assert sample is not None and sample.keys() == {"x"}
+                sample = arg_values(d, r.sample(db))
+                assert sample.keys() == {"x"}
                 output = r.sample_output(db)
                 check(output, 1 if repr(sample["x"]) == repr(expected) else 0, src)
                 assert str(output) == r.invariant_str
@@ -168,13 +174,12 @@ let nested_inline (v: var_t option list) (p: var_t * int) (n: nest_t) =
   match v, p, n with
   | [Some (A {x; _})], (A _, _), N {inner = A {x = x2; _}; k} -> if x > 5 && x2 > k then 1 else 0
   | _ -> 2""")
-        samples = [s for r in d.regions if (s := r.sample(db)) is not None]
-        assert len(samples) == len(d.regions)
+        samples = [arg_values(d, r.sample(db)) for r in d.regions]
         for s in samples:
             bad = [k for k in constructeds(s) if not has_labels(k)]
             assert not bad, bad
         (hit,) = [r for r in d.regions if r.sample_output(db) == 1]
-        match hit.sample(db):
+        match arg_values(d, hit.sample(db)):
             case {
                 "v": [Constructed("Some", (Constructed("A", ({"x": int(x), "y": str()},)),))],
                 "p": (Constructed("A", ({"x": int(), "y": str()},)), int()),
@@ -190,8 +195,8 @@ let nested_inline (v: var_t option list) (p: var_t * int) (n: nest_t) =
             f = f"same_{i}"
             d, db = decompose(c, f, f"let {f} (x: {ty}) = x")
             for r in d.regions:
-                sample = r.sample(db)
-                assert sample is not None and sample.keys() == {"x"}
+                sample = arg_values(d, r.sample(db))
+                assert sample.keys() == {"x"}
                 check(r.sample_output(db), sample["x"], ty)
                 assert all(has_labels(k) for k in constructeds(sample["x"])), sample
 
@@ -202,11 +207,10 @@ let pass_through (v: var_t * nest_t) =
   match v with
   | (A {x; _}, N {inner = A _; k}) -> if x > k then Some v else None
   | _ -> None""")
-        outputs = [(r.sample(db), r.sample_output(db)) for r in d.regions]
+        outputs = [(arg_values(d, r.sample(db)), r.sample_output(db)) for r in d.regions]
         passed_through = [(s, o) for s, o in outputs if isinstance(o, Constructed) and o.name == "Some"]
         assert len(passed_through) == 1
         ((sample, output),) = passed_through
-        assert sample is not None
         check(output, Constructed("Some", (sample["v"],)), "pass_through")
         assert all(has_labels(k) for k in constructeds(output)), output
 
