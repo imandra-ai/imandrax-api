@@ -34,7 +34,7 @@ Set `url` to the server you want to connect to:
 The hosted servers need an API key; for a self-hosted server it is optional.
 Pass it to the client with `api_key`:
 
-```python
+```{.python test="skip"}
 from imandrax_api.v2 import Client, url_prod
 
 with Client(url=url_prod, api_key="your-api-key") as client:
