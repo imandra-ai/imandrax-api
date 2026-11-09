@@ -1,4 +1,9 @@
-"""Python views for `Imandrax_api_proof` OCaml module"""
+"""Proof terms
+
+A proof term concludes a sequent from its premises: by assumption, by substitution into an
+earlier step, by deduction, or by a leaf rule such as an axiom.
+"""
+
 # Note:
 # Proof terms form a DAG: a sub-proof can be the premise of several steps, and the OCaml side
 # keeps it shared. `proof_term_of_lib` converts each occurrence separately, so a shared

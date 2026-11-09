@@ -1,5 +1,10 @@
 # pyright: reportPrivateUsage=false
-#
+"""The `Client` and `AsyncClient`, and the types of what they return
+
+Responses of the client methods, the per-item results inside them, and tasks with their
+results.
+"""
+
 # Note [Result types]
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~
 # There are 3 layers of "result":
