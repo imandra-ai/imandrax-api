@@ -69,14 +69,13 @@ plugins:
 
 nav:
   - Home: index.md
-  - Examples: examples.md
   - interface: api/interface.md
+  - mir: api/mir.md
+  - evaluation_values: api/evaluation_values.md
   - decomp: api/decomp.md
   - errors: api/errors.md
   - report: api/report.md
   - proof: api/proof.md
-  - evaluation_values: api/evaluation_values.md
-  - mir: api/mir.md
   - Internal:
       - api/internal/index.md
       - Protobuf client:
