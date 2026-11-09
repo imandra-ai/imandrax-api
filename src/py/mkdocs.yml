@@ -18,6 +18,8 @@ repo_url: https://github.com/imandra-ai/imandrax-api
 edit_uri: edit/main/src/py/docs/
 site_dir: build/site
 strict: true
+# Footer text, set by `make docs`
+copyright: !ENV [DOCS_BUILD_INFO, "local build"]
 
 theme:
   name: material
@@ -54,6 +56,8 @@ extra_css:
 extra:
   # The logo links back to the main site rather than this reference's home page
   homepage: https://imandrax.dev/
+  # Hide the "Made with Zensical" footer line
+  generator: false
 
 markdown_extensions:
   - admonition
