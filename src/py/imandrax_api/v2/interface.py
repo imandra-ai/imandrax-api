@@ -1088,12 +1088,12 @@ class LiftBool(StrEnum):
     """Includes the rules `x1 && x2` --> `if x1 then x2 else false` `x1 || x2` -->
     `if x1 then true else x2` `x1 ==> x2` --> `if x1 then x2 else true`"""
     NESTED_EQUALITIES = "nested_equalities"
-    """Extends `Default` with the rules `(x = y) = z` --> `if x = y then z else not z`
+    """Extends `LiftBool.DEFAULT` with the rules `(x = y) = z` --> `if x = y then z else not z`
     `z = (x = y)` --> `if z then (x = y) else not (x = y)`"""
     EQUALITIES = "equalities"
-    """Extends `Default` with the rule `x = y` --> `if x = y then true else false`"""
+    """Extends `LiftBool.DEFAULT` with the rule `x = y` --> `if x = y then true else false`"""
     ALL = "all"
-    """Extends `Default` with the rule `(t : bool)` --> `if t then true else false`"""
+    """Extends `LiftBool.DEFAULT` with the rule `(t : bool)` --> `if t then true else false`"""
 
 
 def _lift_bool_to_pb(x: LiftBool | None) -> simple_api_pb2.LiftBool | None:
