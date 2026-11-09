@@ -21,6 +21,12 @@ strict: true
 
 theme:
   name: material
+  # Branding mirrors imandrax.dev, see docs/stylesheets/imandrax.css
+  logo: assets/imandrax-mark.svg
+  favicon: assets/favicon.webp
+  font:
+    text: Inter
+    code: IBM Plex Mono
   features:
     - content.code.copy
     - navigation.indexes
@@ -29,14 +35,25 @@ theme:
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+
+extra_css:
+  - stylesheets/imandrax.css
+
+extra:
+  # The logo links back to the main site rather than this reference's home page
+  homepage: https://imandrax.dev/
 
 markdown_extensions:
   - admonition
@@ -68,6 +85,7 @@ plugins:
             filters: ["!^_"]
 
 nav:
+  - Back to ImandraX docs ↗: https://imandrax.dev/docs/
   - Home: index.md
   - interface: api/interface.md
   - mir: api/mir.md
