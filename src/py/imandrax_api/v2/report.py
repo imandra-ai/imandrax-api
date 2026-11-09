@@ -1,4 +1,10 @@
-"""Serializable report"""
+"""Reports of the steps ImandraX took on a task
+
+A report is a flat sequence of timestamped events: instant events, and matching
+enter/exit pairs that delimit spans such as a waterfall or tactic.
+Events cover rewriting, instantiation, simplification, induction and SMT calls, and
+free-form messages hold rich text.
+"""
 
 from __future__ import annotations
 
