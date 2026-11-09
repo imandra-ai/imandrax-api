@@ -2388,7 +2388,7 @@ class Decomposition:
 
             Args:
                 db: The labels of inline records can be left out; pass the decomposition
-                task's `db` to restore them.
+                    task's `db` to restore them.
 
             Raises:
                 ValueError: if a variable's value is not a value, see `Term.to_python`
@@ -2403,7 +2403,7 @@ class Decomposition:
 
             Args:
                 db: The labels of inline records can be left out; pass the decomposition
-                task's `db` to restore them.
+                    task's `db` to restore them.
 
             Raises:
                 ValueError: if the result is not a value, see `Term.to_python`

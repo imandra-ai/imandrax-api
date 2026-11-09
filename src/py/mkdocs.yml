@@ -64,6 +64,7 @@ plugins:
             show_symbol_type_heading: true
             show_symbol_type_toc: true
             merge_init_into_class: true
+            show_if_no_docstring: true
             filters: ["!^_"]
 
 nav:
