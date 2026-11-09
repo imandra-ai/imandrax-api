@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 110" fill="none">
+  <!-- ImandraX mark, taken from imandrax.dev's logo-imandrax.tsx (wordmark dropped) -->
+  <path d="M81.627 82.3648L54.658 55.2625L0 109.894L54.658 76.3895L81.627 82.3648Z" fill="url(#g0)"/>
+  <path d="M27.1152 27.7334L54.6175 55.2892L109.276 0.617721L54.6175 34.9891L27.1152 27.7334Z" fill="url(#g1)"/>
+  <defs>
+    <radialGradient id="g0" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(40.8134 82.5782) rotate(-37.4094) scale(43.6949 42.5459)">
+      <stop stop-color="#00C6CF"/>
+      <stop offset="1" stop-color="#17976A"/>
+    </radialGradient>
+    <radialGradient id="g1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(68.1955 27.9534) rotate(142.75) scale(43.887 42.6676)">
+      <stop stop-color="#26FDB2"/>
+      <stop offset="1" stop-color="#17976A"/>
+    </radialGradient>
+  </defs>
+</svg>

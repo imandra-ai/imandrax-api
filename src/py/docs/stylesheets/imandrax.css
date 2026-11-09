@@ -1,0 +1,73 @@
+/*
+Brand alignment with imandrax.dev
+=================================
+
+Values mirror the design tokens in imandrax.dev's
+`src/shared/styles/globals.css` (light `:root`, dark `.dark`), and the docs
+heading style in `src/shared/mdx-components.tsx`. Update both together.
+
+Colours are mapped onto the theme's `--md-*` variables. `palette.primary` /
+`palette.accent` are set to `custom` in mkdocs.yml so these take effect.
+*/
+
+/*
+Accent
+------
+*/
+
+:root > * {
+  --md-primary-fg-color: #0ea5e9; /* sky-500, --color-accent */
+  --md-primary-fg-color--light: #38bdf8; /* sky-400 */
+  --md-primary-fg-color--dark: #0284c7; /* sky-600 */
+  --md-primary-bg-color: #ffffff;
+  --md-accent-fg-color: #0284c7; /* hover */
+  --md-accent-fg-color--transparent: #e0f2fe; /* sky-100, --color-accent-muted */
+}
+
+/*
+Light scheme
+------------
+*/
+
+[data-md-color-scheme="default"] {
+  --md-hue: 215deg; /* slate */
+  --md-default-fg-color: #0f172a; /* slate-900, --color-text */
+  --md-default-fg-color--light: #475569; /* slate-600, --color-text-muted */
+  --md-default-fg-color--lighter: #64748b; /* slate-500, --color-text-subtle */
+  --md-default-fg-color--lightest: #e2e8f0; /* slate-200, --color-border */
+  --md-default-bg-color: #ffffff;
+  --md-code-bg-color: #f6f8fa; /* imandrax.dev `.prose pre` */
+  --md-typeset-a-color: #0284c7; /* sky-600: sky-500 is too low-contrast for body text */
+}
+
+/*
+Dark scheme
+-----------
+*/
+
+[data-md-color-scheme="slate"] {
+  --md-hue: 222deg;
+  --md-primary-fg-color: #38bdf8; /* sky-400, dark --color-accent */
+  --md-accent-fg-color: #7dd3fc; /* sky-300 */
+  --md-accent-fg-color--transparent: rgba(56, 189, 248, 0.15);
+  --md-default-bg-color: #111726; /* dark --color-bg */
+  --md-code-bg-color: #121d34; /* imandrax.dev `.dark .prose pre` */
+  --md-footer-bg-color: #0f172a; /* slate-900 */
+  --md-footer-bg-color--dark: #111726;
+  --md-typeset-a-color: #38bdf8;
+}
+
+/*
+Typography
+----------
+
+Fonts themselves (Inter, IBM Plex Mono) are set via `theme.font`.
+imandrax.dev docs headings are semibold with tight tracking.
+*/
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
