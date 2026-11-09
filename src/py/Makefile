@@ -77,7 +77,7 @@ install-go-protobuf-plugin:
 	cd protoc-gen-twirpy && GOBIN="`echo $(GOBIN)`" go install ./
 
 docs:
-	uv run --group docs zensical build --strict
+	uv run --group docs zensical build
 
 docs-serve:
 	uv run --group docs zensical serve

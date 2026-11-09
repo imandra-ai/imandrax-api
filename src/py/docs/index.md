@@ -51,7 +51,7 @@ import os
 from imandrax_api.v2 import Client, url_prod
 from imandrax_api.v2.interface import InstanceResponse, VerifyResponse
 
-api_key: str | None = os.environ.get("IMANDRA_UNI_KEY") or os.environ.get("IMANDRAX_API_KEY")
+api_key: str | None = os.environ.get("IMANDRAX_API_KEY") or os.environ.get("IMANDRA_UNI_KEY")
 
 with Client(url=url_prod, api_key=api_key) as client:
     # 1. Load IML definitions into the session
@@ -179,7 +179,7 @@ import os
 from imandrax_api.v2 import AsyncClient, url_prod
 from imandrax_api.v2.interface import VerifyResponse
 
-api_key: str | None = os.environ.get("IMANDRA_UNI_KEY") or os.environ.get("IMANDRAX_API_KEY")
+api_key: str | None = os.environ.get("IMANDRAX_API_KEY") or os.environ.get("IMANDRA_UNI_KEY")
 
 
 async def main() -> bool:
