@@ -14,6 +14,8 @@
 
 site_name: imandrax-api (Python)
 site_description: Python client for the ImandraX API
+# Published under imandrax.dev (copied in by imandrax.dev's build workflow)
+site_url: https://imandrax.dev/docs/api/python-client/
 repo_url: https://github.com/imandra-ai/imandrax-api
 edit_uri: edit/main/src/py/docs/
 site_dir: build/site
