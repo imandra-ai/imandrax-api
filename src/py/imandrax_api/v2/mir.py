@@ -1,14 +1,12 @@
-"""Python view of MIR, the intermediate representation ImandraX produces from IML
+"""MIR, the intermediate representation ImandraX produces from IML
 
-Types, terms, declarations, rules, models and the symbol database (`DB`) that
-tasks and their results refer to.
-
-Each class is converted from the matching `imandrax_api.lib` value, which it keeps in
-the hidden `_raw` field.
+Results describe code in MIR: types, terms, function and type declarations, rewrite and
+instantiation rules, models, and the symbol database that names refer to.
 """
 
-# Note: general transformation rules:
-# - use more readable and _Pythonic_ names
+# Note [General Principles when Transforming OCaml Bindings to Python]
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# - use more readable and Pythonic names
 # - variants without fields -> enum
 # - variant -> union of dataclasses
 # - records wrapping a variant -> one base class for the record's fields, dataclasses subclassing the base class, plus the union
