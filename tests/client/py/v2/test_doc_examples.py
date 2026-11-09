@@ -21,20 +21,26 @@ DOCS_DIR = Path(__file__).parents[4] / "src" / "py" / "docs"
 EXAMPLES = list(find_examples(DOCS_DIR))
 
 
-def test_examples_found():
+def test_examples_count():
     assert len(EXAMPLES) == snapshot(5)
 
 
 @pytest.mark.parametrize("example", EXAMPLES, ids=str)
-def test_doc_example(
+def test_doc_example_lint_and_run(
     example: CodeExample,
     eval_example: EvalExample,
     mk_client: Callable[[], Client],
     api_key: str | None,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Lint code block, then run it and check its `#>` output
+
+    If `--update-examples` presents in `pytest` args, expected output are updated by snapshotting
+    """
     # Blocks after the quick start use `client` without creating it
-    eval_example.set_config(target_version="py310", ruff_ignore=["F821"], line_length=120)
+    eval_example.set_config(
+        target_version="py310", ruff_ignore=["F821"], line_length=120
+    )
     if eval_example.update_examples:
         eval_example.format(example)
     else:
