@@ -98,7 +98,6 @@ plugins:
           options:
             docstring_style: google
             members_order: source
-            # Keep source order across kinds too (otherwise attributes/aliases come first)
             group_by_category: false
             show_source: false
             show_root_heading: true
