@@ -25,6 +25,8 @@ copyright: !ENV [DOCS_BUILD_INFO, "local build"]
 
 theme:
   name: material
+  # Header override (ImandraX wordmark + top menu), see overrides/partials/header.html
+  custom_dir: overrides
   # Branding mirrors imandrax.dev, see docs/stylesheets/imandrax.css
   logo: assets/imandrax-mark.svg
   favicon: assets/favicon.webp
@@ -60,6 +62,24 @@ extra:
   homepage: https://imandrax.dev/
   # Hide the "Made with Zensical" footer line
   generator: false
+  # Top menu, mirrors `NavigationData` in imandrax.dev's
+  # src/components/data-links.ts (Login / Sign up left out on purpose).
+  # Rendered by overrides/partials/header.html.
+  imandrax_nav:
+    - name: Home
+      href: https://imandrax.dev/
+      aria_label: Navigate to Home
+    - name: Install
+      href: https://imandrax.dev/docs/getting-started/installation/
+      aria_label: Navigate to Install
+    - name: Docs
+      href: https://imandrax.dev/docs/
+      aria_label: Navigate to Docs
+      active: true
+    - name: Contact
+      href: https://www.imandra.ai/contact
+      aria_label: Contact us
+      external: true
 
 markdown_extensions:
   - admonition
@@ -91,7 +111,6 @@ plugins:
             filters: ["!^_"]
 
 nav:
-  - Back to ImandraX docs ↗: https://imandrax.dev/docs/
   - Home: index.md
   - interface: api/interface.md
   - mir: api/mir.md

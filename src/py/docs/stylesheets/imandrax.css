@@ -38,6 +38,17 @@ Light scheme
   --md-default-bg-color: #ffffff;
   --md-code-bg-color: #f6f8fa; /* imandrax.dev `.prose pre` */
   --md-typeset-a-color: #0284c7; /* sky-600: sky-500 is too low-contrast for body text */
+
+  /* Header, see "Header" below. imandrax.dev `--header-glass-*` and the
+     nav / search classes in its `header.tsx`, `brand.ts`, `doc-search.tsx`. */
+  --imandrax-header-bg: rgba(241, 245, 249, 0.7); /* slate-100 / 70% */
+  --imandrax-header-border: rgba(226, 232, 240, 0.6); /* slate-200 / 60% */
+  --imandrax-nav-color: #334155; /* slate-700 */
+  --imandrax-nav-active-color: #2563eb; /* blue-600 */
+  --imandrax-search-bg: #ffffff;
+  --imandrax-search-border: #cbd5e1; /* slate-300 */
+  --imandrax-search-fg: #94a3b8; /* slate-400, placeholder */
+  --imandrax-search-focus: #3b82f6; /* blue-500 */
 }
 
 /*
@@ -50,11 +61,24 @@ Dark scheme
   --md-primary-fg-color: #38bdf8; /* sky-400, dark --color-accent */
   --md-accent-fg-color: #7dd3fc; /* sky-300 */
   --md-accent-fg-color--transparent: rgba(56, 189, 248, 0.15);
+  --md-default-fg-color: #f1f5f9; /* slate-100, dark --color-text */
+  --md-default-fg-color--light: #cbd5e1; /* slate-300, dark --color-text-muted */
+  --md-default-fg-color--lighter: #94a3b8; /* slate-400, dark --color-text-subtle */
+  --md-default-fg-color--lightest: #1e293b; /* slate-800, dark --color-border */
   --md-default-bg-color: #111726; /* dark --color-bg */
   --md-code-bg-color: #121d34; /* imandrax.dev `.dark .prose pre` */
   --md-footer-bg-color: #0f172a; /* slate-900 */
   --md-footer-bg-color--dark: #111726;
   --md-typeset-a-color: #38bdf8;
+
+  --imandrax-header-bg: rgba(15, 23, 42, 0.55); /* slate-900 / 55% */
+  --imandrax-header-border: rgba(255, 255, 255, 0.08);
+  --imandrax-nav-color: #cbd5e1; /* slate-300 */
+  --imandrax-nav-active-color: #60a5fa; /* blue-400 */
+  --imandrax-search-bg: #1e293b; /* slate-800 */
+  --imandrax-search-border: #334155; /* slate-700 */
+  --imandrax-search-fg: #64748b; /* slate-500, placeholder */
+  --imandrax-search-focus: #60a5fa; /* blue-400 */
 }
 
 /*
@@ -70,4 +94,281 @@ imandrax.dev docs headings are semibold with tight tracking.
 .md-typeset h3 {
   font-weight: 600;
   letter-spacing: -0.025em;
+}
+
+/*
+Header
+------
+
+Mirrors the imandrax.dev docs header (overrides/partials/header.html):
+wordmark + search on the left, top menu, GitHub repo and theme toggle on
+the right. Sizes from imandrax.dev: logo `h-8` (32px), nav `text-sm
+font-semibold leading-6`. The theme's root font size is 20px, so
+1rem = 20px here.
+*/
+
+.md-header.imandrax-header {
+  color: var(--md-default-fg-color);
+  background-color: var(--imandrax-header-bg);
+  box-shadow: 0 1px 0 var(--imandrax-header-border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.imandrax-header .md-header__inner {
+  max-width: 1456px; /* max-w-8xl (1408px) plus lg:px-6, same box as the docs grid */
+  height: 3.2rem; /* 64px, imandrax.dev's bar is ~68px */
+  gap: 0.4rem;
+  padding: 0 24px; /* lg:px-6 */
+}
+@media screen and (max-width: 76.234375em) {
+  .imandrax-header .md-header__inner {
+    padding: 0 0.8rem; /* same as the page content's side margin (.md-content__inner) while only the main column shows */
+  }
+}
+
+/* Taller header: keep sticky sidebars and anchor targets clear of it */
+.md-sidebar {
+  top: 3.2rem;
+}
+/* Pinned sidebars from the first pixel: the theme's JS pins them right under the header
+   (inline `top`), but .md-main__inner's 1.5rem top margin made them slide up 1.5rem before
+   sticking. Move that gap inside the sidebars and the content so nothing moves at scroll 0. */
+@media screen and (min-width: 60em) {
+  .md-main__inner {
+    margin-top: 0;
+  }
+  .md-content {
+    padding-top: 0;
+  }
+  .md-content__inner {
+    margin-top: 1rem;
+    padding-top: 0;
+  }
+}
+/* No sidebar padding (theme default is 1.1rem); the gap above the links is a 1rem margin. Primary only from
+   76.25em: below that it is the drawer, which keeps its own padding. */
+@media screen and (min-width: 60em) {
+  .md-sidebar--secondary {
+    padding-top: 0;
+  }
+  .md-sidebar--secondary .md-sidebar__scrollwrap {
+    margin-top: 1rem;
+  }
+}
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary {
+    padding-top: 0;
+  }
+  .md-sidebar--primary .md-sidebar__scrollwrap {
+    margin-top: 1rem;
+  }
+}
+.md-typeset :target {
+  --md-scroll-margin: 4.4rem;
+}
+
+/* Wordmark: always shown (the theme hides the logo below 76.25em) */
+.imandrax-header .md-header__button.imandrax-header__logo {
+  display: block;
+  padding: 0;
+  margin: 0 0.6rem 0 0;
+  color: var(--md-default-fg-color);
+}
+.imandrax-header .md-header__button.imandrax-header__logo svg.imandrax-wordmark {
+  display: block;
+  width: auto;
+  height: 1.6rem; /* 32px */
+  fill: none;
+}
+.imandrax-header .md-header__button.imandrax-header__logo:hover {
+  opacity: 0.85;
+}
+
+/* Search, styled like imandrax.dev's docs search field */
+.imandrax-header .md-search {
+  padding: 0;
+  margin-left: 5%; /* small screens */
+}
+@media screen and (min-width: 76.25em) {
+  .imandrax-header .md-search {
+    margin-left: 10%;
+  }
+}
+@media screen and (min-width: 45em) {
+  .imandrax-header .md-search__button {
+    width: 12rem;
+    height: 1.8rem;
+    font-size: 0.7rem; /* 14px */
+    color: var(--imandrax-search-fg);
+    background-color: var(--imandrax-search-bg);
+    border: 1px solid var(--imandrax-search-border);
+    border-radius: 0.4rem; /* rounded-lg */
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .imandrax-header .md-search__button:focus,
+  .imandrax-header .md-search__button:hover {
+    color: var(--imandrax-search-fg);
+    background-color: var(--imandrax-search-bg);
+    border-color: var(--imandrax-search-focus);
+  }
+  .imandrax-header .md-search__button:focus-visible {
+    box-shadow: 0 0 0 2px var(--imandrax-search-focus);
+    outline: none;
+  }
+  .imandrax-header .md-search__button::before {
+    top: 0.4rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    background-color: var(--imandrax-search-fg);
+  }
+  .imandrax-header .md-search__button::after {
+    top: 0.38rem;
+    color: var(--imandrax-search-fg);
+    background: transparent;
+    border: 1px solid var(--imandrax-search-border);
+  }
+}
+
+.imandrax-header__spacer {
+  flex-grow: 1;
+}
+
+/* Top menu */
+.imandrax-header__menu {
+  display: none;
+  gap: 1.2rem;
+  align-items: center;
+  padding: 0;
+  margin: 0 0.6rem 0 0;
+  list-style: none;
+}
+/* Same breakpoint as the drawer button: below it only the burger, search and theme toggle show */
+@media screen and (min-width: 76.25em) {
+  .imandrax-header__menu {
+    display: flex;
+  }
+}
+@media screen and (max-width: 76.234375em) {
+  .imandrax-header .md-header__source {
+    display: none;
+  }
+}
+.imandrax-header__link {
+  font-size: 14px; /* text-sm, fixed so it does not grow with the theme root size */
+  font-weight: 600;
+  line-height: 24px; /* leading-6 */
+  color: var(--imandrax-nav-color);
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.imandrax-header__link:hover,
+.imandrax-header__link:focus-visible,
+.imandrax-header__link--active {
+  color: var(--imandrax-nav-active-color);
+}
+
+/* GitHub repo + stats, then the theme toggle at the far right */
+.imandrax-header .md-header__source {
+  width: auto; /* hug the icon and text instead of the theme 11.5rem */
+  max-width: none;
+  margin-left: 0.6rem;
+  color: var(--imandrax-nav-color);
+}
+.imandrax-header .md-source__repository {
+  max-width: none;
+  margin-right: 0.4rem;
+}
+.imandrax-header .md-header__option {
+  margin-left: 0.2rem;
+  color: var(--imandrax-nav-color);
+}
+.imandrax-header .md-header__button.md-icon:hover {
+  opacity: 1;
+  color: var(--imandrax-nav-active-color);
+}
+
+/*
+Layout
+------
+
+Mirrors the imandrax.dev docs layout (`animated-docs-layout.tsx`): a centred
+`max-w-8xl lg:px-6` grid (1408px, 24px side padding, same as the header) with
+`gap-8` columns of 256px nav, flexible content and 224px "On this page"; the
+article is `max-w-none` and fills its column; the footer is `max-w-7xl` (1280px).
+Pixel values on purpose: the theme's root font size is 20px, and dropping it
+to 16px would shrink all body text, so only the layout is matched here.
+Applies from 76.25em, where the theme shows both sidebars side by side.
+*/
+
+@media screen and (min-width: 76.25em) {
+  .md-main__inner.md-grid {
+    max-width: 1456px; /* max-w-8xl (1408px) plus 24px padding each side, same as the header */
+    padding: 0 24px; /* lg:px-6 */
+    gap: 32px;
+  }
+
+  .md-sidebar--primary {
+    width: 256px;
+  }
+
+  .md-sidebar--secondary {
+    width: 224px;
+  }
+
+  .md-content {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .md-main__inner .md-content > .md-content__inner,
+  [dir] .md-sidebar:not([hidden]) ~ .md-content > .md-content__inner {
+    max-width: none; /* article fills the column (max-w-none) */
+    margin-right: 0;
+    margin-left: 0;
+  }
+}
+
+/*
+Mobile menu (drawer)
+--------------------
+
+Wordmark in the drawer title and the header links on top (`overrides/partials/nav.html`).
+*/
+
+.md-nav--primary .md-nav__title .md-nav__button.imandrax-drawer__logo svg.imandrax-wordmark {
+  display: block;
+  width: auto;
+  height: 1.6rem; /* 32px, same as the header */
+  fill: none;
+}
+.md-nav--primary .md-nav__title .md-nav__button.imandrax-drawer__logo {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+.imandrax-drawer__menu {
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+.imandrax-drawer__link--active {
+  color: var(--md-typeset-a-color);
+}
+@media screen and (min-width: 76.25em) {
+  .imandrax-drawer__menu {
+    display: none;
+  }
+}
+
+/* Floating "On this page" button from the theme's base.html (modern variant, small screens): not used here */
+.md-sidebar--secondary .md-sidebar-button__wrapper {
+  display: none;
+}
+
+.md-footer__inner.md-grid,
+.md-footer-meta__inner.md-grid {
+  max-width: 1280px;
 }
