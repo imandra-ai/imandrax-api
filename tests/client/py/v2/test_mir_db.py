@@ -16,7 +16,6 @@ from imandrax_api.v2.interface import (
     EvalSrcResponse,
     ProofObligationTask,
     Task,
-    TypeDefinition,
 )
 from imandrax_api.v2.mir import (
     DB,
@@ -37,6 +36,7 @@ from imandrax_api.v2.mir import (
     TupleType,
     Type,
     TypeDeclaration,
+    TypeDefinition,
     TypeVariable,
     Uid,
     declaration_of_lib,
