@@ -87,4 +87,11 @@ docs:
 docs-serve:
 	uv run --group docs zensical serve
 
-.PHONY: docs docs-serve remove-wheels build genversion imandrax_api/api_types_version.py test-setup-py-install unit-test test
+# Order the API reference pages by importance, see doc_order.py
+docs-order:
+	uv run --group docs python doc_order.py
+
+docs-order-check:
+	uv run --group docs python doc_order.py --check
+
+.PHONY: docs docs-serve docs-order docs-order-check remove-wheels build genversion imandrax_api/api_types_version.py test-setup-py-install unit-test test

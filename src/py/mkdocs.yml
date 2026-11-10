@@ -95,10 +95,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [.]
           options:
-            extensions:
-              - docs_extensions.py:HideWildcardImports
             docstring_style: google
             members_order: source
             # Keep source order across kinds too (otherwise attributes/aliases come first)
