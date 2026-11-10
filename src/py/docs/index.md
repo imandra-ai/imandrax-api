@@ -32,12 +32,15 @@ Set `url` to the server you want to connect to:
 ## Authentication
 
 The hosted servers need an API key; for a self-hosted server it is optional.
-Pass it to the client with `api_key`:
+Pass it to the client with `api_key`. The client doesn't read environment
+variables itself; the examples below take the key from `IMANDRAX_API_KEY`:
 
 ```{.python test="skip"}
+import os
+
 from imandrax_api.v2 import Client, url_prod
 
-with Client(url=url_prod, api_key="your-api-key") as client:
+with Client(url=url_prod, api_key=os.environ["IMANDRAX_API_KEY"]) as client:
     ...
 ```
 
