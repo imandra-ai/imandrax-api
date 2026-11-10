@@ -59,7 +59,23 @@ from .errors import (
     UnexpectedResponseError,
 )
 from .evaluation_values import Value, value_of_lib
-from .mir import *
+from .mir import (
+    DB,
+    Decomposition,
+    Model,
+    Sequent,
+    Tactic,
+    Term,
+    Type,
+    Uid,
+    Variable,
+    VerifyKind,
+    tactic_of_lib,
+    term_of_lib,
+    type_of_lib,
+    upto_of_lib,
+    verify_kind_of_lib,
+)
 from .proof import ProofTerm, proof_term_of_lib
 from .report import Report
 
