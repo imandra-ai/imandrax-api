@@ -18,6 +18,7 @@ from pathlib import Path
 import griffe
 
 ROOTS = ["imandrax_api.v2.interface.Client", "imandrax_api.v2.interface.AsyncClient"]
+ROOTS_SHORT = [r.rsplit(".", 1)[1] for r in ROOTS]
 PAGES = {
     "interface": "imandrax_api.v2.interface",
     "mir": "imandrax_api.v2.mir",
@@ -120,10 +121,24 @@ def main() -> int:
     for page, mod in PAGES.items():
         # sorted() is stable, so ties keep source order
         ordered = sorted(members[mod], key=lambda m: dist.get(m.path, float("inf")))
-        if page == "interface":  # sanity check of the ordering itself
-            assert [m.name for m in ordered[:2]] == ["Client", "AsyncClient"], ordered[
-                :2
+        if page == "interface" and [m.name for m in ordered[:2]] != ROOTS_SHORT:
+            sys.exit(
+                f"interface page should start with {ROOTS_SHORT}, got {ordered[:2]}"
+            )
+        # A type the clients never reach, on a page they do reach, usually means a
+        # reference kind `exprs` doesn't follow (it once missed `type X = ...`), which
+        # quietly sinks the type to the bottom. Helper functions are expected there.
+        if any(m.path in dist for m in ordered):
+            lost = [
+                m.name
+                for m in ordered
+                if m.path not in dist
+                and isinstance(m, (griffe.Class, griffe.TypeAlias))
             ]
+            if lost:
+                sys.exit(
+                    f"{page}: types not reached from the clients: {', '.join(lost)}"
+                )
         path = DOCS / f"{page}.md"
         text = render(mod, [m.name for m in ordered])
         if path.read_text() != text:
