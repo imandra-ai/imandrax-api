@@ -101,35 +101,41 @@ With `prune=True`, regions proved empty are removed, and each region proved
 feasible comes with a sample input and the function's output on it.
 
 ```python
+import os
+
+from imandrax_api.v2 import Client, url_prod
 from imandrax_api.v2.interface import DecompositionResult
 from imandrax_api.v2.mir import PyValue, Uid
 
-client.eval_src("""
+api_key = os.environ.get("IMANDRAX_API_KEY") or os.environ.get("IMANDRA_UNI_KEY")
+
+with Client(url=url_prod, api_key=api_key) as client:
+    client.eval_src("""
 let fee amount =
   if amount < 0 then 0
   else if amount < 100 then 5
   else amount / 20
 """)
 
-res: DecompositionResult = client.decompose("fee", prune=True, string_results=True)
-assert res.decomposition is not None, f"decomposition failed: {res.errors}"
+    res: DecompositionResult = client.decompose("fee", prune=True, string_results=True)
+    assert res.decomposition is not None, f"decomposition failed: {res.errors}"
 
-rows: list[tuple[str, str, str, str]] = [("constraints", "invariant", "sample input", "sample output")]
-for region in res.decomposition.regions:
-    constraints: str = " && ".join(region.constraints_str or ())
-    invariant: str | None = region.invariant_str
-    # The sample input is keyed by each variable's unique ID; key it by name instead
-    sample: dict[Uid, PyValue] = region.sample() or {}
-    sample_input: dict[str, PyValue] = {uid.short_name: value for uid, value in sample.items()}
-    sample_output: PyValue | None = region.sample_output()
-    rows.append((constraints, str(invariant), str(sample_input), str(sample_output)))
+    rows: list[tuple[str, str, str, str]] = [("constraints", "invariant", "sample input", "sample output")]
+    for region in res.decomposition.regions:
+        constraints: str = " && ".join(region.constraints_str or ())
+        invariant: str | None = region.invariant_str
+        # The sample input is keyed by each variable's unique ID; key it by name instead
+        sample: dict[Uid, PyValue] = region.sample() or {}
+        sample_input: dict[str, PyValue] = {uid.short_name: value for uid, value in sample.items()}
+        sample_output: PyValue | None = region.sample_output()
+        rows.append((constraints, str(invariant), str(sample_input), str(sample_output)))
 
-for row in rows:
-    print(f"{row[0]:<30} | {row[1]:<15} | {row[2]:<15} | {row[3]}")
-    #> constraints                    | invariant       | sample input    | sample output
-    #> amount >= 100                  | amount / 20     | {'amount': 100} | 5
-    #> amount >= 0 && amount <= 99    | 5               | {'amount': 0}   | 5
-    #> amount <= (-1)                 | 0               | {'amount': -1}  | 0
+    for row in rows:
+        print(f"{row[0]:<30} | {row[1]:<15} | {row[2]:<15} | {row[3]}")
+        #> constraints                    | invariant       | sample input    | sample output
+        #> amount >= 100                  | amount / 20     | {'amount': 100} | 5
+        #> amount >= 0 && amount <= 99    | 5               | {'amount': 0}   | 5
+        #> amount <= (-1)                 | 0               | {'amount': -1}  | 0
 ```
 
 ### All at once with `eval_src`
@@ -139,9 +145,15 @@ The results of `theorem`, `verify` and `instance` statements are in
 `po_results`, and those of `[@@decomp ...]` in `decomp_results`:
 
 ```python
+import os
+
+from imandrax_api.v2 import Client, url_prod
 from imandrax_api.v2.interface import EvalSrcResponse
 
-res: EvalSrcResponse = client.eval_src("""
+api_key = os.environ.get("IMANDRAX_API_KEY") or os.environ.get("IMANDRA_UNI_KEY")
+
+with Client(url=url_prod, api_key=api_key) as client:
+    res: EvalSrcResponse = client.eval_src("""
 let f x = if x > 0 then x + 1 else 0
 
 theorem f_nonneg x = f x >= 0
@@ -155,16 +167,16 @@ let fee amount =
 [@@decomp top () |>> prune]
 """)
 
-# For a theorem, `instance` means a counter-example was found
-for po in res.po_results:
-    print(po.origin.from_sym, po.outcome)
-    #> f_nonneg proof
-    #> f_increasing instance
-    #> _instance_6_1 instance
+    # For a theorem, `instance` means a counter-example was found
+    for po in res.po_results:
+        print(po.origin.from_sym, po.outcome)
+        #> f_nonneg proof
+        #> f_increasing instance
+        #> _instance_6_1 instance
 
-for d in res.decomp_results:
-    print(d.success, d.decomposition and len(d.decomposition.regions))
-    #> True 3
+    for d in res.decomp_results:
+        print(d.success, d.decomposition and len(d.decomposition.regions))
+        #> True 3
 ```
 
 ### Async client
