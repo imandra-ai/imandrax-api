@@ -22,7 +22,13 @@ from ..twirp.context import Context
 from ..twirp.errors import Errors
 from ..twirp.exceptions import TwirpServerException
 from . import decomp
-from ._common import ClientClosedError, is_session_not_found, mk_context, url_prod
+from ._common import (
+    ClientClosedError,
+    EndSessionError,
+    is_session_not_found,
+    mk_context,
+    url_prod,
+)
 
 
 class AsyncClient:
@@ -148,10 +154,20 @@ class AsyncClient:
             if hasattr(self, "_sesh"):
                 try:
                     await self._client.end_session(
-                        ctx=self._ctx(), request=self._sesh, timeout=None
+                        ctx=self._ctx(),
+                        request=self._sesh,
+                        timeout=self._timeout,
                     )
-                except TwirpServerException as e:
-                    raise Exception("Error while ending session") from e
+                except Exception as e:
+                    if exc_type is not None:
+                        # the body already failed; propagate its error by returning
+                        exc_val.add_note(
+                            f"also failed to end session {self._sesh.id}: {e!r}"
+                        )
+                    elif isinstance(e, TwirpServerException):
+                        raise EndSessionError(self._sesh.id) from e
+                    else:
+                        raise
         finally:
             await self._session.__aexit__(exc_type, exc_val, exc_tb)
             self._closed = True

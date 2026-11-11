@@ -4,16 +4,27 @@
 only then issue the `create_session` / `open_session` RPC. When that RPC fails,
 nothing else closes the transport, which used to leak it (aiohttp reports it as
 an "Unclosed client session" warning).
+
+On exit, `end_session` runs with the client's timeout. If it fails after the
+body returned, the exit raises `EndSessionError`. If it fails after the body
+raised (e.g. the backend went down mid-request and the gateway answers 503 to
+everything for a while), the body's own exception reaches the caller instead
+of being replaced, with the `end_session` failure attached as a note.
 """
 # ai-disclosure: ai-generated
 # pyright: reportPrivateUsage=false
-# ruff: noqa: BLE001, S110
 
 import asyncio
 from typing import Any
 
+import pytest
+
 import imandrax_api.v1 as sync_client_mod
-from imandrax_api.v1 import Client, ClientClosedError
+from imandrax_api import v2
+from imandrax_api.bindings import utils_pb2
+from imandrax_api.twirp.errors import Errors
+from imandrax_api.twirp.exceptions import TwirpServerException
+from imandrax_api.v1 import Client, ClientClosedError, EndSessionError
 from imandrax_api.v1._async import AsyncClient
 
 URL = "http://127.0.0.1:1"
@@ -43,8 +54,8 @@ async def _create_fail(**_: Any) -> _Sesh:
     raise _Raised()
 
 
-async def _end_fail(**_: Any) -> None:
-    raise _Raised()
+def _unavailable() -> TwirpServerException:
+    return TwirpServerException(code=Errors.Unavailable, message="Service Unavailable")
 
 
 def test_async_enter_failure_closes_transport() -> None:
@@ -62,20 +73,53 @@ def test_async_enter_failure_closes_transport() -> None:
     asyncio.run(go())
 
 
-def test_async_end_session_failure_closes_transport() -> None:
+def _mk_async_client(**kwargs: Any) -> tuple[AsyncClient, list[Any]]:
+    """a client whose `status` answers "ok" and whose `end_session` fails;
+    also returns the timeouts `end_session` was called with."""
+    end_timeouts: list[Any] = []
+
+    async def status_ok(**_: Any) -> utils_pb2.StringMsg:
+        return utils_pb2.StringMsg(msg="ok")
+
+    async def end_unavailable(**kwargs: Any) -> None:
+        end_timeouts.append(kwargs.get("timeout"))
+        raise _unavailable()
+
+    c = AsyncClient(url=URL, **kwargs)
+    c._client.create_session = _create_ok
+    c._client.status = status_ok
+    c._client.end_session = end_unavailable
+    return c, end_timeouts
+
+
+def test_async_end_session_failure_raises() -> None:
     async def go() -> None:
-        c = AsyncClient(url=URL)
-        c._client.create_session = _create_ok
-        c._client.end_session = _end_fail
-        try:
+        c, end_timeouts = _mk_async_client()
+        with pytest.raises(EndSessionError) as ei:
             async with c:
-                pass
-        except Exception:
-            pass
-        else:
-            raise AssertionError("__aexit__ should have raised")
+                await c.status()
+        assert ei.value.session_id == "session-id"
+        assert isinstance(ei.value.__cause__, TwirpServerException)
         assert c._session.closed
         assert c._closed
+        # the client's timeout, not `None` (which would wait forever)
+        assert end_timeouts == [30]
+
+    asyncio.run(go())
+
+
+def test_async_end_session_failure_keeps_body_exception() -> None:
+    async def go() -> None:
+        c, end_timeouts = _mk_async_client(timeout=5)
+        with pytest.raises(_Raised) as ei:
+            async with c:
+                raise _Raised()
+        assert c._session.closed
+        assert c._closed
+        assert ei.value.__notes__ == [
+            f"also failed to end session session-id: {_unavailable()!r}"
+        ]
+        assert end_timeouts == [5]
 
     asyncio.run(go())
 
@@ -138,27 +182,60 @@ def test_sync_init_failure_closes_transport(
     assert created and created[-1].was_closed
 
 
-def test_sync_end_session_failure_closes_transport(monkeypatch: Any) -> None:
-    created = _record_sessions(monkeypatch)
+def _patch_sync_end_unavailable(monkeypatch: Any) -> list[Any]:
+    """make `end_session` fail; returns the timeouts it was called with."""
+    end_timeouts: list[Any] = []
+
+    def end_unavailable(*_: Any, **kwargs: Any) -> None:
+        end_timeouts.append(kwargs.get("timeout"))
+        raise _unavailable()
+
     monkeypatch.setattr(
         sync_client_mod.simple_api_twirp.SimpleClient,
         "create_session",
         _create_sesh,
     )
     monkeypatch.setattr(
-        sync_client_mod.simple_api_twirp.SimpleClient, "end_session", _raise_boom
+        sync_client_mod.simple_api_twirp.SimpleClient, "end_session", end_unavailable
     )
+    return end_timeouts
 
-    c = Client(url=URL)
-    try:
-        c.__exit__()
-    except Exception:
+
+def test_sync_end_session_failure_closes_transport(monkeypatch: Any) -> None:
+    created = _record_sessions(monkeypatch)
+    end_timeouts = _patch_sync_end_unavailable(monkeypatch)
+
+    with pytest.raises(EndSessionError) as ei, Client(url=URL) as c:
         pass
-    else:
-        raise AssertionError("__exit__ should have raised")
+
+    assert ei.value.session_id == "session-id"
+    assert isinstance(ei.value.__cause__, TwirpServerException)
+    assert c._closed
+    assert created and created[-1].was_closed
+    assert end_timeouts == [30]
+
+
+def test_sync_end_session_failure_keeps_body_exception(monkeypatch: Any) -> None:
+    created = _record_sessions(monkeypatch)
+    end_timeouts = _patch_sync_end_unavailable(monkeypatch)
+
+    with pytest.raises(_Raised) as ei, Client(url=URL, timeout=5) as c:
+        raise _Raised()
 
     assert c._closed
     assert created and created[-1].was_closed
+    assert end_timeouts == [5]
+    assert ei.value.__notes__ == [
+        f"also failed to end session session-id: {_unavailable()!r}"
+    ]
+
+
+def test_sync_v2_end_session_failure_keeps_body_exception(monkeypatch: Any) -> None:
+    # v2 must pass the body's exception on to v1's exit, or v1 can't keep it
+    _patch_sync_end_unavailable(monkeypatch)
+
+    with pytest.raises(_Raised), v2.Client(url=URL):
+        raise _Raised()
 
 
 def test_async_closed_client_raises() -> None:
