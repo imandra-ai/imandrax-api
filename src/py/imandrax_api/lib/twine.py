@@ -16,7 +16,14 @@ class Error(Exception):
 
 
 class Decoder:
-    """A twine decoder"""
+    """
+    A twine decoder.
+
+    On malformed input, every method either returns a value or raises `Error`;
+    no other exception escapes, and no data is read from outside the buffer.
+    `value` also raises `Error` for cyclic input, and for valid input nested
+    deeper than Python's recursion limit.
+    """
 
     # per-type cache, keyed by offset; must be per-instance (per-artifact),
     caches: dict[str, dict[offset, Any]]
@@ -26,8 +33,35 @@ class Decoder:
         self.bs = a
         self.caches = {}
 
+    def _out_of_bounds(self, off: offset) -> Error:
+        return Error(f"offset {off} out of bounds (buffer size {len(self.bs)})")
+
+    def _byte(self, off: offset) -> int:
+        "the byte at `off`; raises `Error` if `off` is outside the buffer"
+        # a negative index would silently wrap around to the end of the buffer
+        if off < 0:
+            raise self._out_of_bounds(off)
+        try:
+            return self.bs[off]
+        except IndexError:
+            raise self._out_of_bounds(off) from None
+
+    def _slice(self, off: offset, n: int) -> bytearray:
+        "the `n` bytes starting at `off`; raises `Error` if they overrun the buffer"
+        if off + n > len(self.bs):
+            raise Error(
+                f"{n} bytes at off=0x{off:x} overrun the buffer (size {len(self.bs)})"
+            )
+        return self.bs[off : off + n]
+
     def __first_byte(self, off: int) -> tuple[int, int]:
-        c = self.bs[off]
+        # `_byte`, inlined: this is the decoder's hottest path
+        if off < 0:
+            raise self._out_of_bounds(off)
+        try:
+            c = self.bs[off]
+        except IndexError:
+            raise self._out_of_bounds(off) from None
         high = c >> 4
         low = c & 0xF
         return (high, low)
@@ -41,7 +75,7 @@ class Decoder:
         n_bytes = 0
         while True:
             n_bytes += 1
-            x = self.bs[off]
+            x = self._byte(off)
             off += 1
             cur = x & 0x7F
             if x != cur:
@@ -138,7 +172,7 @@ class Decoder:
         if high == 0 and low == 2:
             return
         else:
-            raise Error(f"expected bool, but high={high}, low={low} at off=0x{off:x}")
+            raise Error(f"expected null, but high={high}, low={low} at off=0x{off:x}")
 
     def get_float(self, off: offset) -> float:
         off = self._deref(off=off)
@@ -149,9 +183,9 @@ class Decoder:
         # the payload starts right after the first byte
         isf32 = low == 0
         if isf32:
-            return struct.unpack_from("<f", self.bs, offset=off + 1)[0]
+            return struct.unpack("<f", self._slice(off + 1, 4))[0]
         else:
-            return struct.unpack_from("<d", self.bs, offset=off + 1)[0]
+            return struct.unpack("<d", self._slice(off + 1, 8))[0]
 
     def get_str(self, off: offset) -> str:
         off = self._deref(off=off)
@@ -159,9 +193,11 @@ class Decoder:
         if high != 4:
             raise Error(f"expected string, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
-        off = off + 1 + n_bytes
-        s = self.bs[off : off + len].decode("utf8")
-        return s
+        payload = self._slice(off + 1 + n_bytes, len)
+        try:
+            return payload.decode("utf8")
+        except UnicodeDecodeError as e:
+            raise Error(f"invalid UTF-8 in string at off=0x{off:x}: {e}") from e
 
     def get_bytes(self, off: offset) -> bytes:
         off = self._deref(off=off)
@@ -169,8 +205,7 @@ class Decoder:
         if high != 5:
             raise Error(f"expected bytes, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
-        off = off + 1 + n_bytes
-        return bytes(self.bs[off : off + len])
+        return bytes(self._slice(off + 1 + n_bytes, len))
 
     def get_array(self, off: offset) -> ArrayCursor:
         off = self._deref(off=off)
@@ -263,12 +298,21 @@ class Decoder:
                 c = self.get_cstor(off=off)
                 return Constructor(idx=c.idx, args=tuple(c.args))
             case 15:
-                assert False
+                raise Error(f"unexpected pointer after deref at off=0x{off:x}")
             case _:
                 raise Error(f"invalid twine value (high={high}) at off=0x{off:x}")
 
     def value(self, off: offset) -> value:
         """Read an arbitrary value"""
+        try:
+            return self._value(off=off)
+        except RecursionError as e:
+            # a container may hold a pointer back to itself, so malformed input
+            # can be cyclic; valid input nested deeper than the recursion limit
+            # ends up here too
+            raise Error(f"value at off=0x{off:x} is cyclic or nested too deeply") from e
+
+    def _value(self, off: offset) -> value:
         off = self._deref(off=off)
         high, low = self.__first_byte(off=off)
         match high:
@@ -291,26 +335,36 @@ class Decoder:
                 return self.get_bytes(off=off)
             case 6:
                 c = self.get_array(off=off)
-                return tuple(self.value(off) for off in c)
+                return tuple(self._value(off) for off in c)
             case 7:
                 c = self.get_dict(off=off)
-                d = {self.value(k): self.value(v) for k, v in c}
+                d: dict[value, value] = {}
+                for k, v in c:
+                    key, val = self._value(k), self._value(v)
+                    try:
+                        d[key] = val
+                    except TypeError as e:
+                        # e.g. a key that is itself a dict: valid twine, but
+                        # not representable as a Python dict key
+                        raise Error(f"unhashable dict key at off=0x{k:x}: {e}") from e
                 return d
             case 8:
                 tag = self.get_tag(off=off)
-                return Tag(tag=tag.tag, arg=self.value(tag.arg))
+                return Tag(tag=tag.tag, arg=self._value(tag.arg))
             case 10 | 11 | 12:
                 c = self.get_cstor(off=off)
-                args: tuple[value, ...] = tuple(self.value(x) for x in c.args)
+                args: tuple[value, ...] = tuple(self._value(x) for x in c.args)
                 return Constructor(idx=c.idx, args=args)
             case 15:
-                assert False
+                raise Error(f"unexpected pointer after deref at off=0x{off:x}")
             case _:
                 raise Error(f"invalid twine value (high={high}) at off=0x{off:x}")
 
     def entrypoint(self) -> offset:
+        if not self.bs:
+            raise Error("empty buffer has no entrypoint")
         last = len(self.bs) - 1
-        offset = last - int(self.bs[last]) - 1
+        offset = last - self.bs[last] - 1
         # print(f"offset = 0x{offset:x}")
         return self._deref(off=offset)
 
