@@ -118,6 +118,30 @@ def test_offset_out_of_range_raises_twine_error(off: int):
         d.get_int(off=off)
 
 
+# a LEB128 count of 2**49 (+ 15 where the low nibble is 15), followed by one
+# 1-byte item: a container claiming far more items than the buffer holds
+HUGE_COUNT = b"\x80" * 7 + b"\x01"
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param(b"\x6f" + HUGE_COUNT + b"\x00", id="array"),
+        pytest.param(b"\x7f" + HUGE_COUNT + b"\x00\x00", id="dict"),
+        pytest.param(b"\xc0" + HUGE_COUNT + b"\x00", id="constructor"),
+    ],
+)
+def test_huge_item_count_raises_twine_error(data: bytes):
+    # Regression: the claimed count became the cursor's `__len__`, and
+    # `tuple(cursor)`/`list(cursor)` allocate room for that many items up front:
+    # a few bytes of input made the decoder allocate gigabytes, or raise
+    # MemoryError
+    d = twine.Decoder(data)
+    for decode in (d.value, d.shallow_value):
+        with pytest.raises(twine.Error):
+            decode(off=0)
+
+
 def test_unhashable_dict_key_raises_twine_error():
     # A dict whose key is itself a dict is valid twine, but cannot be a key of a
     # Python `dict`. Layout: [0] empty dict `{}`; [1] dict with one entry whose
@@ -150,6 +174,28 @@ def test_prop_any_offset_any_method(case: tuple[bytes, int, str]):
     data, off, method = case
     d = twine.Decoder(data)
     ok_or_twine_error(lambda: _decode_with(d, method, off))
+
+
+@given(st.binary(min_size=1, max_size=256), st.data())
+def test_prop_cursor_fits_in_buffer(data: bytes, draw: st.DataObject):
+    # Resource bound: a cursor never claims more items than the rest of the
+    # buffer can hold, so materializing it allocates O(buffer size)
+    off = draw.draw(st.integers(min_value=0, max_value=len(data) - 1))
+    d = twine.Decoder(data)
+    try:
+        high = d._byte(d._deref(off=off)) >> 4
+        match high:
+            case 6:
+                c, item_size = d.get_array(off=off), 1
+            case 7:
+                c, item_size = d.get_dict(off=off), 2
+            case 10 | 11 | 12:
+                c, item_size = d.get_cstor(off=off).args, 1
+            case _:
+                return
+    except twine.Error:
+        return
+    assert len(c) * item_size <= len(data) - c.offset
 
 
 @st.composite
