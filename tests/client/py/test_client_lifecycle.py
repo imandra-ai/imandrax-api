@@ -73,8 +73,10 @@ def test_async_enter_failure_closes_transport() -> None:
     asyncio.run(go())
 
 
-def _mk_async_client(end_timeouts: list[Any], **kwargs: Any) -> AsyncClient:
-    """a client whose `status` answers "ok" and whose `end_session` fails."""
+def _mk_async_client(**kwargs: Any) -> tuple[AsyncClient, list[Any]]:
+    """a client whose `status` answers "ok" and whose `end_session` fails;
+    also returns the timeouts `end_session` was called with."""
+    end_timeouts: list[Any] = []
 
     async def status_ok(**_: Any) -> utils_pb2.StringMsg:
         return utils_pb2.StringMsg(msg="ok")
@@ -87,14 +89,12 @@ def _mk_async_client(end_timeouts: list[Any], **kwargs: Any) -> AsyncClient:
     c._client.create_session = _create_ok
     c._client.status = status_ok
     c._client.end_session = end_unavailable
-    return c
+    return c, end_timeouts
 
 
 def test_async_end_session_failure_raises() -> None:
-    end_timeouts: list[Any] = []
-
     async def go() -> None:
-        c = _mk_async_client(end_timeouts)
+        c, end_timeouts = _mk_async_client()
         with pytest.raises(EndSessionError) as ei:
             async with c:
                 await c.status()
@@ -102,17 +102,15 @@ def test_async_end_session_failure_raises() -> None:
         assert isinstance(ei.value.__cause__, TwirpServerException)
         assert c._session.closed
         assert c._closed
+        # the client's timeout, not `None` (which would wait forever)
+        assert end_timeouts == [30]
 
     asyncio.run(go())
-    # the client's timeout, not `None` (which would wait forever)
-    assert end_timeouts == [30]
 
 
 def test_async_end_session_failure_keeps_body_exception() -> None:
-    end_timeouts: list[Any] = []
-
     async def go() -> None:
-        c = _mk_async_client(end_timeouts, timeout=5)
+        c, end_timeouts = _mk_async_client(timeout=5)
         with pytest.raises(_Raised) as ei:
             async with c:
                 raise _Raised()
@@ -121,9 +119,9 @@ def test_async_end_session_failure_keeps_body_exception() -> None:
         assert ei.value.__notes__ == [
             f"also failed to end session session-id: {_unavailable()!r}"
         ]
+        assert end_timeouts == [5]
 
     asyncio.run(go())
-    assert end_timeouts == [5]
 
 
 def test_async_happy_path_ends_session_and_closes_transport() -> None:
