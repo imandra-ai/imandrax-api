@@ -16,14 +16,7 @@ class Error(Exception):
 
 
 class Decoder:
-    """
-    A twine decoder.
-
-    On malformed input, every method either returns a value or raises `Error`;
-    no other exception escapes, and no data is read from outside the buffer.
-    `value` also raises `Error` for cyclic input, and for valid input nested
-    deeper than Python's recursion limit.
-    """
+    """A twine decoder."""
 
     # per-type cache, keyed by offset; must be per-instance (per-artifact),
     caches: dict[str, dict[offset, Any]]
