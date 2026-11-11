@@ -374,6 +374,9 @@ def cached(name: str) -> Callable[[DecoderFn[Any]], DecoderFn[Any]]:
         """Decorator for cached functions"""
 
         def cached_f(d: Decoder, off: offset) -> Any:
+            # key on the pointed-to value: each reference to a shared value is
+            # its own pointer, at its own offset
+            off = d._deref(off=off)
             cache = d.caches.setdefault(name, {})
             if off in cache:
                 return cache[off]
