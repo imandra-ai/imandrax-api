@@ -68,18 +68,6 @@ class Decoder:
             )
         return n
 
-    def __first_byte(self, off: int) -> tuple[int, int]:
-        # `_byte`, inlined: this is the decoder's hottest path
-        if off < 0:
-            raise self._out_of_bounds(off)
-        try:
-            c = self.bs[off]
-        except IndexError:
-            raise self._out_of_bounds(off) from None
-        high = c >> 4
-        low = c & 0xF
-        return (high, low)
-
     def _leb128(self, off: offset) -> tuple[int, int]:
         """
         read an unsigned integer as LEB128, also returns how many bytes were consumed
@@ -106,52 +94,65 @@ class Decoder:
         rest, consumed = self._leb128(off=off + 1)
         return rest + 15, consumed
 
+    def _head(self, off: offset) -> tuple[offset, int, int]:
+        """
+        deref pointers from `off`; returns the final offset and its (high, low).
+
+        The decoder's hottest path: every accessor starts here. It reads each
+        byte once and inlines `_byte`, so accessors need not re-read the first
+        byte after `_deref`.
+        """
+        bs = self.bs
+        while True:
+            if off < 0:
+                raise self._out_of_bounds(off)
+            try:
+                c = bs[off]
+            except IndexError:
+                raise self._out_of_bounds(off) from None
+            if c < 0xF0:
+                return off, c >> 4, c & 0xF
+            low = c & 0xF
+            if low < 15:
+                off = off - low - 1
+            else:
+                p, _ = self._leb128(off=off + 1)
+                off = off - p - 16
+
     def _deref(self, off: offset) -> offset:
         "deref pointers until `off` is not a pointer"
-        while True:
-            high, low = self.__first_byte(off)
-            if high == 15:
-                p, _ = self.__getint64(off, low)
-                off = off - p - 1
-            else:
-                return off
+        return self._head(off)[0]
 
     def _skip(self, off: offset) -> offset:
         "skip the current immediate value"
-        high, low = self.__first_byte(off=off)
-        match high:
-            case 0:
+        # runs once per container item: common kinds first, no helper calls
+        c = self._byte(off)
+        high = c >> 4
+        low = c & 0xF
+        if high == 15 or high == 1 or high == 2 or high == 10:
+            if low < 15:
                 return off + 1
-            case 1 | 2:
-                _, n_bytes = self.__getint64(off=off, low=low)
-                return off + 1 + n_bytes
-            case 3:
-                return off + 5 if low == 0 else off + 9
-            case 4 | 5:
-                len, n_bytes = self.__getint64(off=off, low=low)
-                return off + 1 + n_bytes + len
-            case 6 | 7 | 8:
-                raise Error(
-                    f"cannot skip over array/dict/tag (high={high}) at off=0x{off:x}"
-                )
-            case 9 | 13 | 14:
-                raise Error(f"tag {high} is reserved")
-            case 10:
-                _, n_bytes = self.__getint64(off=off, low=low)
-                return off + 1 + n_bytes
-            case 11 | 12:
-                raise Error(
-                    f"cannot skip over constructor (high={high}) at off=0x{off:x}"
-                )
-            case 15:
-                _, n_bytes = self.__getint64(off=off, low=low)
-                return off + 1 + n_bytes
-            case _:
-                assert False
+            _, n_bytes = self._leb128(off=off + 1)
+            return off + 1 + n_bytes
+        if high == 4 or high == 5:
+            if low < 15:
+                return off + 1 + low
+            n, n_bytes = self._leb128(off=off + 1)
+            return off + 1 + n_bytes + n + 15
+        if high == 0:
+            return off + 1
+        if high == 3:
+            return off + 5 if low == 0 else off + 9
+        if high == 6 or high == 7 or high == 8:
+            raise Error(
+                f"cannot skip over array/dict/tag (high={high}) at off=0x{off:x}"
+            )
+        if high == 11 or high == 12:
+            raise Error(f"cannot skip over constructor (high={high}) at off=0x{off:x}")
+        raise Error(f"tag {high} is reserved")
 
     def get_int(self, off: offset) -> int:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off)
+        off, high, low = self._head(off)
         if high == 1:
             x, _ = self.__getint64(off=off, low=low)
             return x
@@ -169,8 +170,7 @@ class Decoder:
             raise Error(f"expected integer, but high={high} at off=0x{off:x}")
 
     def get_bool(self, off: offset) -> bool:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
         if high != 0:
             raise Error(f"expected bool, but high={high} at off=0x{off:x}")
         if low == 0:
@@ -181,16 +181,14 @@ class Decoder:
             raise Error(f"expected bool, but high={high}, low={low} at off=0x{off:x}")
 
     def get_null(self, off: offset) -> None:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
         if high == 0 and low == 2:
             return
         else:
             raise Error(f"expected null, but high={high}, low={low} at off=0x{off:x}")
 
     def get_float(self, off: offset) -> float:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
         if high != 3:
             raise Error(f"expected float, but high={high} at off=0x{off:x}")
 
@@ -202,8 +200,7 @@ class Decoder:
             return struct.unpack("<d", self._slice(off + 1, 8))[0]
 
     def get_str(self, off: offset) -> str:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
         if high != 4:
             raise Error(f"expected string, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
@@ -214,16 +211,14 @@ class Decoder:
             raise Error(f"invalid UTF-8 in string at off=0x{off:x}: {e}") from e
 
     def get_bytes(self, off: offset) -> bytes:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
         if high != 5:
             raise Error(f"expected bytes, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
         return bytes(self._slice(off + 1 + n_bytes, len))
 
     def get_array(self, off: offset) -> ArrayCursor:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
         if high != 6:
             raise Error(f"expected array, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
@@ -232,8 +227,7 @@ class Decoder:
         return ArrayCursor(dec=self, offset=start, num_items=len)
 
     def get_dict(self, off: offset) -> DictCursor:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
         if high != 7:
             raise Error(f"expected dict, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
@@ -243,8 +237,7 @@ class Decoder:
         return DictCursor(dec=self, offset=start, num_items=len)
 
     def get_tag(self, off: offset) -> Tag[offset]:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
         if high != 8:
             raise Error(f"expected tag, but high={high} at off=0x{off:x}")
         tag, n_bytes = self.__getint64(off=off, low=low)
@@ -255,8 +248,7 @@ class Decoder:
         """
         dec.get_cstor(off) returns the constructor index, and a cursor over its arguments
         """
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
 
         if high == 10:
             idx, _ = self.__getint64(off=off, low=low)
@@ -286,8 +278,7 @@ class Decoder:
 
     def shallow_value(self, off: offset) -> shallow_value:
         """Read an arbitrary (shallow) value, non-recursively"""
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
         match high:
             case 0:
                 if low == 2:
@@ -334,8 +325,7 @@ class Decoder:
             raise Error(f"value at off=0x{off:x} is cyclic or nested too deeply") from e
 
     def _value(self, off: offset) -> value:
-        off = self._deref(off=off)
-        high, low = self.__first_byte(off=off)
+        off, high, low = self._head(off)
         match high:
             case 0:
                 if low == 2:
