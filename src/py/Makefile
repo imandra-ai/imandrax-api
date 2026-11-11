@@ -76,4 +76,15 @@ install-go-protobuf-plugin:
 	@echo "installing twirp plugin for protoc into `echo $(GOBIN)`"
 	cd protoc-gen-twirpy && GOBIN="`echo $(GOBIN)`" go install ./
 
-.PHONY: remove-wheels build genversion imandrax_api/api_types_version.py test-setup-py-install unit-test test
+DOCS_COMMIT=$(shell git rev-parse HEAD)
+DOCS_COMMIT_SHORT=$(shell git rev-parse --short HEAD)
+DOCS_DATE=$(shell git log -1 --format=%cs)
+DOCS_COMMIT_URL=https://github.com/imandra-ai/imandrax-api/commit/$(DOCS_COMMIT)
+docs:
+	DOCS_BUILD_INFO="imandrax-api $(strip $(VERSION)), commit <a href='$(DOCS_COMMIT_URL)'>$(DOCS_COMMIT_SHORT)</a> ($(DOCS_DATE))" \
+	  uv run --group docs zensical build
+
+docs-serve:
+	uv run --group docs zensical serve
+
+.PHONY: docs docs-serve remove-wheels build genversion imandrax_api/api_types_version.py test-setup-py-install unit-test test

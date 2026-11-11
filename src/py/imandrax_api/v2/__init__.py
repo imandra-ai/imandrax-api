@@ -1,7 +1,8 @@
-"""The new ImandraX API client (preview: the API may still change between minor releases).
+"""The ImandraX API client
 
-Result, task and term types live in the submodules, e.g. `imandrax_api.v2.interface`
-and `imandrax_api.v2.mir`.
+This package defines the clients together with Python types for what they exchange with
+ImandraX: requests, responses, tasks and their results, and the terms, types, models,
+proofs and reports inside them.
 """
 
 from ..v1 import url_dev, url_prod

@@ -20,16 +20,18 @@ __all__ = ["url_dev", "url_prod"]
 _DEPRECATED_V1_NAMES = frozenset({"AsyncClient", "Client"})
 
 _CLIENT_DEPRECATION = (
-    "`imandrax_api.client` is deprecated; use the new client in `imandrax_api.v2`, "
-    "or `imandrax_api.v1` to keep the current one"
+    "`imandrax_api.client` is deprecated and will soon point to the new v2 client. "
+    "Import from `imandrax_api.v2` to switch to v2 now, or from `imandrax_api.v1` "
+    "to stay on v1"
 )
 
 
 def __getattr__(name: str) -> Any:
     if name in _DEPRECATED_V1_NAMES:
         warnings.warn(
-            f"`imandrax_api.{name}` is deprecated; use the new client in "
-            f"`imandrax_api.v2`, or `imandrax_api.v1.{name}` to keep the current one",
+            f"`imandrax_api.{name}` is deprecated and will soon point to the new "
+            f"v2 client. Use `imandrax_api.v2.{name}` to switch to v2 now, or "
+            f"`imandrax_api.v1.{name}` to stay on v1",
             DeprecationWarning,
             stacklevel=2,
         )

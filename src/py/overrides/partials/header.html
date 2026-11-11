@@ -1,0 +1,63 @@
+{#-
+  Header override: mirrors the imandrax.dev docs header
+  (`src/shared/components/header.tsx` with the `ImandraX` brand from
+  `src/components/brand.ts`). Based on the theme's `partials/header.html`.
+
+  Layout, left to right: ImandraX wordmark (links to imandrax.dev), drawer
+  button (small screens), search, spacer, top menu (same entries as
+  imandrax.dev's `NavigationData`, minus Login / Sign up), GitHub repo
+  with stats, light/dark toggle. Styles live in docs/stylesheets/imandrax.css.
+-#}
+{% set class = "md-header md-header--shadow imandrax-header" %}
+<header class="{{ class }}" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="{{ lang.t('header') }}">
+    <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" title="ImandraX" class="md-header__button md-logo imandrax-header__logo" aria-label="ImandraX Home" data-md-component="logo">
+      {% include "partials/imandrax-wordmark.html" %}
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      {% set icon = config.theme.icon.menu or "material/menu" %}
+      {% include ".icons/" ~ icon ~ ".svg" %}
+      <span class="md-visually-hidden">{{ lang.t('nav') }}</span>
+    </label>
+    {% if "search" in config.plugins %}
+      {% set search = config.plugins["search"] | attr("config") %}
+      {% if search.enabled %}
+        {% include "partials/search.html" %}
+      {% endif %}
+    {% endif %}
+    <div class="imandrax-header__spacer"></div>
+    <ul class="imandrax-header__menu">
+      {% for item in config.extra.imandrax_nav %}
+        <li>
+          <a href="{{ item.href }}" class="imandrax-header__link{% if item.active %} imandrax-header__link--active{% endif %}" aria-label="{{ item.aria_label }}"{% if item.active %} aria-current="page"{% endif %}{% if item.external %} target="_blank" rel="noopener"{% endif %}>{{ item.name }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% if "search" in config.plugins %}
+      {% set search = config.plugins["search"] | attr("config") %}
+      {% if search.enabled %}
+        <label class="md-header__button md-icon" for="__search">
+          {% set icon = config.theme.icon.search or "material/magnify" %}
+          {% include ".icons/" ~ icon ~ ".svg" %}
+          <span class="md-visually-hidden">{{ lang.t('search') }}</span>
+        </label>
+      {% endif %}
+    {% endif %}
+    <div class="md-header__source">
+      {% if config.repo_url %}
+        {% include "partials/source.html" %}
+      {% endif %}
+    </div>
+    {% if config.theme.palette %}
+      {% if not config.theme.palette is mapping %}
+        {% include "partials/palette.html" %}
+      {% endif %}
+    {% endif %}
+    {% if not config.theme.palette is mapping %}
+      {% include "partials/javascripts/palette.html" %}
+    {% endif %}
+    {% if config.extra.alternate %}
+      {% include "partials/alternate.html" %}
+    {% endif %}
+  </nav>
+</header>

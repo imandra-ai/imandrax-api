@@ -51,6 +51,10 @@ exclude = [
     "imandrax_api/twirp/",
 ]
 
+[tool.ruff.format]
+# doc examples are checked by pytest-examples; ruff would rewrite its `#> ` output markers
+exclude = ["docs/**/*.md"]
+
 [tool.ruff.lint]
 # deprecated client; formatted but not linted
 exclude = ["imandrax_api/v1/**"]
@@ -66,7 +70,12 @@ dev = [
     "inline-snapshot>=0.36.1",
     "pyright>=1.1.408",
     "pytest>=9.1.1",
+    "pytest-examples>=0.0.18",
     "ruff==0.16.3",
+]
+docs = [
+    "mkdocstrings[python]>=1.0.8",
+    "zensical>=0.0.74",
 ]
 
 [tool.black]

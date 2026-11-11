@@ -1,3 +1,5 @@
+"""Values produced by evaluating an IML expression"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

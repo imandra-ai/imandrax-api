@@ -38,7 +38,6 @@ from imandrax_api.v2.interface import (
     ProofObligationTask,
     ProofObligationTaskResult,
     Task,
-    TypeDeclaration,
 )
 from imandrax_api.v2.mir import (
     DB,
@@ -80,6 +79,7 @@ from imandrax_api.v2.mir import (
     TupleField,
     TupleType,
     Type,
+    TypeDeclaration,
     TypeVariable,
     Uid,
     Var,

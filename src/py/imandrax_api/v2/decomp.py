@@ -1,5 +1,10 @@
 # pyright: reportPrivateUsage=false
-"""Constructors for the decomposition request of `decompose_full`"""
+"""Constructors for the decomposition request of `decompose_full`
+
+A request is a tree: start from a function or an earlier decomposition, then merge
+decompositions, prune or combine their regions, and bind intermediate results to names to
+reuse them.
+"""
 # Note: we reuse protobuf constructors in `imandrax_api.v1.decomp`
 # but allow `from_artifact` to take `Artifact` and `DecompositionTaskResult`
 

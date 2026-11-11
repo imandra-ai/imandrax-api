@@ -1,0 +1,149 @@
+# Note [How mkdocs work]
+# ~~~~~~~~~~~~~~~~~~~~~~
+# main roles:
+# - Python source: the actual reference text
+# - `nav` in mkdocs.yml: the menu
+#   - points to files in docs/; it doesn't create anything.
+# - docs/: the pages.
+#   - Every .md file under docs/ becomes one HTML page. The output path
+#     mirrors the file path
+#   - When the renderer reaches a line like `::: imandrax_api.v2.interface` it
+#     reads `imandrax_api/v2/interface.py` and replaces `:::` line with that generated HTML
+#
+# `strict` mode checks the mismatch between docs/ and `nav` (both sides)
+
+site_name: imandrax-api (Python)
+site_description: Python client for the ImandraX API
+# Published under imandrax.dev (copied in by imandrax.dev's build workflow)
+site_url: https://imandrax.dev/docs/api/python-client/
+repo_url: https://github.com/imandra-ai/imandrax-api
+edit_uri: edit/main/src/py/docs/
+site_dir: build/site
+strict: true
+# Footer text, set by `make docs`
+copyright: !ENV [DOCS_BUILD_INFO, "local build"]
+
+theme:
+  name: material
+  # Header override (ImandraX wordmark + top menu), see overrides/partials/header.html
+  custom_dir: overrides
+  # Branding mirrors imandrax.dev, see docs/stylesheets/imandrax.css
+  logo: assets/imandrax-mark.svg
+  favicon: assets/favicon.webp
+  font:
+    text: Inter
+    code: IBM Plex Mono
+  features:
+    - content.code.copy
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+extra_css:
+  - stylesheets/imandrax.css
+
+extra:
+  # The logo links back to the main site rather than this reference's home page
+  homepage: https://imandrax.dev/
+  # Hide the "Made with Zensical" footer line
+  generator: false
+  # Top menu, mirrors `NavigationData` in imandrax.dev's
+  # src/components/data-links.ts (Login / Sign up left out on purpose).
+  # Rendered by overrides/partials/header.html.
+  imandrax_nav:
+    - name: Home
+      href: https://imandrax.dev/
+      aria_label: Navigate to Home
+    - name: Install
+      href: https://imandrax.dev/docs/getting-started/installation/
+      aria_label: Navigate to Install
+    - name: Docs
+      href: https://imandrax.dev/docs/
+      aria_label: Navigate to Docs
+      active: true
+    - name: Contact
+      href: https://www.imandra.ai/contact
+      aria_label: Contact us
+      external: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            members_order: source
+            group_by_category: false
+            show_source: false
+            show_root_heading: true
+            show_root_full_path: true
+            show_signature_annotations: true
+            separate_signature: true
+            signature_crossrefs: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            merge_init_into_class: true
+            show_if_no_docstring: true
+            filters: ["!^_"]
+
+nav:
+  - Home: index.md
+  - interface: api/interface.md
+  - mir: api/mir.md
+  - evaluation_values: api/evaluation_values.md
+  - decomp: api/decomp.md
+  - errors: api/errors.md
+  - report: api/report.md
+  - proof: api/proof.md
+  - Internal:
+      - api/internal/index.md
+      - Protobuf client:
+          - api/internal/proto-client/index.md
+          - decomp: api/internal/proto-client/decomp.md
+      - Protobuf messages and services:
+          - api.proto: api/internal/protobuf/api.md
+          - artmsg.proto: api/internal/protobuf/artmsg.md
+          - error.proto: api/internal/protobuf/error.md
+          - locs.proto: api/internal/protobuf/locs.md
+          - session.proto: api/internal/protobuf/session.md
+          - simple_api.proto: api/internal/protobuf/simple_api.md
+          - system.proto: api/internal/protobuf/system.md
+          - task.proto: api/internal/protobuf/task.md
+          - utils.proto: api/internal/protobuf/utils.md
+      - Twine artifact decoders:
+          - api/internal/artifact-decoders/index.md
+          - Twine format: api/internal/artifact-decoders/twine.md
+      - Twirp RPC runtime:
+          - client: api/internal/twirp-runtime/client.md
+          - async_client: api/internal/twirp-runtime/async_client.md
+          - context: api/internal/twirp-runtime/context.md
+          - ctxkeys: api/internal/twirp-runtime/ctxkeys.md
+          - errors: api/internal/twirp-runtime/errors.md
+          - exceptions: api/internal/twirp-runtime/exceptions.md
+          - hook: api/internal/twirp-runtime/hook.md
+          - logging: api/internal/twirp-runtime/logging.md
