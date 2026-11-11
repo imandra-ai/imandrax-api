@@ -54,6 +54,20 @@ class Decoder:
             )
         return self.bs[off : off + n]
 
+    def _check_count(self, at: offset, start: offset, n: int, item_size: int) -> int:
+        """
+        reject a container at `at` claiming `n` items of at least `item_size` bytes
+        each from `start`, if they cannot fit in the rest of the buffer; otherwise
+        `tuple(cursor)`/`list(cursor)` would allocate room for all of them up front
+        """
+        remaining = len(self.bs) - start
+        if n * item_size > remaining:
+            raise Error(
+                f"container at off=0x{at:x} claims {n} items, more than fit in "
+                f"the remaining {remaining} bytes"
+            )
+        return n
+
     def __first_byte(self, off: int) -> tuple[int, int]:
         # `_byte`, inlined: this is the decoder's hottest path
         if off < 0:
@@ -213,8 +227,9 @@ class Decoder:
         if high != 6:
             raise Error(f"expected array, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
-        off = off + 1 + n_bytes
-        return ArrayCursor(dec=self, offset=off, num_items=len)
+        start = off + 1 + n_bytes
+        len = self._check_count(at=off, start=start, n=len, item_size=1)
+        return ArrayCursor(dec=self, offset=start, num_items=len)
 
     def get_dict(self, off: offset) -> DictCursor:
         off = self._deref(off=off)
@@ -222,8 +237,10 @@ class Decoder:
         if high != 7:
             raise Error(f"expected dict, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low)
-        off = off + 1 + n_bytes
-        return DictCursor(dec=self, offset=off, num_items=len)
+        start = off + 1 + n_bytes
+        # each entry is a key and a value, at least one byte each
+        len = self._check_count(at=off, start=start, n=len, item_size=2)
+        return DictCursor(dec=self, offset=start, num_items=len)
 
     def get_tag(self, off: offset) -> Tag[offset]:
         off = self._deref(off=off)
@@ -248,17 +265,21 @@ class Decoder:
             )
         elif high == 11:
             idx, n_bytes = self.__getint64(off=off, low=low)
+            start = off + 1 + n_bytes
+            self._check_count(at=off, start=start, n=1, item_size=1)
             return Constructor[ArrayCursor](
                 idx=idx,
-                args=ArrayCursor(dec=self, offset=off + 1 + n_bytes, num_items=1),
+                args=ArrayCursor(dec=self, offset=start, num_items=1),
             )
         elif high == 12:
             idx, n_bytes = self.__getint64(off=off, low=low)
-            off = off + 1 + n_bytes
-            num_items, n_bytes = self._leb128(off=off)
+            count_off = off + 1 + n_bytes
+            num_items, n_bytes = self._leb128(off=count_off)
+            start = count_off + n_bytes
+            num_items = self._check_count(at=off, start=start, n=num_items, item_size=1)
             return Constructor[ArrayCursor](
                 idx=idx,
-                args=ArrayCursor(dec=self, offset=off + n_bytes, num_items=num_items),
+                args=ArrayCursor(dec=self, offset=start, num_items=num_items),
             )
         else:
             raise Error(f"expected constructor (high={high}) at off=0x{off:x}")
