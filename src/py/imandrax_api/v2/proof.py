@@ -6,8 +6,10 @@ earlier step, by deduction, or by a leaf rule such as an axiom.
 
 # Note:
 # Proof terms form a DAG: a sub-proof can be the premise of several steps, and the OCaml side
-# keeps it shared. `proof_term_of_lib` converts each occurrence separately, so a shared
-# sub-proof is converted, and held in memory, once per occurrence.
+# keeps it shared. The generated twine decoder doesn't cache proof terms, so each occurrence of
+# a shared sub-proof is a separate lib object, and `proof_term_of_lib` converts, and holds in
+# memory, each one separately. The terms and types in them are shared, and convert once per
+# proof term.
 
 from __future__ import annotations
 
@@ -15,6 +17,7 @@ from dataclasses import dataclass, field
 
 from imandrax_api import lib
 
+from ._lib_memo import with_lib_memo
 from .mir import Sequent, Term, Type, Uid, Variable, term_of_lib, type_of_lib
 
 
@@ -141,6 +144,7 @@ ProofTerm = AssumeProof | SubstProof | DeductionProof | RuleProof
 """A proof term"""
 
 
+@with_lib_memo
 def proof_term_of_lib(
     x: lib.Proof_Proof_term_t_poly[lib.Mir_Term, lib.Mir_Type],
 ) -> ProofTerm:
