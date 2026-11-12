@@ -45,6 +45,8 @@ def node(d: twine.Decoder, off: int) -> str:
             c = d.get_cstor(off)
             args = [node(d, x) for x in c.args]
             return "(" + " ".join(["cstor", str(c.idx), *args]) + ")"
+        case 14:
+            return f"(ref {node(d, d.get_ref(off))})"
         case _:
             # let the library reject kinds it does not support
             d.shallow_value(off)

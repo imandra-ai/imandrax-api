@@ -64,6 +64,26 @@ def test_skip_float_matches_payload_size():
     assert d.get_int(off=9) == 1
 
 
+def test_ref():
+    # [0] the int 1; [1] a ref to [0]
+    d = twine.Decoder(b"\x11" + b"\xe0")
+    assert d.get_ref(off=1) == 0
+    assert d.shallow_value(off=1) == twine.Ref(target=0)
+    assert d.value(off=1) == twine.Ref(target=1)
+
+    # a ref reached through a pointer is still a ref, not its target
+    d = twine.Decoder(b"\x11" + b"\xe0" + b"\xf0")
+    assert d.value(off=2) == twine.Ref(target=1)
+
+
+def test_ref_inside_container():
+    # [0] the int 1; [1] an array of a ref to [0] and the int 2. A ref is an
+    # immediate item, so the cursor must step over it.
+    d = twine.Decoder(b"\x11" + b"\x62\xe1\x12")
+    assert d.value(off=1) == (twine.Ref(target=1), 2)
+    assert d.shallow_value(off=1) == (2, 3)
+
+
 def _get_testdata1() -> twine.Decoder:
     with (CURR_DIR / "test_data/typereg.twine").open("rb") as f:
         data = bytearray(f.read())
