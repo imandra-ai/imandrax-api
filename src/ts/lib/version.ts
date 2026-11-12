@@ -1,1 +1,1 @@
-'use strict'; export const version: string = 'v20'
+export const version: string = 'v21'

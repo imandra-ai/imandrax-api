@@ -40,11 +40,8 @@ gents:
 	@make -s gents -C src/ts/lib/
 	@make -s tsproto -C src/ts
 
-build-ts-dev: gents
-	@make -C src/ts build-dev
-
-build-ts-release: gents
-	@make -C src/ts build-release
+build-ts: gents
+	@make -C src/ts build
 
 genlib: gents genpython genrust
 
