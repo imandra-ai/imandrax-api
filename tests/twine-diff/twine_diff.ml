@@ -5,7 +5,6 @@
       (required)
     - [TWINE_DIFF_COUNT]: cases per property (default 1000)
     - [QCHECK_SEED]: random seed (default: random, printed)
-    - [TWINE_DIFF_REF=1]: also generate explicit references (kind 14)
     - [TWINE_DIFF_CORRUPT=1]: also run the corrupted-input report *)
 
 module G = QCheck2.Gen
@@ -27,8 +26,6 @@ let seed =
   | None ->
     Random.self_init ();
     Random.int (1 lsl 29)
-
-let refs = env_flag "TWINE_DIFF_REF"
 
 (* Reporting
    ========= *)
@@ -57,7 +54,7 @@ let check_reply ~(expected : Value.t) ~(bytes : string) (line : string) : bool =
 (* Properties
    ========== *)
 
-let gen_value = Value.gen ~refs
+let gen_value = Value.gen
 
 let self_check =
   T.make ~count ~name:"reference decoder round-trips" ~print:print_value

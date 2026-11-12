@@ -50,7 +50,6 @@ Environment variables:
 | `TWINE_DIFF_DECODER`  | Shell command that starts the decoder program (required).      |
 | `TWINE_DIFF_COUNT`    | Cases per property, default 1000.                               |
 | `QCHECK_SEED`         | Random seed. Printed at the start of every run.                 |
-| `TWINE_DIFF_REF=1`    | Also generate explicit references (kind 14).                    |
 | `TWINE_DIFF_CORRUPT=1`| Also run the corrupted-input report (see below).                |
 
 To run it by hand against another decoder:

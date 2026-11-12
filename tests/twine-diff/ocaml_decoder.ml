@@ -25,9 +25,9 @@ let rec value ?(path = Int_set.empty) (dec : Dec.t) (off : int) : Value.t =
   | Blob _ -> Blob (Dec.blob dec off)
   | Array c -> Array (Dec.Array_cursor.to_list_of value c)
   | Dict c -> Dict (Dec.Dict_cursor.to_list_of (fun k v -> value k, value v) c)
-  | Tag (n, x) -> Tag (n, value x)
-  | Cstor0 i -> Cstor (i, [])
-  | CstorN (i, c) -> Cstor (i, Dec.Array_cursor.to_list_of value c)
+  | Tag (n, x) -> Tag (Z.of_int n, value x)
+  | Cstor0 i -> Cstor (Z.of_int i, [])
+  | CstorN (i, c) -> Cstor (Z.of_int i, Dec.Array_cursor.to_list_of value c)
   | Ref p -> Ref (value p)
   | Pointer _ -> Imandrakit_twine.Error "pointer after dereferencing" |> raise
 

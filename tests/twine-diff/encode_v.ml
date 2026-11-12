@@ -47,10 +47,10 @@ and immediate_ ?memo enc (v : Value.t) : Imm.t =
     Enc.dict_list enc pairs
   | Tag (n, x) ->
     let x = imm x in
-    Enc.tag enc ~tag:n ~v:x
+    Enc.tag enc ~tag:(Z.to_int n) ~v:x
   | Cstor (index, l) ->
     let args = Array.of_list (List.map imm l) in
-    Enc.cstor enc ~index args
+    Enc.cstor enc ~index:(Z.to_int index) args
   | Ref x ->
     let off = Enc.write_or_ref_immediate enc (imm x) in
     Imm.ref_ off
