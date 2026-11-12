@@ -52,6 +52,8 @@ def _decode_with(d: twine.Decoder, method: str, off: int) -> None:
             _drain(d.get_cstor(off=off).args, d)
         case "get_tag":
             d.value(off=d.get_tag(off=off).arg)
+        case "get_ref":
+            d.value(off=d.get_ref(off=off))
         case _:
             getattr(d, method)(off=off)
 
@@ -69,6 +71,7 @@ PUBLIC_METHODS = [
     "get_dict",
     "get_tag",
     "get_cstor",
+    "get_ref",
 ]
 
 
@@ -86,11 +89,14 @@ PUBLIC_METHODS = [
         pytest.param(b"\x41", id="str-runs-past-end"),
         pytest.param(b"\x52\x00", id="bytes-runs-past-end"),
         pytest.param(b"\xf0\x15", id="pointer-before-start"),
+        pytest.param(b"\xe0", id="ref-before-start"),
         pytest.param(b"\x1f", id="leb128-past-end"),
         pytest.param(b"\x1f\x80", id="leb128-unterminated"),
         pytest.param(b"\x62\x11", id="array-items-past-end"),
         # an array whose only item is a pointer back to the array itself
         pytest.param(b"\x61\xf0", id="cyclic-array"),
+        # an array whose only item is a ref back to the array itself
+        pytest.param(b"\x61\xe0", id="cyclic-array-through-ref"),
     ],
 )
 def test_malformed_raises_twine_error(data: bytes):

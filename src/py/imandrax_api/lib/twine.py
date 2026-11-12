@@ -30,8 +30,9 @@ offset = int
 #   10         constructor, 0 args   constructor index   nothing
 #   11         constructor, 1 arg    constructor index   the argument
 #   12         constructor, n args   constructor index   LEB128 n, then the arguments
+#   14         ref                   distance back       nothing
 #   15         pointer               distance back       nothing
-#   9, 13, 14  reserved
+#   9, 13      reserved
 #
 # A bigint is a little-endian byte string whose lowest bit is the sign and whose other
 # bits are the absolute value.
@@ -40,7 +41,9 @@ offset = int
 #
 # - Pointers only go backwards. A pointer at offset `o` holding distance `p` refers to
 #   `o - p - 1`. The encoder writes a value after everything it contains, and stores a
-#   shared value once, with every reference to it a pointer.
+#   shared value once, with every reference to it a pointer. A ref (kind 14) points
+#   backwards the same way, but is never followed implicitly: it reads as a `Ref` to
+#   its target.
 # - Container items are immediate: a scalar, a string, bytes, a pointer, or a
 #   constructor without arguments. Arrays, dicts, tags and constructors with arguments
 #   are stored elsewhere and referred to through a pointer. So the decoder can step
@@ -218,7 +221,7 @@ class Decoder:
         c = self._byte(off)
         high = c >> 4
         low = c & 0xF
-        if high == 15 or high == 1 or high == 2 or high == 10:
+        if high == 15 or high == 1 or high == 2 or high == 10 or high == 14:
             if low < 15:
                 return off + 1
             _, n_bytes = self._leb128(off=off + 1)
@@ -380,13 +383,28 @@ class Decoder:
         else:
             raise Error(f"expected constructor (high={high}) at off=0x{off:x}")
 
+    def get_ref(self, off: offset) -> offset:
+        """Returns the offset an explicit reference (kind 14) points to.
+
+        Unlike a pointer, a reference is not followed when reading values; the
+        caller decides when to read its target.
+        """
+        off, high, low = self._head(off)
+        if high != 14:
+            raise Error(f"expected ref, but high={high} at off=0x{off:x}")
+        n, _ = self.__getint64(off=off, low=low)
+        target = off - n - 1
+        if target < 0:
+            raise self._out_of_bounds(target)
+        return target
+
     # / End of Container accessors
 
     def shallow_value(self, off: offset) -> shallow_value:
         """Reads the value at `off`, one level deep.
 
-        Scalars are decoded. Arrays, dicts, tags and constructors hold the offsets
-        of their children, which are left undecoded.
+        Scalars are decoded. Arrays, dicts, tags, constructors and refs hold the
+        offsets of their children, which are left undecoded.
         """
         off, high, low = self._head(off)
         match high:
@@ -419,6 +437,8 @@ class Decoder:
             case 10 | 11 | 12:
                 c = self.get_cstor(off=off)
                 return Constructor(idx=c.idx, args=tuple(c.args))
+            case 14:
+                return Ref(target=self.get_ref(off=off))
             case 15:
                 raise Error(f"unexpected pointer after deref at off=0x{off:x}")
             case _:
@@ -431,7 +451,7 @@ class Decoder:
 
         Returns:
             The value as plain Python data: `None`, a bool, int, float, str or
-            bytes, a tuple, a dict, a `Tag` or a `Constructor`.
+            bytes, a tuple, a dict, a `Tag`, a `Constructor` or a `Ref`.
 
         Raises:
             Error: If the value is cyclic, or nested deeper than Python's recursion
@@ -488,6 +508,8 @@ class Decoder:
                 c = self.get_cstor(off=off)
                 args: tuple[value, ...] = tuple(self._value(x) for x in c.args)
                 return Constructor(idx=c.idx, args=args)
+            case 14:
+                return Ref(target=self._value(self.get_ref(off=off)))
             case 15:
                 raise Error(f"unexpected pointer after deref at off=0x{off:x}")
             case _:
@@ -551,6 +573,13 @@ class Tag[Arg]:
 
 
 @dataclass(slots=True, frozen=True)
+class Ref[Target]:
+    """An explicit reference (kind 14) and what it points to."""
+
+    target: Target
+
+
+@dataclass(slots=True, frozen=True)
 class Constructor[Args]:
     """A constructor of an algebraic data type: its index and its arguments."""
 
@@ -568,6 +597,7 @@ type value = (  # noqa: PYI042
     | tuple["value", ...]
     | Constructor[tuple["value", ...]]
     | Tag["value"]
+    | Ref["value"]
 )
 """a fully decoded value, as returned by `Decoder.value`"""
 
@@ -581,6 +611,7 @@ type shallow_value = (  # noqa: PYI042
     | tuple[offset, ...]
     | Constructor[tuple[offset, ...]]
     | Tag[offset]
+    | Ref[offset]
 )
 """a value decoded one level deep, as returned by `Decoder.shallow_value`"""
 
