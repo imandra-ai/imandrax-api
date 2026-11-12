@@ -64,3 +64,5 @@ jobs:
     - uses: actions/checkout@main
     - uses: astral-sh/setup-uv@v5
     - run: cd src/py && make unit-test
+      env:
+        HYPOTHESIS_PROFILE: ci
