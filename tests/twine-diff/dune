@@ -17,7 +17,6 @@
  (deps
   (env_var TWINE_DIFF_DECODER)
   (env_var TWINE_DIFF_COUNT)
-  (env_var TWINE_DIFF_REF)
   (env_var TWINE_DIFF_CORRUPT)
   (env_var QCHECK_SEED))
  (action

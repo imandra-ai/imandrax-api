@@ -39,9 +39,9 @@ let rec of_value (v : Value.t) : sexp =
   | Dict l ->
     list
       (atom "dict" :: List.map (fun (k, v) -> list [ of_value k; of_value v ]) l)
-  | Tag (n, x) -> list [ atom "tag"; atom (string_of_int n); of_value x ]
+  | Tag (n, x) -> list [ atom "tag"; atom (Z.to_string n); of_value x ]
   | Cstor (i, l) ->
-    list (atom "cstor" :: atom (string_of_int i) :: List.map of_value l)
+    list (atom "cstor" :: atom (Z.to_string i) :: List.map of_value l)
   | Ref x -> list [ atom "ref"; of_value x ]
 
 let of_reply (r : reply) : sexp =
@@ -59,9 +59,8 @@ let bad fmt = Printf.ksprintf (fun s -> raise (Bad s)) fmt
 let rec to_value (s : sexp) : Value.t =
   let int_atom = function
     | `Atom a ->
-      (match int_of_string_opt a with
-      | Some i -> i
-      | None -> bad "expected an integer, got %S" a)
+      (try Z.of_string a
+       with Invalid_argument _ -> bad "expected an integer, got %S" a)
     | `List _ -> bad "expected an integer, got a list"
   in
   match s with

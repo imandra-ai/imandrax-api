@@ -14,8 +14,8 @@ type t =
   | Blob of string
   | Array of t list
   | Dict of (t * t) list
-  | Tag of int * t
-  | Cstor of int * t list
+  | Tag of Z.t * t
+  | Cstor of Z.t * t list  (** indices are unbounded, like integers *)
   | Ref of t  (** explicit reference (kind 14) to the value *)
 
 (** Readable form, for failure reports *)
@@ -39,8 +39,9 @@ let rec pp out (v : t) : unit =
   | Dict l ->
     let pp_pair out (k, v) = Format.fprintf out "@[%a@ => %a@]" pp k pp v in
     Format.fprintf out "{@[%a@]}" (pp_list ";@ " pp_pair) l
-  | Tag (n, x) -> Format.fprintf out "@[tag %d(%a)@]" n pp x
-  | Cstor (i, l) -> Format.fprintf out "@[C%d(%a)@]" i (pp_list ",@ " pp) l
+  | Tag (n, x) -> Format.fprintf out "@[tag %s(%a)@]" (Z.to_string n) pp x
+  | Cstor (i, l) ->
+    Format.fprintf out "@[C%s(%a)@]" (Z.to_string i) (pp_list ",@ " pp) l
   | Ref x -> Format.fprintf out "@[ref(%a)@]" pp x
 
 let show v = Format.asprintf "%a" pp v
@@ -73,8 +74,8 @@ let rec equal (a : t) (b : t) : bool =
   | Array xs, Array ys -> List.equal equal xs ys
   | Dict xs, Dict ys ->
     List.equal (fun (k1, v1) (k2, v2) -> equal k1 k2 && equal v1 v2) xs ys
-  | Tag (n, x), Tag (m, y) -> n = m && equal x y
-  | Cstor (i, xs), Cstor (j, ys) -> i = j && List.equal equal xs ys
+  | Tag (n, x), Tag (m, y) -> Z.equal n m && equal x y
+  | Cstor (i, xs), Cstor (j, ys) -> Z.equal i j && List.equal equal xs ys
   | Ref x, Ref y -> equal x y
   | ( ( Null | Bool _ | Int _ | F32 _ | F64 _ | Str _ | Blob _ | Array _
       | Dict _ | Tag _ | Cstor _ | Ref _ ),
@@ -205,13 +206,14 @@ let gen_blob : string G.t =
       ])
 
 (** Tag numbers and constructor indices *)
-let gen_index : int G.t =
+let gen_index : Z.t G.t =
   G.(
-    oneof_weighted
-      [
-        4, int_range 0 20;
-        1, oneof_list [ 14; 15; 16; 127; 128; 1000; 1 lsl 20 ];
-      ])
+    map Z.of_int
+    @@ oneof_weighted
+         [
+           4, int_range 0 20;
+           1, oneof_list [ 14; 15; 16; 127; 128; 1000; 1 lsl 20 ];
+         ])
 
 let gen_leaf : t G.t =
   G.(
@@ -312,10 +314,9 @@ let rec shrink (v : t) : t Seq.t =
       (Seq.map (fun l -> Cstor (i, l)) (shrink_list shrink l))
   | Ref x -> Seq.cons x (Seq.map (fun x -> Ref x) (shrink x))
 
-(** [gen ~refs] generates values of depth bounded by a size in [0, 30]. [refs]
-    enables [Ref] nodes. Some nodes repeat a subtree, so the shared encoding has
-    something to share. *)
-let gen ~(refs : bool) : t G.t =
+(** Values of depth bounded by a size in [0, 30]. Some nodes repeat a subtree,
+    so the shared encoding has something to share. *)
+let gen : t G.t =
   G.set_shrink shrink
   @@ G.sized_size (G.int_range 0 30)
   @@ G.fix (fun self n ->
@@ -325,23 +326,19 @@ let gen ~(refs : bool) : t G.t =
            let sub = self (n / 3) in
            let small_list = G.list_size (G.int_range 0 5) sub in
            G.oneof_weighted
-             ([
-                3, gen_leaf;
-                2, G.map (fun l -> Array l) small_list;
-                ( 2,
-                  G.map
-                    (fun l -> Dict l)
-                    G.(list_size (int_range 0 4) (pair sub sub)) );
-                1, G.map2 (fun i x -> Tag (i, x)) gen_index sub;
-                2, G.map2 (fun i l -> Cstor (i, l)) gen_index small_list;
-                1, G.map (fun x -> Array [ x; x ]) sub;
-                1, G.map2 (fun k v -> Dict [ k, v; k, v ]) sub sub;
-              ]
-             @
-             if refs then
-               [ 1, G.map (fun x -> Ref x) sub ]
-             else
-               [])
+             [
+               3, gen_leaf;
+               2, G.map (fun l -> Array l) small_list;
+               ( 2,
+                 G.map
+                   (fun l -> Dict l)
+                   G.(list_size (int_range 0 4) (pair sub sub)) );
+               1, G.map2 (fun i x -> Tag (i, x)) gen_index sub;
+               2, G.map2 (fun i l -> Cstor (i, l)) gen_index small_list;
+               1, G.map (fun x -> Array [ x; x ]) sub;
+               1, G.map2 (fun k v -> Dict [ k, v; k, v ]) sub sub;
+               1, G.map (fun x -> Ref x) sub;
+             ]
          ))
 
 (** Integers for the bigint property, mostly beyond 64 bits *)
