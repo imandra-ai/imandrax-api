@@ -1,0 +1,24 @@
+; Differential test of twine decoders
+; Not part of runtest: it needs a decoder program
+
+(executable
+ (name twine_diff)
+ (libraries
+  imandrakit.twine
+  imandrax-api
+  zarith
+  containers
+  qcheck-core
+  qcheck-core.runner
+  unix))
+
+(rule
+ (alias twine-diff)
+ (deps
+  (env_var TWINE_DIFF_DECODER)
+  (env_var TWINE_DIFF_COUNT)
+  (env_var TWINE_DIFF_REF)
+  (env_var TWINE_DIFF_CORRUPT)
+  (env_var QCHECK_SEED))
+ (action
+  (run %{exe:twine_diff.exe})))
