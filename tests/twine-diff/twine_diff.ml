@@ -167,6 +167,7 @@ let corrupted_report ~command rand =
   let dec = restartable command in
   let crashes = ref [] in
   let reference_deaths = ref [] in
+  let different_values = ref [] in
   let verdicts = Hashtbl.create 8 in
   let cases = G.generate ~rand ~n:count gen_corrupted in
   List.iter
@@ -186,6 +187,12 @@ let corrupted_report ~command rand =
         match ours, reference with
         | Reply (Ok (Value a)), Reply (Ok (Value b)) when not (Value.equal a b)
           ->
+          let msg =
+            Printf.sprintf "decoder: %s, reference: %s" (Value.show a)
+              (Value.show b)
+          in
+          different_values :=
+            (String.length bytes, v, c, bytes, msg) :: !different_values;
           "value", "different value"
         | _ -> verdict ours, verdict reference
       in
@@ -213,6 +220,7 @@ let corrupted_report ~command rand =
   in
   print_cases "decoder crashes" !crashes;
   print_cases "reference decoder deaths" !reference_deaths;
+  print_cases "different values" !different_values;
   Decoder_process.stop dec.proc;
   Decoder_process.stop reference.proc
 

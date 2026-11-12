@@ -3,8 +3,18 @@
     printer and parser, so it also checks the harness itself. *)
 
 module Dec = Imandrakit_twine.Decode
+module Int_set = Set.Make (Int)
 
-let rec value (dec : Dec.t) (off : int) : Value.t =
+(** [path] holds the offsets of the values enclosing [off]. Malformed input can
+    be cyclic (a tag, container or ref that leads back to itself); reaching an
+    offset already on the path is a cycle. Shared values are fine: a value can
+    be reached many times, but never from inside itself. *)
+let rec value ?(path = Int_set.empty) (dec : Dec.t) (off : int) : Value.t =
+  let off = Dec.deref_rec dec off in
+  if Int_set.mem off path then
+    Imandrakit_twine.Error (Printf.sprintf "cyclic value at offset 0x%x" off)
+    |> raise;
+  let value = value ~path:(Int_set.add off path) dec in
   match Dec.read dec off with
   | Null -> Null
   | True -> Bool true
@@ -13,13 +23,12 @@ let rec value (dec : Dec.t) (off : int) : Value.t =
   | Float f -> F64 f
   | String _ -> Str (Dec.string dec off)
   | Blob _ -> Blob (Dec.blob dec off)
-  | Array c -> Array (Dec.Array_cursor.to_list_of (value dec) c)
-  | Dict c ->
-    Dict (Dec.Dict_cursor.to_list_of (fun k v -> value dec k, value dec v) c)
-  | Tag (n, x) -> Tag (n, value dec x)
+  | Array c -> Array (Dec.Array_cursor.to_list_of value c)
+  | Dict c -> Dict (Dec.Dict_cursor.to_list_of (fun k v -> value k, value v) c)
+  | Tag (n, x) -> Tag (n, value x)
   | Cstor0 i -> Cstor (i, [])
-  | CstorN (i, c) -> Cstor (i, Dec.Array_cursor.to_list_of (value dec) c)
-  | Ref p -> Ref (value dec p)
+  | CstorN (i, c) -> Cstor (i, Dec.Array_cursor.to_list_of value c)
+  | Ref p -> Ref (value p)
   | Pointer _ -> Imandrakit_twine.Error "pointer after dereferencing" |> raise
 
 let reply (mode : char) (bytes : string) : Sexp.reply =
