@@ -48,6 +48,7 @@
    (and
     (>= 3.1.1)
     :with-dev-setup))
+  (qcheck-core :with-test)
   ; TODO: bump to next release with the static build fix
   (cryptokit
    (>= 0.19))
