@@ -5,4 +5,5 @@ let internal_count =
   line |> String.trim |> int_of_string
 
 let () =
+  set_binary_mode_out stdout true;
   Printf.printf "let version = %S\n" (Printf.sprintf "v%d" internal_count)
