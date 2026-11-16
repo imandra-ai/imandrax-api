@@ -1,4 +1,4 @@
-"""Python decoder program for the twine differential test
+"""Python adapter for the twine differential test
 
 Reads framed requests on stdin and replies with one S-expression line each.
 """

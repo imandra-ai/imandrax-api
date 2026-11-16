@@ -1,12 +1,8 @@
-(** The text form decoders reply with: one labelled S-expression per value. *)
-
 type sexp = CCSexp.t
 
-(** What a decoder replies to one request. Anything else that goes wrong is not
-    a reply: the decoder program exits. *)
 type reply =
   | Value of Value.t
-  | Decode_error of string  (** the decoder rejected the input *)
+  | Decode_error of string
 
 let atom s : sexp = `Atom s
 let list l : sexp = `List l
@@ -25,8 +21,6 @@ let string_of_hex (h : string) : string =
 let f64_bits (f : float) : string =
   Printf.sprintf "%016Lx" (Int64.bits_of_float f)
 
-(** Text form of [v]. [F32] leaves are written as f64, the way a decoder reports
-    them. *)
 let rec of_value (v : Value.t) : sexp =
   match v with
   | Null -> atom "null"
@@ -44,12 +38,12 @@ let rec of_value (v : Value.t) : sexp =
     list (atom "cstor" :: atom (Z.to_string i) :: List.map of_value l)
   | Ref x -> list [ atom "ref"; of_value x ]
 
-let of_reply (r : reply) : sexp =
+let reply_to_string (r : reply) : string =
+  CCSexp.to_string
+  @@
   match r with
   | Value v -> of_value v
   | Decode_error msg -> list [ atom "error"; atom msg ]
-
-let to_string : sexp -> string = CCSexp.to_string
 
 exception Bad of string
 
@@ -87,8 +81,6 @@ let rec to_value (s : sexp) : Value.t =
   | `List [ `Atom "ref"; x ] -> Ref (to_value x)
   | _ -> bad "unexpected node %s" (CCSexp.to_string s)
 
-(** Parse one reply line. [Error] means the line is not in the text form, which
-    is a bug in the decoder program, not in the decoder. *)
 let parse_reply (line : string) : (reply, string) result =
   match CCSexp.parse_string line with
   | Error e -> Error (Printf.sprintf "not an S-expression (%s): %S" e line)

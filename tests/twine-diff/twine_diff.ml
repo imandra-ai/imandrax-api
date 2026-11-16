@@ -1,19 +1,12 @@
 (** Differential test of a twine decoder against imandrakit's encoder.
 
     Environment:
-    - [TWINE_DIFF_DECODER]: shell command that starts the decoder program
-      (required)
+    - [TWINE_DIFF_DECODER]: shell command that starts the adapter (required)
     - [TWINE_DIFF_COUNT]: cases per property (default 1000)
-    - [QCHECK_SEED]: random seed (default: random, printed)
-    - [TWINE_DIFF_CORRUPT=1]: also print the corrupted-input verdict report *)
+    - [QCHECK_SEED]: random seed (default: random, printed) *)
 
 module G = QCheck2.Gen
 module T = QCheck2.Test
-
-let env_flag name =
-  match Sys.getenv_opt name with
-  | Some ("1" | "true" | "yes") -> true
-  | _ -> false
 
 let count =
   match Option.bind (Sys.getenv_opt "TWINE_DIFF_COUNT") int_of_string_opt with
@@ -33,43 +26,21 @@ let seed =
 let dump bytes = Imandrakit_twine.Dump.dump_string bytes
 
 let print_value v =
-  Printf.sprintf "%s\nencoded:\n%s" (Value.show v) (dump (Encode_v.encode v))
+  Printf.sprintf "%s\nencoded:\n%s" (Value.show v) (dump (Value.encode v))
 
 let show_reply (r : Sexp.reply) =
   match r with
   | Value v -> Value.show v
   | Decode_error msg -> "decode error: " ^ msg
 
-(* Decoder processes
-   ================= *)
-
-type outcome =
-  | Reply of (Sexp.reply, string) result
-  | Died of string  (** the decoder crashed: it exited or hung *)
-
-type restartable = {
-  command: string;
-  mutable proc: Decoder_process.t;
-}
-(** A decoder process that is restarted when it dies. A crash ends the process,
-    and shrinking a crash sends more requests after it. *)
-
-let restartable command = { command; proc = Decoder_process.start command }
-
-let request ?(mode = 'v') (r : restartable) bytes : outcome =
-  match Decoder_process.request ~timeout:10. r.proc mode bytes with
-  | line -> Reply (Sexp.parse_reply line)
-  | exception Decoder_process.Died msg ->
-    Decoder_process.stop r.proc;
-    r.proc <- Decoder_process.start r.command;
-    Died msg
+module P = Decoder_client
 
 (** The reference decoder in its own process, since it can segfault on corrupted
-    input: see [Ocaml_decoder.serve] *)
+    input: see [Ocaml_adapter.serve] *)
 let reference_command = Filename.quote Sys.executable_name ^ " serve-reference"
 
 (** Check that [outcome], a decoder's answer, is the value [expected]. *)
-let check_reply ~(expected : Value.t) ~(bytes : string) (outcome : outcome) :
+let check_reply ~(expected : Value.t) ~(bytes : string) (outcome : P.outcome) :
     bool =
   let expected = Value.widen expected in
   match outcome with
@@ -83,54 +54,45 @@ let check_reply ~(expected : Value.t) ~(bytes : string) (outcome : outcome) :
 (* Properties
    ========== *)
 
-let gen_value = Value.gen
-
 let self_check =
   T.make ~count ~name:"reference decoder round-trips" ~print:print_value
-    gen_value (fun v ->
-      let bytes = Encode_v.encode v in
+    Value.gen (fun v ->
+      let bytes = Value.encode v in
       check_reply ~expected:v ~bytes
-        (Reply (Sexp.parse_reply (Ocaml_decoder.request 'v' bytes))))
+        (Reply (Sexp.parse_reply (Ocaml_adapter.request 'v' bytes))))
 
-let agreement (dec : restartable) =
+let agreement (dec : P.t) =
   T.make ~count ~name:"decoder agrees with the reference encoder"
-    ~print:print_value gen_value (fun v ->
-      let bytes = Encode_v.encode v in
-      check_reply ~expected:v ~bytes (request dec bytes))
+    ~print:print_value Value.gen (fun v ->
+      let bytes = Value.encode v in
+      check_reply ~expected:v ~bytes (P.request dec bytes))
 
-let bigints (dec : restartable) =
+let bigints (dec : P.t) =
   T.make ~count ~name:"decoder reads big integers"
     ~print:(fun z ->
       Printf.sprintf "%s\nencoded:\n%s" (Z.to_string z)
-        (dump (Encode_v.encode_bigint z)))
+        (dump (Value.encode_bigint z)))
     Value.gen_bigint
     (fun z ->
-      let bytes = Encode_v.encode_bigint z in
-      check_reply ~expected:(Int z) ~bytes (request ~mode:'i' dec bytes))
+      let bytes = Value.encode_bigint z in
+      check_reply ~expected:(Int z) ~bytes (P.request ~mode:'i' dec bytes))
 
-let sharing (dec : restartable) =
+let sharing (dec : P.t) =
   T.make ~count ~name:"sharing does not change the decoded value"
     ~print:(fun v ->
       Printf.sprintf "%s\nshared encoding:\n%s" (Value.show v)
-        (dump (Encode_v.encode ~share:true v)))
-    gen_value
+        (dump (Value.encode ~share:true v)))
+    Value.gen
     (fun v ->
-      let bytes = Encode_v.encode ~share:true v in
-      check_reply ~expected:v ~bytes (request dec bytes))
+      let bytes = Value.encode ~share:true v in
+      check_reply ~expected:v ~bytes (P.request dec bytes))
 
 (* Corrupted input
-   ===============
+   ---------------
 
-    Corrupt valid encodings (truncate them or overwrite a byte), then check:
-    - the decoder replies with a value or a decode error: its process does not
-      exit or hang;
-    - when both the decoder and the reference decode the bytes to a value, the
-      values are equal.
-
-    Whether the decoder accepts or rejects corrupted bytes is not checked:
-    twine does not say which inputs must be rejected, and the reference is
-    lenient. The verdict report ([TWINE_DIFF_CORRUPT=1]) shows where the two
-    differ. *)
+    Valid encodings, truncated or with a byte overwritten. Whether the decoder
+    accepts or rejects them is not checked: twine does not say which inputs
+    must be rejected, and the reference is lenient. *)
 
 type corruption =
   | Truncate of int
@@ -149,8 +111,8 @@ let apply_corruption bytes = function
 
 let gen_corrupted : (Value.t * corruption * string) G.t =
   G.(
-    gen_value >>= fun v ->
-    let bytes = Encode_v.encode v in
+    Value.gen >>= fun v ->
+    let bytes = Value.encode v in
     let n = String.length bytes in
     let corruption =
       oneof_weighted
@@ -163,30 +125,24 @@ let gen_corrupted : (Value.t * corruption * string) G.t =
     in
     map (fun c -> v, c, apply_corruption bytes c) corruption)
 
-let verdict = function
-  | Reply (Ok (Value _)) -> "value"
-  | Reply (Ok (Decode_error _)) -> "decode error"
-  | Reply (Error _) -> "unparseable reply"
-  | Died _ -> "died"
-
 let print_corrupted (v, c, bytes) =
   Printf.sprintf "from: %s\n%s\nbytes: %s" (Value.show v) (show_corruption c)
     (Sexp.hex_of_string bytes)
 
-let never_crashes (dec : restartable) =
+let never_crashes (dec : P.t) =
   T.make ~count ~name:"decoder never crashes on corrupted input"
     ~print:print_corrupted gen_corrupted (fun (_, _, bytes) ->
-      match request dec bytes with
+      match P.request dec bytes with
       | Reply (Ok (Value _ | Decode_error _)) -> true
       | Reply (Error msg) -> T.fail_reportf "unparseable reply: %s" msg
       | Died msg -> T.fail_reportf "%s" msg)
 
-let same_values_as_reference ~(reference : restartable) (dec : restartable) =
+let same_values_as_reference ~(reference : P.t) (dec : P.t) =
   T.make ~count ~name:"decoded values on corrupted input match the reference"
     ~print:print_corrupted gen_corrupted (fun (_, _, bytes) ->
-      match request dec bytes with
+      match P.request dec bytes with
       | Reply (Ok (Value ours)) ->
-        (match request reference bytes with
+        (match P.request reference bytes with
         | Reply (Ok (Value theirs)) when not (Value.equal ours theirs) ->
           T.fail_reportf "decoder:@ %s@ reference:@ %s" (Value.show ours)
             (Value.show theirs)
@@ -194,80 +150,12 @@ let same_values_as_reference ~(reference : restartable) (dec : restartable) =
       (* crashes are [never_crashes]'s job; a rejection is not compared *)
       | _ -> true)
 
-(* Verdict report
-   --------------
-
-    Diagnostic only, with [TWINE_DIFF_CORRUPT=1]: counts what the decoder and
-    the reference replied on each corrupted input, and lists examples. *)
-
-let corrupted_report ~command rand =
-  let reference = restartable reference_command in
-  let dec = restartable command in
-  let crashes = ref [] in
-  let reference_deaths = ref [] in
-  let different_values = ref [] in
-  let verdicts = Hashtbl.create 8 in
-  let cases = G.generate ~rand ~n:count gen_corrupted in
-  List.iter
-    (fun (v, c, bytes) ->
-      let ours = request dec bytes in
-      let reference = request reference bytes in
-      (match ours with
-      | Reply (Error msg) | Died msg ->
-        crashes := (String.length bytes, v, c, bytes, msg) :: !crashes
-      | Reply (Ok _) -> ());
-      (match reference with
-      | Died msg ->
-        reference_deaths :=
-          (String.length bytes, v, c, bytes, msg) :: !reference_deaths
-      | Reply _ -> ());
-      let key =
-        match ours, reference with
-        | Reply (Ok (Value a)), Reply (Ok (Value b)) when not (Value.equal a b)
-          ->
-          let msg =
-            Printf.sprintf "decoder: %s, reference: %s" (Value.show a)
-              (Value.show b)
-          in
-          different_values :=
-            (String.length bytes, v, c, bytes, msg) :: !different_values;
-          "value", "different value"
-        | _ -> verdict ours, verdict reference
-      in
-      Hashtbl.replace verdicts key
-        (1 + Option.value ~default:0 (Hashtbl.find_opt verdicts key)))
-    cases;
-  Printf.printf "\ncorrupted input, verdict report (%d cases)\n" count;
-  Printf.printf "verdicts, decoder vs reference:\n";
-  Hashtbl.to_seq verdicts |> List.of_seq |> List.sort compare
-  |> List.iter (fun ((a, b), n) ->
-         Printf.printf "  %-18s %-18s %d%s\n" a b n
-           (if a = b then
-              ""
-            else
-              "  <- disagree"));
-  let print_cases title cases =
-    let cases = List.sort compare cases in
-    Printf.printf "%s: %d\n" title (List.length cases);
-    List.iteri
-      (fun i (_, v, c, bytes, msg) ->
-        if i < 3 then
-          Printf.printf "\n- %s\n  from: %s\n  %s\n  bytes: %s\n" msg
-            (Value.show v) (show_corruption c) (Sexp.hex_of_string bytes))
-      cases
-  in
-  print_cases "decoder crashes" !crashes;
-  print_cases "reference decoder deaths" !reference_deaths;
-  print_cases "different values" !different_values;
-  Decoder_process.stop dec.proc;
-  Decoder_process.stop reference.proc
-
 (* Main
    ==== *)
 
 let () =
   if Array.length Sys.argv > 1 && Sys.argv.(1) = "serve-reference" then (
-    Ocaml_decoder.serve ();
+    Ocaml_adapter.serve ();
     exit 0
   );
   let command =
@@ -281,11 +169,11 @@ let () =
   in
   Printf.printf "decoder: %s\nseed: %d (set QCHECK_SEED to reproduce)\n%!"
     command seed;
-  let dec = restartable command in
-  let reference = restartable reference_command in
+  let dec = P.start command in
+  let reference = P.start reference_command in
   at_exit (fun () ->
-      Decoder_process.stop dec.proc;
-      Decoder_process.stop reference.proc);
+      P.stop dec;
+      P.stop reference);
   let rand = Random.State.make [| seed |] in
   let code =
     QCheck_base_runner.run_tests ~colors:false ~verbose:true ~rand
@@ -298,8 +186,6 @@ let () =
         same_values_as_reference ~reference dec;
       ]
   in
-  if env_flag "TWINE_DIFF_CORRUPT" then
-    corrupted_report ~command (Random.State.make [| seed |]);
   if code <> 0 then
     Printf.printf "\nfailed with seed %d (set QCHECK_SEED=%d to reproduce)\n"
       seed seed;

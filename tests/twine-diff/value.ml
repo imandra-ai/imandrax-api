@@ -1,24 +1,17 @@
-(** Values the harness generates, encodes and compares.
-
-    One constructor per kind of twine value. [Int] holds a [Z.t] so that replies
-    from decoders with unbounded integers (and the bigint property) parse into
-    the same type; generated [Int]s stay within int64. *)
-
 type t =
   | Null
   | Bool of bool
   | Int of Z.t
-  | F32 of float  (** a float that is exactly representable as an f32 *)
+  | F32 of float
   | F64 of float
-  | Str of string  (** valid UTF-8 *)
+  | Str of string
   | Blob of string
   | Array of t list
   | Dict of (t * t) list
   | Tag of Z.t * t
-  | Cstor of Z.t * t list  (** indices are unbounded, like integers *)
-  | Ref of t  (** explicit reference (kind 14) to the value *)
+  | Cstor of Z.t * t list
+  | Ref of t
 
-(** Readable form, for failure reports *)
 let rec pp out (v : t) : unit =
   let pp_list sep pp_x out l =
     List.iteri
@@ -46,8 +39,6 @@ let rec pp out (v : t) : unit =
 
 let show v = Format.asprintf "%a" pp v
 
-(** What a decoder is expected to report for [v]: f32 leaves widened to f64,
-    since twine decoders return f32 values as ordinary floats. *)
 let rec widen (v : t) : t =
   match v with
   | F32 f -> F64 f
@@ -58,8 +49,6 @@ let rec widen (v : t) : t =
   | Cstor (i, l) -> Cstor (i, List.map widen l)
   | Ref x -> Ref (widen x)
 
-(** Structural equality. Floats compare by bit pattern, except that any NaN
-    equals any NaN (payloads may not survive widening). *)
 let rec equal (a : t) (b : t) : bool =
   let float_eq x y =
     (Float.is_nan x && Float.is_nan y)
@@ -341,7 +330,6 @@ let gen : t G.t =
              ]
          ))
 
-(** Integers for the bigint property, mostly beyond 64 bits *)
 let gen_bigint : Z.t G.t =
   G.(
     oneof_weighted
@@ -358,3 +346,88 @@ let gen_bigint : Z.t G.t =
             (string_size ~gen:char (int_range 0 40))
             bool );
       ])
+
+(* Encoding
+   ========
+
+    With imandrakit's encoder, the reference. *)
+
+module Enc = Imandrakit_twine.Encode
+module Imm = Imandrakit_twine.Immediate
+
+(** Subtrees already written, for the shared encoding. Keys compare with
+    [equal], so [F32 x] and [F64 x], or [0.] and [-0.], stay apart; any NaN may
+    share with any NaN, which [equal] also accepts when checking the reply. *)
+module Memo = Hashtbl.Make (struct
+  type nonrec t = t
+
+  let equal = equal
+  let hash = Hashtbl.hash
+end)
+
+(** Write [v] and return the immediate that refers to it.
+
+    With [memo], every subtree is written once: the first occurrence is written
+    and its offset recorded, and every occurrence (the first included) becomes a
+    pointer to that offset. *)
+let rec immediate ?(memo : int Memo.t option) (enc : Enc.t) (v : t) : Imm.t =
+  match memo with
+  | None -> immediate_ ?memo enc v
+  | Some tbl ->
+    (match Memo.find_opt tbl v with
+    | Some off -> Imm.pointer off
+    | None ->
+      let off = Enc.write_or_ref_immediate enc (immediate_ ?memo enc v) in
+      Memo.add tbl v off;
+      Imm.pointer off)
+
+and immediate_ ?memo enc (v : t) : Imm.t =
+  let imm = immediate ?memo enc in
+  match v with
+  | Null -> Imm.null
+  | Bool b -> Imm.bool b
+  | Int z -> Imm.int64 (Z.to_int64 z)
+  | F32 f -> Imm.float32 f
+  | F64 f -> Imm.float f
+  | Str s -> Imm.string s
+  | Blob s -> Imm.blob s
+  (* children are written before their container: the encoder needs their
+     immediates before it writes the container's header *)
+  | Array l ->
+    let items = List.map imm l in
+    Enc.list enc items
+  | Dict l ->
+    let pairs =
+      List.map
+        (fun (k, v) ->
+          let k = imm k in
+          let v = imm v in
+          k, v)
+        l
+    in
+    Enc.dict_list enc pairs
+  | Tag (n, x) ->
+    let x = imm x in
+    Enc.tag enc ~tag:(Z.to_int n) ~v:x
+  | Cstor (index, l) ->
+    let args = Array.of_list (List.map imm l) in
+    Enc.cstor enc ~index:(Z.to_int index) args
+  | Ref x ->
+    let off = Enc.write_or_ref_immediate enc (imm x) in
+    Imm.ref_ off
+
+let encode ?(share = false) (v : t) : string =
+  let enc = Enc.create () in
+  let memo =
+    if share then
+      Some (Memo.create 16)
+    else
+      None
+  in
+  let entrypoint = immediate ?memo enc v in
+  Enc.finalize_copy enc ~entrypoint
+
+let encode_bigint (z : Z.t) : string =
+  let enc = Enc.create () in
+  let entrypoint = Imandrax_api.Util_twine.Z.to_twine enc z in
+  Enc.finalize_copy enc ~entrypoint

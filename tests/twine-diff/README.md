@@ -5,13 +5,14 @@ writes. OCaml generates random values with QCheck, encodes them with imandrakit
 (the reference), sends the bytes to the decoder under test, and compares the
 decoder's reply with the original value. A failure shrinks to a minimal value.
 
-The decoder under test runs as a separate program and speaks the protocol
-below, so any language can be tested. The first one is the Python decoder
-(`py_decoder.py`, for `src/py/imandrax_api/lib/twine.py`).
+The decoder under test is wrapped in an adapter: a small program that speaks
+the protocol below, so a decoder in any language can be tested. The first one
+is the Python adapter (`py_adapter.py`, for
+`src/py/imandrax_api/lib/twine.py`).
 
 ```
-OCaml                                          decoder program
------                                          ---------------
+OCaml                                          adapter
+-----                                          -------
 QCheck generates v
         │
         ▼
@@ -35,7 +36,7 @@ compare v' with v
 From the repository root:
 
 ```sh
-TWINE_DIFF_DECODER="uv run --project $PWD/src/py python $PWD/tests/twine-diff/py_decoder.py" \
+TWINE_DIFF_DECODER="uv run --project $PWD/src/py python $PWD/tests/twine-diff/py_adapter.py" \
   dune build @tests/twine-diff/twine-diff --force
 ```
 
@@ -46,20 +47,19 @@ Environment variables:
 
 | Variable              | Meaning                                                         |
 |-----------------------|-----------------------------------------------------------------|
-| `TWINE_DIFF_DECODER`  | Shell command that starts the decoder program (required).      |
+| `TWINE_DIFF_DECODER`  | Shell command that starts the adapter (required).               |
 | `TWINE_DIFF_COUNT`    | Cases per property, default 1000.                               |
 | `QCHECK_SEED`         | Random seed. Printed at the start of every run.                 |
-| `TWINE_DIFF_CORRUPT=1`| Also print the corrupted-input verdict report (see below).      |
 
 To run it by hand against another decoder:
 
 ```sh
-TWINE_DIFF_DECODER='path/to/my_decoder' dune build @tests/twine-diff/twine-diff --force
+TWINE_DIFF_DECODER='path/to/my_adapter' dune build @tests/twine-diff/twine-diff --force
 ```
 
 ## Properties
 
-1. **Reference self-check.** imandrakit's own decoder (`ocaml_decoder.ml`)
+1. **Reference self-check.** imandrakit's own decoder (`ocaml_adapter.ml`)
    decodes every value back to itself, through the same printer and parser.
 2. **Agreement.** The decoder's reply to the encoding of `v` is `v`.
 3. **Big integers.** Mode `i` reads integers encoded as ImandraX encodes them
@@ -70,9 +70,9 @@ TWINE_DIFF_DECODER='path/to/my_decoder' dune build @tests/twine-diff/twine-diff 
 Properties 5 and 6 use corrupted input: valid encodings that are truncated or
 have a byte overwritten.
 
-5. **No crash.** The decoder replies with a value or a decode error. A crash
-   reply, an unparseable reply, or a decoder process that exits or does not
-   reply within 10 seconds fails the test.
+5. **No crash.** The decoder replies with a value or a decode error. An
+   unparseable reply, or a decoder process that exits or does not reply within
+   10 seconds, fails the test.
 6. **Same values as the reference.** When both the decoder and the reference
    decode the bytes to a value, the two values are equal.
 
@@ -81,17 +81,13 @@ does not say which inputs must be rejected, and the reference is lenient: it
 returns a value for many inputs that the Python decoder rejects. The reference
 decoder runs as a child process for these properties, because imandrakit's
 decoder does not bounds-check every read and can segfault on corrupted input.
-If the reference dies or crashes on an input, that case is skipped.
-
-**Verdict report.** With `TWINE_DIFF_CORRUPT=1`, the run also prints, for a
-separate set of corrupted inputs, a table of what the decoder replied (value,
-decode error, crash, or the process died) next to what the reference replied,
-with examples. It is a diagnostic and does not fail the run.
+If the reference dies on an input, that case is skipped.
 
 ## Protocol
 
-A decoder program reads requests from stdin until it is closed, and writes one
-reply line to stdout for each request, flushed.
+An adapter reads requests from stdin until it is closed, and writes one
+reply line to stdout for each request, flushed. An adapter reports a crash
+(anything other than rejecting the input) by exiting.
 
 Request:
 
@@ -105,7 +101,9 @@ Request:
 - Mode `i`: read the entry point as an integer, accepting the bigint form (a
   blob), and reply with `(int "...")`.
 
-Anything the program writes to stderr is shown only if it dies.
+Write exactly one line per request: the harness waits for each reply on the
+pipe, so a line written ahead of time looks like a missing reply. Anything the
+program writes to stderr is shown only if it dies.
 
 ## Text form
 
@@ -124,8 +122,7 @@ One S-expression per reply. Every node has a label:
 | tag                     | `(tag <n> <value>)`                                  |
 | constructor             | `(cstor <index> <arg> ...)`                          |
 | explicit reference      | `(ref <value it points to>)`                         |
-| the input is rejected   | `(error decode "<message>")`                         |
-| anything else failed    | `(error crash "<message>")`                          |
+| the input is rejected   | `(error "<message>")`                                |
 
 - Hex digits are lowercase. Atoms in quotes may also be written without quotes
   when they contain no spaces or parentheses.
@@ -135,29 +132,28 @@ One S-expression per reply. Every node has a label:
   go through a native map: keys can be any value, including dicts, NaN, and
   keys a language considers equal (`1`, `1.0` and `true` in Python).
 - Messages are printable ASCII without `"` or `\`.
-- `(error decode ...)` is the decoder's own error for malformed input.
-  `(error crash ...)` is anything else, such as an unexpected exception.
+- `(error ...)` is only for the decoder's own error on malformed input. Any
+  other failure, such as an unexpected exception, ends the program.
 
 OCaml compares the parsed reply with the expected value structurally. Floats
 compare by bit pattern, except that any NaN equals any NaN.
 
 ## Adding a decoder
 
-Write a program that speaks the protocol and prints the text form, using the
-decoder's structural API (its array and dict cursors, scalar getters) rather
-than a convenience function that builds native values. Put a single-file
-program in this directory as `<lang>_decoder.<ext>`. A decoder that needs its
-own build gets a subdirectory, such as `rust_decoder/`. Then run the test with
-`TWINE_DIFF_DECODER` set to the command that starts it.
+Write an adapter: a program that speaks the protocol and prints the text form,
+using the decoder's structural API (its array and dict cursors, scalar getters)
+rather than a convenience function that builds native values. Put a
+single-file adapter in this directory as `<lang>_adapter.<ext>`. An adapter
+that needs its own build gets a subdirectory, such as `rust_adapter/`. Then run
+the test with `TWINE_DIFF_DECODER` set to the command that starts it.
 
 ## Files
 
 | File                 | Content                                                        |
 |----------------------|----------------------------------------------------------------|
-| `value.ml`           | value type, QCheck generator and shrinker                      |
-| `encode_v.ml`        | encoding with imandrakit, plain and shared                     |
+| `value.ml`           | value type, QCheck generator and shrinker, reference encoding  |
 | `sexp.ml`            | the text form: printer and parser                              |
-| `decoder_process.ml` | runs a decoder program as a child process                      |
-| `ocaml_decoder.ml`   | the reference decoder on imandrakit's `Decode`                 |
-| `py_decoder.py`      | the Python decoder program                                     |
-| `twine_diff.ml`      | properties, corrupted-input verdict report, entry point        |
+| `decoder_client.ml`  | runs an adapter as a child process, restarted if it dies       |
+| `ocaml_adapter.ml`   | the reference adapter, on imandrakit's `Decode`                |
+| `twine_diff.ml`      | properties, entry point                                        |
+| `py_adapter.py`      | the Python adapter                                             |

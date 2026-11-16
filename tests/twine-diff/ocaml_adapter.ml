@@ -1,5 +1,5 @@
-(** The reference decoder: imandrakit's [Decode], run in-process. It answers the
-    same requests as a decoder program, and its reply goes through the same
+(** The reference adapter, on imandrakit's [Decode]. In-process, it answers the
+    same requests as an adapter program, and its reply goes through the same
     printer and parser, so it also checks the harness itself. *)
 
 module Dec = Imandrakit_twine.Decode
@@ -32,7 +32,7 @@ let rec value ?(path = Int_set.empty) (dec : Dec.t) (off : int) : Value.t =
   | Pointer _ -> Imandrakit_twine.Error "pointer after dereferencing" |> raise
 
 (** Any exception other than a decode error escapes: in [serve] it ends the
-    process, which is how a decoder program reports a crash. *)
+    process, which is how an adapter reports a crash. *)
 let reply (mode : char) (bytes : string) : Sexp.reply =
   try
     let dec = Dec.of_string bytes in
@@ -43,13 +43,13 @@ let reply (mode : char) (bytes : string) : Sexp.reply =
     | c -> invalid_arg (Printf.sprintf "unknown mode %C" c)
   with Imandrakit_twine.Error msg -> Decode_error msg
 
-(** Same as a decoder program's reply line *)
+(** Same as an adapter's reply line *)
 let request (mode : char) (bytes : string) : string =
-  Sexp.to_string (Sexp.of_reply (reply mode bytes))
+  Sexp.reply_to_string (reply mode bytes)
 
-(** Serve the protocol on stdin/stdout, like a decoder program. Used for
-    corrupted input: [Decode] does not bounds-check every read, so it can
-    segfault, and that must not take the harness down. *)
+(** Serve the protocol on stdin/stdout, like any adapter. Used for corrupted
+    input: [Decode] does not bounds-check every read, so it can segfault, and
+    that must not take the harness down. *)
 let serve () : unit =
   set_binary_mode_in stdin true;
   let rec loop () =
