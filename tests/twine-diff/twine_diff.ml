@@ -5,7 +5,7 @@
       (required)
     - [TWINE_DIFF_COUNT]: cases per property (default 1000)
     - [QCHECK_SEED]: random seed (default: random, printed)
-    - [TWINE_DIFF_CORRUPT=1]: also run the corrupted-input report *)
+    - [TWINE_DIFF_CORRUPT=1]: also print the corrupted-input verdict report *)
 
 module G = QCheck2.Gen
 module T = QCheck2.Test
@@ -89,12 +89,19 @@ let sharing dec =
       let bytes = Encode_v.encode ~share:true v in
       check_reply ~expected:v ~bytes (Decoder_process.request dec 'v' bytes))
 
-(* Corrupted input (report only)
-   =============================
+(* Corrupted input
+   ===============
 
-    Corrupt valid encodings and check two things, without failing the run:
-    - the decoder replies with a value or a decode error, never a crash;
-    - its verdict (value or error) matches the reference decoder's. *)
+    Corrupt valid encodings (truncate them or overwrite a byte), then check:
+    - the decoder replies with a value or a decode error, never a crash, and
+      its process stays alive;
+    - when both the decoder and the reference decode the bytes to a value, the
+      values are equal.
+
+    Whether the decoder accepts or rejects corrupted bytes is not checked:
+    twine does not say which inputs must be rejected, and the reference is
+    lenient. The verdict report ([TWINE_DIFF_CORRUPT=1]) shows where the two
+    differ. *)
 
 type corruption =
   | Truncate of int
@@ -155,12 +162,44 @@ let request_or_die (r : restartable) bytes : verdict_reply =
     r.proc <- Decoder_process.start r.command;
     Died msg
 
+(** The reference decoder in its own process, since it can segfault on corrupted
+    input: see [Ocaml_decoder.serve] *)
+let reference_command = Filename.quote Sys.executable_name ^ " serve-reference"
+
+let print_corrupted (v, c, bytes) =
+  Printf.sprintf "from: %s\n%s\nbytes: %s" (Value.show v) (show_corruption c)
+    (Sexp.hex_of_string bytes)
+
+let never_crashes (dec : restartable) =
+  T.make ~count ~name:"decoder never crashes on corrupted input"
+    ~print:print_corrupted gen_corrupted (fun (_, _, bytes) ->
+      match request_or_die dec bytes with
+      | Reply (Ok (Value _ | Decode_error _)) -> true
+      | Reply (Ok (Crash msg)) -> T.fail_reportf "crash: %s" msg
+      | Reply (Error msg) -> T.fail_reportf "unparseable reply: %s" msg
+      | Died msg -> T.fail_reportf "%s" msg)
+
+let same_values_as_reference ~(reference : restartable) (dec : restartable) =
+  T.make ~count ~name:"decoded values on corrupted input match the reference"
+    ~print:print_corrupted gen_corrupted (fun (_, _, bytes) ->
+      match request_or_die dec bytes with
+      | Reply (Ok (Value ours)) ->
+        (match request_or_die reference bytes with
+        | Reply (Ok (Value theirs)) when not (Value.equal ours theirs) ->
+          T.fail_reportf "decoder:@ %s@ reference:@ %s" (Value.show ours)
+            (Value.show theirs)
+        | _ -> true)
+      (* crashes are [never_crashes]'s job; a rejection is not compared *)
+      | _ -> true)
+
+(* Verdict report
+   --------------
+
+    Diagnostic only, with [TWINE_DIFF_CORRUPT=1]: counts what the decoder and
+    the reference replied on each corrupted input, and lists examples. *)
+
 let corrupted_report ~command rand =
-  (* the reference decoder runs in its own process too: see
-     [Ocaml_decoder.serve] *)
-  let reference =
-    restartable (Filename.quote Sys.executable_name ^ " serve-reference")
-  in
+  let reference = restartable reference_command in
   let dec = restartable command in
   let crashes = ref [] in
   let reference_deaths = ref [] in
@@ -196,7 +235,7 @@ let corrupted_report ~command rand =
       Hashtbl.replace verdicts key
         (1 + Option.value ~default:0 (Hashtbl.find_opt verdicts key)))
     cases;
-  Printf.printf "\ncorrupted input (report only, %d cases)\n" count;
+  Printf.printf "\ncorrupted input, verdict report (%d cases)\n" count;
   Printf.printf "verdicts, decoder vs reference:\n";
   Hashtbl.to_seq verdicts |> List.of_seq |> List.sort compare
   |> List.iter (fun ((a, b), n) ->
@@ -242,10 +281,24 @@ let () =
     command seed;
   let dec = Decoder_process.start command in
   at_exit (fun () -> Decoder_process.stop dec);
+  (* corrupted input may kill a decoder, so those properties use processes that
+     restart *)
+  let corrupt_dec = restartable command in
+  let reference = restartable reference_command in
+  at_exit (fun () ->
+      Decoder_process.stop corrupt_dec.proc;
+      Decoder_process.stop reference.proc);
   let rand = Random.State.make [| seed |] in
   let code =
     QCheck_base_runner.run_tests ~colors:false ~verbose:true ~rand
-      [ self_check; agreement dec; bigints dec; sharing dec ]
+      [
+        self_check;
+        agreement dec;
+        bigints dec;
+        sharing dec;
+        never_crashes corrupt_dec;
+        same_values_as_reference ~reference corrupt_dec;
+      ]
   in
   if env_flag "TWINE_DIFF_CORRUPT" then
     corrupted_report ~command (Random.State.make [| seed |]);

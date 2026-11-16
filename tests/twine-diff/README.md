@@ -49,7 +49,7 @@ Environment variables:
 | `TWINE_DIFF_DECODER`  | Shell command that starts the decoder program (required).      |
 | `TWINE_DIFF_COUNT`    | Cases per property, default 1000.                               |
 | `QCHECK_SEED`         | Random seed. Printed at the start of every run.                 |
-| `TWINE_DIFF_CORRUPT=1`| Also run the corrupted-input report (see below).                |
+| `TWINE_DIFF_CORRUPT=1`| Also print the corrupted-input verdict report (see below).      |
 
 To run it by hand against another decoder:
 
@@ -67,14 +67,26 @@ TWINE_DIFF_DECODER='path/to/my_decoder' dune build @tests/twine-diff/twine-diff 
 4. **Sharing.** An encoding where every repeated subtree is written once and
    referred to by pointers decodes to the same value.
 
-**Corrupted input (report only).** With `TWINE_DIFF_CORRUPT=1`, valid encodings
-are truncated or have a byte overwritten. The report counts, for each case, what
-the decoder replied (value, decode error, crash, or the process died) next to
-what the reference decoder replied, and lists the decoder's crashes. A decoder
-should never crash: it should reply with a value or a decode error. This does
-not fail the run. Both decoders run as child processes here, because
-imandrakit's decoder does not bounds-check every read and can segfault on
-corrupted input.
+Properties 5 and 6 use corrupted input: valid encodings that are truncated or
+have a byte overwritten.
+
+5. **No crash.** The decoder replies with a value or a decode error. A crash
+   reply, an unparseable reply, or a decoder process that exits or does not
+   reply within 10 seconds fails the test.
+6. **Same values as the reference.** When both the decoder and the reference
+   decode the bytes to a value, the two values are equal.
+
+Whether the decoder accepts or rejects corrupted bytes is not checked. twine
+does not say which inputs must be rejected, and the reference is lenient: it
+returns a value for many inputs that the Python decoder rejects. The reference
+decoder runs as a child process for these properties, because imandrakit's
+decoder does not bounds-check every read and can segfault on corrupted input.
+If the reference dies or crashes on an input, that case is skipped.
+
+**Verdict report.** With `TWINE_DIFF_CORRUPT=1`, the run also prints, for a
+separate set of corrupted inputs, a table of what the decoder replied (value,
+decode error, crash, or the process died) next to what the reference replied,
+with examples. It is a diagnostic and does not fail the run.
 
 ## Protocol
 
@@ -148,4 +160,4 @@ own build gets a subdirectory, such as `rust_decoder/`. Then run the test with
 | `decoder_process.ml` | runs a decoder program as a child process                      |
 | `ocaml_decoder.ml`   | the reference decoder on imandrakit's `Decode`                 |
 | `py_decoder.py`      | the Python decoder program                                     |
-| `twine_diff.ml`      | properties, corrupted-input report, entry point                |
+| `twine_diff.ml`      | properties, corrupted-input verdict report, entry point        |
