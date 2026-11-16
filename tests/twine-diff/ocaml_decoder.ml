@@ -31,6 +31,8 @@ let rec value ?(path = Int_set.empty) (dec : Dec.t) (off : int) : Value.t =
   | Ref p -> Ref (value p)
   | Pointer _ -> Imandrakit_twine.Error "pointer after dereferencing" |> raise
 
+(** Any exception other than a decode error escapes: in [serve] it ends the
+    process, which is how a decoder program reports a crash. *)
 let reply (mode : char) (bytes : string) : Sexp.reply =
   try
     let dec = Dec.of_string bytes in
@@ -38,10 +40,8 @@ let reply (mode : char) (bytes : string) : Sexp.reply =
     match mode with
     | 'v' -> Value (value dec entry)
     | 'i' -> Value (Int (Imandrax_api.Util_twine.Z.of_twine dec entry))
-    | c -> Crash (Printf.sprintf "unknown mode %C" c)
-  with
-  | Imandrakit_twine.Error msg -> Decode_error msg
-  | e -> Crash (Printexc.to_string e)
+    | c -> invalid_arg (Printf.sprintf "unknown mode %C" c)
+  with Imandrakit_twine.Error msg -> Decode_error msg
 
 (** Same as a decoder program's reply line *)
 let request (mode : char) (bytes : string) : string =

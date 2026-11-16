@@ -2,11 +2,11 @@
 
 type sexp = CCSexp.t
 
-(** What a decoder replies to one request *)
+(** What a decoder replies to one request. Anything else that goes wrong is not
+    a reply: the decoder program exits. *)
 type reply =
   | Value of Value.t
   | Decode_error of string  (** the decoder rejected the input *)
-  | Crash of string  (** anything else went wrong *)
 
 let atom s : sexp = `Atom s
 let list l : sexp = `List l
@@ -47,8 +47,7 @@ let rec of_value (v : Value.t) : sexp =
 let of_reply (r : reply) : sexp =
   match r with
   | Value v -> of_value v
-  | Decode_error msg -> list [ atom "error"; atom "decode"; atom msg ]
-  | Crash msg -> list [ atom "error"; atom "crash"; atom msg ]
+  | Decode_error msg -> list [ atom "error"; atom msg ]
 
 let to_string : sexp -> string = CCSexp.to_string
 
@@ -93,9 +92,7 @@ let rec to_value (s : sexp) : Value.t =
 let parse_reply (line : string) : (reply, string) result =
   match CCSexp.parse_string line with
   | Error e -> Error (Printf.sprintf "not an S-expression (%s): %S" e line)
-  | Ok (`List [ `Atom "error"; `Atom "decode"; `Atom msg ]) ->
-    Ok (Decode_error msg)
-  | Ok (`List [ `Atom "error"; `Atom "crash"; `Atom msg ]) -> Ok (Crash msg)
+  | Ok (`List [ `Atom "error"; `Atom msg ]) -> Ok (Decode_error msg)
   | Ok s ->
     (try Ok (Value (to_value s))
      with Bad msg -> Error (Printf.sprintf "%s, in reply %S" msg line))

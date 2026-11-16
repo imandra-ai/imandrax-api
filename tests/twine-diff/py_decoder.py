@@ -60,6 +60,11 @@ def message(s: str) -> str:
 
 
 def reply(mode: bytes, data: bytes) -> str:
+    """The reply line to one request.
+
+    Only decode errors are replies. Any other exception escapes and ends the
+    program, which is how a crash is reported.
+    """
     try:
         d = twine.Decoder(data)
         entry = d.entrypoint()
@@ -67,14 +72,12 @@ def reply(mode: bytes, data: bytes) -> str:
             return node(d, entry)
         if mode == b"i":
             return f'(int "{d.get_int(entry)}")'
-        return f"(error crash {message(f'unknown mode {mode!r}')})"
+        raise ValueError(f"unknown mode {mode!r}")
     except twine.Error as e:
-        return f"(error decode {message(e.msg)})"
+        return f"(error {message(e.msg)})"
     except RecursionError:
         # a container item that points back at the container
-        return f"(error decode {message('value is cyclic or nested too deeply')})"
-    except Exception as e:  # noqa: BLE001 - any other exception is a crash, by design
-        return f"(error crash {message(f'{type(e).__name__}: {e}')})"
+        return f"(error {message('value is cyclic or nested too deeply')})"
 
 
 def main() -> None:
