@@ -27,6 +27,7 @@ from typing import ClassVar, Never, assert_never, cast, override
 
 from imandrax_api import lib
 
+from ._lib_memo import LibMemo, lib_memo, with_lib_memo
 from ._utils import FrozenMap
 from .errors import UnexpectedResponseError
 
@@ -371,6 +372,19 @@ class _Type:
 
 
 def type_of_lib(x: lib.Mir_Type) -> Type:
+    memo: LibMemo | None = lib_memo.get()
+    if memo is None:
+        return with_lib_memo(type_of_lib)(x)
+    hit: tuple[lib.Mir_Type, Type] | None = memo.types.get(id(x))
+    if hit is not None:
+        return hit[1]
+    else:
+        ty = _type_of_lib(x)
+        memo.types[id(x)] = (x, ty)
+        return ty
+
+
+def _type_of_lib(x: lib.Mir_Type) -> Type:
     match x.view:
         case lib.Ty_view_view_Var(arg=v):
             return TypeVariable(name=Uid(v), _raw=x)
@@ -716,6 +730,20 @@ class _Term:
 
 
 def term_of_lib(x: lib.Mir_Term) -> Term:
+    memo: LibMemo | None = lib_memo.get()
+    if memo is None:
+        return with_lib_memo(term_of_lib)(x)
+
+    hit: tuple[lib.Mir_Term, Term] | None = memo.terms.get(id(x))
+    if hit is not None:
+        return hit[1]
+    else:
+        t = _term_of_lib(x)
+        memo.terms[id(x)] = (x, t)
+        return t
+
+
+def _term_of_lib(x: lib.Mir_Term) -> Term:
     ty = type_of_lib(x.ty)
     match x.view:
         case lib.Mir_Term_view_Const(arg=c):
@@ -2464,6 +2492,7 @@ class Decomposition:
     _raw: lib.Mir_Fun_decomp = field(repr=False, compare=False)
 
     @classmethod
+    @with_lib_memo
     def of_lib(cls, d: lib.Mir_Fun_decomp) -> Decomposition:
         return cls(
             id=Uid(d.f_id),
