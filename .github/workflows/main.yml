@@ -43,6 +43,22 @@ jobs:
     - name: cargo build
       run: cargo build
       working-directory: src/rust/lib
+  twine-diff:
+    name: twine-diff
+    timeout-minutes: 10
+    runs-on: [ubuntu-latest]
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - uses: ocaml/setup-ocaml@v3
+      with:
+        ocaml-compiler: "5.3"
+        dune-cache: true
+    - uses: astral-sh/setup-uv@v5
+    - run: opam pin -n .
+    - run: opam install imandrax-api --deps-only --with-test -y
+    - run: make test-twine-diff
   pyright:
     name: py/pyright
     runs-on: [ubuntu-latest]

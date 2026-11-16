@@ -39,9 +39,8 @@ TWINE_DIFF_DECODER="uv run --project $PWD/src/py python $PWD/tests/twine-diff/py
   dune build @tests/twine-diff/twine-diff --force
 ```
 
-`uv run` creates or updates the Python environment in `src/py` before starting
-the decoder. `--force` reruns the test even when nothing changed. The test is
-not part of `dune test`, so the default test run never needs uv.
+`--force` reruns the test even when nothing changed. The test is not part of
+`dune test`, so the default test run never needs uv.
 
 Environment variables:
 
