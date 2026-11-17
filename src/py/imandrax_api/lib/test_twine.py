@@ -25,6 +25,25 @@ def test_caches_are_per_instance():
     assert 42 not in d2.caches.get("T", {})
 
 
+def test_cached_hits_through_pointers():
+    # Regression: `cached` keyed on the offset it was given, before following
+    # pointers. Each reference to a shared value is its own pointer, so shared
+    # values were never found in the cache and were decoded once per reference.
+    calls: list[int] = []
+
+    @twine.cached(name="T")
+    def dec(d: twine.Decoder, off: int) -> twine.value:
+        calls.append(off)
+        return d.value(off=off)
+
+    # [0] the shared array (1, 2); [3] an array of two pointers, both to [0]
+    d = twine.Decoder(b"\x62\x11\x12" + b"\x62\xf3\xf4")
+    first, second = (dec(d=d, off=item) for item in d.get_array(off=3))
+    assert first == second == (1, 2)
+    assert first is second
+    assert len(calls) == 1
+
+
 def test_get_float():
     # Regression: the float payload starts *after* the first byte, which holds
     # the (high=3, low=is_f32) tag; reading from the tag byte itself yields garbage.
