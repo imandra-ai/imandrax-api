@@ -31,36 +31,47 @@ let rec value ?(path = Int_set.empty) (dec : Dec.t) (off : int) : Value.t =
   | Ref p -> Ref (value p)
   | Pointer _ -> Imandrakit_twine.Error "pointer after dereferencing" |> raise
 
-(** Any exception other than a decode error escapes: in [serve] it ends the
-    process, which is how an adapter reports a crash. *)
-let reply (mode : char) (bytes : string) : Sexp.reply =
-  try
-    let dec = Dec.of_string bytes in
-    let entry = Dec.get_entrypoint dec in
-    match mode with
-    | 'v' -> Value (value dec entry)
-    | 'i' -> Value (Int (Imandrax_api.Util_twine.Z.of_twine dec entry))
-    | c -> invalid_arg (Printf.sprintf "unknown mode %C" c)
-  with Imandrakit_twine.Error msg -> Decode_error msg
+(** How to read the entry point, by the type the bytes represent. Any exception
+    other than a decode error escapes: in [serve] it ends the process, which is
+    how an adapter reports a crash. *)
+let decoders : (string * (Dec.t -> int -> Sexp.reply)) list =
+  [
+    ("any", fun dec off -> Value (value dec off));
+    ( "int",
+      fun dec off -> Value (Int (Imandrax_api.Util_twine.Z.of_twine dec off)) );
+    ( "q",
+      fun dec off ->
+        let q = Imandrax_api.Util_twine.Q.of_twine dec off in
+        Rational (Q.num q, Q.den q) );
+  ]
+
+let reply (ty : string) (bytes : string) : Sexp.reply =
+  match List.assoc_opt ty decoders with
+  | None -> Unsupported ty
+  | Some decode ->
+    (try
+       let dec = Dec.of_string bytes in
+       decode dec (Dec.get_entrypoint dec)
+     with Imandrakit_twine.Error msg -> Decode_error msg)
 
 (** Same as an adapter's reply line *)
-let request (mode : char) (bytes : string) : string =
-  Sexp.reply_to_string (reply mode bytes)
+let request (ty : string) (bytes : string) : string =
+  Sexp.reply_to_string (reply ty bytes)
 
 (** Serve the protocol on stdin/stdout, like any adapter. Used for corrupted
     input: [Decode] does not bounds-check every read, so it can segfault, and
     that must not take the harness down. *)
 let serve () : unit =
-  set_binary_mode_in stdin true;
   let rec loop () =
-    match In_channel.really_input_string stdin 5 with
+    match In_channel.input_line stdin with
     | None -> ()
-    | Some head ->
-      let n = Int32.to_int (String.get_int32_be head 1) in
-      (match In_channel.really_input_string stdin n with
-      | None -> exit 1
-      | Some bytes ->
-        print_endline (request head.[0] bytes);
+    | Some line ->
+      (match String.index_opt line ' ' with
+      | None -> failwith "malformed request: no space after the type"
+      | Some i ->
+        let ty = String.sub line 0 i in
+        let hex = String.sub line (i + 1) (String.length line - i - 1) in
+        print_endline (request ty (Sexp.string_of_hex hex));
         loop ())
   in
   loop ()

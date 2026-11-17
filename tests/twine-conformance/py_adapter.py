@@ -1,13 +1,15 @@
-"""Python adapter for the twine differential test
+"""Python adapter for the twine conformance test
 
-Reads framed requests on stdin and replies with one S-expression line each.
+Reads one request line at a time on stdin, `<type> <hex bytes>`, and replies
+with one S-expression line each.
 """
 
 # pyright: reportPrivateUsage=false
 import struct
 import sys
+from collections.abc import Callable
 
-from imandrax_api.lib import twine
+from imandrax_api.lib import decode_q, twine
 
 
 def node(d: twine.Decoder, off: int) -> str:
@@ -59,20 +61,31 @@ def message(s: str) -> str:
     return f'"{clean}"'
 
 
-def reply(mode: bytes, data: bytes) -> str:
+def rational(d: twine.Decoder, off: int) -> str:
+    num, den = decode_q(d, off)
+    return f'(q "{num}" "{den}")'
+
+
+TYPES: dict[str, Callable[[twine.Decoder, int], str]] = {
+    "any": node,
+    "int": lambda d, off: f'(int "{d.get_int(off)}")',
+    "q": rational,
+}
+"""How to read the entry point, by the type the bytes represent"""
+
+
+def reply(ty: str, data: bytes) -> str:
     """The reply line to one request.
 
     Only decode errors are replies. Any other exception escapes and ends the
     program, which is how a crash is reported.
     """
+    decode = TYPES.get(ty)
+    if decode is None:
+        return f"(unsupported {message(ty)})"
     try:
         d = twine.Decoder(data)
-        entry = d.entrypoint()
-        if mode == b"v":
-            return node(d, entry)
-        if mode == b"i":
-            return f'(int "{d.get_int(entry)}")'
-        raise ValueError(f"unknown mode {mode!r}")
+        return decode(d, d.entrypoint())
     except twine.Error as e:
         return f"(error {message(e.msg)})"
     except RecursionError:
@@ -81,18 +94,11 @@ def reply(mode: bytes, data: bytes) -> str:
 
 
 def main() -> None:
-    stdin = sys.stdin.buffer
-    while True:
-        head = stdin.read(5)
-        if not head:
-            return
-        if len(head) < 5:
-            sys.exit("truncated request header")
-        n = int.from_bytes(head[1:5], "big")
-        data = stdin.read(n)
-        if len(data) < n:
-            sys.exit("truncated request body")
-        sys.stdout.write(reply(head[0:1], data) + "\n")
+    for line in sys.stdin:
+        ty, sep, hex_bytes = line.rstrip("\n").partition(" ")
+        if not sep:
+            sys.exit(f"malformed request: {line!r}")
+        sys.stdout.write(reply(ty, bytes.fromhex(hex_bytes)) + "\n")
         sys.stdout.flush()
 
 

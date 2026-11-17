@@ -43,8 +43,8 @@ jobs:
     - name: cargo build
       run: cargo build
       working-directory: src/rust/lib
-  twine-diff:
-    name: twine-diff
+  twine-conformance:
+    name: twine-conformance
     timeout-minutes: 10
     runs-on: [ubuntu-latest]
     steps:
@@ -58,7 +58,7 @@ jobs:
     - uses: astral-sh/setup-uv@v5
     - run: opam pin -n .
     - run: opam install imandrax-api --deps-only --with-test -y
-    - run: make test-twine-diff
+    - run: make test-twine-conformance
   pyright:
     name: py/pyright
     runs-on: [ubuntu-latest]

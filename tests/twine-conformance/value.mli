@@ -39,11 +39,18 @@ val gen : t QCheck2.Gen.t
 val gen_bigint : Z.t QCheck2.Gen.t
 (** Integers for the bigint property, mostly beyond 64 bits *)
 
+val gen_q : Q.t QCheck2.Gen.t
+(** Finite rationals, numerator and denominator from [gen_bigint] *)
+
 val encode : ?share:bool -> t -> string
 (** The twine encoding of [v], written by imandrakit's encoder (the reference).
     With [share], every repeated subtree is written once and referred to by
     pointers. *)
 
 val encode_bigint : Z.t -> string
-(** A [Z.t] encoded the way ImandraX encodes integers (a blob, see
+(** A [Z.t] encoded the way ImandraX encodes integers (always a blob, see
     [Util_twine.Z]) *)
+
+val encode_q : Q.t -> string
+(** A [Q.t] encoded the way ImandraX encodes rationals (an array of two
+    integers, see [Util_twine.Q]) *)

@@ -347,6 +347,17 @@ let gen_bigint : Z.t G.t =
             bool );
       ])
 
+(** Finite rationals: [Q] normalizes, so the denominator is positive *)
+let gen_q : Q.t G.t =
+  G.map2
+    (fun num den ->
+      Q.make num
+        (if Z.equal den Z.zero then
+           Z.one
+         else
+           den))
+    gen_bigint gen_bigint
+
 (* Encoding
    ========
 
@@ -430,4 +441,9 @@ let encode ?(share = false) (v : t) : string =
 let encode_bigint (z : Z.t) : string =
   let enc = Enc.create () in
   let entrypoint = Imandrax_api.Util_twine.Z.to_twine enc z in
+  Enc.finalize_copy enc ~entrypoint
+
+let encode_q (q : Q.t) : string =
+  let enc = Enc.create () in
+  let entrypoint = Imandrax_api.Util_twine.Q.to_twine enc q in
   Enc.finalize_copy enc ~entrypoint

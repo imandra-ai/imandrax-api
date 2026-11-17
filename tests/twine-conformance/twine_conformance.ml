@@ -1,15 +1,18 @@
-(** Differential test of a twine decoder against imandrakit's encoder.
+(** Conformance test of a twine decoder against imandrakit's encoder.
 
     Environment:
-    - [TWINE_DIFF_DECODER]: shell command that starts the adapter (required)
-    - [TWINE_DIFF_COUNT]: cases per property (default 1000)
+    - [TWINE_CONFORMANCE_DECODER]: shell command that starts the adapter
+      (required)
+    - [TWINE_CONFORMANCE_COUNT]: cases per property (default 1000)
     - [QCHECK_SEED]: random seed (default: random, printed) *)
 
 module G = QCheck2.Gen
 module T = QCheck2.Test
 
 let count =
-  match Option.bind (Sys.getenv_opt "TWINE_DIFF_COUNT") int_of_string_opt with
+  match
+    Option.bind (Sys.getenv_opt "TWINE_CONFORMANCE_COUNT") int_of_string_opt
+  with
   | Some n -> n
   | None -> 1000
 
@@ -31,7 +34,9 @@ let print_value v =
 let show_reply (r : Sexp.reply) =
   match r with
   | Value v -> Value.show v
+  | Rational (n, d) -> Printf.sprintf "%s/%s" (Z.to_string n) (Z.to_string d)
   | Decode_error msg -> "decode error: " ^ msg
+  | Unsupported ty -> "type not supported: " ^ ty
 
 module P = Decoder_client
 
@@ -39,14 +44,13 @@ module P = Decoder_client
     input: see [Ocaml_adapter.serve] *)
 let reference_command = Filename.quote Sys.executable_name ^ " serve-reference"
 
-(** Check that [outcome], a decoder's answer, is the value [expected]. *)
-let check_reply ~(expected : Value.t) ~(bytes : string) (outcome : P.outcome) :
-    bool =
-  let expected = Value.widen expected in
+(** Check that [outcome], a decoder's answer, is the reply [expected]. *)
+let check_reply ~(expected : Sexp.reply) ~(bytes : string) (outcome : P.outcome)
+    : bool =
   match outcome with
-  | Reply (Ok (Value v)) when Value.equal v expected -> true
+  | Reply (Ok r) when Sexp.equal_reply r expected -> true
   | Reply (Ok r) ->
-    T.fail_reportf "expected:@ %s@ got:@ %s@ bytes:@ %s" (Value.show expected)
+    T.fail_reportf "expected:@ %s@ got:@ %s@ bytes:@ %s" (show_reply expected)
       (show_reply r) (dump bytes)
   | Reply (Error msg) -> T.fail_reportf "unparseable reply: %s" msg
   | Died msg -> T.fail_reportf "%s" msg
@@ -58,14 +62,16 @@ let self_check =
   T.make ~count ~name:"reference decoder round-trips" ~print:print_value
     Value.gen (fun v ->
       let bytes = Value.encode v in
-      check_reply ~expected:v ~bytes
-        (Reply (Sexp.parse_reply (Ocaml_adapter.request 'v' bytes))))
+      check_reply
+        ~expected:(Value (Value.widen v))
+        ~bytes
+        (Reply (Sexp.parse_reply (Ocaml_adapter.request "any" bytes))))
 
 let agreement (dec : P.t) =
   T.make ~count ~name:"decoder agrees with the reference encoder"
     ~print:print_value Value.gen (fun v ->
       let bytes = Value.encode v in
-      check_reply ~expected:v ~bytes (P.request dec bytes))
+      check_reply ~expected:(Value (Value.widen v)) ~bytes (P.request dec bytes))
 
 let bigints (dec : P.t) =
   T.make ~count ~name:"decoder reads big integers"
@@ -75,7 +81,21 @@ let bigints (dec : P.t) =
     Value.gen_bigint
     (fun z ->
       let bytes = Value.encode_bigint z in
-      check_reply ~expected:(Int z) ~bytes (P.request ~mode:'i' dec bytes))
+      check_reply ~expected:(Value (Int z)) ~bytes
+        (P.request ~ty:"int" dec bytes))
+
+let rationals (dec : P.t) =
+  T.make ~count ~name:"decoder reads rationals"
+    ~print:(fun q ->
+      Printf.sprintf "%s\nencoded:\n%s" (Q.to_string q)
+        (dump (Value.encode_q q)))
+    Value.gen_q
+    (fun q ->
+      let bytes = Value.encode_q q in
+      check_reply
+        ~expected:(Rational (Q.num q, Q.den q))
+        ~bytes
+        (P.request ~ty:"q" dec bytes))
 
 let sharing (dec : P.t) =
   T.make ~count ~name:"sharing does not change the decoded value"
@@ -85,7 +105,7 @@ let sharing (dec : P.t) =
     Value.gen
     (fun v ->
       let bytes = Value.encode ~share:true v in
-      check_reply ~expected:v ~bytes (P.request dec bytes))
+      check_reply ~expected:(Value (Value.widen v)) ~bytes (P.request dec bytes))
 
 (* Corrupted input
    ---------------
@@ -134,6 +154,9 @@ let never_crashes (dec : P.t) =
     ~print:print_corrupted gen_corrupted (fun (_, _, bytes) ->
       match P.request dec bytes with
       | Reply (Ok (Value _ | Decode_error _)) -> true
+      | Reply (Ok (Rational _)) -> T.fail_reportf "a rational for type any"
+      | Reply (Ok (Unsupported ty)) ->
+        T.fail_reportf "type not supported: %s" ty
       | Reply (Error msg) -> T.fail_reportf "unparseable reply: %s" msg
       | Died msg -> T.fail_reportf "%s" msg)
 
@@ -153,18 +176,30 @@ let same_values_as_reference ~(reference : P.t) (dec : P.t) =
 (* Main
    ==== *)
 
+(** Whether the adapter implements type [ty]. An adapter replies [unsupported]
+    before looking at the bytes, so empty bytes are enough to ask. *)
+let supports (dec : P.t) (ty : string) : bool =
+  match P.request ~ty dec "" with
+  | Reply (Ok (Unsupported _)) -> false
+  | _ -> true
+
+(** Properties that need a type other than ["any"], which every adapter must
+    implement. *)
+let optional_properties (dec : P.t) : (string * T.t) list =
+  [ "int", bigints dec; "q", rationals dec ]
+
 let () =
   if Array.length Sys.argv > 1 && Sys.argv.(1) = "serve-reference" then (
     Ocaml_adapter.serve ();
     exit 0
   );
   let command =
-    match Sys.getenv_opt "TWINE_DIFF_DECODER" with
+    match Sys.getenv_opt "TWINE_CONFORMANCE_DECODER" with
     | Some c when String.trim c <> "" -> c
     | _ ->
       prerr_endline
-        "TWINE_DIFF_DECODER is not set: it is the command that starts the \
-         decoder under test.";
+        "TWINE_CONFORMANCE_DECODER is not set: it is the command that starts \
+         the decoder under test.";
       exit 2
   in
   Printf.printf "decoder: %s\nseed: %d (set QCHECK_SEED to reproduce)\n%!"
@@ -174,17 +209,27 @@ let () =
   at_exit (fun () ->
       P.stop dec;
       P.stop reference);
+  let optional =
+    List.filter_map
+      (fun (ty, test) ->
+        if supports dec ty then
+          Some test
+        else (
+          Printf.printf "skipped: the adapter does not support type %s\n%!" ty;
+          None
+        ))
+      (optional_properties dec)
+  in
   let rand = Random.State.make [| seed |] in
   let code =
     QCheck_base_runner.run_tests ~colors:false ~verbose:true ~rand
-      [
-        self_check;
-        agreement dec;
-        bigints dec;
-        sharing dec;
-        never_crashes dec;
-        same_values_as_reference ~reference dec;
-      ]
+      ([ self_check; agreement dec ]
+      @ optional
+      @ [
+          sharing dec;
+          never_crashes dec;
+          same_values_as_reference ~reference dec;
+        ])
   in
   if code <> 0 then
     Printf.printf "\nfailed with seed %d (set QCHECK_SEED=%d to reproduce)\n"

@@ -11,8 +11,8 @@ clean:
 test:
 	$(DUNE) runtest $(DUNE_OPTS)
 
-test-twine-diff:
-	$(MAKE) -C tests/twine-diff test
+test-twine-conformance:
+	$(MAKE) -C tests/twine-conformance test
 
 test-autopromote:
 	$(DUNE) runtest $(DUNE_OPTS) --auto-promote

@@ -18,7 +18,7 @@ let spawn (command : string) : child =
   Sys.set_signal Sys.sigpipe Sys.Signal_ignore;
   let stdin_r, stdin_w = Unix.pipe ~cloexec:true () in
   let stdout_r, stdout_w = Unix.pipe ~cloexec:true () in
-  let stderr_file = Filename.temp_file "twine-diff" ".stderr" in
+  let stderr_file = Filename.temp_file "twine-conformance" ".stderr" in
   let stderr_fd =
     Unix.openfile stderr_file [ O_WRONLY; O_TRUNC; O_CLOEXEC ] 0o600
   in
@@ -41,14 +41,13 @@ let read_stderr (c : child) : string =
   with Sys_error _ -> ""
 
 (** The reply line, or [Error what] when the child exited or hung *)
-let exchange ~(timeout : float) (c : child) (mode : char) (bytes : string) :
+let exchange ~(timeout : float) (c : child) (ty : string) (bytes : string) :
     (string, string) result =
-  let len = Bytes.create 4 in
-  Bytes.set_int32_be len 0 (Int32.of_int (String.length bytes));
   match
-    output_char c.to_child mode;
-    output_bytes c.to_child len;
-    output_string c.to_child bytes;
+    output_string c.to_child ty;
+    output_char c.to_child ' ';
+    output_string c.to_child (Sexp.hex_of_string bytes);
+    output_char c.to_child '\n';
     flush c.to_child
   with
   | exception Sys_error _ -> Error "stopped reading requests"
@@ -87,9 +86,9 @@ type t = {
 
 let start command = { command; child = spawn command }
 
-let request ?(mode = 'v') ?(timeout = 10.) (self : t) (bytes : string) : outcome
+let request ?(ty = "any") ?(timeout = 10.) (self : t) (bytes : string) : outcome
     =
-  match exchange ~timeout self.child mode bytes with
+  match exchange ~timeout self.child ty bytes with
   | Ok line -> Reply (Sexp.parse_reply line)
   | Error what ->
     let msg =

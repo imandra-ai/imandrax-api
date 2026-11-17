@@ -2,7 +2,17 @@ type sexp = CCSexp.t
 
 type reply =
   | Value of Value.t
+  | Rational of Z.t * Z.t
   | Decode_error of string
+  | Unsupported of string
+
+let equal_reply (a : reply) (b : reply) : bool =
+  match a, b with
+  | Value a, Value b -> Value.equal a b
+  | Rational (n, d), Rational (n', d') -> Z.equal n n' && Z.equal d d'
+  | Decode_error a, Decode_error b | Unsupported a, Unsupported b ->
+    String.equal a b
+  | (Value _ | Rational _ | Decode_error _ | Unsupported _), _ -> false
 
 let atom s : sexp = `Atom s
 let list l : sexp = `List l
@@ -44,6 +54,9 @@ let reply_to_string (r : reply) : string =
   match r with
   | Value v -> of_value v
   | Decode_error msg -> list [ atom "error"; atom msg ]
+  | Rational (n, d) ->
+    list [ atom "q"; atom (Z.to_string n); atom (Z.to_string d) ]
+  | Unsupported ty -> list [ atom "unsupported"; atom ty ]
 
 exception Bad of string
 
@@ -85,6 +98,11 @@ let parse_reply (line : string) : (reply, string) result =
   match CCSexp.parse_string line with
   | Error e -> Error (Printf.sprintf "not an S-expression (%s): %S" e line)
   | Ok (`List [ `Atom "error"; `Atom msg ]) -> Ok (Decode_error msg)
+  | Ok (`List [ `Atom "unsupported"; `Atom ty ]) -> Ok (Unsupported ty)
+  | Ok (`List [ `Atom "q"; `Atom n; `Atom d ]) ->
+    (try Ok (Rational (Z.of_string n, Z.of_string d))
+     with Invalid_argument _ ->
+       Error (Printf.sprintf "bad rational in reply %S" line))
   | Ok s ->
     (try Ok (Value (to_value s))
      with Bad msg -> Error (Printf.sprintf "%s, in reply %S" msg line))
