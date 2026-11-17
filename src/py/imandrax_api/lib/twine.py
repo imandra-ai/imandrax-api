@@ -21,7 +21,7 @@ offset = int
 #   0          false, true, null     0, 1, 2             nothing
 #   1          int >= 0              the int             nothing
 #   2          int < 0               -(int + 1)          nothing
-#   3          float                 0: f32, else f64    4 or 8 bytes, little-endian
+#   3          float                 0: f32, 1: f64      4 or 8 bytes, little-endian
 #   4          string                length              UTF-8 bytes
 #   5          bytes, or a bigint    length              raw bytes
 #   6          array                 item count          the items
@@ -249,7 +249,11 @@ class Decoder:
         if high == 0:
             return off + 1
         if high == 3:
-            return off + 5 if low == 0 else off + 9
+            if low == 0:
+                return off + 5
+            if low == 1:
+                return off + 9
+            raise Error(f"reserved float width (low={low}) at off=0x{off:x}")
         if high == 6 or high == 7 or high == 8:
             raise Error(
                 f"cannot skip over array/dict/tag (high={high}) at off=0x{off:x}"
@@ -307,11 +311,12 @@ class Decoder:
             raise Error(f"expected float, but high={high} at off=0x{off:x}")
 
         # the payload starts right after the first byte
-        isf32 = low == 0
-        if isf32:
+        if low == 0:
             return struct.unpack("<f", self._slice(off + 1, 4))[0]
-        else:
+        elif low == 1:
             return struct.unpack("<d", self._slice(off + 1, 8))[0]
+        else:
+            raise Error(f"reserved float width (low={low}) at off=0x{off:x}")
 
     def get_str(self, off: offset) -> str:
         """Reads a UTF-8 string."""

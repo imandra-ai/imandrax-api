@@ -82,6 +82,10 @@ PUBLIC_METHODS = [
         pytest.param(b"", id="empty-buffer"),
         pytest.param(b"\x3f", id="f64-without-payload"),
         pytest.param(b"\x30\x00", id="f32-truncated-payload"),
+        # low nibbles 2 to 15 of a float are reserved
+        pytest.param(b"\x37" + b"\x00" * 8, id="float-reserved-width"),
+        # the same float as an array item, which iterating the array skips over
+        pytest.param(b"\x61\x37" + b"\x00" * 8, id="skip-float-reserved-width"),
         pytest.param(b"\x41\xff", id="invalid-utf8"),
         pytest.param(b"\x41", id="str-runs-past-end"),
         pytest.param(b"\x52\x00", id="bytes-runs-past-end"),
