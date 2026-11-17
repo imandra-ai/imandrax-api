@@ -235,7 +235,7 @@ def test_prop_cursor_fits_in_buffer(data: bytes, draw: st.DataObject):
     off = draw.draw(st.integers(min_value=0, max_value=len(data) - 1))
     d = twine.Decoder(data)
     try:
-        high = d._byte(d._deref(off=off)) >> 4
+        high = d._deref(off=off)[1]
         match high:
             case 6:
                 c, item_size = d.get_array(off=off), 1

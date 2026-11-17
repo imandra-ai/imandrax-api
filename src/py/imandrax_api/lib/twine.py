@@ -188,7 +188,7 @@ class Decoder:
         rest, consumed = self._leb128(off=off + 1, u64=u64)
         return rest + 15, consumed
 
-    def _head(self, off: offset) -> tuple[offset, int, int]:
+    def _deref(self, off: offset) -> tuple[offset, int, int]:
         """Follows pointers from `off` to the value they lead to.
 
         A shared value is stored once and referred to through pointers, so the
@@ -219,10 +219,6 @@ class Decoder:
             else:
                 p, _ = self._leb128(off=off + 1, u64=True)
                 off = off - p - 16
-
-    def _deref(self, off: offset) -> offset:
-        """Returns the offset of the value that `off` leads to, following pointers."""
-        return self._head(off)[0]
 
     def _skip(self, off: offset) -> offset:
         """Returns the offset just past the immediate value at `off`, without decoding it.
@@ -264,12 +260,12 @@ class Decoder:
 
     # Scalar accessors
     # ================
-    # Each one follows the same steps: call `_head`, check the kind, read the payload.
+    # Each one follows the same steps: call `_deref`, check the kind, read the payload.
     # A wrong kind raises Error("expected ..., but high=... at off=...")
 
     def get_int(self, off: offset) -> int:
         """Reads an integer: kind 1 (non-negative), 2 (negative) or 5 (bigint)."""
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         if high == 1:
             x, _ = self.__getint64(off=off, low=low)
             return x
@@ -287,7 +283,7 @@ class Decoder:
             raise Error(f"expected integer, but high={high} at off=0x{off:x}")
 
     def get_bool(self, off: offset) -> bool:
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         if high != 0:
             raise Error(f"expected bool, but high={high} at off=0x{off:x}")
         if low == 0:
@@ -298,7 +294,7 @@ class Decoder:
             raise Error(f"expected bool, but high={high}, low={low} at off=0x{off:x}")
 
     def get_null(self, off: offset) -> None:
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         if high == 0 and low == 2:
             return
         else:
@@ -306,7 +302,7 @@ class Decoder:
 
     def get_float(self, off: offset) -> float:
         """Reads a float, stored as 32 or 64 bits."""
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         if high != 3:
             raise Error(f"expected float, but high={high} at off=0x{off:x}")
 
@@ -320,7 +316,7 @@ class Decoder:
 
     def get_str(self, off: offset) -> str:
         """Reads a UTF-8 string."""
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         if high != 4:
             raise Error(f"expected string, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low, u64=True)
@@ -332,7 +328,7 @@ class Decoder:
 
     def get_bytes(self, off: offset) -> bytes:
         """Reads a byte string."""
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         if high != 5:
             raise Error(f"expected bytes, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low, u64=True)
@@ -345,7 +341,7 @@ class Decoder:
 
     def get_array(self, off: offset) -> ArrayCursor:
         """Returns a cursor over the offsets of an array's items."""
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         if high != 6:
             raise Error(f"expected array, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low, u64=True)
@@ -355,7 +351,7 @@ class Decoder:
 
     def get_dict(self, off: offset) -> DictCursor:
         """Returns a cursor over the key and value offsets of a dict's entries."""
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         if high != 7:
             raise Error(f"expected dict, but high={high} at off=0x{off:x}")
         len, n_bytes = self.__getint64(off=off, low=low, u64=True)
@@ -366,7 +362,7 @@ class Decoder:
 
     def get_tag(self, off: offset) -> Tag[offset]:
         """Returns a tag's number and the offset of its argument."""
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         if high != 8:
             raise Error(f"expected tag, but high={high} at off=0x{off:x}")
         tag, n_bytes = self.__getint64(off=off, low=low)
@@ -375,7 +371,7 @@ class Decoder:
 
     def get_cstor(self, off: offset) -> Constructor[ArrayCursor]:
         """Returns a constructor's index and a cursor over its arguments' offsets."""
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
 
         if high == 10:
             idx, _ = self.__getint64(off=off, low=low)
@@ -411,7 +407,7 @@ class Decoder:
         Scalars are decoded. Arrays, dicts, tags and constructors hold the offsets
         of their children, which are left undecoded.
         """
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         match high:
             case 0:
                 if low == 2:
@@ -470,7 +466,7 @@ class Decoder:
 
     def _value(self, off: offset) -> value:
         """The recursive part of `value`."""
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         match high:
             case 0:
                 if low == 2:
@@ -528,7 +524,7 @@ class Decoder:
         last = len(self.bs) - 1
         offset = last - self.bs[last] - 1
         # print(f"offset = 0x{offset:x}")
-        return self._deref(off=offset)
+        return self._deref(off=offset)[0]
 
 
 def cached(name: str) -> Callable[[DecoderFn[Any]], DecoderFn[Any]]:
@@ -551,7 +547,7 @@ def cached(name: str) -> Callable[[DecoderFn[Any]], DecoderFn[Any]]:
         def cached_f(d: Decoder, off: offset) -> Any:
             # key on the pointed-to value: each reference to a shared value is
             # its own pointer, at its own offset
-            off = d._deref(off=off)
+            off = d._deref(off=off)[0]
             cache = d.caches.setdefault(name, {})
             if off in cache:
                 return cache[off]
