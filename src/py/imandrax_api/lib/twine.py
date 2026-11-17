@@ -431,7 +431,7 @@ class Decoder:
         Unlike a pointer, a reference is not followed when reading values; the
         caller decides when to read its target.
         """
-        off, high, low = self._head(off)
+        off, high, low = self._deref(off)
         if high != 14:
             raise Error(f"expected ref, but high={high} at off=0x{off:x}")
         n, _ = self.__getint64(off=off, low=low)
