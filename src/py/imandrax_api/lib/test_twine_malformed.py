@@ -142,6 +142,54 @@ def test_huge_item_count_raises_twine_error(data: bytes):
             decode(off=0)
 
 
+# a LEB128 integer of about 700,000 bits: building it takes seconds
+HUGE_VARINT = b"\xff" * 100_000 + b"\x01"
+
+
+@pytest.mark.parametrize(
+    ("data", "off"),
+    [
+        pytest.param(b"\x4f" + HUGE_VARINT, 0, id="str-length"),
+        pytest.param(b"\x5f" + HUGE_VARINT, 0, id="bytes-length"),
+        pytest.param(b"\x6f" + HUGE_VARINT, 0, id="array-count"),
+        pytest.param(b"\x7f" + HUGE_VARINT, 0, id="dict-count"),
+        pytest.param(b"\xc0" + HUGE_VARINT, 0, id="constructor-arg-count"),
+        pytest.param(b"\x11\xff" + HUGE_VARINT, 1, id="pointer-distance"),
+        # an array whose only item is a string with a huge length, which
+        # iterating the array skips over
+        pytest.param(b"\x61\x4f" + HUGE_VARINT, 0, id="skip-str-length"),
+    ],
+)
+def test_huge_varint_length_fails_early(data: bytes, off: int):
+    # Regression: a length, count or pointer distance of 2^64 or more always
+    # failed against the buffer size, but only after building the whole
+    # integer, in time quadratic in its encoded length
+    d = twine.Decoder(data)
+    with pytest.raises(twine.Error, match="does not fit in 64 bits"):
+        d.value(off=off)
+
+
+def test_leb128_u64_boundary():
+    max_u64 = b"\xff" * 9 + b"\x01"  # 2^64 - 1
+    assert twine.Decoder(max_u64)._leb128(off=0, u64=True) == (2**64 - 1, 10)
+    two_pow_64 = b"\x80" * 9 + b"\x02"
+    with pytest.raises(twine.Error, match="does not fit in 64 bits"):
+        twine.Decoder(two_pow_64)._leb128(off=0, u64=True)
+
+
+def test_padded_varint_length_decodes():
+    # LEB128 allows zero padding bytes, and the twine spec doesn't forbid them,
+    # so a padded length decodes at any encoded length. Here: 15 + 1 = 16
+    data = b"\x4f\x81" + b"\x80" * 20 + b"\x00" + b"a" * 16
+    assert twine.Decoder(data).value(off=0) == "a" * 16
+
+
+def test_int_beyond_u64_decodes():
+    # Ints are not bounded: the value is what the bytes encode
+    data = b"\x1f" + b"\xff" * 20 + b"\x01"
+    assert twine.Decoder(data).get_int(off=0) == 2**141 - 1 + 15
+
+
 def test_unhashable_dict_key_raises_twine_error():
     # A dict whose key is itself a dict is valid twine, but cannot be a key of a
     # Python `dict`. Layout: [0] empty dict `{}`; [1] dict with one entry whose
