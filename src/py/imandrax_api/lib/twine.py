@@ -47,7 +47,30 @@ offset = int
 #   over an item without decoding it (`_skip`).
 # - The buffer's last byte locates the root, the top-level value the buffer encodes.
 #   If that byte is `k`, the root is `k + 1` bytes before it, after following pointers
-#   (`entrypoint`).
+#   (`entrypoint`). See the finalizer block below.
+#
+# Finalizer block
+#
+# The values in a buffer form a DAG: a container's items are its edges, and a shared
+# value has one node however many places use it. Since the encoder writes a value after
+# everything it contains, the root (the entrypoint, often an array or a dict) comes
+# last, and a buffer can end with a one-byte finalizer that leads back to it.
+#
+# With `p` the offset of the last byte and `n` its value, the value at `p - n - 1` is
+# either:
+#
+# - the root itself, when the root is less than 256 bytes long and so ends right before
+#   the finalizer; or
+# - a pointer to the root, written right before the finalizer when the root is too far
+#   back for a `u8` distance.
+#
+#   offset   holds
+#   -------  ------------------------------------
+#   p_e      the root
+#   p_ptr    pointer to p_e   (large root only)
+#   p        p - p_ptr - 1, as a u8
+#
+# Following pointers from `p - n - 1` reaches the root in both cases.
 
 
 @dataclass
@@ -515,15 +538,18 @@ class Decoder:
     def entrypoint(self) -> offset:
         """Returns the offset of the root value.
 
-        The root is the top-level value the buffer encodes, such as the whole
-        artifact in `read_artifact_data`; every other value is reachable from it.
-        The buffer's last byte locates it.
+        The root is the outermost value that was serialized, often an array or map.
+
+        Note: the finalizer block is optional in spec, this assume the buffer ends with
+        one.
+
+        Raises:
+            Error: If the buffer is empty, or the last byte leads outside the buffer.
         """
         if not self.bs:
             raise Error("empty buffer has no entrypoint")
         last = len(self.bs) - 1
         offset = last - self.bs[last] - 1
-        # print(f"offset = 0x{offset:x}")
         return self._deref(off=offset)[0]
 
 
@@ -563,7 +589,7 @@ def cached(name: str) -> Callable[[DecoderFn[Any]], DecoderFn[Any]]:
 
 @dataclass(slots=True, frozen=True)
 class Tag[Arg]:
-    """A tag number and the value it is attached to."""
+    """A tagged value"""
 
     tag: int
     arg: Arg
@@ -571,7 +597,7 @@ class Tag[Arg]:
 
 @dataclass(slots=True, frozen=True)
 class Constructor[Args]:
-    """A constructor of an algebraic data type: its index and its arguments."""
+    """A constructor for an ADT"""
 
     idx: int
     args: Args
@@ -679,9 +705,5 @@ def optional[T](d: Decoder, d0: DecoderFn[T], off: offset) -> T | None:
 
 
 def value_to_json(v: value) -> str:
-    """Encodes a decoded value as JSON."""
     j = json.dumps(v)
     return j
-
-
-# vim:foldmethod=indent:
