@@ -10,20 +10,24 @@ PY_PROJECT := $(ROOT)/src/py
 
 EXE := $(ROOT)/_build/default/tests/twine-conformance/twine_conformance.exe
 
-.PHONY: test test-py test-ocaml
+.PHONY: test test-py test-ocaml build
 
 # run with make -k to test every decoder even if one fails
 test: test-py test-ocaml
 
-test-py:
-	$(UV) sync --project '$(PY_PROJECT)'
-	cd '$(ROOT)' && \
+# the harness runs directly, not through the dune alias, so that a failure is
+# reported by the harness alone
+build:
+	@cd '$(ROOT)' && $(DUNE) build ./tests/twine-conformance/twine_conformance.exe
+
+test-py: build
+	@$(UV) sync --quiet --project '$(PY_PROJECT)'
+	@TWINE_CONFORMANCE_NAME=py \
 	  TWINE_CONFORMANCE_DECODER="$(UV) run --project '$(PY_PROJECT)' python '$(HERE)/py_adapter.py'" \
-	  $(DUNE) build @tests/twine-conformance/twine-conformance --force
+	  '$(EXE)'
 
 # imandrakit's own decoder, through the same protocol as any other
-test-ocaml:
-	cd '$(ROOT)' && \
-	  $(DUNE) build ./tests/twine-conformance/twine_conformance.exe && \
+test-ocaml: build
+	@TWINE_CONFORMANCE_NAME=ocaml \
 	  TWINE_CONFORMANCE_DECODER="'$(EXE)' serve-ocaml" \
-	  $(DUNE) build @tests/twine-conformance/twine-conformance --force
+	  '$(EXE)'

@@ -3,6 +3,8 @@
     Environment:
     - [TWINE_CONFORMANCE_DECODER]: shell command that starts the adapter
       (required)
+    - [TWINE_CONFORMANCE_NAME]: the decoder's name in the output (default: the
+      command)
     - [TWINE_CONFORMANCE_COUNT]: cases per property (default 1000)
     - [QCHECK_SEED]: random seed (default: random, printed) *)
 
@@ -26,10 +28,11 @@ let seed =
 (* Reporting
    ========= *)
 
-let dump bytes = Imandrakit_twine.Dump.dump_string bytes
+let dump bytes = String.trim (Imandrakit_twine.Dump.dump_string bytes)
 
 let print_value v =
-  Printf.sprintf "%s\nencoded:\n%s" (Value.show v) (dump (Value.encode v))
+  Printf.sprintf "value:   %s\nencoded:\n%s" (Value.show v)
+    (dump (Value.encode v))
 
 let show_reply (r : Sexp.reply) =
   match r with
@@ -45,13 +48,12 @@ module P = Decoder_client
 let reference_command = Filename.quote Sys.executable_name ^ " serve-ocaml"
 
 (** Check that [outcome], a decoder's answer, is the reply [expected]. *)
-let check_reply ~(expected : Sexp.reply) ~(bytes : string) (outcome : P.outcome)
-    : bool =
+let check_reply ~(expected : Sexp.reply) (outcome : P.outcome) : bool =
   match outcome with
   | Reply (Ok r) when Sexp.equal_reply r expected -> true
   | Reply (Ok r) ->
-    T.fail_reportf "expected:@ %s@ got:@ %s@ bytes:@ %s" (show_reply expected)
-      (show_reply r) (dump bytes)
+    T.fail_reportf "expected: %s@\ngot:      %s" (show_reply expected)
+      (show_reply r)
   | Reply (Error msg) -> T.fail_reportf "unparseable reply: %s" msg
   | Died msg -> T.fail_reportf "%s" msg
 
@@ -93,41 +95,39 @@ let round_trip (dec : P.t) =
   make ~name:"decoder reads back what the reference encoded" ~print:print_value
     Value.gen (fun v ->
       let bytes = Value.encode v in
-      check_reply ~expected:(Value (Value.widen v)) ~bytes (P.request dec bytes))
+      check_reply ~expected:(Value (Value.widen v)) (P.request dec bytes))
 
 let bigints (dec : P.t) =
   make ~name:"decoder reads big integers"
     ~print:(fun z ->
-      Printf.sprintf "%s\nencoded:\n%s" (Z.to_string z)
+      Printf.sprintf "value:   %s\nencoded:\n%s" (Z.to_string z)
         (dump (Value.encode_bigint z)))
     Value.gen_bigint
     (fun z ->
       let bytes = Value.encode_bigint z in
-      check_reply ~expected:(Value (Int z)) ~bytes
-        (P.request ~ty:"int" dec bytes))
+      check_reply ~expected:(Value (Int z)) (P.request ~ty:"int" dec bytes))
 
 let rationals (dec : P.t) =
   make ~name:"decoder reads rationals"
     ~print:(fun q ->
-      Printf.sprintf "%s\nencoded:\n%s" (Q.to_string q)
+      Printf.sprintf "value:   %s\nencoded:\n%s" (Q.to_string q)
         (dump (Value.encode_q q)))
     Value.gen_q
     (fun q ->
       let bytes = Value.encode_q q in
       check_reply
         ~expected:(Rational (Q.num q, Q.den q))
-        ~bytes
         (P.request ~ty:"q" dec bytes))
 
 let sharing (dec : P.t) =
   make ~name:"sharing does not change the decoded value"
     ~print:(fun v ->
-      Printf.sprintf "%s\nshared encoding:\n%s" (Value.show v)
+      Printf.sprintf "value:   %s\nshared encoding:\n%s" (Value.show v)
         (dump (Value.encode ~share:true v)))
     Value.gen
     (fun v ->
       let bytes = Value.encode ~share:true v in
-      check_reply ~expected:(Value (Value.widen v)) ~bytes (P.request dec bytes))
+      check_reply ~expected:(Value (Value.widen v)) (P.request dec bytes))
 
 (* Corrupted input
    ---------------
@@ -141,8 +141,9 @@ type corruption =
   | Set_byte of int * char
 
 let show_corruption = function
-  | Truncate n -> Printf.sprintf "truncate to %d bytes" n
-  | Set_byte (i, c) -> Printf.sprintf "set byte %d to 0x%02x" i (Char.code c)
+  | Truncate 1 -> "truncated to 1 byte"
+  | Truncate n -> Printf.sprintf "truncated to %d bytes" n
+  | Set_byte (i, c) -> Printf.sprintf "byte %d set to 0x%02x" i (Char.code c)
 
 let apply_corruption bytes = function
   | Truncate n -> String.sub bytes 0 n
@@ -168,8 +169,12 @@ let gen_corrupted : (Value.t * corruption * string) G.t =
     map (fun c -> v, c, apply_corruption bytes c) corruption)
 
 let print_corrupted (v, c, bytes) =
-  Printf.sprintf "from: %s\n%s\nbytes: %s" (Value.show v) (show_corruption c)
-    (Sexp.hex_of_string bytes)
+  Printf.sprintf "bytes:     %s\nfrom:      %s, then %s"
+    (if bytes = "" then
+       "(none)"
+     else
+       Sexp.hex_of_string bytes)
+    (Value.show v) (show_corruption c)
 
 let never_crashes (dec : P.t) =
   make ~name:"decoder never crashes on corrupted input" ~print:print_corrupted
@@ -199,6 +204,48 @@ let same_as_reference ~(reference : P.t) (dec : P.t) =
          reports it. *)
       | _ -> true)
 
+(* Running
+   ======= *)
+
+let test_name (T.Test cell) = T.get_name cell
+
+let indent (s : string) : string =
+  String.split_on_char '\n' s
+  |> List.map (fun l ->
+         if l = "" then
+           l
+         else
+           "      " ^ l)
+  |> String.concat "\n"
+
+(** Run one property and print one line for it, followed by the failing case if
+    it fails. Returns whether it passed. *)
+let run_property rand (test : T.t) : bool =
+  match test with
+  | T.Test cell ->
+    let name = T.get_name cell in
+    let case (c : _ QCheck2.TestResult.counter_ex) =
+      let input =
+        match T.get_print_opt cell with
+        | Some print -> print c.instance
+        | None -> "(no printer)"
+      in
+      String.concat "\n" (input :: c.msg_l)
+    in
+    let fail detail =
+      Printf.printf "  \u{2717} %s\n%s\n%!" name (indent detail);
+      false
+    in
+    (match QCheck2.TestResult.get_state (T.check_cell ~rand cell) with
+    | Success ->
+      Printf.printf "  \u{2713} %s\n%!" name;
+      true
+    | Failed { instances = c :: _ } -> fail (case c)
+    | Failed { instances = [] } -> fail "failed"
+    | Failed_other { msg } -> fail msg
+    | Error { instance; exn; backtrace = _ } ->
+      fail (case instance ^ "\nexception: " ^ Printexc.to_string exn))
+
 (* Main
    ==== *)
 
@@ -209,10 +256,18 @@ let supports (dec : P.t) (ty : string) : bool =
   | Reply (Ok (Unsupported _)) -> false
   | _ -> true
 
-(** Properties that need a type other than ["any"], which every adapter must
-    implement. *)
-let optional_properties (dec : P.t) : (string * T.t) list =
-  [ "int", bigints dec; "q", rationals dec ]
+(** Every property, with the type it needs other than ["any"], which every
+    adapter must implement. A property is skipped if the adapter does not
+    support its type. *)
+let properties ~(reference : P.t) (dec : P.t) : (string option * T.t) list =
+  [
+    None, round_trip dec;
+    Some "int", bigints dec;
+    Some "q", rationals dec;
+    None, sharing dec;
+    None, never_crashes dec;
+    None, same_as_reference ~reference dec;
+  ]
 
 let () =
   if Array.length Sys.argv > 1 && Sys.argv.(1) = "serve-ocaml" then (
@@ -228,32 +283,49 @@ let () =
          the decoder under test.";
       exit 2
   in
-  Printf.printf "decoder: %s\nseed: %d (set QCHECK_SEED to reproduce)\n%!"
-    command seed;
+  let name =
+    match Sys.getenv_opt "TWINE_CONFORMANCE_NAME" with
+    | Some n when String.trim n <> "" -> n
+    | _ -> command
+  in
+  Printf.printf "twine conformance, %s decoder (seed %d)\n%!" name seed;
   let dec = P.start command in
   let reference = P.start reference_command in
   at_exit (fun () ->
       P.stop dec;
       P.stop reference);
-  let optional =
-    List.filter_map
-      (fun (ty, test) ->
-        if supports dec ty then
-          Some test
-        else (
-          Printf.printf "skipped: the adapter does not support type %s\n%!" ty;
-          None
-        ))
-      (optional_properties dec)
-  in
   let rand = Random.State.make [| seed |] in
-  let code =
-    QCheck_base_runner.run_tests ~colors:false ~verbose:true ~rand
-      ([ round_trip dec ]
-      @ optional
-      @ [ sharing dec; never_crashes dec; same_as_reference ~reference dec ])
+  let outcomes =
+    List.map
+      (fun (ty, test) ->
+        match ty with
+        | Some ty when not (supports dec ty) ->
+          Printf.printf
+            "  - %s (skipped: the adapter does not support type %s)\n%!"
+            (test_name test) ty;
+          `Skipped
+        | _ ->
+          if run_property rand test then
+            `Passed
+          else
+            `Failed)
+      (properties ~reference dec)
   in
-  if code <> 0 then
-    Printf.printf "\nfailed with seed %d (set QCHECK_SEED=%d to reproduce)\n"
-      seed seed;
-  exit code
+  let count o = List.length (List.filter (( = ) o) outcomes) in
+  let failed = count `Failed in
+  let skipped =
+    match count `Skipped with
+    | 0 -> ""
+    | n -> Printf.sprintf ", %d skipped" n
+  in
+  if failed = 0 then
+    Printf.printf "all properties passed%s\n" skipped
+  else
+    Printf.printf
+      "%d of %d properties failed%s (set QCHECK_SEED=%d to reproduce)\n" failed
+      (List.length outcomes) skipped seed;
+  exit
+    (if failed = 0 then
+       0
+     else
+       1)

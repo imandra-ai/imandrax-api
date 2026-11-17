@@ -92,8 +92,8 @@ let request ?(ty = "any") ?(timeout = 10.) (self : t) (bytes : string) : outcome
   | Ok line -> Reply (Sexp.parse_reply line)
   | Error what ->
     let msg =
-      Printf.sprintf "decoder %S %s; its stderr:\n%s" self.command what
-        (read_stderr self.child)
+      Printf.sprintf "the adapter %s; its stderr:\n%s" what
+        (String.trim (read_stderr self.child))
     in
     stop_child self.child;
     self.child <- spawn self.command;

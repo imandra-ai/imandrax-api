@@ -36,23 +36,34 @@ compare v' with v
 
 ## Running
 
-From the repository root:
+With make, from the repository root, one target per decoder:
 
-```sh
-TWINE_CONFORMANCE_DECODER="uv run --project $PWD/src/py python $PWD/tests/twine-conformance/py_adapter.py" \
-  dune build @tests/twine-conformance/twine-conformance --force
-```
-
-`--force` reruns the test even when nothing changed. The test is not part of
-`dune test`, so the default test run never needs uv.
-
-Or run it for each decoder with make, one target per decoder:
-
-| Target                          | Decoder under test                        |
-|---------------------------------|-------------------------------------------|
-| `make test-twine-conformance`   | all of them, even if one fails            |
+| Target                                       | Decoder under test                |
+|----------------------------------------------|-----------------------------------|
+| `make test-twine-conformance`                | all of them, even if one fails    |
 | `make -C tests/twine-conformance test-py`    | Python (`py_adapter.py`)          |
 | `make -C tests/twine-conformance test-ocaml` | imandrakit's (`ocaml_adapter.ml`) |
+
+The test is not part of `dune test`, so the default test run never needs uv.
+Each decoder's run prints one line per property, and the failing case under a
+property that fails:
+
+```
+twine conformance, py decoder (seed 493984151)
+  ✓ decoder reads back what the reference encoded
+  ✓ decoder reads big integers
+  ✓ decoder reads rationals
+  ✓ sharing does not change the decoded value
+  ✓ decoder never crashes on corrupted input
+  ✗ decoder gives the reference's verdict on corrupted input
+      bytes:     40
+      from:      "", then truncated to 1 byte
+      decoder:   decode error: offset -65 out of bounds (buffer size 1)
+      reference: false
+1 of 6 properties failed (set QCHECK_SEED=493984151 to reproduce)
+```
+
+A property the adapter cannot run (see [Types](#types)) is listed as skipped.
 
 CI runs one job per decoder, named `twine-conformance (<decoder> decoder)`, so a
 red job names the decoder that fails.
@@ -88,14 +99,19 @@ Environment variables:
 | Variable                     | Meaning                                                  |
 |------------------------------|----------------------------------------------------------|
 | `TWINE_CONFORMANCE_DECODER`  | Shell command that starts the adapter (required).        |
+| `TWINE_CONFORMANCE_NAME`     | The decoder's name in the output, default the command.   |
 | `TWINE_CONFORMANCE_COUNT`    | Cases per property, default 1000.                        |
 | `QCHECK_SEED`                | Random seed. Printed at the start of every run.          |
 
-To run it by hand against another decoder:
+To run it by hand against another decoder, through dune:
 
 ```sh
 TWINE_CONFORMANCE_DECODER='path/to/my_adapter' dune build @tests/twine-conformance/twine-conformance --force
 ```
+
+`--force` reruns the test even when nothing changed. When the test fails, dune
+also prints the location of its rule; the make targets avoid that by running
+the built test directly.
 
 ## Properties
 

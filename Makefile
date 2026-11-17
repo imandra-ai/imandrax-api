@@ -12,7 +12,7 @@ test:
 	$(DUNE) runtest $(DUNE_OPTS)
 
 test-twine-conformance:
-	$(MAKE) -k -C tests/twine-conformance test
+	@$(MAKE) -k --no-print-directory -C tests/twine-conformance test
 
 test-autopromote:
 	$(DUNE) runtest $(DUNE_OPTS) --auto-promote

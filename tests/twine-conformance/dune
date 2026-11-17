@@ -3,19 +3,13 @@
 
 (executable
  (name twine_conformance)
- (libraries
-  imandrakit.twine
-  imandrax-api
-  zarith
-  containers
-  qcheck-core
-  qcheck-core.runner
-  unix))
+ (libraries imandrakit.twine imandrax-api zarith containers qcheck-core unix))
 
 (rule
  (alias twine-conformance)
  (deps
   (env_var TWINE_CONFORMANCE_DECODER)
+  (env_var TWINE_CONFORMANCE_NAME)
   (env_var TWINE_CONFORMANCE_COUNT)
   (env_var QCHECK_SEED))
  (action
