@@ -44,9 +44,14 @@ jobs:
       run: cargo build
       working-directory: src/rust/lib
   twine-conformance:
-    name: twine-conformance
+    # one job per decoder, so a red job names the decoder that fails
+    name: twine-conformance (${{ matrix.decoder }} decoder)
     timeout-minutes: 10
     runs-on: [ubuntu-latest]
+    strategy:
+      fail-fast: false
+      matrix:
+        decoder: [py, ocaml]
     steps:
     - uses: actions/checkout@v4
       with:
@@ -56,9 +61,10 @@ jobs:
         ocaml-compiler: "5.3"
         dune-cache: true
     - uses: astral-sh/setup-uv@v5
+      if: matrix.decoder == 'py'
     - run: opam pin -n .
     - run: opam install imandrax-api --deps-only --with-test -y
-    - run: make test-twine-conformance
+    - run: make -C tests/twine-conformance test-${{ matrix.decoder }}
   pyright:
     name: py/pyright
     runs-on: [ubuntu-latest]

@@ -1,6 +1,7 @@
-(** The reference adapter, on imandrakit's [Decode]. In-process, it answers the
-    same requests as an adapter program, and its reply goes through the same
-    printer and parser, so it also checks the harness itself. *)
+(** The OCaml adapter, on imandrakit's [Decode], started by
+    [twine_conformance.exe serve-ocaml]. It is tested like any other adapter,
+    and is also the reference that the corrupted-input property compares
+    against. *)
 
 module Dec = Imandrakit_twine.Decode
 module Int_set = Set.Make (Int)
@@ -58,9 +59,9 @@ let reply (ty : string) (bytes : string) : Sexp.reply =
 let request (ty : string) (bytes : string) : string =
   Sexp.reply_to_string (reply ty bytes)
 
-(** Serve the protocol on stdin/stdout, like any adapter. Used for corrupted
-    input: [Decode] does not bounds-check every read, so it can segfault, and
-    that must not take the harness down. *)
+(** Serve the protocol on stdin/stdout, like any adapter. It always runs as a
+    child process: [Decode] does not bounds-check every read, so it can crash or
+    segfault on corrupted input, and that must not take the harness down. *)
 let serve () : unit =
   let rec loop () =
     match In_channel.input_line stdin with

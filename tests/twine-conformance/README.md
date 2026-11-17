@@ -46,6 +46,43 @@ TWINE_CONFORMANCE_DECODER="uv run --project $PWD/src/py python $PWD/tests/twine-
 `--force` reruns the test even when nothing changed. The test is not part of
 `dune test`, so the default test run never needs uv.
 
+Or run it for each decoder with make, one target per decoder:
+
+| Target                          | Decoder under test                        |
+|---------------------------------|-------------------------------------------|
+| `make test-twine-conformance`   | all of them, even if one fails            |
+| `make -C tests/twine-conformance test-py`    | Python (`py_adapter.py`)          |
+| `make -C tests/twine-conformance test-ocaml` | imandrakit's (`ocaml_adapter.ml`) |
+
+CI runs one job per decoder, named `twine-conformance (<decoder> decoder)`, so a
+red job names the decoder that fails.
+
+### Known failure
+
+imandrakit's decoder does not bounds-check every read, and it is also the
+reference. Both jobs fail on corrupted input because of it:
+
+- **`ocaml` job, property 5 (no crash).** It crashes, for example
+  `Assertion failed` in imandrakit's `src/twine/decode.ml` on empty input, and
+  can segfault.
+- **Both jobs, property 6 (same verdict as the reference).** The reference
+  accepts malformed input that it should reject. It reads memory outside the
+  buffer, so it returns garbage, which also differs from one run to the next.
+  For the single byte `60`, Python rightly rejects the entry point at offset
+  -97, and the reference replies `false`:
+
+  ```
+  decoder:   decode error: offset -97 out of bounds (buffer size 1)
+  reference: false
+  ```
+
+  In the `ocaml` job, the decoder and the reference are the same decoder in two
+  processes, and they disagree with each other.
+
+A property 6 failure where the reference replies with a value and the decoder
+rejects is the reference's bug. The bug is in imandrakit, so both jobs stay red
+until it is fixed there.
+
 Environment variables:
 
 | Variable                     | Meaning                                                  |
@@ -62,32 +99,37 @@ TWINE_CONFORMANCE_DECODER='path/to/my_adapter' dune build @tests/twine-conforman
 
 ## Properties
 
-1. **Reference self-check.** imandrakit's own decoder (`ocaml_adapter.ml`)
-   decodes every value back to itself, through the same printer and parser.
-2. **Agreement.** The decoder's reply to the encoding of `v` is `v`.
-3. **Integers.** Type `int` reads integers encoded as ImandraX encodes them
+Every decoder, imandrakit's own included, runs the same properties. A failure
+shrinks to a smaller failing case, for at most 500 more calls of the property:
+a decoder that fails only on some runs (see [Known failure](#known-failure))
+would otherwise keep shrinking for minutes.
+
+1. **Round trip.** For a random value `v`, encoded by imandrakit, the decoder's
+   reply is `v`: it decodes the bytes to exactly the value that was encoded.
+2. **Integers.** Type `int` reads integers encoded as ImandraX encodes them
    (`Util_twine.Z`, mostly beyond 64 bits). Skipped if the adapter does not
    support type `int`.
-4. **Rationals.** Type `q` reads rationals encoded as ImandraX encodes them
+3. **Rationals.** Type `q` reads rationals encoded as ImandraX encodes them
    (`Util_twine.Q`). Skipped if the adapter does not support type `q`.
-5. **Sharing.** An encoding where every repeated subtree is written once and
+4. **Sharing.** An encoding where every repeated subtree is written once and
    referred to by pointers decodes to the same value.
 
-Properties 6 and 7 use corrupted input: valid encodings that are truncated or
+Properties 5 and 6 use corrupted input: valid encodings that are truncated or
 have a byte overwritten.
 
-6. **No crash.** The decoder replies with a value or a decode error. An
+5. **No crash.** The decoder replies with a value or a decode error. An
    unparseable reply, or a decoder process that exits or does not reply within
    10 seconds, fails the test.
-7. **Same values as the reference.** When both the decoder and the reference
-   decode the bytes to a value, the two values are equal.
+6. **Same verdict as the reference.** The decoder accepts exactly the inputs
+   the reference accepts, and rejects the rest. When both accept, the two
+   values are equal. Error messages are not compared.
 
-Whether the decoder accepts or rejects corrupted bytes is not checked. twine
-does not say which inputs must be rejected, and the reference is lenient: it
-returns a value for many inputs that the Python decoder rejects. The reference
-decoder runs as a child process for these properties, because imandrakit's
-decoder does not bounds-check every read and can segfault on corrupted input.
-If the reference dies on an input, that case is skipped.
+The reference is the spec for which inputs are malformed: a corrupted input can
+still be valid twine (one changed byte of an int is another int), so it is the
+reference that decides. It is the OCaml adapter, run as a child process because
+it can crash on corrupted input (see [Known failure](#known-failure)). If the
+reference dies on an input, that case is skipped for property 6, since there is
+no verdict to compare; the OCaml job reports the crash under property 5.
 
 ## Protocol
 
@@ -202,6 +244,6 @@ the test with `TWINE_CONFORMANCE_DECODER` set to the command that starts it.
 | `value.ml`           | value type, QCheck generator and shrinker, reference encoding  |
 | `sexp.ml`            | the text form: printer and parser                              |
 | `decoder_client.ml`  | runs an adapter as a child process, restarted if it dies       |
-| `ocaml_adapter.ml`   | the reference adapter, on imandrakit's `Decode`                |
+| `ocaml_adapter.ml`   | the OCaml adapter, on imandrakit's `Decode`; also the reference |
 | `twine_conformance.ml` | properties, entry point                                      |
 | `py_adapter.py`      | the Python adapter                                             |
