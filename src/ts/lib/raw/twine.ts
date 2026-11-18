@@ -411,7 +411,8 @@ export class Decoder {
     const [len, n_bytes] = this.__getint64(o, low, true);
     const payload = this._slice(o + 1 + n_bytes, this._size(o, len));
     try {
-      return new TextDecoder("utf-8", { fatal: true }).decode(payload);
+      // `ignoreBOM`: a leading U+FEFF is part of the string, not a byte order mark to drop
+      return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(payload);
     } catch (e) {
       throw new TwineError({
         msg: `invalid UTF-8 in string at off=${hex(o)}: ${e}`,

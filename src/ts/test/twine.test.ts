@@ -106,6 +106,11 @@ describe("twine decoder", () => {
     expect(d.get_int(9)).toBe(1n);
   });
 
+  test("a leading U+FEFF is kept", () => {
+    // Regression: `TextDecoder` drops a leading byte order mark by default
+    expect(new twine.Decoder(bytes(0x44, 0xef, 0xbb, 0xbf, 0x61)).get_str(0)).toBe("\ufeffa");
+  });
+
   test("ref", () => {
     // [0] the int 1; [1] a ref to [0]
     let d = new twine.Decoder(bytes(0x11, 0xe0));
