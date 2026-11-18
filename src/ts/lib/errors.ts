@@ -1,4 +1,9 @@
-/** Errors thrown by the client, all subclasses of `ImandraXError` */
+/**
+ * Errors thrown by the client, all subclasses of `ImandraXError`
+ *
+ * Malformed artifact data is the exception: decoding it throws `raw.twine.TwineError`, the
+ * decoder's own error, which is not an `ImandraXError`.
+ */
 
 import type { ErrorCore, ErrorInfo } from "./responses.js";
 

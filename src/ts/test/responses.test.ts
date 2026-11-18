@@ -194,6 +194,14 @@ describe("Artifact", () => {
     expect(() => a.decodeAs(Object)).toThrow(UnexpectedResponseError);
   });
 
+  test.each(["__proto__", "constructor", "toString"])(
+    "decodeAs rejects the inherited key %s as an unknown kind",
+    (kind) => {
+      const a = Artifact.ofRaw({ kind, data: new Uint8Array(), apiVersion: "v", storage: [] });
+      expect(() => a.decodeAs(Object)).toThrow(/Unknown artifact kind/);
+    },
+  );
+
   test("keeps the storage by key", () => {
     const a = Artifact.ofRaw({
       kind: "show",

@@ -626,6 +626,23 @@ export class Decoder {
   }
 }
 
+/**
+ * Decode the root value of `d` with `f`
+ *
+ * Generated decoders recurse, so cyclic or deeply nested data overflows the stack: that
+ * `RangeError` becomes a `TwineError`, like any other malformed input.
+ */
+export function decodeEntrypoint<T>(d: Decoder, f: (d: Decoder, off: offset) => T): T {
+  try {
+    return f(d, d.entrypoint());
+  } catch (e) {
+    if (e instanceof RangeError) {
+      throw new TwineError({ msg: "data is cyclic or nested too deeply", offset: 0 });
+    }
+    throw e;
+  }
+}
+
 /** Caching combinator */
 export function withCache<T>(
   dec: Decoder,

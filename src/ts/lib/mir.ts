@@ -3285,12 +3285,13 @@ export class DB {
       if (bs === undefined) {
         throw new UnexpectedResponseError(`missing storage entry for MIR database operation ${op.key}`);
       }
-      const rw = new twine.Decoder(bs);
-      const instruction = lib.Common_Db_op_t_poly_of_twine(
-        rw,
-        (d, off) => lib.Mir_Term_of_twine(d, off),
-        (d, off) => lib.Mir_Type_of_twine(d, off),
-        rw.entrypoint(),
+      const instruction = twine.decodeEntrypoint(new twine.Decoder(bs), (d, off) =>
+        lib.Common_Db_op_t_poly_of_twine(
+          d,
+          (d, off) => lib.Mir_Term_of_twine(d, off),
+          (d, off) => lib.Mir_Type_of_twine(d, off),
+          off,
+        ),
       );
       this.replay(instruction);
     }

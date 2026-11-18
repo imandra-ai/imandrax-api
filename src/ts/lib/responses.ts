@@ -158,22 +158,12 @@ export class Artifact {
   decodeAs<T>(expectedClass: abstract new (...args: any[]) => T): T;
   decodeAs<T>(expectedClass: abstract new (...args: any[]) => unknown): T;
   decodeAs<T>(expectedClass: abstract new (...args: any[]) => unknown): T {
-    const decoder = (lib.artifact_decoders as Record<string, (d: twine.Decoder, off: number) => unknown>)[
-      this.kind
-    ];
-    if (decoder === undefined) {
+    const decoders = lib.artifact_decoders as Record<string, (d: twine.Decoder, off: number) => unknown>;
+    // the kind comes from the server: an inherited key such as `__proto__` is not a decoder
+    if (!Object.hasOwn(decoders, this.kind)) {
       throw new UnexpectedResponseError(`Unknown artifact kind '${this.kind}'`);
     }
-    const d = new twine.Decoder(this.data);
-    let x: unknown;
-    try {
-      x = decoder(d, d.entrypoint());
-    } catch (e) {
-      if (e instanceof RangeError) {
-        throw new twine.TwineError({ msg: "artifact data is cyclic or nested too deeply", offset: 0 });
-      }
-      throw e;
-    }
+    const x = twine.decodeEntrypoint(new twine.Decoder(this.data), decoders[this.kind]!);
     if (!(x instanceof expectedClass)) {
       const got = typeof x === "object" && x !== null ? x.constructor.name : typeof x;
       throw new UnexpectedResponseError(

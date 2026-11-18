@@ -93,6 +93,8 @@ export class Transport {
         method: "POST",
         headers,
         body: reqType.encode(request).finish(),
+        // Twirp uses POST, which should not redirect: report a redirect, don't follow it
+        redirect: "manual",
         signal,
       });
       this.#storeCookies(resp);

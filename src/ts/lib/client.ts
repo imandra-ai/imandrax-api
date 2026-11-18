@@ -141,6 +141,8 @@ export class Client {
   readonly #transport: Transport;
   readonly #session: sessionPb.Session;
   #closed = false;
+  /** The `end_session` request of `close()`, once it started; shared by concurrent calls */
+  #closing: Promise<void> | undefined = undefined;
 
   private constructor(transport: Transport, session: sessionPb.Session) {
     this.#transport = transport;
@@ -218,12 +220,18 @@ export class Client {
   /**
    * End the session; later calls throw `ClientClosedError`
    *
-   * Does nothing if the client is already closed.
+   * Does nothing if the client is already closed. Calls made while a `close()` is in progress
+   * wait for it, so the session is ended once.
    *
    * @throws {EndSessionError} if the server reported an error ending the session
    */
-  async close(options: CallOptions = {}): Promise<void> {
-    if (this.#closed) return;
+  close(options: CallOptions = {}): Promise<void> {
+    if (this.#closed) return Promise.resolve();
+    this.#closing ??= this.#endSession(options);
+    return this.#closing;
+  }
+
+  async #endSession(options: CallOptions): Promise<void> {
     try {
       await this.#call(SIMPLE, "end_session", sessionPb.Session, utilsPb.Empty, this.#session, options);
     } catch (e) {

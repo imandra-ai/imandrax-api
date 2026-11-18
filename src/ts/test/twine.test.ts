@@ -131,6 +131,14 @@ describe("twine decoder", () => {
     expect(d.shallow_value(1)).toEqual([2, 3]);
   });
 
+  test("decodeEntrypoint turns a stack overflow into TwineError", () => {
+    // [0] an array whose only item, [1], points back at [0]; [2] the entrypoint, at [0]
+    const d = new twine.Decoder(bytes(0x61, 0xf0, 0x01));
+    const decode = (d: twine.Decoder, off: twine.offset): unknown =>
+      d.get_array(off).toArray().map((x) => decode(d, x));
+    expect(() => twine.decodeEntrypoint(d, decode)).toThrow(twine.TwineError);
+  });
+
   test("big integers", () => {
     // Regression: the bytes of a bigint were shifted right instead of left.
     // 0x0200 >> 1 = 256, positive (low bit 0)

@@ -633,15 +633,6 @@ export class Report {
       }
     }
     const d = new twine.Decoder(data);
-    let raw: lib.Report_Report;
-    try {
-      raw = lib.Report_Report_of_twine(d, d.entrypoint());
-    } catch (e) {
-      if (e instanceof RangeError) {
-        throw new twine.TwineError({ msg: "report data is cyclic or nested too deeply", offset: 0 });
-      }
-      throw e;
-    }
-    return Report.ofLib(raw);
+    return Report.ofLib(twine.decodeEntrypoint(d, lib.Report_Report_of_twine));
   }
 }

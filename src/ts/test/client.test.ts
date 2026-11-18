@@ -116,6 +116,14 @@ describe("close", () => {
     await expect(c.status()).rejects.toBeInstanceOf(ClientClosedError);
   });
 
+  test("concurrent calls end the session once", async () => {
+    server.withSessions("s1");
+    const c = await Client.connect();
+    await Promise.all([c.close(), c.close()]);
+    expect(server.calls(`${SIMPLE}/end_session`)).toHaveLength(1);
+    expect(c.closed).toBe(true);
+  });
+
   test("a failure to end the session is an EndSessionError, and the client is closed", async () => {
     server
       .withSessions("s1")
@@ -234,6 +242,22 @@ describe("transport", () => {
     const [first, second] = server.calls(`${SIMPLE}/status`);
     expect(first!.headers.get("cookie")).toBe("affinity=abc");
     expect(second!.headers.get("cookie")).toBeNull();
+  });
+
+  test("does not follow redirects", async () => {
+    server.withSessions("s");
+    const c = await Client.connect();
+    const inits: RequestInit[] = [];
+    vi.stubGlobal("fetch", async (_url: string, init: RequestInit) => {
+      inits.push(init);
+      return new Response(null, { status: 302, headers: { location: "https://login.example/" } });
+    });
+    await expect(c.status()).rejects.toMatchObject({
+      code: "internal",
+      status: 302,
+      meta: { location: "https://login.example/" },
+    });
+    expect(inits[0]!.redirect).toBe("manual");
   });
 
   test("a 200 response that does not decode is a TwirpError", async () => {
