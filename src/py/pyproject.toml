@@ -35,9 +35,8 @@ ignore = ["imandrax_api/bindings", "imandrax_api/twirp"]
 # This directory is named `py`, which collides with the `py` distribution that
 # pytest imports at startup; the default "prepend" mode would derive the module
 # name `py.lib.test_twine` and fail to import it.
-# TODO(long-term): move tests under $ROOT/src/py to $ROOT/tests/
 addopts = "--import-mode=importlib"
-testpaths = ["imandrax_api/lib", "../../tests/client/py"]
+testpaths = ["imandrax_api/lib", "tests"]
 markers = ["network: talks to an ImandraX server and needs an API key"]
 
 [tool.ruff]
@@ -58,10 +57,6 @@ exclude = ["docs/**/*.md"]
 [tool.ruff.lint]
 # deprecated client; formatted but not linted
 exclude = ["imandrax_api/v1/**"]
-
-[tool.ruff.lint.isort]
-# also first-party in ../../tests, which ruff can't infer from there
-known-first-party = ["imandrax_api"]
 
 [dependency-groups]
 dev = [
