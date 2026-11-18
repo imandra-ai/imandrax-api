@@ -38,6 +38,7 @@
 // builtin symbols through `globalThis.Symbol`.
 
 import { UnexpectedResponseError } from "./errors.js";
+import { activeLibMemo, withLibMemo } from "./lib_memo.js";
 import * as lib from "./raw/types.js";
 import * as twine from "./raw/twine.js";
 
@@ -764,6 +765,19 @@ export abstract class TypeBase {
 }
 
 export function typeOfLib(x: lib.Mir_Type): Type {
+  const memo = activeLibMemo();
+  if (memo === undefined) {
+    return withLibMemo(() => typeOfLib(x));
+  }
+  let ty = memo.types.get(x);
+  if (ty === undefined) {
+    ty = typeOfLibUncached(x);
+    memo.types.set(x, ty);
+  }
+  return ty;
+}
+
+function typeOfLibUncached(x: lib.Mir_Type): Type {
   const v = x.view;
   if (v instanceof lib.Ty_view_view_Var) return new TypeVariable(new Uid(v.arg), x);
   if (v instanceof lib.Ty_view_view_Arrow) {
@@ -1178,6 +1192,19 @@ export abstract class TermBase {
 }
 
 export function termOfLib(x: lib.Mir_Term): Term {
+  const memo = activeLibMemo();
+  if (memo === undefined) {
+    return withLibMemo(() => termOfLib(x));
+  }
+  let t = memo.terms.get(x);
+  if (t === undefined) {
+    t = termOfLibUncached(x);
+    memo.terms.set(x, t);
+  }
+  return t;
+}
+
+function termOfLibUncached(x: lib.Mir_Term): Term {
   const ty = typeOfLib(x.ty);
   const v = x.view;
   if (v instanceof lib.Mir_Term_view_Const) return new Constant(constOfLib(v.arg), ty, x);
@@ -3060,11 +3087,14 @@ export class Decomposition {
   }
 
   static ofLib(d: lib.Mir_Fun_decomp): Decomposition {
-    return new Decomposition(
-      new Uid(d.f_id),
-      d.f_args.map((a) => Variable.ofLib(a)),
-      d.regions.map((r) => Decomposition.Region.ofLib(r)),
-      d,
+    return withLibMemo(
+      () =>
+        new Decomposition(
+          new Uid(d.f_id),
+          d.f_args.map((a) => Variable.ofLib(a)),
+          d.regions.map((r) => Decomposition.Region.ofLib(r)),
+          d,
+        ),
     );
   }
 
