@@ -1,0 +1,246 @@
+"""`to_python` on terms, models and region samples from the server, for fixed values
+
+`test_to_python.py` tests `to_python` on random values without a server.
+"""
+
+from collections.abc import Iterator
+from fractions import Fraction
+
+import pytest
+
+from imandrax_api.v2.interface import Client, DecompositionTask, InstanceResponse
+from imandrax_api.v2.mir import DB, Constructed, Decomposition, Model, PyValue, Uid
+
+TYPES = """
+type rec_t = { a: int; b: bool list }
+type var_t = A of { x: int; y: string } | B of int * string | C
+type nest_t = N of { inner: var_t; k: int } | M
+"""
+
+# The labels of the inline records in `TYPES`, by constructor
+INLINE_RECORDS = {"A": {"x", "y"}, "N": {"inner", "k"}}
+
+# Values of the types in `TYPES` and of lists, options and tuples: IML type, source, Python value
+EXAMPLES: list[tuple[str, str, PyValue]] = [
+    ("int", "(-12345678901234567890)", -12345678901234567890),
+    ("bool", "true", True),
+    ("string", '"a \\"quoted\\" \\\\ string"', 'a "quoted" \\ string'),
+    ("real", "(-1.25)", Fraction(-5, 4)),
+    ("unit", "()", ()),
+    ("rec_t", "{ a = 1; b = [true; false] }", {"a": 1, "b": [True, False]}),
+    # fields out of order, to check labels are paired with the right arguments
+    ("var_t", '(A { y = "b"; x = 2 })', Constructed("A", ({"x": 2, "y": "b"},))),
+    ("var_t", '(B (3, "c"))', Constructed("B", (3, "c"))),
+    ("var_t", "C", Constructed("C")),
+    (
+        "nest_t",
+        '(N { k = 4; inner = A { x = 5; y = "" } })',
+        Constructed("N", ({"inner": Constructed("A", ({"x": 5, "y": ""},)), "k": 4},)),
+    ),
+    ("nest_t", "M", Constructed("M")),
+    ("int list", "[]", []),
+    (
+        "var_t option list",
+        "[None; Some C]",
+        [Constructed("None"), Constructed("Some", (Constructed("C"),))],
+    ),
+    ("int * string * bool", '(1, "x", false)', (1, "x", False)),
+]
+
+# Values that only `parse_term` gets right: the server mangles non-ASCII and NUL in model strings
+PARSE_ONLY_EXAMPLES: list[tuple[str, str, PyValue]] = [
+    ("string", '"\\xc3\\xa9\\x00"', "é\x00"),
+]
+
+# Values that are not literals, so `parse_term` gives no value, but models do
+MODEL_ONLY_EXAMPLES: list[tuple[str, str, PyValue]] = [
+    ("real", "(1.0 /. 3.0)", Fraction(1, 3)),
+]
+
+
+def check(actual: PyValue | None, expected: PyValue | None, what: str) -> None:
+    # `repr`, unlike `==`, tells `True` from `1`
+    assert repr(actual) == repr(expected), (
+        f"{what}: got {actual!r}, expected {expected!r}"
+    )
+
+
+def model_of(c: Client, src: str) -> Model:
+    r = c.instance_src(src)
+    assert isinstance(r.res, InstanceResponse.Sat) and r.res.instance is not None, (
+        r.errors
+    )
+    model = r.res.instance.model
+    assert model is not None, f"no model for {src}"
+    return model
+
+
+def decompose(
+    c: Client, f: str, src: str, string_results: bool = False
+) -> tuple[Decomposition, DB]:
+    """The decomposition of `f`, defined by `src`, and its DB"""
+    assert c.eval_src(src).success, f"eval_src failed: {src}"
+    res = c.decompose(f, prune=True, string_results=string_results)
+    assert res.decomposition is not None, res.errors
+    assert isinstance(res.task, DecompositionTask)
+    return res.decomposition, res.task.db
+
+
+def arg_values(
+    d: Decomposition, sample: dict[Uid, PyValue] | None
+) -> dict[str, PyValue]:
+    """The decomposed function's arguments in `sample`, by short name"""
+    assert sample is not None
+    return {a.id.short_name: sample[a.id] for a in d.arguments}
+
+
+def constructeds(v: PyValue) -> Iterator[Constructed]:
+    """Every `Constructed` in `v`, at any depth"""
+    match v:
+        case Constructed(args=args):
+            yield v
+            for a in args:
+                yield from constructeds(a)
+        case list() | tuple():
+            for x in v:
+                yield from constructeds(x)
+        case dict():
+            for x in v.values():
+                yield from constructeds(x)
+        case _:
+            pass
+
+
+def has_labels(c: Constructed) -> bool:
+    """`c`, if it has an inline record, has it as one `dict` with its labels"""
+    match c.args:
+        case _ if c.name not in INLINE_RECORDS:
+            return True
+        case (dict() as r,):
+            return r.keys() == INLINE_RECORDS[c.name]
+        case _:
+            return False
+
+
+@pytest.fixture(scope="module")
+def c(url: str, api_key: str | None) -> Iterator[Client]:
+    """A client whose session has `TYPES` loaded"""
+    with Client(url=url, api_key=api_key, timeout=120) as c:
+        assert c.eval_src(TYPES).success, "eval_src of TYPES failed"
+        yield c
+
+
+def test_parse_term(c: Client):
+    for ty, src, expected in EXAMPLES + PARSE_ONLY_EXAMPLES:
+        check(c.parse_term(f"({src} : {ty})").to_python(), expected, src)
+
+
+def test_instance_models(c: Client):
+    for ty, src, expected in EXAMPLES + MODEL_ONLY_EXAMPLES:
+        check(
+            model_of(c, f"fun (x: {ty}) -> x = ({src} : {ty})").to_python(),
+            {"x": expected},
+            src,
+        )
+
+
+def test_non_values(c: Client):
+    with pytest.raises(ValueError, match="Not a value"):
+        c.parse_term("Map.const 0 |> Map.add 1 2").to_python()
+    irrational = model_of(c, "fun (x: real) -> x *. x = 2.0 && x >. 0.0")
+    with pytest.raises(ValueError, match="irrational"):
+        irrational.to_python()
+
+
+def test_region_samples_outputs_and_strings(c: Client):
+    for i, (ty, src, expected) in enumerate(EXAMPLES + MODEL_ONLY_EXAMPLES):
+        f = f"is_it_{i}"
+        d, db = decompose(
+            c,
+            f,
+            f"let {f} (x: {ty}) = if x = ({src} : {ty}) then 1 else 0",
+            string_results=True,
+        )
+        for r in d.regions:
+            assert r.constraints_str is not None and len(r.constraints_str) == len(
+                r.constraints
+            )
+            assert r.invariant_str in ("0", "1")
+            sample = arg_values(d, r.sample(db))
+            assert sample.keys() == {"x"}
+            output = r.sample_output(db)
+            check(output, 1 if repr(sample["x"]) == repr(expected) else 0, src)
+            assert str(output) == r.invariant_str
+        assert any(r.sample_output(db) == 1 for r in d.regions), (
+            f"no region with output 1 for {src}"
+        )
+
+
+def test_nested_inline_records_in_samples(c: Client):
+    # in a list, an option, a tuple, and in another inline record
+    d, db = decompose(
+        c,
+        "nested_inline",
+        """
+let nested_inline (v: var_t option list) (p: var_t * int) (n: nest_t) =
+  match v, p, n with
+  | [Some (A {x; _})], (A _, _), N {inner = A {x = x2; _}; k} -> if x > 5 && x2 > k then 1 else 0
+  | _ -> 2""",
+    )
+    samples = [arg_values(d, r.sample(db)) for r in d.regions]
+    for s in samples:
+        bad = [k for k in constructeds(s) if not has_labels(k)]
+        assert not bad, bad
+    (hit,) = [r for r in d.regions if r.sample_output(db) == 1]
+    match arg_values(d, hit.sample(db)):
+        case {
+            "v": [
+                Constructed("Some", (Constructed("A", ({"x": int(x), "y": str()},)),))
+            ],
+            "p": (Constructed("A", ({"x": int(), "y": str()},)), int()),
+            "n": Constructed(
+                "N",
+                (
+                    {
+                        "inner": Constructed("A", ({"x": int(x2), "y": str()},)),
+                        "k": int(k),
+                    },
+                ),
+            ),
+        }:
+            assert x > 5 and x2 > k
+        case other:
+            raise AssertionError(f"unexpected sample {other}")
+
+
+def test_identity_region_outputs(c: Client):
+    # `let f x = x` returns its sample: given the DB, both come back the same, labels included
+    for i, ty in enumerate(sorted({ty for ty, _, _ in EXAMPLES})):
+        f = f"same_{i}"
+        d, db = decompose(c, f, f"let {f} (x: {ty}) = x")
+        for r in d.regions:
+            sample = arg_values(d, r.sample(db))
+            assert sample.keys() == {"x"}
+            check(r.sample_output(db), sample["x"], ty)
+            assert all(has_labels(k) for k in constructeds(sample["x"])), sample
+
+
+def test_region_outputs_pass_inline_records_through(c: Client):
+    # a result that contains part of the sample has the same labels as the sample, given the DB
+    d, db = decompose(
+        c,
+        "pass_through",
+        """
+let pass_through (v: var_t * nest_t) =
+  match v with
+  | (A {x; _}, N {inner = A _; k}) -> if x > k then Some v else None
+  | _ -> None""",
+    )
+    outputs = [(arg_values(d, r.sample(db)), r.sample_output(db)) for r in d.regions]
+    passed_through = [
+        (s, o) for s, o in outputs if isinstance(o, Constructed) and o.name == "Some"
+    ]
+    assert len(passed_through) == 1
+    ((sample, output),) = passed_through
+    check(output, Constructed("Some", (sample["v"],)), "pass_through")
+    assert all(has_labels(k) for k in constructeds(output)), output

@@ -14,7 +14,7 @@ import pytest
 from inline_snapshot import snapshot
 from pytest_examples import CodeExample, EvalExample, find_examples
 
-DOCS_DIR = Path(__file__).parents[4] / "src" / "py" / "docs"
+DOCS_DIR = Path(__file__).parents[3] / "docs"
 EXAMPLES = list(find_examples(DOCS_DIR))
 
 

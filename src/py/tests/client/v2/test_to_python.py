@@ -1,7 +1,7 @@
 """Property tests for `Term.to_python`, without a server
 
 They build random values as raw MIR terms, in the shapes the server sends, and check what
-`to_python` makes of them. `tests/api/py/test_to_python.py` checks fixed values against the server.
+`to_python` makes of them. `test_to_python_server.py` checks fixed values against the server.
 """
 
 from hypothesis import given

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from . import twine
+from imandrax_api.lib import twine
 
 CURR_DIR = Path(__file__).parent
 

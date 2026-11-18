@@ -15,7 +15,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from . import twine
+from imandrax_api.lib import twine
 
 CURR_DIR = Path(__file__).parent
 

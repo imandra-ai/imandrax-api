@@ -14,33 +14,28 @@ clean:
 	rm -rf build dist
 
 typecheck:
-	uv run pyright -p pyproject.toml imandrax_api/
+	uv run pyright -p pyproject.toml imandrax_api/ tests/
 
 lint:
-	uv run ruff check . ../../tests/client/py
+	uv run ruff check .
 
 format-check:
-	uv run ruff format --check . ../../tests/client/py
+	uv run ruff format --check .
 
 unit-test:
 	uv run pytest -m "not network"
 
+# the server is IMANDRAX_URL, else IMANDRAX_DEPLOYMENT (dev or prod), else prod
 network-test:
 	uv run pytest -m network
 
 test: unit-test network-test
-	uv run ../../tests/api/py/test_cloud_dev.py
-	uv run ../../tests/api/py/test_cloud_dev_async.py
-	uv run ../../tests/api/py/test_extract_region_str.py
-	uv run ../../tests/api/py/test_to_python.py
 
 pre-release-test: build  # Run pre-release tests with built wheel
 	@echo "Running pre-release tests with built wheel..."
 	@WHEEL=$$(ls dist/imandrax_api-*.whl | head -n 1); \
 	echo "Using wheel: $$WHEEL"; \
-	uv run --isolated --no-project --with "$$WHEEL" python ../../tests/api/py/test_cloud_dev.py && \
-	uv run --isolated --no-project --with "$$WHEEL" python ../../tests/api/py/test1_cloud_prod.py && \
-	uv run --isolated --no-project --with "$$WHEEL" python ../../tests/api/py/test_extract_region_str.py
+	IMANDRAX_URL= IMANDRAX_DEPLOYMENT=prod uv run --isolated --no-project --with "$$WHEEL" --with aiohttp --with pytest pytest tests/client/v1
 
 test-setup-py-install:
 	@echo "Testing setup.py install (with pyproject.toml removed) in Docker (Python 3.12)..."
