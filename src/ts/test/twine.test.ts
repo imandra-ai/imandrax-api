@@ -106,6 +106,26 @@ describe("twine decoder", () => {
     expect(d.get_int(9)).toBe(1n);
   });
 
+  test("ref", () => {
+    // [0] the int 1; [1] a ref to [0]
+    let d = new twine.Decoder(bytes(0x11, 0xe0));
+    expect(d.get_ref(1)).toBe(0);
+    expect(d.shallow_value(1)).toEqual(new twine.Ref(0));
+    expect(d.value(1)).toEqual(new twine.Ref(1n));
+
+    // a ref reached through a pointer is still a ref, not its target
+    d = new twine.Decoder(bytes(0x11, 0xe0, 0xf0));
+    expect(d.value(2)).toEqual(new twine.Ref(1n));
+  });
+
+  test("ref inside a container", () => {
+    // [0] the int 1; [1] an array of a ref to [0] and the int 2. A ref is an immediate item,
+    // so the cursor must step over it.
+    const d = new twine.Decoder(bytes(0x11, 0x62, 0xe1, 0x12));
+    expect(d.value(1)).toEqual([new twine.Ref(1n), 2n]);
+    expect(d.shallow_value(1)).toEqual([2, 3]);
+  });
+
   test("big integers", () => {
     // Regression: the bytes of a bigint were shifted right instead of left.
     // 0x0200 >> 1 = 256, positive (low bit 0)

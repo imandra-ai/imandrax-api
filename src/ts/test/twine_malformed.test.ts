@@ -61,6 +61,7 @@ const PUBLIC_METHODS = [
   "get_dict",
   "get_tag",
   "get_cstor",
+  "get_ref",
 ] as const;
 
 function decodeWith(d: twine.Decoder, method: (typeof PUBLIC_METHODS)[number], off: number) {
@@ -74,6 +75,9 @@ function decodeWith(d: twine.Decoder, method: (typeof PUBLIC_METHODS)[number], o
       break;
     case "get_tag":
       d.value(d.get_tag(off).value);
+      break;
+    case "get_ref":
+      d.value(d.get_ref(off));
       break;
     default:
       d[method](off);
@@ -89,6 +93,10 @@ describe("regressions", () => {
     ["empty-buffer", bytes()],
     ["f64-without-payload", bytes(0x3f)],
     ["f32-truncated-payload", bytes(0x30, 0x00)],
+    // low nibbles 2 to 15 of a float are reserved
+    ["float-reserved-width", bytes(0x37, ...new Array(8).fill(0))],
+    // the same float as an array item, which iterating the array skips over
+    ["skip-float-reserved-width", bytes(0x61, 0x37, ...new Array(8).fill(0))],
     ["invalid-utf8", bytes(0x41, 0xff)],
     ["str-runs-past-end", bytes(0x41)],
     ["bytes-runs-past-end", bytes(0x52, 0x00)],
@@ -98,6 +106,7 @@ describe("regressions", () => {
     ["array-items-past-end", bytes(0x62, 0x11)],
     // an array whose only item is a pointer back to the array itself
     ["cyclic-array", bytes(0x61, 0xf0)],
+    ["ref-before-start", bytes(0xe0)],
   ])("malformed %s throws TwineError", (_name, data) => {
     expect(() => new twine.Decoder(data).value(0)).toThrow(twine.TwineError);
   });
@@ -125,6 +134,49 @@ describe("regressions", () => {
     const d = new twine.Decoder(data);
     expect(() => d.value(0)).toThrow(twine.TwineError);
     expect(() => d.shallow_value(0)).toThrow(twine.TwineError);
+  });
+
+  // a LEB128 integer of about 700,000 bits: building it takes seconds
+  const HUGE_VARINT = [...new Array(100_000).fill(0xff), 0x01];
+
+  test.each([
+    ["str-length", [0x4f, ...HUGE_VARINT], 0],
+    ["bytes-length", [0x5f, ...HUGE_VARINT], 0],
+    ["array-count", [0x6f, ...HUGE_VARINT], 0],
+    ["dict-count", [0x7f, ...HUGE_VARINT], 0],
+    ["constructor-arg-count", [0xc0, ...HUGE_VARINT], 0],
+    ["pointer-distance", [0x11, 0xff, ...HUGE_VARINT], 1],
+    // an array whose only item is a string with a huge length, which iterating the array
+    // skips over
+    ["skip-str-length", [0x61, 0x4f, ...HUGE_VARINT], 0],
+  ] as const)("huge varint %s fails early", (_name, data, off) => {
+    // Regression: a length, count or pointer distance of 2^64 or more always failed against
+    // the buffer size, but only after building the whole integer, in time quadratic in its
+    // encoded length
+    const d = new twine.Decoder(new Uint8Array(data));
+    expect(() => d.value(off)).toThrow(/does not fit in 64 bits/);
+  });
+
+  test("LEB128 u64 boundary", () => {
+    const maxU64 = bytes(...new Array(9).fill(0xff), 0x01); // 2^64 - 1
+    expect(new twine.Decoder(maxU64)._leb128(0, true)).toEqual([2n ** 64n - 1n, 10]);
+    const twoPow64 = bytes(...new Array(9).fill(0x80), 0x02);
+    expect(() => new twine.Decoder(twoPow64)._leb128(0, true)).toThrow(
+      /does not fit in 64 bits/,
+    );
+  });
+
+  test("padded varint length decodes", () => {
+    // LEB128 allows zero padding bytes, and the twine spec doesn't forbid them, so a padded
+    // length decodes at any encoded length. Here: 15 + 1 = 16
+    const data = bytes(0x4f, 0x81, ...new Array(20).fill(0x80), 0x00, ...new Array(16).fill(0x61));
+    expect(new twine.Decoder(data).value(0)).toBe("a".repeat(16));
+  });
+
+  test("int beyond u64 decodes", () => {
+    // Ints are not bounded: the value is what the bytes encode
+    const data = bytes(0x1f, ...new Array(20).fill(0xff), 0x01);
+    expect(new twine.Decoder(data).get_int(0)).toBe(2n ** 141n - 1n + 15n);
   });
 
   test("skipping a constructor throws TwineError", () => {

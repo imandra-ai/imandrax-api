@@ -52,7 +52,8 @@ export type value =
   | Map<value, value>
   | Array<value>
   | Cstor<value>
-  | Tag<value>;
+  | Tag<value>
+  | Ref<value>;
 
 export type shallow_value =
   | null
@@ -64,7 +65,8 @@ export type shallow_value =
   | Array<[offset, offset]>
   | Array<offset>
   | Cstor<offset>
-  | Tag<offset>;
+  | Tag<offset>
+  | Ref<offset>;
 
 export class Tag<T> {
   tag: number;
@@ -73,6 +75,15 @@ export class Tag<T> {
   constructor(tag: number, value: T) {
     this.tag = tag;
     this.value = value;
+  }
+}
+
+/** An explicit reference (kind 14) and what it points to */
+export class Ref<T> {
+  target: T;
+
+  constructor(target: T) {
+    this.target = target;
   }
 }
 
@@ -218,31 +229,47 @@ export class Decoder {
     return Number(n);
   }
 
-  /** read an unsigned integer as LEB128, also returns how many bytes were consumed */
-  private _leb128(off: offset): [bigint, number] {
+  /**
+   * read an unsigned integer as LEB128, also returns how many bytes were consumed
+   *
+   * With `u64`, fail as soon as the integer reaches 2^64. Used for lengths, counts and pointer
+   * distances, which fail against the buffer size at that point anyway: this makes them fail
+   * before building a huge integer, which takes time quadratic in its encoded length. Zero
+   * padding bytes are still accepted, at any length.
+   */
+  _leb128(off: offset, u64: boolean = false): [bigint, number] {
+    const start = off;
     let res = 0n;
-    let shift = 0n;
+    let shift = 0;
     let n_bytes = 0;
     while (true) {
       n_bytes += 1;
       const x = this._byte(off);
       off += 1;
       const cur = x & 0x7f;
-      res = res | (BigInt(cur) << shift);
+      if (u64 && cur !== 0 && shift + (32 - Math.clz32(cur)) > 64) {
+        throw new TwineError({
+          msg: `LEB128 integer at off=${hex(start)} does not fit in 64 bits`,
+          offset: start,
+        });
+      }
+      if (cur !== 0) {
+        res = res | (BigInt(cur) << BigInt(shift));
+      }
       if (x !== cur) {
-        shift += 7n;
+        shift += 7;
       } else {
         return [res, n_bytes];
       }
     }
   }
 
-  /** returns (int, n_bytes_consumed) */
-  private __getint64(off: offset, low: number): [bigint, number] {
+  /** returns (int, n_bytes_consumed); `u64` is passed to `_leb128`, set for lengths and counts */
+  private __getint64(off: offset, low: number, u64: boolean = false): [bigint, number] {
     if (low < 15) {
       return [BigInt(low), 0];
     }
-    const [rest, consumed] = this._leb128(off + 1);
+    const [rest, consumed] = this._leb128(off + 1, u64);
     return [rest + 15n, consumed];
   }
 
@@ -255,7 +282,7 @@ export class Decoder {
       if (high !== 15) {
         return [off, high, low];
       }
-      const [p, _] = this.__getint64(off, low);
+      const [p, _] = this.__getint64(off, low, true);
       off = off - this._size(off, p) - 1;
     }
   }
@@ -263,6 +290,13 @@ export class Decoder {
   /** deref pointers until `off` is not a pointer */
   _deref(off: offset): offset {
     return this._head(off)[0];
+  }
+
+  private _reservedFloatWidth(off: offset, low: number): TwineError {
+    return new TwineError({
+      msg: `reserved float width (low=${low}) at off=${hex(off)}`,
+      offset: off,
+    });
   }
 
   /** skip the current immediate value */
@@ -276,15 +310,18 @@ export class Decoder {
       case 1:
       case 2:
       case 10:
+      case 14:
       case 15: {
-        const [_, n_bytes] = this.__getint64(off, low);
+        const [_, n_bytes] = this.__getint64(off, low, high === 15);
         return off + 1 + n_bytes;
       }
       case 3:
-        return low === 0 ? off + 5 : off + 9;
+        if (low === 0) return off + 5;
+        if (low === 1) return off + 9;
+        throw this._reservedFloatWidth(off, low);
       case 4:
       case 5: {
-        const [len, n_bytes] = this.__getint64(off, low);
+        const [len, n_bytes] = this.__getint64(off, low, true);
         return off + 1 + n_bytes + this._size(off, len);
       }
       case 6:
@@ -334,6 +371,7 @@ export class Decoder {
         offset: o,
       });
     }
+    if (low > 1) throw this._reservedFloatWidth(o, low);
     // the payload starts right after the first byte
     const isf32 = low === 0;
     const payload = this._slice(o + 1, isf32 ? 4 : 8);
@@ -370,7 +408,7 @@ export class Decoder {
         offset: o,
       });
     }
-    const [len, n_bytes] = this.__getint64(o, low);
+    const [len, n_bytes] = this.__getint64(o, low, true);
     const payload = this._slice(o + 1 + n_bytes, this._size(o, len));
     try {
       return new TextDecoder("utf-8", { fatal: true }).decode(payload);
@@ -390,7 +428,7 @@ export class Decoder {
         offset: o,
       });
     }
-    const [len, n_bytes] = this.__getint64(o, low);
+    const [len, n_bytes] = this.__getint64(o, low, true);
     // a copy, so the result does not keep the whole buffer alive
     return this._slice(o + 1 + n_bytes, this._size(o, len)).slice();
   }
@@ -403,7 +441,7 @@ export class Decoder {
         offset: o,
       });
     }
-    const [len, n_bytes] = this.__getint64(o, low);
+    const [len, n_bytes] = this.__getint64(o, low, true);
     const start = o + 1 + n_bytes;
     const n = this._checkCount(o, start, len, 1);
     return new ArrayCursor({ dec: this, offset: start, num_items: n });
@@ -417,7 +455,7 @@ export class Decoder {
         offset: o,
       });
     }
-    const [len, n_bytes] = this.__getint64(o, low);
+    const [len, n_bytes] = this.__getint64(o, low, true);
     const start = o + 1 + n_bytes;
     // each entry is a key and a value, at least one byte each
     const n = this._checkCount(o, start, len, 2);
@@ -452,7 +490,7 @@ export class Decoder {
     } else if (high === 12) {
       const [idx, n_bytes] = this.__getint64(o, low);
       const countOff = o + 1 + n_bytes;
-      const [num_items, n_bytes2] = this._leb128(countOff);
+      const [num_items, n_bytes2] = this._leb128(countOff, true);
       const start = countOff + n_bytes2;
       const n = this._checkCount(o, start, num_items, 1);
       return new Cstor(
@@ -465,6 +503,26 @@ export class Decoder {
         offset: o,
       });
     }
+  }
+
+  /**
+   * the offset an explicit reference (kind 14) points to
+   *
+   * Unlike a pointer, a reference is not followed when reading values; the caller decides when
+   * to read its target.
+   */
+  get_ref(off: offset): offset {
+    const [o, high, low] = this._head(off);
+    if (high !== 14) {
+      throw new TwineError({
+        msg: `expected ref, but high=${high} at off=${hex(o)}`,
+        offset: o,
+      });
+    }
+    const [n, _] = this.__getint64(o, low);
+    const target = o - this._size(o, n) - 1;
+    if (target < 0) throw this._outOfBounds(target);
+    return target;
   }
 
   /** Read an arbitrary (shallow) value, non-recursively */
@@ -498,6 +556,8 @@ export class Decoder {
       case 11:
       case 12:
         return this.get_cstor(o);
+      case 14:
+        return new Ref(this.get_ref(o));
       default:
         throw new TwineError({
           msg: `invalid twine value (high=${high}) at off=${hex(o)}`,
@@ -548,6 +608,8 @@ export class Decoder {
           c.args.map((x) => this._value(x)),
         );
       }
+      case 14:
+        return new Ref(this._value(this.get_ref(o)));
       default:
         return this.shallow_value(o) as value;
     }
