@@ -614,14 +614,34 @@ export class Report {
    *
    * Asynchronous, unlike Python's `of_archive`: decompressing uses the web-standard
    * `DecompressionStream`, which has no synchronous API.
+   *
+   * @throws {UnexpectedResponseError} if the archive is not a report
+   * @throws {twine.TwineError} if the data is malformed, compressed or not
    */
   static async ofArchive(x: lib.In_mem_archive<lib.Report_Report>): Promise<Report> {
     if (x.ty !== "report_ser.mir") {
       throw new UnexpectedResponseError(`Unexpected report archive type '${x.ty}'`);
     }
-    // Compressed archives hold raw deflate data, without a zlib header
-    const data = x.compressed ? await inflateRaw(x.data) : x.data;
+    let data = x.data;
+    if (x.compressed) {
+      // Compressed archives hold raw deflate data, without a zlib header
+      try {
+        data = await inflateRaw(x.data);
+      } catch (e) {
+        // `DecompressionStream` rejects corrupt data with a `TypeError`
+        throw new twine.TwineError({ msg: `report archive is not valid deflate data: ${e}`, offset: 0 });
+      }
+    }
     const d = new twine.Decoder(data);
-    return Report.ofLib(lib.Report_Report_of_twine(d, d.entrypoint()));
+    let raw: lib.Report_Report;
+    try {
+      raw = lib.Report_Report_of_twine(d, d.entrypoint());
+    } catch (e) {
+      if (e instanceof RangeError) {
+        throw new twine.TwineError({ msg: "report data is cyclic or nested too deeply", offset: 0 });
+      }
+      throw e;
+    }
+    return Report.ofLib(raw);
   }
 }

@@ -46,8 +46,11 @@ export class Transport {
   readonly #serverPathPrefix: string;
   readonly #authToken: string | undefined;
   readonly timeoutMs: number;
-  /** Cookies set by the server, sent back with every request, like a `requests.Session` */
-  readonly #cookies = new Map<string, string>();
+  /**
+   * Cookies set by the server, sent back with every request until they expire, like a
+   * `requests.Session`; `expiresAt` is in ms since the epoch, `undefined` for a session cookie
+   */
+  readonly #cookies = new Map<string, { value: string; expiresAt: number | undefined }>();
 
   constructor(opts: TransportOptions) {
     this.#url = opts.url;
@@ -74,8 +77,9 @@ export class Transport {
     if (this.#authToken) {
       headers["Authorization"] = `Bearer ${this.#authToken}`;
     }
-    if (this.#cookies.size > 0) {
-      headers["Cookie"] = [...this.#cookies].map(([k, v]) => `${k}=${v}`).join("; ");
+    const cookies = this.#liveCookies();
+    if (cookies.length > 0) {
+      headers["Cookie"] = cookies.join("; ");
     }
 
     const timeoutSignal = AbortSignal.timeout(opts.timeoutMs ?? this.timeoutMs);
@@ -106,17 +110,65 @@ export class Transport {
     }
 
     if (resp.status === 200) {
-      return resType.decode(body);
+      try {
+        return resType.decode(body);
+      } catch (e) {
+        // e.g. an empty, HTML or truncated body, from an intermediary or a dropped connection
+        throw new TwirpError(
+          "internal",
+          `failed to decode the ${service}/${method} response: ${e}`,
+          resp.status,
+          {},
+          { cause: e },
+        );
+      }
     }
     throw errorOfResponse(resp, body);
+  }
+
+  /** `name=value` of the cookies that have not expired, dropping the expired ones */
+  #liveCookies(): string[] {
+    const now = Date.now();
+    const res: string[] = [];
+    for (const [name, { value, expiresAt }] of this.#cookies) {
+      if (expiresAt !== undefined && expiresAt <= now) {
+        this.#cookies.delete(name);
+      } else {
+        res.push(`${name}=${value}`);
+      }
+    }
+    return res;
   }
 
   #storeCookies(resp: Response): void {
     // `getSetCookie` is empty in browsers, where `fetch` handles cookies itself
     for (const c of resp.headers.getSetCookie?.() ?? []) {
-      const pair = c.split(";", 1)[0]!;
-      const eq = pair.indexOf("=");
-      if (eq > 0) this.#cookies.set(pair.slice(0, eq).trim(), pair.slice(eq + 1).trim());
+      const [pair, ...attrs] = c.split(";");
+      const eq = pair!.indexOf("=");
+      if (eq <= 0) continue;
+      const name = pair!.slice(0, eq).trim();
+      const value = pair!.slice(eq + 1).trim();
+      // `Max-Age` wins over `Expires` (RFC 6265, 5.3); a cookie expiring now or earlier is the
+      // server deleting it
+      let maxAge: number | undefined;
+      let expires: number | undefined;
+      for (const attr of attrs) {
+        const i = attr.indexOf("=");
+        const key = (i < 0 ? attr : attr.slice(0, i)).trim().toLowerCase();
+        const val = i < 0 ? "" : attr.slice(i + 1).trim();
+        if (key === "max-age" && /^-?\d+$/.test(val)) {
+          maxAge = Number(val);
+        } else if (key === "expires") {
+          const t = Date.parse(val);
+          if (!Number.isNaN(t)) expires = t;
+        }
+      }
+      const expiresAt = maxAge !== undefined ? Date.now() + maxAge * 1000 : expires;
+      if (expiresAt !== undefined && expiresAt <= Date.now()) {
+        this.#cookies.delete(name);
+      } else {
+        this.#cookies.set(name, { value, expiresAt });
+      }
     }
   }
 }

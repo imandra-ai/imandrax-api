@@ -214,6 +214,35 @@ describe("transport", () => {
     expect(await c.status()).toBe("ok");
     expect(server.calls(`${SIMPLE}/status`)[0]!.headers.get("cookie")).toBe("affinity=abc");
   });
+
+  test.each([
+    ["Max-Age=0", "affinity=; Max-Age=0"],
+    ["a past Expires", "affinity=; Expires=Thu, 01 Jan 1970 00:00:00 GMT"],
+    ["Max-Age over a future Expires", "affinity=x; Expires=Fri, 01 Jan 2100 00:00:00 GMT; Max-Age=0"],
+  ])("stops sending a cookie the server deletes with %s", async (_name, deletion) => {
+    let n = 0;
+    server
+      .on(`${SIMPLE}/create_session`, () =>
+        ok(sessionPb.Session, { id: "s" }, { "set-cookie": "affinity=abc; Path=/" }),
+      )
+      .on(`${SIMPLE}/status`, () =>
+        ok(utilsPb.StringMsg, { msg: "ok" }, n++ === 0 ? { "set-cookie": deletion } : undefined),
+      );
+    const c = await Client.connect();
+    await c.status();
+    await c.status();
+    const [first, second] = server.calls(`${SIMPLE}/status`);
+    expect(first!.headers.get("cookie")).toBe("affinity=abc");
+    expect(second!.headers.get("cookie")).toBeNull();
+  });
+
+  test("a 200 response that does not decode is a TwirpError", async () => {
+    // a truncated body: field 1 claims 5 bytes, and 1 follows
+    server.withSessions("s").on(`${SIMPLE}/status`, () => ({ message: new Uint8Array([0x0a, 0x05, 0x61]) }));
+    const c = await Client.connect();
+    await expect(c.status()).rejects.toThrow(TwirpError);
+    await expect(c.status()).rejects.toMatchObject({ code: "internal", status: 200 });
+  });
 });
 
 describe("requests", () => {

@@ -4,6 +4,7 @@ import { describe, expect, test } from "vitest";
 
 import { UnexpectedResponseError } from "../lib/errors.js";
 import { proofTermOfLib, type SubstProof } from "../lib/proof.js";
+import * as twine from "../lib/raw/twine.js";
 import * as lib from "../lib/raw/types.js";
 import { Report, SmtProof, atomicEventOfLib, linearEventOfLib } from "../lib/report.js";
 
@@ -104,6 +105,6 @@ describe("report", () => {
     );
     await expect(
       Report.ofArchive(new lib.In_mem_archive_raw("report_ser.mir", true, new Uint8Array([0xff, 0xff, 0xff]))),
-    ).rejects.toThrow();
+    ).rejects.toThrow(twine.TwineError);
   });
 });
