@@ -11,11 +11,10 @@
 // Proof terms form a DAG: a sub-proof can be the premise of several steps, and the OCaml side
 // keeps it shared. The generated twine decoder doesn't cache proof terms, so each occurrence of
 // a shared sub-proof is a separate lib object, and `proofTermOfLib` converts, and holds in
-// memory, each one separately. The terms and types in them are shared, and convert once per
-// proof term.
+// memory, each one separately. The terms and types in them are shared, and convert once (see
+// Note [Lib memo] in `mir.ts`).
 
 import { UnexpectedResponseError } from "./errors.js";
-import { withLibMemo } from "./lib_memo.js";
 import { Sequent, type Term, type Type, Uid, Variable, termOfLib, typeOfLib } from "./mir.js";
 import * as lib from "./raw/types.js";
 
@@ -177,10 +176,6 @@ export class RuleProof extends ProofTermBase {
 export type ProofTerm = AssumeProof | SubstProof | DeductionProof | RuleProof;
 
 export function proofTermOfLib(x: RawProofTerm): ProofTerm {
-  return withLibMemo(() => proofTermOfLibUncached(x));
-}
-
-function proofTermOfLibUncached(x: RawProofTerm): ProofTerm {
   const concl = Sequent.ofLib(x.concl);
   const id = Number(x.id);
   const v = x.view;

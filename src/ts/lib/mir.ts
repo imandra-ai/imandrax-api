@@ -34,11 +34,28 @@
 // `TypeDefinition.clique`, ...) are `ValueMap`s and `ValueSet`s, which key their entries by a
 // structural string. Such a map's `get` and `has` find an entry from any equal key.
 //
+// Note [Lib memo]
+// ~~~~~~~~~~~~~~~
+// The twine decoder returns one lib object for every reference to a shared term or type, so lib
+// data is a graph. Without a memo, `termOfLib` and `typeOfLib` would convert a shared node once
+// per path to it, expanding the graph into a tree: the work and the memory grow with the number
+// of paths rather than the number of nodes.
+//
+// `termMemo` and `typeMemo` map each lib object, by identity, to its converted object, so every
+// conversion of a lib object returns the same client object, whichever data holds it (a
+// decomposition, a report, a model, ...).
+//
+// They are `WeakMap`s, so they keep nothing alive: an entry goes with its lib object, even though
+// the client object refers back to it through `raw`. Lib objects belong to one decoder, so client
+// objects are never shared between artifacts.
+//
+// Python scopes its memo to one conversion instead (`v2/_lib_memo.py`): its generated classes
+// cannot be weakly referenced.
+//
 // This module exports a class named `Symbol` (a term referring to a symbol), so it reaches the
 // builtin symbols through `globalThis.Symbol`.
 
 import { UnexpectedResponseError } from "./errors.js";
-import { activeLibMemo, withLibMemo } from "./lib_memo.js";
 import * as lib from "./raw/types.js";
 import * as twine from "./raw/twine.js";
 
@@ -764,15 +781,14 @@ export abstract class TypeBase {
   }
 }
 
+/** Converted types, by lib type; see Note [Lib memo] */
+const typeMemo = new WeakMap<lib.Mir_Type, Type>();
+
 export function typeOfLib(x: lib.Mir_Type): Type {
-  const memo = activeLibMemo();
-  if (memo === undefined) {
-    return withLibMemo(() => typeOfLib(x));
-  }
-  let ty = memo.types.get(x);
+  let ty = typeMemo.get(x);
   if (ty === undefined) {
     ty = typeOfLibUncached(x);
-    memo.types.set(x, ty);
+    typeMemo.set(x, ty);
   }
   return ty;
 }
@@ -1191,15 +1207,14 @@ export abstract class TermBase {
   }
 }
 
+/** Converted terms, by lib term; see Note [Lib memo] */
+const termMemo = new WeakMap<lib.Mir_Term, Term>();
+
 export function termOfLib(x: lib.Mir_Term): Term {
-  const memo = activeLibMemo();
-  if (memo === undefined) {
-    return withLibMemo(() => termOfLib(x));
-  }
-  let t = memo.terms.get(x);
+  let t = termMemo.get(x);
   if (t === undefined) {
     t = termOfLibUncached(x);
-    memo.terms.set(x, t);
+    termMemo.set(x, t);
   }
   return t;
 }
@@ -3087,14 +3102,11 @@ export class Decomposition {
   }
 
   static ofLib(d: lib.Mir_Fun_decomp): Decomposition {
-    return withLibMemo(
-      () =>
-        new Decomposition(
-          new Uid(d.f_id),
-          d.f_args.map((a) => Variable.ofLib(a)),
-          d.regions.map((r) => Decomposition.Region.ofLib(r)),
-          d,
-        ),
+    return new Decomposition(
+      new Uid(d.f_id),
+      d.f_args.map((a) => Variable.ofLib(a)),
+      d.regions.map((r) => Decomposition.Region.ofLib(r)),
+      d,
     );
   }
 

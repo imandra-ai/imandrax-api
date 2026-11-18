@@ -9,7 +9,6 @@
  */
 import { describe, expect, test } from "vitest";
 
-import { activeLibMemo } from "../lib/lib_memo.js";
 import { Apply, ArrowType, Decomposition, termOfLib } from "../lib/mir.js";
 import { DeductionProof, proofTermOfLib } from "../lib/proof.js";
 import * as lib from "../lib/raw/types.js";
@@ -76,10 +75,6 @@ describe("terms", () => {
     expect((ltType as ArrowType).domain).toBe(x1!.type);
   });
 
-  test("separate conversions don't share", () => {
-    // The memo is per conversion: converting the same lib term twice gives two client terms
-    expect(termOfLib(X_LT_X)).not.toBe(termOfLib(X_LT_X));
-  });
 });
 
 describe("decomposition", () => {
@@ -117,19 +112,21 @@ describe("proof term", () => {
   });
 });
 
-describe("memo lifetime", () => {
-  test("the memo is released after a conversion", () => {
-    // The memo lives only while a conversion runs, so it keeps no lib object alive
-    expect(activeLibMemo()).toBeUndefined();
-    termOfLib(X_LT_X);
-    expect(activeLibMemo()).toBeUndefined();
-    Decomposition.ofLib(new lib.Common_Fun_decomp_t_poly(mkUid("f"), [], [mkRegion()]));
-    expect(activeLibMemo()).toBeUndefined();
+describe("across conversions", () => {
+  test("converting a lib term twice gives the same term", () => {
+    expect(termOfLib(X_LT_X)).toBe(termOfLib(X_LT_X));
   });
 
-  test("the memo is released when a conversion throws", () => {
-    const bad = new lib.Mir_Type({} as lib.Mir_Type["view"]);
-    expect(() => termOfLib(new lib.Mir_Term(X.view, bad, undefined))).toThrow();
-    expect(activeLibMemo()).toBeUndefined();
+  test("separate data share the terms they hold", () => {
+    // e.g. a report and a decomposition of the same artifact
+    const d = Decomposition.ofLib(new lib.Common_Fun_decomp_t_poly(mkUid("f"), [], [mkRegion()]));
+    expect(d.regions[0]!.invariant).toBe(termOfLib(X));
+  });
+
+  test("equal lib terms that are distinct objects convert separately", () => {
+    const other = mkApp(LT, [X, X], BOOL);
+    const [a, b] = [termOfLib(X_LT_X), termOfLib(other)];
+    expect(a).not.toBe(b);
+    expect((a as Apply).arguments[0]).toBe((b as Apply).arguments[0]);
   });
 });
