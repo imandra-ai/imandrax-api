@@ -255,8 +255,22 @@ export class ValueMap<K, V> implements ReadonlyMap<K, V> {
   }
 }
 
+/**
+ * The read-only view of a `ValueSet`
+ *
+ * Not a `ReadonlySet`, which also has the set operations of ES2025 (`union`, `isSubsetOf`, ...).
+ */
+export interface ReadonlyValueSet<T> extends Iterable<T> {
+  readonly size: number;
+  has(x: T): boolean;
+  forEach(f: (value: T, value2: T, set: ReadonlyValueSet<T>) => void, thisArg?: unknown): void;
+  entries(): SetIterator<[T, T]>;
+  keys(): SetIterator<T>;
+  values(): SetIterator<T>;
+}
+
 /** A set whose elements are compared by value, through a structural string */
-export class ValueSet<T> implements ReadonlySet<T> {
+export class ValueSet<T> implements ReadonlyValueSet<T> {
   private readonly canon = new Map<string, T>();
   private readonly inner = new Set<T>();
 
@@ -296,7 +310,7 @@ export class ValueSet<T> implements ReadonlySet<T> {
     return this.inner.size;
   }
 
-  forEach(f: (value: T, value2: T, set: ReadonlySet<T>) => void, thisArg?: unknown): void {
+  forEach(f: (value: T, value2: T, set: ReadonlyValueSet<T>) => void, thisArg?: unknown): void {
     this.inner.forEach((x) => f.call(thisArg, x, x, this));
   }
 
@@ -1008,7 +1022,7 @@ export class TypeDefinition {
     /** How the type is defined: algebraic, record, skolem, builtin, ... */
     readonly kind: TypeKind,
     /** The mutually recursive types this type belongs to, if any */
-    readonly clique: ReadonlySet<Uid> | undefined,
+    readonly clique: ReadonlyValueSet<Uid> | undefined,
     /** The timeout for checking the definition, if any */
     readonly timeout: number | undefined,
     readonly raw: lib.Mir_Type_def,
@@ -1965,7 +1979,7 @@ export class DefaultTerminationTactic {
     /** The maximum number of proof steps */
     readonly maxSteps: number,
     /** The function basis of the termination proof */
-    readonly basis: ReadonlySet<Uid>,
+    readonly basis: ReadonlyValueSet<Uid>,
     readonly raw: lib.Mir_Tactic,
   ) {}
 
@@ -2114,7 +2128,7 @@ export class FunctionDefinition {
   /** The function's body */
   readonly body: Term;
   /** The mutually recursive functions this function belongs to, if any */
-  readonly clique: ReadonlySet<Uid> | undefined;
+  readonly clique: ReadonlyValueSet<Uid> | undefined;
   /** Whether the function is defined, builtin or opaque */
   readonly kind: FunctionKind;
   /** Prover hints attached to the definition */
@@ -2127,7 +2141,7 @@ export class FunctionDefinition {
     type: Type,
     args: readonly Variable[],
     body: Term,
-    clique: ReadonlySet<Uid> | undefined,
+    clique: ReadonlyValueSet<Uid> | undefined,
     kind: FunctionKind,
     hints: Hints,
     raw: lib.Mir_Fun_def,
@@ -3399,7 +3413,7 @@ export class DB {
   }
 
   /** Uids of disabled symbols */
-  get disabled(): ReadonlySet<Uid> {
+  get disabled(): ReadonlyValueSet<Uid> {
     return this.disabledUids;
   }
 

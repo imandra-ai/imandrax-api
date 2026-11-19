@@ -16,6 +16,7 @@ import {
   type Term,
   TermTactic,
   type Type,
+  type ReadonlyValueSet,
   type Uid,
   Var,
   type Variable,
@@ -63,11 +64,11 @@ async function thePo(tasks: readonly Task[], isInstance: boolean): Promise<Proof
 }
 
 /** The ids of the variables `t` uses */
-function varsIn(t: Term): ReadonlySet<Uid> {
+function varsIn(t: Term): ReadonlyValueSet<Uid> {
   return uidSet([...t].filter((x): x is Var => x instanceof Var).map((x) => x.var.id));
 }
 
-function idsOf(vs: Iterable<Variable>): ReadonlySet<Uid> {
+function idsOf(vs: Iterable<Variable>): ReadonlyValueSet<Uid> {
   return uidSet([...vs].map((v) => v.id));
 }
 

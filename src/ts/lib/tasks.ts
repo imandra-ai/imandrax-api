@@ -5,6 +5,7 @@ import {
   DB,
   Decomposition,
   Model,
+  type ReadonlyValueSet,
   Sequent,
   type Tactic,
   type Term,
@@ -413,9 +414,9 @@ export namespace DecompositionRequest {
       /** The side condition the decomposition assumes, if any */
       readonly assuming: Uid | undefined,
       /** Functions not to unfold during decomposition */
-      readonly basis: ReadonlySet<Uid>,
+      readonly basis: ReadonlyValueSet<Uid>,
       /** Rule specs to use during decomposition */
-      readonly ruleSpecs: ReadonlySet<Uid>,
+      readonly ruleSpecs: ReadonlyValueSet<Uid>,
       /** Whether to simplify regions in their context */
       readonly ctxSimp: boolean,
       /** How Boolean subterms are lifted into region constraints */

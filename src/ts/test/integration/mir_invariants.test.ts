@@ -72,6 +72,7 @@ import {
   type Type,
   TypeDeclaration,
   TypeVariable,
+  type ReadonlyValueSet,
   Uid,
   Var,
   type Variable,
@@ -139,7 +140,7 @@ function assertNoFailures(failures: string[]): void {
 }
 
 /** Variables as a set: variables are equal when their ids are, so it is the set of their ids */
-type VarSet = ReadonlySet<Uid>;
+type VarSet = ReadonlyValueSet<Uid>;
 
 function varSet(vs: Iterable<Variable>): VarSet {
   return uidSet([...vs].map((v) => v.id));
