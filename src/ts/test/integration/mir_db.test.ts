@@ -24,7 +24,7 @@ import {
   type FunctionDefinition,
   RecordTypeKind,
   RuleSpecDeclaration,
-  Symbol,
+  SymbolTerm,
   SymbolHead,
   type Term,
   TermBase,
@@ -152,7 +152,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     for (const subterm of body) {
       if (subterm instanceof Apply) {
         const f = subterm.function;
-        if (f instanceof Symbol) {
+        if (f instanceof SymbolTerm) {
           applied.add(f.symbol.id);
         }
       }
@@ -240,7 +240,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
   function lambdasOfTerm(t: Term): Uid[] {
     const lams: Uid[] = [];
     for (const term of t) {
-      if (term instanceof Symbol && term.symbol.id.shortName === "$lambda") {
+      if (term instanceof SymbolTerm && term.symbol.id.shortName === "$lambda") {
         lams.push(term.symbol.id);
       }
     }
@@ -282,7 +282,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
         instances.push(t);
     }
     expect(instances).toHaveLength(1);
-    const [, goal] = (await instances[0]!.proofObligation()).goal;
+    const goal = (await instances[0]!.proofObligation()).goal.body;
     const lambdasInGoal = lambdasOfTerm(goal);
     expect(lambdasInGoal).toHaveLength(1);
 
@@ -431,7 +431,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
       .map((x) => (x as Exclude<Declaration, TypeDeclaration>).function.body);
     const symbols = uidSet(
       bodies.flatMap((body) =>
-        [...body].filter((x): x is Symbol => x instanceof Symbol).map((x) => x.symbol.id),
+        [...body].filter((x): x is SymbolTerm => x instanceof SymbolTerm).map((x) => x.symbol.id),
       ),
     );
     expect(symbols.size).toBeGreaterThan(0);

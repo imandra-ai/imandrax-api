@@ -8,6 +8,7 @@ import {
   FloatConst,
   Model,
   Rational,
+  Region,
   Sequent,
   Uid,
   type JsValue,
@@ -419,7 +420,7 @@ describe("Sequent", () => {
       ),
     );
     expect(`${s}`).toBe(["h: true", "H1. false", "|" + "-".repeat(70), " 1"].join("\n"));
-    expect(s.findTerm("h")?.[1].kind).toBe("constant");
+    expect(s.findTerm("h")?.term.kind).toBe("constant");
     expect(s.findTerm("nope")).toBeUndefined();
     expect(s.hypothesisTerms.length).toBe(2);
     const empty = Sequent.ofLib(new lib.Common_Sequent_t_poly<RawTerm>([], []));
@@ -525,7 +526,7 @@ describe("Decomposition", () => {
     expect(r.meta.get("n")).toBeNull();
     expect(`${d}`).toBe("constraints: [true] invariant: 6 status: feasible");
 
-    const bad = Decomposition.Region.ofLib(
+    const bad = Region.ofLib(
       new lib.Common_Region_t_poly<RawTerm, RawType>(
         [],
         int(0n),

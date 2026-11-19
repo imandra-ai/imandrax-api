@@ -98,8 +98,8 @@ describe("proof term", () => {
       ),
     );
     expect(p).toBeInstanceOf(DeductionProof);
-    const [[, [p1, p2]]] = (p as DeductionProof).premises as [[string, [unknown, unknown]]];
-    const concls = [p, p1, p2].map((q) => (q as DeductionProof).conclusion.conclusions[0]![1]);
+    const [p1, p2] = (p as DeductionProof).premises[0]!.proofs;
+    const concls = [p, p1, p2].map((q) => (q as DeductionProof).conclusion.conclusions[0]!.term);
     expect(concls[0]).toBe(concls[1]);
     expect(concls[1]).toBe(concls[2]);
   });

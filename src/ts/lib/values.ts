@@ -1,8 +1,6 @@
 /**
  * Values produced by evaluating an IML expression
  *
- * This module exports classes named `String` and `Record`; import it as a namespace (`import * as values from "imandrax-api/values"`) to keep the builtins in reach.
- *
  * @module
  */
 
@@ -59,7 +57,7 @@ export class Real {
 }
 
 /** A string, stored in `value`. */
-export class String {
+export class StringValue {
   readonly kind = "string";
   constructor(
     readonly value: string,
@@ -87,7 +85,7 @@ export class Constructor {
   ) {}
 
   /** For pretty-printing */
-  private asList(): readonly Value[] | undefined {
+  #asList(): readonly Value[] | undefined {
     const elements: Value[] = [];
     let v: Value = this;
     for (;;) {
@@ -103,7 +101,7 @@ export class Constructor {
   }
 
   toString(): string {
-    const elements = this.asList();
+    const elements = this.#asList();
     if (elements !== undefined) {
       return "[" + elements.map((e) => `${e}`).join("; ") + "]";
     }
@@ -128,7 +126,7 @@ export class Tuple {
 }
 
 /** A record; `name` identifies the record type and `fields` maps field names to values. */
-export class Record {
+export class RecordValue {
   readonly kind = "record";
   constructor(
     readonly name: string,
@@ -218,23 +216,24 @@ export type Value =
   | False_
   | Int
   | Real
-  | String
+  | StringValue
   | Constructor
   | Tuple
-  | Record
+  | RecordValue
   | QuotedTerm
   | Uid
   | Closure
   | Custom
   | Ordinal;
 
+/** @internal */
 export function valueOfLib(x: View): Value {
   if (x instanceof lib.Eval_Value_view_V_true) return new True_(x);
   if (x instanceof lib.Eval_Value_view_V_false) return new False_(x);
   if (x instanceof lib.Eval_Value_view_V_int) return new Int(x.arg, x);
   if (x instanceof lib.Eval_Value_view_V_real)
     return new Real(new mir.Rational(x.arg[0], x.arg[1]), x);
-  if (x instanceof lib.Eval_Value_view_V_string) return new String(x.arg, x);
+  if (x instanceof lib.Eval_Value_view_V_string) return new StringValue(x.arg, x);
   if (x instanceof lib.Eval_Value_view_V_cstor) {
     const [descriptor, args] = x.args;
     return new Constructor(
@@ -258,7 +257,7 @@ export function valueOfLib(x: View): Value {
     for (let i = 0; i < n; i++) {
       fields.set(descriptor.rd_fields[i]!.name, valueOfLib(values[i]!.v));
     }
-    return new Record(descriptor.rd_name.name, fields, x);
+    return new RecordValue(descriptor.rd_name.name, fields, x);
   }
   if (x instanceof lib.Eval_Value_view_V_quoted_term) {
     const [params, body] = x.arg;
@@ -315,6 +314,7 @@ export class ConsOrdinal {
 /** Ordinal type. */
 export type OrdinalExpr = IntOrdinal | ConsOrdinal;
 
+/** @internal */
 export function ordinalExprOfLib(x: lib.Eval_Ordinal): OrdinalExpr {
   if (x instanceof lib.Eval_Ordinal_Int) return new IntOrdinal(x.arg, x);
   if (x instanceof lib.Eval_Ordinal_Cons) {

@@ -54,12 +54,12 @@ describe("proofTermOfLib", () => {
     expect(p.id).toBe(4);
     expect(`${p.conclusion}`).toBe("|" + "-".repeat(70) + "\n true");
     if (p.kind !== "deduction") throw new Error("unreachable");
-    const [name, group] = p.premises[0]!;
+    const { name, proofs: group } = p.premises[0]!;
     expect(name).toBe("g");
     expect(group.map((q) => q.kind)).toEqual(["subst", "rule"]);
     const s = group[0] as SubstProof;
-    expect(`${s.termSubstitution[0]![0]}`).toBe("x");
-    expect(`${s.typeSubstitution[0]![1]}`).toBe("bool");
+    expect([...s.termSubstitution.keys()].map(String)).toEqual(["x"]);
+    expect([...s.typeSubstitution.values()].map(String)).toEqual(["bool"]);
     expect(s.premise.kind).toBe("assume");
     const r = group[1]!;
     if (r.kind !== "rule") throw new Error("unreachable");

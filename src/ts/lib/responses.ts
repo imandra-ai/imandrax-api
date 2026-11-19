@@ -32,6 +32,16 @@ import {
 } from "./tasks.js";
 
 /**
+ * A position in a source file
+ *
+ * @group Response parts
+ */
+export interface Position {
+  readonly line: number;
+  readonly column: number;
+}
+
+/**
  * A source location
  *
  * @group Response parts
@@ -39,25 +49,24 @@ import {
 export class Location {
   private constructor(
     readonly file: string | undefined,
-    /** The start, as `[line, column]` */
-    readonly start: readonly [number, number],
-    /** The end, as `[line, column]` */
-    readonly stop: readonly [number, number],
+    readonly start: Position,
+    readonly stop: Position,
     readonly raw: locsPb.Location,
   ) {}
 
+  /** @internal */
   static ofRaw(x: locsPb.Location): Location {
     return new Location(
       x.file,
-      [x.start?.line ?? 0, x.start?.col ?? 0],
-      [x.stop?.line ?? 0, x.stop?.col ?? 0],
+      { line: x.start?.line ?? 0, column: x.start?.col ?? 0 },
+      { line: x.stop?.line ?? 0, column: x.stop?.col ?? 0 },
       x,
     );
   }
 
   toString(): string {
-    const [[l1, c1], [l2, c2]] = [this.start, this.stop];
-    return `${this.file || "<none>"}:${l1}:${c1}-${l2}:${c2}`;
+    const { start, stop } = this;
+    return `${this.file || "<none>"}:${start.line}:${start.column}-${stop.line}:${stop.column}`;
   }
 }
 
@@ -73,21 +82,22 @@ export class ErrorInfo {
     /** The kind of error, e.g. `TypeErr` */
     readonly kind: string,
     /** The main error message */
-    readonly message: ErrorInfo.Message,
+    readonly message: ErrorInfoMessage,
     /** Further messages giving context for the error */
-    readonly stack: readonly ErrorInfo.Message[],
+    readonly stack: readonly ErrorInfoMessage[],
     /** The process in which the error occurred, if known */
     readonly process: string | undefined,
     readonly raw: errorPb.Error,
   ) {}
 
+  /** @internal */
   static ofRaw(x: errorPb.Error): ErrorInfo {
     // The server sends the kind printed as an OCaml record, `{ Kind.name = "TypeErr" }`
     const m = /^\{ Kind\.name = "(.*)" \}$/s.exec(x.kind);
     return new ErrorInfo(
       m === null ? x.kind : m[1]!,
-      ErrorInfo.Message.ofRaw(x.msg ?? { msg: "", locs: [] }),
-      x.stack.map((s) => ErrorInfo.Message.ofRaw(s)),
+      ErrorInfoMessage.ofRaw(x.msg ?? { msg: "", locs: [] }),
+      x.stack.map((s) => ErrorInfoMessage.ofRaw(s)),
       x.process,
       x,
     );
@@ -98,32 +108,34 @@ export class ErrorInfo {
   }
 }
 
-/** @group Response parts */
-export namespace ErrorInfo {
-  /** An error message, with source locations and an optional backtrace */
-  export class Message {
-    private constructor(
-      /** The message text */
-      readonly message: string,
-      /** The source locations the message refers to */
-      readonly locations: readonly Location[],
-      /** The backtrace, if any */
-      readonly backtrace: string | undefined,
-      readonly raw: errorPb.Error_Message,
-    ) {}
+/**
+ * An error message, with source locations and an optional backtrace
+ *
+ * @group Response parts
+ */
+export class ErrorInfoMessage {
+  private constructor(
+    /** The message text */
+    readonly message: string,
+    /** The source locations the message refers to */
+    readonly locations: readonly Location[],
+    /** The backtrace, if any */
+    readonly backtrace: string | undefined,
+    readonly raw: errorPb.Error_Message,
+  ) {}
 
-    static ofRaw(x: errorPb.Error_Message): Message {
-      return new Message(
-        x.msg,
-        x.locs.map((l) => Location.ofRaw(l)),
-        x.backtrace,
-        x,
-      );
-    }
+  /** @internal */
+  static ofRaw(x: errorPb.Error_Message): ErrorInfoMessage {
+    return new ErrorInfoMessage(
+      x.msg,
+      x.locs.map((l) => Location.ofRaw(l)),
+      x.backtrace,
+      x,
+    );
+  }
 
-    toString(): string {
-      return this.message;
-    }
+  toString(): string {
+    return this.message;
   }
 }
 
@@ -145,6 +157,7 @@ export class Artifact {
     readonly raw: artmsgPb.Artifact,
   ) {}
 
+  /** @internal */
   static ofRaw(x: artmsgPb.Artifact): Artifact {
     return new Artifact(
       x.kind,
@@ -201,15 +214,16 @@ export class Statistics {
   private constructor(
     /** Execution time, in seconds */
     readonly timeS: number,
-    /** Tactic-level statistics */
-    readonly tactic: readonly (readonly [string, string])[] | undefined,
+    /** Tactic-level statistics, each a name and a value */
+    readonly tactic: readonly { readonly name: string; readonly value: string }[] | undefined,
     readonly raw: lib.Statistics,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Statistics): Statistics {
     return new Statistics(
       x.time_s,
-      x.tactic === undefined ? undefined : x.tactic.map(([k, v]) => [k, v] as const),
+      x.tactic === undefined ? undefined : x.tactic.map(([name, value]) => ({ name, value })),
       x,
     );
   }
@@ -223,6 +237,7 @@ export class ErrorMessage {
     readonly raw: lib.Error_Error_core_message,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Error_Error_core_message): ErrorMessage {
     return new ErrorMessage(x.msg, x.bt, x);
   }
@@ -242,6 +257,7 @@ export class ErrorCore {
     readonly raw: lib.Error_Error_core,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Error_Error_core): ErrorCore {
     return new ErrorCore(
       x.process,
@@ -271,6 +287,7 @@ export class Origin {
     readonly raw: taskPb.Origin,
   ) {}
 
+  /** @internal */
   static ofRaw(x: taskPb.Origin): Origin {
     return new Origin(x.fromSym, x.count, x);
   }
@@ -292,6 +309,7 @@ export class ModelOutput {
     readonly raw: simplePb.Model,
   ) {}
 
+  /** @internal */
   static ofRaw(x: simplePb.Model): ModelOutput {
     let kind: "counterExample" | "instance";
     switch (x.mType) {
@@ -335,7 +353,7 @@ export class ModelOutput {
 export class ProofObligationResult {
   private constructor(
     /** The outcome of the proof obligation, `undefined` if the server sent none */
-    readonly res: ProofObligationResult.Res | undefined,
+    readonly res: ProofObligationOutcome | undefined,
     /** Errors reported while checking the proof obligation */
     readonly errors: readonly ErrorInfo[],
     /** The proof obligation's task */
@@ -345,8 +363,9 @@ export class ProofObligationResult {
     readonly raw: simplePb.PORes,
   ) {}
 
+  /** @internal */
   static ofRaw(x: simplePb.PORes, client?: ArtifactSource): ProofObligationResult {
-    let res: ProofObligationResult.Res | undefined;
+    let res: ProofObligationOutcome | undefined;
     if (x.unknown !== undefined) {
       res = { kind: "unknown", message: x.unknown.msg };
     } else if (x.err !== undefined) {
@@ -373,7 +392,7 @@ export class ProofObligationResult {
   }
 
   /** The kind of `res`, or `undefined` if the server sent none */
-  get outcome(): ProofObligationResult.Res["kind"] | undefined {
+  get outcome(): ProofObligationOutcome["kind"] | undefined {
     return this.res?.kind;
   }
 
@@ -405,26 +424,27 @@ export class ProofObligationResult {
   }
 }
 
-/** @group Response parts */
-export namespace ProofObligationResult {
-  /** The outcome of a proof obligation */
-  export type Res =
-    /** The proof obligation could not be decided */
-    | { readonly kind: "unknown"; readonly message: string }
-    /** Checking failed; the errors are in `ProofObligationResult.errors` */
-    | { readonly kind: "err" }
-    /** The goal was proved; `proofPp` is the pretty-printed proof, if the server sent it */
-    | { readonly kind: "proof"; readonly proofPp: string | undefined }
-    /**
-     * A model was found: an instance of an `instance` goal, or a counter-example to a theorem or
-     * `verify` goal (reported with an error); `model` is `undefined` if the server did not send it
-     */
-    | { readonly kind: "instance"; readonly model: ModelOutput | undefined }
-    /** The goal was verified up to a bound */
-    | { readonly kind: "verifiedUpto"; readonly message: string | undefined }
-    /** Testing found no counter-example */
-    | { readonly kind: "testOk" };
-}
+/**
+ * The outcome of a proof obligation
+ *
+ * @group Response parts
+ */
+export type ProofObligationOutcome =
+  /** The proof obligation could not be decided */
+  | { readonly kind: "unknown"; readonly message: string }
+  /** Checking failed; the errors are in `ProofObligationResult.errors` */
+  | { readonly kind: "err" }
+  /** The goal was proved; `proofPp` is the pretty-printed proof, if the server sent it */
+  | { readonly kind: "proof"; readonly proofPp: string | undefined }
+  /**
+   * A model was found: an instance of an `instance` goal, or a counter-example to a theorem or
+   * `verify` goal (reported with an error); `model` is `undefined` if the server did not send it
+   */
+  | { readonly kind: "instance"; readonly model: ModelOutput | undefined }
+  /** The goal was verified up to a bound */
+  | { readonly kind: "verifiedUpto"; readonly message: string | undefined }
+  /** Testing found no counter-example */
+  | { readonly kind: "testOk" };
 
 /**
  * The result of a decomposition request
@@ -444,6 +464,7 @@ export class DecompositionResult {
     readonly raw: simplePb.DecomposeRes,
   ) {}
 
+  /** @internal */
   static ofRaw(x: simplePb.DecomposeRes, client?: ArtifactSource): DecompositionResult {
     return new DecompositionResult(
       x.artifact === undefined ? undefined : Artifact.ofRaw(x.artifact),
@@ -490,6 +511,7 @@ export class EvalOutput {
     readonly raw: simplePb.EvalOutput,
   ) {}
 
+  /** @internal */
   static ofRaw(x: simplePb.EvalOutput): EvalOutput {
     return new EvalOutput(
       x.success,
@@ -524,6 +546,7 @@ export class EvalSrcResponse {
     readonly raw: simplePb.EvalRes,
   ) {}
 
+  /** @internal */
   static ofRaw(x: simplePb.EvalRes, client?: ArtifactSource): EvalSrcResponse {
     return new EvalSrcResponse(
       x.success,
@@ -546,7 +569,7 @@ export class EvalSrcResponse {
 export class VerifyResponse {
   private constructor(
     /** The outcome of verification, `undefined` if the server sent none */
-    readonly res: VerifyResponse.Res | undefined,
+    readonly res: VerifyOutcome | undefined,
     /** Errors reported during verification */
     readonly errors: readonly ErrorInfo[],
     /** The verification task, `undefined` if the request failed before one was created */
@@ -554,8 +577,9 @@ export class VerifyResponse {
     readonly raw: simplePb.VerifyRes,
   ) {}
 
+  /** @internal */
   static ofRaw(x: simplePb.VerifyRes, client?: ArtifactSource): VerifyResponse {
-    let res: VerifyResponse.Res | undefined;
+    let res: VerifyOutcome | undefined;
     if (x.unknown !== undefined) {
       res = { kind: "unknown", message: x.unknown.msg };
     } else if (x.err !== undefined) {
@@ -580,7 +604,7 @@ export class VerifyResponse {
   }
 
   /** The kind of `res`, or `undefined` if the server sent none */
-  get outcome(): VerifyResponse.Res["kind"] | undefined {
+  get outcome(): VerifyOutcome["kind"] | undefined {
     return this.res?.kind;
   }
 
@@ -612,21 +636,22 @@ export class VerifyResponse {
   }
 }
 
-/** @group Responses */
-export namespace VerifyResponse {
-  /** The outcome of verification */
-  export type Res =
-    /** Verification could not decide the goal */
-    | { readonly kind: "unknown"; readonly message: string }
-    /** Verification failed; the errors are in `VerifyResponse.errors` */
-    | { readonly kind: "err" }
-    /** The goal was proved; `proofPp` is the pretty-printed proof, if the server sent it */
-    | { readonly kind: "proved"; readonly proofPp: string | undefined }
-    /** A counter-example was found; `undefined` if the server did not send it */
-    | { readonly kind: "refuted"; readonly counterExample: ModelOutput | undefined }
-    /** The goal was verified up to a bound */
-    | { readonly kind: "verifiedUpto"; readonly message: string | undefined };
-}
+/**
+ * The outcome of verification
+ *
+ * @group Response parts
+ */
+export type VerifyOutcome =
+  /** Verification could not decide the goal */
+  | { readonly kind: "unknown"; readonly message: string }
+  /** Verification failed; the errors are in `VerifyResponse.errors` */
+  | { readonly kind: "err" }
+  /** The goal was proved; `proofPp` is the pretty-printed proof, if the server sent it */
+  | { readonly kind: "proved"; readonly proofPp: string | undefined }
+  /** A counter-example was found; `undefined` if the server did not send it */
+  | { readonly kind: "refuted"; readonly counterExample: ModelOutput | undefined }
+  /** The goal was verified up to a bound */
+  | { readonly kind: "verifiedUpto"; readonly message: string | undefined };
 
 /**
  * The result of an `instanceSrc` or `instanceName` request
@@ -636,7 +661,7 @@ export namespace VerifyResponse {
 export class InstanceResponse {
   private constructor(
     /** The outcome of the instance search, `undefined` if the server sent none */
-    readonly res: InstanceResponse.Res | undefined,
+    readonly res: InstanceOutcome | undefined,
     /** Errors reported during the instance search */
     readonly errors: readonly ErrorInfo[],
     /** The instance task, `undefined` if the request failed before one was created */
@@ -644,8 +669,9 @@ export class InstanceResponse {
     readonly raw: simplePb.InstanceRes,
   ) {}
 
+  /** @internal */
   static ofRaw(x: simplePb.InstanceRes, client?: ArtifactSource): InstanceResponse {
-    let res: InstanceResponse.Res | undefined;
+    let res: InstanceOutcome | undefined;
     if (x.unknown !== undefined) {
       res = { kind: "unknown", message: x.unknown.msg };
     } else if (x.err !== undefined) {
@@ -667,7 +693,7 @@ export class InstanceResponse {
   }
 
   /** The kind of `res`, or `undefined` if the server sent none */
-  get outcome(): InstanceResponse.Res["kind"] | undefined {
+  get outcome(): InstanceOutcome["kind"] | undefined {
     return this.res?.kind;
   }
 
@@ -692,19 +718,20 @@ export class InstanceResponse {
   }
 }
 
-/** @group Responses */
-export namespace InstanceResponse {
-  /** The outcome of an instance search */
-  export type Res =
-    /** The instance search could not decide the goal */
-    | { readonly kind: "unknown"; readonly message: string }
-    /** The instance search failed; the errors are in `InstanceResponse.errors` */
-    | { readonly kind: "err" }
-    /** The goal has no instance; `proofPp` is the proof of unsatisfiability, if the server sent it */
-    | { readonly kind: "unsat"; readonly proofPp: string | undefined }
-    /** An instance was found; `undefined` if the server did not send it */
-    | { readonly kind: "sat"; readonly instance: ModelOutput | undefined };
-}
+/**
+ * The outcome of an instance search
+ *
+ * @group Response parts
+ */
+export type InstanceOutcome =
+  /** The instance search could not decide the goal */
+  | { readonly kind: "unknown"; readonly message: string }
+  /** The instance search failed; the errors are in `InstanceResponse.errors` */
+  | { readonly kind: "err" }
+  /** The goal has no instance; `proofPp` is the proof of unsatisfiability, if the server sent it */
+  | { readonly kind: "unsat"; readonly proofPp: string | undefined }
+  /** An instance was found; `undefined` if the server did not send it */
+  | { readonly kind: "sat"; readonly instance: ModelOutput | undefined };
 
 /**
  * The result of a `testSrc` or `testName` request
@@ -714,7 +741,7 @@ export namespace InstanceResponse {
 export class TestResponse {
   private constructor(
     /** The outcome of testing, `undefined` if the server sent none */
-    readonly res: TestResponse.Res | undefined,
+    readonly res: TestOutcome | undefined,
     /** Errors reported during testing */
     readonly errors: readonly ErrorInfo[],
     /** The test task, `undefined` if the request failed before one was created */
@@ -722,8 +749,9 @@ export class TestResponse {
     readonly raw: simplePb.TestRes,
   ) {}
 
+  /** @internal */
   static ofRaw(x: simplePb.TestRes, client?: ArtifactSource): TestResponse {
-    let res: TestResponse.Res | undefined;
+    let res: TestOutcome | undefined;
     if (x.err !== undefined) {
       res = { kind: "err" };
     } else if (x.counterExample !== undefined) {
@@ -749,7 +777,7 @@ export class TestResponse {
    * Testing that finds no counter-example is reported as `err`, with an error of kind
    * `NoCounterExample`
    */
-  get outcome(): TestResponse.Res["kind"] | undefined {
+  get outcome(): TestOutcome["kind"] | undefined {
     return this.res?.kind;
   }
 
@@ -764,19 +792,20 @@ export class TestResponse {
   }
 }
 
-/** @group Responses */
-export namespace TestResponse {
-  /** The outcome of testing */
-  export type Res =
-    /**
-     * Testing failed, or found no counter-example; the errors are in `TestResponse.errors`.
-     * Testing that finds no counter-example is reported this way, with an error of kind
-     * `NoCounterExample`
-     */
-    | { readonly kind: "err" }
-    /** A counter-example was found; `undefined` if the server did not send it */
-    | { readonly kind: "counterExample"; readonly counterExample: ModelOutput | undefined };
-}
+/**
+ * The outcome of testing
+ *
+ * @group Response parts
+ */
+export type TestOutcome =
+  /**
+   * Testing failed, or found no counter-example; the errors are in `TestResponse.errors`.
+   * Testing that finds no counter-example is reported this way, with an error of kind
+   * `NoCounterExample`
+   */
+  | { readonly kind: "err" }
+  /** A counter-example was found; `undefined` if the server did not send it */
+  | { readonly kind: "counterExample"; readonly counterExample: ModelOutput | undefined };
 
 /**
  * The result of a `typecheck` request
@@ -794,6 +823,7 @@ export class TypecheckResponse {
     readonly raw: simplePb.TypecheckRes,
   ) {}
 
+  /** @internal */
   static ofRaw(x: simplePb.TypecheckRes): TypecheckResponse {
     return new TypecheckResponse(
       x.success,
@@ -830,6 +860,7 @@ export class OneshotResponse {
     readonly raw: simplePb.OneshotRes,
   ) {}
 
+  /** @internal */
   static ofRaw(x: simplePb.OneshotRes): OneshotResponse {
     return new OneshotResponse(x.results, x.detailedResults, x.errors, x.stats?.time ?? 0, x);
   }
@@ -856,6 +887,7 @@ export class CodeSnippetResponse {
     readonly raw: apiPb.CodeSnippetEvalResult,
   ) {}
 
+  /** @internal */
   static ofRaw(x: apiPb.CodeSnippetEvalResult, client?: ArtifactSource): CodeSnippetResponse {
     let res: "ok" | "errors";
     switch (x.res) {
@@ -890,6 +922,7 @@ export class ServerVersion {
     readonly raw: systemPb.VersionResponse,
   ) {}
 
+  /** @internal */
   static ofRaw(x: systemPb.VersionResponse): ServerVersion {
     return new ServerVersion(x.version, x.gitVersion, x);
   }

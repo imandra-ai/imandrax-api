@@ -71,7 +71,7 @@ describe("valueOfLib", () => {
         new lib.Eval_Value_record_descriptor(uid("r"), [uid("a"), uid("b"), uid("extra")]),
         [box(int(1n)), box(new lib.Eval_Value_view_V_string("s"))],
       ]),
-    ) as values.Record;
+    ) as values.RecordValue;
     expect(rec.name).toBe("r");
     // the extra field without a value is dropped
     expect([...rec.fields.keys()]).toEqual(["a", "b"]);

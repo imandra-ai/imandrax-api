@@ -58,12 +58,12 @@ import {
   IsAPattern,
   OpaqueFunctionKind,
   RationalConst,
-  Record,
+  RecordTerm,
   RecordTypeKind,
   type RewriteRule,
   Sequence,
   StringConst,
-  Symbol,
+  SymbolTerm,
   type Term,
   TheoremDeclaration,
   Tuple,
@@ -282,11 +282,11 @@ function subtermsOf<T>(
 }
 
 function appliedSymbols(x: Term): AppliedSymbol[] {
-  if (x instanceof Symbol) return [x.symbol];
+  if (x instanceof SymbolTerm) return [x.symbol];
   if (x instanceof Construct || x instanceof Destruct || x instanceof IsA) return [x.ctor];
   if (x instanceof Field) return [x.field];
-  if (x instanceof Record) return x.rows.map(([f]) => f);
-  if (x instanceof Case) return x.cases.map(([c]) => c);
+  if (x instanceof RecordTerm) return x.rows.map((r) => r.field);
+  if (x instanceof Case) return x.cases.map((c) => c.ctor);
   return [];
 }
 
@@ -354,8 +354,8 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
         ts.push({
           task: t,
           fromSym: await t.fromSym(),
-          goalVariables: po.goalVariables,
-          goalBody: po.goalBody,
+          goalVariables: po.goal.variables,
+          goalBody: po.goal.body,
         });
       }
     }
@@ -453,7 +453,7 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
       .filter(([, x]) => !x.type.equals(x.var.type))
       .map(([where, x]) => `${where}: ${x} : ${x.type}, but its variable is : ${x.var.type}`);
     failures.push(
-      ...subtermsOf(st, Symbol)
+      ...subtermsOf(st, SymbolTerm)
         .filter(([, x]) => !x.type.equals(x.symbol.type))
         .map(([where, x]) => `${where}: ${x} : ${x.type}, but its symbol is : ${x.symbol.type}`),
     );
@@ -600,11 +600,11 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
         failures.push(`${where}: ${x}: ${f.id} is not a field of ${x.term.type}`);
       }
     }
-    for (const [where, x] of subtermsOf(st, Record)) {
+    for (const [where, x] of subtermsOf(st, RecordTerm)) {
       if (x.rest !== undefined && !x.rest.type.equals(x.type)) {
         failures.push(`${where}: ${x}: updates a ${x.rest.type} into a ${x.type}`);
       }
-      for (const [f, v] of x.rows) {
+      for (const { field: f, value: v } of x.rows) {
         if (!partsEq(arrowParts(f.type, 1), [x.type], v.type)) {
           failures.push(`${where}: ${x}: ${f.id} = ${v} : ${v.type}, with field : ${f.type}`);
         }
@@ -621,7 +621,7 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     const d = await db();
     const failures: string[] = [];
     for (const [where, x] of subtermsOf(await subterms(), Case)) {
-      for (const [c, arm] of x.cases) {
+      for (const { ctor: c, rhs: arm } of x.cases) {
         if (!arm.type.equals(x.type)) {
           failures.push(`${where}: ${x}: arm ${c.id} : ${arm.type}, but the match is : ${x.type}`);
         }

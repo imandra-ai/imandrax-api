@@ -17,6 +17,9 @@
 // - records wrapping a variant -> one abstract base class for the record's fields, classes
 //   extending the base class, plus the union
 // - `'term` / `'ty` type parameters are specialized with MIR term and type
+// - tuples -> objects with named fields (e.g. `Binder`, `NamedTerm`); association lists keyed by
+//   unique names or uids -> `ReadonlyMap`s
+// - the conversions from lib (`ofLib`, `*OfLib`) are `@internal`, left out of the `.d.ts` files
 // - Some classes irrelevant to users are skipped, e.g.: Anchor, SubAnchor
 //
 // They are classes rather than plain objects because they keep the lib object in `raw`,
@@ -63,16 +66,10 @@
 // They are `WeakMap`s, so they keep nothing alive: an entry goes with its lib object, even though
 // the client object refers back to it through `raw`. Lib objects belong to one decoder, so client
 // objects are never shared between artifacts.
-//
-// This module exports a class named `Symbol` (a term referring to a symbol), so it reaches the
-// builtin symbols through `globalThis.Symbol`.
 
 import { UnexpectedResponseError } from "./errors.js";
 import * as lib from "./raw/types.js";
 import * as twine from "./raw/twine.js";
-
-const iteratorSymbol: typeof globalThis.Symbol.iterator = globalThis.Symbol.iterator;
-const toStringTagSymbol: typeof globalThis.Symbol.toStringTag = globalThis.Symbol.toStringTag;
 
 function unexpected(what: string, x: unknown): never {
   const name = (x as { constructor?: { name?: string } } | undefined)?.constructor?.name;
@@ -184,13 +181,12 @@ Value maps and sets
  * position.
  */
 export class ValueMap<K, V> implements ReadonlyMap<K, V> {
-  private readonly canon = new Map<string, K>();
-  private readonly inner = new Map<K, V>();
+  readonly #canon = new Map<string, K>();
+  readonly #inner = new Map<K, V>();
+  readonly #keyOf: (k: K) => string;
 
-  constructor(
-    private readonly keyOf: (k: K) => string,
-    entries: Iterable<readonly [K, V]> = [],
-  ) {
+  constructor(keyOf: (k: K) => string, entries: Iterable<readonly [K, V]> = []) {
+    this.#keyOf = keyOf;
     for (const [key, v] of entries) {
       this.set(key, v);
     }
@@ -198,59 +194,59 @@ export class ValueMap<K, V> implements ReadonlyMap<K, V> {
 
   /** Set the value of `key`; mutates the map, so only for code building it */
   set(key: K, v: V): this {
-    const s = this.keyOf(key);
-    let c = this.canon.get(s);
+    const s = this.#keyOf(key);
+    let c = this.#canon.get(s);
     if (c === undefined) {
       c = key;
-      this.canon.set(s, c);
+      this.#canon.set(s, c);
     }
-    this.inner.set(c, v);
+    this.#inner.set(c, v);
     return this;
   }
 
   /** Remove `key`; mutates the map, so only for code building it */
   delete(key: K): boolean {
-    const s = this.keyOf(key);
-    const c = this.canon.get(s);
+    const s = this.#keyOf(key);
+    const c = this.#canon.get(s);
     if (c === undefined) return false;
-    this.canon.delete(s);
-    return this.inner.delete(c);
+    this.#canon.delete(s);
+    return this.#inner.delete(c);
   }
 
   get(key: K): V | undefined {
-    const c = this.canon.get(this.keyOf(key));
-    return c === undefined ? undefined : this.inner.get(c);
+    const c = this.#canon.get(this.#keyOf(key));
+    return c === undefined ? undefined : this.#inner.get(c);
   }
 
   has(key: K): boolean {
-    return this.canon.has(this.keyOf(key));
+    return this.#canon.has(this.#keyOf(key));
   }
 
   get size(): number {
-    return this.inner.size;
+    return this.#inner.size;
   }
 
   forEach(f: (value: V, key: K, map: ReadonlyMap<K, V>) => void, thisArg?: unknown): void {
-    this.inner.forEach((v, key) => f.call(thisArg, v, key, this));
+    this.#inner.forEach((v, key) => f.call(thisArg, v, key, this));
   }
 
   entries(): MapIterator<[K, V]> {
-    return this.inner.entries();
+    return this.#inner.entries();
   }
 
   keys(): MapIterator<K> {
-    return this.inner.keys();
+    return this.#inner.keys();
   }
 
   values(): MapIterator<V> {
-    return this.inner.values();
+    return this.#inner.values();
   }
 
-  [iteratorSymbol](): MapIterator<[K, V]> {
-    return this.inner.entries();
+  [Symbol.iterator](): MapIterator<[K, V]> {
+    return this.#inner.entries();
   }
 
-  get [toStringTagSymbol](): string {
+  get [Symbol.toStringTag](): string {
     return "ValueMap";
   }
 }
@@ -271,13 +267,12 @@ export interface ReadonlyValueSet<T> extends Iterable<T> {
 
 /** A set whose elements are compared by value, through a structural string */
 export class ValueSet<T> implements ReadonlyValueSet<T> {
-  private readonly canon = new Map<string, T>();
-  private readonly inner = new Set<T>();
+  readonly #canon = new Map<string, T>();
+  readonly #inner = new Set<T>();
+  readonly #keyOf: (x: T) => string;
 
-  constructor(
-    private readonly keyOf: (x: T) => string,
-    elements: Iterable<T> = [],
-  ) {
+  constructor(keyOf: (x: T) => string, elements: Iterable<T> = []) {
+    this.#keyOf = keyOf;
     for (const x of elements) {
       this.add(x);
     }
@@ -285,52 +280,52 @@ export class ValueSet<T> implements ReadonlyValueSet<T> {
 
   /** Add `x`, if no equal element is in the set; mutates the set, so only for code building it */
   add(x: T): this {
-    const s = this.keyOf(x);
-    if (!this.canon.has(s)) {
-      this.canon.set(s, x);
-      this.inner.add(x);
+    const s = this.#keyOf(x);
+    if (!this.#canon.has(s)) {
+      this.#canon.set(s, x);
+      this.#inner.add(x);
     }
     return this;
   }
 
   /** Remove the element equal to `x`, if any; mutates the set, so only for code building it */
   delete(x: T): boolean {
-    const s = this.keyOf(x);
-    const c = this.canon.get(s);
+    const s = this.#keyOf(x);
+    const c = this.#canon.get(s);
     if (c === undefined) return false;
-    this.canon.delete(s);
-    return this.inner.delete(c);
+    this.#canon.delete(s);
+    return this.#inner.delete(c);
   }
 
   has(x: T): boolean {
-    return this.canon.has(this.keyOf(x));
+    return this.#canon.has(this.#keyOf(x));
   }
 
   get size(): number {
-    return this.inner.size;
+    return this.#inner.size;
   }
 
   forEach(f: (value: T, value2: T, set: ReadonlyValueSet<T>) => void, thisArg?: unknown): void {
-    this.inner.forEach((x) => f.call(thisArg, x, x, this));
+    this.#inner.forEach((x) => f.call(thisArg, x, x, this));
   }
 
   entries(): SetIterator<[T, T]> {
-    return this.inner.entries();
+    return this.#inner.entries();
   }
 
   keys(): SetIterator<T> {
-    return this.inner.keys();
+    return this.#inner.keys();
   }
 
   values(): SetIterator<T> {
-    return this.inner.values();
+    return this.#inner.values();
   }
 
-  [iteratorSymbol](): SetIterator<T> {
-    return this.inner.values();
+  [Symbol.iterator](): SetIterator<T> {
+    return this.#inner.values();
   }
 
-  get [toStringTagSymbol](): string {
+  get [Symbol.toStringTag](): string {
     return "ValueSet";
   }
 }
@@ -343,6 +338,15 @@ export function uidSet(uids: Iterable<Uid> = []): ValueSet<Uid> {
 /** A map keyed by uids, compared by value as `Uid.equals` does */
 export function uidMap<V>(entries: Iterable<readonly [Uid, V]> = []): ValueMap<Uid, V> {
   return new ValueMap(uidKey, entries);
+}
+
+/**
+ * A map keyed by variables, compared by value as `Variable.equals` does
+ *
+ * @internal
+ */
+export function variableMap<V>(entries: Iterable<readonly [Variable, V]>): ValueMap<Variable, V> {
+  return new ValueMap((v: Variable) => uidKey(v.id), entries);
 }
 
 function uidSetOfLib(xs: Iterable<lib.Uid>): ValueSet<Uid> {
@@ -479,6 +483,7 @@ export class Cname {
     readonly raw: lib.Cname,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Cname): Cname {
     return new Cname(x.name, x.chash, x.is_key, x);
   }
@@ -515,7 +520,11 @@ function chashStr(chash: Uint8Array): string {
 // `Upto.t` has the single constructor `N_steps of int`, so it is represented by that number of
 // steps.
 
-/** The number of steps of a library `Upto` */
+/**
+ * The number of steps of a library `Upto`
+ *
+ * @internal
+ */
 export function uptoOfLib(x: lib.Upto): number {
   if (x instanceof lib.Upto_N_steps) {
     return Number(x.arg);
@@ -615,6 +624,7 @@ export class BoolConst {
 export type Const =
   FloatConst | StringConst | IntConst | RationalConst | RealApproxConst | UidConst | BoolConst;
 
+/** @internal */
 export function constOfLib(x: lib.Const): Const {
   if (x instanceof lib.Const_Const_float) return new FloatConst(x.arg, x);
   if (x instanceof lib.Const_Const_string) return new StringConst(x.arg, x);
@@ -665,6 +675,7 @@ export class DecompBuiltin {
 
 export type BuiltinDataKind = LogicCoreBuiltin | SpecialBuiltin | TacticBuiltin | DecompBuiltin;
 
+/** @internal */
 export function builtinDataKindOfLib(x: lib.Builtin_data_kind): BuiltinDataKind {
   if (x instanceof lib.Builtin_data_kind_Logic_core)
     return new LogicCoreBuiltin(x.logic_core_name, x);
@@ -684,6 +695,7 @@ export class BuiltinFunction {
     readonly raw: lib.Builtin_Fun,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Builtin_Fun): BuiltinFunction {
     return new BuiltinFunction(
       new Uid(x.id),
@@ -703,6 +715,7 @@ export class BuiltinSort {
     readonly raw: lib.Builtin_Ty,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Builtin_Ty): BuiltinSort {
     return new BuiltinSort(new Uid(x.id), builtinDataKindOfLib(x.kind), x);
   }
@@ -754,6 +767,7 @@ export class RewriteTrigger {
 
 export type AsTrigger = NoTrigger | AnonymousTrigger | NamedTrigger | RewriteTrigger;
 
+/** @internal */
 export function asTriggerOfLib(x: lib.As_trigger): AsTrigger {
   if (x instanceof lib.As_trigger_Trig_none) return new NoTrigger(x);
   if (x instanceof lib.As_trigger_Trig_anon) return new AnonymousTrigger(x);
@@ -786,6 +800,7 @@ export abstract class TypeBase {
 /** Converted types, by lib type; see Note [Lib memo] */
 const typeMemo = new WeakMap<lib.Mir_Type, Type>();
 
+/** @internal */
 export function typeOfLib(x: lib.Mir_Type): Type {
   let ty = typeMemo.get(x);
   if (ty === undefined) {
@@ -907,6 +922,7 @@ export class ConstructorDefinition {
     this.raw = raw;
   }
 
+  /** @internal */
   static ofLib(x: lib.Ty_view_adt_row<lib.Uid, lib.Mir_Type>): ConstructorDefinition {
     return new ConstructorDefinition(
       new Uid(x.c),
@@ -941,6 +957,7 @@ export class FieldDefinition {
     readonly raw: lib.Ty_view_rec_row<lib.Uid, lib.Mir_Type>,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Ty_view_rec_row<lib.Uid, lib.Mir_Type>): FieldDefinition {
     return new FieldDefinition(new Uid(x.f), typeOfLib(x.ty), x.doc, x);
   }
@@ -990,6 +1007,7 @@ export class OtherTypeKind {
 export type TypeKind =
   AlgebraicTypeKind | RecordTypeKind | SkolemTypeKind | BuiltinTypeKind | OtherTypeKind;
 
+/** @internal */
 export function typeKindOfLib(x: RawTypeDecl): TypeKind {
   if (x instanceof lib.Ty_view_decl_Algebraic) {
     return new AlgebraicTypeKind(
@@ -1028,6 +1046,7 @@ export class TypeDefinition {
     readonly raw: lib.Mir_Type_def,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Type_def): TypeDefinition {
     return new TypeDefinition(
       new Uid(x.name),
@@ -1066,6 +1085,7 @@ export class Variable {
     readonly raw: lib.Mir_Var,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Var): Variable {
     return new Variable(new Uid(x.id), typeOfLib(x.ty), x);
   }
@@ -1087,6 +1107,7 @@ export class TypeSchema {
     readonly raw: lib.Mir_Type_schema,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Type_schema): TypeSchema {
     return new TypeSchema(
       x.params.map((p) => new Uid(p)),
@@ -1109,6 +1130,7 @@ export class TypedSymbol {
     readonly raw: lib.Mir_Typed_symbol,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Typed_symbol): TypedSymbol {
     return new TypedSymbol(new Uid(x.id), TypeSchema.ofLib(x.ty), x);
   }
@@ -1130,6 +1152,7 @@ export class AppliedSymbol {
     readonly raw: lib.Mir_Applied_symbol,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Applied_symbol): AppliedSymbol {
     return new AppliedSymbol(TypedSymbol.ofLib(x.sym), x.args.map(typeOfLib), typeOfLib(x.ty), x);
   }
@@ -1169,7 +1192,7 @@ export abstract class TermBase {
   }
 
   /** Iterate over this term and all of its subterms, recursively, parents before children */
-  *[iteratorSymbol](): Generator<Term, void, undefined> {
+  *[Symbol.iterator](): Generator<Term, void, undefined> {
     const stack: Term[] = [this as unknown as Term];
     while (stack.length > 0) {
       const t = stack.pop()!;
@@ -1211,6 +1234,7 @@ export abstract class TermBase {
 /** Converted terms, by lib term; see Note [Lib memo] */
 const termMemo = new WeakMap<lib.Mir_Term, Term>();
 
+/** @internal */
 export function termOfLib(x: lib.Mir_Term): Term {
   let t = termMemo.get(x);
   if (t === undefined) {
@@ -1232,7 +1256,7 @@ function termOfLibUncached(x: lib.Mir_Term): Term {
     return new Apply(termOfLib(v.f), v.l.map(termOfLib), ty, x);
   }
   if (v instanceof lib.Mir_Term_view_Var) return new Var(Variable.ofLib(v.arg), ty, x);
-  if (v instanceof lib.Mir_Term_view_Sym) return new Symbol(AppliedSymbol.ofLib(v.arg), ty, x);
+  if (v instanceof lib.Mir_Term_view_Sym) return new SymbolTerm(AppliedSymbol.ofLib(v.arg), ty, x);
   if (v instanceof lib.Mir_Term_view_Construct) {
     return new Construct(
       AppliedSymbol.ofLib(v.c),
@@ -1256,8 +1280,8 @@ function termOfLibUncached(x: lib.Mir_Term): Term {
     return new TupleField(Number(v.i), termOfLib(v.t), ty, x);
   }
   if (v instanceof lib.Mir_Term_view_Record) {
-    return new Record(
-      v.rows.map(([f, t]) => [AppliedSymbol.ofLib(f), termOfLib(t)] as const),
+    return new RecordTerm(
+      v.rows.map(([f, t]) => ({ field: AppliedSymbol.ofLib(f), value: termOfLib(t) })),
       v.rest === undefined ? undefined : termOfLib(v.rest),
       ty,
       x,
@@ -1266,7 +1290,7 @@ function termOfLibUncached(x: lib.Mir_Term): Term {
   if (v instanceof lib.Mir_Term_view_Case) {
     return new Case(
       termOfLib(v.u),
-      v.cases.map(([c, t]) => [AppliedSymbol.ofLib(c), termOfLib(t)] as const),
+      v.cases.map(([c, t]) => ({ ctor: AppliedSymbol.ofLib(c), rhs: termOfLib(t) })),
       v.default_ === undefined ? undefined : termOfLib(v.default_),
       ty,
       x,
@@ -1359,14 +1383,18 @@ export class Var extends TermBase {
   }
 }
 
-/** Turn a library variable into a `Var` term */
+/**
+ * Turn a library variable into a `Var` term
+ *
+ * @internal
+ */
 export function varTermOfVar(x: lib.Mir_Var): Var {
   const raw = new lib.Mir_Term(new lib.Mir_Term_view_Var(x), x.ty, undefined);
   return new Var(Variable.ofLib(x), typeOfLib(x.ty), raw);
 }
 
 /** A reference to a declared symbol, e.g. a function, by its uid */
-export class Symbol extends TermBase {
+export class SymbolTerm extends TermBase {
   readonly kind = "symbol";
   constructor(
     /** The symbol, instantiated at its type */
@@ -1554,12 +1582,18 @@ export class TupleField extends TermBase {
   }
 }
 
+/** A field of a `RecordTerm`, and its value */
+export interface RecordRow {
+  readonly field: AppliedSymbol;
+  readonly value: Term;
+}
+
 /** A record */
-export class Record extends TermBase {
+export class RecordTerm extends TermBase {
   readonly kind = "record";
   constructor(
     /** The record's fields and their values */
-    readonly rows: readonly (readonly [AppliedSymbol, Term])[],
+    readonly rows: readonly RecordRow[],
     /** The record being updated in `{rest with ...}`, if any */
     readonly rest: Term | undefined,
     type: Type,
@@ -1570,16 +1604,22 @@ export class Record extends TermBase {
 
   override get subterms(): Term[] {
     const ts: Term[] = this.rest === undefined ? [] : [this.rest];
-    return [...ts, ...this.rows.map(([, t]) => t)];
+    return [...ts, ...this.rows.map((r) => r.value)];
   }
 
   override toString(): string {
-    const fields = this.rows.map(([f, t]) => `${f.id.shortName} = ${t}`).join("; ");
+    const fields = this.rows.map((r) => `${r.field.id.shortName} = ${r.value}`).join("; ");
     if (this.rest !== undefined) {
       return `{${this.rest} with ${fields}}`;
     }
     return `{${fields}}`;
   }
+}
+
+/** A match arm of a `Case`: the constructor, and the term for that case */
+export interface CaseArm {
+  readonly ctor: AppliedSymbol;
+  readonly rhs: Term;
 }
 
 /** A pattern match on `scrutinee` */
@@ -1588,13 +1628,13 @@ export class Case extends TermBase {
   /** The term being matched on */
   readonly scrutinee: Term;
   /** The match arms, each a constructor and the term for that case */
-  readonly cases: readonly (readonly [AppliedSymbol, Term])[];
+  readonly cases: readonly CaseArm[];
   /** The term for the wildcard case `_`, if any */
   readonly default: Term | undefined;
 
   constructor(
     scrutinee: Term,
-    cases: readonly (readonly [AppliedSymbol, Term])[],
+    cases: readonly CaseArm[],
     default_: Term | undefined,
     type: Type,
     raw: lib.Mir_Term,
@@ -1606,7 +1646,7 @@ export class Case extends TermBase {
   }
 
   override get subterms(): Term[] {
-    const ts = [this.scrutinee, ...this.cases.map(([, t]) => t)];
+    const ts = [this.scrutinee, ...this.cases.map((c) => c.rhs)];
     if (this.default !== undefined) {
       ts.push(this.default);
     }
@@ -1614,7 +1654,7 @@ export class Case extends TermBase {
   }
 
   override toString(): string {
-    const arms = this.cases.map(([c, t]) => `| ${c.id.shortName} -> ${t}`);
+    const arms = this.cases.map((c) => `| ${c.ctor.id.shortName} -> ${c.rhs}`);
     if (this.default !== undefined) {
       arms.push(`| _ -> ${this.default}`);
     }
@@ -1651,14 +1691,14 @@ export type Term =
   | If
   | Apply
   | Var
-  | Symbol
+  | SymbolTerm
   | Construct
   | Destruct
   | IsA
   | Tuple
   | Field
   | TupleField
-  | Record
+  | RecordTerm
   | Case
   | Sequence;
 
@@ -1778,10 +1818,10 @@ function toJsImpl(t: Term, db?: DB): JsValue {
   if (t instanceof Tuple) {
     return t.elements.map((e) => toJsImpl(e, db));
   }
-  if (t instanceof Record && t.rest === undefined) {
+  if (t instanceof RecordTerm && t.rest === undefined) {
     const fields = new Map<string, JsValue>();
-    for (const [f, v] of t.rows) {
-      fields.set(f.id.shortName, toJsImpl(v, db));
+    for (const { field, value } of t.rows) {
+      fields.set(field.id.shortName, toJsImpl(value, db));
     }
     return fields;
   }
@@ -1793,15 +1833,30 @@ Sequents
 ========
 */
 
-function binderOfLib(
-  x: readonly [readonly lib.Mir_Var[], lib.Mir_Term],
-): readonly [readonly Variable[], Term] {
-  const [vs, t] = x;
-  return [vs.map((v) => Variable.ofLib(v)), termOfLib(t)];
+/** A term with bound variables, `fun variables -> body` */
+export interface Binder {
+  readonly variables: readonly Variable[];
+  readonly body: Term;
 }
 
-/** A named (or unnamed) hypothesis or conclusion of a sequent */
-export type NamedTerm = readonly [string | undefined, Term];
+/** @internal */
+export function binderOfLib(x: readonly [readonly lib.Mir_Var[], lib.Mir_Term]): Binder {
+  const [vs, t] = x;
+  return { variables: vs.map((v) => Variable.ofLib(v)), body: termOfLib(t) };
+}
+
+/** @internal */
+export function namedHypothesesOfLib(
+  xs: readonly (readonly [string, lib.Mir_Term])[],
+): ReadonlyMap<string, Term> {
+  return new Map(xs.map(([n, t]) => [n, termOfLib(t)]));
+}
+
+/** A hypothesis or conclusion of a sequent, with its name if it has one */
+export interface NamedTerm {
+  readonly name: string | undefined;
+  readonly term: Term;
+}
 
 export class Sequent {
   constructor(
@@ -1812,32 +1867,33 @@ export class Sequent {
     readonly raw: lib.Mir_Sequent,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Sequent): Sequent {
     return new Sequent(
-      x.hyps.map(([n, t]) => [n, termOfLib(t)] as const),
-      x.concls.map(([n, t]) => [n, termOfLib(t)] as const),
+      x.hyps.map(([name, t]) => ({ name, term: termOfLib(t) })),
+      x.concls.map(([name, t]) => ({ name, term: termOfLib(t) })),
       x,
     );
   }
 
   /** The hypotheses, without their names */
   get hypothesisTerms(): readonly Term[] {
-    return this.hypotheses.map(([, t]) => t);
+    return this.hypotheses.map((h) => h.term);
   }
 
   /** The conclusions, without their names */
   get conclusionTerms(): readonly Term[] {
-    return this.conclusions.map(([, t]) => t);
+    return this.conclusions.map((c) => c.term);
   }
 
   /** The hypothesis named `name`, if any */
   findHypothesis(name: string): NamedTerm | undefined {
-    return this.hypotheses.find((h) => h[0] === name);
+    return this.hypotheses.find((h) => h.name === name);
   }
 
   /** The conclusion named `name`, if any */
   findConclusion(name: string): NamedTerm | undefined {
-    return this.conclusions.find((c) => c[0] === name);
+    return this.conclusions.find((c) => c.name === name);
   }
 
   /** The hypothesis named `name`, or else the conclusion named `name`, if any */
@@ -1847,18 +1903,18 @@ export class Sequent {
 
   toString(): string {
     // As OCaml's `Sequent.pp_seq`: unnamed hypotheses and conclusions are numbered by position
-    const hyps = this.hypotheses.map(([n, t], i) =>
-      n !== undefined ? `${n}: ${t}` : `H${i}. ${t}`,
+    const hyps = this.hypotheses.map(({ name, term }, i) =>
+      name !== undefined ? `${name}: ${term}` : `H${i}. ${term}`,
     );
     let concls: string[];
     if (this.conclusions.length === 0) {
       concls = ["false"];
     } else if (this.conclusions.length === 1) {
-      const [n, c] = this.conclusions[0]!;
-      concls = [n !== undefined ? `${n}: ${c}` : `${c}`];
+      const { name, term } = this.conclusions[0]!;
+      concls = [name !== undefined ? `${name}: ${term}` : `${term}`];
     } else {
-      concls = this.conclusions.map(([n, c], i) =>
-        n !== undefined ? `${n}: ${c}` : `C${i}. ${c}`,
+      concls = this.conclusions.map(({ name, term }, i) =>
+        name !== undefined ? `${name}: ${term}` : `C${i}. ${term}`,
       );
     }
     return [...hyps, "|" + "-".repeat(70), ...concls.map((c) => ` ${c}`)].join("\n");
@@ -1866,11 +1922,14 @@ export class Sequent {
 }
 
 /** A single item in a trigger */
-export type PreTrigger = readonly [Term, AsTrigger];
+export interface PreTrigger {
+  readonly term: Term;
+  readonly asTrigger: AsTrigger;
+}
 
 function preTriggerOfLib(x: lib.Mir_Pre_trigger): PreTrigger {
   const [t, a] = x;
-  return [termOfLib(t), asTriggerOfLib(a)];
+  return { term: termOfLib(t), asTrigger: asTriggerOfLib(a) };
 }
 
 /*
@@ -1888,6 +1947,7 @@ export class Admission {
     readonly raw: lib.Common_Admission,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Common_Admission): Admission {
     return new Admission(
       [...x.measured_subset],
@@ -1904,19 +1964,9 @@ export class Validate {
   readonly kind = "validate";
   constructor(
     /** The tactic, `fun variables -> body`, if any */
-    readonly tactic: readonly [readonly Variable[], Term] | undefined,
+    readonly tactic: Binder | undefined,
     readonly raw: RawValidationStrategy,
   ) {}
-
-  /** The variables bound in the tactic, if any */
-  get tacticVariables(): readonly Variable[] | undefined {
-    return this.tactic?.[0];
-  }
-
-  /** The tactic's body, if any */
-  get tacticBody(): Term | undefined {
-    return this.tactic?.[1];
-  }
 }
 
 /** Admitted, or builtin. */
@@ -1928,6 +1978,7 @@ export class NoValidate {
 /** How to validate a function */
 export type ValidationStrategy = Validate | NoValidate;
 
+/** @internal */
 export function validationStrategyOfLib(x: RawValidationStrategy): ValidationStrategy {
   if (x instanceof lib.Common_Hints_validation_strategy_VS_validate) {
     return new Validate(x.tactic === undefined ? undefined : binderOfLib(x.tactic), x);
@@ -1953,6 +2004,7 @@ export class Hints {
     readonly raw: lib.Mir_Hints,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Hints): Hints {
     return new Hints(
       validationStrategyOfLib(x.f_validate_strat),
@@ -2049,6 +2101,7 @@ export class TermTactic {
 export type Tactic =
   DefaultTerminationTactic | DefaultTheoremTactic | DefaultTestTactic | TermTactic;
 
+/** @internal */
 export function tacticOfLib(t: lib.Mir_Tactic): Tactic {
   if (t instanceof lib.Common_Tactic_t_poly_Default_termination) {
     return new DefaultTerminationTactic(Number(t.max_steps), uidSetOfLib(t.basis), t);
@@ -2107,6 +2160,7 @@ export class OpaqueFunctionKind {
 
 export type FunctionKind = DefinedFunctionKind | BuiltinFunctionKind | OpaqueFunctionKind;
 
+/** @internal */
 export function functionKindOfLib(x: lib.Common_Fun_def_fun_kind): FunctionKind {
   if (x instanceof lib.Common_Fun_def_fun_kind_Fun_defined) {
     return new DefinedFunctionKind(x.is_macro, x.from_lambda, x);
@@ -2157,6 +2211,7 @@ export class FunctionDefinition {
     this.raw = raw;
   }
 
+  /** @internal */
   static ofLib(x: lib.Mir_Fun_def): FunctionDefinition {
     return new FunctionDefinition(
       new Uid(x.f_name),
@@ -2207,21 +2262,12 @@ export class Theorem {
     readonly triggers: readonly PreTrigger[],
     readonly isAxiom: boolean,
     /** The proof, `fun variables -> body` */
-    readonly by: readonly [readonly Variable[], Term],
-    readonly namedHypotheses: readonly (readonly [string, Term])[],
+    readonly by: Binder,
+    /** Named hypotheses available for the proof, by name */
+    readonly namedHypotheses: ReadonlyMap<string, Term>,
     readonly raw: lib.Mir_Theorem,
   ) {
     this.function = fn;
-  }
-
-  /** The variables bound in the proof */
-  get byVariables(): readonly Variable[] {
-    return this.by[0];
-  }
-
-  /** The proof's body */
-  get byBody(): Term {
-    return this.by[1];
   }
 
   /** The theorem's name, that of its `function` */
@@ -2229,6 +2275,7 @@ export class Theorem {
     return this.function.name;
   }
 
+  /** @internal */
   static ofLib(x: lib.Mir_Theorem): Theorem {
     return new Theorem(
       FunctionDefinition.ofLib(x.thm_link),
@@ -2240,7 +2287,7 @@ export class Theorem {
       x.thm_triggers.map(preTriggerOfLib),
       x.thm_is_axiom,
       binderOfLib(x.thm_by),
-      x.thm_named_hypotheses.map(([n, t]) => [n, termOfLib(t)] as const),
+      namedHypothesesOfLib(x.thm_named_hypotheses),
       x,
     );
   }
@@ -2283,6 +2330,7 @@ export class RuleSpec {
     return this.function.name;
   }
 
+  /** @internal */
   static ofLib(x: RawRuleSpec): RuleSpec {
     return new RuleSpec(
       x.rule_spec_fc,
@@ -2297,6 +2345,7 @@ export class RuleSpec {
 
 export type VerifyKind = "verify" | "instance" | "test";
 
+/** @internal */
 export function verifyKindOfLib(x: lib.Common_Verify_kind): VerifyKind {
   if (x instanceof lib.Common_Verify_kind_K_verify) return "verify";
   if (x instanceof lib.Common_Verify_kind_K_instance) return "instance";
@@ -2322,20 +2371,10 @@ export class Verify {
     /** arithmetic terms to minimize in models */
     readonly minimize: readonly Term[],
     /** The proof, `fun variables -> body`, if any */
-    readonly by: readonly [readonly Variable[], Term] | undefined,
+    readonly by: Binder | undefined,
     readonly raw: RawVerify,
   ) {
     this.function = fn;
-  }
-
-  /** The variables bound in the proof, if any */
-  get byVariables(): readonly Variable[] | undefined {
-    return this.by?.[0];
-  }
-
-  /** The proof's body, if any */
-  get byBody(): Term | undefined {
-    return this.by?.[1];
   }
 
   /** The verify statement's name, that of its `function` */
@@ -2343,6 +2382,7 @@ export class Verify {
     return this.function.name;
   }
 
+  /** @internal */
   static ofLib(x: RawVerify): Verify {
     return new Verify(
       FunctionDefinition.ofLib(x.verify_link),
@@ -2362,6 +2402,7 @@ Declarations
 ============
 */
 
+/** @internal */
 export function declarationOfLib(x: lib.Mir_Decl): Declaration {
   if (x instanceof lib.Common_Decl_t_poly_Fun) {
     return new FunctionDeclaration(FunctionDefinition.ofLib(x.arg), x);
@@ -2511,6 +2552,7 @@ Patterns and rules
 ==================
 */
 
+/** @internal */
 export function patternHeadOfLib(x: lib.Mir_Pattern_head): PatternHead {
   if (x instanceof lib.Common_Pattern_head_t_poly_PH_id) return new SymbolHead(new Uid(x.arg), x);
   if (x instanceof lib.Common_Pattern_head_t_poly_PH_ty) return new TypeHead(typeOfLib(x.arg), x);
@@ -2700,6 +2742,7 @@ export type FoPattern =
   | DestructPattern
   | IsAPattern;
 
+/** @internal */
 export function foPatternOfLib(x: lib.Mir_Fo_pattern): FoPattern {
   const ty = typeOfLib(x.ty);
   const v = x.view;
@@ -2757,6 +2800,7 @@ export class RewriteRule {
     readonly raw: lib.Mir_Rewrite_rule,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Rewrite_rule): RewriteRule {
     return new RewriteRule(
       new Uid(x.rw_name),
@@ -2783,6 +2827,7 @@ export class Trigger {
     readonly raw: lib.Mir_Trigger,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Trigger): Trigger {
     return new Trigger(
       patternHeadOfLib(x.trigger_head),
@@ -2795,6 +2840,7 @@ export class Trigger {
 
 export type InstantiationRuleKind = "forwardChaining" | "generalization";
 
+/** @internal */
 export function instantiationRuleKindOfLib(
   x: lib.Common_Instantiation_rule_kind,
 ): InstantiationRuleKind {
@@ -2815,6 +2861,7 @@ export class InstantiationRule {
     this.function = fn;
   }
 
+  /** @internal */
   static ofLib(x: lib.Mir_Instantiation_rule): InstantiationRule {
     return new InstantiationRule(
       FunctionDefinition.ofLib(x.ir_from),
@@ -2848,6 +2895,7 @@ export class EliminationRule {
     readonly raw: lib.Mir_Elimination_rule,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Elimination_rule): EliminationRule {
     return new EliminationRule(
       new Uid(x.er_name),
@@ -2880,7 +2928,7 @@ export class FunctionInterpretation {
   /** The function's return type */
   readonly returnType: Type;
   /** The cases, in order */
-  readonly cases: readonly FunctionInterpretation.FiCase[];
+  readonly cases: readonly FunctionInterpretationCase[];
   /** The function's value if none of the cases fires */
   readonly else: Term;
   readonly raw: RawFi;
@@ -2888,7 +2936,7 @@ export class FunctionInterpretation {
   constructor(
     args: readonly Variable[],
     returnType: Type,
-    cases: readonly FunctionInterpretation.FiCase[],
+    cases: readonly FunctionInterpretationCase[],
     else_: Term,
     raw: RawFi,
   ) {
@@ -2899,12 +2947,13 @@ export class FunctionInterpretation {
     this.raw = raw;
   }
 
+  /** @internal */
   static ofLib(x: RawFi): FunctionInterpretation {
     return new FunctionInterpretation(
       x.fi_args.map((a) => Variable.ofLib(a)),
       typeOfLib(x.fi_ty_ret),
       x.fi_cases.map(
-        ([gs, rhs]) => new FunctionInterpretation.FiCase(gs.map(termOfLib), termOfLib(rhs)),
+        ([gs, rhs]) => new FunctionInterpretationCase(gs.map(termOfLib), termOfLib(rhs)),
       ),
       termOfLib(x.fi_else),
       x,
@@ -2912,19 +2961,17 @@ export class FunctionInterpretation {
   }
 }
 
-export namespace FunctionInterpretation {
-  /**
-   * For inputs with `sigma` the substitution mapping the function's `arguments` to them, if
-   * every `sigma(guard)` holds, the function is equal to `sigma(rhs)`
-   */
-  export class FiCase {
-    constructor(
-      /** The conditions under which the case fires */
-      readonly guards: readonly Term[],
-      /** The function's value when the case fires */
-      readonly rhs: Term,
-    ) {}
-  }
+/**
+ * For inputs with `sigma` the substitution mapping the function's `arguments` to them, if
+ * every `sigma(guard)` holds, the function is equal to `sigma(rhs)`
+ */
+export class FunctionInterpretationCase {
+  constructor(
+    /** The conditions under which the case fires */
+    readonly guards: readonly Term[],
+    /** The function's value when the case fires */
+    readonly rhs: Term,
+  ) {}
 }
 
 type RawTyDef = lib.Common_Model_ty_def<lib.Mir_Term, lib.Mir_Type>;
@@ -2950,6 +2997,7 @@ export class UnitAliasTypeInterpretation {
 /** The interpretation of a type in a model */
 export type TypeInterpretation = FiniteTypeInterpretation | UnitAliasTypeInterpretation;
 
+/** @internal */
 export function typeInterpretationOfLib(x: RawTyDef): TypeInterpretation {
   if (x instanceof lib.Common_Model_ty_def_Ty_finite) {
     return new FiniteTypeInterpretation(x.arg.map(termOfLib), x);
@@ -2973,11 +3021,12 @@ export class Model {
     readonly representable: boolean,
     /** Indicates whether the model has been completed */
     readonly completed: boolean,
-    /** Types that had new ones substituted during model extraction. */
-    readonly typeSubstitution: readonly (readonly [Uid, Type])[],
+    /** Types that had new ones substituted during model extraction, by the substituted type's uid */
+    readonly typeSubstitution: ReadonlyMap<Uid, Type>,
     readonly raw: lib.Mir_Model,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Mir_Model): Model {
     return new Model(
       new ValueMap(
@@ -2994,7 +3043,7 @@ export class Model {
       ),
       x.representable,
       x.completed,
-      x.ty_subst.map(([u, t]) => [new Uid(u), typeOfLib(t)] as const),
+      uidMap(x.ty_subst.map(([u, t]) => [new Uid(u), typeOfLib(t)] as const)),
       x,
     );
   }
@@ -3057,6 +3106,7 @@ export class FeasibilityCheckFailedStatus {
 
 export type RegionStatus = UnknownStatus | FeasibleStatus | FeasibilityCheckFailedStatus;
 
+/** @internal */
 export function regionStatusOfLib(x: RawRegionStatus): RegionStatus {
   if (x instanceof lib.Common_Region_status_Unknown) return new UnknownStatus(x);
   if (x instanceof lib.Common_Region_status_Feasible)
@@ -3067,7 +3117,7 @@ export function regionStatusOfLib(x: RawRegionStatus): RegionStatus {
   return unexpected("region status", x);
 }
 
-function metaOfLib(m: lib.Common_Region_meta<lib.Mir_Term>): Decomposition.Region.Meta {
+function metaOfLib(m: lib.Common_Region_meta<lib.Mir_Term>): RegionMeta {
   if (m instanceof lib.Common_Region_meta_Null) return null;
   if (m instanceof lib.Common_Region_meta_Bool) return m.arg;
   if (m instanceof lib.Common_Region_meta_Int) return m.arg;
@@ -3082,7 +3132,7 @@ function metaOfLib(m: lib.Common_Region_meta<lib.Mir_Term>): Decomposition.Regio
 }
 
 /** `m`, which the server sends as a term */
-function metaTerm(m: Decomposition.Region.Meta): Term {
+function metaTerm(m: RegionMeta): Term {
   if (!(m instanceof TermBase)) {
     throw new UnexpectedResponseError(`expected a term in region metadata, got ${m}`);
   }
@@ -3096,13 +3146,13 @@ export class Decomposition {
   /** The decomposed function's parameters */
   readonly arguments: readonly Variable[];
   /** The regions */
-  readonly regions: readonly Decomposition.Region[];
+  readonly regions: readonly Region[];
   readonly raw: lib.Mir_Fun_decomp;
 
   constructor(
     id: Uid,
     args: readonly Variable[],
-    regions: readonly Decomposition.Region[],
+    regions: readonly Region[],
     raw: lib.Mir_Fun_decomp,
   ) {
     this.id = id;
@@ -3111,11 +3161,12 @@ export class Decomposition {
     this.raw = raw;
   }
 
+  /** @internal */
   static ofLib(d: lib.Mir_Fun_decomp): Decomposition {
     return new Decomposition(
       new Uid(d.f_id),
       d.f_args.map((a) => Variable.ofLib(a)),
-      d.regions.map((r) => Decomposition.Region.ofLib(r)),
+      d.regions.map((r) => Region.ofLib(r)),
       d,
     );
   }
@@ -3126,141 +3177,138 @@ export class Decomposition {
   }
 }
 
-export namespace Decomposition {
-  /** A region of the input space, given by constraints, and the result in it */
-  export class Region {
-    constructor(
-      /** The constraints on the inputs that define the region */
-      readonly constraints: readonly Term[],
-      /** The function's result for inputs in the region */
-      readonly invariant: Term,
-      /** Metadata attached to the region, by name */
-      readonly meta: ReadonlyMap<string, Region.Meta>,
-      /** Whether the region is known to be feasible */
-      readonly status: RegionStatus,
-      readonly raw: lib.Mir_Region_Region,
-    ) {}
+/** A region of the input space, given by constraints, and the result in it */
+export class Region {
+  constructor(
+    /** The constraints on the inputs that define the region */
+    readonly constraints: readonly Term[],
+    /** The function's result for inputs in the region */
+    readonly invariant: Term,
+    /** Metadata attached to the region, by name */
+    readonly meta: ReadonlyMap<string, RegionMeta>,
+    /** Whether the region is known to be feasible */
+    readonly status: RegionStatus,
+    readonly raw: lib.Mir_Region_Region,
+  ) {}
 
-    static ofLib(r: lib.Mir_Region_Region): Region {
-      return new Region(
-        r.constraints.map(termOfLib),
-        termOfLib(r.invariant),
-        new Map(r.meta.map(([key, v]) => [key, metaOfLib(v)] as const)),
-        regionStatusOfLib(r.status),
-        r,
-      );
-    }
-
-    /**
-     * The model of the region's constraints, if the region was proved feasible
-     *
-     * Note: Pruning a decomposition checks each region's feasibility.
-     * The model can bind more variables than the decomposed function's arguments,
-     * e.g. after `enumerate_all`. Use UID to disambiguate variables with the same
-     * short names.
-     */
-    get model(): Model | undefined {
-      return this.status instanceof FeasibleStatus ? this.status.model : undefined;
-    }
-
-    /** The function's result on `model`, if the region was proved feasible */
-    get modelEval(): Term | undefined {
-      const m = this.meta.get("model_eval");
-      return m === undefined || m === null ? undefined : metaTerm(m);
-    }
-
-    /**
-     * The variables' values in `model` as plain JS data, if the region was proved feasible
-     *
-     * @param db The labels of inline records can be left out; pass the decomposition
-     *   task's `db` to restore them.
-     * @throws RangeError if a variable's value is not a value, see `Term.toJs`
-     */
-    sample(db?: DB): ReadonlyMap<Uid, JsValue> | undefined {
-      const m = this.model;
-      if (m === undefined) {
-        return undefined;
-      }
-      return uidMap([...m.constants].map(([s, t]) => [s.symbol.id, t.toJs(db)] as const));
-    }
-
-    /**
-     * `modelEval` as plain JS data, if the region was proved feasible
-     *
-     * @param db The labels of inline records can be left out; pass the decomposition
-     *   task's `db` to restore them.
-     * @throws RangeError if the result is not a value, see `Term.toJs`
-     * @throws UnexpectedResponseError if the server sent something other than a term
-     */
-    sampleOutput(db?: DB): JsValue | undefined {
-      const t = this.modelEval;
-      return t === undefined ? undefined : t.toJs(db);
-    }
-
-    /** The constraints in IML syntax, if requested with `stringResults: true` */
-    get constraintsStr(): readonly string[] | undefined {
-      const cs = this.strMeta("constraints");
-      if (cs === undefined || cs === null) {
-        return undefined;
-      }
-      if (Array.isArray(cs) && cs.every((c) => typeof c === "string")) {
-        return cs as readonly string[];
-      }
-      throw new UnexpectedResponseError(`expected the region's constraints as strings, got ${cs}`);
-    }
-
-    /** The invariant in IML syntax, if requested with `stringResults: true` */
-    get invariantStr(): string | undefined {
-      const s = this.strMeta("invariant");
-      if (s === undefined || s === null) {
-        return undefined;
-      }
-      if (typeof s === "string") {
-        return s;
-      }
-      throw new UnexpectedResponseError(`expected the region's invariant as a string, got ${s}`);
-    }
-
-    private strMeta(key: string): Region.Meta | undefined {
-      const m = this.meta.get("str");
-      return m instanceof Map ? (m as ReadonlyMap<string, Region.Meta>).get(key) : undefined;
-    }
-
-    toString(): string {
-      const constraints = this.constraints.map((c) => `${c}`).join("; ");
-      let status: string;
-      switch (this.status.kind) {
-        case "unknown":
-          status = "unknown";
-          break;
-        case "feasible":
-          status = "feasible";
-          break;
-        case "feasibilityCheckFailed":
-          status = `feasibility check failed: ${this.status.message}`;
-          break;
-      }
-      return `constraints: [${constraints}] invariant: ${this.invariant} status: ${status}`;
-    }
+  /** @internal */
+  static ofLib(r: lib.Mir_Region_Region): Region {
+    return new Region(
+      r.constraints.map(termOfLib),
+      termOfLib(r.invariant),
+      new Map(r.meta.map(([key, v]) => [key, metaOfLib(v)] as const)),
+      regionStatusOfLib(r.status),
+      r,
+    );
   }
 
-  export namespace Region {
-    /**
-     * A metadata value attached to a region
-     *
-     * `null` stands for the server's `Null`, rationals for reals.
-     */
-    export type Meta =
-      | null
-      | boolean
-      | bigint
-      | Rational
-      | string
-      | Term
-      | ReadonlyMap<string, Meta>
-      | readonly Meta[];
+  /**
+   * The model of the region's constraints, if the region was proved feasible
+   *
+   * Note: Pruning a decomposition checks each region's feasibility.
+   * The model can bind more variables than the decomposed function's arguments,
+   * e.g. after `enumerate_all`. Use UID to disambiguate variables with the same
+   * short names.
+   */
+  get model(): Model | undefined {
+    return this.status instanceof FeasibleStatus ? this.status.model : undefined;
+  }
+
+  /** The function's result on `model`, if the region was proved feasible */
+  get modelEval(): Term | undefined {
+    const m = this.meta.get("model_eval");
+    return m === undefined || m === null ? undefined : metaTerm(m);
+  }
+
+  /**
+   * The variables' values in `model` as plain JS data, if the region was proved feasible
+   *
+   * @param db The labels of inline records can be left out; pass the decomposition
+   *   task's `db` to restore them.
+   * @throws RangeError if a variable's value is not a value, see `Term.toJs`
+   */
+  sample(db?: DB): ReadonlyMap<Uid, JsValue> | undefined {
+    const m = this.model;
+    if (m === undefined) {
+      return undefined;
+    }
+    return uidMap([...m.constants].map(([s, t]) => [s.symbol.id, t.toJs(db)] as const));
+  }
+
+  /**
+   * `modelEval` as plain JS data, if the region was proved feasible
+   *
+   * @param db The labels of inline records can be left out; pass the decomposition
+   *   task's `db` to restore them.
+   * @throws RangeError if the result is not a value, see `Term.toJs`
+   * @throws UnexpectedResponseError if the server sent something other than a term
+   */
+  sampleOutput(db?: DB): JsValue | undefined {
+    const t = this.modelEval;
+    return t === undefined ? undefined : t.toJs(db);
+  }
+
+  /** The constraints in IML syntax, if requested with `stringResults: true` */
+  get constraintsStr(): readonly string[] | undefined {
+    const cs = this.#strMeta("constraints");
+    if (cs === undefined || cs === null) {
+      return undefined;
+    }
+    if (Array.isArray(cs) && cs.every((c) => typeof c === "string")) {
+      return cs as readonly string[];
+    }
+    throw new UnexpectedResponseError(`expected the region's constraints as strings, got ${cs}`);
+  }
+
+  /** The invariant in IML syntax, if requested with `stringResults: true` */
+  get invariantStr(): string | undefined {
+    const s = this.#strMeta("invariant");
+    if (s === undefined || s === null) {
+      return undefined;
+    }
+    if (typeof s === "string") {
+      return s;
+    }
+    throw new UnexpectedResponseError(`expected the region's invariant as a string, got ${s}`);
+  }
+
+  #strMeta(key: string): RegionMeta | undefined {
+    const m = this.meta.get("str");
+    return m instanceof Map ? (m as ReadonlyMap<string, RegionMeta>).get(key) : undefined;
+  }
+
+  toString(): string {
+    const constraints = this.constraints.map((c) => `${c}`).join("; ");
+    let status: string;
+    switch (this.status.kind) {
+      case "unknown":
+        status = "unknown";
+        break;
+      case "feasible":
+        status = "feasible";
+        break;
+      case "feasibilityCheckFailed":
+        status = `feasibility check failed: ${this.status.message}`;
+        break;
+    }
+    return `constraints: [${constraints}] invariant: ${this.invariant} status: ${status}`;
   }
 }
+
+/**
+ * A metadata value attached to a region
+ *
+ * `null` stands for the server's `Null`, rationals for reals.
+ */
+export type RegionMeta =
+  | null
+  | boolean
+  | bigint
+  | Rational
+  | string
+  | Term
+  | ReadonlyMap<string, RegionMeta>
+  | readonly RegionMeta[];
 
 /*
 Database
@@ -3274,6 +3322,8 @@ Database
  */
 export class DB {
   readonly raw: lib.Mir_Db_ser;
+  // TS `private` rather than `#`: unit tests seed `rawTys` directly, as there is no encoder to
+  // build the serialized operations a DB is replayed from
   private readonly storage: ReadonlyMap<string, Uint8Array>;
   private readonly disabledUids: ValueSet<Uid> = uidSet();
   private readonly rawTys: ValueMap<Uid, lib.Mir_Type_def> = uidMap();

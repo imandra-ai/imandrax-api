@@ -2,6 +2,7 @@
 
 import { NoClientError, UnexpectedResponseError } from "./errors.js";
 import {
+  type Binder,
   DB,
   Decomposition,
   Model,
@@ -12,6 +13,8 @@ import {
   Uid,
   Variable,
   type VerifyKind,
+  binderOfLib,
+  namedHypothesesOfLib,
   tacticOfLib,
   termOfLib,
   uidSet,
@@ -38,6 +41,7 @@ export class TaskID {
     readonly raw: taskPb.TaskID,
   ) {}
 
+  /** @internal */
   static ofRaw(x: taskPb.TaskID): TaskID {
     return new TaskID(x.id, x);
   }
@@ -212,7 +216,7 @@ export class ProofObligation {
   private constructor(
     readonly description: string,
     /** The goal, `fun variables -> body` */
-    readonly goal: readonly [readonly Variable[], Term],
+    readonly goal: Binder,
     readonly tactic: Tactic,
     /** Whether this is an instance query rather than a proof */
     readonly isInstance: boolean,
@@ -222,34 +226,24 @@ export class ProofObligation {
     readonly upto: number | undefined,
     /** The kind of verification, if any */
     readonly verifyKind: VerifyKind | undefined,
-    /** Named hypotheses available for the proof */
-    readonly namedHypotheses: readonly (readonly [string, Term])[],
+    /** Named hypotheses available for the proof, by name */
+    readonly namedHypotheses: ReadonlyMap<string, Term>,
     readonly raw: lib.Mir_Proof_obligation,
   ) {}
 
+  /** @internal */
   static ofLib(po: lib.Mir_Proof_obligation): ProofObligation {
-    const [vs, t] = po.goal;
     return new ProofObligation(
       po.descr,
-      [vs.map((v) => Variable.ofLib(v)), termOfLib(t)],
+      binderOfLib(po.goal),
       tacticOfLib(po.tactic),
       po.is_instance,
       po.timeout === undefined ? undefined : Number(po.timeout),
       po.upto === undefined ? undefined : uptoOfLib(po.upto),
       po.verify_kind === undefined ? undefined : verifyKindOfLib(po.verify_kind),
-      po.named_hypotheses.map(([n, h]) => [n, termOfLib(h)] as const),
+      namedHypothesesOfLib(po.named_hypotheses),
       po,
     );
-  }
-
-  /** The variables bound in the goal */
-  get goalVariables(): readonly Variable[] {
-    return this.goal[0];
-  }
-
-  /** The goal's body, the term to prove */
-  get goalBody(): Term {
-    return this.goal[1];
   }
 }
 
@@ -365,6 +359,7 @@ export class EvaluationTask extends Task {
  */
 export type LiftBool = "default" | "nestedEqualities" | "equalities" | "all";
 
+/** @internal */
 export function liftBoolOfLib(x: lib.Common_Decomp_lift_bool): LiftBool {
   if (x instanceof lib.Common_Decomp_lift_bool_Default) return "default";
   if (x instanceof lib.Common_Decomp_lift_bool_Nested_equalities) return "nestedEqualities";
@@ -375,6 +370,7 @@ export function liftBoolOfLib(x: lib.Common_Decomp_lift_bool): LiftBool {
 
 export type EnumerationStyle = "additive" | "multiplicative";
 
+/** @internal */
 export function enumerationStyleOfLib(
   x: lib.Tasks_Decomp_task_enumeration_style,
 ): EnumerationStyle {
@@ -389,194 +385,192 @@ export function enumerationStyleOfLib(
  * Requests can be combined into trees, e.g. a merge of the decompositions of two functions.
  */
 export type DecompositionRequest =
-  | DecompositionRequest.Function
-  | DecompositionRequest.Term
-  | DecompositionRequest.Return
-  | DecompositionRequest.Prune
-  | DecompositionRequest.Merge
-  | DecompositionRequest.CompoundMerge
-  | DecompositionRequest.Combine
-  | DecompositionRequest.Get
-  | DecompositionRequest.Let
-  | DecompositionRequest.Enumerate;
+  | FunctionDecompositionRequest
+  | TermDecompositionRequest
+  | ReturnDecompositionRequest
+  | PruneDecompositionRequest
+  | MergeDecompositionRequest
+  | CompoundMergeDecompositionRequest
+  | CombineDecompositionRequest
+  | GetDecompositionRequest
+  | LetDecompositionRequest
+  | EnumerateDecompositionRequest;
 
-export namespace DecompositionRequest {
-  type Raw = lib.Tasks_Decomp_task_Mir_decomp;
+type RawDecompositionRequest = lib.Tasks_Decomp_task_Mir_decomp;
 
-  /** Decompose a function */
-  export class Function {
-    readonly kind = "function";
-    /** The function to decompose */
-    readonly function: Uid;
+/** Decompose a function */
+export class FunctionDecompositionRequest {
+  readonly kind = "function";
+  /** The function to decompose */
+  readonly function: Uid;
 
-    constructor(
-      function_: Uid,
-      /** The side condition the decomposition assumes, if any */
-      readonly assuming: Uid | undefined,
-      /** Functions not to unfold during decomposition */
-      readonly basis: ReadonlyValueSet<Uid>,
-      /** Rule specs to use during decomposition */
-      readonly ruleSpecs: ReadonlyValueSet<Uid>,
-      /** Whether to simplify regions in their context */
-      readonly ctxSimp: boolean,
-      /** How Boolean subterms are lifted into region constraints */
-      readonly liftBool: LiftBool,
-      /** Whether to prune infeasible regions */
-      readonly prune: boolean,
-      readonly raw: Raw,
-    ) {
-      this.function = function_;
-    }
-
-    toString(): string {
-      const assuming = this.assuming === undefined ? "" : ` ~assuming:${this.assuming}`;
-      const prune = this.prune ? " ~prune:true" : "";
-      return `decomp ${this.function}${assuming}${prune}`;
-    }
+  constructor(
+    function_: Uid,
+    /** The side condition the decomposition assumes, if any */
+    readonly assuming: Uid | undefined,
+    /** Functions not to unfold during decomposition */
+    readonly basis: ReadonlyValueSet<Uid>,
+    /** Rule specs to use during decomposition */
+    readonly ruleSpecs: ReadonlyValueSet<Uid>,
+    /** Whether to simplify regions in their context */
+    readonly ctxSimp: boolean,
+    /** How Boolean subterms are lifted into region constraints */
+    readonly liftBool: LiftBool,
+    /** Whether to prune infeasible regions */
+    readonly prune: boolean,
+    readonly raw: RawDecompositionRequest,
+  ) {
+    this.function = function_;
   }
 
-  /** Decompose a term */
-  export class Term {
-    readonly kind = "term";
-    constructor(
-      /** The term to decompose */
-      readonly term: import("./mir.js").Term,
-      readonly raw: Raw,
-    ) {}
-
-    toString(): string {
-      return `term ${this.term}`;
-    }
-  }
-
-  /** An already computed decomposition, returned as is (e.g. as a base case of a merge) */
-  export class Return {
-    readonly kind = "return";
-    constructor(
-      readonly decomposition: Decomposition,
-      readonly raw: Raw,
-    ) {}
-
-    toString(): string {
-      return `return <decomposition of ${this.decomposition.id}>`;
-    }
-  }
-
-  /** Prune the infeasible regions of a decomposition */
-  export class Prune {
-    readonly kind = "prune";
-    constructor(
-      /** The decomposition to prune */
-      readonly request: DecompositionRequest,
-      readonly raw: Raw,
-    ) {}
-
-    toString(): string {
-      return `prune (${this.request})`;
-    }
-  }
-
-  /** Merge two decompositions */
-  export class Merge {
-    readonly kind = "merge";
-    constructor(
-      /** The first decomposition */
-      readonly left: DecompositionRequest,
-      /** The second decomposition */
-      readonly right: DecompositionRequest,
-      readonly raw: Raw,
-    ) {}
-
-    toString(): string {
-      return `merge (${this.left}) (${this.right})`;
-    }
-  }
-
-  /** Compound-merge two decompositions */
-  export class CompoundMerge {
-    readonly kind = "compoundMerge";
-    constructor(
-      /** The first decomposition */
-      readonly left: DecompositionRequest,
-      /** The second decomposition */
-      readonly right: DecompositionRequest,
-      readonly raw: Raw,
-    ) {}
-
-    toString(): string {
-      return `compound_merge (${this.left}) (${this.right})`;
-    }
-  }
-
-  /** Combine the regions of a decomposition */
-  export class Combine {
-    readonly kind = "combine";
-    constructor(
-      /** The decomposition whose regions are combined */
-      readonly request: DecompositionRequest,
-      readonly raw: Raw,
-    ) {}
-
-    toString(): string {
-      return `combine (${this.request})`;
-    }
-  }
-
-  /** A decomposition bound by name in an enclosing `Let` */
-  export class Get {
-    readonly kind = "get";
-    constructor(
-      /** The name of the binding */
-      readonly name: string,
-      readonly raw: Raw,
-    ) {}
-
-    toString(): string {
-      return `get ${this.name}`;
-    }
-  }
-
-  /** Bind decompositions to names, for use (via `Get`) in `andThen` */
-  export class Let {
-    readonly kind = "let";
-    constructor(
-      /** The names and the decompositions bound to them */
-      readonly bindings: readonly (readonly [string, DecompositionRequest])[],
-      /** The decomposition computed with the bindings in scope */
-      readonly andThen: DecompositionRequest,
-      readonly raw: Raw,
-    ) {}
-
-    toString(): string {
-      const bindings = this.bindings.map(([n, d]) => `${n} = ${d}`).join(" and ");
-      return `let ${bindings} in ${this.andThen}`;
-    }
-  }
-
-  /** Enumerate the decomposition `dF` over the decompositions `ds` */
-  export class Enumerate {
-    readonly kind = "enumerate";
-    constructor(
-      /** The decomposition to enumerate */
-      readonly dF: DecompositionRequest,
-      /** The decompositions to enumerate over */
-      readonly ds: readonly DecompositionRequest[],
-      /** Additive or multiplicative enumeration; `undefined` means additive */
-      readonly style: EnumerationStyle | undefined,
-      readonly raw: Raw,
-    ) {}
-
-    toString(): string {
-      return `enumerate (${this.dF}) [${this.ds.join(", ")}]`;
-    }
+  toString(): string {
+    const assuming = this.assuming === undefined ? "" : ` ~assuming:${this.assuming}`;
+    const prune = this.prune ? " ~prune:true" : "";
+    return `decomp ${this.function}${assuming}${prune}`;
   }
 }
 
+/** Decompose a term */
+export class TermDecompositionRequest {
+  readonly kind = "term";
+  constructor(
+    /** The term to decompose */
+    readonly term: Term,
+    readonly raw: RawDecompositionRequest,
+  ) {}
+
+  toString(): string {
+    return `term ${this.term}`;
+  }
+}
+
+/** An already computed decomposition, returned as is (e.g. as a base case of a merge) */
+export class ReturnDecompositionRequest {
+  readonly kind = "return";
+  constructor(
+    readonly decomposition: Decomposition,
+    readonly raw: RawDecompositionRequest,
+  ) {}
+
+  toString(): string {
+    return `return <decomposition of ${this.decomposition.id}>`;
+  }
+}
+
+/** Prune the infeasible regions of a decomposition */
+export class PruneDecompositionRequest {
+  readonly kind = "prune";
+  constructor(
+    /** The decomposition to prune */
+    readonly request: DecompositionRequest,
+    readonly raw: RawDecompositionRequest,
+  ) {}
+
+  toString(): string {
+    return `prune (${this.request})`;
+  }
+}
+
+/** Merge two decompositions */
+export class MergeDecompositionRequest {
+  readonly kind = "merge";
+  constructor(
+    /** The first decomposition */
+    readonly left: DecompositionRequest,
+    /** The second decomposition */
+    readonly right: DecompositionRequest,
+    readonly raw: RawDecompositionRequest,
+  ) {}
+
+  toString(): string {
+    return `merge (${this.left}) (${this.right})`;
+  }
+}
+
+/** Compound-merge two decompositions */
+export class CompoundMergeDecompositionRequest {
+  readonly kind = "compoundMerge";
+  constructor(
+    /** The first decomposition */
+    readonly left: DecompositionRequest,
+    /** The second decomposition */
+    readonly right: DecompositionRequest,
+    readonly raw: RawDecompositionRequest,
+  ) {}
+
+  toString(): string {
+    return `compound_merge (${this.left}) (${this.right})`;
+  }
+}
+
+/** Combine the regions of a decomposition */
+export class CombineDecompositionRequest {
+  readonly kind = "combine";
+  constructor(
+    /** The decomposition whose regions are combined */
+    readonly request: DecompositionRequest,
+    readonly raw: RawDecompositionRequest,
+  ) {}
+
+  toString(): string {
+    return `combine (${this.request})`;
+  }
+}
+
+/** A decomposition bound by name in an enclosing `LetDecompositionRequest` */
+export class GetDecompositionRequest {
+  readonly kind = "get";
+  constructor(
+    /** The name of the binding */
+    readonly name: string,
+    readonly raw: RawDecompositionRequest,
+  ) {}
+
+  toString(): string {
+    return `get ${this.name}`;
+  }
+}
+
+/** Bind decompositions to names, for use (via `GetDecompositionRequest`) in `andThen` */
+export class LetDecompositionRequest {
+  readonly kind = "let";
+  constructor(
+    /** The decompositions bound, by name */
+    readonly bindings: ReadonlyMap<string, DecompositionRequest>,
+    /** The decomposition computed with the bindings in scope */
+    readonly andThen: DecompositionRequest,
+    readonly raw: RawDecompositionRequest,
+  ) {}
+
+  toString(): string {
+    const bindings = Array.from(this.bindings, ([n, d]) => `${n} = ${d}`).join(" and ");
+    return `let ${bindings} in ${this.andThen}`;
+  }
+}
+
+/** Enumerate the decomposition `dF` over the decompositions `ds` */
+export class EnumerateDecompositionRequest {
+  readonly kind = "enumerate";
+  constructor(
+    /** The decomposition to enumerate */
+    readonly dF: DecompositionRequest,
+    /** The decompositions to enumerate over */
+    readonly ds: readonly DecompositionRequest[],
+    /** Additive or multiplicative enumeration; `undefined` means additive */
+    readonly style: EnumerationStyle | undefined,
+    readonly raw: RawDecompositionRequest,
+  ) {}
+
+  toString(): string {
+    return `enumerate (${this.dF}) [${this.ds.join(", ")}]`;
+  }
+}
+
+/** @internal */
 export function decompRequestOfLib(d: lib.Tasks_Decomp_task_Mir_decomp): DecompositionRequest {
-  const R = DecompositionRequest;
   if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Decomp) {
     const a = d.arg;
-    return new R.Function(
+    return new FunctionDecompositionRequest(
       new Uid(a.f_id),
       a.assuming === undefined ? undefined : new Uid(a.assuming),
       uidSet([...a.basis].map((u) => new Uid(u))),
@@ -587,33 +581,39 @@ export function decompRequestOfLib(d: lib.Tasks_Decomp_task_Mir_decomp): Decompo
       d,
     );
   } else if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Term) {
-    return new R.Term(termOfLib(d.arg as lib.Mir_Term), d);
+    return new TermDecompositionRequest(termOfLib(d.arg as lib.Mir_Term), d);
   } else if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Return) {
-    return new R.Return(
+    return new ReturnDecompositionRequest(
       Decomposition.ofLib(d.arg as lib.Common_Fun_decomp_t_poly<lib.Mir_Term, lib.Mir_Type>),
       d,
     );
   } else if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Prune) {
-    return new R.Prune(decompRequestOfLib(d.arg as lib.Tasks_Decomp_task_Mir_decomp), d);
+    return new PruneDecompositionRequest(
+      decompRequestOfLib(d.arg as lib.Tasks_Decomp_task_Mir_decomp),
+      d,
+    );
   } else if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Merge) {
     const [l, r] = d.args as [lib.Tasks_Decomp_task_Mir_decomp, lib.Tasks_Decomp_task_Mir_decomp];
-    return new R.Merge(decompRequestOfLib(l), decompRequestOfLib(r), d);
+    return new MergeDecompositionRequest(decompRequestOfLib(l), decompRequestOfLib(r), d);
   } else if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Compound_merge) {
     const [l, r] = d.args as [lib.Tasks_Decomp_task_Mir_decomp, lib.Tasks_Decomp_task_Mir_decomp];
-    return new R.CompoundMerge(decompRequestOfLib(l), decompRequestOfLib(r), d);
+    return new CompoundMergeDecompositionRequest(decompRequestOfLib(l), decompRequestOfLib(r), d);
   } else if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Combine) {
-    return new R.Combine(decompRequestOfLib(d.arg as lib.Tasks_Decomp_task_Mir_decomp), d);
+    return new CombineDecompositionRequest(
+      decompRequestOfLib(d.arg as lib.Tasks_Decomp_task_Mir_decomp),
+      d,
+    );
   } else if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Get) {
-    return new R.Get(d.arg, d);
+    return new GetDecompositionRequest(d.arg, d);
   } else if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Let) {
     const bindings = d.bindings as [string, lib.Tasks_Decomp_task_Mir_decomp][];
-    return new R.Let(
-      bindings.map(([n, b]) => [n, decompRequestOfLib(b)] as const),
+    return new LetDecompositionRequest(
+      new Map(bindings.map(([n, b]) => [n, decompRequestOfLib(b)])),
       decompRequestOfLib(d.and_then as lib.Tasks_Decomp_task_Mir_decomp),
       d,
     );
   } else if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Enumerate) {
-    return new R.Enumerate(
+    return new EnumerateDecompositionRequest(
       decompRequestOfLib(d.d_f as lib.Tasks_Decomp_task_Mir_decomp),
       (d.ds as lib.Tasks_Decomp_task_Mir_decomp[]).map(decompRequestOfLib),
       d.style === undefined ? undefined : enumerationStyleOfLib(d.style),
@@ -701,7 +701,11 @@ export function taskOfRaw(t: taskPb.Task, client?: ArtifactSource): Task {
   return cls === undefined ? new Task(t, client) : new cls(t, client);
 }
 
-/** Wrap a task that the response says is of the `Task` subclass `cls` */
+/**
+ * Wrap a task that the response says is of the `Task` subclass `cls`
+ *
+ * @internal
+ */
 export function taskOfRawAs<T extends Task>(
   t: taskPb.Task,
   cls: abstract new (...args: any[]) => T,
@@ -786,6 +790,7 @@ export type ProofObligationFailure = NoProof | Unsat | InvalidModel | ProofOblig
 type MirModel = lib.Common_Model_t_poly<lib.Mir_Term, lib.Mir_Type>;
 type MirProofTerm = lib.Proof_Proof_term_t_poly<lib.Mir_Term, lib.Mir_Type>;
 
+/** @internal */
 export function proofObligationResultOfLib(
   x: lib.Tasks_PO_res_result<
     lib.Tasks_PO_res_success<lib.Mir_Term, lib.Mir_Type>,
@@ -858,7 +863,7 @@ export class ProofObligationTaskResult {
   readonly #result = lazy(() => proofObligationResultOfLib(this.#data.res));
   readonly #statistics = lazy(() => Statistics.ofLib(this.#data.stats));
   readonly #subresults = lazy(() =>
-    this.#data.sub_res.map((sl) => sl.map((s) => ProofObligationTaskResult.Subresult.ofLib(s))),
+    this.#data.sub_res.map((sl) => sl.map((s) => ProofObligationSubresult.ofLib(s))),
   );
   readonly #report = memo(() => Report.ofArchive(this.#data.report));
 
@@ -947,7 +952,7 @@ export class ProofObligationTaskResult {
   }
 
   /** The results for the individual subgoals */
-  get subresults(): ProofObligationTaskResult.Subresult[][] {
+  get subresults(): ProofObligationSubresult[][] {
     return this.#subresults();
   }
 
@@ -956,27 +961,26 @@ export class ProofObligationTaskResult {
   }
 }
 
-export namespace ProofObligationTaskResult {
-  /** The result for one subgoal of a proof obligation */
-  export class Subresult {
-    private constructor(
-      /** The subgoal */
-      readonly goal: Sequent,
-      /** The subgoals the goal was split into */
-      readonly subGoals: readonly Sequent[],
-      /** `undefined` if the subgoal was handled successfully, otherwise the error message */
-      readonly res: string | undefined,
-      readonly raw: lib.Tasks_PO_res_sub_res<lib.Mir_Term>,
-    ) {}
+/** The result for one subgoal of a proof obligation */
+export class ProofObligationSubresult {
+  private constructor(
+    /** The subgoal */
+    readonly goal: Sequent,
+    /** The subgoals the goal was split into */
+    readonly subGoals: readonly Sequent[],
+    /** `undefined` if the subgoal was handled successfully, otherwise the error message */
+    readonly res: string | undefined,
+    readonly raw: lib.Tasks_PO_res_sub_res<lib.Mir_Term>,
+  ) {}
 
-    static ofLib(sr: lib.Tasks_PO_res_sub_res<lib.Mir_Term>): Subresult {
-      return new Subresult(
-        Sequent.ofLib(sr.goal),
-        sr.sub_goals.map((sg) => Sequent.ofLib(sg)),
-        sr.res ?? undefined,
-        sr,
-      );
-    }
+  /** @internal */
+  static ofLib(sr: lib.Tasks_PO_res_sub_res<lib.Mir_Term>): ProofObligationSubresult {
+    return new ProofObligationSubresult(
+      Sequent.ofLib(sr.goal),
+      sr.sub_goals.map((sg) => Sequent.ofLib(sg)),
+      sr.res ?? undefined,
+      sr,
+    );
   }
 }
 
@@ -990,6 +994,7 @@ export class EvaluationStatistics {
     readonly raw: lib.Tasks_Eval_res_stats,
   ) {}
 
+  /** @internal */
   static ofLib(x: lib.Tasks_Eval_res_stats): EvaluationStatistics {
     return new EvaluationStatistics(x.compile_time, x.exec_time, x);
   }

@@ -384,7 +384,7 @@ describe("requests", () => {
       );
     const c = await Client.connect();
     const d = decomp.let_(
-      [["base", decomp.byName("f", { prune: true, liftBool: "all" })]],
+      { base: decomp.byName("f", { prune: true, liftBool: "all" }) },
       decomp.merge(
         decomp.prune(decomp.get("base")),
         decomp.combine(decomp.compoundMerge(decomp.get("base"), decomp.byName("g"))),

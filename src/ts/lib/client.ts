@@ -42,55 +42,55 @@ export const urlProd = "https://api.imandra.ai/internal/imandrax/";
 /** @group Client */
 export interface ConnectOptions {
   /** The server's URL; `urlProd` by default */
-  url?: string;
+  url?: string | undefined;
   /** The path of the API on the server; `"/api/v1"` by default */
-  serverPathPrefix?: string;
+  serverPathPrefix?: string | undefined;
   /** The token to authenticate with; `apiKey` takes precedence if both are given */
-  authToken?: string;
+  authToken?: string | undefined;
   /** The API key to authenticate with */
-  apiKey?: string;
+  apiKey?: string | undefined;
   /** The HTTP request timeout, in milliseconds, of calls without their own; 30s by default */
-  timeoutMs?: number;
+  timeoutMs?: number | undefined;
   /** The session to reopen; a new one is created if not given */
-  sessionId?: string;
+  sessionId?: string | undefined;
   /** Whether to create a new session if `sessionId` is not found, instead of throwing */
-  createIfNotFound?: boolean;
+  createIfNotFound?: boolean | undefined;
   /** Aborts connecting */
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
 }
 
 /** @group Method options */
 export interface EvalSrcOptions extends CallOptions {
   /** Whether to return without waiting for task results */
-  asyncOnly?: boolean;
+  asyncOnly?: boolean | undefined;
   /**
    * Glob patterns (`*`, `?`, `[...]`) selecting the tasks to start; all tasks by default. Tasks
    * without names are matched as `anonymous`.
    */
-  taskFilter?: string[];
+  taskFilter?: readonly string[] | undefined;
 }
 
 /** @group Method options */
 export interface DecomposeOptions extends CallOptions {
   /** The side condition function the decomposition assumes */
-  assuming?: string;
+  assuming?: string | undefined;
   /** Functions not to unfold during decomposition */
-  basis?: string[];
+  basis?: readonly string[] | undefined;
   /** Rule specs to use during decomposition */
-  ruleSpecs?: string[];
+  ruleSpecs?: readonly string[] | undefined;
   /** Whether to prune infeasible regions */
-  prune?: boolean;
+  prune?: boolean | undefined;
   /** Whether to simplify regions in their context */
-  ctxSimp?: boolean;
+  ctxSimp?: boolean | undefined;
   /** How Boolean subterms are lifted into region constraints */
-  liftBool?: LiftBool;
+  liftBool?: LiftBool | undefined;
   /**
    * Whether to also return each region's constraints and invariant in IML syntax, as
    * `Region.constraintsStr` and `Region.invariantStr`
    */
-  stringResults?: boolean;
+  stringResults?: boolean | undefined;
   /** The server-side compute timeout */
-  computeTimeout?: number;
+  computeTimeout?: number | undefined;
 }
 
 /** @group Method options */
@@ -99,27 +99,27 @@ export interface DecomposeFullOptions extends CallOptions {
    * Whether to also return each region's constraints and invariant in IML syntax, as
    * `Region.constraintsStr` and `Region.invariantStr`
    */
-  stringResults?: boolean;
+  stringResults?: boolean | undefined;
   /** The server-side compute timeout */
-  computeTimeout?: number;
+  computeTimeout?: number | undefined;
 }
 
 /** @group Method options */
 export interface GoalOptions extends CallOptions {
   /** IML attribute text for the goal, e.g. `[@@by auto]` */
-  hints?: string;
+  hints?: string | undefined;
 }
 
 /** @group Method options */
 export interface TestOptions extends CallOptions {
   /** The random seed */
-  seed?: number;
+  seed?: number | undefined;
 }
 
 /** @group Method options */
 export interface OneshotOptions extends CallOptions {
   /** The server-side compute timeout */
-  computeTimeout?: number;
+  computeTimeout?: number | undefined;
 }
 
 /** @group Method options */
@@ -128,7 +128,7 @@ export interface CodeSnippetOptions extends CallOptions {
    * Glob patterns (`*`, `?`, `[...]`) selecting the tasks to start; all tasks by default. Tasks
    * without names are matched as `anonymous`.
    */
-  taskFilter?: string[];
+  taskFilter?: readonly string[] | undefined;
 }
 
 const SIMPLE = "imandrax.simple.Simple";
@@ -138,10 +138,7 @@ const SYSTEM = "imandrax.system.System";
 
 /** The transport options of `options`, dropping the method-specific ones */
 function callOptions({ timeoutMs, signal }: CallOptions): CallOptions {
-  const res: CallOptions = {};
-  if (timeoutMs !== undefined) res.timeoutMs = timeoutMs;
-  if (signal !== undefined) res.signal = signal;
-  return res;
+  return { timeoutMs, signal };
 }
 
 /**
@@ -181,7 +178,7 @@ export class Client {
       authToken: options.apiKey || options.authToken,
       timeoutMs: options.timeoutMs ?? 30_000,
     });
-    const callOpts: CallOptions = options.signal === undefined ? {} : { signal: options.signal };
+    const callOpts: CallOptions = { signal: options.signal };
 
     const createSession = async (): Promise<sessionPb.Session> => {
       try {
@@ -311,7 +308,7 @@ export class Client {
     const req = simplePb.EvalSrcReq.fromPartial({
       src,
       session: this.#session,
-      taskFilter: options.taskFilter ?? [],
+      taskFilter: [...(options.taskFilter ?? [])],
       asyncOnly: options.asyncOnly,
     });
     const res = await this.#call(
@@ -331,8 +328,8 @@ export class Client {
       session: this.#session,
       name,
       assuming: options.assuming,
-      basis: options.basis ?? [],
-      ruleSpecs: options.ruleSpecs ?? [],
+      basis: [...(options.basis ?? [])],
+      ruleSpecs: [...(options.ruleSpecs ?? [])],
       prune: options.prune,
       ctxSimp: options.ctxSimp,
       liftBool: liftBoolToPb(options.liftBool),
@@ -451,7 +448,8 @@ export class Client {
     const req = simplePb.TestSrcReq.fromPartial({
       session: this.#session,
       src,
-      seed: options.seed,
+      // proto3 has no unset int: 0 is what an unset seed is sent as
+      seed: options.seed ?? 0,
     });
     const res = await this.#call(
       SIMPLE,
@@ -469,7 +467,8 @@ export class Client {
     const req = simplePb.TestNameReq.fromPartial({
       session: this.#session,
       name,
-      seed: options.seed,
+      // proto3 has no unset int: 0 is what an unset seed is sent as
+      seed: options.seed ?? 0,
     });
     const res = await this.#call(
       SIMPLE,
@@ -521,7 +520,7 @@ export class Client {
     const req = apiPb.CodeSnippet.fromPartial({
       session: this.#session,
       code,
-      taskFilter: options.taskFilter ?? [],
+      taskFilter: [...(options.taskFilter ?? [])],
     });
     const res = await this.#call(
       EVAL,

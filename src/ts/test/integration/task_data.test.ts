@@ -12,7 +12,7 @@ import {
   type DB,
   DefaultTheoremTactic,
   type Model,
-  Symbol,
+  SymbolTerm,
   type Term,
   TermTactic,
   type Type,
@@ -24,7 +24,6 @@ import {
   uidSet,
 } from "../../lib/mir.js";
 import {
-  DecompositionRequest,
   DecompositionTask,
   DecompositionTaskResult,
   EvaluationTask,
@@ -32,6 +31,7 @@ import {
   ProofObligationTask,
   ProofObligationTaskResult,
   type Task,
+  TermDecompositionRequest,
 } from "../../lib/tasks.js";
 import { noApiKey, once, sharedClient, theTask } from "./setup.js";
 
@@ -86,7 +86,7 @@ function modelTypes(model: Model): {
 /** `t` refers to at least one symbol, all declared in `db` */
 function expectSymbolsDeclaredIn(t: Term, db: DB): void {
   const uids = uidSet(
-    [...t].filter((x): x is Symbol => x instanceof Symbol).map((x) => x.symbol.id),
+    [...t].filter((x): x is SymbolTerm => x instanceof SymbolTerm).map((x) => x.symbol.id),
   );
   expect(uids.size, "Term should refer to at least one symbol").toBeGreaterThan(0);
   expect([...uids].filter((u) => db.findDeclaration(u) === undefined).map(String)).toEqual([]);
@@ -149,9 +149,9 @@ describe.skipIf(noApiKey)("task data", () => {
       timeout: undefined,
       upto: undefined,
       verifyKind: "verify",
-      namedHypotheses: [],
+      namedHypotheses: new Map(),
     });
-    const [vars, goal] = po.goal;
+    const { variables: vars, body: goal } = po.goal;
     expect(vars.map(str)).toEqual(["xs"]);
     expect(str(goal)).toBe("(= (f/<hash> xs) (List.map/<hash> $lambda/<hash> xs))");
     assert.instanceOf(po.tactic, TermTactic);
@@ -180,9 +180,9 @@ describe.skipIf(noApiKey)("task data", () => {
       timeout: undefined,
       upto: undefined,
       verifyKind: "instance",
-      namedHypotheses: [],
+      namedHypotheses: new Map(),
     });
-    const [vars, goal] = po.goal;
+    const { variables: vars, body: goal } = po.goal;
     expect(vars.map(str)).toEqual(["xs", "y"]);
     expect(str(goal)).toBe("(<> (f/<hash> xs) (List.map/<hash> ($lambda/<hash> y) xs))");
     assert.instanceOf(po.tactic, DefaultTheoremTactic);
@@ -216,7 +216,7 @@ describe.skipIf(noApiKey)("task data", () => {
 
     // A pipeline is requested as the term that computes it: `(top ...) |>> prune` applied to `f`
     const req = await t.decomp();
-    assert.instanceOf(req, DecompositionRequest.Term);
+    assert.instanceOf(req, TermDecompositionRequest);
     const term = req.term;
     assert.instanceOf(term, Apply);
     expect(str(term.type)).toBe("Decomp.t string result");
@@ -270,11 +270,11 @@ describe.skipIf(noApiKey)("task data", () => {
     assert.instanceOf(res, DecompositionTaskResult);
     assert.isDefined(res.decomposition);
     for (const isInstance of [false, true]) {
-      const [, goal] = (await (await thePo(await tasks(), isInstance)).proofObligation()).goal;
+      const goal = (await (await thePo(await tasks(), isInstance)).proofObligation()).goal.body;
       assert.instanceOf(goal, Apply);
       const fXs = goal.arguments[0];
       assert.instanceOf(fXs, Apply);
-      assert.instanceOf(fXs.function, Symbol);
+      assert.instanceOf(fXs.function, SymbolTerm);
       expect(
         fXs.function.symbol.id,
         "f should have the same uid in the PO goal and in the decomposition",

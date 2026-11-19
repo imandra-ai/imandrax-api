@@ -10,7 +10,7 @@
  * import * as decomp from "imandrax-api/decomp";
  *
  * const d = decomp.let_(
- *   [["base", decomp.byName("f", { prune: true })]],
+ *   { base: decomp.byName("f", { prune: true }) },
  *   decomp.merge(decomp.get("base"), decomp.byName("g")),
  * );
  * const res = await client.decomposeFull(d);
@@ -30,17 +30,17 @@ export type Decomp = simplePb.DecomposeReqFull_Decomp;
 
 export interface ByNameOptions {
   /** The side condition function the decomposition assumes */
-  assuming?: string;
+  assuming?: string | undefined;
   /** Functions not to unfold during decomposition */
-  basis?: string[];
+  basis?: readonly string[] | undefined;
   /** Rule specs to use during decomposition */
-  ruleSpecs?: string[];
+  ruleSpecs?: readonly string[] | undefined;
   /** Whether to prune infeasible regions */
-  prune?: boolean;
+  prune?: boolean | undefined;
   /** Whether to simplify regions in their context */
-  ctxSimp?: boolean;
+  ctxSimp?: boolean | undefined;
   /** How Boolean subterms are lifted into region constraints */
-  liftBool?: LiftBool;
+  liftBool?: LiftBool | undefined;
 }
 
 /** Decompose the function `name` */
@@ -49,8 +49,8 @@ export function byName(name: string, options: ByNameOptions = {}): Decomp {
     byName: {
       name,
       assuming: options.assuming,
-      basis: options.basis ?? [],
-      ruleSpecs: options.ruleSpecs ?? [],
+      basis: [...(options.basis ?? [])],
+      ruleSpecs: [...(options.ruleSpecs ?? [])],
       prune: options.prune,
       ctxSimp: options.ctxSimp,
       liftBool: liftBoolToPb(options.liftBool),
@@ -98,13 +98,14 @@ export function get(name: string): Decomp {
 }
 
 /**
- * Bind each `[name, decomp]` pair, then evaluate `andThen` (`let` is reserved in JS)
+ * Bind each decomposition in `bindings` to its name, then evaluate `andThen` (`let` is reserved
+ * in JS)
  *
  * The bindings are evaluated simultaneously in the same environment, so one binding cannot
  * refer to another from the same `let_`; nest `let_` calls for that.
  */
-export function let_(bindings: [string, Decomp][], andThen: Decomp): Decomp {
+export function let_(bindings: Readonly<Record<string, Decomp>>, andThen: Decomp): Decomp {
   return simplePb.DecomposeReqFull_Decomp.fromPartial({
-    set: { bindings: bindings.map(([name, d]) => ({ name, d })), andThen },
+    set: { bindings: Object.entries(bindings).map(([name, d]) => ({ name, d })), andThen },
   });
 }

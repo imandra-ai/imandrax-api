@@ -15,7 +15,17 @@
 // Note [Lib memo] in `mir.ts`).
 
 import { UnexpectedResponseError } from "./errors.js";
-import { Sequent, type Term, type Type, Uid, Variable, termOfLib, typeOfLib } from "./mir.js";
+import {
+  Sequent,
+  type Term,
+  type Type,
+  Uid,
+  Variable,
+  termOfLib,
+  typeOfLib,
+  uidMap,
+  variableMap,
+} from "./mir.js";
 import * as lib from "./raw/types.js";
 
 type RawArg = lib.Proof_Arg<lib.Mir_Term, lib.Mir_Type>;
@@ -64,7 +74,8 @@ export class ListArgument {
 export class DictArgument {
   readonly kind = "dict";
   constructor(
-    readonly entries: readonly (readonly [string, ProofArgument])[],
+    /** The entries, by key */
+    readonly entries: ReadonlyMap<string, ProofArgument>,
     readonly raw: RawArg,
   ) {}
 }
@@ -86,6 +97,7 @@ export type ProofArgument =
   | DictArgument
   | SequentArgument;
 
+/** @internal */
 export function proofArgumentOfLib(x: RawArg): ProofArgument {
   if (x instanceof lib.Proof_Arg_A_term) return new TermArgument(termOfLib(x.arg), x);
   if (x instanceof lib.Proof_Arg_A_ty) return new TypeArgument(typeOfLib(x.arg), x);
@@ -93,10 +105,7 @@ export function proofArgumentOfLib(x: RawArg): ProofArgument {
   if (x instanceof lib.Proof_Arg_A_string) return new StringArgument(x.arg, x);
   if (x instanceof lib.Proof_Arg_A_list) return new ListArgument(x.arg.map(proofArgumentOfLib), x);
   if (x instanceof lib.Proof_Arg_A_dict) {
-    return new DictArgument(
-      x.arg.map(([k, v]) => [k, proofArgumentOfLib(v)] as const),
-      x,
-    );
+    return new DictArgument(new Map(x.arg.map(([k, v]) => [k, proofArgumentOfLib(v)])), x);
   }
   if (x instanceof lib.Proof_Arg_A_seq) return new SequentArgument(Sequent.ofLib(x.arg), x);
   throw new UnexpectedResponseError(`unexpected proof argument: ${(x as object).constructor.name}`);
@@ -126,8 +135,10 @@ export class AssumeProof extends ProofTermBase {
 export class SubstProof extends ProofTermBase {
   readonly kind = "subst";
   constructor(
-    readonly termSubstitution: readonly (readonly [Variable, Term])[],
-    readonly typeSubstitution: readonly (readonly [Uid, Type])[],
+    /** The terms substituted for variables, by variable */
+    readonly termSubstitution: ReadonlyMap<Variable, Term>,
+    /** The types substituted for type variables, by type variable */
+    readonly typeSubstitution: ReadonlyMap<Uid, Type>,
     readonly premise: ProofTerm,
     id: number,
     conclusion: Sequent,
@@ -144,7 +155,10 @@ export class DeductionProof extends ProofTermBase {
      * Groups of premises. The conclusion should be provable via QF_UF reasoning from the conjunction
      * of all premises.
      */
-    readonly premises: readonly (readonly [string, readonly ProofTerm[]])[],
+    readonly premises: readonly {
+      readonly name: string;
+      readonly proofs: readonly ProofTerm[];
+    }[],
     id: number,
     conclusion: Sequent,
     raw: RawProofTerm,
@@ -175,6 +189,7 @@ export class RuleProof extends ProofTermBase {
 /** A proof term */
 export type ProofTerm = AssumeProof | SubstProof | DeductionProof | RuleProof;
 
+/** @internal */
 export function proofTermOfLib(x: RawProofTerm): ProofTerm {
   const concl = Sequent.ofLib(x.concl);
   const id = Number(x.id);
@@ -182,10 +197,13 @@ export function proofTermOfLib(x: RawProofTerm): ProofTerm {
   if (v instanceof lib.Proof_View_T_assume) return new AssumeProof(id, concl, x);
   if (v instanceof lib.Proof_View_T_subst) {
     return new SubstProof(
-      v.t_subst.map(
-        ([[u, ty], t]) => [Variable.ofLib(new lib.Common_Var_t_poly(u, ty)), termOfLib(t)] as const,
+      variableMap(
+        v.t_subst.map(
+          ([[u, ty], t]) =>
+            [Variable.ofLib(new lib.Common_Var_t_poly(u, ty)), termOfLib(t)] as const,
+        ),
       ),
-      v.ty_subst.map(([u, ty]) => [new Uid(u), typeOfLib(ty)] as const),
+      uidMap(v.ty_subst.map(([u, ty]) => [new Uid(u), typeOfLib(ty)] as const)),
       proofTermOfLib(v.premise),
       id,
       concl,
@@ -194,7 +212,7 @@ export function proofTermOfLib(x: RawProofTerm): ProofTerm {
   }
   if (v instanceof lib.Proof_View_T_deduction) {
     return new DeductionProof(
-      v.premises.map(([n, group]) => [n, group.map(proofTermOfLib)] as const),
+      v.premises.map(([name, group]) => ({ name, proofs: group.map(proofTermOfLib) })),
       id,
       concl,
       x,
