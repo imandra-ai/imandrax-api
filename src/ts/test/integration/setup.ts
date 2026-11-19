@@ -16,8 +16,13 @@ export const apiKey: string | undefined =
 /** Whether the integration tests have no API key to run with */
 export const noApiKey = apiKey === undefined;
 
+// Heavy requests can take longer than the client's 30s default when the test files run in
+// parallel; this stays below vitest's 120s test and hook timeouts, so a server that hangs fails
+// with the client's `deadline_exceeded` rather than vitest's timeout
+const TIMEOUT_MS = 100_000;
+
 export function mkClient(): Promise<Client> {
-  return Client.connect(apiKey === undefined ? { url: urlProd } : { url: urlProd, apiKey });
+  return Client.connect({ url: urlProd, apiKey, timeoutMs: TIMEOUT_MS });
 }
 
 /**
