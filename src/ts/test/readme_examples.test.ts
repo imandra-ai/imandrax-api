@@ -1,36 +1,34 @@
 /**
- * Each `ts` block of the README is a copy of a file in `examples/`, named by the
- * `<!-- example: examples/<file> -->` line before it
+ * Each `ts` block of the README is snapshotted to `readme/<name>.ts`, named by the
+ * `<!-- example: <name> -->` line before it
  *
- * The examples are typechecked with the rest of the package, and run by the integration tests.
+ * The snapshots are typechecked with the rest of the package, and run by the integration tests.
+ * Run `npx vitest -u` to update them after editing the README.
  */
 
 import { readdirSync, readFileSync } from "node:fs";
 
 import { describe, expect, test } from "vitest";
 
-const ROOT = new URL("../", import.meta.url);
-const README = readFileSync(new URL("README.md", ROOT), "utf8");
+const README = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 
-/** The README's `ts` blocks, with the example file each one is marked with, if any */
+/** The README's `ts` blocks, with the name each one is marked with, if any */
 const blocks = [...README.matchAll(/(?:<!-- example: (\S+) -->\n)?```ts\n([\s\S]*?)```/g)].map((m) => ({
-  file: m[1],
+  name: m[1],
   code: m[2]!,
 }));
 
 describe("README examples", () => {
-  test("every ts block names its example file", () => {
-    expect(blocks.filter((b) => b.file === undefined).map((b) => b.code)).toEqual([]);
+  test("every ts block is named", () => {
+    expect(blocks.filter((b) => b.name === undefined).map((b) => b.code)).toEqual([]);
   });
 
-  test("every example is in the README", () => {
-    const files = readdirSync(new URL("examples/", ROOT))
-      .filter((f) => f.endsWith(".ts"))
-      .map((f) => `examples/${f}`);
-    expect(blocks.map((b) => b.file).sort()).toEqual(files.sort());
+  test("every snapshot has a ts block", () => {
+    const snapshots = readdirSync(new URL("readme/", import.meta.url)).map((f) => f.replace(/\.ts$/, ""));
+    expect(snapshots.sort()).toEqual(blocks.map((b) => b.name).sort());
   });
 
-  test.each(blocks.filter((b) => b.file !== undefined))("$file matches the README", ({ file, code }) => {
-    expect(code, `copy ${file} into the README`).toBe(readFileSync(new URL(file!, ROOT), "utf8"));
+  test.each(blocks.filter((b) => b.name !== undefined))("$name", async ({ name, code }) => {
+    await expect(code).toMatchFileSnapshot(`readme/${name}.ts`);
   });
 });

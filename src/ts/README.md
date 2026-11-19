@@ -28,7 +28,7 @@ The examples read the API key from `IMANDRAX_API_KEY` (or `IMANDRA_UNI_KEY`).
 
 ### Quick start
 
-<!-- example: examples/quickstart.ts -->
+<!-- example: quickstart -->
 ```ts
 import { Client } from "imandrax-api";
 
@@ -59,7 +59,7 @@ Region decomposition splits a function's input space into disjoint regions, each
 
 With `prune: true`, regions proved empty are removed, and each region proved feasible comes with a sample input and the function's output on it.
 
-<!-- example: examples/decompose.ts -->
+<!-- example: decompose -->
 ```ts
 import { Client } from "imandrax-api";
 
@@ -91,7 +91,7 @@ for (const region of res.decomposition.regions) {
 
 The steps above can also be written in one IML source and run with a single `evalSrc`. The results of `theorem`, `verify` and `instance` statements are in `poResults`, and those of `[@@decomp ...]` in `decompResults`:
 
-<!-- example: examples/eval_src.ts -->
+<!-- example: eval_src -->
 ```ts
 import { Client } from "imandrax-api";
 

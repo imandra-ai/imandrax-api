@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
-    // Examples import the package by name, as users do
+    // The README examples (test/readme) import the package by name, as users do
     alias: { "imandrax-api": fileURLToPath(new URL("./lib/index.ts", import.meta.url)) },
   },
   test: {

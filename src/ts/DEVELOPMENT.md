@@ -11,4 +11,4 @@ npm run docs:dev                  # in src/ts: same, rebuilt and reloaded on cha
 make gents                        # from the repo root: regenerate lib/raw
 ```
 
-The integration tests are in `test/integration`; they also run each file in `examples/`. Each `ts` block in `README.md` is a copy of a file in `examples/`, which `npm test` checks. The twine tests read their fixtures from `src/py/tests/twine/test_data`.
+The integration tests are in `test/integration`; they also run the README's examples. Each `ts` block in `README.md` has a snapshot in `test/readme/`, which `npm test` checks and the type check covers. After editing a block, run `npx vitest -u` to update its snapshot. The twine tests read their fixtures from `src/py/tests/twine/test_data`.
