@@ -16,6 +16,9 @@ build: check
 test: node_modules lib/version.ts
 	npm test
 
+format-check: node_modules
+	npm run format:check
+
 # integration tests against the ImandraX server; needs IMANDRAX_API_KEY
 test-integration: node_modules lib/version.ts
 	npm run test:integration
@@ -38,4 +41,4 @@ tsproto: node_modules
 	mkdir -p lib/raw/proto
 	protoc --plugin=${NPM_ROOT}/.bin/protoc-gen-ts_proto --ts_proto_out=lib/raw/proto --proto_path=../proto ../proto/*.proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=importSuffix=.js
 
-.PHONY: all check build test test-integration docs docs-html clean tsproto
+.PHONY: all check build test format-check test-integration docs docs-html clean tsproto

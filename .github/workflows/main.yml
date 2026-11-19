@@ -34,6 +34,8 @@ jobs:
       run: make -C src/ts check
     - name: vitest
       run: make -C src/ts test
+    - name: prettier
+      run: make -C src/ts format-check
   cargo-build:
     name: cargo build
     runs-on: [ubuntu-latest]

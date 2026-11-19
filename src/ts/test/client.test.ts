@@ -146,8 +146,10 @@ describe("close", () => {
       await using _c = await Client.connect();
       throw body;
     })().catch((e: unknown) => e);
-    // the body's error, with the failure to end the session attached
-    expect(err).toBeInstanceOf(SuppressedError);
+    // the body's error, with the failure to end the session attached. Node 22
+    // has no `SuppressedError` global (TS supplies its own), so match by name.
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).name).toBe("SuppressedError");
     expect((err as SuppressedError).suppressed).toBe(body);
     expect((err as SuppressedError).error).toBeInstanceOf(EndSessionError);
   });
