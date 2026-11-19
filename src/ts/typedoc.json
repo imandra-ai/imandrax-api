@@ -3,8 +3,9 @@
   "entryPoints": ["lib/index.ts"],
   "tsconfig": "tsconfig.build.json",
   "plugin": ["typedoc-plugin-markdown"],
-  "out": "docs/api",
-  "readme": "none",
+  "outputs": [{ "name": "markdown", "path": "docs/api" }],
+  "readme": "README.md",
+  "mergeReadme": true,
   "excludePrivate": true,
   "excludeInternal": true
 }
