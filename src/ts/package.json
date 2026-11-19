@@ -22,18 +22,20 @@
     "check": "tsc --noEmit",
     "docs": "typedoc",
     "docs:html": "typedoc --options typedoc.html.json",
-    "docs:serve": "npm run docs:html && http-server docs/html -c-1 -o",
+    "docs:serve": "npm run docs:html && vite preview --outDir docs/html --open",
+    "docs:dev": "npm run docs:html && concurrently -k -n typedoc,vite \"typedoc --options typedoc.html.json --watch --preserveWatchOutput --cleanOutputDir false\" \"vite docs/html --open\"",
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
+    "concurrently": "^10.0.7",
     "fast-check": "^4.1.1",
-    "http-server": "^14.1.1",
     "ts-proto": "^2.7.5",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.14.1",
     "typescript": "^5.8.3",
+    "vite": "^7.3.8",
     "vitest": "^3.2.4"
   },
   "dependencies": {

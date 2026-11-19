@@ -143,16 +143,3 @@ console.log(result.proved); // true
 - `decomp.let_` has a trailing underscore because `let` is reserved in JS.
 
 The generated layers are exported as `raw`: `raw.proto` (protobuf messages), `raw.types` (artifact types and decoders) and `raw.twine` (the decoder).
-
-## Development
-
-```sh
-make -C src/ts check              # typecheck
-make -C src/ts test               # unit tests, offline
-make -C src/ts test-integration   # against the server; needs IMANDRAX_API_KEY (or IMANDRA_UNI_KEY)
-make -C src/ts build              # build dist/
-make -C src/ts docs               # API reference as Markdown, in docs/api
-make gents                        # from the repo root: regenerate lib/raw
-```
-
-The integration tests are in `test/integration`; they also run each file in `examples/`. Each `ts` block in this README is a copy of a file in `examples/`, which `npm test` checks. The twine tests read their fixtures from `src/py/tests/twine/test_data`.
