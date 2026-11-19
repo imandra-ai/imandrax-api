@@ -126,6 +126,14 @@ const EVAL = "imandrax.api.Eval";
 const SESSION_MANAGER = "imandrax.session.SessionManager";
 const SYSTEM = "imandrax.system.System";
 
+/** The transport options of `options`, dropping the method-specific ones */
+function callOptions({ timeoutMs, signal }: CallOptions): CallOptions {
+  const res: CallOptions = {};
+  if (timeoutMs !== undefined) res.timeoutMs = timeoutMs;
+  if (signal !== undefined) res.signal = signal;
+  return res;
+}
+
 /**
  * A client for the ImandraX API
  *
@@ -220,8 +228,11 @@ export class Client {
   /**
    * End the session; later calls throw `ClientClosedError`
    *
-   * Does nothing if the client is already closed. Calls made while a `close()` is in progress
-   * wait for it, so the session is ended once.
+   * Does nothing if the client is already closed. Calls to `close()` made while one is in
+   * progress wait for it, so the session is ended once; other calls throw `ClientClosedError`.
+   *
+   * If the request never got an answer from the server (it was aborted, timed out or failed to
+   * connect), the client stays open, and `close()` can be called again.
    *
    * @throws {EndSessionError} if the server reported an error ending the session
    */
@@ -233,20 +244,24 @@ export class Client {
 
   async #endSession(options: CallOptions): Promise<void> {
     try {
-      await this.#call(
+      await this.#transport.call(
         SIMPLE,
         "end_session",
         sessionPb.Session,
         utilsPb.Empty,
         this.#session,
-        options,
+        callOptions(options),
       );
     } catch (e) {
-      if (e instanceof TwirpError) throw new EndSessionError(this.#session.id, { cause: e });
-      throw e;
-    } finally {
-      this.#closed = true;
+      // a Twirp error with an HTTP status is an answer: the server or an intermediary got the request
+      if (e instanceof TwirpError && e.status !== undefined) {
+        this.#closed = true;
+        throw new EndSessionError(this.#session.id, { cause: e });
+      }
+      this.#closing = undefined;
+      throw e instanceof TwirpError ? new EndSessionError(this.#session.id, { cause: e }) : e;
     }
+    this.#closed = true;
   }
 
   /** `close()`, for `await using` */
@@ -262,16 +277,12 @@ export class Client {
     request: Req,
     options: CallOptions,
   ): Promise<Res> {
-    if (this.#closed) {
+    if (this.#closed || this.#closing !== undefined) {
       return Promise.reject(
         new ClientClosedError("the client is closed; create a new one with `Client.connect`"),
       );
     }
-    const { timeoutMs, signal } = options;
-    const callOpts: CallOptions = {};
-    if (timeoutMs !== undefined) callOpts.timeoutMs = timeoutMs;
-    if (signal !== undefined) callOpts.signal = signal;
-    return this.#transport.call(service, method, reqType, resType, request, callOpts);
+    return this.#transport.call(service, method, reqType, resType, request, callOptions(options));
   }
 
   // Service Simple

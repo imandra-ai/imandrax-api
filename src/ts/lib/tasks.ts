@@ -191,7 +191,7 @@ export class Task {
   }
 }
 
-/** Memoize `f`, the decoding of a task's data artifact; a failure is retried by the next call */
+/** Memoize `f`; a failure is retried by the next call */
 function memo<T>(f: () => Promise<T>): () => Promise<T> {
   let p: Promise<T> | undefined;
   return () => {
@@ -859,7 +859,7 @@ export class ProofObligationTaskResult {
   readonly #subresults = lazy(() =>
     this.#data.sub_res.map((sl) => sl.map((s) => ProofObligationTaskResult.Subresult.ofLib(s))),
   );
-  #report: Promise<Report> | undefined;
+  readonly #report = memo(() => Report.ofArchive(this.#data.report));
 
   constructor(readonly artifact: Artifact) {
     if (artifact.kind !== "po_res") {
@@ -942,8 +942,7 @@ export class ProofObligationTaskResult {
 
   /** The report of the proof attempt */
   report(): Promise<Report> {
-    this.#report ??= Report.ofArchive(this.#data.report);
-    return this.#report;
+    return this.#report();
   }
 
   /** The results for the individual subgoals */
@@ -1055,7 +1054,7 @@ export class DecompositionTaskResult {
       ? ErrorCore.ofLib(this.#data.res.arg)
       : undefined,
   );
-  #report: Promise<Report> | undefined;
+  readonly #report = memo(() => Report.ofArchive(this.#data.report));
 
   constructor(readonly artifact: Artifact) {
     if (artifact.kind !== "decomp_res") {
@@ -1076,8 +1075,7 @@ export class DecompositionTaskResult {
 
   /** The report of the decomposition */
   report(): Promise<Report> {
-    this.#report ??= Report.ofArchive(this.#data.report);
-    return this.#report;
+    return this.#report();
   }
 
   /** Whether the decomposition succeeded */

@@ -196,6 +196,10 @@ function errorOfResponse(resp: Response, body: Uint8Array): TwirpError {
     http_error_from_intermediary: "true",
     status_code: String(resp.status),
   };
+  if (resp.type === "opaqueredirect") {
+    // a browser's `redirect: "manual"` hides the redirect's status and Location
+    return new TwirpError("internal", "unexpected HTTP redirect received", resp.status, meta);
+  }
   if (resp.status >= 300 && resp.status < 400) {
     // Twirp uses POST, which should not redirect
     const location = resp.headers.get("location");

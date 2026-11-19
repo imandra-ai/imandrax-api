@@ -226,6 +226,19 @@ describe("Artifact", () => {
     expect(() => a.decodeAs(Object)).toThrow(UnexpectedResponseError);
   });
 
+  test("decodeAs(String) decodes a kind that decodes to a string", () => {
+    // the string "hi", then the entrypoint: offset 0
+    const a = Artifact.ofRaw({
+      kind: "show",
+      data: new Uint8Array([0x42, 0x68, 0x69, 0x02]),
+      apiVersion: "v",
+      storage: [],
+    });
+    const s: string = a.decodeAs(String);
+    expect(s).toBe("hi");
+    expect(() => a.decodeAs(Object)).toThrow(/decoded to unexpected type 'string'/);
+  });
+
   test.each(["__proto__", "constructor", "toString"])(
     "decodeAs rejects the inherited key %s as an unknown kind",
     (kind) => {

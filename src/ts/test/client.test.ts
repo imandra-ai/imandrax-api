@@ -7,6 +7,7 @@ import {
   EndSessionError,
   ServerError,
   TwirpError,
+  UnexpectedResponseError,
   decomp,
   taskOfRaw,
   urlProd,
@@ -137,6 +138,31 @@ describe("close", () => {
     expect(c.closed).toBe(true);
   });
 
+  test("an aborted close leaves the client open, and can be retried", async () => {
+    let answer: () => void = () => {};
+    server.withSessions("s1").on(
+      `${SIMPLE}/end_session`,
+      () =>
+        new Promise((resolve) => {
+          answer = () => resolve(ok(utilsPb.Empty, {}));
+        }),
+    );
+    const c = await Client.connect();
+    const ctl = new AbortController();
+    const closing = c.close({ signal: ctl.signal });
+    // calls made while closing do not reach the server
+    await expect(c.status()).rejects.toBeInstanceOf(ClientClosedError);
+    ctl.abort(new Error("stop"));
+    await expect(closing).rejects.toThrow("stop");
+    expect(c.closed).toBe(false);
+
+    const retry = c.close();
+    answer();
+    await retry;
+    expect(c.closed).toBe(true);
+    expect(server.calls(`${SIMPLE}/end_session`)).toHaveLength(2);
+  });
+
   test("await using ends the session, keeping the body's error", async () => {
     server
       .withSessions("s1")
@@ -261,6 +287,23 @@ describe("transport", () => {
       meta: { location: "https://login.example/" },
     });
     expect(inits[0]!.redirect).toBe("manual");
+  });
+
+  test("reports a browser's opaque redirect as a redirect", async () => {
+    server.withSessions("s");
+    const c = await Client.connect();
+    // what a browser's `fetch` returns for `redirect: "manual"`; Node's `Response` cannot be built
+    // with this type
+    const opaque = new Response(null, { status: 200 });
+    Object.defineProperties(opaque, {
+      type: { value: "opaqueredirect" },
+      status: { value: 0 },
+    });
+    vi.stubGlobal("fetch", async () => opaque);
+    await expect(c.status()).rejects.toMatchObject({
+      code: "internal",
+      msg: "unexpected HTTP redirect received",
+    });
   });
 
   test("a 200 response that does not decode is a TwirpError", async () => {
@@ -415,6 +458,18 @@ describe("requests", () => {
     const res = await c.typecheck("let f x = x");
     expect(res.success).toBe(true);
     expect(res.types).toEqual([{ name: "f" }]);
+  });
+
+  test("typecheck types that are not JSON are an UnexpectedResponseError", async () => {
+    server
+      .withSessions()
+      .on(`${SIMPLE}/typecheck`, () =>
+        ok(simplePb.TypecheckRes, simplePb.TypecheckRes.fromPartial({ types: "[{" })),
+      );
+    const c = await Client.connect();
+    const err = await c.typecheck("let f x = x").catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(UnexpectedResponseError);
+    expect((err as Error).cause).toBeInstanceOf(SyntaxError);
   });
 
   test("version", async () => {

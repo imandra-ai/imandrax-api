@@ -150,11 +150,13 @@ export class Artifact {
    * @param expectedClass The class the data should decode to, e.g. `raw.types.Mir_Term`. Pass the
    *   type arguments of a generic class as the type parameter to get a fully typed result, e.g.
    *   `decodeAs<raw.types.Common_Model_t_poly<Mir_Term, Mir_Type>>(Common_Model_t_poly)`. Only the
-   *   class is checked; the type arguments are not.
+   *   class is checked; the type arguments are not. Pass `String` for a kind that decodes to a
+   *   string, e.g. `show`.
    * @throws {UnexpectedResponseError} if the artifact kind is unknown, or the data does not decode
    *   to an `expectedClass`
    * @throws {twine.TwineError} if the data is malformed
    */
+  decodeAs(expectedClass: StringConstructor): string;
   decodeAs<T>(expectedClass: abstract new (...args: any[]) => T): T;
   decodeAs<T>(expectedClass: abstract new (...args: any[]) => unknown): T;
   decodeAs<T>(expectedClass: abstract new (...args: any[]) => unknown): T {
@@ -167,7 +169,9 @@ export class Artifact {
       throw new UnexpectedResponseError(`Unknown artifact kind '${this.kind}'`);
     }
     const x = twine.decodeEntrypoint(new twine.Decoder(this.data), decoders[this.kind]!);
-    if (!(x instanceof expectedClass)) {
+    // strings decode to primitives, which are not instances of `String`
+    const ok = expectedClass === String ? typeof x === "string" : x instanceof expectedClass;
+    if (!ok) {
       const got = typeof x === "object" && x !== null ? x.constructor.name : typeof x;
       throw new UnexpectedResponseError(
         `Artifact of kind '${this.kind}' decoded to unexpected type '${got}'`,
@@ -732,10 +736,18 @@ export class TypecheckResponse {
   static ofRaw(x: simplePb.TypecheckRes): TypecheckResponse {
     return new TypecheckResponse(
       x.success,
-      x.types ? JSON.parse(x.types) : undefined,
+      x.types ? parseTypes(x.types) : undefined,
       x.errors.map((e) => ErrorInfo.ofRaw(e)),
       x,
     );
+  }
+}
+
+function parseTypes(types: string): unknown {
+  try {
+    return JSON.parse(types);
+  } catch (e) {
+    throw new UnexpectedResponseError("The typecheck types are not valid JSON", { cause: e });
   }
 }
 
