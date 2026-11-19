@@ -3,10 +3,10 @@ import { deflateRawSync } from "node:zlib";
 import { describe, expect, test } from "vitest";
 
 import { UnexpectedResponseError } from "../lib/errors.js";
-import { proofTermOfLib, type SubstProof } from "../lib/proof.js";
+import { proofTermOfLib, type SubstProof } from "../lib/internal/proof.js";
 import * as twine from "../lib/raw/twine.js";
 import * as lib from "../lib/raw/types.js";
-import { Report, SmtProof, atomicEventOfLib, linearEventOfLib } from "../lib/report.js";
+import { Report, SmtProof, atomicEventOfLib, linearEventOfLib } from "../lib/internal/report.js";
 
 type RawTerm = lib.Mir_Term;
 type RawType = lib.Mir_Type;

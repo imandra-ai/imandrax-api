@@ -4,9 +4,9 @@
  * @module
  */
 
-import { UnexpectedResponseError } from "./errors.js";
+import { UnexpectedResponseError } from "../errors.js";
 import * as mir from "./mir.js";
-import * as lib from "./raw/types.js";
+import * as lib from "../raw/types.js";
 
 type View = lib.Eval_Value_view<lib.Eval_Value, lib.Eval_Value_erased_closure>;
 

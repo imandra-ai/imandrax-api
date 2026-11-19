@@ -9,8 +9,8 @@
  */
 import { describe, expect, test } from "vitest";
 
-import { Apply, ArrowType, Decomposition, termOfLib } from "../lib/mir.js";
-import { DeductionProof, proofTermOfLib } from "../lib/proof.js";
+import { Apply, ArrowType, Decomposition, termOfLib } from "../lib/internal/mir.js";
+import { DeductionProof, proofTermOfLib } from "../lib/internal/proof.js";
 import * as lib from "../lib/raw/types.js";
 
 type RawTerm = lib.Mir_Term;

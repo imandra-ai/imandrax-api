@@ -80,14 +80,14 @@ import {
   VerifyDeclaration,
   uidMap,
   uidSet,
-} from "../../lib/mir.js";
+} from "../../lib/internal/mir.js";
 import {
   DecompositionTask,
   DecompositionTaskResult,
   ProofObligationTask,
   ProofObligationTaskResult,
   type Task,
-} from "../../lib/tasks.js";
+} from "../../lib/internal/tasks.js";
 import { noApiKey, once, sharedClient } from "./setup.js";
 
 const lib = raw.types;

@@ -19,7 +19,7 @@ import {
   uidSet,
   uptoOfLib,
   verifyKindOfLib,
-} from "../lib/mir.js";
+} from "../lib/internal/mir.js";
 import * as lib from "../lib/raw/types.js";
 
 /*

@@ -12,7 +12,7 @@
 
 import { expect } from "vitest";
 
-import { ValueMap, ValueSet } from "../lib/mir.js";
+import { ValueMap, ValueSet } from "../lib/internal/mir.js";
 
 type Obj = Record<string, unknown>;
 type Tester = Parameters<typeof expect.addEqualityTesters>[0][number];

@@ -39,8 +39,8 @@ import {
   declarationOfLib,
   termOfLib,
   uidSet,
-} from "../../lib/mir.js";
-import { ProofObligationTask, type Task } from "../../lib/tasks.js";
+} from "../../lib/internal/mir.js";
+import { ProofObligationTask, type Task } from "../../lib/internal/tasks.js";
 import { noApiKey, once, sharedClient } from "./setup.js";
 
 const SRC = `

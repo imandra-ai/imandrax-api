@@ -1,6 +1,6 @@
 /** Tasks run by the server, their data and their results */
 
-import { NoClientError, UnexpectedResponseError } from "./errors.js";
+import { NoClientError, UnexpectedResponseError } from "../errors.js";
 import {
   type Binder,
   DB,
@@ -22,8 +22,8 @@ import {
   verifyKindOfLib,
 } from "./mir.js";
 import { type ProofTerm, proofTermOfLib } from "./proof.js";
-import * as taskPb from "./raw/proto/task.js";
-import * as lib from "./raw/types.js";
+import * as taskPb from "../raw/proto/task.js";
+import * as lib from "../raw/types.js";
 import { Report } from "./report.js";
 import { Artifact, ErrorCore, Statistics } from "./responses.js";
 import type { CallOptions } from "./transport.js";

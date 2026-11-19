@@ -19,11 +19,11 @@
  * @module
  */
 
-import { liftBoolToPb } from "./lift_bool.js";
+import { liftBoolToPb } from "./internal/lift_bool.js";
 import * as artmsgPb from "./raw/proto/artmsg.js";
 import * as simplePb from "./raw/proto/simple_api.js";
-import { Artifact } from "./responses.js";
-import { DecompositionTaskResult, type LiftBool } from "./tasks.js";
+import { Artifact } from "./internal/responses.js";
+import { DecompositionTaskResult, type LiftBool } from "./internal/tasks.js";
 
 /** A decomposition request, the protobuf message `decomposeFull` sends */
 export type Decomp = simplePb.DecomposeReqFull_Decomp;

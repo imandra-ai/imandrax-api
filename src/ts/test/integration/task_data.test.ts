@@ -22,7 +22,7 @@ import {
   type Variable,
   uidMap,
   uidSet,
-} from "../../lib/mir.js";
+} from "../../lib/internal/mir.js";
 import {
   DecompositionTask,
   DecompositionTaskResult,
@@ -32,7 +32,7 @@ import {
   ProofObligationTaskResult,
   type Task,
   TermDecompositionRequest,
-} from "../../lib/tasks.js";
+} from "../../lib/internal/tasks.js";
 import { noApiKey, once, sharedClient, theTask } from "./setup.js";
 
 const SRC = `

@@ -7,8 +7,8 @@ import {
   EndSessionError,
   TwirpError,
 } from "./errors.js";
-import { liftBoolToPb } from "./lift_bool.js";
-import { type Term, type Type, termOfLib, typeOfLib } from "./mir.js";
+import { liftBoolToPb } from "./internal/lift_bool.js";
+import { type Term, type Type, termOfLib, typeOfLib } from "./internal/mir.js";
 import * as apiPb from "./raw/proto/api.js";
 import * as sessionPb from "./raw/proto/session.js";
 import * as simplePb from "./raw/proto/simple_api.js";
@@ -29,9 +29,14 @@ import {
   artifactKindsOfResult,
   artifactOfResult,
   artifactZipOfResult,
-} from "./responses.js";
-import type { LiftBool, Task } from "./tasks.js";
-import { type CallOptions, type MessageType, Transport, isSessionNotFound } from "./transport.js";
+} from "./internal/responses.js";
+import type { LiftBool, Task } from "./internal/tasks.js";
+import {
+  type CallOptions,
+  type MessageType,
+  Transport,
+  isSessionNotFound,
+} from "./internal/transport.js";
 import { version as apiTypesVersion } from "./version.js";
 
 /** @group Client */

@@ -9,7 +9,7 @@
  * @module
  */
 
-import { UnexpectedResponseError } from "./errors.js";
+import { UnexpectedResponseError } from "../errors.js";
 import {
   InstantiationRule,
   Model,
@@ -20,8 +20,8 @@ import {
   Variable,
   termOfLib,
 } from "./mir.js";
-import * as twine from "./raw/twine.js";
-import * as lib from "./raw/types.js";
+import * as twine from "../raw/twine.js";
+import * as lib from "../raw/types.js";
 
 /*
 Rich text

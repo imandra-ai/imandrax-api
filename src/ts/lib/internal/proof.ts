@@ -14,7 +14,7 @@
 // memory, each one separately. The terms and types in them are shared, and convert once (see
 // Note [Lib memo] in `mir.ts`).
 
-import { UnexpectedResponseError } from "./errors.js";
+import { UnexpectedResponseError } from "../errors.js";
 import {
   Sequent,
   type Term,
@@ -26,7 +26,7 @@ import {
   uidMap,
   variableMap,
 } from "./mir.js";
-import * as lib from "./raw/types.js";
+import * as lib from "../raw/types.js";
 
 type RawArg = lib.Proof_Arg<lib.Mir_Term, lib.Mir_Type>;
 type RawProofTerm = lib.Proof_Proof_term_t_poly<lib.Mir_Term, lib.Mir_Type>;

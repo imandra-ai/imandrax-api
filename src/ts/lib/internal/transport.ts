@@ -4,8 +4,8 @@
  * See https://twitchtv.github.io/twirp/docs/spec_v7.html
  */
 
-import { TwirpError, type TwirpErrorCode } from "./errors.js";
-import { version as apiTypesVersion } from "./version.js";
+import { TwirpError, type TwirpErrorCode } from "../errors.js";
+import { version as apiTypesVersion } from "../version.js";
 
 /**
  * Options of a single request

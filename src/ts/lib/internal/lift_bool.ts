@@ -1,6 +1,6 @@
 /** Internal: `LiftBool` as requests send it */
 
-import * as simplePb from "./raw/proto/simple_api.js";
+import * as simplePb from "../raw/proto/simple_api.js";
 import type { LiftBool } from "./tasks.js";
 
 /** `x` as the protobuf enum that requests take */

@@ -4,7 +4,7 @@ import { vi } from "vitest";
 
 import { Session as SessionType } from "../lib/raw/proto/session.js";
 import { Empty as EmptyType } from "../lib/raw/proto/utils.js";
-import type { MessageType } from "../lib/transport.js";
+import type { MessageType } from "../lib/internal/transport.js";
 
 export interface Request {
   url: string;

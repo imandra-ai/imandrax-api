@@ -8,7 +8,7 @@
 import { afterAll, beforeAll, expect } from "vitest";
 
 import { Client, urlProd } from "../../lib/index.js";
-import { type Task } from "../../lib/tasks.js";
+import { type Task } from "../../lib/internal/tasks.js";
 
 export const apiKey: string | undefined =
   process.env.IMANDRAX_API_KEY || process.env.IMANDRA_UNI_KEY || undefined;

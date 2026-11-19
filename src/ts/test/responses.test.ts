@@ -19,7 +19,7 @@ import {
   Task,
   taskOfRaw,
   type ArtifactSource,
-} from "../lib/tasks.js";
+} from "../lib/internal/tasks.js";
 import * as apiPb from "../lib/raw/proto/api.js";
 import * as simplePb from "../lib/raw/proto/simple_api.js";
 import * as taskPb from "../lib/raw/proto/task.js";

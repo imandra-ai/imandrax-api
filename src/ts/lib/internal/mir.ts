@@ -67,9 +67,9 @@
 // the client object refers back to it through `raw`. Lib objects belong to one decoder, so client
 // objects are never shared between artifacts.
 
-import { UnexpectedResponseError } from "./errors.js";
-import * as lib from "./raw/types.js";
-import * as twine from "./raw/twine.js";
+import { UnexpectedResponseError } from "../errors.js";
+import * as lib from "../raw/types.js";
+import * as twine from "../raw/twine.js";
 
 function unexpected(what: string, x: unknown): never {
   const name = (x as { constructor?: { name?: string } } | undefined)?.constructor?.name;

@@ -21,5 +21,5 @@ export { version } from "./version.js";
 
 export * from "./client.js";
 export * from "./errors.js";
-export * from "./responses.js";
-export type { CallOptions } from "./transport.js";
+export * from "./internal/responses.js";
+export type { CallOptions } from "./internal/transport.js";

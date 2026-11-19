@@ -11,17 +11,17 @@
  * `EvalSrcResponse` (layer 2). It is the only client-method return type not named `*Response`.
  */
 
-import { ServerError, UnexpectedResponseError } from "./errors.js";
+import { ServerError, UnexpectedResponseError } from "../errors.js";
 import { Decomposition, Model } from "./mir.js";
-import * as apiPb from "./raw/proto/api.js";
-import * as artmsgPb from "./raw/proto/artmsg.js";
-import * as errorPb from "./raw/proto/error.js";
-import * as locsPb from "./raw/proto/locs.js";
-import * as simplePb from "./raw/proto/simple_api.js";
-import * as systemPb from "./raw/proto/system.js";
-import * as taskPb from "./raw/proto/task.js";
-import * as twine from "./raw/twine.js";
-import * as lib from "./raw/types.js";
+import * as apiPb from "../raw/proto/api.js";
+import * as artmsgPb from "../raw/proto/artmsg.js";
+import * as errorPb from "../raw/proto/error.js";
+import * as locsPb from "../raw/proto/locs.js";
+import * as simplePb from "../raw/proto/simple_api.js";
+import * as systemPb from "../raw/proto/system.js";
+import * as taskPb from "../raw/proto/task.js";
+import * as twine from "../raw/twine.js";
+import * as lib from "../raw/types.js";
 import {
   DecompositionTask,
   ProofObligationTask,

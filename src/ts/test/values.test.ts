@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 
-import { Rational, Uid as MirUid } from "../lib/mir.js";
+import { Rational, Uid as MirUid } from "../lib/internal/mir.js";
 import * as lib from "../lib/raw/types.js";
-import * as values from "../lib/values.js";
+import * as values from "../lib/internal/values.js";
 
 type V = lib.Eval_Value_view<lib.Eval_Value, lib.Eval_Value_erased_closure>;
 

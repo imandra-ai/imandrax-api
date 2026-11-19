@@ -5,7 +5,7 @@
  * decoder's own error, which is not an `ImandraXError`.
  */
 
-import type { ErrorCore, ErrorInfo } from "./responses.js";
+import type { ErrorCore, ErrorInfo } from "./internal/responses.js";
 
 /**
  * Base class for errors from ImandraX requests
