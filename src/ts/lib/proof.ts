@@ -183,8 +183,7 @@ export function proofTermOfLib(x: RawProofTerm): ProofTerm {
   if (v instanceof lib.Proof_View_T_subst) {
     return new SubstProof(
       v.t_subst.map(
-        ([[u, ty], t]) =>
-          [Variable.ofLib(new lib.Common_Var_t_poly(u, ty)), termOfLib(t)] as const,
+        ([[u, ty], t]) => [Variable.ofLib(new lib.Common_Var_t_poly(u, ty)), termOfLib(t)] as const,
       ),
       v.ty_subst.map(([u, ty]) => [new Uid(u), typeOfLib(ty)] as const),
       proofTermOfLib(v.premise),

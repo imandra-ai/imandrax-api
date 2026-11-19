@@ -75,9 +75,10 @@ export class FakeServer {
 
   /** Answer session creation and ending */
   withSessions(id = "sesh-1"): this {
-    return this.on("imandrax.simple.Simple/create_session", () =>
-      ok(SessionType, { id }),
-    ).on("imandrax.simple.Simple/end_session", () => ok(EmptyType, {}));
+    return this.on("imandrax.simple.Simple/create_session", () => ok(SessionType, { id })).on(
+      "imandrax.simple.Simple/end_session",
+      () => ok(EmptyType, {}),
+    );
   }
 
   /** The requests to `service/method` */

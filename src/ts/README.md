@@ -29,6 +29,7 @@ The examples read the API key from `IMANDRAX_API_KEY` (or `IMANDRA_UNI_KEY`).
 ### Quick start
 
 <!-- example: quickstart -->
+
 ```ts
 import { Client } from "imandrax-api";
 
@@ -60,6 +61,7 @@ Region decomposition splits a function's input space into disjoint regions, each
 With `prune: true`, regions proved empty are removed, and each region proved feasible comes with a sample input and the function's output on it.
 
 <!-- example: decompose -->
+
 ```ts
 import { Client } from "imandrax-api";
 
@@ -75,12 +77,23 @@ let fee amount =
 `);
 
 const res = await client.decompose("fee", { prune: true, stringResults: true });
-if (res.decomposition === undefined) throw new Error(`decomposition failed: ${res.errors.join("\n")}`);
+if (res.decomposition === undefined)
+  throw new Error(`decomposition failed: ${res.errors.join("\n")}`);
 
 for (const region of res.decomposition.regions) {
   // The sample input is keyed by each variable's unique ID; key it by name instead
-  const input = Object.fromEntries([...(region.sample() ?? [])].map(([uid, v]) => [uid.shortName, v]));
-  console.log(region.constraintsStr?.join(" && "), "|", region.invariantStr, "|", input, "|", region.sampleOutput());
+  const input = Object.fromEntries(
+    [...(region.sample() ?? [])].map(([uid, v]) => [uid.shortName, v]),
+  );
+  console.log(
+    region.constraintsStr?.join(" && "),
+    "|",
+    region.invariantStr,
+    "|",
+    input,
+    "|",
+    region.sampleOutput(),
+  );
 }
 // amount >= 100 | amount / 20 | { amount: 100n } | 5n
 // amount >= 0 && amount <= 99 | 5 | { amount: 0n } | 5n
@@ -92,6 +105,7 @@ for (const region of res.decomposition.regions) {
 The steps above can also be written in one IML source and run with a single `evalSrc`. The results of `theorem`, `verify` and `instance` statements are in `poResults`, and those of `[@@decomp ...]` in `decompResults`:
 
 <!-- example: eval_src -->
+
 ```ts
 import { Client } from "imandrax-api";
 

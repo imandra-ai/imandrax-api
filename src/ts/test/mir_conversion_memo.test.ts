@@ -46,12 +46,7 @@ const LT = mkVar(new lib.Common_Var_t_poly(mkUid("<"), mkArrow(INT, mkArrow(INT,
 const X_LT_X = mkApp(LT, [X, X], BOOL);
 
 function mkRegion(...constraints: RawTerm[]): lib.Mir_Region_Region {
-  return new lib.Common_Region_t_poly(
-    constraints,
-    X,
-    [],
-    new lib.Common_Region_status_Unknown(),
-  );
+  return new lib.Common_Region_t_poly(constraints, X, [], new lib.Common_Region_status_Unknown());
 }
 
 function mkAssume(concl: RawTerm, id: bigint): RawProofTerm {
@@ -74,16 +69,16 @@ describe("terms", () => {
     // `int` converts once
     expect((ltType as ArrowType).domain).toBe(x1!.type);
   });
-
 });
 
 describe("decomposition", () => {
   test("a decomposition shares across regions", () => {
     const d = Decomposition.ofLib(
-      new lib.Common_Fun_decomp_t_poly(mkUid("f"), [X_VAR], [
-        mkRegion(X_LT_X),
-        mkRegion(X_LT_X, X_LT_X),
-      ]),
+      new lib.Common_Fun_decomp_t_poly(
+        mkUid("f"),
+        [X_VAR],
+        [mkRegion(X_LT_X), mkRegion(X_LT_X, X_LT_X)],
+      ),
     );
     const [r1, r2] = d.regions;
     expect(r1!.constraints[0]).toBe(r2!.constraints[0]);
@@ -104,9 +99,7 @@ describe("proof term", () => {
     );
     expect(p).toBeInstanceOf(DeductionProof);
     const [[, [p1, p2]]] = (p as DeductionProof).premises as [[string, [unknown, unknown]]];
-    const concls = [p, p1, p2].map(
-      (q) => (q as DeductionProof).conclusion.conclusions[0]![1],
-    );
+    const concls = [p, p1, p2].map((q) => (q as DeductionProof).conclusion.conclusions[0]![1]);
     expect(concls[0]).toBe(concls[1]);
     expect(concls[1]).toBe(concls[2]);
   });

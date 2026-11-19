@@ -5,9 +5,7 @@ import { describe, expect, test } from "vitest";
 
 import * as twine from "../lib/raw/twine.js";
 
-const TEST_DATA = fileURLToPath(
-  new URL("../../py/tests/twine/test_data/", import.meta.url),
-);
+const TEST_DATA = fileURLToPath(new URL("../../py/tests/twine/test_data/", import.meta.url));
 
 function testData(name: string): Uint8Array {
   return new Uint8Array(readFileSync(TEST_DATA + name));
@@ -57,7 +55,10 @@ describe("twine decoder", () => {
       });
     // [0] the shared array (1, 2); [3] an array of two pointers, both to [0]
     const d = new twine.Decoder(bytes(0x62, 0x11, 0x12, 0x62, 0xf3, 0xf4));
-    const [first, second] = d.get_array(3).toArray().map((x) => dec(d, x));
+    const [first, second] = d
+      .get_array(3)
+      .toArray()
+      .map((x) => dec(d, x));
     expect(first).toEqual([1n, 2n]);
     expect(first).toBe(second);
     expect(calls).toHaveLength(1);
@@ -135,7 +136,10 @@ describe("twine decoder", () => {
     // [0] an array whose only item, [1], points back at [0]; [2] the entrypoint, at [0]
     const d = new twine.Decoder(bytes(0x61, 0xf0, 0x01));
     const decode = (d: twine.Decoder, off: twine.offset): unknown =>
-      d.get_array(off).toArray().map((x) => decode(d, x));
+      d
+        .get_array(off)
+        .toArray()
+        .map((x) => decode(d, x));
     expect(() => twine.decodeEntrypoint(d, decode)).toThrow(twine.TwineError);
   });
 

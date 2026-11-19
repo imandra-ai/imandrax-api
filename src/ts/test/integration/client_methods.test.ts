@@ -218,7 +218,9 @@ describe.skipIf(noApiKey)("client methods", () => {
   });
 
   test("parseTerm of an ill-typed term throws", async () => {
-    const err = await client().parseTerm("1 + true").catch((e: unknown) => e);
+    const err = await client()
+      .parseTerm("1 + true")
+      .catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ServerError);
     expect(String(err)).toContain("expected argument of type `int`");
   });
@@ -229,7 +231,9 @@ describe.skipIf(noApiKey)("client methods", () => {
   test("list and get artifacts", async () => {
     const c = client();
     const task = (await c.verifyName("nonneg")).task!;
-    expect(new Set(await c.listArtifacts(task))).toEqual(new Set(["po_res", "po_task", "report", "show"]));
+    expect(new Set(await c.listArtifacts(task))).toEqual(
+      new Set(["po_res", "po_task", "report", "show"]),
+    );
 
     const art = await c.getArtifact(task, "po_res");
     expect(art.kind).toBe("po_res");

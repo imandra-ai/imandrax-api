@@ -158,7 +158,10 @@ export class Artifact {
   decodeAs<T>(expectedClass: abstract new (...args: any[]) => T): T;
   decodeAs<T>(expectedClass: abstract new (...args: any[]) => unknown): T;
   decodeAs<T>(expectedClass: abstract new (...args: any[]) => unknown): T {
-    const decoders = lib.artifact_decoders as Record<string, (d: twine.Decoder, off: number) => unknown>;
+    const decoders = lib.artifact_decoders as Record<
+      string,
+      (d: twine.Decoder, off: number) => unknown
+    >;
     // the kind comes from the server: an inherited key such as `__proto__` is not a decoder
     if (!Object.hasOwn(decoders, this.kind)) {
       throw new UnexpectedResponseError(`Unknown artifact kind '${this.kind}'`);
@@ -286,9 +289,9 @@ export class ModelOutput {
         this.raw.artifact === undefined
           ? undefined
           : Model.ofLib(
-              Artifact.ofRaw(this.raw.artifact).decodeAs<lib.Common_Model_t_poly<lib.Mir_Term, lib.Mir_Type>>(
-                lib.Common_Model_t_poly,
-              ),
+              Artifact.ofRaw(this.raw.artifact).decodeAs<
+                lib.Common_Model_t_poly<lib.Mir_Term, lib.Mir_Type>
+              >(lib.Common_Model_t_poly),
             );
     }
     return this.#model;

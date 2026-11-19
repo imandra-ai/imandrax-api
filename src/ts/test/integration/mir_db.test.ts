@@ -116,28 +116,46 @@ function structEq(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) return true;
   if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
   if (Array.isArray(a) || Array.isArray(b)) {
-    return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, i) => structEq(x, b[i]));
+    return (
+      Array.isArray(a) &&
+      Array.isArray(b) &&
+      a.length === b.length &&
+      a.every((x, i) => structEq(x, b[i]))
+    );
   }
   if (a instanceof Uint8Array || b instanceof Uint8Array) {
-    return a instanceof Uint8Array && b instanceof Uint8Array && a.length === b.length && a.every((x, i) => x === b[i]);
+    return (
+      a instanceof Uint8Array &&
+      b instanceof Uint8Array &&
+      a.length === b.length &&
+      a.every((x, i) => x === b[i])
+    );
   }
   if (a instanceof ValueSet || a instanceof Set) {
     const sb = b as ReadonlySet<unknown>;
-    return (b instanceof ValueSet || b instanceof Set) && a.size === sb.size && [...a].every((x) => sb.has(x));
+    return (
+      (b instanceof ValueSet || b instanceof Set) &&
+      a.size === sb.size &&
+      [...a].every((x) => sb.has(x))
+    );
   }
   if (a instanceof ValueMap || a instanceof Map) {
     const mb = b as ReadonlyMap<unknown, unknown>;
     return (
       (b instanceof ValueMap || b instanceof Map) &&
       a.size === mb.size &&
-      [...(a as ReadonlyMap<unknown, unknown>)].every(([k, v]) => mb.has(k) && structEq(v, mb.get(k)))
+      [...(a as ReadonlyMap<unknown, unknown>)].every(
+        ([k, v]) => mb.has(k) && structEq(v, mb.get(k)),
+      )
     );
   }
   if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) return false;
   const eq = (a as { equals?: (o: unknown) => boolean }).equals;
   if (typeof eq === "function") return eq.call(a, b);
   const keys = Object.keys(a).filter((k) => k !== "raw");
-  return keys.every((k) => structEq((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+  return keys.every((k) =>
+    structEq((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]),
+  );
 }
 
 describe.skipIf(noApiKey)("MIR DB", () => {
@@ -213,7 +231,10 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     const shape: TypeDefinition | undefined = d.findType(searchUidByShortName(d, "shape"));
     expect(shape).toBeDefined();
     expect(shape!.kind).toBeInstanceOf(AlgebraicTypeKind);
-    expect((shape!.kind as AlgebraicTypeKind).constructors.map((c) => c.name.shortName)).toEqual(["Circle", "Rect"]);
+    expect((shape!.kind as AlgebraicTypeKind).constructors.map((c) => c.name.shortName)).toEqual([
+      "Circle",
+      "Rect",
+    ]);
 
     // point record
     const point: TypeDefinition | undefined = d.findType(searchUidByShortName(d, "point"));
@@ -244,7 +265,9 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     // The full name is `<short name>/<content hash>`
     expect(sameUids(d.findFunctionRe("sum/").keys(), [searchUidByShortName(d, "sum")])).toBe(true);
     expect(sameUids(d.findTypeRe("point/").keys(), [searchUidByShortName(d, "point")])).toBe(true);
-    expect(sameUids(d.findDeclarationRe("g_gt/").keys(), [searchUidByShortName(d, "g_gt")])).toBe(true);
+    expect(sameUids(d.findDeclarationRe("g_gt/").keys(), [searchUidByShortName(d, "g_gt")])).toBe(
+      true,
+    );
 
     // `re.match` semantics: anchored at the start, not at the end
     expect(d.findFunctionRe("um/").size).toBe(0);
@@ -324,7 +347,8 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     // 3. `fun x -> x * y` in the goal of the `instance`
     const instances: ProofObligationTask[] = [];
     for (const t of await tasks()) {
-      if (t instanceof ProofObligationTask && (await t.proofObligation()).isInstance) instances.push(t);
+      if (t instanceof ProofObligationTask && (await t.proofObligation()).isInstance)
+        instances.push(t);
     }
     expect(instances).toHaveLength(1);
     const [, goal] = (await instances[0]!.proofObligation()).goal;
@@ -405,7 +429,9 @@ describe.skipIf(noApiKey)("MIR DB", () => {
 
   test("prelude theorems and rules", async () => {
     const d = await db();
-    const theorems = shortNames([...d.decls].filter(([, decl]) => decl instanceof TheoremDeclaration).map(([u]) => u));
+    const theorems = shortNames(
+      [...d.decls].filter(([, decl]) => decl instanceof TheoremDeclaration).map(([u]) => u),
+    );
     for (const name of [
       // `[@@imandra_axiom]`s are theorems too
       "Int.mod_eq_emod",
@@ -422,7 +448,12 @@ describe.skipIf(noApiKey)("MIR DB", () => {
 
     // `[@@rw]` / `[@@rewrite]` theorems
     const rw = shortNames(d.thmAsRw.keys());
-    for (const name of ["List.append_to_nil", "List.append_single", "List.len_zero_is_empty", "List.len_append"]) {
+    for (const name of [
+      "List.append_to_nil",
+      "List.append_single",
+      "List.len_zero_is_empty",
+      "List.len_append",
+    ]) {
       expect(rw).toContain(name);
     }
 
@@ -464,10 +495,18 @@ describe.skipIf(noApiKey)("MIR DB", () => {
 
   test("symbols resolve to declarations", async () => {
     const d = await db();
-    const bodies = [...d.decls.values()].filter((x) => !(x instanceof TypeDeclaration)).map((x) => (x as Exclude<Declaration, TypeDeclaration>).function.body);
-    const symbols = uidSet(bodies.flatMap((body) => [...body].filter((x): x is Symbol => x instanceof Symbol).map((x) => x.symbol.id)));
+    const bodies = [...d.decls.values()]
+      .filter((x) => !(x instanceof TypeDeclaration))
+      .map((x) => (x as Exclude<Declaration, TypeDeclaration>).function.body);
+    const symbols = uidSet(
+      bodies.flatMap((body) =>
+        [...body].filter((x): x is Symbol => x instanceof Symbol).map((x) => x.symbol.id),
+      ),
+    );
     expect(symbols.size).toBeGreaterThan(0);
-    expect([...symbols].filter((u) => d.findDeclaration(u) === undefined).map((u) => `${u}`)).toEqual([]);
+    expect(
+      [...symbols].filter((u) => d.findDeclaration(u) === undefined).map((u) => `${u}`),
+    ).toEqual([]);
   });
 
   function* constructedTypes(ty: Type): Iterable<ConstructedType> {
@@ -490,10 +529,17 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     const functions = [...d.decls.values()]
       .filter((x): x is Exclude<Declaration, TypeDeclaration> => !(x instanceof TypeDeclaration))
       .map((x) => x.function);
-    const types = [...functions.map((f) => f.type), ...functions.flatMap((f) => [...f.body].map((x) => x.type))];
-    const constructors = uidSet(types.flatMap((ty) => [...constructedTypes(ty)].map((t) => t.ctor)));
+    const types = [
+      ...functions.map((f) => f.type),
+      ...functions.flatMap((f) => [...f.body].map((x) => x.type)),
+    ];
+    const constructors = uidSet(
+      types.flatMap((ty) => [...constructedTypes(ty)].map((t) => t.ctor)),
+    );
     expect(constructors.size).toBeGreaterThan(0);
-    expect([...constructors].filter((u) => d.findType(u) === undefined).map((u) => `${u}`)).toEqual([]);
+    expect([...constructors].filter((u) => d.findType(u) === undefined).map((u) => `${u}`)).toEqual(
+      [],
+    );
   });
 
   test("rules refer to theorems", async () => {
@@ -507,7 +553,11 @@ describe.skipIf(noApiKey)("MIR DB", () => {
       ...d.instRules.keys(),
     ];
     uids.push(...[...d.rwRules.values()].flatMap((rs) => rs.map((r) => r.name)));
-    uids.push(...[...d.fc.values(), ...d.gen.values()].flatMap((ts) => ts.map((t) => t.instantiationRuleName)));
+    uids.push(
+      ...[...d.fc.values(), ...d.gen.values()].flatMap((ts) =>
+        ts.map((t) => t.instantiationRuleName),
+      ),
+    );
     expect(uids.length).toBeGreaterThan(0);
     for (const u of uids) {
       expect(d.findDeclaration(u), `${u}`).toBeInstanceOf(TheoremDeclaration);
@@ -543,4 +593,3 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     }
   });
 });
-

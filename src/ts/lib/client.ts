@@ -233,7 +233,14 @@ export class Client {
 
   async #endSession(options: CallOptions): Promise<void> {
     try {
-      await this.#call(SIMPLE, "end_session", sessionPb.Session, utilsPb.Empty, this.#session, options);
+      await this.#call(
+        SIMPLE,
+        "end_session",
+        sessionPb.Session,
+        utilsPb.Empty,
+        this.#session,
+        options,
+      );
     } catch (e) {
       if (e instanceof TwirpError) throw new EndSessionError(this.#session.id, { cause: e });
       throw e;
@@ -284,7 +291,14 @@ export class Client {
       taskFilter: options.taskFilter ?? [],
       asyncOnly: options.asyncOnly,
     });
-    const res = await this.#call(SIMPLE, "eval_src", simplePb.EvalSrcReq, simplePb.EvalRes, req, options);
+    const res = await this.#call(
+      SIMPLE,
+      "eval_src",
+      simplePb.EvalSrcReq,
+      simplePb.EvalRes,
+      req,
+      options,
+    );
     return EvalSrcResponse.ofRaw(res, this);
   }
 
@@ -339,7 +353,11 @@ export class Client {
 
   /** Verify the goal given as IML source */
   async verifySrc(src: string, options: GoalOptions = {}): Promise<VerifyResponse> {
-    const req = simplePb.VerifySrcReq.fromPartial({ session: this.#session, src, hints: options.hints });
+    const req = simplePb.VerifySrcReq.fromPartial({
+      session: this.#session,
+      src,
+      hints: options.hints,
+    });
     const res = await this.#call(
       SIMPLE,
       "verify_src",
@@ -353,7 +371,11 @@ export class Client {
 
   /** Verify the predicate `name` */
   async verifyName(name: string, options: GoalOptions = {}): Promise<VerifyResponse> {
-    const req = simplePb.VerifyNameReq.fromPartial({ session: this.#session, name, hints: options.hints });
+    const req = simplePb.VerifyNameReq.fromPartial({
+      session: this.#session,
+      name,
+      hints: options.hints,
+    });
     const res = await this.#call(
       SIMPLE,
       "verify_name",
@@ -367,7 +389,11 @@ export class Client {
 
   /** Search for an instance of the goal given as IML source */
   async instanceSrc(src: string, options: GoalOptions = {}): Promise<InstanceResponse> {
-    const req = simplePb.InstanceSrcReq.fromPartial({ session: this.#session, src, hints: options.hints });
+    const req = simplePb.InstanceSrcReq.fromPartial({
+      session: this.#session,
+      src,
+      hints: options.hints,
+    });
     const res = await this.#call(
       SIMPLE,
       "instance_src",
@@ -399,15 +425,37 @@ export class Client {
 
   /** Test the goal given as IML source with random inputs */
   async testSrc(src: string, options: TestOptions = {}): Promise<TestResponse> {
-    const req = simplePb.TestSrcReq.fromPartial({ session: this.#session, src, seed: options.seed });
-    const res = await this.#call(SIMPLE, "test_src", simplePb.TestSrcReq, simplePb.TestRes, req, options);
+    const req = simplePb.TestSrcReq.fromPartial({
+      session: this.#session,
+      src,
+      seed: options.seed,
+    });
+    const res = await this.#call(
+      SIMPLE,
+      "test_src",
+      simplePb.TestSrcReq,
+      simplePb.TestRes,
+      req,
+      options,
+    );
     return TestResponse.ofRaw(res, this);
   }
 
   /** Test the predicate `name` with random inputs */
   async testName(name: string, options: TestOptions = {}): Promise<TestResponse> {
-    const req = simplePb.TestNameReq.fromPartial({ session: this.#session, name, seed: options.seed });
-    const res = await this.#call(SIMPLE, "test_name", simplePb.TestNameReq, simplePb.TestRes, req, options);
+    const req = simplePb.TestNameReq.fromPartial({
+      session: this.#session,
+      name,
+      seed: options.seed,
+    });
+    const res = await this.#call(
+      SIMPLE,
+      "test_name",
+      simplePb.TestNameReq,
+      simplePb.TestRes,
+      req,
+      options,
+    );
     return TestResponse.ofRaw(res, this);
   }
 
@@ -428,7 +476,14 @@ export class Client {
   /** Evaluate IML code in a sessionless, self-contained request */
   async oneshot(input: string, options: OneshotOptions = {}): Promise<OneshotResponse> {
     const req = simplePb.OneshotReq.fromPartial({ input, timeout: options.computeTimeout });
-    const res = await this.#call(SIMPLE, "oneshot", simplePb.OneshotReq, simplePb.OneshotRes, req, options);
+    const res = await this.#call(
+      SIMPLE,
+      "oneshot",
+      simplePb.OneshotReq,
+      simplePb.OneshotRes,
+      req,
+      options,
+    );
     return OneshotResponse.ofRaw(res);
   }
 
@@ -436,7 +491,10 @@ export class Client {
   // ============
 
   /** Evaluate a code snippet */
-  async evalCodeSnippet(code: string, options: CodeSnippetOptions = {}): Promise<CodeSnippetResponse> {
+  async evalCodeSnippet(
+    code: string,
+    options: CodeSnippetOptions = {},
+  ): Promise<CodeSnippetResponse> {
     const req = apiPb.CodeSnippet.fromPartial({
       session: this.#session,
       code,
@@ -456,14 +514,28 @@ export class Client {
   /** Parse and typecheck a term */
   async parseTerm(code: string, options: CallOptions = {}): Promise<Term> {
     const req = apiPb.CodeSnippet.fromPartial({ session: this.#session, code });
-    const res = await this.#call(EVAL, "parse_term", apiPb.CodeSnippet, apiPb.ArtifactResult, req, options);
+    const res = await this.#call(
+      EVAL,
+      "parse_term",
+      apiPb.CodeSnippet,
+      apiPb.ArtifactResult,
+      req,
+      options,
+    );
     return termOfLib(artifactOfResult(res).decodeAs(lib.Mir_Term));
   }
 
   /** Parse and typecheck a type */
   async parseType(code: string, options: CallOptions = {}): Promise<Type> {
     const req = apiPb.CodeSnippet.fromPartial({ session: this.#session, code });
-    const res = await this.#call(EVAL, "parse_type", apiPb.CodeSnippet, apiPb.ArtifactResult, req, options);
+    const res = await this.#call(
+      EVAL,
+      "parse_type",
+      apiPb.CodeSnippet,
+      apiPb.ArtifactResult,
+      req,
+      options,
+    );
     return typeOfLib(artifactOfResult(res).decodeAs(lib.Mir_Type));
   }
 
@@ -537,7 +609,14 @@ export class Client {
 
   /** The server's version */
   async version(options: CallOptions = {}): Promise<ServerVersion> {
-    const res = await this.#call(SYSTEM, "version", utilsPb.Empty, systemPb.VersionResponse, {}, options);
+    const res = await this.#call(
+      SYSTEM,
+      "version",
+      utilsPb.Empty,
+      systemPb.VersionResponse,
+      {},
+      options,
+    );
     return ServerVersion.ofRaw(res);
   }
 }

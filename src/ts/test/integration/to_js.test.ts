@@ -33,7 +33,12 @@ function same(a: JsValue | undefined, b: JsValue | undefined): boolean {
     return [...a.keys()].every((k) => b.has(k) && same(a.get(k), b.get(k)));
   }
   if (a instanceof Constructed || b instanceof Constructed) {
-    return a instanceof Constructed && b instanceof Constructed && a.name === b.name && same(a.args, b.args);
+    return (
+      a instanceof Constructed &&
+      b instanceof Constructed &&
+      a.name === b.name &&
+      same(a.args, b.args)
+    );
   }
   if (a instanceof Rational || b instanceof Rational) {
     return a instanceof Rational && a.equals(b);
@@ -96,13 +101,9 @@ function construct(c: string, args: RawTerm[], t: RawType, labels?: string[]): R
   );
 }
 
-const [INT, BOOL, STRING, REAL, UNIT] = ["int", "bool", "string", "real", "unit"].map((n) => ty(n)) as [
-  RawType,
-  RawType,
-  RawType,
-  RawType,
-  RawType,
-];
+const [INT, BOOL, STRING, REAL, UNIT] = ["int", "bool", "string", "real", "unit"].map((n) =>
+  ty(n),
+) as [RawType, RawType, RawType, RawType, RawType];
 const [REC_T, VAR_T, NEST_T] = [ty("rec_t"), ty("var_t"), ty("nest_t")];
 
 /**
@@ -138,7 +139,9 @@ function rawDb(): DB {
       new lib.Ty_view_def_poly(
         uid(name),
         [],
-        new lib.Ty_view_decl_Algebraic(rows.map(([c, ls, ts]) => new lib.Ty_view_adt_row(uid(c), ls?.map(uid), ts, undefined))),
+        new lib.Ty_view_decl_Algebraic(
+          rows.map(([c, ls, ts]) => new lib.Ty_view_adt_row(uid(c), ls?.map(uid), ts, undefined)),
+        ),
         undefined,
         undefined,
       ),
@@ -177,7 +180,12 @@ type TV = [RawTerm, JsValue];
  *
  * The arguments are in declaration order, with or without labels, as the server sends them.
  */
-function inlineRecord(c: string, fields: [string, fc.Arbitrary<TV>][], t: RawType, dropLabels: boolean): fc.Arbitrary<TV> {
+function inlineRecord(
+  c: string,
+  fields: [string, fc.Arbitrary<TV>][],
+  t: RawType,
+  dropLabels: boolean,
+): fc.Arbitrary<TV> {
   return fc.tuple(fc.tuple(...fields.map(([, s]) => s)), fc.boolean()).map(([vs, drop]) => {
     const labels = dropLabels && drop ? undefined : fields.map(([k]) => k);
     return [
@@ -214,8 +222,9 @@ function values(t: Ty, dropLabels: boolean): fc.Arbitrary<TV> {
       case "unit":
         return fc.constant<TV>([construct("()", [], UNIT), []]);
       case "rec_t":
-        return fc.tuple(values("int", dropLabels), values(["list", ["bool"]], dropLabels)).map(
-          ([a, b]): TV => [
+        return fc
+          .tuple(values("int", dropLabels), values(["list", ["bool"]], dropLabels))
+          .map(([a, b]): TV => [
             term(
               new lib.Mir_Term_view_Record(
                 [
@@ -230,8 +239,7 @@ function values(t: Ty, dropLabels: boolean): fc.Arbitrary<TV> {
               ["a", a[1]],
               ["b", b[1]],
             ]),
-          ],
-        );
+          ]);
       case "var_t":
         return fc.oneof(
           inlineRecord(
@@ -245,7 +253,10 @@ function values(t: Ty, dropLabels: boolean): fc.Arbitrary<TV> {
           ),
           fc
             .tuple(values("int", dropLabels), values("string", dropLabels))
-            .map(([x, y]): TV => [construct("B", [x[0], y[0]], VAR_T), new Constructed("B", [x[1], y[1]])]),
+            .map(([x, y]): TV => [
+              construct("B", [x[0], y[0]], VAR_T),
+              new Constructed("B", [x[1], y[1]]),
+            ]),
           fc.constant<TV>([construct("C", [], VAR_T), new Constructed("C")]),
         );
       case "nest_t":
@@ -279,16 +290,18 @@ function values(t: Ty, dropLabels: boolean): fc.Arbitrary<TV> {
     case "option":
       return fc.oneof(
         fc.constant<TV>([construct("None", [], rawType(t)), new Constructed("None")]),
-        values(us[0]!, dropLabels).map((x): TV => [construct("Some", [x[0]], rawType(t)), new Constructed("Some", [x[1]])]),
+        values(us[0]!, dropLabels).map((x): TV => [
+          construct("Some", [x[0]], rawType(t)),
+          new Constructed("Some", [x[1]]),
+        ]),
       );
     case "tuple":
-      return fc.tuple(...us.map((u) => values(u, dropLabels))).map((xs): TV => [
-        term(
-          new lib.Mir_Term_view_Tuple(xs.map(([x]) => x)),
-          rawType(t),
-        ),
-        xs.map(([, v]) => v),
-      ]);
+      return fc
+        .tuple(...us.map((u) => values(u, dropLabels)))
+        .map((xs): TV => [
+          term(new lib.Mir_Term_view_Tuple(xs.map(([x]) => x)), rawType(t)),
+          xs.map(([, v]) => v),
+        ]);
   }
   throw new Error(`unknown type ${k}`);
 }
@@ -319,7 +332,10 @@ describe("toJs", () => {
   test("toJs without db keeps unlabeled arguments", () => {
     const raw = construct(
       "A",
-      [constTerm(new lib.Const_Const_z(1n), INT), constTerm(new lib.Const_Const_string("a"), STRING)],
+      [
+        constTerm(new lib.Const_Const_z(1n), INT),
+        constTerm(new lib.Const_Const_string("a"), STRING),
+      ],
       VAR_T,
     );
     expect(same(termOfLib(raw).toJs(), new Constructed("A", [1n, "a"]))).toBe(true);

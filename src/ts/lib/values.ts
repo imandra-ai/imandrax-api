@@ -233,7 +233,8 @@ export function valueOfLib(x: View): Value {
   if (x instanceof lib.Eval_Value_view_V_true) return new True_(x);
   if (x instanceof lib.Eval_Value_view_V_false) return new False_(x);
   if (x instanceof lib.Eval_Value_view_V_int) return new Int(x.arg, x);
-  if (x instanceof lib.Eval_Value_view_V_real) return new Real(new mir.Rational(x.arg[0], x.arg[1]), x);
+  if (x instanceof lib.Eval_Value_view_V_real)
+    return new Real(new mir.Rational(x.arg[0], x.arg[1]), x);
   if (x instanceof lib.Eval_Value_view_V_string) return new String(x.arg, x);
   if (x instanceof lib.Eval_Value_view_V_cstor) {
     const [descriptor, args] = x.args;
@@ -307,8 +308,7 @@ export class ConsOrdinal {
     } else {
       power = `^(${this.exponent})`;
     }
-    const rest =
-      this.rest instanceof IntOrdinal && this.rest.value === 0n ? "" : ` + ${this.rest}`;
+    const rest = this.rest instanceof IntOrdinal && this.rest.value === 0n ? "" : ` + ${this.rest}`;
     return `${coefficient}ω${power}${rest}`;
   }
 }

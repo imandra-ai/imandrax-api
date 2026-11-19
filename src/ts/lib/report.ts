@@ -183,7 +183,11 @@ export function richTextItemOfLib(x: RawRtextItem): RichTextItem {
   if (x instanceof lib.Report_Rtext_item_I) return new ItalicText(x.arg, x);
   if (x instanceof lib.Report_Rtext_item_Newline) return new Newline(x);
   if (x instanceof lib.Report_Rtext_item_Sub) return new NestedText(RichText.ofLib(x.arg), x);
-  if (x instanceof lib.Report_Rtext_item_L) return new ListText(x.arg.map((t) => RichText.ofLib(t)), x);
+  if (x instanceof lib.Report_Rtext_item_L)
+    return new ListText(
+      x.arg.map((t) => RichText.ofLib(t)),
+      x,
+    );
   if (x instanceof lib.Report_Rtext_item_Uid) return new UidText(new Uid(x.arg), x);
   if (x instanceof lib.Report_Rtext_item_Term) return new TermText(termOfLib(x.arg), x);
   if (x instanceof lib.Report_Rtext_item_Sequent) return new SequentText(Sequent.ofLib(x.arg), x);
@@ -462,7 +466,8 @@ export type AtomicEvent =
   | FunctionExpansion;
 
 export function atomicEventOfLib(x: RawAtomicEvent): AtomicEvent {
-  if (x instanceof lib.Report_Atomic_event_poly_E_message) return new Message(RichText.ofLib(x.arg), x);
+  if (x instanceof lib.Report_Atomic_event_poly_E_message)
+    return new Message(RichText.ofLib(x.arg), x);
   if (x instanceof lib.Report_Atomic_event_poly_E_title) return new Title(x.arg, x);
   if (x instanceof lib.Report_Atomic_event_poly_E_enter_waterfall) {
     return new EnterWaterfall(
@@ -629,7 +634,10 @@ export class Report {
         data = await inflateRaw(x.data);
       } catch (e) {
         // `DecompressionStream` rejects corrupt data with a `TypeError`
-        throw new twine.TwineError({ msg: `report archive is not valid deflate data: ${e}`, offset: 0 });
+        throw new twine.TwineError({
+          msg: `report archive is not valid deflate data: ${e}`,
+          offset: 0,
+        });
       }
     }
     const d = new twine.Decoder(data);

@@ -136,7 +136,10 @@ interface PoTask {
 }
 
 function assertNoFailures(failures: string[]): void {
-  expect(failures, `${failures.length} failures, e.g.:\n` + failures.slice(0, 10).join("\n")).toEqual([]);
+  expect(
+    failures,
+    `${failures.length} failures, e.g.:\n` + failures.slice(0, 10).join("\n"),
+  ).toEqual([]);
 }
 
 /** Variables as a set: variables are equal when their ids are, so it is the set of their ids */
@@ -170,7 +173,11 @@ function typesEq(a: readonly Type[], b: readonly Type[]): boolean {
 }
 
 /** `parts` is `[domains, result]` */
-function partsEq(parts: [Type[], Type] | undefined, domains: readonly Type[], result: Type): boolean {
+function partsEq(
+  parts: [Type[], Type] | undefined,
+  domains: readonly Type[],
+  result: Type,
+): boolean {
   return parts !== undefined && typesEq(parts[0], domains) && parts[1].equals(result);
 }
 
@@ -234,7 +241,9 @@ function* typesIn(ty: Type): Iterable<Type> {
 }
 
 function freeVars(ts: Iterable<Term>): VarSet {
-  return uidSet([...ts].flatMap((t) => [...t].filter((x): x is Var => x instanceof Var).map((x) => x.var.id)));
+  return uidSet(
+    [...ts].flatMap((t) => [...t].filter((x): x is Var => x instanceof Var).map((x) => x.var.id)),
+  );
 }
 
 function patternVars(p: FoPattern): VarSet {
@@ -266,7 +275,10 @@ function isFieldOf(db: DB, ty: Type, f: Uid): boolean {
 }
 
 /** The subterms of class `cls`; asserts there is at least one, so checks on them are not vacuous */
-function subtermsOf<T>(subterms: [string, Term][], cls: abstract new (...args: any[]) => T): [string, T][] {
+function subtermsOf<T>(
+  subterms: [string, Term][],
+  cls: abstract new (...args: any[]) => T,
+): [string, T][] {
   const xs = subterms.filter((e): e is [string, Term & T] => e[1] instanceof cls);
   expect(xs.length, `No ${cls.name} subterm to check`).toBeGreaterThan(0);
   return xs;
@@ -341,7 +353,12 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     for (const t of await tasks()) {
       if (t instanceof ProofObligationTask) {
         const po = await t.proofObligation();
-        ts.push({ task: t, fromSym: await t.fromSym(), goalVariables: po.goalVariables, goalBody: po.goalBody });
+        ts.push({
+          task: t,
+          fromSym: await t.fromSym(),
+          goalVariables: po.goalVariables,
+          goalBody: po.goalBody,
+        });
       }
     }
     return ts;
@@ -392,7 +409,10 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
       for (const sr of res.subresults.flat()) {
         for (const sq of [sr.goal, ...sr.subGoals]) {
           ts.push(
-            ...[...sq.hypothesisTerms, ...sq.conclusionTerms].map((t): [string, Term] => [`${where} subgoal`, t]),
+            ...[...sq.hypothesisTerms, ...sq.conclusionTerms].map((t): [string, Term] => [
+              `${where} subgoal`,
+              t,
+            ]),
           );
         }
       }
@@ -401,7 +421,9 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
         ts.push(...[...m.constants.values()].map((t): [string, Term] => [`${where} model`, t]));
         for (const fi of m.functions.values()) {
           ts.push(
-            ...fi.cases.flatMap((c) => [...c.guards, c.rhs]).map((t): [string, Term] => [`${where} model`, t]),
+            ...fi.cases
+              .flatMap((c) => [...c.guards, c.rhs])
+              .map((t): [string, Term] => [`${where} model`, t]),
           );
           ts.push([`${where} model`, fi.else]);
         }
@@ -410,7 +432,10 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     for (const [, d] of await decompositions()) {
       for (const region of d.regions) {
         ts.push(
-          ...[...region.constraints, region.invariant].map((t): [string, Term] => [`region of ${d.id}`, t]),
+          ...[...region.constraints, region.invariant].map((t): [string, Term] => [
+            `region of ${d.id}`,
+            t,
+          ]),
         );
       }
     }
@@ -446,7 +471,9 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     for (const [where, x] of subtermsOf(await subterms(), Apply)) {
       const parts = arrowParts(x.function.type, x.arguments.length);
       if (parts === undefined) {
-        failures.push(`${where}: ${x}: ${x.function.type} takes fewer than ${x.arguments.length} arguments`);
+        failures.push(
+          `${where}: ${x}: ${x.function.type} takes fewer than ${x.arguments.length} arguments`,
+        );
         continue;
       }
       const [domains, result] = parts;
@@ -466,7 +493,10 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
   test("conditionals are well-typed", async () => {
     const failures = subtermsOf(await subterms(), If)
       .filter(
-        ([, x]) => !isBool(x.condition.type) || !x.thenBranch.type.equals(x.type) || !x.elseBranch.type.equals(x.type),
+        ([, x]) =>
+          !isBool(x.condition.type) ||
+          !x.thenBranch.type.equals(x.type) ||
+          !x.elseBranch.type.equals(x.type),
       )
       .map(([where, x]) => `${where}: ${x}`);
     assertNoFailures(failures);
@@ -488,7 +518,11 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
       .map(([where, x]) => `${where}: ${x} : ${x.type}`);
     for (const [where, x] of subtermsOf(st, TupleField)) {
       const ty = x.term.type;
-      if (!(ty instanceof TupleType && x.index < ty.elements.length && ty.elements[x.index]!.equals(x.type))) {
+      if (!(
+        ty instanceof TupleType &&
+        x.index < ty.elements.length &&
+        ty.elements[x.index]!.equals(x.type)
+      )) {
         failures.push(`${where}: ${x} : ${x.type}, of a tuple : ${ty}`);
       }
     }
@@ -526,7 +560,11 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     const failures: string[] = [];
     for (const [where, x] of subtermsOf(await subterms(), Destruct)) {
       const [domains, result] = allArrowParts(x.ctor.type);
-      if (!(x.index < domains.length && domains[x.index]!.equals(x.type) && result.equals(x.term.type))) {
+      if (!(
+        x.index < domains.length &&
+        domains[x.index]!.equals(x.type) &&
+        result.equals(x.term.type)
+      )) {
         failures.push(`${where}: ${x} : ${x.type}, with constructor : ${x.ctor.type}`);
       }
       if (constructorDefinition(d, x.term.type, x.ctor.id) === undefined) {
@@ -543,7 +581,10 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     // are `Case` terms.
     const d = await db();
     const failures = subtermsOf(await subterms(), IsA)
-      .filter(([, x]) => !isBool(x.type) || constructorDefinition(d, x.term.type, x.ctor.id) === undefined)
+      .filter(
+        ([, x]) =>
+          !isBool(x.type) || constructorDefinition(d, x.term.type, x.ctor.id) === undefined,
+      )
       .map(([where, x]) => `${where}: ${x}`);
     assertNoFailures(failures);
   });
@@ -635,10 +676,14 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
       for (const s of appliedSymbols(x)) {
         const schema = s.symbol.typeSchema;
         if (s.typeArguments.length !== schema.parameters.length) {
-          failures.push(`${where}: ${s}: ${s.typeArguments.length} type arguments for ${show(schema.parameters)}`);
+          failures.push(
+            `${where}: ${s}: ${s.typeArguments.length} type arguments for ${show(schema.parameters)}`,
+          );
           continue;
         }
-        const subst = uidMap(schema.parameters.map((p, i): [Uid, Type] => [p, s.typeArguments[i]!]));
+        const subst = uidMap(
+          schema.parameters.map((p, i): [Uid, Type] => [p, s.typeArguments[i]!]),
+        );
         const expectedType = substitute(schema.type, subst);
         if (!expectedType.equals(s.type)) {
           failures.push(`${where}: ${s}, expected : ${expectedType}`);
@@ -657,7 +702,11 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
       if (!(decl instanceof TypeDeclaration)) continue;
       const td = decl.type;
       if (td.kind instanceof AlgebraicTypeKind) {
-        types.push(...td.kind.constructors.flatMap((cd) => cd.arguments.map((t): [string, Type] => [`type ${td.name}`, t])));
+        types.push(
+          ...td.kind.constructors.flatMap((cd) =>
+            cd.arguments.map((t): [string, Type] => [`type ${td.name}`, t]),
+          ),
+        );
       } else if (td.kind instanceof RecordTypeKind) {
         types.push(...td.kind.fields.map((fd): [string, Type] => [`type ${td.name}`, fd.type]));
       }
@@ -729,7 +778,11 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
   test("function type variables are its type parameters", async () => {
     const failures: string[] = [];
     for (const f of await functions()) {
-      const typeVars = uidSet([...typesIn(f.type)].filter((t): t is TypeVariable => t instanceof TypeVariable).map((t) => t.name));
+      const typeVars = uidSet(
+        [...typesIn(f.type)]
+          .filter((t): t is TypeVariable => t instanceof TypeVariable)
+          .map((t) => t.name),
+      );
       const params = uidSet(f.typeParameters);
       if (![...typeVars].every((v) => params.has(v))) {
         failures.push(`${f.name} : ${f.type}, with type parameters ${show(f.typeParameters)}`);
@@ -740,10 +793,13 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
 
   test("theorems and verify statements are bool", async () => {
     const decls = [...(await db()).decls.values()].filter(
-      (d): d is TheoremDeclaration | VerifyDeclaration => d instanceof TheoremDeclaration || d instanceof VerifyDeclaration,
+      (d): d is TheoremDeclaration | VerifyDeclaration =>
+        d instanceof TheoremDeclaration || d instanceof VerifyDeclaration,
     );
     expect(decls.length).toBeGreaterThan(0);
-    const failures = decls.filter((d) => !isBool(d.function.body.type)).map((d) => `${d.id}: ${d.function.body.type}`);
+    const failures = decls
+      .filter((d) => !isBool(d.function.body.type))
+      .map((d) => `${d.id}: ${d.function.body.type}`);
     assertNoFailures(failures);
   });
 
@@ -840,9 +896,13 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
         failures.push(`${r.name}: variables ${show(r.variables)}, but lhs binds ${show(lhsVars)}`);
       }
       if (!isSubset(freeVars([r.rhs]), lhsVars)) {
-        failures.push(`${r.name}: rhs uses ${minus(freeVars([r.rhs]), lhsVars)}, which lhs does not bind`);
+        failures.push(
+          `${r.name}: rhs uses ${minus(freeVars([r.rhs]), lhsVars)}, which lhs does not bind`,
+        );
       }
-      failures.push(...r.guard.filter((g) => !isBool(g.type)).map((g) => `${r.name}: guard ${g} : ${g.type}`));
+      failures.push(
+        ...r.guard.filter((g) => !isBool(g.type)).map((g) => `${r.name}: guard ${g} : ${g.type}`),
+      );
     }
     assertNoFailures(failures);
   });
@@ -858,7 +918,9 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
         failures.push(`PO ${t.fromSym}: goal : ${t.goalBody.type}`);
       }
       if (!isSubset(freeVars([t.goalBody]), varSet(t.goalVariables))) {
-        failures.push(`PO ${t.fromSym}: goal uses ${minus(freeVars([t.goalBody]), varSet(t.goalVariables))}`);
+        failures.push(
+          `PO ${t.fromSym}: goal uses ${minus(freeVars([t.goalBody]), varSet(t.goalVariables))}`,
+        );
       }
     }
     assertNoFailures(failures);
@@ -890,7 +952,9 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
       .filter(([, , v]) => freeVars([v]).size > 0)
       .map(([where, s, v]) => `${where}: ${s} = ${v} uses variables`);
     failures.push(
-      ...constants.filter(([, s, v]) => !v.type.equals(s.type)).map(([where, s, v]) => `${where}: ${s} = ${v} : ${v.type}`),
+      ...constants
+        .filter(([, s, v]) => !v.type.equals(s.type))
+        .map(([where, s, v]) => `${where}: ${s} = ${v} : ${v.type}`),
     );
     assertNoFailures(failures);
   });
@@ -914,14 +978,22 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
           fi.returnType,
         )
       ) {
-        failures.push(`${where}: ${s}, interpreted over ${show(fi.arguments)} returning ${fi.returnType}`);
+        failures.push(
+          `${where}: ${s}, interpreted over ${show(fi.arguments)} returning ${fi.returnType}`,
+        );
       }
       for (const c of fi.cases) {
-        failures.push(...c.guards.filter((g) => !isBool(g.type)).map((g) => `${where}: ${s}: guard ${g} : ${g.type}`));
+        failures.push(
+          ...c.guards
+            .filter((g) => !isBool(g.type))
+            .map((g) => `${where}: ${s}: guard ${g} : ${g.type}`),
+        );
       }
       const values = [...fi.cases.map((c) => c.rhs), fi.else];
       failures.push(
-        ...values.filter((v) => !v.type.equals(fi.returnType)).map((v) => `${where}: ${s}: value ${v} : ${v.type}`),
+        ...values
+          .filter((v) => !v.type.equals(fi.returnType))
+          .map((v) => `${where}: ${s}: value ${v} : ${v.type}`),
       );
       const used = freeVars([...values, ...fi.cases.flatMap((c) => c.guards)]);
       if (!isSubset(used, varSet(fi.arguments))) {
@@ -948,10 +1020,14 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
           }
         }
         if (!isSubset(freeVars(region.constraints), varSet(d.arguments))) {
-          failures.push(`${d.id}: constraints use ${minus(freeVars(region.constraints), varSet(d.arguments))}`);
+          failures.push(
+            `${d.id}: constraints use ${minus(freeVars(region.constraints), varSet(d.arguments))}`,
+          );
         }
         if (!region.invariant.type.equals(f!.body.type)) {
-          failures.push(`${d.id}: invariant : ${region.invariant.type}, but ${f!.name} returns ${f!.body.type}`);
+          failures.push(
+            `${d.id}: invariant : ${region.invariant.type}, but ${f!.name} returns ${f!.body.type}`,
+          );
         }
       }
     }

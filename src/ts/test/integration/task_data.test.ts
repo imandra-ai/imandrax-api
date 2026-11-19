@@ -59,7 +59,10 @@ function once<T>(f: () => Promise<T>): () => Promise<T> {
   return () => (p ??= f());
 }
 
-function getTheTask<T extends Task>(tasks: readonly Task[], cls: abstract new (...args: any[]) => T): T {
+function getTheTask<T extends Task>(
+  tasks: readonly Task[],
+  cls: abstract new (...args: any[]) => T,
+): T {
   const ts = tasks.filter((t): t is T => t instanceof cls);
   expect(ts).toHaveLength(1);
   return ts[0]!;
@@ -100,7 +103,9 @@ function sameTypes(a: ReadonlyMap<Uid, Type>, b: ReadonlyMap<Uid, Type>): boolea
 
 /** `t` refers to at least one symbol, all declared in `db` */
 function assertSymbolsDefinedInDb(t: Term, db: DB): void {
-  const uids = uidSet([...t].filter((x): x is Symbol => x instanceof Symbol).map((x) => x.symbol.id));
+  const uids = uidSet(
+    [...t].filter((x): x is Symbol => x instanceof Symbol).map((x) => x.symbol.id),
+  );
   expect(uids.size, "Term should refer to at least one symbol").toBeGreaterThan(0);
   for (const u of uids) {
     expect(db.findDeclaration(u), `${u} is not declared in the DB`).toBeDefined();
@@ -203,7 +208,13 @@ function ctorRepr_(
   return layout(`${x.constructor.name}(`, elems, ")", width);
 }
 
-function layout(open: string, elems: string[], close: string, width: number, singleton = false): string {
+function layout(
+  open: string,
+  elems: string[],
+  close: string,
+  width: number,
+  singleton = false,
+): string {
   if (elems.length === 0) {
     return open + close;
   }
@@ -304,9 +315,10 @@ ProofObligation(
     );
 
     const [vars, goal] = po.goal;
-    expect(setEq(varsInSubterms(goal), idsOf(vars)), "PO goal should have no free or unused variables").toBe(
-      true,
-    );
+    expect(
+      setEq(varsInSubterms(goal), idsOf(vars)),
+      "PO goal should have no free or unused variables",
+    ).toBe(true);
     assertSymbolsDefinedInDb(goal, await t.db());
 
     const res = await t.result();
@@ -342,9 +354,10 @@ ProofObligation(
     );
 
     const [vars, goal] = po.goal;
-    expect(setEq(varsInSubterms(goal), idsOf(vars)), "PO goal should have no free or unused variables").toBe(
-      true,
-    );
+    expect(
+      setEq(varsInSubterms(goal), idsOf(vars)),
+      "PO goal should have no free or unused variables",
+    ).toBe(true);
     assertSymbolsDefinedInDb(goal, await t.db());
 
     const res = await t.result();
@@ -358,15 +371,20 @@ ProofObligation(
     expect(model).toBeDefined();
 
     const goalVarTypes = uidMap<Type>(vars.map((v) => [v.id, v.type]));
-    const modelVarTypes = uidMap<Type>([...model!.constants.keys()].map((sym) => [sym.id, sym.type]));
-    const modelValueTypes = uidMap<Type>([...model!.constants].map(([sym, value]) => [sym.id, value.type]));
+    const modelVarTypes = uidMap<Type>(
+      [...model!.constants.keys()].map((sym) => [sym.id, sym.type]),
+    );
+    const modelValueTypes = uidMap<Type>(
+      [...model!.constants].map(([sym, value]) => [sym.id, value.type]),
+    );
     expect(
       sameTypes(modelVarTypes, goalVarTypes),
       "Model should give values to exactly the goal's variables, at their types",
     ).toBe(true);
-    expect(sameTypes(modelValueTypes, goalVarTypes), "Each model value should have its variable's type").toBe(
-      true,
-    );
+    expect(
+      sameTypes(modelValueTypes, goalVarTypes),
+      "Each model value should have its variable's type",
+    ).toBe(true);
   });
 
   // Decomposition
@@ -416,7 +434,8 @@ Decomposition(
     const fDef = db.findFunction(d!.id);
     expect(fDef).toBeDefined();
     expect(
-      d!.arguments.length === fDef!.arguments.length && d!.arguments.every((a, i) => a.equals(fDef!.arguments[i])),
+      d!.arguments.length === fDef!.arguments.length &&
+        d!.arguments.every((a, i) => a.equals(fDef!.arguments[i])),
       "Decomp arguments should be the decomposed function's arguments in the task's DB",
     ).toBe(true);
 
@@ -432,7 +451,9 @@ Decomposition(
     expect(region.status.kind).toBe("feasible");
     const fArgTypes = uidMap<Type>(d!.arguments.map((a) => [a.id, a.type]));
     const regionModel = region.model!;
-    const modelVarTypes = uidMap<Type>([...regionModel.constants.keys()].map((sym) => [sym.id, sym.type]));
+    const modelVarTypes = uidMap<Type>(
+      [...regionModel.constants.keys()].map((sym) => [sym.id, sym.type]),
+    );
     expect(
       sameTypes(modelVarTypes, fArgTypes),
       "Region model should give values to exactly f's arguments, at their types",

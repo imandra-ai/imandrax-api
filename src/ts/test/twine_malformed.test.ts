@@ -13,9 +13,7 @@ import { describe, expect, test } from "vitest";
 
 import * as twine from "../lib/raw/twine.js";
 
-const TEST_DATA = fileURLToPath(
-  new URL("../../py/tests/twine/test_data/", import.meta.url),
-);
+const TEST_DATA = fileURLToPath(new URL("../../py/tests/twine/test_data/", import.meta.url));
 
 const CORPUS: Record<string, Uint8Array> = Object.fromEntries(
   ["typereg.twine", "pubsub.twine"].map((name) => [
@@ -161,9 +159,7 @@ describe("regressions", () => {
     const maxU64 = bytes(...new Array(9).fill(0xff), 0x01); // 2^64 - 1
     expect(new twine.Decoder(maxU64)._leb128(0, true)).toEqual([2n ** 64n - 1n, 10]);
     const twoPow64 = bytes(...new Array(9).fill(0x80), 0x02);
-    expect(() => new twine.Decoder(twoPow64)._leb128(0, true)).toThrow(
-      /does not fit in 64 bits/,
-    );
+    expect(() => new twine.Decoder(twoPow64)._leb128(0, true)).toThrow(/does not fit in 64 bits/);
   });
 
   test("padded varint length decodes", () => {
@@ -219,9 +215,7 @@ describe("properties", () => {
     // so materializing it allocates O(buffer size)
     const arb = fc
       .uint8Array({ minLength: 1, maxLength: 256 })
-      .chain((data) =>
-        fc.tuple(fc.constant(data), fc.integer({ min: 0, max: data.length - 1 })),
-      );
+      .chain((data) => fc.tuple(fc.constant(data), fc.integer({ min: 0, max: data.length - 1 })));
     fc.assert(
       fc.property(arb, ([data, off]) => {
         const d = new twine.Decoder(data);
@@ -247,7 +241,11 @@ describe("properties", () => {
   });
 
   test("mutated corpus", () => {
-    type Mutation = { op: "truncate" | "overwrite" | "insert" | "delete"; pos: number; byte: number };
+    type Mutation = {
+      op: "truncate" | "overwrite" | "insert" | "delete";
+      pos: number;
+      byte: number;
+    };
     const arb = fc.tuple(
       fc.constantFrom(...Object.keys(CORPUS).sort()),
       fc.array(

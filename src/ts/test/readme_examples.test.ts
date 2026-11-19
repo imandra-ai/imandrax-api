@@ -13,10 +13,12 @@ import { describe, expect, test } from "vitest";
 const README = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 
 /** The README's `ts` blocks, with the name each one is marked with, if any */
-const blocks = [...README.matchAll(/(?:<!-- example: (\S+) -->\n)?```ts\n([\s\S]*?)```/g)].map((m) => ({
-  name: m[1],
-  code: m[2]!,
-}));
+const blocks = [...README.matchAll(/(?:<!-- example: (\S+) -->\n)?```ts\n([\s\S]*?)```/g)].map(
+  (m) => ({
+    name: m[1],
+    code: m[2]!,
+  }),
+);
 
 describe("README examples", () => {
   test("every ts block is named", () => {
@@ -24,7 +26,9 @@ describe("README examples", () => {
   });
 
   test("every snapshot has a ts block", () => {
-    const snapshots = readdirSync(new URL("readme/", import.meta.url)).map((f) => f.replace(/\.ts$/, ""));
+    const snapshots = readdirSync(new URL("readme/", import.meta.url)).map((f) =>
+      f.replace(/\.ts$/, ""),
+    );
     expect(snapshots.sort()).toEqual(blocks.map((b) => b.name).sort());
   });
 

@@ -13,7 +13,10 @@ function uid(name: string): lib.Uid {
 const box = (v: V) => new lib.Eval_Value(v);
 const int = (n: bigint): V => new lib.Eval_Value_view_V_int(n);
 const cstor = (name: string, idx: bigint, args: V[]): V =>
-  new lib.Eval_Value_view_V_cstor([new lib.Eval_Value_cstor_descriptor(idx, uid(name)), args.map(box)]);
+  new lib.Eval_Value_view_V_cstor([
+    new lib.Eval_Value_cstor_descriptor(idx, uid(name)),
+    args.map(box),
+  ]);
 
 function list(xs: V[]): V {
   let acc = cstor("[]", 0n, []);
@@ -40,7 +43,9 @@ describe("valueOfLib", () => {
     expect(u.kind).toBe("uid");
     expect((u as values.Uid).uid).toBeInstanceOf(MirUid);
     expect(`${u}`).toBe("f");
-    const c = values.valueOfLib(new lib.Eval_Value_view_V_closure(new lib.Eval_Value_erased_closure(2n)));
+    const c = values.valueOfLib(
+      new lib.Eval_Value_view_V_closure(new lib.Eval_Value_erased_closure(2n)),
+    );
     expect((c as values.Closure).missing).toBe(2);
     expect(`${c}`).toBe("<closure missing=2>");
   });
@@ -56,7 +61,9 @@ describe("valueOfLib", () => {
     // an improper list prints as constructors
     expect(`${values.valueOfLib(cstor("::", 1n, [int(1n), int(2n)]))}`).toBe(":: (1, 2)");
 
-    const tup = values.valueOfLib(new lib.Eval_Value_view_V_tuple([box(int(1n)), box(new lib.Eval_Value_view_V_true())]));
+    const tup = values.valueOfLib(
+      new lib.Eval_Value_view_V_tuple([box(int(1n)), box(new lib.Eval_Value_view_V_true())]),
+    );
     expect(`${tup}`).toBe("(1, true)");
 
     const rec = values.valueOfLib(
@@ -73,7 +80,11 @@ describe("valueOfLib", () => {
 
   test("quoted terms", () => {
     const ty = new lib.Mir_Type(new lib.Ty_view_view_Constr([uid("int"), []]));
-    const body = new lib.Mir_Term(new lib.Mir_Term_view_Const(new lib.Const_Const_z(1n)), ty, undefined);
+    const body = new lib.Mir_Term(
+      new lib.Mir_Term_view_Const(new lib.Const_Const_z(1n)),
+      ty,
+      undefined,
+    );
     const q = values.valueOfLib(
       new lib.Eval_Value_view_V_quoted_term([[new lib.Common_Var_t_poly(uid("x"), ty)], body]),
     ) as values.QuotedTerm;
@@ -84,8 +95,10 @@ describe("valueOfLib", () => {
 
   test("ordinals print in Cantor normal form", () => {
     const i = (n: bigint) => new lib.Eval_Ordinal_Int(n);
-    const cons = (a: lib.Eval_Ordinal, n: bigint, b: lib.Eval_Ordinal) => new lib.Eval_Ordinal_Cons([a, n, b]);
-    const ord = (o: lib.Eval_Ordinal) => `${values.valueOfLib(new lib.Eval_Value_view_V_ordinal(o))}`;
+    const cons = (a: lib.Eval_Ordinal, n: bigint, b: lib.Eval_Ordinal) =>
+      new lib.Eval_Ordinal_Cons([a, n, b]);
+    const ord = (o: lib.Eval_Ordinal) =>
+      `${values.valueOfLib(new lib.Eval_Value_view_V_ordinal(o))}`;
     expect(ord(i(5n))).toBe("5");
     expect(ord(cons(i(1n), 1n, i(0n)))).toBe("ω");
     expect(ord(cons(i(3n), 2n, cons(i(1n), 1n, i(5n))))).toBe("2·ω^3 + ω + 5");

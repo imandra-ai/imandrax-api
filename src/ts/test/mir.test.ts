@@ -152,7 +152,9 @@ describe("Uid", () => {
     );
     expect(new Uid(uid("a")).equals(b)).toBe(false);
     const cn = (h: number[], isKey: boolean) =>
-      new Uid(new lib.Uid("f", new lib.Uid_view_Cname(new lib.Cname_t_("f", new Uint8Array(h), isKey))));
+      new Uid(
+        new lib.Uid("f", new lib.Uid_view_Cname(new lib.Cname_t_("f", new Uint8Array(h), isKey))),
+      );
     expect(cn([1, 2], true).equals(cn([1, 2], true))).toBe(true);
     expect(cn([1, 2], true).equals(cn([1, 3], true))).toBe(false);
     expect(cn([1, 2], true).equals(cn([1, 2], false))).toBe(false);
@@ -181,9 +183,9 @@ describe("Cname", () => {
   test("ofLib and equality", () => {
     const x = Cname.ofLib(new lib.Cname_t_("n", new Uint8Array([0xff, 0xff, 0xff]), false));
     expect(`${x}`).toBe("n/____");
-    expect(x.equals(Cname.ofLib(new lib.Cname_t_("n", new Uint8Array([0xff, 0xff, 0xff]), false)))).toBe(
-      true,
-    );
+    expect(
+      x.equals(Cname.ofLib(new lib.Cname_t_("n", new Uint8Array([0xff, 0xff, 0xff]), false))),
+    ).toBe(true);
   });
 });
 
@@ -223,10 +225,14 @@ describe("constants", () => {
 
 describe("types", () => {
   test("toString and equality", () => {
-    const t = typeOfLib(arrows([INT, ty("list", BOOL)], new lib.Mir_Type(new lib.Ty_view_view_Tuple([INT, STRING]))));
+    const t = typeOfLib(
+      arrows([INT, ty("list", BOOL)], new lib.Mir_Type(new lib.Ty_view_view_Tuple([INT, STRING]))),
+    );
     expect(t.kind).toBe("arrow");
     expect(`${t}`).toBe("int -> bool list -> int * string");
-    const u = typeOfLib(arrows([INT, ty("list", BOOL)], new lib.Mir_Type(new lib.Ty_view_view_Tuple([INT, STRING]))));
+    const u = typeOfLib(
+      arrows([INT, ty("list", BOOL)], new lib.Mir_Type(new lib.Ty_view_view_Tuple([INT, STRING]))),
+    );
     expect(t.equals(u)).toBe(true);
     expect(t.equals(typeOfLib(INT))).toBe(false);
     expect(`${typeOfLib(new lib.Mir_Type(new lib.Ty_view_view_Var(genUid("a", 3n))))}`).toBe("a/3");
@@ -236,7 +242,10 @@ describe("types", () => {
 describe("terms", () => {
   test("toString", () => {
     const x = variable("x", 1n, INT);
-    const f = term(new lib.Mir_Term_view_Sym(sym("f", arrows([INT], INT), genUid("f", 9n))), arrows([INT], INT));
+    const f = term(
+      new lib.Mir_Term_view_Sym(sym("f", arrows([INT], INT), genUid("f", 9n))),
+      arrows([INT], INT),
+    );
     const app = term(new lib.Mir_Term_view_Apply(f, [x]), INT);
     expect(`${termOfLib(app)}`).toBe("(f/9 x)");
     expect(`${termOfLib(term(new lib.Mir_Term_view_Apply(f, []), INT))}`).toBe("f/9");
@@ -265,13 +274,13 @@ describe("terms", () => {
       ty("r"),
     );
     expect(`${termOfLib(rec)}`).toBe("{a = 1; b = true}");
-    const upd = term(new lib.Mir_Term_view_Record([[sym("a", INT), int(2n)]], variable("r", 4n, ty("r"))), ty("r"));
+    const upd = term(
+      new lib.Mir_Term_view_Record([[sym("a", INT), int(2n)]], variable("r", 4n, ty("r"))),
+      ty("r"),
+    );
     expect(`${termOfLib(upd)}`).toBe("{r with a = 2}");
 
-    const cs = term(
-      new lib.Mir_Term_view_Case(x, [[sym("A", INT), int(1n)]], int(0n)),
-      INT,
-    );
+    const cs = term(new lib.Mir_Term_view_Case(x, [[sym("A", INT), int(1n)]], int(0n)), INT);
     expect(`${termOfLib(cs)}`).toBe("match x with | A -> 1 | _ -> 0");
 
     const fld = term(new lib.Mir_Term_view_Field(sym("a", INT), variable("r", 4n, ty("r"))), INT);
@@ -287,8 +296,16 @@ describe("terms", () => {
   });
 
   test("iteration visits parents before children, left to right", () => {
-    const t = termOfLib(term(new lib.Mir_Term_view_If([bool(true), construct("Some", [int(1n)], INT), int(2n)]), INT));
-    expect([...t].map((u) => u.kind)).toEqual(["if", "constant", "construct", "constant", "constant"]);
+    const t = termOfLib(
+      term(new lib.Mir_Term_view_If([bool(true), construct("Some", [int(1n)], INT), int(2n)]), INT),
+    );
+    expect([...t].map((u) => u.kind)).toEqual([
+      "if",
+      "constant",
+      "construct",
+      "constant",
+      "constant",
+    ]);
     const seen: string[] = [];
     t.iter((u) => seen.push(`${u}`));
     expect(seen).toEqual(["if true then Some 1 else 2", "true", "Some 1", "1", "2"]);
@@ -330,7 +347,9 @@ describe("toJs", () => {
         ["b", [false]],
       ]),
     );
-    expect(js(construct("Some", [int(3n)], ty("option", INT)))).toEqual(new Constructed("Some", [3n]));
+    expect(js(construct("Some", [int(3n)], ty("option", INT)))).toEqual(
+      new Constructed("Some", [3n]),
+    );
     expect(js(construct("A", [int(3n), str("s")], ty("var_t"), ["x", "y"]))).toEqual(
       new Constructed("A", [
         new Map<string, JsValue>([
@@ -366,16 +385,22 @@ describe("toJs", () => {
         ]),
       ]),
     );
-    expect(js(construct("B", [int(3n), str("s")], ty("var_t")), db)).toEqual(new Constructed("B", [3n, "s"]));
+    expect(js(construct("B", [int(3n), str("s")], ty("var_t")), db)).toEqual(
+      new Constructed("B", [3n, "s"]),
+    );
     expect(db.findType(new Uid(uid("var_t")))?.kind.kind).toBe("algebraic");
-    expect(`${db.findType(new Uid(uid("var_t")))}`).toBe("type var_t = A of {x : int; y : string} | B of int * string");
+    expect(`${db.findType(new Uid(uid("var_t")))}`).toBe(
+      "type var_t = A of {x : int; y : string} | B of int * string",
+    );
     expect([...db.findTypeRe("var").keys()].map((u) => u.shortName)).toEqual(["var_t"]);
     expect(db.findTypeRe("ar").size).toBe(0);
   });
 
   test("non-values throw", () => {
     expect(() => js(variable("x", 1n, INT))).toThrow(RangeError);
-    expect(() => js(constTerm(new lib.Const_Const_real_approx("1.414?"), REAL))).toThrow(RangeError);
+    expect(() => js(constTerm(new lib.Const_Const_real_approx("1.414?"), REAL))).toThrow(
+      RangeError,
+    );
     const bad = construct("::", [int(1n), variable("xs", 2n, ty("list", INT))], ty("list", INT));
     expect(() => js(bad)).toThrow(/the list ends with xs/);
   });
@@ -404,7 +429,10 @@ describe("Sequent", () => {
 describe("tactics and kinds", () => {
   test("tacticOfLib", () => {
     const t = tacticOfLib(
-      new lib.Common_Tactic_t_poly_Default_termination(10n, new Set([uid("b"), uid("a"), uid("a")])),
+      new lib.Common_Tactic_t_poly_Default_termination(
+        10n,
+        new Set([uid("b"), uid("a"), uid("a")]),
+      ),
     );
     expect(t.kind).toBe("defaultTermination");
     expect(`${t}`).toBe("DefaultTerminationTactic(max_steps=10, basis={a, b})");
@@ -450,7 +478,14 @@ describe("Model", () => {
 describe("Decomposition", () => {
   test("region metadata", () => {
     const xsym = sym("x", INT, genUid("x", 1n));
-    const model = new lib.Common_Model_t_poly<RawTerm, RawType>([], [[xsym, int(5n)]], [], true, true, []);
+    const model = new lib.Common_Model_t_poly<RawTerm, RawType>(
+      [],
+      [[xsym, int(5n)]],
+      [],
+      true,
+      true,
+      [],
+    );
     const region = new lib.Common_Region_t_poly<RawTerm, RawType>(
       [bool(true)],
       int(6n),
@@ -472,7 +507,11 @@ describe("Decomposition", () => {
       new lib.Common_Region_status_Feasible(model),
     );
     const d = Decomposition.ofLib(
-      new lib.Common_Fun_decomp_t_poly(uid("f"), [new lib.Common_Var_t_poly(genUid("x", 1n), INT)], [region]),
+      new lib.Common_Fun_decomp_t_poly(
+        uid("f"),
+        [new lib.Common_Var_t_poly(genUid("x", 1n), INT)],
+        [region],
+      ),
     );
     const r = d.regions[0]!;
     expect(r.constraintsStr).toEqual(["x > 0"]);
@@ -491,7 +530,10 @@ describe("Decomposition", () => {
         int(0n),
         [
           ["model_eval", new lib.Common_Region_meta_Int(3n)],
-          ["str", new lib.Common_Region_meta_Assoc([["invariant", new lib.Common_Region_meta_Int(1n)]])],
+          [
+            "str",
+            new lib.Common_Region_meta_Assoc([["invariant", new lib.Common_Region_meta_Int(1n)]]),
+          ],
         ],
         new lib.Common_Region_status_Unknown(),
       ),
@@ -519,4 +561,3 @@ describe("DB", () => {
     ).toThrow(/missing storage entry/);
   });
 });
-

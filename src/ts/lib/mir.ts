@@ -606,13 +606,7 @@ export class BoolConst {
 }
 
 export type Const =
-  | FloatConst
-  | StringConst
-  | IntConst
-  | RationalConst
-  | RealApproxConst
-  | UidConst
-  | BoolConst;
+  FloatConst | StringConst | IntConst | RationalConst | RealApproxConst | UidConst | BoolConst;
 
 export function constOfLib(x: lib.Const): Const {
   if (x instanceof lib.Const_Const_float) return new FloatConst(x.arg, x);
@@ -665,7 +659,8 @@ export class DecompBuiltin {
 export type BuiltinDataKind = LogicCoreBuiltin | SpecialBuiltin | TacticBuiltin | DecompBuiltin;
 
 export function builtinDataKindOfLib(x: lib.Builtin_data_kind): BuiltinDataKind {
-  if (x instanceof lib.Builtin_data_kind_Logic_core) return new LogicCoreBuiltin(x.logic_core_name, x);
+  if (x instanceof lib.Builtin_data_kind_Logic_core)
+    return new LogicCoreBuiltin(x.logic_core_name, x);
   if (x instanceof lib.Builtin_data_kind_Special) return new SpecialBuiltin(x.tag, x);
   if (x instanceof lib.Builtin_data_kind_Tactic) return new TacticBuiltin(x.tac_name, x);
   if (x instanceof lib.Builtin_data_kind_Decomp) return new DecompBuiltin(x.decomp_name, x);
@@ -865,11 +860,7 @@ export class ConstructedType extends TypeBase {
   readonly ctor: Uid;
   readonly arguments: readonly Type[];
 
-  constructor(
-    ctor: Uid,
-    args: readonly Type[],
-    raw: lib.Mir_Type,
-  ) {
+  constructor(ctor: Uid, args: readonly Type[], raw: lib.Mir_Type) {
     super(raw);
     this.ctor = ctor;
     this.arguments = args;
@@ -990,24 +981,27 @@ export class OtherTypeKind {
 
 // `Alias` is left out: its target has the empty type `Void.t` in type definitions
 export type TypeKind =
-  | AlgebraicTypeKind
-  | RecordTypeKind
-  | SkolemTypeKind
-  | BuiltinTypeKind
-  | OtherTypeKind;
+  AlgebraicTypeKind | RecordTypeKind | SkolemTypeKind | BuiltinTypeKind | OtherTypeKind;
 
 export function typeKindOfLib(x: RawTypeDecl): TypeKind {
   if (x instanceof lib.Ty_view_decl_Algebraic) {
-    return new AlgebraicTypeKind(x.arg.map((r) => ConstructorDefinition.ofLib(r)), x);
+    return new AlgebraicTypeKind(
+      x.arg.map((r) => ConstructorDefinition.ofLib(r)),
+      x,
+    );
   }
   if (x instanceof lib.Ty_view_decl_Record) {
-    return new RecordTypeKind(x.arg.map((r) => FieldDefinition.ofLib(r)), x);
+    return new RecordTypeKind(
+      x.arg.map((r) => FieldDefinition.ofLib(r)),
+      x,
+    );
   }
   if (x instanceof lib.Ty_view_decl_Alias) {
     throw new UnexpectedResponseError("unexpected alias in a type definition");
   }
   if (x instanceof lib.Ty_view_decl_Skolem) return new SkolemTypeKind(x);
-  if (x instanceof lib.Ty_view_decl_Builtin) return new BuiltinTypeKind(BuiltinSort.ofLib(x.arg), x);
+  if (x instanceof lib.Ty_view_decl_Builtin)
+    return new BuiltinTypeKind(BuiltinSort.ofLib(x.arg), x);
   if (x instanceof lib.Ty_view_decl_Other) return new OtherTypeKind(x);
   return unexpected("type declaration", x);
 }
@@ -1326,12 +1320,7 @@ export class Apply extends TermBase {
   /** The arguments the function is applied to */
   readonly arguments: readonly Term[];
 
-  constructor(
-    fn: Term,
-    args: readonly Term[],
-    type: Type,
-    raw: lib.Mir_Term,
-  ) {
+  constructor(fn: Term, args: readonly Term[], type: Type, raw: lib.Mir_Term) {
     super(type, raw);
     this.arguments = args;
     this.function = fn;
@@ -1764,7 +1753,10 @@ function toJsImpl(t: Term, db?: DB): JsValue {
           }
         }
       }
-      return new Constructed(name, args.map((a) => toJsImpl(a, db)));
+      return new Constructed(
+        name,
+        args.map((a) => toJsImpl(a, db)),
+      );
     }
     if (labels.length !== args.length) {
       // as Python's `zip(..., strict=True)`
@@ -1848,7 +1840,9 @@ export class Sequent {
 
   toString(): string {
     // As OCaml's `Sequent.pp_seq`: unnamed hypotheses and conclusions are numbered by position
-    const hyps = this.hypotheses.map(([n, t], i) => (n !== undefined ? `${n}: ${t}` : `H${i}. ${t}`));
+    const hyps = this.hypotheses.map(([n, t], i) =>
+      n !== undefined ? `${n}: ${t}` : `H${i}. ${t}`,
+    );
     let concls: string[];
     if (this.conclusions.length === 0) {
       concls = ["false"];
@@ -1856,7 +1850,9 @@ export class Sequent {
       const [n, c] = this.conclusions[0]!;
       concls = [n !== undefined ? `${n}: ${c}` : `${c}`];
     } else {
-      concls = this.conclusions.map(([n, c], i) => (n !== undefined ? `${n}: ${c}` : `C${i}. ${c}`));
+      concls = this.conclusions.map(([n, c], i) =>
+        n !== undefined ? `${n}: ${c}` : `C${i}. ${c}`,
+      );
     }
     return [...hyps, "|" + "-".repeat(70), ...concls.map((c) => ` ${c}`)].join("\n");
   }
@@ -1981,7 +1977,13 @@ export class DefaultTerminationTactic {
   ) {}
 
   toString(): string {
-    const basis = "{" + [...this.basis].map((u) => u.fullName).sort().join(", ") + "}";
+    const basis =
+      "{" +
+      [...this.basis]
+        .map((u) => u.fullName)
+        .sort()
+        .join(", ") +
+      "}";
     return `DefaultTerminationTactic(max_steps=${this.maxSteps}, basis=${basis})`;
   }
 }
@@ -2037,7 +2039,8 @@ export class TermTactic {
 }
 
 /** A tactic used to discharge a proof obligation */
-export type Tactic = DefaultTerminationTactic | DefaultTheoremTactic | DefaultTestTactic | TermTactic;
+export type Tactic =
+  DefaultTerminationTactic | DefaultTheoremTactic | DefaultTestTactic | TermTactic;
 
 export function tacticOfLib(t: lib.Mir_Tactic): Tactic {
   if (t instanceof lib.Common_Tactic_t_poly_Default_termination) {
@@ -2356,12 +2359,15 @@ export function declarationOfLib(x: lib.Mir_Decl): Declaration {
   if (x instanceof lib.Common_Decl_t_poly_Fun) {
     return new FunctionDeclaration(FunctionDefinition.ofLib(x.arg), x);
   }
-  if (x instanceof lib.Common_Decl_t_poly_Ty) return new TypeDeclaration(TypeDefinition.ofLib(x.arg), x);
-  if (x instanceof lib.Common_Decl_t_poly_Theorem) return new TheoremDeclaration(Theorem.ofLib(x.arg), x);
+  if (x instanceof lib.Common_Decl_t_poly_Ty)
+    return new TypeDeclaration(TypeDefinition.ofLib(x.arg), x);
+  if (x instanceof lib.Common_Decl_t_poly_Theorem)
+    return new TheoremDeclaration(Theorem.ofLib(x.arg), x);
   if (x instanceof lib.Common_Decl_t_poly_Rule_spec) {
     return new RuleSpecDeclaration(RuleSpec.ofLib(x.arg), x);
   }
-  if (x instanceof lib.Common_Decl_t_poly_Verify) return new VerifyDeclaration(Verify.ofLib(x.arg), x);
+  if (x instanceof lib.Common_Decl_t_poly_Verify)
+    return new VerifyDeclaration(Verify.ofLib(x.arg), x);
   return unexpected("declaration", x);
 }
 
@@ -2619,12 +2625,7 @@ export class ApplyPattern extends FoPatternBase {
 
   readonly arguments: readonly FoPattern[];
 
-  constructor(
-    fn: AppliedSymbol,
-    args: readonly FoPattern[],
-    type: Type,
-    raw: lib.Mir_Fo_pattern,
-  ) {
+  constructor(fn: AppliedSymbol, args: readonly FoPattern[], type: Type, raw: lib.Mir_Fo_pattern) {
     super(type, raw);
     this.arguments = args;
     this.function = fn;
@@ -2697,8 +2698,10 @@ export function foPatternOfLib(x: lib.Mir_Fo_pattern): FoPattern {
   const v = x.view;
   if (v instanceof lib.Common_Fo_pattern_view_FO_any) return new AnyPattern(ty, x);
   if (v instanceof lib.Common_Fo_pattern_view_FO_bool) return new BoolPattern(v.arg, ty, x);
-  if (v instanceof lib.Common_Fo_pattern_view_FO_const) return new ConstPattern(constOfLib(v.arg), ty, x);
-  if (v instanceof lib.Common_Fo_pattern_view_FO_var) return new VarPattern(Variable.ofLib(v.arg), ty, x);
+  if (v instanceof lib.Common_Fo_pattern_view_FO_const)
+    return new ConstPattern(constOfLib(v.arg), ty, x);
+  if (v instanceof lib.Common_Fo_pattern_view_FO_var)
+    return new VarPattern(Variable.ofLib(v.arg), ty, x);
   if (v instanceof lib.Common_Fo_pattern_view_FO_app) {
     const [f, args] = v.args;
     return new ApplyPattern(AppliedSymbol.ofLib(f), args.map(foPatternOfLib), ty, x);
@@ -3050,7 +3053,8 @@ export type RegionStatus = UnknownStatus | FeasibleStatus | FeasibilityCheckFail
 
 export function regionStatusOfLib(x: RawRegionStatus): RegionStatus {
   if (x instanceof lib.Common_Region_status_Unknown) return new UnknownStatus(x);
-  if (x instanceof lib.Common_Region_status_Feasible) return new FeasibleStatus(Model.ofLib(x.arg), x);
+  if (x instanceof lib.Common_Region_status_Feasible)
+    return new FeasibleStatus(Model.ofLib(x.arg), x);
   if (x instanceof lib.Common_Region_status_Feasibility_check_failed) {
     return new FeasibilityCheckFailedStatus(x.arg, x);
   }
@@ -3295,7 +3299,9 @@ export class DB {
     for (const op of ds.ops) {
       const bs = storage.get(op.key);
       if (bs === undefined) {
-        throw new UnexpectedResponseError(`missing storage entry for MIR database operation ${op.key}`);
+        throw new UnexpectedResponseError(
+          `missing storage entry for MIR database operation ${op.key}`,
+        );
       }
       const instruction = twine.decodeEntrypoint(new twine.Decoder(bs), (d, off) =>
         lib.Common_Db_op_t_poly_of_twine(
@@ -3389,11 +3395,15 @@ export class DB {
   }
 
   private get tys(): ReadonlyMap<Uid, TypeDefinition> {
-    return this.cached("tys", () => DB.convert(this.rawTys, uidKey, (t) => TypeDefinition.ofLib(t)));
+    return this.cached("tys", () =>
+      DB.convert(this.rawTys, uidKey, (t) => TypeDefinition.ofLib(t)),
+    );
   }
 
   private get funs(): ReadonlyMap<Uid, FunctionDefinition> {
-    return this.cached("funs", () => DB.convert(this.rawFuns, uidKey, (f) => FunctionDefinition.ofLib(f)));
+    return this.cached("funs", () =>
+      DB.convert(this.rawFuns, uidKey, (f) => FunctionDefinition.ofLib(f)),
+    );
   }
 
   /** Uids of disabled symbols */

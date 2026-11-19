@@ -121,7 +121,9 @@ export class Task {
     const kind = (this.constructor as typeof Task).artifactKind;
     if (kind === undefined) {
       return Promise.reject(
-        new UnexpectedResponseError(`No known data artifact kind for tasks of kind ${this.raw.kind}`),
+        new UnexpectedResponseError(
+          `No known data artifact kind for tasks of kind ${this.raw.kind}`,
+        ),
       );
     }
     return this.fetchArtifact(kind);
@@ -257,7 +259,9 @@ export class ProofObligationTask extends Task {
 
   constructor(raw: taskPb.Task, client?: ArtifactSource) {
     if (raw.kind !== taskPb.TaskKind.TASK_CHECK_PO) {
-      throw new TypeError(`Expected a task of kind TASK_CHECK_PO, got ${taskPb.taskKindToJSON(raw.kind)}`);
+      throw new TypeError(
+        `Expected a task of kind TASK_CHECK_PO, got ${taskPb.taskKindToJSON(raw.kind)}`,
+      );
     }
     super(raw, client);
   }
@@ -271,7 +275,9 @@ export class ProofObligationTask extends Task {
   }
 
   readonly #proofObligation = memo(async () => ProofObligation.ofLib((await this.#poTask()).po));
-  readonly #db = memo(async () => new DB((await this.#poTask()).db, (await this.artifact()).storage));
+  readonly #db = memo(
+    async () => new DB((await this.#poTask()).db, (await this.artifact()).storage),
+  );
 
   /** The proof obligation to check */
   proofObligation(): Promise<ProofObligation> {
@@ -301,7 +307,9 @@ export class EvaluationTask extends Task {
 
   constructor(raw: taskPb.Task, client?: ArtifactSource) {
     if (raw.kind !== taskPb.TaskKind.TASK_EVAL) {
-      throw new TypeError(`Expected a task of kind TASK_EVAL, got ${taskPb.taskKindToJSON(raw.kind)}`);
+      throw new TypeError(
+        `Expected a task of kind TASK_EVAL, got ${taskPb.taskKindToJSON(raw.kind)}`,
+      );
     }
     super(raw, client);
   }
@@ -314,9 +322,13 @@ export class EvaluationTask extends Task {
     return super.result() as Promise<EvaluationTaskResult>;
   }
 
-  readonly #variables = memo(async () => (await this.#evalTask()).term[0].map((v) => Variable.ofLib(v)));
+  readonly #variables = memo(async () =>
+    (await this.#evalTask()).term[0].map((v) => Variable.ofLib(v)),
+  );
   readonly #term = memo(async () => termOfLib((await this.#evalTask()).term[1]));
-  readonly #db = memo(async () => new DB((await this.#evalTask()).db, (await this.artifact()).storage));
+  readonly #db = memo(
+    async () => new DB((await this.#evalTask()).db, (await this.artifact()).storage),
+  );
 
   /** The variables bound in the term */
   variables(): Promise<Variable[]> {
@@ -362,7 +374,9 @@ export function liftBoolOfLib(x: lib.Common_Decomp_lift_bool): LiftBool {
 
 export type EnumerationStyle = "additive" | "multiplicative";
 
-export function enumerationStyleOfLib(x: lib.Tasks_Decomp_task_enumeration_style): EnumerationStyle {
+export function enumerationStyleOfLib(
+  x: lib.Tasks_Decomp_task_enumeration_style,
+): EnumerationStyle {
   if (x instanceof lib.Tasks_Decomp_task_enumeration_style_Additive) return "additive";
   if (x instanceof lib.Tasks_Decomp_task_enumeration_style_Multiplicative) return "multiplicative";
   throw new UnexpectedResponseError(`Unexpected enumeration style ${x}`);
@@ -615,7 +629,9 @@ export class DecompositionTask extends Task {
 
   constructor(raw: taskPb.Task, client?: ArtifactSource) {
     if (raw.kind !== taskPb.TaskKind.TASK_DECOMP) {
-      throw new TypeError(`Expected a task of kind TASK_DECOMP, got ${taskPb.taskKindToJSON(raw.kind)}`);
+      throw new TypeError(
+        `Expected a task of kind TASK_DECOMP, got ${taskPb.taskKindToJSON(raw.kind)}`,
+      );
     }
     super(raw, client);
   }
@@ -669,7 +685,9 @@ export class ProofCheckTask extends Task {
   }
 }
 
-const SUBCLASSES: Partial<Record<taskPb.TaskKind, new (raw: taskPb.Task, client?: ArtifactSource) => Task>> = {
+const SUBCLASSES: Partial<
+  Record<taskPb.TaskKind, new (raw: taskPb.Task, client?: ArtifactSource) => Task>
+> = {
   [taskPb.TaskKind.TASK_CHECK_PO]: ProofObligationTask,
   [taskPb.TaskKind.TASK_EVAL]: EvaluationTask,
   [taskPb.TaskKind.TASK_DECOMP]: DecompositionTask,
@@ -789,7 +807,8 @@ export function proofObligationResultOfLib(
     return {
       kind: "noProof",
       error: ErrorCore.ofLib(r.err),
-      counterModel: r.counter_model === undefined ? undefined : Model.ofLib(r.counter_model as MirModel),
+      counterModel:
+        r.counter_model === undefined ? undefined : Model.ofLib(r.counter_model as MirModel),
       subgoals: r.subgoals.map((sg) => Sequent.ofLib(sg)),
       raw: r,
     };
@@ -980,7 +999,9 @@ export class EvaluationStatistics {
 export class EvaluationTaskResult {
   readonly #data: lib.Tasks_Eval_res;
   readonly #value = lazy(() =>
-    this.#data.res instanceof lib.Tasks_Eval_res_success ? valueOfLib(this.#data.res.v.v) : undefined,
+    this.#data.res instanceof lib.Tasks_Eval_res_success
+      ? valueOfLib(this.#data.res.v.v)
+      : undefined,
   );
   readonly #error = lazy(() =>
     this.#data.res instanceof lib.Error_Error_core ? ErrorCore.ofLib(this.#data.res) : undefined,
@@ -1024,7 +1045,9 @@ export class DecompositionTaskResult {
   readonly #statistics = lazy(() => Statistics.ofLib(this.#data.stats));
   readonly #decomposition = lazy(() =>
     this.#data.res instanceof lib.Tasks_Decomp_res_success
-      ? Decomposition.ofLib(this.#data.res.decomp as lib.Common_Fun_decomp_t_poly<lib.Mir_Term, lib.Mir_Type>)
+      ? Decomposition.ofLib(
+          this.#data.res.decomp as lib.Common_Fun_decomp_t_poly<lib.Mir_Term, lib.Mir_Type>,
+        )
       : undefined,
   );
   readonly #error = lazy(() =>

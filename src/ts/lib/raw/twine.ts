@@ -590,7 +590,9 @@ export class Decoder {
     const [o, high] = this._head(off);
     switch (high) {
       case 6:
-        return this.get_array(o).toArray().map((x) => this._value(x));
+        return this.get_array(o)
+          .toArray()
+          .map((x) => this._value(x));
       case 7: {
         const d = new Map<value, value>();
         for (const [k, v] of this.get_dict(o)) {

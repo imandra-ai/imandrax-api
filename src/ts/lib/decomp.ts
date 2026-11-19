@@ -64,7 +64,11 @@ export function byName(name: string, options: ByNameOptions = {}): Decomp {
  */
 export function fromArtifact(art: artmsgPb.Artifact | Artifact | DecompositionTaskResult): Decomp {
   const raw =
-    art instanceof Artifact ? art.raw : art instanceof DecompositionTaskResult ? art.artifact.raw : art;
+    art instanceof Artifact
+      ? art.raw
+      : art instanceof DecompositionTaskResult
+        ? art.artifact.raw
+        : art;
   return simplePb.DecomposeReqFull_Decomp.fromPartial({ fromArtifact: raw });
 }
 

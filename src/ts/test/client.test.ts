@@ -75,7 +75,9 @@ describe("connect", () => {
     server.on("imandrax.session.SessionManager/open_session", () => ok(utilsPb.Empty, {}));
     const c = await Client.connect({ sessionId: "old" });
     expect(c.sessionId).toBe("old");
-    expect(server.body("imandrax.session.SessionManager/open_session", sessionPb.SessionOpen)).toEqual({
+    expect(
+      server.body("imandrax.session.SessionManager/open_session", sessionPb.SessionOpen),
+    ).toEqual({
       id: { id: "old" },
       apiVersion: version,
     });
@@ -161,9 +163,11 @@ describe("transport", () => {
   });
 
   test("maps errors from intermediaries", async () => {
-    server
-      .withSessions()
-      .on(`${SIMPLE}/status`, () => ({ status: 503, text: "<html>down</html>", statusText: "Unavailable" }));
+    server.withSessions().on(`${SIMPLE}/status`, () => ({
+      status: 503,
+      text: "<html>down</html>",
+      statusText: "Unavailable",
+    }));
     const c = await Client.connect();
     const err = (await c.status().catch((e: unknown) => e)) as TwirpError;
     expect(err.code).toBe("unavailable");
@@ -176,25 +180,19 @@ describe("transport", () => {
   });
 
   test("a timeout is deadline_exceeded", async () => {
-    server
-      .withSessions()
-      .on(`${SIMPLE}/status`, () => new Promise(() => {}));
+    server.withSessions().on(`${SIMPLE}/status`, () => new Promise(() => {}));
     const c = await Client.connect();
     await expect(c.status({ timeoutMs: 20 })).rejects.toMatchObject({ code: "deadline_exceeded" });
   });
 
   test("the client's timeoutMs applies to calls without their own", async () => {
-    server
-      .withSessions()
-      .on(`${SIMPLE}/status`, () => new Promise(() => {}));
+    server.withSessions().on(`${SIMPLE}/status`, () => new Promise(() => {}));
     const c = await Client.connect({ timeoutMs: 20 });
     await expect(c.status()).rejects.toMatchObject({ code: "deadline_exceeded" });
   });
 
   test("an abort rejects with the signal's reason", async () => {
-    server
-      .withSessions()
-      .on(`${SIMPLE}/status`, () => new Promise(() => {}));
+    server.withSessions().on(`${SIMPLE}/status`, () => new Promise(() => {}));
     const c = await Client.connect();
     const ac = new AbortController();
     const reason = new Error("stop");
@@ -226,7 +224,10 @@ describe("transport", () => {
   test.each([
     ["Max-Age=0", "affinity=; Max-Age=0"],
     ["a past Expires", "affinity=; Expires=Thu, 01 Jan 1970 00:00:00 GMT"],
-    ["Max-Age over a future Expires", "affinity=x; Expires=Fri, 01 Jan 2100 00:00:00 GMT; Max-Age=0"],
+    [
+      "Max-Age over a future Expires",
+      "affinity=x; Expires=Fri, 01 Jan 2100 00:00:00 GMT; Max-Age=0",
+    ],
   ])("stops sending a cookie the server deletes with %s", async (_name, deletion) => {
     let n = 0;
     server
@@ -262,7 +263,9 @@ describe("transport", () => {
 
   test("a 200 response that does not decode is a TwirpError", async () => {
     // a truncated body: field 1 claims 5 bytes, and 1 follows
-    server.withSessions("s").on(`${SIMPLE}/status`, () => ({ message: new Uint8Array([0x0a, 0x05, 0x61]) }));
+    server
+      .withSessions("s")
+      .on(`${SIMPLE}/status`, () => ({ message: new Uint8Array([0x0a, 0x05, 0x61]) }));
     const c = await Client.connect();
     await expect(c.status()).rejects.toThrow(TwirpError);
     await expect(c.status()).rejects.toMatchObject({ code: "internal", status: 200 });
@@ -271,7 +274,9 @@ describe("transport", () => {
 
 describe("requests", () => {
   test("evalSrc leaves unset options unset", async () => {
-    server.withSessions("s").on(`${SIMPLE}/eval_src`, () => ok(simplePb.EvalRes, simplePb.EvalRes.fromPartial({})));
+    server
+      .withSessions("s")
+      .on(`${SIMPLE}/eval_src`, () => ok(simplePb.EvalRes, simplePb.EvalRes.fromPartial({})));
     const c = await Client.connect();
     await c.evalSrc("let x = 1");
     expect(server.body(`${SIMPLE}/eval_src`, simplePb.EvalSrcReq)).toEqual({
@@ -283,7 +288,9 @@ describe("requests", () => {
   });
 
   test("evalSrc sends its options", async () => {
-    server.withSessions("s").on(`${SIMPLE}/eval_src`, () => ok(simplePb.EvalRes, simplePb.EvalRes.fromPartial({})));
+    server
+      .withSessions("s")
+      .on(`${SIMPLE}/eval_src`, () => ok(simplePb.EvalRes, simplePb.EvalRes.fromPartial({})));
     const c = await Client.connect();
     await c.evalSrc("x", { asyncOnly: false, taskFilter: ["*f*"] });
     expect(server.body(`${SIMPLE}/eval_src`, simplePb.EvalSrcReq)).toMatchObject({
@@ -295,7 +302,9 @@ describe("requests", () => {
   test("decompose sends its options", async () => {
     server
       .withSessions("s")
-      .on(`${SIMPLE}/decompose`, () => ok(simplePb.DecomposeRes, simplePb.DecomposeRes.fromPartial({})));
+      .on(`${SIMPLE}/decompose`, () =>
+        ok(simplePb.DecomposeRes, simplePb.DecomposeRes.fromPartial({})),
+      );
     const c = await Client.connect();
     const res = await c.decompose("f", {
       assuming: "g",
@@ -325,11 +334,16 @@ describe("requests", () => {
   test("decomposeFull sends the request tree", async () => {
     server
       .withSessions("s")
-      .on(`${SIMPLE}/decompose_full`, () => ok(simplePb.DecomposeRes, simplePb.DecomposeRes.fromPartial({})));
+      .on(`${SIMPLE}/decompose_full`, () =>
+        ok(simplePb.DecomposeRes, simplePb.DecomposeRes.fromPartial({})),
+      );
     const c = await Client.connect();
     const d = decomp.let_(
       [["base", decomp.byName("f", { prune: true, liftBool: "all" })]],
-      decomp.merge(decomp.prune(decomp.get("base")), decomp.combine(decomp.compoundMerge(decomp.get("base"), decomp.byName("g")))),
+      decomp.merge(
+        decomp.prune(decomp.get("base")),
+        decomp.combine(decomp.compoundMerge(decomp.get("base"), decomp.byName("g"))),
+      ),
     );
     await c.decomposeFull(d, { computeTimeout: 3 });
     const req = server.body(`${SIMPLE}/decompose_full`, simplePb.DecomposeReqFull);
@@ -348,7 +362,9 @@ describe("requests", () => {
       .withSessions("s")
       .on(`${SIMPLE}/test_src`, () => ok(simplePb.TestRes, simplePb.TestRes.fromPartial({})))
       .on(`${SIMPLE}/verify_name`, () => ok(simplePb.VerifyRes, simplePb.VerifyRes.fromPartial({})))
-      .on(`${SIMPLE}/instance_src`, () => ok(simplePb.InstanceRes, simplePb.InstanceRes.fromPartial({})));
+      .on(`${SIMPLE}/instance_src`, () =>
+        ok(simplePb.InstanceRes, simplePb.InstanceRes.fromPartial({})),
+      );
     const c = await Client.connect();
     await c.testSrc("fun x -> x > 0", { seed: 7 });
     await c.verifyName("p", { hints: "[@@by auto]" });
@@ -370,19 +386,28 @@ describe("requests", () => {
     server
       .withSessions()
       .on(`${SIMPLE}/oneshot`, () =>
-        ok(simplePb.OneshotRes, simplePb.OneshotRes.fromPartial({ results: ["r"], stats: { time: 1.5 } })),
+        ok(
+          simplePb.OneshotRes,
+          simplePb.OneshotRes.fromPartial({ results: ["r"], stats: { time: 1.5 } }),
+        ),
       );
     const c = await Client.connect();
     const res = await c.oneshot("1 + 1", { computeTimeout: 2.5 });
     expect([res.results, res.timeS]).toEqual([["r"], 1.5]);
-    expect(server.body(`${SIMPLE}/oneshot`, simplePb.OneshotReq)).toEqual({ input: "1 + 1", timeout: 2.5 });
+    expect(server.body(`${SIMPLE}/oneshot`, simplePb.OneshotReq)).toEqual({
+      input: "1 + 1",
+      timeout: 2.5,
+    });
   });
 
   test("typecheck decodes the types from JSON", async () => {
     server
       .withSessions()
       .on(`${SIMPLE}/typecheck`, () =>
-        ok(simplePb.TypecheckRes, simplePb.TypecheckRes.fromPartial({ success: true, types: '[{"name":"f"}]' })),
+        ok(
+          simplePb.TypecheckRes,
+          simplePb.TypecheckRes.fromPartial({ success: true, types: '[{"name":"f"}]' }),
+        ),
       );
     const c = await Client.connect();
     const res = await c.typecheck("let f x = x");
@@ -405,7 +430,9 @@ describe("requests", () => {
       .on("imandrax.session.SessionManager/keep_session_alive", () => ok(utilsPb.Empty, {}));
     const c = await Client.connect();
     await c.keepSessionAlive();
-    expect(server.body("imandrax.session.SessionManager/keep_session_alive", sessionPb.Session)).toEqual({
+    expect(
+      server.body("imandrax.session.SessionManager/keep_session_alive", sessionPb.Session),
+    ).toEqual({
       id: "s",
     });
   });
@@ -415,10 +442,16 @@ describe("requests", () => {
       .withSessions()
       .on("imandrax.api.Eval/get_artifact", () =>
         ok(apiPb.ArtifactResult, {
-          error: { kind: '{ Kind.name = "NotFound" }', msg: { msg: "no such artifact", locs: [] }, stack: [] },
+          error: {
+            kind: '{ Kind.name = "NotFound" }',
+            msg: { msg: "no such artifact", locs: [] },
+            stack: [],
+          },
         }),
       )
-      .on("imandrax.api.Eval/list_artifacts", () => ok(apiPb.ArtifactListResult, { ok: { kinds: ["po_task", "po_res"] } }));
+      .on("imandrax.api.Eval/list_artifacts", () =>
+        ok(apiPb.ArtifactListResult, { ok: { kinds: ["po_task", "po_res"] } }),
+      );
     const c = await Client.connect();
     const task = taskOfRaw({ id: { id: "t1" }, kind: taskPb.TaskKind.TASK_CHECK_PO }, c);
     expect(await c.listArtifacts(task)).toEqual(["po_task", "po_res"]);

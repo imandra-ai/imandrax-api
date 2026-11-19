@@ -104,9 +104,15 @@ export class Transport {
       // Twirp errors, as in the Python client
       if (opts.signal?.aborted) throw opts.signal.reason;
       if (timeoutSignal.aborted) {
-        throw new TwirpError("deadline_exceeded", `${service}/${method} timed out`, undefined, {}, {
-          cause: e,
-        });
+        throw new TwirpError(
+          "deadline_exceeded",
+          `${service}/${method} timed out`,
+          undefined,
+          {},
+          {
+            cause: e,
+          },
+        );
       }
       throw new TwirpError("unavailable", String(e), undefined, {}, { cause: e });
     }

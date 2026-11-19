@@ -75,7 +75,9 @@ describe("VerifyResponse", () => {
   });
 
   test("the counter-example", () => {
-    const r = VerifyResponse.ofRaw(simplePb.VerifyRes.fromPartial({ refuted: { model: model("x = 1") } }));
+    const r = VerifyResponse.ofRaw(
+      simplePb.VerifyRes.fromPartial({ refuted: { model: model("x = 1") } }),
+    );
     expect(r.counterExample?.kind).toBe("counterExample");
     expect(String(r.counterExample)).toBe("x = 1");
     expect(r.counterExample?.model).toBeUndefined();
@@ -98,11 +100,18 @@ describe("InstanceResponse and TestResponse", () => {
         sat: { model: { ...model("x = 2"), mType: simplePb.ModelType.Instance } },
       }),
     );
-    expect([r.outcome, r.found, r.instance?.kind, r.instance?.src]).toEqual(["sat", true, "instance", "x = 2"]);
+    expect([r.outcome, r.found, r.instance?.kind, r.instance?.src]).toEqual([
+      "sat",
+      true,
+      "instance",
+      "x = 2",
+    ]);
   });
 
   test("unsat", () => {
-    const r = InstanceResponse.ofRaw(simplePb.InstanceRes.fromPartial({ unsat: { proofPp: "pp" } }));
+    const r = InstanceResponse.ofRaw(
+      simplePb.InstanceRes.fromPartial({ unsat: { proofPp: "pp" } }),
+    );
     expect([r.outcome, r.found, r.proofPp, r.instance]).toEqual(["unsat", false, "pp", undefined]);
   });
 
@@ -110,7 +119,11 @@ describe("InstanceResponse and TestResponse", () => {
     const r = TestResponse.ofRaw(
       simplePb.TestRes.fromPartial({ counterExample: { model: model("x = 0") } }),
     );
-    expect([r.outcome, r.refuted, r.counterExample?.src]).toEqual(["counterExample", true, "x = 0"]);
+    expect([r.outcome, r.refuted, r.counterExample?.src]).toEqual([
+      "counterExample",
+      true,
+      "x = 0",
+    ]);
   });
 
   test("no counter-example is reported as err", () => {
@@ -121,7 +134,9 @@ describe("InstanceResponse and TestResponse", () => {
   test("an unknown model type is an UnexpectedResponseError", () => {
     expect(() =>
       TestResponse.ofRaw(
-        simplePb.TestRes.fromPartial({ counterExample: { model: { src: "", mType: 7 as simplePb.ModelType } } }),
+        simplePb.TestRes.fromPartial({
+          counterExample: { model: { src: "", mType: 7 as simplePb.ModelType } },
+        }),
       ),
     ).toThrow(UnexpectedResponseError);
   });
@@ -157,12 +172,22 @@ describe("EvalSrcResponse", () => {
       ProofCheckTask,
       Task,
     ]);
-    expect(r.tasks.map((t) => t.kind)).toEqual(["checkPo", "eval", "decomp", "proofCheck", "unspecified"]);
+    expect(r.tasks.map((t) => t.kind)).toEqual([
+      "checkPo",
+      "eval",
+      "decomp",
+      "proofCheck",
+      "unspecified",
+    ]);
 
     const [proof, instance, testOk] = r.poResults;
     expect([proof!.outcome, proof!.proved, proof!.proofPp]).toEqual(["proof", true, "pp"]);
     expect([proof!.origin.fromSym, proof!.origin.count]).toEqual(["thm", 2]);
-    expect([instance!.outcome, instance!.found, instance!.model?.src]).toEqual(["instance", true, "x = 1"]);
+    expect([instance!.outcome, instance!.found, instance!.model?.src]).toEqual([
+      "instance",
+      true,
+      "x = 1",
+    ]);
     expect([testOk!.outcome, testOk!.proved, testOk!.found]).toEqual(["testOk", false, false]);
 
     expect(r.evalResults[0]).toMatchObject({ success: true, asOcaml: "3" });
@@ -184,13 +209,20 @@ test("CodeSnippetResponse", () => {
   );
   expect([r.res, r.durationS]).toEqual(["errors", 0.5]);
   expect(() =>
-    CodeSnippetResponse.ofRaw(apiPb.CodeSnippetEvalResult.fromPartial({ res: 5 as apiPb.EvalResult })),
+    CodeSnippetResponse.ofRaw(
+      apiPb.CodeSnippetEvalResult.fromPartial({ res: 5 as apiPb.EvalResult }),
+    ),
   ).toThrow(UnexpectedResponseError);
 });
 
 describe("Artifact", () => {
   test("decodeAs rejects unknown kinds", () => {
-    const a = Artifact.ofRaw({ kind: "nope", data: new Uint8Array(), apiVersion: "v", storage: [] });
+    const a = Artifact.ofRaw({
+      kind: "nope",
+      data: new Uint8Array(),
+      apiVersion: "v",
+      storage: [],
+    });
     expect(() => a.decodeAs(Object)).toThrow(UnexpectedResponseError);
   });
 

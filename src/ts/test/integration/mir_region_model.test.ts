@@ -26,9 +26,9 @@ describe.skipIf(noApiKey)("region models", () => {
     expect(decomp.arguments, "g should only has x as arguments").toHaveLength(1);
     const x: Variable = decomp.arguments[0]!;
     // Python's `repr` of `{"short_name": ..., "type": ...}`, with the type's `repr`, `<ConstructedType int>`
-    expect(`{'short_name': '${x.id.shortName}', 'type': <${x.type.constructor.name} ${x.type}>}`).toBe(
-      "{'short_name': 'x', 'type': <ConstructedType int>}",
-    );
+    expect(
+      `{'short_name': '${x.id.shortName}', 'type': <${x.type.constructor.name} ${x.type}>}`,
+    ).toBe("{'short_name': 'x', 'type': <ConstructedType int>}");
 
     const models: (Model | undefined)[] = decomp.regions.map((r) => r.model);
     const fstModel = models[0];
@@ -37,7 +37,10 @@ describe.skipIf(noApiKey)("region models", () => {
     const consts: ReadonlyMap<AppliedSymbol, Term> = fstModel!.constants;
     expect(consts.size).toBe(2);
     const [[x_], [x__]] = [...consts];
-    expect([x_!.id.shortName, x__!.id.shortName], "Regions have the same variable x ...").toEqual(["x", "x"]);
+    expect([x_!.id.shortName, x__!.id.shortName], "Regions have the same variable x ...").toEqual([
+      "x",
+      "x",
+    ]);
     expect(x_!.id.fullName, "... with different full name").not.toBe(x__!.id.fullName);
   });
 });

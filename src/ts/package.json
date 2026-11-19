@@ -25,12 +25,15 @@
     "docs:serve": "npm run docs:html && vite preview --outDir docs/html --open",
     "docs:dev": "npm run docs:html && concurrently -k -n typedoc,vite \"typedoc --options typedoc.html.json --watch --preserveWatchOutput --cleanOutputDir false\" \"vite docs/html --open\"",
     "test": "vitest run --project unit",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
     "concurrently": "^10.0.7",
     "fast-check": "^4.1.1",
+    "prettier": "^3.10.1",
     "ts-proto": "^2.7.5",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.14.1",
