@@ -19,7 +19,7 @@ test: node_modules lib/version.ts
 format-check: node_modules
 	npm run format:check
 
-# integration tests against the ImandraX server; needs IMANDRAX_API_KEY
+# integration tests against the ImandraX server; needs API key
 test-integration: node_modules lib/version.ts
 	npm run test:integration
 
