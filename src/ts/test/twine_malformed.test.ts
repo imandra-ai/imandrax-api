@@ -14,7 +14,7 @@ import { describe, expect, test } from "vitest";
 import * as twine from "../lib/raw/twine.js";
 
 const TEST_DATA = fileURLToPath(
-  new URL("../../py/imandrax_api/lib/test_data/", import.meta.url),
+  new URL("../../py/tests/twine/test_data/", import.meta.url),
 );
 
 const CORPUS: Record<string, Uint8Array> = Object.fromEntries(
