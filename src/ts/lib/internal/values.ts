@@ -1,8 +1,4 @@
-/**
- * Values produced by evaluating an IML expression
- *
- * @module
- */
+// The implementation of the `values` module: see `../values.ts` for what is public
 
 import { UnexpectedResponseError } from "../errors.js";
 import * as mir from "./mir.js";
@@ -226,7 +222,6 @@ export type Value =
   | Custom
   | Ordinal;
 
-/** @internal */
 export function valueOfLib(x: View): Value {
   if (x instanceof lib.Eval_Value_view_V_true) return new True_(x);
   if (x instanceof lib.Eval_Value_view_V_false) return new False_(x);
@@ -314,7 +309,6 @@ export class ConsOrdinal {
 /** Ordinal type. */
 export type OrdinalExpr = IntOrdinal | ConsOrdinal;
 
-/** @internal */
 export function ordinalExprOfLib(x: lib.Eval_Ordinal): OrdinalExpr {
   if (x instanceof lib.Eval_Ordinal_Int) return new IntOrdinal(x.arg, x);
   if (x instanceof lib.Eval_Ordinal_Cons) {

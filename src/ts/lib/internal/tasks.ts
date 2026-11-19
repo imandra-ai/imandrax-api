@@ -1,4 +1,4 @@
-/** Tasks run by the server, their data and their results */
+// The implementation of the `tasks` module: see `../tasks.ts` for what is public
 
 import { NoClientError, UnexpectedResponseError } from "../errors.js";
 import {
@@ -41,7 +41,6 @@ export class TaskID {
     readonly raw: taskPb.TaskID,
   ) {}
 
-  /** @internal */
   static ofRaw(x: taskPb.TaskID): TaskID {
     return new TaskID(x.id, x);
   }
@@ -68,8 +67,16 @@ export class TaskID {
  *
  * Task ids are content-addressed, so tasks with equal ids describe the same work, even when they
  * come from different clients; compare them with `task.id.equals(other.id)`.
+ *
+ * `Task` is a union of the task kinds: narrow it with `kind`.
  */
-export class Task {
+export type Task =
+  ProofObligationTask | EvaluationTask | DecompositionTask | ProofCheckTask | UnspecifiedTask;
+
+/** What all tasks have; see `Task` */
+export abstract class TaskBase {
+  /** The task's kind */
+  abstract readonly kind: "checkPo" | "eval" | "decomp" | "proofCheck" | "unspecified";
   /** The artifact kind of the task's data, `undefined` if it is not known for the task's kind */
   protected static readonly artifactKind: string | undefined = undefined;
   /** The artifact kind of the task's result, `undefined` if it is not known for the task's kind */
@@ -83,34 +90,12 @@ export class Task {
     readonly raw: taskPb.Task,
     client?: ArtifactSource,
   ) {
-    // A plain `Task` is only for task kinds without a subclass, whose artifact kinds are not
-    // known; other kinds need their subclass, which `taskOfRaw` picks
-    if (new.target === Task && raw.kind in SUBCLASSES) {
-      throw new TypeError(
-        `Tasks of kind ${taskPb.taskKindToJSON(raw.kind)} need their \`Task\` subclass; use \`taskOfRaw\``,
-      );
-    }
     this.#client = client;
   }
 
   /** The task's identifier */
   get id(): TaskID {
     return TaskID.ofRaw(this.raw.id ?? { id: "" });
-  }
-
-  get kind(): "eval" | "checkPo" | "proofCheck" | "decomp" | "unspecified" {
-    switch (this.raw.kind) {
-      case taskPb.TaskKind.TASK_EVAL:
-        return "eval";
-      case taskPb.TaskKind.TASK_CHECK_PO:
-        return "checkPo";
-      case taskPb.TaskKind.TASK_PROOF_CHECK:
-        return "proofCheck";
-      case taskPb.TaskKind.TASK_DECOMP:
-        return "decomp";
-      default:
-        return "unspecified";
-    }
   }
 
   toString(): string {
@@ -123,7 +108,7 @@ export class Task {
    * @throws {UnexpectedResponseError} for a task kind without a data artifact
    */
   artifact(): Promise<Artifact> {
-    const kind = (this.constructor as typeof Task).artifactKind;
+    const kind = (this.constructor as typeof TaskBase).artifactKind;
     if (kind === undefined) {
       return Promise.reject(
         new UnexpectedResponseError(
@@ -140,7 +125,7 @@ export class Task {
    * @throws {UnexpectedResponseError} for a task kind without a result artifact
    */
   result(): Promise<TaskResult> {
-    const kind = (this.constructor as typeof Task).resultArtifactKind;
+    const kind = (this.constructor as typeof TaskBase).resultArtifactKind;
     if (kind === undefined) {
       return Promise.reject(
         new UnexpectedResponseError(
@@ -161,7 +146,7 @@ export class Task {
 
   /** Fetch all of the task's artifacts (its data and its result) */
   async fetchAll(): Promise<void> {
-    const cls = this.constructor as typeof Task;
+    const cls = this.constructor as typeof TaskBase;
     const kinds = [cls.artifactKind, cls.resultArtifactKind].filter(
       (k): k is string => k !== undefined,
     );
@@ -185,7 +170,7 @@ export class Task {
           ),
         );
       }
-      p = client.getArtifact(this, kind);
+      p = client.getArtifact(this as TaskBase as Task, kind);
       this.#artifacts.set(kind, p);
       // a failed request is not cached, so the next call retries
       p.catch(() => {
@@ -231,7 +216,6 @@ export class ProofObligation {
     readonly raw: lib.Mir_Proof_obligation,
   ) {}
 
-  /** @internal */
   static ofLib(po: lib.Mir_Proof_obligation): ProofObligation {
     return new ProofObligation(
       po.descr,
@@ -248,7 +232,8 @@ export class ProofObligation {
 }
 
 /** A proof obligation task, from `verify`, `instance`, theorems, ... */
-export class ProofObligationTask extends Task {
+export class ProofObligationTask extends TaskBase {
+  readonly kind = "checkPo";
   protected static override readonly artifactKind = "po_task";
   protected static override readonly resultArtifactKind = "po_res";
 
@@ -296,7 +281,8 @@ export class ProofObligationTask extends Task {
 }
 
 /** An evaluation task, from `eval` */
-export class EvaluationTask extends Task {
+export class EvaluationTask extends TaskBase {
+  readonly kind = "eval";
   protected static override readonly artifactKind = "eval_task";
   protected static override readonly resultArtifactKind = "eval_res";
 
@@ -359,7 +345,6 @@ export class EvaluationTask extends Task {
  */
 export type LiftBool = "default" | "nestedEqualities" | "equalities" | "all";
 
-/** @internal */
 export function liftBoolOfLib(x: lib.Common_Decomp_lift_bool): LiftBool {
   if (x instanceof lib.Common_Decomp_lift_bool_Default) return "default";
   if (x instanceof lib.Common_Decomp_lift_bool_Nested_equalities) return "nestedEqualities";
@@ -370,7 +355,6 @@ export function liftBoolOfLib(x: lib.Common_Decomp_lift_bool): LiftBool {
 
 export type EnumerationStyle = "additive" | "multiplicative";
 
-/** @internal */
 export function enumerationStyleOfLib(
   x: lib.Tasks_Decomp_task_enumeration_style,
 ): EnumerationStyle {
@@ -566,7 +550,6 @@ export class EnumerateDecompositionRequest {
   }
 }
 
-/** @internal */
 export function decompRequestOfLib(d: lib.Tasks_Decomp_task_Mir_decomp): DecompositionRequest {
   if (d instanceof lib.Tasks_Decomp_task_decomp_poly_Decomp) {
     const a = d.arg;
@@ -624,7 +607,8 @@ export function decompRequestOfLib(d: lib.Tasks_Decomp_task_Mir_decomp): Decompo
 }
 
 /** A decomposition task, from `decompose` or `[@@decomp ...]` */
-export class DecompositionTask extends Task {
+export class DecompositionTask extends TaskBase {
+  readonly kind = "decomp";
   protected static override readonly artifactKind = "decomp_task";
   protected static override readonly resultArtifactKind = "decomp_res";
 
@@ -673,13 +657,34 @@ export class DecompositionTask extends Task {
  * It has no data or result artifact: `artifact()` and `result()` reject with
  * `UnexpectedResponseError`.
  */
-export class ProofCheckTask extends Task {
+export class ProofCheckTask extends TaskBase {
+  readonly kind = "proofCheck";
   // The API defines no artifact kinds for proof checking
 
   constructor(raw: taskPb.Task, client?: ArtifactSource) {
     if (raw.kind !== taskPb.TaskKind.TASK_PROOF_CHECK) {
       throw new TypeError(
         `Expected a task of kind TASK_PROOF_CHECK, got ${taskPb.taskKindToJSON(raw.kind)}`,
+      );
+    }
+    super(raw, client);
+  }
+}
+
+/**
+ * A task of a kind the client does not know, e.g. from a newer server
+ *
+ * Its artifact kinds are not known: `artifact()` and `result()` reject with
+ * `UnexpectedResponseError`.
+ */
+export class UnspecifiedTask extends TaskBase {
+  readonly kind = "unspecified";
+
+  constructor(raw: taskPb.Task, client?: ArtifactSource) {
+    // the kinds with a class need it, which `taskOfRaw` picks
+    if (raw.kind in SUBCLASSES) {
+      throw new TypeError(
+        `Tasks of kind ${taskPb.taskKindToJSON(raw.kind)} need their own class; use \`taskOfRaw\``,
       );
     }
     super(raw, client);
@@ -695,16 +700,14 @@ const SUBCLASSES: Partial<
   [taskPb.TaskKind.TASK_PROOF_CHECK]: ProofCheckTask,
 };
 
-/** Wrap a task in the matching `Task` subclass */
+/** Wrap a task in the class of its kind */
 export function taskOfRaw(t: taskPb.Task, client?: ArtifactSource): Task {
   const cls = SUBCLASSES[t.kind];
-  return cls === undefined ? new Task(t, client) : new cls(t, client);
+  return cls === undefined ? new UnspecifiedTask(t, client) : new cls(t, client);
 }
 
 /**
- * Wrap a task that the response says is of the `Task` subclass `cls`
- *
- * @internal
+ * Wrap a task that the response says is of the class `cls`
  */
 export function taskOfRawAs<T extends Task>(
   t: taskPb.Task,
@@ -790,7 +793,6 @@ export type ProofObligationFailure = NoProof | Unsat | InvalidModel | ProofOblig
 type MirModel = lib.Common_Model_t_poly<lib.Mir_Term, lib.Mir_Type>;
 type MirProofTerm = lib.Proof_Proof_term_t_poly<lib.Mir_Term, lib.Mir_Type>;
 
-/** @internal */
 export function proofObligationResultOfLib(
   x: lib.Tasks_PO_res_result<
     lib.Tasks_PO_res_success<lib.Mir_Term, lib.Mir_Type>,
@@ -859,6 +861,7 @@ function lazy<T>(f: () => T): () => T {
 
 /** The result of a proof obligation task */
 export class ProofObligationTaskResult {
+  readonly kind = "checkPo";
   readonly #data: lib.Tasks_PO_res_Shallow;
   readonly #result = lazy(() => proofObligationResultOfLib(this.#data.res));
   readonly #statistics = lazy(() => Statistics.ofLib(this.#data.stats));
@@ -973,7 +976,6 @@ export class ProofObligationSubresult {
     readonly raw: lib.Tasks_PO_res_sub_res<lib.Mir_Term>,
   ) {}
 
-  /** @internal */
   static ofLib(sr: lib.Tasks_PO_res_sub_res<lib.Mir_Term>): ProofObligationSubresult {
     return new ProofObligationSubresult(
       Sequent.ofLib(sr.goal),
@@ -994,7 +996,6 @@ export class EvaluationStatistics {
     readonly raw: lib.Tasks_Eval_res_stats,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Tasks_Eval_res_stats): EvaluationStatistics {
     return new EvaluationStatistics(x.compile_time, x.exec_time, x);
   }
@@ -1002,6 +1003,7 @@ export class EvaluationStatistics {
 
 /** The result of an evaluation task */
 export class EvaluationTaskResult {
+  readonly kind = "eval";
   readonly #data: lib.Tasks_Eval_res;
   readonly #value = lazy(() =>
     this.#data.res instanceof lib.Tasks_Eval_res_success
@@ -1046,6 +1048,7 @@ export class EvaluationTaskResult {
 
 /** The result of a decomposition task */
 export class DecompositionTaskResult {
+  readonly kind = "decomp";
   readonly #data: lib.Tasks_Decomp_res_Shallow;
   readonly #statistics = lazy(() => Statistics.ofLib(this.#data.stats));
   readonly #decomposition = lazy(() =>
@@ -1104,6 +1107,7 @@ export class DecompositionTaskResult {
   }
 }
 
+/** The result of a task: a union of the results of each task kind, narrowed with `kind` */
 export type TaskResult = ProofObligationTaskResult | EvaluationTaskResult | DecompositionTaskResult;
 
 export function taskResultOfArtifact(artifact: Artifact): TaskResult {

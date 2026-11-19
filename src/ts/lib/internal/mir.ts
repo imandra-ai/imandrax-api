@@ -1,11 +1,4 @@
-/**
- * MIR, the intermediate representation ImandraX produces from IML
- *
- * Results describe code in MIR: types, terms, function and type declarations, rewrite and
- * instantiation rules, models, and the symbol database that names refer to.
- *
- * @module
- */
+// The implementation of the `mir` module: see `../mir.ts` for what is public
 
 // Note [General Principles when Transforming OCaml Bindings to TypeScript]
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -19,11 +12,12 @@
 // - `'term` / `'ty` type parameters are specialized with MIR term and type
 // - tuples -> objects with named fields (e.g. `Binder`, `NamedTerm`); association lists keyed by
 //   unique names or uids -> `ReadonlyMap`s
-// - the conversions from lib (`ofLib`, `*OfLib`) are `@internal`, left out of the `.d.ts` files
 // - Some classes irrelevant to users are skipped, e.g.: Anchor, SubAnchor
 //
 // They are classes rather than plain objects because they keep the lib object in `raw`,
 // convert their fields lazily (see Note [Lib memo]), and have `equals` and `toString`.
+// `../mir.ts` re-exports them type-only, so users narrow them by `kind`; only the plain JS values
+// (`Uid`, `Rational`, `Constructed`, ...) are value exports, for `instanceof`.
 //
 // Note: all `toString` in there are purely for debugging purposes. There is no MIR
 // text format; MIR is only exchanged in byte-serialized form and there is no
@@ -342,8 +336,6 @@ export function uidMap<V>(entries: Iterable<readonly [Uid, V]> = []): ValueMap<U
 
 /**
  * A map keyed by variables, compared by value as `Variable.equals` does
- *
- * @internal
  */
 export function variableMap<V>(entries: Iterable<readonly [Variable, V]>): ValueMap<Variable, V> {
   return new ValueMap((v: Variable) => uidKey(v.id), entries);
@@ -483,7 +475,6 @@ export class Cname {
     readonly raw: lib.Cname,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Cname): Cname {
     return new Cname(x.name, x.chash, x.is_key, x);
   }
@@ -520,11 +511,7 @@ function chashStr(chash: Uint8Array): string {
 // `Upto.t` has the single constructor `N_steps of int`, so it is represented by that number of
 // steps.
 
-/**
- * The number of steps of a library `Upto`
- *
- * @internal
- */
+/** The number of steps of a library `Upto` */
 export function uptoOfLib(x: lib.Upto): number {
   if (x instanceof lib.Upto_N_steps) {
     return Number(x.arg);
@@ -624,7 +611,6 @@ export class BoolConst {
 export type Const =
   FloatConst | StringConst | IntConst | RationalConst | RealApproxConst | UidConst | BoolConst;
 
-/** @internal */
 export function constOfLib(x: lib.Const): Const {
   if (x instanceof lib.Const_Const_float) return new FloatConst(x.arg, x);
   if (x instanceof lib.Const_Const_string) return new StringConst(x.arg, x);
@@ -675,7 +661,6 @@ export class DecompBuiltin {
 
 export type BuiltinDataKind = LogicCoreBuiltin | SpecialBuiltin | TacticBuiltin | DecompBuiltin;
 
-/** @internal */
 export function builtinDataKindOfLib(x: lib.Builtin_data_kind): BuiltinDataKind {
   if (x instanceof lib.Builtin_data_kind_Logic_core)
     return new LogicCoreBuiltin(x.logic_core_name, x);
@@ -695,7 +680,6 @@ export class BuiltinFunction {
     readonly raw: lib.Builtin_Fun,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Builtin_Fun): BuiltinFunction {
     return new BuiltinFunction(
       new Uid(x.id),
@@ -715,7 +699,6 @@ export class BuiltinSort {
     readonly raw: lib.Builtin_Ty,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Builtin_Ty): BuiltinSort {
     return new BuiltinSort(new Uid(x.id), builtinDataKindOfLib(x.kind), x);
   }
@@ -767,7 +750,6 @@ export class RewriteTrigger {
 
 export type AsTrigger = NoTrigger | AnonymousTrigger | NamedTrigger | RewriteTrigger;
 
-/** @internal */
 export function asTriggerOfLib(x: lib.As_trigger): AsTrigger {
   if (x instanceof lib.As_trigger_Trig_none) return new NoTrigger(x);
   if (x instanceof lib.As_trigger_Trig_anon) return new AnonymousTrigger(x);
@@ -800,7 +782,6 @@ export abstract class TypeBase {
 /** Converted types, by lib type; see Note [Lib memo] */
 const typeMemo = new WeakMap<lib.Mir_Type, Type>();
 
-/** @internal */
 export function typeOfLib(x: lib.Mir_Type): Type {
   let ty = typeMemo.get(x);
   if (ty === undefined) {
@@ -922,7 +903,6 @@ export class ConstructorDefinition {
     this.raw = raw;
   }
 
-  /** @internal */
   static ofLib(x: lib.Ty_view_adt_row<lib.Uid, lib.Mir_Type>): ConstructorDefinition {
     return new ConstructorDefinition(
       new Uid(x.c),
@@ -957,7 +937,6 @@ export class FieldDefinition {
     readonly raw: lib.Ty_view_rec_row<lib.Uid, lib.Mir_Type>,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Ty_view_rec_row<lib.Uid, lib.Mir_Type>): FieldDefinition {
     return new FieldDefinition(new Uid(x.f), typeOfLib(x.ty), x.doc, x);
   }
@@ -1007,7 +986,6 @@ export class OtherTypeKind {
 export type TypeKind =
   AlgebraicTypeKind | RecordTypeKind | SkolemTypeKind | BuiltinTypeKind | OtherTypeKind;
 
-/** @internal */
 export function typeKindOfLib(x: RawTypeDecl): TypeKind {
   if (x instanceof lib.Ty_view_decl_Algebraic) {
     return new AlgebraicTypeKind(
@@ -1046,7 +1024,6 @@ export class TypeDefinition {
     readonly raw: lib.Mir_Type_def,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Type_def): TypeDefinition {
     return new TypeDefinition(
       new Uid(x.name),
@@ -1085,7 +1062,6 @@ export class Variable {
     readonly raw: lib.Mir_Var,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Var): Variable {
     return new Variable(new Uid(x.id), typeOfLib(x.ty), x);
   }
@@ -1107,7 +1083,6 @@ export class TypeSchema {
     readonly raw: lib.Mir_Type_schema,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Type_schema): TypeSchema {
     return new TypeSchema(
       x.params.map((p) => new Uid(p)),
@@ -1130,7 +1105,6 @@ export class TypedSymbol {
     readonly raw: lib.Mir_Typed_symbol,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Typed_symbol): TypedSymbol {
     return new TypedSymbol(new Uid(x.id), TypeSchema.ofLib(x.ty), x);
   }
@@ -1152,7 +1126,6 @@ export class AppliedSymbol {
     readonly raw: lib.Mir_Applied_symbol,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Applied_symbol): AppliedSymbol {
     return new AppliedSymbol(TypedSymbol.ofLib(x.sym), x.args.map(typeOfLib), typeOfLib(x.ty), x);
   }
@@ -1234,7 +1207,6 @@ export abstract class TermBase {
 /** Converted terms, by lib term; see Note [Lib memo] */
 const termMemo = new WeakMap<lib.Mir_Term, Term>();
 
-/** @internal */
 export function termOfLib(x: lib.Mir_Term): Term {
   let t = termMemo.get(x);
   if (t === undefined) {
@@ -1383,11 +1355,7 @@ export class Var extends TermBase {
   }
 }
 
-/**
- * Turn a library variable into a `Var` term
- *
- * @internal
- */
+/** Turn a library variable into a `Var` term */
 export function varTermOfVar(x: lib.Mir_Var): Var {
   const raw = new lib.Mir_Term(new lib.Mir_Term_view_Var(x), x.ty, undefined);
   return new Var(Variable.ofLib(x), typeOfLib(x.ty), raw);
@@ -1839,13 +1807,11 @@ export interface Binder {
   readonly body: Term;
 }
 
-/** @internal */
 export function binderOfLib(x: readonly [readonly lib.Mir_Var[], lib.Mir_Term]): Binder {
   const [vs, t] = x;
   return { variables: vs.map((v) => Variable.ofLib(v)), body: termOfLib(t) };
 }
 
-/** @internal */
 export function namedHypothesesOfLib(
   xs: readonly (readonly [string, lib.Mir_Term])[],
 ): ReadonlyMap<string, Term> {
@@ -1867,7 +1833,6 @@ export class Sequent {
     readonly raw: lib.Mir_Sequent,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Sequent): Sequent {
     return new Sequent(
       x.hyps.map(([name, t]) => ({ name, term: termOfLib(t) })),
@@ -1947,7 +1912,6 @@ export class Admission {
     readonly raw: lib.Common_Admission,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Common_Admission): Admission {
     return new Admission(
       [...x.measured_subset],
@@ -1978,7 +1942,6 @@ export class NoValidate {
 /** How to validate a function */
 export type ValidationStrategy = Validate | NoValidate;
 
-/** @internal */
 export function validationStrategyOfLib(x: RawValidationStrategy): ValidationStrategy {
   if (x instanceof lib.Common_Hints_validation_strategy_VS_validate) {
     return new Validate(x.tactic === undefined ? undefined : binderOfLib(x.tactic), x);
@@ -2004,7 +1967,6 @@ export class Hints {
     readonly raw: lib.Mir_Hints,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Hints): Hints {
     return new Hints(
       validationStrategyOfLib(x.f_validate_strat),
@@ -2101,7 +2063,6 @@ export class TermTactic {
 export type Tactic =
   DefaultTerminationTactic | DefaultTheoremTactic | DefaultTestTactic | TermTactic;
 
-/** @internal */
 export function tacticOfLib(t: lib.Mir_Tactic): Tactic {
   if (t instanceof lib.Common_Tactic_t_poly_Default_termination) {
     return new DefaultTerminationTactic(Number(t.max_steps), uidSetOfLib(t.basis), t);
@@ -2160,7 +2121,6 @@ export class OpaqueFunctionKind {
 
 export type FunctionKind = DefinedFunctionKind | BuiltinFunctionKind | OpaqueFunctionKind;
 
-/** @internal */
 export function functionKindOfLib(x: lib.Common_Fun_def_fun_kind): FunctionKind {
   if (x instanceof lib.Common_Fun_def_fun_kind_Fun_defined) {
     return new DefinedFunctionKind(x.is_macro, x.from_lambda, x);
@@ -2211,7 +2171,6 @@ export class FunctionDefinition {
     this.raw = raw;
   }
 
-  /** @internal */
   static ofLib(x: lib.Mir_Fun_def): FunctionDefinition {
     return new FunctionDefinition(
       new Uid(x.f_name),
@@ -2275,7 +2234,6 @@ export class Theorem {
     return this.function.name;
   }
 
-  /** @internal */
   static ofLib(x: lib.Mir_Theorem): Theorem {
     return new Theorem(
       FunctionDefinition.ofLib(x.thm_link),
@@ -2330,7 +2288,6 @@ export class RuleSpec {
     return this.function.name;
   }
 
-  /** @internal */
   static ofLib(x: RawRuleSpec): RuleSpec {
     return new RuleSpec(
       x.rule_spec_fc,
@@ -2345,7 +2302,6 @@ export class RuleSpec {
 
 export type VerifyKind = "verify" | "instance" | "test";
 
-/** @internal */
 export function verifyKindOfLib(x: lib.Common_Verify_kind): VerifyKind {
   if (x instanceof lib.Common_Verify_kind_K_verify) return "verify";
   if (x instanceof lib.Common_Verify_kind_K_instance) return "instance";
@@ -2382,7 +2338,6 @@ export class Verify {
     return this.function.name;
   }
 
-  /** @internal */
   static ofLib(x: RawVerify): Verify {
     return new Verify(
       FunctionDefinition.ofLib(x.verify_link),
@@ -2402,7 +2357,6 @@ Declarations
 ============
 */
 
-/** @internal */
 export function declarationOfLib(x: lib.Mir_Decl): Declaration {
   if (x instanceof lib.Common_Decl_t_poly_Fun) {
     return new FunctionDeclaration(FunctionDefinition.ofLib(x.arg), x);
@@ -2552,7 +2506,6 @@ Patterns and rules
 ==================
 */
 
-/** @internal */
 export function patternHeadOfLib(x: lib.Mir_Pattern_head): PatternHead {
   if (x instanceof lib.Common_Pattern_head_t_poly_PH_id) return new SymbolHead(new Uid(x.arg), x);
   if (x instanceof lib.Common_Pattern_head_t_poly_PH_ty) return new TypeHead(typeOfLib(x.arg), x);
@@ -2742,7 +2695,6 @@ export type FoPattern =
   | DestructPattern
   | IsAPattern;
 
-/** @internal */
 export function foPatternOfLib(x: lib.Mir_Fo_pattern): FoPattern {
   const ty = typeOfLib(x.ty);
   const v = x.view;
@@ -2800,7 +2752,6 @@ export class RewriteRule {
     readonly raw: lib.Mir_Rewrite_rule,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Rewrite_rule): RewriteRule {
     return new RewriteRule(
       new Uid(x.rw_name),
@@ -2827,7 +2778,6 @@ export class Trigger {
     readonly raw: lib.Mir_Trigger,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Trigger): Trigger {
     return new Trigger(
       patternHeadOfLib(x.trigger_head),
@@ -2840,7 +2790,6 @@ export class Trigger {
 
 export type InstantiationRuleKind = "forwardChaining" | "generalization";
 
-/** @internal */
 export function instantiationRuleKindOfLib(
   x: lib.Common_Instantiation_rule_kind,
 ): InstantiationRuleKind {
@@ -2861,7 +2810,6 @@ export class InstantiationRule {
     this.function = fn;
   }
 
-  /** @internal */
   static ofLib(x: lib.Mir_Instantiation_rule): InstantiationRule {
     return new InstantiationRule(
       FunctionDefinition.ofLib(x.ir_from),
@@ -2895,7 +2843,6 @@ export class EliminationRule {
     readonly raw: lib.Mir_Elimination_rule,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Elimination_rule): EliminationRule {
     return new EliminationRule(
       new Uid(x.er_name),
@@ -2947,7 +2894,6 @@ export class FunctionInterpretation {
     this.raw = raw;
   }
 
-  /** @internal */
   static ofLib(x: RawFi): FunctionInterpretation {
     return new FunctionInterpretation(
       x.fi_args.map((a) => Variable.ofLib(a)),
@@ -2997,7 +2943,6 @@ export class UnitAliasTypeInterpretation {
 /** The interpretation of a type in a model */
 export type TypeInterpretation = FiniteTypeInterpretation | UnitAliasTypeInterpretation;
 
-/** @internal */
 export function typeInterpretationOfLib(x: RawTyDef): TypeInterpretation {
   if (x instanceof lib.Common_Model_ty_def_Ty_finite) {
     return new FiniteTypeInterpretation(x.arg.map(termOfLib), x);
@@ -3026,7 +2971,6 @@ export class Model {
     readonly raw: lib.Mir_Model,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Mir_Model): Model {
     return new Model(
       new ValueMap(
@@ -3106,7 +3050,6 @@ export class FeasibilityCheckFailedStatus {
 
 export type RegionStatus = UnknownStatus | FeasibleStatus | FeasibilityCheckFailedStatus;
 
-/** @internal */
 export function regionStatusOfLib(x: RawRegionStatus): RegionStatus {
   if (x instanceof lib.Common_Region_status_Unknown) return new UnknownStatus(x);
   if (x instanceof lib.Common_Region_status_Feasible)
@@ -3161,7 +3104,6 @@ export class Decomposition {
     this.raw = raw;
   }
 
-  /** @internal */
   static ofLib(d: lib.Mir_Fun_decomp): Decomposition {
     return new Decomposition(
       new Uid(d.f_id),
@@ -3191,7 +3133,6 @@ export class Region {
     readonly raw: lib.Mir_Region_Region,
   ) {}
 
-  /** @internal */
   static ofLib(r: lib.Mir_Region_Region): Region {
     return new Region(
       r.constraints.map(termOfLib),

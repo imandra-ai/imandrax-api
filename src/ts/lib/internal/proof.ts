@@ -1,11 +1,4 @@
-/**
- * Proof terms
- *
- * A proof term concludes a sequent from its premises: by assumption, by substitution into an
- * earlier step, by deduction, or by a leaf rule such as an axiom.
- *
- * @module
- */
+// The implementation of the `proof` module: see `../proof.ts` for what is public
 
 // Note:
 // Proof terms form a DAG: a sub-proof can be the premise of several steps, and the OCaml side
@@ -97,7 +90,6 @@ export type ProofArgument =
   | DictArgument
   | SequentArgument;
 
-/** @internal */
 export function proofArgumentOfLib(x: RawArg): ProofArgument {
   if (x instanceof lib.Proof_Arg_A_term) return new TermArgument(termOfLib(x.arg), x);
   if (x instanceof lib.Proof_Arg_A_ty) return new TypeArgument(typeOfLib(x.arg), x);
@@ -189,7 +181,6 @@ export class RuleProof extends ProofTermBase {
 /** A proof term */
 export type ProofTerm = AssumeProof | SubstProof | DeductionProof | RuleProof;
 
-/** @internal */
 export function proofTermOfLib(x: RawProofTerm): ProofTerm {
   const concl = Sequent.ofLib(x.concl);
   const id = Number(x.id);

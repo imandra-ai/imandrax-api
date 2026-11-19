@@ -1,13 +1,4 @@
-/**
- * Reports of the steps ImandraX took on a task
- *
- * A report is a flat sequence of timestamped events: instant events, and matching
- * enter/exit pairs that delimit spans such as a waterfall or tactic.
- * Events cover rewriting, instantiation, simplification, induction and SMT calls, and
- * free-form messages hold rich text.
- *
- * @module
- */
+// The implementation of the `report` module: see `../report.ts` for what is public
 
 import { UnexpectedResponseError } from "../errors.js";
 import {
@@ -169,7 +160,6 @@ export class RichText {
     readonly raw: lib.Report_Rtext<lib.Mir_Term>,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Report_Rtext<lib.Mir_Term>): RichText {
     return new RichText(x.map(richTextItemOfLib), x);
   }
@@ -179,7 +169,6 @@ export class RichText {
   }
 }
 
-/** @internal */
 export function richTextItemOfLib(x: RawRtextItem): RichTextItem {
   if (x instanceof lib.Report_Rtext_item_S) return new PlainText(x.arg, x);
   if (x instanceof lib.Report_Rtext_item_B) return new BoldText(x.arg, x);
@@ -230,7 +219,6 @@ export class Expansion {
     this.function = fn;
   }
 
-  /** @internal */
   static ofLib(x: lib.Report_Expansion<lib.Mir_Term>): Expansion {
     return new Expansion(new Uid(x.f_name), termOfLib(x.lhs), termOfLib(x.rhs), x);
   }
@@ -245,7 +233,6 @@ export class Instantiation {
     readonly raw: lib.Report_Instantiation<lib.Mir_Term>,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Report_Instantiation<lib.Mir_Term>): Instantiation {
     return new Instantiation(termOfLib(x.assertion), new Uid(x.from_rule), x);
   }
@@ -297,7 +284,6 @@ export class SmtProof {
     readonly raw: lib.Report_Smt_proof<lib.Mir_Term>,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Report_Smt_proof<lib.Mir_Term>): SmtProof {
     return new SmtProof(
       logicFragmentsOfLib(x.logic),
@@ -470,7 +456,6 @@ export type AtomicEvent =
   | RefutedBySmt
   | FunctionExpansion;
 
-/** @internal */
 export function atomicEventOfLib(x: RawAtomicEvent): AtomicEvent {
   if (x instanceof lib.Report_Atomic_event_poly_E_message)
     return new Message(RichText.ofLib(x.arg), x);
@@ -565,7 +550,6 @@ export class ExitSpan {
 /** An event in a linear report (ie an array of events) */
 export type LinearEvent = InstantEvent | EnterSpan | ExitSpan;
 
-/** @internal */
 export function linearEventOfLib(x: lib.Report_Report_event): LinearEvent {
   if (x instanceof lib.Report_Event_t_linear_EL_atomic) {
     return new InstantEvent(x.ts, atomicEventOfLib(x.ev), x);
@@ -617,7 +601,6 @@ export class Report {
     readonly raw: lib.Report_Report,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Report_Report): Report {
     return new Report(x.events.map(linearEventOfLib), x);
   }

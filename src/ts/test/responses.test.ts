@@ -1,22 +1,21 @@
 import { describe, expect, test } from "vitest";
 
+import { NoClientError, UnexpectedResponseError } from "../lib/index.js";
 import {
   Artifact,
   CodeSnippetResponse,
   ErrorInfo,
   EvalSrcResponse,
   InstanceResponse,
-  NoClientError,
   TestResponse,
-  UnexpectedResponseError,
   VerifyResponse,
-} from "../lib/index.js";
+} from "../lib/internal/responses.js";
 import {
   DecompositionTask,
   EvaluationTask,
   ProofCheckTask,
   ProofObligationTask,
-  Task,
+  UnspecifiedTask,
   taskOfRaw,
   type ArtifactSource,
 } from "../lib/internal/tasks.js";
@@ -172,7 +171,7 @@ describe("EvalSrcResponse", () => {
       EvaluationTask,
       DecompositionTask,
       ProofCheckTask,
-      Task,
+      UnspecifiedTask,
     ]);
     expect(r.tasks.map((t) => t.kind)).toEqual([
       "checkPo",
@@ -326,9 +325,9 @@ describe("Task fetching", () => {
     await expect(taskOfRaw(PO_TASK, s).result()).rejects.toBeInstanceOf(UnexpectedResponseError);
   });
 
-  test("a plain Task needs a kind without a subclass", () => {
-    expect(() => new Task(PO_TASK)).toThrow(TypeError);
-    expect(new Task(rawTask("u", TaskKind.TASK_UNSPECIFIED)).kind).toBe("unspecified");
+  test("an UnspecifiedTask needs a kind without its own class", () => {
+    expect(() => new UnspecifiedTask(PO_TASK)).toThrow(TypeError);
+    expect(new UnspecifiedTask(rawTask("u", TaskKind.TASK_UNSPECIFIED)).kind).toBe("unspecified");
   });
 
   test("tasks compare by id", () => {

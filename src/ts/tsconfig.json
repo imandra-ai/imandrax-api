@@ -15,8 +15,6 @@
     "skipLibCheck": true,
     "declaration": true,
     "declarationMap": true,
-    // `@internal` declarations (e.g. the `ofLib` converters) are left out of the `.d.ts` files
-    "stripInternal": true,
     "sourceMap": true,
     "outDir": "dist",
     // The README examples (test/readme) import the package by name, as users do

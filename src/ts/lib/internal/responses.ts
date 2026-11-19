@@ -1,15 +1,4 @@
-/**
- * What client methods return, and the per-item results inside those responses
- *
- * There are 3 layers of "result":
- * 1. Responses: what a client method returns, wrapping the protobuf reply, named `*Response`
- * 2. Per-item results in an `EvalSrcResponse`: one per proof obligation, `eval` and
- *    `[@@decomp top ...]`, named `*Result` / `*Output`
- * 3. Task results: a task's result artifact (see `tasks.ts`), named `*TaskResult`
- *
- * Exception: `DecompositionResult` is both the `decompose` response (layer 1) and an item of
- * `EvalSrcResponse` (layer 2). It is the only client-method return type not named `*Response`.
- */
+// The implementation of the `responses` module: see `../responses.ts` for what is public
 
 import { ServerError, UnexpectedResponseError } from "../errors.js";
 import { Decomposition, Model } from "./mir.js";
@@ -54,7 +43,6 @@ export class Location {
     readonly raw: locsPb.Location,
   ) {}
 
-  /** @internal */
   static ofRaw(x: locsPb.Location): Location {
     return new Location(
       x.file,
@@ -90,7 +78,6 @@ export class ErrorInfo {
     readonly raw: errorPb.Error,
   ) {}
 
-  /** @internal */
   static ofRaw(x: errorPb.Error): ErrorInfo {
     // The server sends the kind printed as an OCaml record, `{ Kind.name = "TypeErr" }`
     const m = /^\{ Kind\.name = "(.*)" \}$/s.exec(x.kind);
@@ -124,7 +111,6 @@ export class ErrorInfoMessage {
     readonly raw: errorPb.Error_Message,
   ) {}
 
-  /** @internal */
   static ofRaw(x: errorPb.Error_Message): ErrorInfoMessage {
     return new ErrorInfoMessage(
       x.msg,
@@ -157,7 +143,6 @@ export class Artifact {
     readonly raw: artmsgPb.Artifact,
   ) {}
 
-  /** @internal */
   static ofRaw(x: artmsgPb.Artifact): Artifact {
     return new Artifact(
       x.kind,
@@ -219,7 +204,6 @@ export class Statistics {
     readonly raw: lib.Statistics,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Statistics): Statistics {
     return new Statistics(
       x.time_s,
@@ -237,7 +221,6 @@ export class ErrorMessage {
     readonly raw: lib.Error_Error_core_message,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Error_Error_core_message): ErrorMessage {
     return new ErrorMessage(x.msg, x.bt, x);
   }
@@ -257,7 +240,6 @@ export class ErrorCore {
     readonly raw: lib.Error_Error_core,
   ) {}
 
-  /** @internal */
   static ofLib(x: lib.Error_Error_core): ErrorCore {
     return new ErrorCore(
       x.process,
@@ -287,7 +269,6 @@ export class Origin {
     readonly raw: taskPb.Origin,
   ) {}
 
-  /** @internal */
   static ofRaw(x: taskPb.Origin): Origin {
     return new Origin(x.fromSym, x.count, x);
   }
@@ -309,7 +290,6 @@ export class ModelOutput {
     readonly raw: simplePb.Model,
   ) {}
 
-  /** @internal */
   static ofRaw(x: simplePb.Model): ModelOutput {
     let kind: "counterExample" | "instance";
     switch (x.mType) {
@@ -363,7 +343,6 @@ export class ProofObligationResult {
     readonly raw: simplePb.PORes,
   ) {}
 
-  /** @internal */
   static ofRaw(x: simplePb.PORes, client?: ArtifactSource): ProofObligationResult {
     let res: ProofObligationOutcome | undefined;
     if (x.unknown !== undefined) {
@@ -464,7 +443,6 @@ export class DecompositionResult {
     readonly raw: simplePb.DecomposeRes,
   ) {}
 
-  /** @internal */
   static ofRaw(x: simplePb.DecomposeRes, client?: ArtifactSource): DecompositionResult {
     return new DecompositionResult(
       x.artifact === undefined ? undefined : Artifact.ofRaw(x.artifact),
@@ -511,7 +489,6 @@ export class EvalOutput {
     readonly raw: simplePb.EvalOutput,
   ) {}
 
-  /** @internal */
   static ofRaw(x: simplePb.EvalOutput): EvalOutput {
     return new EvalOutput(
       x.success,
@@ -546,7 +523,6 @@ export class EvalSrcResponse {
     readonly raw: simplePb.EvalRes,
   ) {}
 
-  /** @internal */
   static ofRaw(x: simplePb.EvalRes, client?: ArtifactSource): EvalSrcResponse {
     return new EvalSrcResponse(
       x.success,
@@ -577,7 +553,6 @@ export class VerifyResponse {
     readonly raw: simplePb.VerifyRes,
   ) {}
 
-  /** @internal */
   static ofRaw(x: simplePb.VerifyRes, client?: ArtifactSource): VerifyResponse {
     let res: VerifyOutcome | undefined;
     if (x.unknown !== undefined) {
@@ -669,7 +644,6 @@ export class InstanceResponse {
     readonly raw: simplePb.InstanceRes,
   ) {}
 
-  /** @internal */
   static ofRaw(x: simplePb.InstanceRes, client?: ArtifactSource): InstanceResponse {
     let res: InstanceOutcome | undefined;
     if (x.unknown !== undefined) {
@@ -749,7 +723,6 @@ export class TestResponse {
     readonly raw: simplePb.TestRes,
   ) {}
 
-  /** @internal */
   static ofRaw(x: simplePb.TestRes, client?: ArtifactSource): TestResponse {
     let res: TestOutcome | undefined;
     if (x.err !== undefined) {
@@ -823,7 +796,6 @@ export class TypecheckResponse {
     readonly raw: simplePb.TypecheckRes,
   ) {}
 
-  /** @internal */
   static ofRaw(x: simplePb.TypecheckRes): TypecheckResponse {
     return new TypecheckResponse(
       x.success,
@@ -860,7 +832,6 @@ export class OneshotResponse {
     readonly raw: simplePb.OneshotRes,
   ) {}
 
-  /** @internal */
   static ofRaw(x: simplePb.OneshotRes): OneshotResponse {
     return new OneshotResponse(x.results, x.detailedResults, x.errors, x.stats?.time ?? 0, x);
   }
@@ -887,7 +858,6 @@ export class CodeSnippetResponse {
     readonly raw: apiPb.CodeSnippetEvalResult,
   ) {}
 
-  /** @internal */
   static ofRaw(x: apiPb.CodeSnippetEvalResult, client?: ArtifactSource): CodeSnippetResponse {
     let res: "ok" | "errors";
     switch (x.res) {
@@ -922,7 +892,6 @@ export class ServerVersion {
     readonly raw: systemPb.VersionResponse,
   ) {}
 
-  /** @internal */
   static ofRaw(x: systemPb.VersionResponse): ServerVersion {
     return new ServerVersion(x.version, x.gitVersion, x);
   }
@@ -931,21 +900,18 @@ export class ServerVersion {
 // Unwrapping `ok` / `error` results
 // =================================
 
-/** @internal */
 export function artifactOfResult(res: apiPb.ArtifactResult): Artifact {
   if (res.error !== undefined) throw new ServerError(ErrorInfo.ofRaw(res.error));
   if (res.ok !== undefined) return Artifact.ofRaw(res.ok);
   throw new UnexpectedResponseError("Artifact result has neither `error` nor `ok`");
 }
 
-/** @internal */
 export function artifactKindsOfResult(res: apiPb.ArtifactListResult): string[] {
   if (res.error !== undefined) throw new ServerError(ErrorInfo.ofRaw(res.error));
   if (res.ok !== undefined) return [...res.ok.kinds];
   throw new UnexpectedResponseError("Artifact list result has neither `error` nor `ok`");
 }
 
-/** @internal */
 export function artifactZipOfResult(res: apiPb.ArtifactZipResult): Uint8Array {
   if (res.error !== undefined) throw new ServerError(ErrorInfo.ofRaw(res.error));
   if (res.ok !== undefined) return res.ok.artZip;
