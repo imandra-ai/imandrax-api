@@ -1,6 +1,6 @@
 import { assert, describe, expect, test } from "vitest";
 
-import { ConstructedType } from "../../lib/index.js";
+import { ConstructedType } from "../../lib/mir.js";
 import { noApiKey, sharedClient } from "./setup.js";
 
 const SRC_DECOMP_DUP_VAR = `

@@ -27,6 +27,7 @@
 
 import { assert, describe, expect, test } from "vitest";
 
+import * as raw from "../../lib/raw/index.js";
 import {
   AlgebraicTypeKind,
   type AppliedSymbol,
@@ -44,8 +45,6 @@ import {
   type DB,
   type Declaration,
   type Decomposition,
-  DecompositionTask,
-  DecompositionTaskResult,
   DefinedFunctionKind,
   Destruct,
   DestructPattern,
@@ -58,8 +57,6 @@ import {
   IsA,
   IsAPattern,
   OpaqueFunctionKind,
-  ProofObligationTask,
-  ProofObligationTaskResult,
   RationalConst,
   Record,
   RecordTypeKind,
@@ -67,7 +64,6 @@ import {
   Sequence,
   StringConst,
   Symbol,
-  type Task,
   type Term,
   TheoremDeclaration,
   Tuple,
@@ -81,10 +77,16 @@ import {
   type Variable,
   VarPattern,
   VerifyDeclaration,
-  raw,
   uidMap,
   uidSet,
-} from "../../lib/index.js";
+} from "../../lib/mir.js";
+import {
+  DecompositionTask,
+  DecompositionTaskResult,
+  ProofObligationTask,
+  ProofObligationTaskResult,
+  type Task,
+} from "../../lib/tasks.js";
 import { noApiKey, once, sharedClient } from "./setup.js";
 
 const lib = raw.types;

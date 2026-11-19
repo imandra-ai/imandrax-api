@@ -9,13 +9,9 @@
 
 import { describe, expect, test } from "vitest";
 
-import {
-  type Client,
-  ClientClosedError,
-  DB,
-  ProofObligationTask,
-  ProofObligationTaskResult,
-} from "../../lib/index.js";
+import { type Client, ClientClosedError } from "../../lib/index.js";
+import { DB } from "../../lib/mir.js";
+import { ProofObligationTask, ProofObligationTaskResult } from "../../lib/tasks.js";
 import { mkClient, noApiKey, theTask } from "./setup.js";
 
 const SRC = "theorem succ_gt x = x + 1 > x";

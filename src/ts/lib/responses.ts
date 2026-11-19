@@ -31,7 +31,11 @@ import {
   taskOfRawAs,
 } from "./tasks.js";
 
-/** A source location */
+/**
+ * A source location
+ *
+ * @group Response parts
+ */
 export class Location {
   private constructor(
     readonly file: string | undefined,
@@ -61,6 +65,8 @@ export class Location {
  * An error reported by the server
  *
  * Named `ErrorInfo` so it does not shadow the global `Error`
+ *
+ * @group Response parts
  */
 export class ErrorInfo {
   private constructor(
@@ -92,6 +98,7 @@ export class ErrorInfo {
   }
 }
 
+/** @group Response parts */
 export namespace ErrorInfo {
   /** An error message, with source locations and an optional backtrace */
   export class Message {
@@ -120,7 +127,11 @@ export namespace ErrorInfo {
   }
 }
 
-/** A serialized artifact (task data or a task result) fetched from the server */
+/**
+ * A serialized artifact (task data or a task result) fetched from the server
+ *
+ * @group Responses
+ */
 export class Artifact {
   private constructor(
     /** The artifact kind, e.g. `po_task` or `eval_res` */
@@ -181,7 +192,11 @@ export class Artifact {
   }
 }
 
-/** Tactic execution statistics */
+/**
+ * Tactic execution statistics
+ *
+ * @group Response parts
+ */
 export class Statistics {
   private constructor(
     /** Execution time, in seconds */
@@ -200,6 +215,7 @@ export class Statistics {
   }
 }
 
+/** @group Response parts */
 export class ErrorMessage {
   private constructor(
     readonly message: string,
@@ -216,6 +232,7 @@ export class ErrorMessage {
   }
 }
 
+/** @group Response parts */
 export class ErrorCore {
   private constructor(
     readonly process: string,
@@ -240,7 +257,11 @@ export class ErrorCore {
   }
 }
 
-/** Where a task came from */
+/**
+ * Where a task came from
+ *
+ * @group Response parts
+ */
 export class Origin {
   private constructor(
     /** The symbol the task was generated from */
@@ -255,7 +276,11 @@ export class Origin {
   }
 }
 
-/** A model returned by `verify*`, `instance*` or `test*` */
+/**
+ * A model returned by `verify*`, `instance*` or `test*`
+ *
+ * @group Response parts
+ */
 export class ModelOutput {
   #model: Model | undefined | null = null;
 
@@ -302,7 +327,11 @@ export class ModelOutput {
   }
 }
 
-/** A proof obligation result in an `evalSrc` response */
+/**
+ * A proof obligation result in an `evalSrc` response
+ *
+ * @group Response parts
+ */
 export class ProofObligationResult {
   private constructor(
     /** The outcome of the proof obligation, `undefined` if the server sent none */
@@ -376,6 +405,7 @@ export class ProofObligationResult {
   }
 }
 
+/** @group Response parts */
 export namespace ProofObligationResult {
   /** The outcome of a proof obligation */
   export type Res =
@@ -396,7 +426,11 @@ export namespace ProofObligationResult {
     | { readonly kind: "testOk" };
 }
 
-/** The result of a decomposition request */
+/**
+ * The result of a decomposition request
+ *
+ * @group Responses
+ */
 export class DecompositionResult {
   #decomposition: Decomposition | undefined | null = null;
 
@@ -440,7 +474,11 @@ export class DecompositionResult {
   }
 }
 
-/** The output of an `eval` in evaluated source */
+/**
+ * The output of an `eval` in evaluated source
+ *
+ * @group Response parts
+ */
 export class EvalOutput {
   private constructor(
     /** Whether evaluation succeeded */
@@ -462,7 +500,11 @@ export class EvalOutput {
   }
 }
 
-/** The response to an `evalSrc` request */
+/**
+ * The response to an `evalSrc` request
+ *
+ * @group Responses
+ */
 export class EvalSrcResponse {
   private constructor(
     /** Whether the request succeeded; errors in the source are reported in `errors` */
@@ -496,7 +538,11 @@ export class EvalSrcResponse {
   }
 }
 
-/** The result of a `verifySrc` or `verifyName` request */
+/**
+ * The result of a `verifySrc` or `verifyName` request
+ *
+ * @group Responses
+ */
 export class VerifyResponse {
   private constructor(
     /** The outcome of verification, `undefined` if the server sent none */
@@ -566,6 +612,7 @@ export class VerifyResponse {
   }
 }
 
+/** @group Responses */
 export namespace VerifyResponse {
   /** The outcome of verification */
   export type Res =
@@ -581,7 +628,11 @@ export namespace VerifyResponse {
     | { readonly kind: "verifiedUpto"; readonly message: string | undefined };
 }
 
-/** The result of an `instanceSrc` or `instanceName` request */
+/**
+ * The result of an `instanceSrc` or `instanceName` request
+ *
+ * @group Responses
+ */
 export class InstanceResponse {
   private constructor(
     /** The outcome of the instance search, `undefined` if the server sent none */
@@ -641,6 +692,7 @@ export class InstanceResponse {
   }
 }
 
+/** @group Responses */
 export namespace InstanceResponse {
   /** The outcome of an instance search */
   export type Res =
@@ -654,7 +706,11 @@ export namespace InstanceResponse {
     | { readonly kind: "sat"; readonly instance: ModelOutput | undefined };
 }
 
-/** The result of a `testSrc` or `testName` request */
+/**
+ * The result of a `testSrc` or `testName` request
+ *
+ * @group Responses
+ */
 export class TestResponse {
   private constructor(
     /** The outcome of testing, `undefined` if the server sent none */
@@ -708,6 +764,7 @@ export class TestResponse {
   }
 }
 
+/** @group Responses */
 export namespace TestResponse {
   /** The outcome of testing */
   export type Res =
@@ -721,7 +778,11 @@ export namespace TestResponse {
     | { readonly kind: "counterExample"; readonly counterExample: ModelOutput | undefined };
 }
 
-/** The result of a `typecheck` request */
+/**
+ * The result of a `typecheck` request
+ *
+ * @group Responses
+ */
 export class TypecheckResponse {
   private constructor(
     /** Whether the source typechecked */
@@ -751,7 +812,11 @@ function parseTypes(types: string): unknown {
   }
 }
 
-/** The result of a `oneshot` request */
+/**
+ * The result of a `oneshot` request
+ *
+ * @group Responses
+ */
 export class OneshotResponse {
   private constructor(
     /** The results, as strings */
@@ -770,7 +835,11 @@ export class OneshotResponse {
   }
 }
 
-/** The result of an `evalCodeSnippet` request */
+/**
+ * The result of an `evalCodeSnippet` request
+ *
+ * @group Responses
+ */
 export class CodeSnippetResponse {
   private constructor(
     /**
@@ -809,7 +878,11 @@ export class CodeSnippetResponse {
   }
 }
 
-/** The server's version */
+/**
+ * The server's version
+ *
+ * @group Responses
+ */
 export class ServerVersion {
   private constructor(
     readonly version: string,
@@ -825,18 +898,21 @@ export class ServerVersion {
 // Unwrapping `ok` / `error` results
 // =================================
 
+/** @internal */
 export function artifactOfResult(res: apiPb.ArtifactResult): Artifact {
   if (res.error !== undefined) throw new ServerError(ErrorInfo.ofRaw(res.error));
   if (res.ok !== undefined) return Artifact.ofRaw(res.ok);
   throw new UnexpectedResponseError("Artifact result has neither `error` nor `ok`");
 }
 
+/** @internal */
 export function artifactKindsOfResult(res: apiPb.ArtifactListResult): string[] {
   if (res.error !== undefined) throw new ServerError(ErrorInfo.ofRaw(res.error));
   if (res.ok !== undefined) return [...res.ok.kinds];
   throw new UnexpectedResponseError("Artifact list result has neither `error` nor `ok`");
 }
 
+/** @internal */
 export function artifactZipOfResult(res: apiPb.ArtifactZipResult): Uint8Array {
   if (res.error !== undefined) throw new ServerError(ErrorInfo.ofRaw(res.error));
   if (res.ok !== undefined) return res.ok.artZip;

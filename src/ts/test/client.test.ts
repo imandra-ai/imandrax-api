@@ -8,10 +8,10 @@ import {
   ServerError,
   TwirpError,
   UnexpectedResponseError,
-  decomp,
-  taskOfRaw,
   urlProd,
 } from "../lib/index.js";
+import * as decomp from "../lib/decomp.js";
+import { taskOfRaw } from "../lib/tasks.js";
 import * as apiPb from "../lib/raw/proto/api.js";
 import * as sessionPb from "../lib/raw/proto/session.js";
 import * as simplePb from "../lib/raw/proto/simple_api.js";

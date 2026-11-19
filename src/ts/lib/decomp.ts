@@ -7,7 +7,7 @@
  *
  * @example
  * ```ts
- * import { decomp } from "imandrax-api";
+ * import * as decomp from "imandrax-api/decomp";
  *
  * const d = decomp.let_(
  *   [["base", decomp.byName("f", { prune: true })]],

@@ -10,6 +10,34 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./tasks": {
+      "types": "./dist/tasks.d.ts",
+      "default": "./dist/tasks.js"
+    },
+    "./mir": {
+      "types": "./dist/mir.d.ts",
+      "default": "./dist/mir.js"
+    },
+    "./proof": {
+      "types": "./dist/proof.d.ts",
+      "default": "./dist/proof.js"
+    },
+    "./report": {
+      "types": "./dist/report.d.ts",
+      "default": "./dist/report.js"
+    },
+    "./decomp": {
+      "types": "./dist/decomp.d.ts",
+      "default": "./dist/decomp.js"
+    },
+    "./values": {
+      "types": "./dist/values.d.ts",
+      "default": "./dist/values.js"
+    },
+    "./raw": {
+      "types": "./dist/raw/index.d.ts",
+      "default": "./dist/raw/index.js"
     }
   },
   "types": "./dist/index.d.ts",
@@ -22,8 +50,8 @@
     "check": "tsc --noEmit",
     "docs": "typedoc",
     "docs:html": "typedoc --options typedoc.html.json",
-    "docs:serve": "npm run docs:html && vite preview --outDir docs/html --open",
-    "docs:dev": "npm run docs:html && concurrently -k -n typedoc,vite \"typedoc --options typedoc.html.json --watch --preserveWatchOutput --cleanOutputDir false\" \"vite docs/html --open\"",
+    "docs:serve": "npm run docs:html && vite preview --outDir docs/html",
+    "docs:dev": "npm run docs:html && concurrently -k -n typedoc,vite \"typedoc --options typedoc.html.json --watch --preserveWatchOutput --cleanOutputDir false\" \"vite docs/html\"",
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
     "format": "prettier --write .",

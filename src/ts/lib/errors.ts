@@ -7,17 +7,29 @@
 
 import type { ErrorCore, ErrorInfo } from "./responses.js";
 
-/** Base class for errors from ImandraX requests */
+/**
+ * Base class for errors from ImandraX requests
+ *
+ * @group Errors
+ */
 export class ImandraXError extends Error {
   override name = "ImandraXError";
 }
 
-/** The server's response did not have the expected shape */
+/**
+ * The server's response did not have the expected shape
+ *
+ * @group Errors
+ */
 export class UnexpectedResponseError extends ImandraXError {
   override name = "UnexpectedResponseError";
 }
 
-/** The server reported an error */
+/**
+ * The server reported an error
+ *
+ * @group Errors
+ */
 export class ServerError extends ImandraXError {
   override name = "ServerError";
 
@@ -26,17 +38,29 @@ export class ServerError extends ImandraXError {
   }
 }
 
-/** Task data was fetched on a task created without a client */
+/**
+ * Task data was fetched on a task created without a client
+ *
+ * @group Errors
+ */
 export class NoClientError extends ImandraXError {
   override name = "NoClientError";
 }
 
-/** A request was made on a client that has already been closed */
+/**
+ * A request was made on a client that has already been closed
+ *
+ * @group Errors
+ */
 export class ClientClosedError extends ImandraXError {
   override name = "ClientClosedError";
 }
 
-/** Ending the session failed when the client was closed */
+/**
+ * Ending the session failed when the client was closed
+ *
+ * @group Errors
+ */
 export class EndSessionError extends ImandraXError {
   override name = "EndSessionError";
 
@@ -48,7 +72,11 @@ export class EndSessionError extends ImandraXError {
   }
 }
 
-/** The server rejected the client's API version */
+/**
+ * The server rejected the client's API version
+ *
+ * @group Errors
+ */
 export class ApiVersionMismatchError extends ImandraXError {
   override name = "ApiVersionMismatchError";
 }
@@ -58,6 +86,8 @@ export class ApiVersionMismatchError extends ImandraXError {
  *
  * `code` is the Twirp error code (e.g. `not_found`, `internal`), or `"unavailable"` when the
  * request failed without a Twirp response
+ *
+ * @group Errors
  */
 export class TwirpError extends ImandraXError {
   override name = "TwirpError";

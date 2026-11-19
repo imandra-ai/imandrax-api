@@ -7,7 +7,11 @@
 import { TwirpError } from "./errors.js";
 import { version as apiTypesVersion } from "./version.js";
 
-/** Options of a single request */
+/**
+ * Options of a single request
+ *
+ * @group Method options
+ */
 export interface CallOptions {
   /** The HTTP request timeout, in milliseconds; defaults to the client's `timeoutMs` */
   timeoutMs?: number;

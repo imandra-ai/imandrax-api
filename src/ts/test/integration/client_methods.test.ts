@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest";
 
+import * as decomp from "../../lib/decomp.js";
+import { ServerError } from "../../lib/index.js";
+import { ArrowType } from "../../lib/mir.js";
 import {
-  ArrowType,
   DecompositionTask,
   DecompositionTaskResult,
   ProofObligationTask,
-  ServerError,
-  decomp,
-} from "../../lib/index.js";
+} from "../../lib/tasks.js";
 import { noApiKey, sharedClient } from "./setup.js";
 
 const SRC = `

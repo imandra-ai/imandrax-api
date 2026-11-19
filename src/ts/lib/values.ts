@@ -1,7 +1,7 @@
 /**
  * Values produced by evaluating an IML expression
  *
- * This module exports classes named `String` and `Record`; import it as a namespace (`import * as values from ...`) to keep the builtins in reach.
+ * This module exports classes named `String` and `Record`; import it as a namespace (`import * as values from "imandrax-api/values"`) to keep the builtins in reach.
  *
  * @module
  */

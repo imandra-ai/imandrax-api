@@ -3,21 +3,23 @@ import { describe, expect, test } from "vitest";
 import {
   Artifact,
   CodeSnippetResponse,
-  DecompositionTask,
   ErrorInfo,
   EvalSrcResponse,
-  EvaluationTask,
   InstanceResponse,
   NoClientError,
-  ProofCheckTask,
-  ProofObligationTask,
-  Task,
   TestResponse,
   UnexpectedResponseError,
   VerifyResponse,
+} from "../lib/index.js";
+import {
+  DecompositionTask,
+  EvaluationTask,
+  ProofCheckTask,
+  ProofObligationTask,
+  Task,
   taskOfRaw,
   type ArtifactSource,
-} from "../lib/index.js";
+} from "../lib/tasks.js";
 import * as apiPb from "../lib/raw/proto/api.js";
 import * as simplePb from "../lib/raw/proto/simple_api.js";
 import * as taskPb from "../lib/raw/proto/task.js";

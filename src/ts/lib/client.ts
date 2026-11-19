@@ -34,9 +34,12 @@ import type { LiftBool, Task } from "./tasks.js";
 import { type CallOptions, type MessageType, Transport, isSessionNotFound } from "./transport.js";
 import { version as apiTypesVersion } from "./version.js";
 
+/** @group Client */
 export const urlDev = "https://api.dev.imandracapital.com/internal/imandrax/";
+/** @group Client */
 export const urlProd = "https://api.imandra.ai/internal/imandrax/";
 
+/** @group Client */
 export interface ConnectOptions {
   /** The server's URL; `urlProd` by default */
   url?: string;
@@ -56,6 +59,7 @@ export interface ConnectOptions {
   signal?: AbortSignal;
 }
 
+/** @group Method options */
 export interface EvalSrcOptions extends CallOptions {
   /** Whether to return without waiting for task results */
   asyncOnly?: boolean;
@@ -66,6 +70,7 @@ export interface EvalSrcOptions extends CallOptions {
   taskFilter?: string[];
 }
 
+/** @group Method options */
 export interface DecomposeOptions extends CallOptions {
   /** The side condition function the decomposition assumes */
   assuming?: string;
@@ -88,6 +93,7 @@ export interface DecomposeOptions extends CallOptions {
   computeTimeout?: number;
 }
 
+/** @group Method options */
 export interface DecomposeFullOptions extends CallOptions {
   /**
    * Whether to also return each region's constraints and invariant in IML syntax, as
@@ -98,21 +104,25 @@ export interface DecomposeFullOptions extends CallOptions {
   computeTimeout?: number;
 }
 
+/** @group Method options */
 export interface GoalOptions extends CallOptions {
   /** IML attribute text for the goal, e.g. `[@@by auto]` */
   hints?: string;
 }
 
+/** @group Method options */
 export interface TestOptions extends CallOptions {
   /** The random seed */
   seed?: number;
 }
 
+/** @group Method options */
 export interface OneshotOptions extends CallOptions {
   /** The server-side compute timeout */
   computeTimeout?: number;
 }
 
+/** @group Method options */
 export interface CodeSnippetOptions extends CallOptions {
   /**
    * Glob patterns (`*`, `?`, `[...]`) selecting the tasks to start; all tasks by default. Tasks
@@ -144,6 +154,8 @@ function callOptions({ timeoutMs, signal }: CallOptions): CallOptions {
  * await using client = await Client.connect({ apiKey });
  * const res = await client.evalSrc("let f x = x + 1");
  * ```
+ *
+ * @group Client
  */
 export class Client {
   readonly #transport: Transport;

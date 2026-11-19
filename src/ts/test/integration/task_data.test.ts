@@ -10,17 +10,9 @@ import { assert, describe, expect, test } from "vitest";
 import {
   Apply,
   type DB,
-  DecompositionRequest,
-  DecompositionTask,
-  DecompositionTaskResult,
   DefaultTheoremTactic,
-  EvaluationTask,
-  EvaluationTaskResult,
   type Model,
-  ProofObligationTask,
-  ProofObligationTaskResult,
   Symbol,
-  type Task,
   type Term,
   TermTactic,
   type Type,
@@ -29,7 +21,17 @@ import {
   type Variable,
   uidMap,
   uidSet,
-} from "../../lib/index.js";
+} from "../../lib/mir.js";
+import {
+  DecompositionRequest,
+  DecompositionTask,
+  DecompositionTaskResult,
+  EvaluationTask,
+  EvaluationTaskResult,
+  ProofObligationTask,
+  ProofObligationTaskResult,
+  type Task,
+} from "../../lib/tasks.js";
 import { noApiKey, once, sharedClient, theTask } from "./setup.js";
 
 const SRC = `

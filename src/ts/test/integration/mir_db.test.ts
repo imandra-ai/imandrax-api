@@ -22,12 +22,10 @@ import {
   DefinedFunctionKind,
   FunctionDeclaration,
   type FunctionDefinition,
-  ProofObligationTask,
   RecordTypeKind,
   RuleSpecDeclaration,
   Symbol,
   SymbolHead,
-  type Task,
   type Term,
   TermBase,
   TheoremDeclaration,
@@ -41,7 +39,8 @@ import {
   declarationOfLib,
   termOfLib,
   uidSet,
-} from "../../lib/index.js";
+} from "../../lib/mir.js";
+import { ProofObligationTask, type Task } from "../../lib/tasks.js";
 import { noApiKey, once, sharedClient } from "./setup.js";
 
 const SRC = `

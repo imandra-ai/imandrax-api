@@ -9,7 +9,7 @@
 import fc from "fast-check";
 import { describe, expect, test } from "vitest";
 
-import { Constructed, DB, type JsValue, Rational, Uid, termOfLib } from "../lib/index.js";
+import { Constructed, DB, type JsValue, Rational, Uid, termOfLib } from "../lib/mir.js";
 import * as lib from "../lib/raw/types.js";
 
 // Raw terms, as the server sends them
