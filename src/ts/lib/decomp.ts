@@ -98,8 +98,7 @@ export function get(name: string): Decomp {
 }
 
 /**
- * Bind each `[name, decomp]` pair, then evaluate `andThen` (Python's `let`, a reserved word in
- * JS)
+ * Bind each `[name, decomp]` pair, then evaluate `andThen` (`let` is reserved in JS)
  *
  * The bindings are evaluated simultaneously in the same environment, so one binding cannot
  * refer to another from the same `let_`; nest `let_` calls for that.

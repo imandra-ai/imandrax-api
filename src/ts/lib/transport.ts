@@ -68,7 +68,7 @@ export class Transport {
     request: Req,
     opts: CallOptions = {},
   ): Promise<Res> {
-    // concatenated as the Python client does, so both reach the same routes
+    // the routes are `<url><prefix>/<service>/<method>`
     const url = `${this.#url}${this.#serverPathPrefix}/${service}/${method}`;
     const headers: Record<string, string> = {
       "Content-Type": "application/protobuf",
@@ -101,7 +101,7 @@ export class Transport {
       body = new Uint8Array(await resp.arrayBuffer());
     } catch (e) {
       // a caller's abort rejects with its own reason; a timeout and network failures become
-      // Twirp errors, as in the Python client
+      // Twirp errors
       if (opts.signal?.aborted) throw opts.signal.reason;
       if (timeoutSignal.aborted) {
         throw new TwirpError(

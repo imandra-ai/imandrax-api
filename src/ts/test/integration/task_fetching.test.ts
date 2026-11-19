@@ -13,20 +13,12 @@ import {
   type Client,
   ClientClosedError,
   DB,
-  type EvalSrcResponse,
   ProofObligationTask,
   ProofObligationTaskResult,
-  type Task,
 } from "../../lib/index.js";
-import { mkClient, noApiKey } from "./setup.js";
+import { mkClient, noApiKey, theTask } from "./setup.js";
 
 const SRC = "theorem succ_gt x = x + 1 > x";
-
-function theTask<T extends Task>(rsp: EvalSrcResponse, cls: abstract new (...args: any[]) => T): T {
-  const ts = rsp.tasks.filter((t): t is T => t instanceof cls);
-  expect(ts).toHaveLength(1);
-  return ts[0]!;
-}
 
 /** Record the artifact kinds `client` fetches */
 function recordFetches(client: Client): string[] {
@@ -45,7 +37,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
     await using c2 = await mkClient();
     const [r1, r2] = [await c1.evalSrc(SRC), await c2.evalSrc(SRC)];
     expect(r1.tasks.map((t) => String(t.id))).toEqual(r2.tasks.map((t) => String(t.id)));
-    expect(r1.tasks[0]!.id.equals(r2.tasks[0]!.id)).toBe(true);
+    expect(r1.tasks[0]!.id).toEqual(r2.tasks[0]!.id);
 
     const other = await c1.evalSrc("theorem other x = x + 2 > x");
     const ids = new Set(r1.tasks.map((t) => String(t.id)));
@@ -54,7 +46,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
 
   test("fetching after the client is closed rejects", async () => {
     const client = await mkClient();
-    const po = theTask(await client.evalSrc(SRC), ProofObligationTask);
+    const po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
     await client.close();
     await expect(po.proofObligation()).rejects.toBeInstanceOf(ClientClosedError);
     await expect(po.result()).rejects.toBeInstanceOf(ClientClosedError);
@@ -62,7 +54,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
 
   test("what was fetched stays available after the client is closed", async () => {
     const client = await mkClient();
-    const po = theTask(await client.evalSrc(SRC), ProofObligationTask);
+    const po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
     const po_ = await po.proofObligation();
     const res = await po.result();
     await client.close();
@@ -72,7 +64,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
 
   test("what is derived from a fetched artifact stays available", async () => {
     const client = await mkClient();
-    const po = theTask(await client.evalSrc(SRC), ProofObligationTask);
+    const po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
     // fetches the `po_task` artifact, which `fromSym` and `db` are also decoded from
     await po.proofObligation();
     await client.close();
@@ -86,7 +78,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
     let po: ProofObligationTask;
     {
       await using client = await mkClient();
-      po = theTask(await client.evalSrc(SRC), ProofObligationTask);
+      po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
     }
     const po_ = await po.proofObligation().catch(() => undefined);
     expect(po_).toBeUndefined();
@@ -100,7 +92,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
 
   test("fetchAll fetches every artifact once", async () => {
     await using client = await mkClient();
-    const po = theTask(await client.evalSrc(SRC), ProofObligationTask);
+    const po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
     const fetched = recordFetches(client);
     await po.fetchAll();
     await po.proofObligation();
@@ -110,7 +102,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
 
   test("concurrent calls share one fetch", async () => {
     await using client = await mkClient();
-    const po = theTask(await client.evalSrc(SRC), ProofObligationTask);
+    const po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
     const fetched = recordFetches(client);
     const [r1, r2] = await Promise.all([po.result(), po.result()]);
     expect(r1).toBe(r2);

@@ -8,7 +8,7 @@
  * Additionally, also test the raw-lib-type->lib-type conversion roundtrip for declarations in the DB
  */
 
-import { describe, expect, test } from "vitest";
+import { assert, describe, expect, test } from "vitest";
 
 import {
   AlgebraicTypeKind,
@@ -37,14 +37,12 @@ import {
   TypeDefinition,
   TypeVariable,
   Uid,
-  ValueMap,
-  ValueSet,
   VerifyDeclaration,
   declarationOfLib,
   termOfLib,
   uidSet,
 } from "../../lib/index.js";
-import { noApiKey, sharedClient } from "./setup.js";
+import { noApiKey, once, sharedClient } from "./setup.js";
 
 const SRC = `
 type shape = Circle of int | Rect of { w: int; h: int }
@@ -75,12 +73,6 @@ verify true
 // Setup
 // ====================
 
-/** `f()`, computed once, on first use (as a module-scoped pytest fixture) */
-function once<T>(f: () => Promise<T>): () => Promise<T> {
-  let p: Promise<T> | undefined;
-  return () => (p ??= f());
-}
-
 /** The unique uid with this short name; throws unless there is exactly one */
 function searchUidByShortName(db: DB, shortName: string): Uid {
   const uids = [...db.decls.keys()].filter((u) => u.shortName === shortName);
@@ -92,12 +84,6 @@ function shortNames(uids: Iterable<Uid>): Set<string> {
   return new Set([...uids].map((u) => u.shortName));
 }
 
-/** Equal sets of uids, compared by value */
-function sameUids(a: Iterable<Uid>, b: Iterable<Uid>): boolean {
-  const [sa, sb] = [uidSet(a), uidSet(b)];
-  return sa.size === sb.size && [...sa].every((u) => sb.has(u));
-}
-
 function isDeclaration(d: unknown): d is Declaration {
   return (
     d instanceof FunctionDeclaration ||
@@ -105,56 +91,6 @@ function isDeclaration(d: unknown): d is Declaration {
     d instanceof TheoremDeclaration ||
     d instanceof RuleSpecDeclaration ||
     d instanceof VerifyDeclaration
-  );
-}
-
-/**
- * Structural equality, as Python's dataclass `==`: the same class with equal fields, ignoring
- * `raw`; uids, types, variables and the other classes with an `equals` compare with it
- */
-function structEq(a: unknown, b: unknown): boolean {
-  if (Object.is(a, b)) return true;
-  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
-  if (Array.isArray(a) || Array.isArray(b)) {
-    return (
-      Array.isArray(a) &&
-      Array.isArray(b) &&
-      a.length === b.length &&
-      a.every((x, i) => structEq(x, b[i]))
-    );
-  }
-  if (a instanceof Uint8Array || b instanceof Uint8Array) {
-    return (
-      a instanceof Uint8Array &&
-      b instanceof Uint8Array &&
-      a.length === b.length &&
-      a.every((x, i) => x === b[i])
-    );
-  }
-  if (a instanceof ValueSet || a instanceof Set) {
-    const sb = b as ReadonlySet<unknown>;
-    return (
-      (b instanceof ValueSet || b instanceof Set) &&
-      a.size === sb.size &&
-      [...a].every((x) => sb.has(x))
-    );
-  }
-  if (a instanceof ValueMap || a instanceof Map) {
-    const mb = b as ReadonlyMap<unknown, unknown>;
-    return (
-      (b instanceof ValueMap || b instanceof Map) &&
-      a.size === mb.size &&
-      [...(a as ReadonlyMap<unknown, unknown>)].every(
-        ([k, v]) => mb.has(k) && structEq(v, mb.get(k)),
-      )
-    );
-  }
-  if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) return false;
-  const eq = (a as { equals?: (o: unknown) => boolean }).equals;
-  if (typeof eq === "function") return eq.call(a, b);
-  const keys = Object.keys(a).filter((k) => k !== "raw");
-  return keys.every((k) =>
-    structEq((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]),
   );
 }
 
@@ -168,8 +104,8 @@ describe.skipIf(noApiKey)("MIR DB", () => {
   const db = once(async (): Promise<DB> => {
     // Tasks come newest first
     const t = (await tasks())[0];
-    expect(t).toBeInstanceOf(ProofObligationTask);
-    return (t as ProofObligationTask).db();
+    assert.instanceOf(t, ProofObligationTask);
+    return t.db();
   });
 
   // Declarations
@@ -201,12 +137,12 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     const g: Uid = searchUidByShortName(d, "g");
 
     const decl: Declaration | undefined = d.findDeclaration(gGt);
-    expect(decl).toBeInstanceOf(TheoremDeclaration);
+    assert.instanceOf(decl, TheoremDeclaration);
 
     // A theorem is stored under the uid of its linked function, which is also
     // available through `findFunction`.
-    const linked: FunctionDefinition = (decl as TheoremDeclaration).function;
-    expect(linked.name.equals(gGt)).toBe(true);
+    const linked: FunctionDefinition = decl.function;
+    expect(linked.name).toEqual(gGt);
     expect(d.findFunction(gGt)).toBeDefined();
 
     const body: Term = linked.body;
@@ -222,25 +158,22 @@ describe.skipIf(noApiKey)("MIR DB", () => {
         }
       }
     }
-    expect(applied.has(g)).toBe(true);
+    expect([...applied]).toContainEqual(g);
   });
 
   test("type definitions", async () => {
     const d = await db();
     // shape variant
     const shape: TypeDefinition | undefined = d.findType(searchUidByShortName(d, "shape"));
-    expect(shape).toBeDefined();
-    expect(shape!.kind).toBeInstanceOf(AlgebraicTypeKind);
-    expect((shape!.kind as AlgebraicTypeKind).constructors.map((c) => c.name.shortName)).toEqual([
-      "Circle",
-      "Rect",
-    ]);
+    assert.isDefined(shape);
+    assert.instanceOf(shape.kind, AlgebraicTypeKind);
+    expect(shape.kind.constructors.map((c) => c.name.shortName)).toEqual(["Circle", "Rect"]);
 
     // point record
     const point: TypeDefinition | undefined = d.findType(searchUidByShortName(d, "point"));
-    expect(point).toBeDefined();
-    expect(point!.kind).toBeInstanceOf(RecordTypeKind);
-    expect((point!.kind as RecordTypeKind).fields.map((f) => f.name.shortName)).toEqual(["x", "y"]);
+    assert.isDefined(point);
+    assert.instanceOf(point.kind, RecordTypeKind);
+    expect(point.kind.fields.map((f) => f.name.shortName)).toEqual(["x", "y"]);
 
     // Functions are not types and vice versa
     expect(d.findType(searchUidByShortName(d, "area"))).toBeUndefined();
@@ -250,28 +183,28 @@ describe.skipIf(noApiKey)("MIR DB", () => {
   test("type aliases are expanded", async () => {
     const d = await db();
     // `type my_int = int` is not a declaration of its own...
-    expect(shortNames(d.decls.keys()).has("my_int")).toBe(false);
+    expect(shortNames(d.decls.keys())).not.toContain("my_int");
     expect(d.findTypeRe("my_int").size).toBe(0);
     expect(d.findDeclarationRe("my_int").size).toBe(0);
 
     // ...and declarations using it see `int` instead
     const addOne = d.findFunction(searchUidByShortName(d, "add_one"));
-    expect(addOne).toBeDefined();
-    expect(`${addOne!.type}`).toBe("int -> int");
+    assert.isDefined(addOne);
+    expect(`${addOne.type}`).toBe("int -> int");
   });
 
   test("find re matches full name from start", async () => {
     const d = await db();
     // The full name is `<short name>/<content hash>`
-    expect(sameUids(d.findFunctionRe("sum/").keys(), [searchUidByShortName(d, "sum")])).toBe(true);
-    expect(sameUids(d.findTypeRe("point/").keys(), [searchUidByShortName(d, "point")])).toBe(true);
-    expect(sameUids(d.findDeclarationRe("g_gt/").keys(), [searchUidByShortName(d, "g_gt")])).toBe(
-      true,
-    );
+    expect([...d.findFunctionRe("sum/").keys()]).toEqual([searchUidByShortName(d, "sum")]);
+    expect([...d.findTypeRe("point/").keys()]).toEqual([searchUidByShortName(d, "point")]);
+    expect([...d.findDeclarationRe("g_gt/").keys()]).toEqual([searchUidByShortName(d, "g_gt")]);
 
-    // `re.match` semantics: anchored at the start, not at the end
+    // Anchored at the start, not at the end
     expect(d.findFunctionRe("um/").size).toBe(0);
-    expect(d.findFunctionRe("sum").has(searchUidByShortName(d, "sum_nonneg"))).toBe(true);
+    expect([...d.findFunctionRe("sum").keys()]).toContainEqual(
+      searchUidByShortName(d, "sum_nonneg"),
+    );
   });
 
   // Rules
@@ -290,7 +223,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     const sumNonneg: Uid = searchUidByShortName(d, "sum_nonneg");
 
     expect(d.thmAsFc.get(sumNonneg), "sum_nonneg should become a fc rule").toHaveLength(1);
-    expect(d.instRules.has(sumNonneg), "sum_nonneg should be in inst rules").toBe(true);
+    expect([...d.instRules.keys()], "sum_nonneg should be in inst rules").toContainEqual(sumNonneg);
     expect(d.ruleSpecFc.get(sumNonneg), "sum_nonneg should be in rule spec fc").toHaveLength(1);
 
     // The trigger is indexed by the head of its pattern, here `sum`
@@ -321,27 +254,26 @@ describe.skipIf(noApiKey)("MIR DB", () => {
 
   test("lifted lambdas share short name but have distinct uids", async () => {
     const d = await db();
-    // `repr` of a function definition is `<FunctionDefinition {str}>`; its `toString` is the part checked
     // 1. `fun x -> x + 1` in `inc_all`
     const incAll: Uid = searchUidByShortName(d, "inc_all");
     const incAllF = d.findFunction(incAll);
-    expect(incAllF).toBeDefined();
-    const lambdasInIncAll = lambdasOfFuncBody(incAllF!);
+    assert.isDefined(incAllF);
+    const lambdasInIncAll = lambdasOfFuncBody(incAllF);
     expect(lambdasInIncAll).toHaveLength(1);
 
     const lambdaInc: FunctionDefinition | undefined = d.findFunction(lambdasInIncAll[0]!);
-    expect(lambdaInc).toBeDefined();
+    assert.isDefined(lambdaInc);
     expect(`${lambdaInc}`).toContain("x = (+ x 1)");
 
     // 2. `fun x -> x + y` in `add_all`
     const addAll: Uid = searchUidByShortName(d, "add_all");
     const addAllF = d.findFunction(addAll);
-    expect(addAllF).toBeDefined();
-    const lambdasInAddAll = lambdasOfFuncBody(addAllF!);
+    assert.isDefined(addAllF);
+    const lambdasInAddAll = lambdasOfFuncBody(addAllF);
     expect(lambdasInAddAll).toHaveLength(1);
 
     const lambdaAdd: FunctionDefinition | undefined = d.findFunction(lambdasInAddAll[0]!);
-    expect(lambdaAdd).toBeDefined();
+    assert.isDefined(lambdaAdd);
     expect(`${lambdaAdd}`).toContain("y x = (+ x y)");
 
     // 3. `fun x -> x * y` in the goal of the `instance`
@@ -356,11 +288,11 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     expect(lambdasInGoal).toHaveLength(1);
 
     const lambdaMul: FunctionDefinition | undefined = d.findFunction(lambdasInGoal[0]!);
-    expect(lambdaMul).toBeDefined();
+    assert.isDefined(lambdaMul);
     expect(`${lambdaMul}`).toContain("y x = (* x y)");
 
     expect(
-      [lambdaInc!.name.shortName, lambdaAdd!.name.shortName, lambdaMul!.name.shortName],
+      [lambdaInc.name.shortName, lambdaAdd.name.shortName, lambdaMul.name.shortName],
       "Lambdas are ambiguous in short name",
     ).toEqual(["$lambda", "$lambda", "$lambda"]);
   });
@@ -372,8 +304,8 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     const d = await db();
     for (const name of ["int", "bool", "float", "real", "string"]) {
       const ty = d.findType(searchUidByShortName(d, name));
-      expect(ty).toBeDefined();
-      expect(ty!.kind).toBeInstanceOf(BuiltinTypeKind);
+      assert.isDefined(ty);
+      expect(ty.kind).toBeInstanceOf(BuiltinTypeKind);
     }
   });
 
@@ -401,7 +333,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
       expect(searchUidByShortName(d, name).fullName).toBe(name);
     }
     for (const name of ["either", "LChar.t", "List.length", "List.rev"]) {
-      expect(searchUidByShortName(d, name).fullName.startsWith(`${name}/`)).toBe(true);
+      expect(searchUidByShortName(d, name).fullName.slice(0, name.length + 1)).toBe(`${name}/`);
     }
   });
 
@@ -409,22 +341,22 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     const d = await db();
     // List.length
     const length = d.findFunction(searchUidByShortName(d, "List.length"));
-    expect(length).toBeDefined();
-    expect(length!.kind).toBeInstanceOf(DefinedFunctionKind);
-    expect(length!.arguments.map((a) => `${a}`)).toEqual(["l"]);
-    expect(`${length!.type}`.endsWith(" list -> int")).toBe(true);
+    assert.isDefined(length);
+    expect(length.kind).toBeInstanceOf(DefinedFunctionKind);
+    expect(length.arguments.map((a) => `${a}`)).toEqual(["l"]);
+    expect(`${length.type}`).toMatch(/ list -> int$/);
     // A recursive function is in its own clique
-    expect(sameUids(length!.clique!, [length!.name])).toBe(true);
+    expect(length.clique).toEqual(uidSet([length.name]));
 
     // List.hd
     const hd = d.findFunction(searchUidByShortName(d, "List.hd"));
-    expect(hd).toBeDefined();
-    expect(hd!.kind).toBeInstanceOf(BuiltinFunctionKind);
+    assert.isDefined(hd);
+    expect(hd.kind).toBeInstanceOf(BuiltinFunctionKind);
 
     // id
     const ident = d.findFunction(searchUidByShortName(d, "id"));
-    expect(ident).toBeDefined();
-    expect(ident!.clique).toBeUndefined();
+    assert.isDefined(ident);
+    expect(ident.clique).toBeUndefined();
   });
 
   test("prelude theorems and rules", async () => {
@@ -475,7 +407,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
   // xfail (strict): disabled uids are generative (e.g. `g/19390`), not the content hashed uid `g` is declared under
   test.fails("disabled symbols resolve to declarations", async () => {
     const d = await db();
-    expect(sameUids(d.disabled, [searchUidByShortName(d, "g")])).toBe(true);
+    expect([...d.disabled]).toEqual([searchUidByShortName(d, "g")]);
   });
 
   // References
@@ -486,9 +418,9 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     const d = await db();
     for (const [uid, decl] of d.decls) {
       if (decl instanceof TypeDeclaration) {
-        expect(structEq(d.findType(uid), decl.type), `${uid}`).toBe(true);
+        expect(d.findType(uid), `${uid}`).toEqual(decl.type);
       } else {
-        expect(structEq(d.findFunction(uid), decl.function), `${uid}`).toBe(true);
+        expect(d.findFunction(uid), `${uid}`).toEqual(decl.function);
       }
     }
   });
@@ -570,22 +502,17 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     const d = await db();
     expect(d.decls.size).toBeGreaterThan(100);
     for (const [uid, decl] of d.decls) {
-      expect(isDeclaration(decl)).toBe(true);
-      expect(decl.id.equals(uid)).toBe(true);
-      // Declarations compare by structure: converting the same library declaration again gives
-      // an equal declaration (JS has no `hash`, so Python's hash checks have no counterpart)
-      const declAgain = declarationOfLib(decl.raw);
-      expect(structEq(declAgain, decl)).toBe(true);
+      expect(decl).toSatisfy(isDeclaration);
+      expect(decl.id).toEqual(uid);
+      // Converting the same library declaration again gives an equal declaration
+      expect(declarationOfLib(decl.raw)).toEqual(decl);
 
       if (decl instanceof TypeDeclaration) {
-        const ty = decl.type;
-        const tyAgain = TypeDefinition.ofLib(ty.raw);
-        expect(structEq(tyAgain, ty)).toBe(true);
+        expect(TypeDefinition.ofLib(decl.type.raw)).toEqual(decl.type);
       } else {
-        // Same for terms
+        // Terms are memoized: converting the same library term again gives the same term
         const body = decl.function.body;
-        const again = termOfLib(body.raw);
-        expect(structEq(again, body)).toBe(true);
+        expect(termOfLib(body.raw)).toBe(body);
         for (const t of body) {
           expect(t).toBeInstanceOf(TermBase);
         }

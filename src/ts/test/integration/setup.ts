@@ -5,9 +5,9 @@
  * are skipped without one.
  */
 
-import { afterAll, beforeAll } from "vitest";
+import { afterAll, beforeAll, expect } from "vitest";
 
-import { Client, urlProd } from "../../lib/index.js";
+import { Client, type Task, urlProd } from "../../lib/index.js";
 
 export const apiKey: string | undefined =
   process.env.IMANDRAX_API_KEY || process.env.IMANDRA_UNI_KEY || undefined;
@@ -41,4 +41,20 @@ export function sharedClient(src?: string): () => Client {
     if (client === undefined) throw new Error("no client: is IMANDRAX_API_KEY set?");
     return client;
   };
+}
+
+/** `f()`, computed on first use and shared by the tests of a file */
+export function once<T>(f: () => Promise<T>): () => Promise<T> {
+  let p: Promise<T> | undefined;
+  return () => (p ??= f());
+}
+
+/** The one task of class `cls` among `tasks` */
+export function theTask<T extends Task>(
+  tasks: readonly Task[],
+  cls: abstract new (...args: any[]) => T,
+): T {
+  const ts = tasks.filter((t): t is T => t instanceof cls);
+  expect(ts).toHaveLength(1);
+  return ts[0]!;
 }

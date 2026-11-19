@@ -25,7 +25,7 @@
  */
 // ai-disclosure: ai-generated
 
-import { describe, expect, test } from "vitest";
+import { assert, describe, expect, test } from "vitest";
 
 import {
   AlgebraicTypeKind,
@@ -85,7 +85,7 @@ import {
   uidMap,
   uidSet,
 } from "../../lib/index.js";
-import { noApiKey, sharedClient } from "./setup.js";
+import { noApiKey, once, sharedClient } from "./setup.js";
 
 const lib = raw.types;
 
@@ -118,12 +118,6 @@ verify true
 
 // Setup
 // ====================
-
-/** `f()`, computed once, on first use (as a module-scoped pytest fixture) */
-function once<T>(f: () => Promise<T>): () => Promise<T> {
-  let p: Promise<T> | undefined;
-  return () => (p ??= f());
-}
 
 type NonTypeDeclaration = Exclude<Declaration, TypeDeclaration>;
 
@@ -320,7 +314,8 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
 
   const tasks = once(async (): Promise<readonly Task[]> => {
     const evalRes = await client().evalSrc(SRC);
-    expect(evalRes.success && evalRes.errors.length === 0, evalRes.errors.join("\n")).toBe(true);
+    expect(evalRes.errors.map(String)).toEqual([]);
+    expect(evalRes.success).toBe(true);
     return evalRes.tasks;
   });
 
@@ -328,8 +323,8 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
   const db = once(async (): Promise<DB> => {
     // Tasks come newest first
     const t = (await tasks())[0];
-    expect(t).toBeInstanceOf(ProofObligationTask);
-    return (t as ProofObligationTask).db();
+    assert.instanceOf(t, ProofObligationTask);
+    return t.db();
   });
 
   /** Every function in the DB, including those linked to theorems and verify statements */
@@ -368,8 +363,8 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     const results: [string, ProofObligationTaskResult][] = [];
     for (const t of await poTasks()) {
       const res = await t.task.result();
-      expect(res).toBeInstanceOf(ProofObligationTaskResult);
-      results.push([`PO ${t.fromSym}`, res as ProofObligationTaskResult]);
+      assert.instanceOf(res, ProofObligationTaskResult);
+      results.push([`PO ${t.fromSym}`, res]);
     }
     return results;
   });
@@ -379,10 +374,9 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     for (const t of await tasks()) {
       if (t instanceof DecompositionTask) {
         const res = await t.result();
-        expect(res).toBeInstanceOf(DecompositionTaskResult);
-        const r = res as DecompositionTaskResult;
-        expect(r.decomposition, String(r.error)).toBeDefined();
-        ds.push([t, r.decomposition!]);
+        assert.instanceOf(res, DecompositionTaskResult);
+        assert.isDefined(res.decomposition, String(res.error));
+        ds.push([t, res.decomposition]);
       }
     }
     return ds;
@@ -753,7 +747,7 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     const fs = (await functions()).filter((f) => f.name.shortName === LIFTED_WITH_FREE_VARS);
     expect(fs).toHaveLength(1);
     const f = fs[0]!;
-    expect(isSubset(freeVars([f.body]), varSet(f.arguments))).toBe(true);
+    expect([...varSet(f.arguments)]).toEqual(expect.arrayContaining([...freeVars([f.body])]));
   });
 
   test("function types match arguments and body", async () => {
@@ -1011,7 +1005,7 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     const failures: string[] = [];
     for (const [t, d] of ds) {
       const f = (await t.db()).findFunction(d.id);
-      expect(f).toBeDefined();
+      assert.isDefined(f);
       expect(d.regions.length).toBeGreaterThan(0);
       for (const region of d.regions) {
         for (const c of region.constraints) {
@@ -1024,9 +1018,9 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
             `${d.id}: constraints use ${minus(freeVars(region.constraints), varSet(d.arguments))}`,
           );
         }
-        if (!region.invariant.type.equals(f!.body.type)) {
+        if (!region.invariant.type.equals(f.body.type)) {
           failures.push(
-            `${d.id}: invariant : ${region.invariant.type}, but ${f!.name} returns ${f!.body.type}`,
+            `${d.id}: invariant : ${region.invariant.type}, but ${f.name} returns ${f.body.type}`,
           );
         }
       }

@@ -272,8 +272,7 @@ const logicFragmentBits: readonly (readonly [LogicFragment, bigint])[] = [
 /**
  * The fragments set in a logic bit field
  *
- * Python's `LogicFragment` flag keeps unknown bits; a set of names cannot, so they are only in
- * the raw bit field (`SmtProof.raw.logic`).
+ * Unknown bits have no name, so they are only in the raw bit field (`SmtProof.raw.logic`).
  */
 function logicFragmentsOfLib(x: lib.Logic_fragment): ReadonlySet<LogicFragment> {
   return new Set(logicFragmentBits.filter(([, bit]) => (x & bit) !== 0n).map(([f]) => f));
@@ -617,8 +616,8 @@ export class Report {
   /**
    * Decode a report from the in-memory archive it is sent in
    *
-   * Asynchronous, unlike Python's `of_archive`: decompressing uses the web-standard
-   * `DecompressionStream`, which has no synchronous API.
+   * Asynchronous: decompressing uses the web-standard `DecompressionStream`, which has no
+   * synchronous API.
    *
    * @throws {UnexpectedResponseError} if the archive is not a report
    * @throws {twine.TwineError} if the data is malformed, compressed or not

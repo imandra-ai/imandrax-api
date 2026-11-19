@@ -1,8 +1,7 @@
 /**
  * Values produced by evaluating an IML expression
  *
- * This module exports classes named `String` and `Record`, as Python's `evaluation_values` does;
- * import it as a namespace (`import * as values from ...`) to keep the builtins in reach.
+ * This module exports classes named `String` and `Record`; import it as a namespace (`import * as values from ...`) to keep the builtins in reach.
  *
  * @module
  */
@@ -253,7 +252,7 @@ export function valueOfLib(x: View): Value {
   }
   if (x instanceof lib.Eval_Value_view_V_record) {
     const [descriptor, values] = x.args;
-    // as Python's `zip`, which stops at the shorter of the two
+    // a field without a value, or a value without a field, is dropped
     const n = Math.min(descriptor.rd_fields.length, values.length);
     const fields = new Map<string, Value>();
     for (let i = 0; i < n; i++) {

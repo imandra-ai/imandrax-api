@@ -1,50 +1,16 @@
 /**
- * Property tests for `Term.toJs`, without a server
+ * Property tests for `Term.toJs`
  *
  * They build random values as raw MIR terms, in the shapes the server sends, and check what
- * `toJs` makes of them. `tests/api/py/test_to_python.py` checks fixed values against the server.
+ * `toJs` makes of them. `toEqual` tells JS types apart (`true` is not `1n`), and compares
+ * rationals by value (see `equality.ts`).
  */
 
 import fc from "fast-check";
 import { describe, expect, test } from "vitest";
 
-import { Constructed, DB, type JsValue, Rational, Uid, termOfLib } from "../../lib/index.js";
-import * as lib from "../../lib/raw/types.js";
-
-/**
- * Equal and of the same JS types throughout: unlike `==`, `true` is not `1n`
- *
- * Python's tuples and lists are both arrays in JS, so unlike Python this cannot tell them apart.
- */
-function same(a: JsValue | undefined, b: JsValue | undefined): boolean {
-  if (typeof a !== typeof b) {
-    return false;
-  }
-  if (Array.isArray(a) || Array.isArray(b)) {
-    return (
-      Array.isArray(a) &&
-      Array.isArray(b) &&
-      a.length === b.length &&
-      a.every((x: JsValue, i: number) => same(x, (b as readonly JsValue[])[i]))
-    );
-  }
-  if (a instanceof Map || b instanceof Map) {
-    if (!(a instanceof Map && b instanceof Map) || a.size !== b.size) return false;
-    return [...a.keys()].every((k) => b.has(k) && same(a.get(k), b.get(k)));
-  }
-  if (a instanceof Constructed || b instanceof Constructed) {
-    return (
-      a instanceof Constructed &&
-      b instanceof Constructed &&
-      a.name === b.name &&
-      same(a.args, b.args)
-    );
-  }
-  if (a instanceof Rational || b instanceof Rational) {
-    return a instanceof Rational && a.equals(b);
-  }
-  return a === b;
-}
+import { Constructed, DB, type JsValue, Rational, Uid, termOfLib } from "../lib/index.js";
+import * as lib from "../lib/raw/types.js";
 
 // Raw terms, as the server sends them
 
@@ -133,7 +99,7 @@ function rawDb(): DB {
     ],
   ];
   for (const [name, rows] of variants) {
-    // the raw types are private, as in Python (`db._raw_tys`)
+    // the raw types are private
     db["rawTys"].set(
       new Uid(uid(name)),
       new lib.Ty_view_def_poly(
@@ -312,7 +278,7 @@ describe("toJs", () => {
       fc.property(
         types.chain((t) => values(t, false)),
         ([raw, expected]) => {
-          expect(same(termOfLib(raw).toJs(), expected)).toBe(true);
+          expect(termOfLib(raw).toJs()).toEqual(expected);
         },
       ),
     );
@@ -323,7 +289,7 @@ describe("toJs", () => {
       fc.property(
         types.chain((t) => values(t, true)),
         ([raw, expected]) => {
-          expect(same(termOfLib(raw).toJs(rawDb()), expected)).toBe(true);
+          expect(termOfLib(raw).toJs(rawDb())).toEqual(expected);
         },
       ),
     );
@@ -338,6 +304,6 @@ describe("toJs", () => {
       ],
       VAR_T,
     );
-    expect(same(termOfLib(raw).toJs(), new Constructed("A", [1n, "a"]))).toBe(true);
+    expect(termOfLib(raw).toJs()).toEqual(new Constructed("A", [1n, "a"]));
   });
 });

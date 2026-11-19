@@ -172,7 +172,7 @@ describe("Uid", () => {
       [new Uid(uid("b")), 2],
       [new Uid(uid("a")), 3],
     ]);
-    // as a Python dict: the first key and its position stay, the value is replaced
+    // the first key and its position stay, the value is replaced
     expect([...m.keys()].map((u) => u.fullName)).toEqual(["a", "b"]);
     expect([...m.keys()][0]).toBe(first);
     expect(m.get(new Uid(uid("a")))).toBe(3);
@@ -203,18 +203,19 @@ describe("Rational", () => {
 });
 
 describe("constants", () => {
-  test("floats print as Python does", () => {
+  test("floats print with a decimal point or an exponent", () => {
     const f = (x: number) => `${new FloatConst(x, new lib.Const_Const_float(x))}`;
     expect(f(1)).toBe("1.0");
     expect(f(-2.5)).toBe("-2.5");
     expect(f(0.1)).toBe("0.1");
-    expect(f(1e16)).toBe("1e+16");
-    expect(f(1.5e16)).toBe("1.5e+16");
+    expect(f(1e16)).toBe("10000000000000000.0");
+    expect(f(1e21)).toBe("1e+21");
     expect(f(123456789012345.0)).toBe("123456789012345.0");
-    expect(f(1e-5)).toBe("1e-05");
+    expect(f(1e-7)).toBe("1e-7");
     expect(f(0.0001)).toBe("0.0001");
-    expect(f(Infinity)).toBe("inf");
-    expect(f(NaN)).toBe("nan");
+    expect(f(Infinity)).toBe("Infinity");
+    expect(f(NaN)).toBe("NaN");
+    expect(f(-0)).toBe("0.0");
   });
 
   test("rational constants print as num/den", () => {
@@ -522,7 +523,7 @@ describe("Decomposition", () => {
     expect(sample.get(new Uid(genUid("x", 1n)))).toBe(5n);
     expect(`${r.meta.get("q")}`).toBe("1/2");
     expect(r.meta.get("n")).toBeNull();
-    expect(`${d}`).toBe("[<Region constraints: [true] invariant: 6 status: feasible>]");
+    expect(`${d}`).toBe("constraints: [true] invariant: 6 status: feasible");
 
     const bad = Decomposition.Region.ofLib(
       new lib.Common_Region_t_poly<RawTerm, RawType>(

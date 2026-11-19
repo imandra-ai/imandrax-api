@@ -9,14 +9,18 @@
 
 // Note [General Principles when Transforming OCaml Bindings to TypeScript]
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// This is a port of the Python client's `v2/mir.py`, which follows these principles:
+// The classes here wrap the generated lib types (`./raw/types.js`) following these principles:
 // - use more readable names
 // - variants without fields -> string-literal union
-// - variant -> union of classes, each with a `kind` discriminant
+// - variant -> discriminated union of classes, each with a `kind` field, so a `switch` on
+//   `kind` narrows the type and the compiler checks that every case is handled
 // - records wrapping a variant -> one abstract base class for the record's fields, classes
 //   extending the base class, plus the union
 // - `'term` / `'ty` type parameters are specialized with MIR term and type
 // - Some classes irrelevant to users are skipped, e.g.: Anchor, SubAnchor
+//
+// They are classes rather than plain objects because they keep the lib object in `raw`,
+// convert their fields lazily (see Note [Lib memo]), and have `equals` and `toString`.
 //
 // Note: all `toString` in there are purely for debugging purposes. There is no MIR
 // text format; MIR is only exchanged in byte-serialized form and there is no
@@ -26,13 +30,24 @@
 // functions, lifted lambdas, correct types, inferred type variables, ...), and
 // those processes are not replicated on the client side.
 //
+//
 // Note [Value equality]
 // ~~~~~~~~~~~~~~~~~~~~~
-// Python compares `Uid`, types, applied symbols and pattern heads by value, and uses them as
-// dict keys and set elements. JS `Map` and `Set` compare objects by identity, so these classes
-// have an `equals` method, and the maps and sets keyed by them (`DB.decls`, `Model.constants`,
-// `TypeDefinition.clique`, ...) are `ValueMap`s and `ValueSet`s, which key their entries by a
-// structural string. Such a map's `get` and `has` find an entry from any equal key.
+// `Uid`, `Type`, `AppliedSymbol` and `PatternHead` are wrapper objects, and two distinct
+// objects can stand for the same thing: the uid of a symbol in a term and the uid keying its
+// declaration in `DB.decls` are equal but not the same object. JS `Map` and `Set` compare keys
+// by identity, so with a plain `Map`, `db.decls.get(term.symbol.id)` would miss, and JS has no
+// hook to override that (no `hashCode`/`__hash__`).
+//
+// So these classes have an `equals` method, and the maps and sets keyed by them (`DB.decls`,
+// `Model.constants`, `TypeDefinition.clique`, ...) are `ValueMap`s and `ValueSet`s. They key
+// their entries by a structural string (`uidKey`, `typeKey`, ..., see "Structural keys"),
+// computed once per object, so their `get` and `has` find an entry from any equal key.
+//
+// Identity is not enough even with Note [Lib memo]: the memo gives one client object per lib
+// object, but the same uid can come as distinct lib objects (from another response, or a node
+// the decoder did not share), and users can build keys themselves (`new Uid(...)`).
+//
 //
 // Note [Lib memo]
 // ~~~~~~~~~~~~~~~
@@ -48,9 +63,6 @@
 // They are `WeakMap`s, so they keep nothing alive: an entry goes with its lib object, even though
 // the client object refers back to it through `raw`. Lib objects belong to one decoder, so client
 // objects are never shared between artifacts.
-//
-// Python scopes its memo to one conversion instead (`v2/_lib_memo.py`): its generated classes
-// cannot be weakly referenced.
 //
 // This module exports a class named `Symbol` (a term referring to a symbol), so it reaches the
 // builtin symbols through `globalThis.Symbol`.
@@ -168,8 +180,8 @@ Value maps and sets
 /**
  * A map whose keys are compared by value, through a structural string
  *
- * As a Python dict: setting a key equal to an existing one replaces the value, and keeps the
- * existing key and its position.
+ * Setting a key equal to an existing one replaces the value, and keeps the existing key and its
+ * position.
  */
 export class ValueMap<K, V> implements ReadonlyMap<K, V> {
   private readonly canon = new Map<string, K>();
@@ -309,12 +321,12 @@ export class ValueSet<T> implements ReadonlySet<T> {
   }
 }
 
-/** A set of uids, compared by value as `Uid.equals` does (Python's `frozenset[Uid]`) */
+/** A set of uids, compared by value as `Uid.equals` does */
 export function uidSet(uids: Iterable<Uid> = []): ValueSet<Uid> {
   return new ValueSet(uidKey, uids);
 }
 
-/** A map keyed by uids, compared by value as `Uid.equals` does (Python's `dict[Uid, V]`) */
+/** A map keyed by uids, compared by value as `Uid.equals` does */
 export function uidMap<V>(entries: Iterable<readonly [Uid, V]> = []): ValueMap<Uid, V> {
   return new ValueMap(uidKey, entries);
 }
@@ -332,6 +344,10 @@ function bigAbs(x: bigint): bigint {
   return x < 0n ? -x : x;
 }
 
+// Used by `Rational` to reduce to lowest terms with it, so that `equals` can compare `num` and `den`
+// directly (1/2 equals 2/4) and `toString` prints one form.
+// Rationals decoded from the server are already reduced, so it only matters for a
+// `Rational` built by a user.
 function gcd(a: bigint, b: bigint): bigint {
   a = bigAbs(a);
   b = bigAbs(b);
@@ -341,9 +357,7 @@ function gcd(a: bigint, b: bigint): bigint {
   return a;
 }
 
-/**
- * An exact rational number, in lowest terms with a positive denominator (Python's `Fraction`)
- */
+/** An exact rational number, in lowest terms with a positive denominator */
 export class Rational {
   /** The numerator */
   readonly num: bigint;
@@ -368,37 +382,16 @@ export class Rational {
     return other instanceof Rational && this.num === other.num && this.den === other.den;
   }
 
-  /** `num/den`, or just `num` if the denominator is 1, as Python prints a `Fraction` */
+  /** `num/den`, or just `num` if the denominator is 1 */
   toString(): string {
     return this.den === 1n ? `${this.num}` : `${this.num}/${this.den}`;
   }
 }
 
-/** A float as Python's `str` prints it, e.g. `1.0`, `1e+16`, `inf` */
-function pyFloatStr(x: number): string {
-  if (Number.isNaN(x)) return "nan";
-  if (x === Infinity) return "inf";
-  if (x === -Infinity) return "-inf";
-  if (x === 0) return Object.is(x, -0) ? "-0.0" : "0.0";
-  // the shortest digits that round-trip, as Python's `repr` uses
-  const [mantissa, expStr] = x.toExponential().split("e") as [string, string];
-  const exp = Number(expStr);
-  const neg = mantissa.startsWith("-");
-  const digits = mantissa.replace("-", "").replace(".", "");
-  let body: string;
-  if (exp >= -4 && exp < 16) {
-    if (exp >= 0) {
-      const intPart = digits.slice(0, exp + 1).padEnd(exp + 1, "0");
-      const frac = digits.slice(exp + 1);
-      body = `${intPart}.${frac === "" ? "0" : frac}`;
-    } else {
-      body = `0.${"0".repeat(-exp - 1)}${digits}`;
-    }
-  } else {
-    const m = digits.length > 1 ? `${digits[0]}.${digits.slice(1)}` : digits;
-    body = `${m}e${exp < 0 ? "-" : "+"}${String(Math.abs(exp)).padStart(2, "0")}`;
-  }
-  return neg ? `-${body}` : body;
+/** A float as JS prints it, with `.0` added to integral values, e.g. `1.0`, `1e+21`, `Infinity` */
+function floatStr(x: number): string {
+  const s = String(x);
+  return Number.isInteger(x) && !s.includes("e") ? `${s}.0` : s;
 }
 
 /*
@@ -529,7 +522,7 @@ export class FloatConst {
   ) {}
 
   toString(): string {
-    return pyFloatStr(this.value);
+    return floatStr(this.value);
   }
 }
 
@@ -852,7 +845,7 @@ export class TupleType extends TypeBase {
 /**
  * A type constructor applied to type arguments, e.g. `int list`
  *
- * Python's `constructor` field is `ctor` here: classes cannot have a field named `constructor`.
+ * The field is `ctor`: classes cannot have a field named `constructor`.
  */
 export class ConstructedType extends TypeBase {
   readonly kind = "constructed";
@@ -1378,7 +1371,7 @@ export class Symbol extends TermBase {
 /**
  * A constructor applied to arguments
  *
- * Python's `constructor` field is `ctor` here: classes cannot have a field named `constructor`.
+ * The field is `ctor`: classes cannot have a field named `constructor`.
  */
 export class Construct extends TermBase {
   readonly kind = "construct";
@@ -1487,7 +1480,7 @@ export class Tuple extends TermBase {
     super(type, raw);
   }
 
-  /** The number of elements (Python's `len`) */
+  /** The number of elements */
   get length(): number {
     return this.elements.length;
   }
@@ -1679,7 +1672,7 @@ export class Constructed {
 /**
  * A term's value as plain JS data, see `Term.toJs`
  *
- * Python's tuples and lists are both arrays here, and its dicts are `Map`s.
+ * Tuples and lists are both arrays, and maps are `Map`s.
  */
 export type JsValue =
   | boolean
@@ -1759,7 +1752,7 @@ function toJsImpl(t: Term, db?: DB): JsValue {
       );
     }
     if (labels.length !== args.length) {
-      // as Python's `zip(..., strict=True)`
+      // labels and arguments must pair up exactly
       throw new RangeError(
         `Not a value: ${labels.length} labels for ${args.length} arguments in ${t}`,
       );
@@ -2635,7 +2628,7 @@ export class ApplyPattern extends FoPatternBase {
 /**
  * constructor, tuple, record…
  *
- * Python's `constructor` field is `ctor` here: classes cannot have a field named `constructor`.
+ * The field is `ctor`: classes cannot have a field named `constructor`.
  */
 export class ConstructPattern extends FoPatternBase {
   readonly kind = "construct";
@@ -3013,7 +3006,6 @@ export class Model {
   }
 
   toString(): string {
-    // Python prints the maps' `repr`; the closest here is each entry's `toString`
     const show = (m: ReadonlyMap<unknown, unknown>) =>
       `{${[...m].map(([k, v]) => `${k}: ${v}`).join(", ")}}`;
     return `types: ${show(this.types)} constants: ${show(this.constants)} functions: ${show(this.functions)}`;
@@ -3114,9 +3106,9 @@ export class Decomposition {
     );
   }
 
+  /** The regions, one per line */
   toString(): string {
-    // as Python's `str(list(regions))`, which shows each region's `repr`
-    return `[${this.regions.map((r) => `<Region ${r}>`).join(", ")}]`;
+    return this.regions.map((r) => `${r}`).join("\n");
   }
 }
 
@@ -3559,8 +3551,8 @@ export class DB {
 }
 
 /**
- * The entries of `m` whose key's full name matches `regex` from its start, as Python's
- * `re.match` does (the regex is in JS syntax)
+ * The entries of `m` whose key's full name matches `regex` from its start (a sticky match; the
+ * regex is in JS syntax)
  */
 function matchingFullNames<V>(m: ReadonlyMap<Uid, V>, regex: string): ReadonlyMap<Uid, V> {
   const rx = new RegExp(regex, "y");

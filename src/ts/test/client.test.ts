@@ -39,7 +39,7 @@ describe("connect", () => {
     expect(c.sessionId).toBe("s1");
 
     const [req] = server.calls(`${SIMPLE}/create_session`);
-    // concatenated as the Python client does
+    // `<url><prefix>/<service>/<method>`
     expect(req!.url).toBe(`${urlProd}/api/v1/${SIMPLE}/create_session`);
     expect(req!.headers.get("content-type")).toBe("application/protobuf");
     expect(req!.headers.get("x-api-version")).toBe(version);

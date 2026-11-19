@@ -1,6 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { assert, describe, expect, test } from "vitest";
 
-import type { AppliedSymbol, Decomposition, Model, Term, Variable } from "../../lib/index.js";
+import { ConstructedType } from "../../lib/index.js";
 import { noApiKey, sharedClient } from "./setup.js";
 
 const SRC_DECOMP_DUP_VAR = `
@@ -18,29 +18,21 @@ describe.skipIf(noApiKey)("region models", () => {
     const res = await client().evalSrc(SRC_DECOMP_DUP_VAR);
     expect(res.success, res.errors.join("\n")).toBe(true);
     expect(res.decompResults).toHaveLength(1);
-    const dres = res.decompResults[0]!;
-    expect(dres.decomposition, dres.errors.join("\n")).toBeDefined();
+    const decomp = res.decompResults[0]!.decomposition;
+    assert.isDefined(decomp, res.decompResults[0]!.errors.join("\n"));
 
-    const decomp: Decomposition = dres.decomposition!;
+    // g only has x as argument
+    expect(decomp.arguments).toHaveLength(1);
+    const x = decomp.arguments[0]!;
+    expect(x.id.shortName).toBe("x");
+    expect(x.type).toBeInstanceOf(ConstructedType);
+    expect(`${x.type}`).toBe("int");
 
-    expect(decomp.arguments, "g should only has x as arguments").toHaveLength(1);
-    const x: Variable = decomp.arguments[0]!;
-    // Python's `repr` of `{"short_name": ..., "type": ...}`, with the type's `repr`, `<ConstructedType int>`
-    expect(
-      `{'short_name': '${x.id.shortName}', 'type': <${x.type.constructor.name} ${x.type}>}`,
-    ).toBe("{'short_name': 'x', 'type': <ConstructedType int>}");
-
-    const models: (Model | undefined)[] = decomp.regions.map((r) => r.model);
-    const fstModel = models[0];
-    expect(fstModel).toBeDefined();
-
-    const consts: ReadonlyMap<AppliedSymbol, Term> = fstModel!.constants;
-    expect(consts.size).toBe(2);
-    const [[x_], [x__]] = [...consts];
-    expect([x_!.id.shortName, x__!.id.shortName], "Regions have the same variable x ...").toEqual([
-      "x",
-      "x",
-    ]);
-    expect(x_!.id.fullName, "... with different full name").not.toBe(x__!.id.fullName);
+    const model = decomp.regions[0]!.model;
+    assert.isDefined(model);
+    const ids = [...model.constants.keys()].map((s) => s.id);
+    // the regions have the same variable x, with different full names
+    expect(ids.map((u) => u.shortName)).toEqual(["x", "x"]);
+    expect(ids[0]!.fullName).not.toBe(ids[1]!.fullName);
   });
 });

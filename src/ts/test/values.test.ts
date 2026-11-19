@@ -73,7 +73,7 @@ describe("valueOfLib", () => {
       ]),
     ) as values.Record;
     expect(rec.name).toBe("r");
-    // as Python's `zip`: the extra field without a value is dropped
+    // the extra field without a value is dropped
     expect([...rec.fields.keys()]).toEqual(["a", "b"]);
     expect(`${rec}`).toBe('{a = 1; b = "s"}');
   });

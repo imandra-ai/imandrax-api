@@ -60,7 +60,7 @@ export class Location {
 /**
  * An error reported by the server
  *
- * Python's `Error`, renamed so it does not shadow the global `Error`
+ * Named `ErrorInfo` so it does not shadow the global `Error`
  */
 export class ErrorInfo {
   private constructor(
