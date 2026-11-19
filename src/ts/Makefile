@@ -20,9 +20,17 @@ test: node_modules lib/version.ts
 test-integration: node_modules lib/version.ts
 	npm run test:integration
 
+# API reference as Markdown, in docs/api
+docs: node_modules lib/version.ts
+	npm run docs
+
+# The same reference as a local HTML site, in docs/html (not shipped)
+docs-html: node_modules lib/version.ts
+	npm run docs:html
+
 clean:
 	@rm -f lib/version.ts
-	@rm -rf dist
+	@rm -rf dist docs/api docs/html
 
 NPM_ROOT=$(shell npm root)
 
@@ -30,4 +38,4 @@ tsproto: node_modules
 	mkdir -p lib/raw/proto
 	protoc --plugin=${NPM_ROOT}/.bin/protoc-gen-ts_proto --ts_proto_out=lib/raw/proto --proto_path=../proto ../proto/*.proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=importSuffix=.js
 
-.PHONY: all check build test test-integration clean tsproto
+.PHONY: all check build test test-integration docs docs-html clean tsproto

@@ -4,6 +4,8 @@
  * Contract: for any bytes and any offset, every public `Decoder` method either returns a value
  * or throws `TwineError`. It never throws anything else, and never returns data read from
  * outside the buffer.
+ *
+ * @module
  */
 
 export type offset = number;

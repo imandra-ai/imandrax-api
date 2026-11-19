@@ -1,5 +1,7 @@
 node_modules
 dist
+docs/api
+docs/html
 tsconfig.tsbuildinfo
 out
 !*.json

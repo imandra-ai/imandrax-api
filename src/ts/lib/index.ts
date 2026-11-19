@@ -7,6 +7,8 @@
  *
  * The generated layers the client is built on are exported as `raw`: `raw.proto` (protobuf
  * messages), `raw.types` (artifact types and their decoders) and `raw.twine` (the decoder).
+ *
+ * @packageDocumentation
  */
 
 export { version } from "./version.js";

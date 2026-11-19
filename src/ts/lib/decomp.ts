@@ -15,6 +15,8 @@
  * );
  * const res = await client.decomposeFull(d);
  * ```
+ *
+ * @module
  */
 
 import { liftBoolToPb } from "./lift_bool.js";
