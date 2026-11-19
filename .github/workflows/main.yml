@@ -22,17 +22,20 @@ jobs:
       - run: make update-submodules
       - run: docker build . -f dep/Dockerfile.5.3
   tsc:
-    name: tsc
+    name: ts/tsc and vitest
     runs-on: [ubuntu-latest]
     steps:
     - uses: actions/checkout@main
     - name: install node
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v4
       with:
-        node-version: 20
-    - run: npm install tsc
+        node-version: 22
     - name: tsc
       run: make -C src/ts check
+    - name: vitest
+      run: make -C src/ts test
+    - name: prettier
+      run: make -C src/ts format-check
   cargo-build:
     name: cargo build
     runs-on: [ubuntu-latest]
@@ -51,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        decoder: [py, ocaml]
+        decoder: [py, ts, ocaml]
     steps:
     - uses: actions/checkout@v4
       with:
@@ -62,6 +65,10 @@ jobs:
         dune-cache: true
     - uses: astral-sh/setup-uv@v5
       if: matrix.decoder == 'py'
+    - uses: actions/setup-node@v4
+      if: matrix.decoder == 'ts'
+      with:
+        node-version: 22
     - run: opam pin -n .
     - run: opam install imandrax-api --deps-only --with-test -y
     - run: make -C tests/twine-conformance test-${{ matrix.decoder }}

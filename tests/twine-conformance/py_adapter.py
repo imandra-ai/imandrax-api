@@ -18,7 +18,7 @@ def node(d: twine.Decoder, off: int) -> str:
     Walks the structure with the decoder's cursors rather than `value()`, so
     dict entries come out in encoding order and keys need not be hashable.
     """
-    off, high, low = d._head(off)
+    off, high, low = d._deref(off)
     match high:
         case 0:
             if low == 2:
