@@ -14,6 +14,7 @@ from enum import KEEP, Flag
 
 from imandrax_api import lib
 
+from ._lib_memo import with_lib_memo
 from .errors import UnexpectedResponseError
 from .mir import (
     InstantiationRule,
@@ -488,6 +489,7 @@ class Report:
     _raw: lib.Report_Report = field(repr=False, compare=False)
 
     @classmethod
+    @with_lib_memo
     def of_lib(cls, x: lib.Report_Report) -> Report:
         return cls(events=tuple(linear_event_of_lib(e) for e in x.events), _raw=x)
 

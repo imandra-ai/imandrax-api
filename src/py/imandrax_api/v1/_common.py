@@ -1,21 +1,41 @@
 from .. import api_types_version
+from .._errors import ImandraXError
 from ..twirp.context import Context
+from ..twirp.errors import Errors
 from ..twirp.exceptions import TwirpServerException
 
 url_dev = "https://api.dev.imandracapital.com/internal/imandrax/"
 url_prod = "https://api.imandra.ai/internal/imandrax/"
 
 
-class ClientClosedError(Exception):
+class ClientClosedError(ImandraXError):
     """A request was made on a client that has already been closed"""
 
 
-class EndSessionError(Exception):
+class EndSessionError(ImandraXError):
     """`end_session` failed when the client exited"""
 
     def __init__(self, session_id: str) -> None:
         super().__init__(f"error while ending session {session_id}")
         self.session_id = session_id
+
+
+class ApiVersionMismatchError(ImandraXError):
+    """The server rejected the client's API version"""
+
+
+def api_version_error(ex: TwirpServerException) -> ApiVersionMismatchError | None:
+    """The error to raise for `ex` from `create_session` or `open_session`, if it is a version
+    mismatch
+
+    The server answers a session request with an API version it doesn't support with
+    `invalid_argument`.
+    """
+    if ex.code == Errors.InvalidArgument and not is_session_not_found(ex):
+        return ApiVersionMismatchError(
+            "API version mismatch. Try upgrading the imandrax-api package."
+        )
+    return None
 
 
 def mk_context() -> Context:

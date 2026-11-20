@@ -20,7 +20,7 @@ class Errors(StrEnum):
     Unimplemented = "unimplemented"
     Internal = "internal"
     Unavailable = "unavailable"
-    DataLoss = "data_loss"
+    DataLoss = "dataloss"
     Malformed = "malformed"
     NoError = ""
 
