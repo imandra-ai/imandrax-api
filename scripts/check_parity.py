@@ -3,7 +3,7 @@
 
 Usage: python3 scripts/check_parity.py docs/parity.toml
 
-The TOML file lists the clients and the features (see its header). Exits 1 and lists what a
+The TOML file lists the clients, the features and the differences (see its header). Exits 1 and lists what a
 client is missing. Paths are relative to the repository root.
 """
 
@@ -76,9 +76,21 @@ def check(config: dict) -> tuple[list[str], list[str]]:
                 errors.append(
                     f"{lang}: no test marked `parity: {fid}` ({feature['spec']})"
                 )
-    for d in config.get("differences", []):
-        if d["client"] not in config["clients"]:
-            errors.append(f"difference for unknown client {d['client']!r}: {d['what']}")
+        differences = {
+            did for did, d in config["differences"].items() if d["client"] == lang
+        }
+        annotated: dict[str, Path] = {}
+        for path in files(ROOT / client["lib"], client["ext"]):
+            for m in MARKER.finditer(path.read_text()):
+                annotated.setdefault(m[1], path.relative_to(ROOT))
+        for did in sorted(annotated.keys() - differences):
+            errors.append(
+                f"{lang}: unknown difference `parity: {did}` in {annotated[did]}"
+            )
+        for did in sorted(differences - annotated.keys()):
+            errors.append(
+                f"{lang}: difference {did} is not annotated `parity: {did}` in {client['lib']}"
+            )
     return errors, gaps
 
 
@@ -91,7 +103,8 @@ def main() -> int:
         print("Parity check failed:", *errors, sep="\n  ")
         return 1
     print(
-        f"Parity check passed: {', '.join(config['clients'])}, {len(config['features'])} features"
+        f"Parity check passed: {', '.join(config['clients'])}, "
+        f"{len(config['features'])} features, {len(config['differences'])} differences"
     )
     return 0
 

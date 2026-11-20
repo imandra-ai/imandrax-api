@@ -58,6 +58,7 @@ export class Location {
   }
 }
 
+// parity: ts.error_info
 /**
  * An error reported by the server
  *

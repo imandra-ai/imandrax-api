@@ -1452,11 +1452,14 @@ class AwaitableAttrs:
         return self._task._get_attr_fetching(name)
 
 
+# parity: py.weak_client
+# parity: py.async_task_data
 class Task:
     """A task run by the server, e.g. a proof obligation, evaluation or decomposition
 
     The task's artifacts (its data, its result, ...) are fetched from the server on first access,
-    with the client the task came from.
+    with the client the task came from. The task holds that client weakly, so it does not keep it
+    alive: fetching after the client is garbage-collected raises `ClientGoneError`.
     - With a `Client`, accessing a property like `t.result` fetches what it needs
     - With an `AsyncClient`, await it once with `await t.awaitable.result`; after that, `t.result`
       can be accessed as usual. Accessing it before raises `NotFetchedError`.

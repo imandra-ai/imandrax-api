@@ -273,7 +273,8 @@ function logicFragmentsOfLib(x: lib.Logic_fragment): ReadonlySet<LogicFragment> 
 /** A proof of [clauses /\ bool_terms /\ assumptions |- false], by deduction. */
 export class SmtProof {
   constructor(
-    /** The logic used */
+    // parity: ts.logic_fragments
+    /** The logic used; unknown bits have no name, so they are only in `raw.logic` */
     readonly logic: ReadonlySet<LogicFragment>,
     /** Subset of assumptions used in the proof */
     readonly unsatCore: readonly Term[],
@@ -605,6 +606,7 @@ export class Report {
     return new Report(x.events.map(linearEventOfLib), x);
   }
 
+  // parity: ts.async_report_archive
   /**
    * Decode a report from the in-memory archive it is sent in
    *

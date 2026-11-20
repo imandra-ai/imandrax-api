@@ -15,12 +15,15 @@
 #   missing.<client> = "<why>"  a known gap, to be fixed; delete the entry when a marked test lands
 # A client with a difference or a gap must not have a marked test for the feature.
 #
-# `[[differences]]` lists the other deliberate differences: a name, a calling style, ...
-# (docs/dev-language-api.md, Appendix B).
+# `[differences."<id>"]` lists the other deliberate differences (a name, a calling style, ...;
+# docs/dev-language-api.md, Appendix B). The client explains each one in its own docs, at the
+# declaration users meet it at, next to a `parity: <id>` comment: every difference must be
+# annotated in its client's `lib`, and every annotation must name a difference of that client.
 
 [clients.py]
 src = "src/py/imandrax_api/v2/interface.py"
 tests = "src/py/tests/client"
+lib = "src/py/imandrax_api/v2"
 ext = ".py"
 case = "snake"
 # a method definition; {name} is the RPC name, spelled per `case`
@@ -29,6 +32,7 @@ method = '^\s*(async\s+)?def\s+{name}\s*\('
 [clients.ts]
 src = "src/ts/lib/client.ts"
 tests = "src/ts/test"
+lib = "src/ts/lib"
 ext = ".ts"
 case = "camel"
 method = '^\s*async\s+{name}\s*\('
@@ -96,52 +100,52 @@ spec = "5.2"
 
 # Deliberate differences that are not a missing feature
 
-[[differences]]
+[differences."ts.ctor"]
 client = "ts"
+spec = "3.6"
 what = "fields named `constructor` are `ctor`"
-why = "classes cannot have a field named `constructor`"
 
-[[differences]]
+[differences."ts.let_"]
 client = "ts"
-what = "decomposition `let` is `let_`"
-why = "`let` is a reserved word"
+spec = "6.3"
+what = "the decomposition combinator `let` is `let_`"
 
-[[differences]]
+[differences."ts.error_info"]
 client = "ts"
+spec = "3.6"
 what = "server errors are `ErrorInfo`"
-why = "not to shadow the global `Error`"
 
-[[differences]]
+[differences."ts.value_map"]
 client = "ts"
-what = "value maps and sets are `ValueMap` and `ValueSet`"
-why = "JS `Map` and `Set` compare keys by identity, with no hashing protocol"
+spec = "3.3"
+what = "maps and sets keyed by value are `ValueMap` and `ValueSet`"
 
-[[differences]]
+[differences."ts.memo_lifetime"]
 client = "ts"
-what = "conversion memo is per lib object, for the client's lifetime"
-why = "`WeakMap`s keep nothing alive; Python's generated classes cannot be weakly referenced, so Python scopes its memo to one conversion"
+spec = "3.4"
+what = "the conversion memo lasts as long as the lib object, not one conversion"
 
-[[differences]]
+[differences."ts.async_report_archive"]
 client = "ts"
+spec = "6.4"
 what = "decoding a report from an archive is asynchronous"
-why = "it decompresses with `DecompressionStream`, which has no synchronous API"
 
-[[differences]]
+[differences."ts.logic_fragments"]
 client = "ts"
+spec = "3.1"
 what = "logic fragments are a set of names, without unknown bits"
-why = "unknown bits have no name; they stay in the raw bit field"
 
-[[differences]]
+[differences."ts.async_only"]
 client = "ts"
-what = "async client only"
-why = "network I/O is asynchronous in JS"
+spec = "4.4"
+what = "the client is asynchronous only"
 
-[[differences]]
+[differences."py.weak_client"]
 client = "py"
-what = "a task holds its client weakly; fetching after the client is garbage-collected raises `ClientGoneError`"
-why = "tasks do not keep a client alive"
+spec = "4.5"
+what = "a task holds its client weakly: fetching after the client is garbage-collected raises `ClientGoneError`"
 
-[[differences]]
+[differences."py.async_task_data"]
 client = "py"
-what = "with `AsyncClient`, task data is read synchronously once fetched, and reading it before raises `NotFetchedError`; fetch with `await task.awaitable.<attribute>` or `await task.fetch_all()`"
-why = "task data stays a plain attribute in both clients"
+spec = "4.5"
+what = "with `AsyncClient`, task data is a plain attribute once fetched, and `NotFetchedError` before"

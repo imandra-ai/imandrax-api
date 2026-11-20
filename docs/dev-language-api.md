@@ -671,8 +671,11 @@ What is not listed as a feature is reviewed with each chapter's checklist.
 
 ## Appendix B. Deliberate differences
 
-Recorded in [`parity.toml`](parity.toml): under a feature as `<client> = "<reason>"` when a client
-does not have it on purpose, and as a `[[differences]]` entry otherwise (a name, a calling style).
+Listed in [`parity.toml`](parity.toml): under a feature as `<client> = "<reason>"` when a client
+does not have it on purpose, and as a `[differences."<id>"]` entry otherwise (a name, a calling
+style). The client explains each difference in its own documentation, where users meet it (the
+declaration's doc comment), next to a `parity: <id>` comment; CI checks that every difference is
+annotated, and that every annotation names a listed difference.
 
 ## Appendix C. Glossary
 
