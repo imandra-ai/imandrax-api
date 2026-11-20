@@ -102,22 +102,24 @@ def raw_db() -> DB:
         "nest_t": [("N", ["inner", "k"], [VAR_T, INT]), ("M", None, [])],
     }
     for name, rows in variants.items():
-        db._raw_tys[Uid(uid(name))] = lib.Ty_view_def_poly(  # pyright: ignore[reportPrivateUsage]
-            name=uid(name),
-            params=[],
-            decl=lib.Ty_view_decl_Algebraic(
-                arg=[
-                    lib.Ty_view_adt_row(
-                        c=uid(c),
-                        labels=None if ls is None else [uid(l) for l in ls],
-                        args=ts,
-                        doc=None,
-                    )
-                    for c, ls, ts in rows
-                ]
-            ),
-            clique=None,
-            timeout=None,
+        db._raw_decls[Uid(uid(name))] = lib.Common_Decl_t_poly_Ty(  # pyright: ignore[reportPrivateUsage]
+            arg=lib.Ty_view_def_poly(
+                name=uid(name),
+                params=[],
+                decl=lib.Ty_view_decl_Algebraic(
+                    arg=[
+                        lib.Ty_view_adt_row(
+                            c=uid(c),
+                            labels=None if ls is None else [uid(l) for l in ls],
+                            args=ts,
+                            doc=None,
+                        )
+                        for c, ls, ts in rows
+                    ]
+                ),
+                clique=None,
+                timeout=None,
+            )
         )
     return db
 
