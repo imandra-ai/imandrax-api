@@ -9,6 +9,8 @@ try:
 except ImportError:
     import json
 
+from typing import Any
+
 from google.protobuf.message import DecodeError
 
 from .._errors import ImandraXError
@@ -40,7 +42,7 @@ class TwirpServerException(ImandraXError, httplib.HTTPException):
         return self._message
 
     @property
-    def meta(self):
+    def meta(self) -> dict[str, Any]:
         return self._meta
 
     def to_dict(self):
