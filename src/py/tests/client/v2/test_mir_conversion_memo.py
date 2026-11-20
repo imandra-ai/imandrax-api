@@ -7,9 +7,21 @@ expanding the graph into a tree.
 The lib data is built by hand, sharing objects the way the decoder does.
 """
 
+from typing import Any
+
+import pytest
+
 from imandrax_api import lib
 from imandrax_api.v2._lib_memo import lib_memo
-from imandrax_api.v2.mir import Apply, ArrowType, Decomposition, term_of_lib
+from imandrax_api.v2.mir import (
+    DB,
+    Apply,
+    ArrowType,
+    Decomposition,
+    FunctionDeclaration,
+    Uid,
+    term_of_lib,
+)
 from imandrax_api.v2.proof import DeductionProof, proof_term_of_lib
 
 
@@ -120,6 +132,79 @@ def test_proof_term_shares_across_steps() -> None:
     ((_, (p1, p2)),) = p.premises
     concls = [q.conclusion.conclusions[0][1] for q in (p, p1, p2)]
     assert concls[0] is concls[1] is concls[2]
+
+
+# DB
+# ====================
+
+
+def mk_fun(name: str, body: lib.Mir_Term) -> lib.Mir_Decl:
+    return lib.Common_Decl_t_poly_Fun(
+        arg=lib.Common_Fun_def_t_poly(
+            f_name=mk_uid(name),
+            f_ty=lib.Common_Type_schema_t_poly(params=[], ty=mk_arrow(INT, BOOL)),
+            f_args=[X_VAR],
+            f_body=body,
+            f_clique=None,
+            f_kind=lib.Common_Fun_def_fun_kind_Fun_defined(
+                is_macro=False, from_lambda=False
+            ),
+            f_hints=lib.Common_Hints_t_poly(
+                f_validate_strat=lib.Common_Hints_validation_strategy_VS_no_validate(),
+                f_unroll_def=None,
+                f_enable=[],
+                f_disable=[],
+                f_timeout=None,
+                f_admission=None,
+                f_decomp=None,
+            ),
+        )
+    )
+
+
+def mk_db(monkeypatch: pytest.MonkeyPatch, *decls: lib.Mir_Decl) -> DB:
+    """A DB of one operation adding `decls`, bypassing the twine decoding of the operation"""
+    op = lib.Common_Db_op_t_poly_Op_add_decls(arg=list(decls))
+
+    class Decoder:
+        def __init__(self, _: bytes) -> None:
+            pass
+
+        def entrypoint(self) -> int:
+            return 0
+
+    monkeypatch.setattr(lib.twine, "Decoder", Decoder)
+
+    def of_twine(**_: Any) -> Any:
+        return op
+
+    monkeypatch.setattr(lib, "Common_Db_op_t_poly_of_twine", of_twine)
+    ds: lib.Mir_Db_ser = lib.Common_Db_ser_t_poly[lib.Mir_Term, lib.Mir_Type](
+        ops=[lib.Ca_store_Ca_ptr_Raw(key="op")]
+    )
+    return DB(ds, {"op": b""})
+
+
+def test_db_shares_across_declarations(monkeypatch: pytest.MonkeyPatch) -> None:
+    db = mk_db(monkeypatch, mk_fun("f", X_LT_X), mk_fun("g", X_LT_X))
+    f, g = db.decls[Uid(mk_uid("f"))], db.decls[Uid(mk_uid("g"))]
+    assert isinstance(f, FunctionDeclaration)
+    assert isinstance(g, FunctionDeclaration)
+    assert f.function.body is g.function.body
+    assert isinstance(g_type := g.function.type, ArrowType)
+    assert f.function.arguments[0].type is g_type.domain
+
+
+def test_db_shares_across_lookups(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`decls` and `find_function` convert lazily, at different times, with the DB's one memo"""
+    db = mk_db(monkeypatch, mk_fun("f", X_LT_X))
+    uid = Uid(mk_uid("f"))
+    fun = db.find_function(uid)
+    assert lib_memo.get() is None
+    decl = db.decls[uid]
+    assert isinstance(decl, FunctionDeclaration)
+    assert fun is not None
+    assert fun.body is decl.function.body
 
 
 # Memo lifetime

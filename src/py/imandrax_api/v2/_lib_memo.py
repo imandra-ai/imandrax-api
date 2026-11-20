@@ -15,6 +15,9 @@
 #   its own term;
 # - conversions of data holding many terms (e.g. `Decomposition.of_lib`) use `with_lib_memo`,
 #   so terms shared between their parts convert once too.
+# - a `DB` converts lazily, one part at a time, so it keeps one memo for its lifetime and runs
+#   each conversion with it: terms shared between declarations, rules, ... convert once in all.
+#   The memo holds the DB's lib objects, which the DB holds anyway, and their wrappers.
 #
 # Each entry also holds the lib object. That keeps it alive while the memo is, so its `id` can't
 # be reused by another object, e.g. a temporary lib object built during conversion.

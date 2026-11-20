@@ -4,12 +4,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from .._errors import ImandraXError
+from ..twirp.exceptions import TwirpServerException
+from ..v1._common import ApiVersionMismatchError, ClientClosedError, EndSessionError
+
 if TYPE_CHECKING:
     from .interface import Error, ErrorCore, Task
 
-
-class ImandraXError(Exception):
-    """Base class for errors from ImandraX requests"""
+__all__ = [
+    "ApiVersionMismatchError",
+    "ClientClosedError",
+    "ClientGoneError",
+    "EndSessionError",
+    "ImandraXError",
+    "NoClientError",
+    "NotFetchedError",
+    "ServerError",
+    "TwirpServerException",
+    "UnexpectedResponseError",
+]
 
 
 class UnexpectedResponseError(ImandraXError):
