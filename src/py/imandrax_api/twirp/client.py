@@ -23,34 +23,27 @@ class TwirpClient(object):
             headers.update(kwargs["headers"])
         kwargs["headers"] = headers
         kwargs["headers"]["Content-Type"] = "application/protobuf"
+        # twirp uses POST, which should not redirect: report a redirect, don't follow it
+        kwargs["allow_redirects"] = False
         try:
             resp = self._session.post(
                 url=self._address + url, data=request.SerializeToString(), **kwargs
             )
-            if resp.status_code == 200:
-                response = response_obj()
-                response.ParseFromString(resp.content)
-                return response
-            try:
-                raise exceptions.TwirpServerException(
-                    code=resp.status_code, 
-                    message=resp.reason,
-                    meta={"body": resp.json()}
-                )
-            except requests.JSONDecodeError:
-                raise exceptions.twirp_error_from_intermediary(
-                    resp.status_code, resp.reason, resp.headers, resp.text
-                ) from None
-            # Todo: handle error
         except requests.exceptions.Timeout as e:
             raise exceptions.TwirpServerException(
                 code=errors.Errors.DeadlineExceeded,
                 message=str(e),
                 meta={"original_exception": e},
             )
-        except requests.exceptions.ConnectionError as e:
+        except requests.exceptions.RequestException as e:
+            # a network failure: failing to connect, a dropped connection, a broken body, ...
             raise exceptions.TwirpServerException(
                 code=errors.Errors.Unavailable,
                 message=str(e),
                 meta={"original_exception": e},
             )
+        if resp.status_code == 200:
+            return exceptions.decode_response(response_obj, resp.content)
+        raise exceptions.twirp_error_of_response(
+            resp.status_code, resp.reason, resp.headers, resp.content
+        )

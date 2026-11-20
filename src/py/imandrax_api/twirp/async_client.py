@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 import aiohttp  # type: ignore[import-not-found]
 
@@ -30,33 +29,27 @@ class AsyncTwirpClient:
         kwargs["headers"] = headers
         kwargs["headers"]["Content-Type"] = "application/protobuf"
 
+        # twirp uses POST, which should not redirect: report a redirect, don't follow it
+        kwargs["allow_redirects"] = False
         try:
             async with await self._session.post(
                 url=self._address + url, data=request.SerializeToString(), **kwargs
             ) as resp:
-                if resp.status == 200:
-                    response = response_obj()
-                    response.ParseFromString(await resp.read())
-                    return response
-                try:
-                    raise exceptions.TwirpServerException(
-                        code=resp.status,
-                        message=resp.reason,
-                        meta={"body": await resp.json()},
-                    )
-                except (aiohttp.ContentTypeError, json.JSONDecodeError):
-                    raise exceptions.twirp_error_from_intermediary(
-                        resp.status, resp.reason, resp.headers, await resp.text()
-                    ) from None
+                status, reason, headers = resp.status, resp.reason, resp.headers
+                body = await resp.read()
         except asyncio.TimeoutError as e:
             raise exceptions.TwirpServerException(
                 code=errors.Errors.DeadlineExceeded,
                 message=str(e) or "request timeout",
                 meta={"original_exception": e},
             )
-        except aiohttp.ServerConnectionError as e:
+        except aiohttp.ClientError as e:
+            # a network failure: failing to connect, a dropped connection, a broken body, ...
             raise exceptions.TwirpServerException(
                 code=errors.Errors.Unavailable,
                 message=str(e),
                 meta={"original_exception": e},
             )
+        if status == 200:
+            return exceptions.decode_response(response_obj, body)
+        raise exceptions.twirp_error_of_response(status, reason, headers, body)

@@ -9,18 +9,26 @@ try:
 except ImportError:
     import json
 
+from typing import Any
+
+from google.protobuf.message import DecodeError
+
+from .._errors import ImandraXError
 from . import errors
 
 
+class TwirpServerException(ImandraXError, httplib.HTTPException):
+    """An RPC failed: the server answered with a Twirp error, or there was no usable answer"""
 
-class TwirpServerException(httplib.HTTPException):
-    def __init__(self, *, code, message, meta={}):
+    def __init__(self, *, code, message, meta={}, status=None):
         try:
             self._code = errors.Errors(code)
         except ValueError:
             self._code = errors.Errors.Unknown
         self._message = message
         self._meta = meta
+        # the HTTP status, `None` when the request failed without a response
+        self.status: int | None = status
         super(TwirpServerException, self).__init__(message, meta)
 
     @property
@@ -34,7 +42,7 @@ class TwirpServerException(httplib.HTTPException):
         return self._message
 
     @property
-    def meta(self):
+    def meta(self) -> dict[str, Any]:
         return self._meta
 
     def to_dict(self):
@@ -110,4 +118,41 @@ def twirp_error_from_intermediary(status, reason, headers, body):
         )
         meta['body'] = body
 
-    return TwirpServerException(code=code, message=message, meta=meta)
+    return TwirpServerException(code=code, message=message, meta=meta, status=status)
+
+
+def decode_response(response_obj, body):
+    """Decode the body of a 200 response; a body that doesn't decode is an `internal` error"""
+    response = response_obj()
+    try:
+        response.ParseFromString(body)
+    except DecodeError as e:
+        # e.g. an HTML page from a proxy, or a server at the wrong URL; a cut-off body fails
+        # earlier, as `unavailable`
+        raise TwirpServerException(
+            code=errors.Errors.Internal,
+            message="failed to decode the response: %s" % e,
+            meta={"original_exception": e},
+            status=200,
+        ) from e
+    return response
+
+
+def twirp_error_of_response(status, reason, headers, body):
+    """The error for a response other than 200: its Twirp JSON error, else as from an intermediary"""
+    text = body.decode(errors="replace")
+    if 300 <= status < 400:
+        # twirp uses POST, which should not redirect: an error, whatever the body
+        return twirp_error_from_intermediary(status, reason, headers, text)
+    try:
+        err = json.loads(body)
+    except ValueError:
+        err = None
+    if isinstance(err, dict) and isinstance(err.get("code"), str):
+        return TwirpServerException(
+            code=err["code"],
+            message=err.get("msg", ""),
+            meta={"body": err},
+            status=status,
+        )
+    return twirp_error_from_intermediary(status, reason, headers, text)

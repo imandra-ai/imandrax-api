@@ -19,12 +19,12 @@ from ..bindings import (
     utils_pb2,
 )
 from ..twirp.context import Context
-from ..twirp.errors import Errors
 from ..twirp.exceptions import TwirpServerException
 from . import decomp
 from ._common import (
     ClientClosedError,
     EndSessionError,
+    api_version_error,
     is_session_not_found,
     mk_context,
     url_prod,
@@ -98,27 +98,26 @@ class AsyncClient:
         )
         self._timeout = timeout
 
+    async def _create_session(self) -> session_pb2.Session:
+        try:
+            return await self._client.create_session(
+                ctx=self._ctx(),
+                request=simple_api_pb2.SessionCreateReq(
+                    api_version=api_types_version.api_types_version
+                ),
+            )
+        except TwirpServerException as ex:
+            if (err := api_version_error(ex)) is not None:
+                raise err from ex
+            raise
+
     async def __aenter__(self, *_: Any) -> Self:
         await self._session.__aenter__()
         # Guard against session creation failures to avoid leaking the HTTP transport
         try:
             if self._session_id is None:
-                try:
-                    session = await self._client.create_session(
-                        ctx=self._ctx(),
-                        request=simple_api_pb2.SessionCreateReq(
-                            api_version=api_types_version.api_types_version
-                        ),
-                    )
-                    self._sesh = session
-                    self._session_id = self._sesh.id
-                except TwirpServerException as ex:
-                    if ex.code == Errors.InvalidArgument:
-                        raise Exception(
-                            "API version mismatch. Try upgrading the imandrax-api package."
-                        ) from ex
-                    else:
-                        raise ex
+                self._sesh = await self._create_session()
+                self._session_id = self._sesh.id
             else:
                 self._sesh = session_pb2.Session(id=self._session_id)
                 try:
@@ -131,13 +130,10 @@ class AsyncClient:
                     )
                 except TwirpServerException as ex:
                     if is_session_not_found(ex) and self._create_if_not_found:
-                        self._sesh = await self._client.create_session(
-                            ctx=self._ctx(),
-                            request=simple_api_pb2.SessionCreateReq(
-                                api_version=api_types_version.api_types_version
-                            ),
-                        )
+                        self._sesh = await self._create_session()
                         self._session_id = self._sesh.id
+                    elif (err := api_version_error(ex)) is not None:
+                        raise err from ex
                     else:
                         raise
         except BaseException:
@@ -175,10 +171,12 @@ class AsyncClient:
     # Service Simple
     # ====================
 
-    async def status(self) -> utils_pb2.StringMsg:
+    async def status(self, timeout: Optional[float] = None) -> utils_pb2.StringMsg:
+        timeout = timeout or self._timeout
         return await self._client.status(
             ctx=self._ctx(),
             request=utils_pb2.Empty(),
+            timeout=timeout,
         )
 
     async def eval_src(

@@ -1244,6 +1244,7 @@ class Sequent:
     _raw: lib.Mir_Sequent = field(repr=False, compare=False)
 
     @classmethod
+    @with_lib_memo
     def of_lib(cls, x: lib.Mir_Sequent) -> Sequent:
         return cls(
             hypotheses=tuple((n, term_of_lib(t)) for (n, t) in x.hyps),
@@ -2240,6 +2241,7 @@ class Model:
     _raw: lib.Mir_Model = field(repr=False, compare=False)
 
     @classmethod
+    @with_lib_memo
     def of_lib(cls, x: lib.Mir_Model) -> Model:
         return cls(
             types=FrozenMap(
@@ -2518,8 +2520,6 @@ class DB:
         self._raw = ds
         self._storage = storage
         self._disabled: set[Uid] = set()
-        self._raw_tys: dict[Uid, lib.Mir_Type_def] = {}
-        self._raw_funs: dict[Uid, lib.Mir_Fun_def] = {}
         self._raw_decls: dict[Uid, lib.Mir_Decl] = {}
         self._raw_rw_rules: dict[PatternHead, list[lib.Mir_Rewrite_rule]] = {}
         self._raw_fc: dict[PatternHead, list[lib.Mir_Trigger]] = {}
@@ -2553,17 +2553,6 @@ class DB:
                     for d in decls:
                         uid = _decl_uid(d)
                         self._raw_decls[uid] = d
-                        match d:
-                            case lib.Common_Decl_t_poly_Fun(arg=f):
-                                self._raw_funs[uid] = f
-                            case lib.Common_Decl_t_poly_Ty(arg=ty):
-                                self._raw_tys[uid] = ty
-                            case lib.Common_Decl_t_poly_Theorem(arg=thm):
-                                self._raw_funs[uid] = thm.thm_link
-                            case lib.Common_Decl_t_poly_Rule_spec():
-                                pass
-                            case lib.Common_Decl_t_poly_Verify(arg=v):
-                                self._raw_funs[uid] = v.verify_link
                 case lib.Common_Db_op_t_poly_Op_add_rw((head, rule)):
                     self._raw_rw_rules.setdefault(pattern_head_of_lib(head), []).append(
                         rule
@@ -2603,15 +2592,26 @@ class DB:
                 case _:
                     raise UnexpectedResponseError("unknown MIR database operation")
 
+    # `_tys` and `_funs` come from the converted declarations, so lookups and `decls` give the
+    # same objects, and the declarations' lib objects convert once
     @cached_property
     def _tys(self) -> dict[Uid, TypeDefinition]:
-        return {uid: TypeDefinition.of_lib(ty) for uid, ty in self._raw_tys.items()}
+        return {
+            u: d.type for u, d in self._decls.items() if isinstance(d, TypeDeclaration)
+        }
 
     @cached_property
     def _funs(self) -> dict[Uid, FunctionDefinition]:
-        return {uid: FunctionDefinition.of_lib(f) for uid, f in self._raw_funs.items()}
+        return {
+            u: d.function
+            for u, d in self._decls.items()
+            if isinstance(
+                d, FunctionDeclaration | TheoremDeclaration | VerifyDeclaration
+            )
+        }
 
     @cached_property
+    @with_lib_memo
     def _decls(self) -> dict[Uid, Declaration]:
         return {uid: declaration_of_lib(d) for uid, d in self._raw_decls.items()}
 
@@ -2626,6 +2626,7 @@ class DB:
         return self._decls
 
     @cached_property
+    @with_lib_memo
     def rw_rules(self) -> dict[PatternHead, list[RewriteRule]]:
         """Rewrite rules, by their pattern head"""
         return {
@@ -2634,11 +2635,13 @@ class DB:
         }
 
     @cached_property
+    @with_lib_memo
     def fc(self) -> dict[PatternHead, list[Trigger]]:
         """Forward-chaining triggers, by their pattern head"""
         return {h: [Trigger.of_lib(t) for t in ts] for h, ts in self._raw_fc.items()}
 
     @cached_property
+    @with_lib_memo
     def elim(self) -> dict[PatternHead, list[EliminationRule]]:
         """Elimination rules, by their pattern head"""
         return {
@@ -2647,16 +2650,19 @@ class DB:
         }
 
     @cached_property
+    @with_lib_memo
     def gen(self) -> dict[PatternHead, list[Trigger]]:
         """Generalization triggers, by their pattern head"""
         return {h: [Trigger.of_lib(t) for t in ts] for h, ts in self._raw_gen.items()}
 
     @cached_property
+    @with_lib_memo
     def admission(self) -> dict[Uid, Admission]:
         """Admission information, by function uid"""
         return {u: Admission.of_lib(a) for u, a in self._raw_admission.items()}
 
     @cached_property
+    @with_lib_memo
     def thm_as_rw(self) -> dict[Uid, list[RewriteRule]]:
         """Rewrite rules derived from each theorem, by theorem uid"""
         return {
@@ -2665,6 +2671,7 @@ class DB:
         }
 
     @cached_property
+    @with_lib_memo
     def thm_as_fc(self) -> dict[Uid, list[InstantiationRule]]:
         """Forward-chaining rules derived from each theorem, by theorem uid"""
         return {
@@ -2673,6 +2680,7 @@ class DB:
         }
 
     @cached_property
+    @with_lib_memo
     def thm_as_elim(self) -> dict[Uid, list[EliminationRule]]:
         """Elimination rules derived from each theorem, by theorem uid"""
         return {
@@ -2681,16 +2689,19 @@ class DB:
         }
 
     @cached_property
+    @with_lib_memo
     def thm_as_gen(self) -> dict[Uid, InstantiationRule]:
         """The generalization rule derived from each theorem, by theorem uid"""
         return {u: InstantiationRule.of_lib(r) for u, r in self._raw_thm_as_gen.items()}
 
     @cached_property
+    @with_lib_memo
     def inst_rules(self) -> dict[Uid, InstantiationRule]:
         """Instantiation rules, by the uid of the function they come from"""
         return {u: InstantiationRule.of_lib(r) for u, r in self._raw_inst_rules.items()}
 
     @cached_property
+    @with_lib_memo
     def rule_spec_fc(self) -> dict[Uid, list[Trigger]]:
         """Forward-chaining triggers of each rule spec, by uid"""
         return {
@@ -2699,6 +2710,7 @@ class DB:
         }
 
     @cached_property
+    @with_lib_memo
     def rule_spec_rw_rules(self) -> dict[Uid, list[RewriteRule]]:
         """Rewrite rules of each rule spec, by uid"""
         return {

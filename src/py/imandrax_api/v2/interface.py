@@ -51,6 +51,7 @@ from imandrax_api.bindings import (
     task_pb2,
 )
 
+from ._lib_memo import with_lib_memo
 from .errors import (
     ClientGoneError,
     NoClientError,
@@ -130,9 +131,13 @@ class Client:
     ) -> None:
         self._client.__exit__(exc_type, exc_val, exc_tb)
 
-    def status(self) -> str:
-        """The server's status message"""
-        return self._client.status().msg
+    def status(self, timeout: float | None = None) -> str:
+        """The server's status message
+
+        Args:
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
+        return self._client.status(timeout=timeout).msg
 
     def eval_src(
         self,
@@ -490,9 +495,13 @@ class AsyncClient:
     ) -> None:
         await self._client.__aexit__(exc_type, exc_val, exc_tb)
 
-    async def status(self) -> str:
-        """The server's status message"""
-        return (await self._client.status()).msg
+    async def status(self, timeout: float | None = None) -> str:
+        """The server's status message
+
+        Args:
+            timeout: The HTTP request timeout, in seconds; `None` uses the client's `timeout`
+        """
+        return (await self._client.status(timeout=timeout)).msg
 
     async def eval_src(
         self,
@@ -1100,6 +1109,7 @@ class ProofObligationError:
 ProofObligationFailure = NoProof | Unsat | InvalidModel | ProofObligationError
 
 
+@with_lib_memo
 def proof_obligation_result_of_lib(
     x: lib.Tasks_PO_res_result[
         lib.Tasks_PO_res_success[lib.Mir_Term, lib.Mir_Type], lib.Mir_Term, lib.Mir_Type
@@ -1156,6 +1166,7 @@ class ProofObligationTaskResult:
         _raw: lib.Tasks_PO_res_sub_res[lib.Mir_Term] = field(repr=False, compare=False)
 
         @classmethod
+        @with_lib_memo
         def of_lib(
             cls, sr: lib.Tasks_PO_res_sub_res[lib.Mir_Term]
         ) -> ProofObligationTaskResult.Subresult:
@@ -1701,6 +1712,7 @@ class ProofObligation:
     _raw: lib.Mir_Proof_obligation = field(repr=False, compare=False)
 
     @classmethod
+    @with_lib_memo
     def of_lib(cls, po: lib.Mir_Proof_obligation) -> ProofObligation:
         vs, t = po.goal
         return cls(
@@ -2034,6 +2046,7 @@ class DecompositionRequest:
     """A description of the decomposition to compute; requests can be combined"""
 
 
+@with_lib_memo
 def decomp_request_of_lib(
     d: lib.Tasks_Decomp_task_Mir_decomp,
 ) -> DecompositionRequest.Request:
