@@ -248,6 +248,33 @@ def test_version_mismatch_on_open(server: _Server, cls: Any) -> None:
 
 
 @clients
+@pytest.mark.parametrize(
+    "kwargs",
+    [{}, {"session_id": "s"}, {"session_id": "s", "create_if_not_found": True}],
+    ids=["create", "open", "open-or-create"],
+)
+def test_version_mismatch_from_gateway(
+    server: _Server, cls: Any, kwargs: dict[str, Any]
+) -> None:
+    """The deployed gateway answers an API version it has no server for with a bare 404"""
+    for method in ("create_session", "open_session"):
+        server.routes[method] = raw(404, b"fault filter abort")
+    with pytest.raises(v2.ApiVersionMismatchError, match="upgrading") as e:
+        connect(cls, url_of(server), **kwargs)
+    assert isinstance(e.value.__cause__, TwirpServerException)
+    assert e.value.__cause__.code == Errors.BadRoute
+
+
+@clients
+def test_gateway_404_elsewhere_is_not_a_mismatch(server: _Server, cls: Any) -> None:
+    serve_session(server)
+    server.routes["status"] = raw(404, b"fault filter abort")
+    with pytest.raises(TwirpServerException) as e:
+        connect(cls, url_of(server))
+    assert e.value.code == Errors.BadRoute
+
+
+@clients
 def test_status_timeout(server: _Server, cls: Any) -> None:
     """`status` takes a timeout, which overrides the client's"""
     serve_session(server)
