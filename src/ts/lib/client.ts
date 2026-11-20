@@ -146,8 +146,11 @@ function callOptions({ timeoutMs, signal }: CallOptions): CallOptions {
   return { timeoutMs, signal };
 }
 
+// parity: ts.async_only
 /**
  * A client for the ImandraX API
+ *
+ * Every method is asynchronous, as network I/O is in JS: there is no synchronous client.
  *
  * Connect with `Client.connect`, which creates a session (or reopens one), and close it with
  * `close()` to end the session, or with `await using`:

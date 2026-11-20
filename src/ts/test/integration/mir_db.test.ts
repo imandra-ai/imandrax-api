@@ -192,6 +192,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     expect(`${addOne.type}`).toBe("int -> int");
   });
 
+  // parity: db.find_re_anchored
   test("find re matches full name from start", async () => {
     const d = await db();
     // The full name is `<short name>/<content hash>`
@@ -216,6 +217,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     expect(d.ruleSpecRwRules.get(gGt)).toHaveLength(1);
   });
 
+  // parity: db.rules_by_head
   test("theorem as forward chaining rule", async () => {
     // `theorem sum_nonneg xs = ... ==> sum xs >= 0 [@@by auto] [@@fc]`
     const d = await db();
@@ -424,6 +426,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     }
   });
 
+  // parity: mir.value_equality
   test("symbols resolve to declarations", async () => {
     const d = await db();
     const bodies = [...d.decls.values()]

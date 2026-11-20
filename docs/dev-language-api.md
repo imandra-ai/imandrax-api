@@ -15,7 +15,7 @@ clients we support.
 
 - **Adding a language**: read chapters 1 to 9 in order; chapter 10.1 is the walkthrough.
 - **Adding a feature**: chapter 10.2, then the chapter of the layer the feature lives in.
-- **Reviewing a PR**: the checklist at the end of each chapter, and Appendix A.
+- **Reviewing a PR**: the checklist at the end of each chapter, and `parity.toml` (Appendix A).
 
 ### 0.2 How to read it
 
@@ -47,7 +47,8 @@ recorded there is a bug in the client or in this document.
 | Rust       | yes          | no            | no     | `src/rust/lib`                      |
 
 OCaml is the language the API types are defined in, so its "bindings" are the types themselves.
-Rust has raw bindings only; it appears in chapter 2 and in the parity matrix.
+Rust has raw bindings only (lib types and a twine decoder, without protobuf messages or a
+conformance adapter); it appears in chapter 2.
 
 ## 1. Architecture
 
@@ -630,7 +631,8 @@ A client MAY ship with a README only. When it has more documentation, this chapt
 3. The client (chapter 4), starting with connecting, `eval_src`, `verify_src` and `decompose`.
 4. The DB and convenience features (chapters 5 and 6).
 5. Tests along the way (chapter 7), documentation (chapter 8), packaging (chapter 9).
-6. A column in Appendix A, and the language's entries in Appendix B.
+6. The language's entry in `parity.toml` (Appendix A), markers on its tests, and its
+   differences (Appendix B).
 
 The smallest useful client is steps 1 to 3 for the methods of the quickstart (8.1).
 
@@ -640,61 +642,40 @@ The smallest useful client is steps 1 to 3 for the methods of the quickstart (8.
 2. Regenerate the raw bindings of every language (2.2), and bump `API_TYPES_VERSION` if the types
    changed.
 3. Update the wrappers and the client of every full client, with tests.
-4. Update Appendix A, and Appendix B if a client differs, in the same change.
+4. List the feature in `parity.toml` (Appendix A) and mark its tests in every client, or record
+   why a client differs (Appendix B), in the same change.
 
-A feature can land in one client first; its row in Appendix A then says which clients lack it.
+A feature can land in one client first; a `missing.<client>` entry in `parity.toml` then says
+which clients lack it.
 
 ### 10.3 Reviewing a change for parity
 
 - Does the change follow this document? Is a difference from it recorded in Appendix B?
 - Are the generated files regenerated, never edited?
-- Is the feature in every full client, or marked missing in Appendix A?
+- Is the feature in every full client, or listed as missing in `parity.toml`?
 - Do the tests assert in the client's own terms?
 - Do docs and comments describe the client without reference to another client?
 
-## Appendix A. Parity matrix
+## Appendix A. Parity checks
 
-Maintained by hand, updated in the same change as a feature. ✓ done, ◐ partial, ✗ missing, n/a
-not applicable, B different on purpose (Appendix B). OCaml defines the types and is the server's
-own language, so it has no column.
+What every client must have is listed in [`parity.toml`](parity.toml), by section of this
+document, and checked in CI by `scripts/check_parity.py` (job `parity`):
 
-| Feature                                   | Python | TypeScript | Rust |
-| ----------------------------------------- | ------ | ---------- | ---- |
-| Protobuf messages (2.1)                   | ✓      | ✓          | ✗    |
-| Lib types from `genbindings` (2.2)        | ✓      | ✓          | ✓    |
-| Twine decoder, conformance adapter (2.4)  | ✓      | ✓          | ◐    |
-| `x-api-version` header (2.5)              | ✓      | ✓          | n/a  |
-| Wrapper types (3.1, 3.7)                  | ✓      | ✓          | n/a  |
-| Value equality, value maps and sets (3.3) | ✓      | B          | n/a  |
-| Memoized conversion (3.4)                 | ✓      | B          | n/a  |
-| Connecting, sessions, scoped close (4.2)  | ✓      | ✓          | n/a  |
-| RPC methods (4.3)                         | ✓      | ✓          | n/a  |
-| Synchronous client (4.4)                  | ✓      | B          | n/a  |
-| Asynchronous client (4.4)                 | ✓      | ✓          | n/a  |
-| Lazy task fetching, `set_client` (4.5)    | ✓      | ✓          | n/a  |
-| Errors (4.6)                              | ✓      | ✓          | n/a  |
-| MIR DB lookups and search (5)             | ✓      | ✓          | n/a  |
-| Printers (6.1)                            | ✓      | ✓          | n/a  |
-| `to_python` / `toJs` (6.2)                | ✓      | ✓          | n/a  |
-| Decomposition combinators (6.3)           | ✓      | B          | n/a  |
-| Region helpers, proofs, reports (6.4)     | ✓      | B          | n/a  |
-| Offline and integration tests (7)         | ✓      | ✓          | ◐    |
-| Tested documentation examples (8)         | ✓      | ✓          | n/a  |
+- every RPC of 4.3 is a method of each client, and some test of that client calls it;
+- every feature listed has a test marked with a `parity: <feature id>` comment in each client,
+  unless the client differs on purpose or has a known gap, recorded there with its reason.
+
+The check proves a marked test exists, not that it passes: the server-backed tests run in neither
+client's CI. It covers the Python (`v2`) and TypeScript clients; Rust has raw bindings only (0.4).
+What is not listed as a feature is reviewed with each chapter's checklist.
 
 ## Appendix B. Deliberate differences
 
-| Language   | Difference                                                                                                                                                                                  | Reason                                                                                                                             |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| TypeScript | fields named `constructor` are `ctor`                                                                                                                                                       | classes cannot have a field named `constructor`                                                                                    |
-| TypeScript | decomposition `let` is `let_`                                                                                                                                                               | `let` is a reserved word                                                                                                           |
-| TypeScript | server errors are `ErrorInfo`                                                                                                                                                               | not to shadow the global `Error`                                                                                                   |
-| TypeScript | value maps and sets are `ValueMap` and `ValueSet`                                                                                                                                           | JS `Map` and `Set` compare keys by identity, with no hashing protocol                                                              |
-| TypeScript | conversion memo is per lib object, for the client's lifetime                                                                                                                                | `WeakMap`s keep nothing alive; Python's generated classes cannot be weakly referenced, so Python scopes its memo to one conversion |
-| TypeScript | decoding a report from an archive is asynchronous                                                                                                                                           | it decompresses with `DecompressionStream`, which has no synchronous API                                                           |
-| TypeScript | logic fragments are a set of names, without unknown bits                                                                                                                                    | unknown bits have no name; they stay in the raw bit field                                                                          |
-| TypeScript | async client only                                                                                                                                                                           | network I/O is asynchronous in JS                                                                                                  |
-| Python     | a task holds its client weakly; fetching after the client is garbage-collected raises `ClientGoneError`                                                                                     | tasks do not keep a client alive                                                                                                   |
-| Python     | with `AsyncClient`, task data is read synchronously once fetched, and reading it before raises `NotFetchedError`; fetch with `await task.awaitable.<attribute>` or `await task.fetch_all()` | task data stays a plain attribute in both clients                                                                                  |
+Listed in [`parity.toml`](parity.toml): under a feature as `<client> = "<reason>"` when a client
+does not have it on purpose, and as a `[differences."<id>"]` entry otherwise (a name, a calling
+style). The client explains each difference in its own documentation, where users meet it (the
+declaration's doc comment), next to a `parity: <id>` comment; CI checks that every difference is
+annotated, and that every annotation names a listed difference.
 
 ## Appendix C. Glossary
 

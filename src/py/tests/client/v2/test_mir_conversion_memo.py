@@ -50,6 +50,7 @@ X_LT_X = mk_app(LT, X, X, ty=BOOL)
 # ====================
 
 
+# parity: mir.memo_same_wrapper
 def test_term_shares_subterms_and_types() -> None:
     t = term_of_lib(X_LT_X)
     assert isinstance(t, Apply)

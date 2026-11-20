@@ -181,6 +181,7 @@ def test_type_aliases_are_expanded(db: DB):
     assert str(add_one.type) == "int -> int"
 
 
+# parity: db.find_re_anchored
 def test_find_re_matches_full_name_from_start(db: DB):
     # The full name is `<short name>/<content hash>`
     assert set(db.find_function_re("sum/")) == {search_uid_by_short_name(db, "sum")}
@@ -204,6 +205,7 @@ def test_theorem_as_rewrite_rule(db: DB):
     assert len(db.rule_spec_rw_rules[g_gt]) == 1
 
 
+# parity: db.rules_by_head
 def test_theorem_as_forward_chaining_rule(db: DB):
     """`theorem sum_nonneg xs = ... ==> sum xs >= 0 [@@by auto] [@@fc]`"""
     sum_nonneg: Uid = search_uid_by_short_name(db, "sum_nonneg")
@@ -409,6 +411,7 @@ def test_lookups_agree_with_declarations(db: DB):
                 assert db.find_function(uid) == decl.function, uid
 
 
+# parity: mir.value_equality
 def test_symbols_resolve_to_declarations(db: DB):
     bodies = [
         d.function.body for d in db.decls.values() if not isinstance(d, TypeDeclaration)
@@ -468,6 +471,7 @@ def test_rules_refer_to_theorems(db: DB):
 # ====================
 
 
+# parity: mir.value_equality
 def test_every_declaration_converts_from_raw_lib_types(db: DB):
     assert len(db.decls) > 100
     for uid, decl in db.decls.items():

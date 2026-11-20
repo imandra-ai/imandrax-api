@@ -68,6 +68,7 @@ def test_task_without_client_raises_on_fetch():
 # ======
 
 
+# parity: task.id_value_equality
 def test_tasks_are_equal_iff_ids_are_equal(mk_client: Callable[[], Client]):
     def mk_pb_task(
         id: str, kind: task_pb2.TaskKind = task_pb2.TASK_CHECK_PO
@@ -138,6 +139,7 @@ def test_access_kill_access_derived_from_same_artifact(mk_client: Callable[[], C
         _ = po.result
 
 
+# parity: task.set_client
 def test_kill_set_client_access(mk_client: Callable[[], Client]):
     """A task whose client is gone fetches with another client"""
 
@@ -183,6 +185,7 @@ def test_async_access_before_fetch_raises(mk_async_client: Callable[[], AsyncCli
     asyncio.run(main())
 
 
+# parity: task.fetch_once_shared
 def test_async_awaitable_fetches_then_plain_access(
     mk_async_client: Callable[[], AsyncClient],
 ):
@@ -215,6 +218,7 @@ def test_async_fetch_all(mk_async_client: Callable[[], AsyncClient]):
     asyncio.run(main())
 
 
+# parity: task.readable_after_close
 def test_async_access_kill_access_again(mk_async_client: Callable[[], AsyncClient]):
     async def main() -> None:
         client = mk_async_client()
@@ -239,6 +243,7 @@ def test_async_access_kill_access_again(mk_async_client: Callable[[], AsyncClien
     asyncio.run(main())
 
 
+# parity: task.fetch_once_shared
 def test_async_concurrent_accesses_share_one_fetch(
     mk_async_client: Callable[[], AsyncClient],
 ):

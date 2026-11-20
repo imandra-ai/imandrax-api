@@ -97,6 +97,7 @@ export function get(name: string): Decomp {
   return simplePb.DecomposeReqFull_Decomp.fromPartial({ get: { name } });
 }
 
+// parity: ts.let_
 /**
  * Bind each decomposition in `bindings` to its name, then evaluate `andThen` (`let` is reserved
  * in JS)

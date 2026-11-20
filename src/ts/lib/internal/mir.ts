@@ -46,6 +46,7 @@
 // the decoder did not share), and users can build keys themselves (`new Uid(...)`).
 //
 //
+// parity: ts.memo_lifetime
 // Note [Lib memo]
 // ~~~~~~~~~~~~~~~
 // The twine decoder returns one lib object for every reference to a shared term or type, so lib
@@ -168,8 +169,12 @@ Value maps and sets
 ===================
 */
 
+// parity: ts.value_map
 /**
  * A map whose keys are compared by value, through a structural string
+ *
+ * JS `Map` compares keys by identity, with no hashing protocol, so maps keyed by uids, types, ...
+ * are `ValueMap`s (and sets of them are `ValueSet`s).
  *
  * Setting a key equal to an existing one replaces the value, and keeps the existing key and its
  * position.
@@ -852,6 +857,7 @@ export class TupleType extends TypeBase {
   }
 }
 
+// parity: ts.ctor
 /**
  * A type constructor applied to type arguments, e.g. `int list`
  *

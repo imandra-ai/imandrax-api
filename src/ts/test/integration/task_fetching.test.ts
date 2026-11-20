@@ -28,6 +28,7 @@ function recordFetches(client: Client): string[] {
 }
 
 describe.skipIf(noApiKey)("task fetching", () => {
+  // parity: task.id_value_equality
   test("the same source in two sessions gives tasks with equal ids", async () => {
     await using c1 = await mkClient();
     await using c2 = await mkClient();
@@ -40,6 +41,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
     expect(other.tasks.some((t) => ids.has(String(t.id)))).toBe(false);
   });
 
+  // parity: task.fetch_after_close_raises
   test("fetching after the client is closed rejects", async () => {
     const client = await mkClient();
     const po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
@@ -48,6 +50,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
     await expect(po.result()).rejects.toBeInstanceOf(ClientClosedError);
   });
 
+  // parity: task.readable_after_close
   test("what was fetched stays available after the client is closed", async () => {
     const client = await mkClient();
     const po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
@@ -58,6 +61,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
     expect(await po.result()).toBe(res);
   });
 
+  // parity: task.readable_after_close
   test("what is derived from a fetched artifact stays available", async () => {
     const client = await mkClient();
     const po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
@@ -70,6 +74,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
     await expect(po.result()).rejects.toBeInstanceOf(ClientClosedError);
   });
 
+  // parity: task.set_client
   test("a task fetches with another client after setClient", async () => {
     let po: ProofObligationTask;
     {
@@ -86,6 +91,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
     expect(await po.result()).toBeInstanceOf(ProofObligationTaskResult);
   });
 
+  // parity: task.fetch_once_shared
   test("fetchAll fetches every artifact once", async () => {
     await using client = await mkClient();
     const po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
@@ -96,6 +102,7 @@ describe.skipIf(noApiKey)("task fetching", () => {
     expect(fetched.sort()).toEqual(["po_res", "po_task"]);
   });
 
+  // parity: task.fetch_once_shared
   test("concurrent calls share one fetch", async () => {
     await using client = await mkClient();
     const po = theTask((await client.evalSrc(SRC)).tasks, ProofObligationTask);
