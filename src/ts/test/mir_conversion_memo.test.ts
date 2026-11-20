@@ -58,6 +58,7 @@ function mkAssume(concl: RawTerm, id: bigint): RawProofTerm {
 }
 
 describe("terms", () => {
+  // parity: mir.memo_same_wrapper
   test("a term shares its subterms and types", () => {
     const t = termOfLib(X_LT_X);
     expect(t).toBeInstanceOf(Apply);

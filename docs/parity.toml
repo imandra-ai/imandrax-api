@@ -1,0 +1,147 @@
+# Client parity: what every language client must have, by section of docs/dev-language-api.md.
+# Checked in CI by `python3 scripts/check_parity.py docs/parity.toml` (job `parity`):
+#
+# - every RPC in src/proto, except those in `rpc.not_a_method`, is a method of each client, and
+#   some test of that client calls it;
+# - every feature has a test marked with a `parity: <feature id>` comment in each client, unless
+#   the client has a deliberate difference or a known gap for it (below).
+#
+# The check proves a marked test exists, not that it passes: the server-backed tests run in
+# neither client's CI.
+#
+# A feature table holds:
+#   spec = "<section>"          the section of docs/dev-language-api.md that requires it
+#   <client> = "<reason>"       a deliberate difference: the client does not have it, on purpose
+#   missing.<client> = "<why>"  a known gap, to be fixed; delete the entry when a marked test lands
+# A client with a difference or a gap must not have a marked test for the feature.
+#
+# `[[differences]]` lists the other deliberate differences: a name, a calling style, ...
+# (docs/dev-language-api.md, Appendix B).
+
+[clients.py]
+src = "src/py/imandrax_api/v2/interface.py"
+tests = "src/py/tests/client"
+ext = ".py"
+case = "snake"
+# a method definition; {name} is the RPC name, spelled per `case`
+method = '^\s*(async\s+)?def\s+{name}\s*\('
+
+[clients.ts]
+src = "src/ts/lib/client.ts"
+tests = "src/ts/test"
+ext = ".ts"
+case = "camel"
+method = '^\s*async\s+{name}\s*\('
+
+[rpc]
+# 4.3: session RPCs are part of connecting and closing; the others must not be methods
+not_a_method = [
+  "create_session",
+  "open_session",
+  "end_session",
+  "qcheck_src",
+  "qcheck_name",
+  "get_decls",
+  "gc_stats",
+  "release_memory",
+  "shutdown",
+]
+
+# 3.3: uids, types, ... compare by value, and maps keyed by them find an entry from any equal key
+# (a uid in a term finds its declaration in the DB)
+[features."mir.value_equality"]
+spec = "3.3"
+
+# 3.4: converting the same lib object twice within a conversion gives the same wrapper object
+[features."mir.memo_same_wrapper"]
+spec = "3.4"
+
+# 4.2: closing ends the session once, also when repeated, and with the scoped-resource construct
+[features."client.close_once"]
+spec = "4.2"
+
+# 4.2: a server rejecting the client's API version is an error telling the user to upgrade
+[features."client.api_version_mismatch"]
+spec = "4.2"
+missing.py = "v2 has no API version mismatch error"
+
+# 4.5: task data is fetched at most once, and concurrent first reads share one fetch
+[features."task.fetch_once_shared"]
+spec = "4.5"
+
+# 4.5: what was fetched, and what is decoded from it later, stays readable after the client closes
+[features."task.readable_after_close"]
+spec = "4.5"
+
+# 4.5: fetching something new after the client is closed raises the closed-client error
+[features."task.fetch_after_close_raises"]
+spec = "4.5"
+missing.py = "v2 has no closed-client error; only a fetch after the client is garbage-collected is tested (ClientGoneError)"
+
+# 4.5: a task fetches with another client
+[features."task.set_client"]
+spec = "4.5"
+
+# 4.5: task ids compare by value; the same source in two sessions gives equal ids
+[features."task.id_value_equality"]
+spec = "4.5"
+
+# 5.2: `find_*_re` matches the uid's full name from its start
+[features."db.find_re_anchored"]
+spec = "5.2"
+
+# 5.2: rules are available keyed by pattern head
+[features."db.rules_by_head"]
+spec = "5.2"
+
+# Deliberate differences that are not a missing feature
+
+[[differences]]
+client = "ts"
+what = "fields named `constructor` are `ctor`"
+why = "classes cannot have a field named `constructor`"
+
+[[differences]]
+client = "ts"
+what = "decomposition `let` is `let_`"
+why = "`let` is a reserved word"
+
+[[differences]]
+client = "ts"
+what = "server errors are `ErrorInfo`"
+why = "not to shadow the global `Error`"
+
+[[differences]]
+client = "ts"
+what = "value maps and sets are `ValueMap` and `ValueSet`"
+why = "JS `Map` and `Set` compare keys by identity, with no hashing protocol"
+
+[[differences]]
+client = "ts"
+what = "conversion memo is per lib object, for the client's lifetime"
+why = "`WeakMap`s keep nothing alive; Python's generated classes cannot be weakly referenced, so Python scopes its memo to one conversion"
+
+[[differences]]
+client = "ts"
+what = "decoding a report from an archive is asynchronous"
+why = "it decompresses with `DecompressionStream`, which has no synchronous API"
+
+[[differences]]
+client = "ts"
+what = "logic fragments are a set of names, without unknown bits"
+why = "unknown bits have no name; they stay in the raw bit field"
+
+[[differences]]
+client = "ts"
+what = "async client only"
+why = "network I/O is asynchronous in JS"
+
+[[differences]]
+client = "py"
+what = "a task holds its client weakly; fetching after the client is garbage-collected raises `ClientGoneError`"
+why = "tasks do not keep a client alive"
+
+[[differences]]
+client = "py"
+what = "with `AsyncClient`, task data is read synchronously once fetched, and reading it before raises `NotFetchedError`; fetch with `await task.awaitable.<attribute>` or `await task.fetch_all()`"
+why = "task data stays a plain attribute in both clients"

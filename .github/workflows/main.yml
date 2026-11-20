@@ -46,6 +46,13 @@ jobs:
     - name: cargo build
       run: cargo build
       working-directory: src/rust/lib
+  parity:
+    # every client has what docs/dev-language-api.md requires, as listed in docs/parity.toml
+    name: client parity
+    runs-on: [ubuntu-latest]
+    steps:
+    - uses: actions/checkout@main
+    - run: python3 scripts/check_parity.py docs/parity.toml
   twine-conformance:
     # one job per decoder, so a red job names the decoder that fails
     name: twine-conformance (${{ matrix.decoder }} decoder)

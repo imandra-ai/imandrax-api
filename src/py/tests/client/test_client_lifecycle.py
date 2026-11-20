@@ -124,6 +124,7 @@ def test_async_end_session_failure_keeps_body_exception() -> None:
     asyncio.run(go())
 
 
+# parity: client.close_once
 def test_async_happy_path_ends_session_and_closes_transport() -> None:
     calls: list[str] = []
 

@@ -161,6 +161,7 @@ describe("Uid", () => {
     expect(cn([1, 2], true).equals(cn([1, 2], false))).toBe(false);
   });
 
+  // parity: mir.value_equality
   test("uid sets and maps compare keys by value", () => {
     const s = uidSet([new Uid(uid("a")), new Uid(uid("a")), new Uid(uid("b"))]);
     expect(s.size).toBe(2);

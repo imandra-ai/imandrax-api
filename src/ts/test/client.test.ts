@@ -65,6 +65,7 @@ describe("connect", () => {
     expect(server.requests[0]!.headers.has("authorization")).toBe(false);
   });
 
+  // parity: client.api_version_mismatch
   test("an invalid_argument on create_session is an API version mismatch", async () => {
     server.on(`${SIMPLE}/create_session`, () => twirpError(400, "invalid_argument", "bad version"));
     const err = await Client.connect().catch((e: unknown) => e);
@@ -109,6 +110,7 @@ describe("connect", () => {
 });
 
 describe("close", () => {
+  // parity: client.close_once
   test("ends the session once; later calls throw ClientClosedError", async () => {
     server.withSessions("s1");
     const c = await Client.connect();
@@ -119,6 +121,7 @@ describe("close", () => {
     await expect(c.status()).rejects.toBeInstanceOf(ClientClosedError);
   });
 
+  // parity: client.close_once
   test("concurrent calls end the session once", async () => {
     server.withSessions("s1");
     const c = await Client.connect();
@@ -163,6 +166,7 @@ describe("close", () => {
     expect(server.calls(`${SIMPLE}/end_session`)).toHaveLength(2);
   });
 
+  // parity: client.close_once
   test("await using ends the session, keeping the body's error", async () => {
     server
       .withSessions("s1")
