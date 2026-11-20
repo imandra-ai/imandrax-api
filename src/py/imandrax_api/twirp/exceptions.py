@@ -127,7 +127,8 @@ def decode_response(response_obj, body):
     try:
         response.ParseFromString(body)
     except DecodeError as e:
-        # e.g. an HTML or truncated body, from an intermediary or a dropped connection
+        # e.g. an HTML page from a proxy, or a server at the wrong URL; a cut-off body fails
+        # earlier, as `unavailable`
         raise TwirpServerException(
             code=errors.Errors.Internal,
             message="failed to decode the response: %s" % e,
