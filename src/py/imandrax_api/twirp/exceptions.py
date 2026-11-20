@@ -138,20 +138,20 @@ def decode_response(response_obj, body):
 
 
 def twirp_error_of_response(status, reason, headers, body):
-    """The error for a non-200 response: its Twirp JSON error, else as from an intermediary"""
-    # a redirect is an error, whatever its body (twirp uses POST, which should not redirect)
-    if not 300 <= status < 400:
-        try:
-            err = json.loads(body)
-        except ValueError:
-            err = None
-        if isinstance(err, dict) and isinstance(err.get("code"), str):
-            return TwirpServerException(
-                code=err["code"],
-                message=err.get("msg", ""),
-                meta={"body": err},
-                status=status,
-            )
-    return twirp_error_from_intermediary(
-        status, reason, headers, body.decode(errors="replace")
-    )
+    """The error for a response other than 200: its Twirp JSON error, else as from an intermediary"""
+    text = body.decode(errors="replace")
+    if 300 <= status < 400:
+        # twirp uses POST, which should not redirect: an error, whatever the body
+        return twirp_error_from_intermediary(status, reason, headers, text)
+    try:
+        err = json.loads(body)
+    except ValueError:
+        err = None
+    if isinstance(err, dict) and isinstance(err.get("code"), str):
+        return TwirpServerException(
+            code=err["code"],
+            message=err.get("msg", ""),
+            meta={"body": err},
+            status=status,
+        )
+    return twirp_error_from_intermediary(status, reason, headers, text)
