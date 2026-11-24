@@ -223,6 +223,11 @@ describe("constants", () => {
     const t = termOfLib(constTerm(new lib.Const_Const_q([4n, 2n]), REAL));
     expect(`${t}`).toBe("2/1");
   });
+
+  test("uid constants print with their full name", () => {
+    const t = termOfLib(constTerm(new lib.Const_Const_uid(genUid("f", 3n)), ty("uid")));
+    expect(`${t}`).toBe("f/3");
+  });
 });
 
 describe("types", () => {

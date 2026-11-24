@@ -592,7 +592,7 @@ export class UidConst {
   ) {}
 
   toString(): string {
-    return this.uid.shortName;
+    return this.uid.fullName;
   }
 }
 

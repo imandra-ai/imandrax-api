@@ -224,7 +224,7 @@ describe.skipIf(noApiKey)("task data", () => {
     expect(term.arguments.map(str)).toEqual([
       "(Decomp.top None None None Some false None None ())",
       "Decomp.prune",
-      "f",
+      "f/<hash>",
     ]);
     expectSymbolsDeclaredIn(term, db);
 
