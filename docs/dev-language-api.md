@@ -659,9 +659,12 @@ A feature can land in one client first; its row in Appendix A then says which cl
 
 ## Appendix A. Parity matrix
 
-Maintained by hand, updated in the same change as a feature. ✓ done, ◐ partial, ✗ missing, n/a
-not applicable, B different on purpose (Appendix B). OCaml defines the types and is the server's
-own language, so it has no column.
+Maintained by hand, updated in the same change as a feature. Nothing checks it automatically, so a
+row can lag behind the code. The whole matrix was last checked against the code on 2026-11-24
+(#205). 
+
+✓ done, ◐ partial, ✗ missing, n/a not applicable, B different on purpose (Appendix B).
+OCaml defines the types and is the server's own language, so it has no column.
 
 | Feature                                   | Python | TypeScript | Rust |
 | ----------------------------------------- | ------ | ---------- | ---- |
