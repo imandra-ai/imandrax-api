@@ -13,7 +13,10 @@ import { version as apiTypesVersion } from "../version.js";
  * @group Method options
  */
 export interface CallOptions {
-  /** The HTTP request timeout, in milliseconds; defaults to the client's `timeoutMs` */
+  /**
+   * The HTTP request timeout, in milliseconds, or `Infinity` for none; defaults to the client's
+   * `timeoutMs`
+   */
   timeoutMs?: number | undefined;
   /** Aborts the request; it then rejects with the signal's reason */
   signal?: AbortSignal | undefined;
@@ -23,6 +26,23 @@ export interface CallOptions {
 export interface MessageType<T> {
   encode(message: T): { finish(): Uint8Array };
   decode(input: Uint8Array): T;
+}
+
+// `AbortSignal.timeout` takes at most 2^31 - 1 ms: a larger delay overflows to 1 ms
+const MAX_TIMEOUT_MS = 2 ** 31 - 1;
+
+/**
+ * `timeoutMs` as `AbortSignal.timeout` takes it: rounded up to a whole number of milliseconds,
+ * and `undefined` for no timeout (`Infinity`, or longer than `AbortSignal.timeout` allows)
+ *
+ * @throws RangeError unless `timeoutMs` is a positive number
+ */
+export function checkTimeoutMs(timeoutMs: number): number | undefined {
+  if (typeof timeoutMs !== "number" || !(timeoutMs > 0)) {
+    throw new RangeError(`timeoutMs must be a positive number or Infinity, got ${timeoutMs}`);
+  }
+  const ms = Math.ceil(timeoutMs);
+  return ms > MAX_TIMEOUT_MS ? undefined : ms;
 }
 
 export interface TransportOptions {
@@ -51,7 +71,8 @@ export class Transport {
   readonly #url: string;
   readonly #serverPathPrefix: string;
   readonly #authToken: string | undefined;
-  readonly timeoutMs: number;
+  // the default timeout, checked; `undefined` for none
+  readonly #timeoutMs: number | undefined;
   readonly #fetch: typeof fetch | undefined;
   /**
    * Cookies set by the server, sent back with every request until they expire, like a
@@ -63,7 +84,7 @@ export class Transport {
     this.#url = opts.url;
     this.#serverPathPrefix = opts.serverPathPrefix;
     this.#authToken = opts.authToken;
-    this.timeoutMs = opts.timeoutMs;
+    this.#timeoutMs = checkTimeoutMs(opts.timeoutMs);
     this.#fetch = opts.fetch;
   }
 
@@ -93,9 +114,11 @@ export class Transport {
     // encoded before the request: an invalid request is the caller's error, not a network failure
     const reqBody = reqType.encode(request).finish();
 
-    const timeoutSignal = AbortSignal.timeout(opts.timeoutMs ?? this.timeoutMs);
-    const signal =
-      opts.signal === undefined ? timeoutSignal : AbortSignal.any([opts.signal, timeoutSignal]);
+    const timeoutMs =
+      opts.timeoutMs === undefined ? this.#timeoutMs : checkTimeoutMs(opts.timeoutMs);
+    const timeoutSignal = timeoutMs === undefined ? undefined : AbortSignal.timeout(timeoutMs);
+    const signals = [opts.signal, timeoutSignal].filter((s) => s !== undefined);
+    const signal = signals.length <= 1 ? signals[0] : AbortSignal.any(signals);
 
     // called as a plain function: a browser's `fetch` throws when called as another object's method
     const fetchFn = this.#fetch ?? fetch;
@@ -116,7 +139,7 @@ export class Transport {
       // a caller's abort rejects with its own reason; a timeout and network failures become
       // Twirp errors
       if (opts.signal?.aborted) throw opts.signal.reason;
-      if (timeoutSignal.aborted) {
+      if (timeoutSignal?.aborted) {
         throw new TwirpError("deadline_exceeded", `${service}/${method} timed out`, { cause: e });
       }
       throw new TwirpError("unavailable", String(e), { cause: e });

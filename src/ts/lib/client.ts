@@ -54,7 +54,10 @@ export interface ConnectOptions {
   authToken?: string | undefined;
   /** The API key to authenticate with */
   apiKey?: string | undefined;
-  /** The HTTP request timeout, in milliseconds, of calls without their own; 30s by default */
+  /**
+   * The HTTP request timeout, in milliseconds, or `Infinity` for none, of calls without their
+   * own; 30s by default
+   */
   timeoutMs?: number | undefined;
   /** The session to reopen; a new one is created if not given */
   sessionId?: string | undefined;

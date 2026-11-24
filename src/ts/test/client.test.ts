@@ -219,6 +219,35 @@ describe("transport", () => {
     await expect(c.status()).rejects.toMatchObject({ code: "deadline_exceeded" });
   });
 
+  test("timeoutMs Infinity, or longer than a timer allows, is no timeout", async () => {
+    const slow = () =>
+      new Promise<ReturnType<typeof ok>>((resolve) =>
+        setTimeout(() => resolve(ok(utilsPb.StringMsg, { msg: "ok" })), 50),
+      );
+    server.withSessions().on(`${SIMPLE}/status`, slow);
+    const c = await Client.connect({ timeoutMs: 20 });
+    expect(await c.status({ timeoutMs: Infinity })).toBe("ok");
+    // `AbortSignal.timeout` would overflow this to 1 ms
+    expect(await c.status({ timeoutMs: 3_000_000_000 })).toBe("ok");
+    const d = await Client.connect({ timeoutMs: Infinity });
+    expect(await d.status()).toBe("ok");
+  });
+
+  test("a fractional timeoutMs is rounded up", async () => {
+    server.withSessions().on(`${SIMPLE}/status`, () => ok(utilsPb.StringMsg, { msg: "ok" }));
+    const c = await Client.connect({ timeoutMs: 1000.5 });
+    expect(await c.status({ timeoutMs: 1000.5 })).toBe("ok");
+  });
+
+  test.each([0, -1, NaN])("timeoutMs %s is a RangeError", async (timeoutMs) => {
+    server.withSessions().on(`${SIMPLE}/status`, () => ok(utilsPb.StringMsg, { msg: "ok" }));
+    await expect(Client.connect({ timeoutMs })).rejects.toThrow(RangeError);
+    expect(server.requests).toHaveLength(0);
+    const c = await Client.connect();
+    await expect(c.status({ timeoutMs })).rejects.toThrow(/timeoutMs/);
+    expect(server.calls(`${SIMPLE}/status`)).toHaveLength(0);
+  });
+
   test("an abort rejects with the signal's reason", async () => {
     server.withSessions().on(`${SIMPLE}/status`, () => new Promise(() => {}));
     const c = await Client.connect();
