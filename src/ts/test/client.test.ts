@@ -229,6 +229,23 @@ describe("transport", () => {
     await expect(p).rejects.toBe(reason);
   });
 
+  test("makes every request with the given fetch", async () => {
+    server.withSessions().on(`${SIMPLE}/status`, () => ok(utilsPb.StringMsg, { msg: "ok" }));
+    const urls: string[] = [];
+    const myFetch: typeof fetch = (input, init) => {
+      urls.push(String(input));
+      return fetch(input, init);
+    };
+    const c = await Client.connect({ fetch: myFetch });
+    expect(await c.status()).toBe("ok");
+    await c.close();
+    expect(urls.map((u) => new URL(u).pathname.split("/").at(-1))).toEqual([
+      "create_session",
+      "status",
+      "end_session",
+    ]);
+  });
+
   test("a network failure is unavailable", async () => {
     server.withSessions();
     const c = await Client.connect();

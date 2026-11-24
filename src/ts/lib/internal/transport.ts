@@ -30,6 +30,8 @@ export interface TransportOptions {
   serverPathPrefix: string;
   authToken?: string | undefined;
   timeoutMs: number;
+  /** The `fetch` to make requests with; the global `fetch`, looked up at each request, by default */
+  fetch?: typeof fetch | undefined;
 }
 
 // The status code an intermediary (e.g. a proxy) answered with, as a Twirp code; see
@@ -50,6 +52,7 @@ export class Transport {
   readonly #serverPathPrefix: string;
   readonly #authToken: string | undefined;
   readonly timeoutMs: number;
+  readonly #fetch: typeof fetch | undefined;
   /**
    * Cookies set by the server, sent back with every request until they expire, like a
    * `requests.Session`; `expiresAt` is in ms since the epoch, `undefined` for a session cookie
@@ -61,6 +64,7 @@ export class Transport {
     this.#serverPathPrefix = opts.serverPathPrefix;
     this.#authToken = opts.authToken;
     this.timeoutMs = opts.timeoutMs;
+    this.#fetch = opts.fetch;
   }
 
   /** Call `service.method` with `request`, decoding the reply as `resType` */
@@ -90,10 +94,12 @@ export class Transport {
     const signal =
       opts.signal === undefined ? timeoutSignal : AbortSignal.any([opts.signal, timeoutSignal]);
 
+    // called as a plain function: a browser's `fetch` throws when called as another object's method
+    const fetchFn = this.#fetch ?? fetch;
     let resp: Response;
     let body: Uint8Array;
     try {
-      resp = await fetch(url, {
+      resp = await fetchFn(url, {
         method: "POST",
         headers,
         body: reqType.encode(request).finish(),

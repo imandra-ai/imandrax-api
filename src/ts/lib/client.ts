@@ -62,6 +62,11 @@ export interface ConnectOptions {
   createIfNotFound?: boolean | undefined;
   /** Aborts connecting */
   signal?: AbortSignal | undefined;
+  /**
+   * The `fetch` to make requests with, e.g. one going through a proxy; the global `fetch` by
+   * default. It must support `redirect: "manual"` and `AbortSignal`s.
+   */
+  fetch?: typeof fetch | undefined;
 }
 
 /** @group Method options */
@@ -182,6 +187,7 @@ export class Client {
       serverPathPrefix: options.serverPathPrefix ?? "/api/v1",
       authToken: options.apiKey || options.authToken,
       timeoutMs: options.timeoutMs ?? 30_000,
+      fetch: options.fetch,
     });
     const callOpts: CallOptions = { signal: options.signal };
 
