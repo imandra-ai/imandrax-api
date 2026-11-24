@@ -335,6 +335,27 @@ describe("transport", () => {
 });
 
 describe("requests", () => {
+  test("an option that cannot be encoded is a RangeError naming it, and sends nothing", async () => {
+    server.withSessions();
+    const c = await Client.connect();
+    const cases: [() => Promise<unknown>, RegExp][] = [
+      [() => c.decompose("f", { computeTimeout: 1.5 }), /decompose: computeTimeout/],
+      [() => c.decompose("f", { computeTimeout: 2 ** 31 }), /decompose: computeTimeout/],
+      [
+        () => c.decomposeFull(decomp.byName("f"), { computeTimeout: 1.5 }),
+        /decomposeFull: computeTimeout/,
+      ],
+      [() => c.testSrc("fun x -> x + 1 > x", { seed: 1.5 }), /testSrc: seed/],
+      [() => c.testName("p", { seed: 2 ** 53 }), /testName: seed/],
+    ];
+    for (const [f, msg] of cases) {
+      const err = await f().catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(RangeError);
+      expect((err as Error).message).toMatch(msg);
+    }
+    expect(server.requests.map((r) => r.path.split("/").at(-1))).toEqual(["create_session"]);
+  });
+
   test("evalSrc leaves unset options unset", async () => {
     server
       .withSessions("s")

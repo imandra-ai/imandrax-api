@@ -146,6 +146,32 @@ const EVAL = "imandrax.api.Eval";
 const SESSION_MANAGER = "imandrax.session.SessionManager";
 const SYSTEM = "imandrax.system.System";
 
+// The ranges of the integer types of request fields: a JS number outside them, or not an integer,
+// fails to encode
+const INT32 = { min: -(2 ** 31), max: 2 ** 31 - 1, what: "a 32-bit integer" };
+const SAFE_INT = {
+  min: Number.MIN_SAFE_INTEGER,
+  max: Number.MAX_SAFE_INTEGER,
+  what: "a safe integer",
+};
+
+/**
+ * `x`, the option `name` of `method`, checked to be an integer of `range`
+ *
+ * @throws RangeError otherwise
+ */
+function intOption(
+  method: string,
+  name: string,
+  x: number | undefined,
+  range: { min: number; max: number; what: string },
+): number | undefined {
+  if (x !== undefined && !(Number.isInteger(x) && x >= range.min && x <= range.max)) {
+    throw new RangeError(`${method}: ${name} must be ${range.what}, got ${x}`);
+  }
+  return x;
+}
+
 /** The transport options of `options`, dropping the method-specific ones */
 function callOptions({ timeoutMs, signal }: CallOptions): CallOptions {
   return { timeoutMs, signal };
@@ -345,7 +371,7 @@ export class Client {
       ctxSimp: options.ctxSimp,
       liftBool: liftBoolToPb(options.liftBool),
       stringResults: options.stringResults,
-      timeout: options.computeTimeout,
+      timeout: intOption("decompose", "computeTimeout", options.computeTimeout, INT32),
     });
     const res = await this.#call(
       SIMPLE,
@@ -369,7 +395,7 @@ export class Client {
       session: this.#session,
       decomp: d,
       stringResults: options.stringResults,
-      timeout: options.computeTimeout,
+      timeout: intOption("decomposeFull", "computeTimeout", options.computeTimeout, INT32),
     });
     const res = await this.#call(
       SIMPLE,
@@ -460,7 +486,7 @@ export class Client {
       session: this.#session,
       src,
       // proto3 has no unset int: 0 is what an unset seed is sent as
-      seed: options.seed ?? 0,
+      seed: intOption("testSrc", "seed", options.seed, SAFE_INT) ?? 0,
     });
     const res = await this.#call(
       SIMPLE,
@@ -479,7 +505,7 @@ export class Client {
       session: this.#session,
       name,
       // proto3 has no unset int: 0 is what an unset seed is sent as
-      seed: options.seed ?? 0,
+      seed: intOption("testName", "seed", options.seed, SAFE_INT) ?? 0,
     });
     const res = await this.#call(
       SIMPLE,

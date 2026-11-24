@@ -90,6 +90,9 @@ export class Transport {
       headers["Cookie"] = cookies.join("; ");
     }
 
+    // encoded before the request: an invalid request is the caller's error, not a network failure
+    const reqBody = reqType.encode(request).finish();
+
     const timeoutSignal = AbortSignal.timeout(opts.timeoutMs ?? this.timeoutMs);
     const signal =
       opts.signal === undefined ? timeoutSignal : AbortSignal.any([opts.signal, timeoutSignal]);
@@ -102,7 +105,7 @@ export class Transport {
       resp = await fetchFn(url, {
         method: "POST",
         headers,
-        body: reqType.encode(request).finish(),
+        body: reqBody,
         // Twirp uses POST, which should not redirect: report a redirect, don't follow it
         redirect: "manual",
         signal,
