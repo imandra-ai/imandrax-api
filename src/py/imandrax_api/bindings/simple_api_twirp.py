@@ -163,3 +163,21 @@ class SimpleClient(TwirpClient):
 			response_obj=_sym_db.GetSymbol("imandrax.simple.OneshotRes"),
 			**kwargs,
 		)
+
+	def task_progress(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/task_progress",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("imandrax.simple.TaskProgressRsp"),
+			**kwargs,
+		)
+
+	def cancel_task(self, *args, ctx, request, **kwargs):
+		return self._make_request(
+			url=F"{self._server_path_prefix}/imandrax.simple.Simple/cancel_task",
+			ctx=ctx,
+			request=request,
+			response_obj=_sym_db.GetSymbol("Empty"),
+			**kwargs,
+		)

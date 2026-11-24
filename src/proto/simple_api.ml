@@ -332,6 +332,21 @@ type get_decls_res = {
   mutable not_found : string list;
 }
 
+type task_progress_req = {
+  mutable task : Task.task_id option;
+}
+
+type task_progress_rsp = {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 3 fields *)
+  mutable state : string;
+  mutable percentage : int32;
+  mutable message : string;
+}
+
+type cancel_task_req = {
+  mutable task : Task.task_id option;
+}
+
 let default_session_create_req (): session_create_req =
 {
   _presence=Pbrt.Bitfield.empty;
@@ -669,6 +684,24 @@ let default_get_decls_res (): get_decls_res =
 {
   decls=[];
   not_found=[];
+}
+
+let default_task_progress_req (): task_progress_req =
+{
+  task=None;
+}
+
+let default_task_progress_rsp (): task_progress_rsp =
+{
+  _presence=Pbrt.Bitfield.empty;
+  state="";
+  percentage=0l;
+  message="";
+}
+
+let default_cancel_task_req (): cancel_task_req =
+{
+  task=None;
 }
 
 
@@ -1859,6 +1892,71 @@ let make_get_decls_res
   get_decls_res_set_not_found _res not_found;
   _res
 
+let[@inline] task_progress_req_has_task (self:task_progress_req) : bool = self.task != None
+
+let[@inline] task_progress_req_set_task (self:task_progress_req) (x:Task.task_id) : unit =
+  self.task <- Some x
+
+let copy_task_progress_req (self:task_progress_req) : task_progress_req =
+  { self with task = self.task }
+
+let make_task_progress_req 
+  ?(task:Task.task_id option)
+  () : task_progress_req  =
+  let _res = default_task_progress_req () in
+  (match task with
+  | None -> ()
+  | Some v -> task_progress_req_set_task _res v);
+  _res
+
+let[@inline] task_progress_rsp_has_state (self:task_progress_rsp) : bool = (Pbrt.Bitfield.get self._presence 0)
+let[@inline] task_progress_rsp_has_percentage (self:task_progress_rsp) : bool = (Pbrt.Bitfield.get self._presence 1)
+let[@inline] task_progress_rsp_has_message (self:task_progress_rsp) : bool = (Pbrt.Bitfield.get self._presence 2)
+
+let[@inline] task_progress_rsp_set_state (self:task_progress_rsp) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 0); self.state <- x
+let[@inline] task_progress_rsp_set_percentage (self:task_progress_rsp) (x:int32) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 1); self.percentage <- x
+let[@inline] task_progress_rsp_set_message (self:task_progress_rsp) (x:string) : unit =
+  self._presence <- (Pbrt.Bitfield.set self._presence 2); self.message <- x
+
+let copy_task_progress_rsp (self:task_progress_rsp) : task_progress_rsp =
+  { self with state = self.state }
+
+let make_task_progress_rsp 
+  ?(state:string option)
+  ?(percentage:int32 option)
+  ?(message:string option)
+  () : task_progress_rsp  =
+  let _res = default_task_progress_rsp () in
+  (match state with
+  | None -> ()
+  | Some v -> task_progress_rsp_set_state _res v);
+  (match percentage with
+  | None -> ()
+  | Some v -> task_progress_rsp_set_percentage _res v);
+  (match message with
+  | None -> ()
+  | Some v -> task_progress_rsp_set_message _res v);
+  _res
+
+let[@inline] cancel_task_req_has_task (self:cancel_task_req) : bool = self.task != None
+
+let[@inline] cancel_task_req_set_task (self:cancel_task_req) (x:Task.task_id) : unit =
+  self.task <- Some x
+
+let copy_cancel_task_req (self:cancel_task_req) : cancel_task_req =
+  { self with task = self.task }
+
+let make_cancel_task_req 
+  ?(task:Task.task_id option)
+  () : cancel_task_req  =
+  let _res = default_cancel_task_req () in
+  (match task with
+  | None -> ()
+  | Some v -> cancel_task_req_set_task _res v);
+  _res
+
 [@@@ocaml.warning "-23-27-30-39"]
 
 (** {2 Formatters} *)
@@ -2263,6 +2361,26 @@ let rec pp_get_decls_res fmt (v:get_decls_res) =
   let pp_i fmt () =
     Pbrt.Pp.pp_record_field ~first:true "decls" (Pbrt.Pp.pp_list pp_decl_with_name) fmt v.decls;
     Pbrt.Pp.pp_record_field ~first:false "not_found" (Pbrt.Pp.pp_list Pbrt.Pp.pp_string) fmt v.not_found;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_task_progress_req fmt (v:task_progress_req) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "task" (Pbrt.Pp.pp_option Task.pp_task_id) fmt v.task;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_task_progress_rsp fmt (v:task_progress_rsp) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~absent:(not (task_progress_rsp_has_state v)) ~first:true "state" Pbrt.Pp.pp_string fmt v.state;
+    Pbrt.Pp.pp_record_field ~absent:(not (task_progress_rsp_has_percentage v)) ~first:false "percentage" Pbrt.Pp.pp_int32 fmt v.percentage;
+    Pbrt.Pp.pp_record_field ~absent:(not (task_progress_rsp_has_message v)) ~first:false "message" Pbrt.Pp.pp_string fmt v.message;
+  in
+  Pbrt.Pp.pp_brk pp_i fmt ()
+
+let rec pp_cancel_task_req fmt (v:cancel_task_req) = 
+  let pp_i fmt () =
+    Pbrt.Pp.pp_record_field ~first:true "task" (Pbrt.Pp.pp_option Task.pp_task_id) fmt v.task;
   in
   Pbrt.Pp.pp_brk pp_i fmt ()
 
@@ -3123,6 +3241,39 @@ let rec encode_pb_get_decls_res (v:get_decls_res) encoder =
     Pbrt.Encoder.string x encoder;
     Pbrt.Encoder.key 2 Pbrt.Bytes encoder; 
   ) v.not_found encoder;
+  ()
+
+let rec encode_pb_task_progress_req (v:task_progress_req) encoder = 
+  begin match v.task with
+  | Some x -> 
+    Pbrt.Encoder.nested Task.encode_pb_task_id x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
+  ()
+
+let rec encode_pb_task_progress_rsp (v:task_progress_rsp) encoder = 
+  if task_progress_rsp_has_state v then (
+    Pbrt.Encoder.string v.state encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  );
+  if task_progress_rsp_has_percentage v then (
+    Pbrt.Encoder.int32_as_varint v.percentage encoder;
+    Pbrt.Encoder.key 2 Pbrt.Varint encoder; 
+  );
+  if task_progress_rsp_has_message v then (
+    Pbrt.Encoder.string v.message encoder;
+    Pbrt.Encoder.key 3 Pbrt.Bytes encoder; 
+  );
+  ()
+
+let rec encode_pb_cancel_task_req (v:cancel_task_req) encoder = 
+  begin match v.task with
+  | Some x -> 
+    Pbrt.Encoder.nested Task.encode_pb_task_id x encoder;
+    Pbrt.Encoder.key 1 Pbrt.Bytes encoder; 
+  | None -> ();
+  end;
   ()
 
 [@@@ocaml.warning "-23-27-30-39"]
@@ -4465,6 +4616,64 @@ let rec decode_pb_get_decls_res d =
   done;
   (v : get_decls_res)
 
+let rec decode_pb_task_progress_req d =
+  let v = default_task_progress_req () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      task_progress_req_set_task v (Task.decode_pb_task_id (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "task_progress_req" 1 pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  (v : task_progress_req)
+
+let rec decode_pb_task_progress_rsp d =
+  let v = default_task_progress_rsp () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      task_progress_rsp_set_state v (Pbrt.Decoder.string d);
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "task_progress_rsp" 1 pk
+    | Some (2, Pbrt.Varint) -> begin
+      task_progress_rsp_set_percentage v (Pbrt.Decoder.int32_as_varint d);
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "task_progress_rsp" 2 pk
+    | Some (3, Pbrt.Bytes) -> begin
+      task_progress_rsp_set_message v (Pbrt.Decoder.string d);
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "task_progress_rsp" 3 pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  (v : task_progress_rsp)
+
+let rec decode_pb_cancel_task_req d =
+  let v = default_cancel_task_req () in
+  let continue__= ref true in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Bytes) -> begin
+      cancel_task_req_set_task v (Task.decode_pb_task_id (Pbrt.Decoder.nested d));
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload_message "cancel_task_req" 1 pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  (v : cancel_task_req)
+
 [@@@ocaml.warning "-23-27-30-39"]
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -5113,6 +5322,33 @@ let rec encode_json_get_decls_res (v:get_decls_res) =
     let l = v.not_found |> List.map Pbrt_yojson.make_string in
     ("notFound", `List l) :: !assoc 
   );
+  `Assoc !assoc
+
+let rec encode_json_task_progress_req (v:task_progress_req) = 
+  let assoc = ref [] in
+  assoc := (match v.task with
+    | None -> !assoc
+    | Some v -> ("task", Task.encode_json_task_id v) :: !assoc);
+  `Assoc !assoc
+
+let rec encode_json_task_progress_rsp (v:task_progress_rsp) = 
+  let assoc = ref [] in
+  if task_progress_rsp_has_state v then (
+    assoc := ("state", Pbrt_yojson.make_string v.state) :: !assoc;
+  );
+  if task_progress_rsp_has_percentage v then (
+    assoc := ("percentage", Pbrt_yojson.make_int (Int32.to_int v.percentage)) :: !assoc;
+  );
+  if task_progress_rsp_has_message v then (
+    assoc := ("message", Pbrt_yojson.make_string v.message) :: !assoc;
+  );
+  `Assoc !assoc
+
+let rec encode_json_cancel_task_req (v:cancel_task_req) = 
+  let assoc = ref [] in
+  assoc := (match v.task with
+    | None -> !assoc
+    | Some v -> ("task", Task.encode_json_task_id v) :: !assoc);
   `Assoc !assoc
 
 [@@@ocaml.warning "-23-27-30-39"]
@@ -6308,6 +6544,61 @@ let rec decode_json_get_decls_res d =
     not_found = v.not_found;
   } : get_decls_res)
 
+let rec decode_json_task_progress_req d =
+  let v = default_task_progress_req () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("task", json_value) -> 
+      task_progress_req_set_task v (Task.decode_json_task_id json_value)
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    task = v.task;
+  } : task_progress_req)
+
+let rec decode_json_task_progress_rsp d =
+  let v = default_task_progress_rsp () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("state", json_value) -> 
+      task_progress_rsp_set_state v (Pbrt_yojson.string json_value "task_progress_rsp" "state")
+    | ("percentage", json_value) -> 
+      task_progress_rsp_set_percentage v (Pbrt_yojson.int32 json_value "task_progress_rsp" "percentage")
+    | ("message", json_value) -> 
+      task_progress_rsp_set_message v (Pbrt_yojson.string json_value "task_progress_rsp" "message")
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    _presence = v._presence;
+    state = v.state;
+    percentage = v.percentage;
+    message = v.message;
+  } : task_progress_rsp)
+
+let rec decode_json_cancel_task_req d =
+  let v = default_cancel_task_req () in
+  let assoc = match d with
+    | `Assoc assoc -> assoc
+    | _ -> assert(false)
+  in
+  List.iter (function 
+    | ("task", json_value) -> 
+      cancel_task_req_set_task v (Task.decode_json_task_id json_value)
+    
+    | (_, _) -> () (*Unknown fields are ignored*)
+  ) assoc;
+  ({
+    task = v.task;
+  } : cancel_task_req)
+
 module Simple = struct
   open Pbrt_services.Value_mode
   module Client = struct
@@ -6532,6 +6823,32 @@ module Simple = struct
         ~decode_json_res:decode_json_oneshot_res
         ~decode_pb_res:decode_pb_oneshot_res
         () : (oneshot_req, unary, oneshot_res, unary) Client.rpc)
+    open Pbrt_services
+    
+    let task_progress : (task_progress_req, unary, task_progress_rsp, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"simple"]
+        ~service_name:"Simple" ~rpc_name:"task_progress"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_task_progress_req
+        ~encode_pb_req:encode_pb_task_progress_req
+        ~decode_json_res:decode_json_task_progress_rsp
+        ~decode_pb_res:decode_pb_task_progress_rsp
+        () : (task_progress_req, unary, task_progress_rsp, unary) Client.rpc)
+    open Pbrt_services
+    
+    let cancel_task : (cancel_task_req, unary, Utils.empty, unary) Client.rpc =
+      (Client.mk_rpc 
+        ~package:["imandrax";"simple"]
+        ~service_name:"Simple" ~rpc_name:"cancel_task"
+        ~req_mode:Client.Unary
+        ~res_mode:Client.Unary
+        ~encode_json_req:encode_json_cancel_task_req
+        ~encode_pb_req:encode_pb_cancel_task_req
+        ~decode_json_res:Utils.decode_json_empty
+        ~decode_pb_res:Utils.decode_pb_empty
+        () : (cancel_task_req, unary, Utils.empty, unary) Client.rpc)
   end
   
   module Server = struct
@@ -6707,6 +7024,26 @@ module Simple = struct
         ~decode_pb_req:decode_pb_oneshot_req
         () : _ Server.rpc)
     
+    let task_progress : (task_progress_req,unary,task_progress_rsp,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"task_progress"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:encode_json_task_progress_rsp
+        ~encode_pb_res:encode_pb_task_progress_rsp
+        ~decode_json_req:decode_json_task_progress_req
+        ~decode_pb_req:decode_pb_task_progress_req
+        () : _ Server.rpc)
+    
+    let cancel_task : (cancel_task_req,unary,Utils.empty,unary) Server.rpc = 
+      (Server.mk_rpc ~name:"cancel_task"
+        ~req_mode:Server.Unary
+        ~res_mode:Server.Unary
+        ~encode_json_res:Utils.encode_json_empty
+        ~encode_pb_res:Utils.encode_pb_empty
+        ~decode_json_req:decode_json_cancel_task_req
+        ~decode_pb_req:decode_pb_cancel_task_req
+        () : _ Server.rpc)
+    
     let make
       ~status:__handler__status
       ~create_session:__handler__create_session
@@ -6725,6 +7062,8 @@ module Simple = struct
       ~typecheck:__handler__typecheck
       ~get_decls:__handler__get_decls
       ~oneshot:__handler__oneshot
+      ~task_progress:__handler__task_progress
+      ~cancel_task:__handler__cancel_task
       () : _ Server.t =
       { Server.
         service_name="Simple";
@@ -6747,6 +7086,8 @@ module Simple = struct
            (__handler__typecheck typecheck);
            (__handler__get_decls get_decls);
            (__handler__oneshot oneshot);
+           (__handler__task_progress task_progress);
+           (__handler__cancel_task cancel_task);
         ];
       }
   end

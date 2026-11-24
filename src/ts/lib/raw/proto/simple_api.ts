@@ -9,7 +9,7 @@ import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { Artifact } from "./artmsg.js";
 import { Error } from "./error.js";
 import { Session } from "./session.js";
-import { Origin, Task } from "./task.js";
+import { Origin, Task, TaskID } from "./task.js";
 import { Empty, StringMsg } from "./utils.js";
 
 export const protobufPackage = "imandrax.simple";
@@ -496,6 +496,20 @@ export interface GetDeclsRes {
   decls: DeclWithName[];
   /** decls that were not found */
   notFound: string[];
+}
+
+export interface TaskProgressReq {
+  task: TaskID | undefined;
+}
+
+export interface TaskProgressRsp {
+  state: string;
+  percentage: number;
+  message: string;
+}
+
+export interface CancelTaskReq {
+  task: TaskID | undefined;
 }
 
 function createBaseSessionCreateReq(): SessionCreateReq {
@@ -4892,6 +4906,214 @@ export const GetDeclsRes: MessageFns<GetDeclsRes> = {
   },
 };
 
+function createBaseTaskProgressReq(): TaskProgressReq {
+  return { task: undefined };
+}
+
+export const TaskProgressReq: MessageFns<TaskProgressReq> = {
+  encode(message: TaskProgressReq, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.task !== undefined) {
+      TaskID.encode(message.task, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TaskProgressReq {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTaskProgressReq();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.task = TaskID.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TaskProgressReq {
+    return { task: isSet(object.task) ? TaskID.fromJSON(object.task) : undefined };
+  },
+
+  toJSON(message: TaskProgressReq): unknown {
+    const obj: any = {};
+    if (message.task !== undefined) {
+      obj.task = TaskID.toJSON(message.task);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TaskProgressReq>, I>>(base?: I): TaskProgressReq {
+    return TaskProgressReq.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TaskProgressReq>, I>>(object: I): TaskProgressReq {
+    const message = createBaseTaskProgressReq();
+    message.task = (object.task !== undefined && object.task !== null) ? TaskID.fromPartial(object.task) : undefined;
+    return message;
+  },
+};
+
+function createBaseTaskProgressRsp(): TaskProgressRsp {
+  return { state: "", percentage: 0, message: "" };
+}
+
+export const TaskProgressRsp: MessageFns<TaskProgressRsp> = {
+  encode(message: TaskProgressRsp, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.state !== "") {
+      writer.uint32(10).string(message.state);
+    }
+    if (message.percentage !== 0) {
+      writer.uint32(16).int32(message.percentage);
+    }
+    if (message.message !== "") {
+      writer.uint32(26).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TaskProgressRsp {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTaskProgressRsp();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.state = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.percentage = reader.int32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TaskProgressRsp {
+    return {
+      state: isSet(object.state) ? globalThis.String(object.state) : "",
+      percentage: isSet(object.percentage) ? globalThis.Number(object.percentage) : 0,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+    };
+  },
+
+  toJSON(message: TaskProgressRsp): unknown {
+    const obj: any = {};
+    if (message.state !== "") {
+      obj.state = message.state;
+    }
+    if (message.percentage !== 0) {
+      obj.percentage = Math.round(message.percentage);
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TaskProgressRsp>, I>>(base?: I): TaskProgressRsp {
+    return TaskProgressRsp.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TaskProgressRsp>, I>>(object: I): TaskProgressRsp {
+    const message = createBaseTaskProgressRsp();
+    message.state = object.state ?? "";
+    message.percentage = object.percentage ?? 0;
+    message.message = object.message ?? "";
+    return message;
+  },
+};
+
+function createBaseCancelTaskReq(): CancelTaskReq {
+  return { task: undefined };
+}
+
+export const CancelTaskReq: MessageFns<CancelTaskReq> = {
+  encode(message: CancelTaskReq, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.task !== undefined) {
+      TaskID.encode(message.task, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CancelTaskReq {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCancelTaskReq();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.task = TaskID.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CancelTaskReq {
+    return { task: isSet(object.task) ? TaskID.fromJSON(object.task) : undefined };
+  },
+
+  toJSON(message: CancelTaskReq): unknown {
+    const obj: any = {};
+    if (message.task !== undefined) {
+      obj.task = TaskID.toJSON(message.task);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CancelTaskReq>, I>>(base?: I): CancelTaskReq {
+    return CancelTaskReq.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CancelTaskReq>, I>>(object: I): CancelTaskReq {
+    const message = createBaseCancelTaskReq();
+    message.task = (object.task !== undefined && object.task !== null) ? TaskID.fromPartial(object.task) : undefined;
+    return message;
+  },
+};
+
 export interface Simple {
   /** Get server status */
   status(request: Empty): Promise<StringMsg>;
@@ -4917,6 +5139,8 @@ export interface Simple {
   get_decls(request: GetDeclsReq): Promise<GetDeclsRes>;
   /** Sessionless, self contained request/response */
   oneshot(request: OneshotReq): Promise<OneshotRes>;
+  task_progress(request: TaskProgressReq): Promise<TaskProgressRsp>;
+  cancel_task(request: CancelTaskReq): Promise<Empty>;
 }
 
 export const SimpleServiceName = "imandrax.simple.Simple";
@@ -4943,6 +5167,8 @@ export class SimpleClientImpl implements Simple {
     this.typecheck = this.typecheck.bind(this);
     this.get_decls = this.get_decls.bind(this);
     this.oneshot = this.oneshot.bind(this);
+    this.task_progress = this.task_progress.bind(this);
+    this.cancel_task = this.cancel_task.bind(this);
   }
   status(request: Empty): Promise<StringMsg> {
     const data = Empty.encode(request).finish();
@@ -5044,6 +5270,18 @@ export class SimpleClientImpl implements Simple {
     const data = OneshotReq.encode(request).finish();
     const promise = this.rpc.request(this.service, "oneshot", data);
     return promise.then((data) => OneshotRes.decode(new BinaryReader(data)));
+  }
+
+  task_progress(request: TaskProgressReq): Promise<TaskProgressRsp> {
+    const data = TaskProgressReq.encode(request).finish();
+    const promise = this.rpc.request(this.service, "task_progress", data);
+    return promise.then((data) => TaskProgressRsp.decode(new BinaryReader(data)));
+  }
+
+  cancel_task(request: CancelTaskReq): Promise<Empty> {
+    const data = CancelTaskReq.encode(request).finish();
+    const promise = this.rpc.request(this.service, "cancel_task", data);
+    return promise.then((data) => Empty.decode(new BinaryReader(data)));
   }
 }
 

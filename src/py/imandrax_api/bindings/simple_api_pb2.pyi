@@ -487,3 +487,25 @@ class GetDeclsRes(_message.Message):
     decls: _containers.RepeatedCompositeFieldContainer[DeclWithName]
     not_found: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, decls: _Optional[_Iterable[_Union[DeclWithName, _Mapping]]] = ..., not_found: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class TaskProgressReq(_message.Message):
+    __slots__ = ("task",)
+    TASK_FIELD_NUMBER: _ClassVar[int]
+    task: _task_pb2.TaskID
+    def __init__(self, task: _Optional[_Union[_task_pb2.TaskID, _Mapping]] = ...) -> None: ...
+
+class TaskProgressRsp(_message.Message):
+    __slots__ = ("state", "percentage", "message")
+    STATE_FIELD_NUMBER: _ClassVar[int]
+    PERCENTAGE_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    state: str
+    percentage: int
+    message: str
+    def __init__(self, state: _Optional[str] = ..., percentage: _Optional[int] = ..., message: _Optional[str] = ...) -> None: ...
+
+class CancelTaskReq(_message.Message):
+    __slots__ = ("task",)
+    TASK_FIELD_NUMBER: _ClassVar[int]
+    task: _task_pb2.TaskID
+    def __init__(self, task: _Optional[_Union[_task_pb2.TaskID, _Mapping]] = ...) -> None: ...
