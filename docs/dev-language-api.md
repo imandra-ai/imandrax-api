@@ -262,6 +262,9 @@ Some OCaml types are internal and have no wrapper (e.g. `Anchor`, `Sub_anchor`).
 - Wrapper values MUST be immutable.
 - Wrapper types MUST present OCaml-only encodings as what they mean: an integer used as a boolean
   is a boolean, a bit field is a set of names, a `Z.t` is an integer.
+- Source positions MUST be given as the server sends them: lines and columns from 1, columns
+  counted in bytes of the line's UTF-8 encoding, and a location's end included. A client MUST
+  document this on its position or location type.
 - Wrappers SHOULD hide twine and artifact fetching from users: a user asks for a result and gets
   wrapper objects, decoded and converted on the way. Exposing them is for what the wrappers do not
   cover yet.
