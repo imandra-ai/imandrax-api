@@ -179,7 +179,11 @@ function partsEq(
 }
 
 function isBool(ty: Type): boolean {
-  return ty instanceof ConstructedType && ty.ctor.shortName === "bool" && ty.arguments.length === 0;
+  return (
+    ty instanceof ConstructedType &&
+    ty.constructor_.shortName === "bool" &&
+    ty.arguments.length === 0
+  );
 }
 
 /** `ty` as `d1 -> ... -> dn -> result`, `[[d1, ..., dn], result]`; `undefined` if it has fewer arrows */
@@ -218,7 +222,7 @@ function substitute(ty: Type, s: ReadonlyMap<Uid, Type>): Type {
     );
   } else {
     return new ConstructedType(
-      ty.ctor,
+      ty.constructor_,
       ty.arguments.map((a) => substitute(a, s)),
       ty.raw,
     );
@@ -258,7 +262,7 @@ function patternVars(p: FoPattern): VarSet {
 /** The definition of constructor `c` in the algebraic type `ty`, if it is one of its constructors */
 function constructorDefinition(db: DB, ty: Type, c: Uid): ConstructorDefinition | undefined {
   if (!(ty instanceof ConstructedType)) return undefined;
-  const td = db.findType(ty.ctor);
+  const td = db.findType(ty.constructor_);
   if (td === undefined || !(td.kind instanceof AlgebraicTypeKind)) return undefined;
   return td.kind.constructors.find((cd) => cd.name.equals(c));
 }
@@ -266,7 +270,7 @@ function constructorDefinition(db: DB, ty: Type, c: Uid): ConstructorDefinition 
 /** Whether `f` is a field of the record type `ty` */
 function isFieldOf(db: DB, ty: Type, f: Uid): boolean {
   if (!(ty instanceof ConstructedType)) return false;
-  const td = db.findType(ty.ctor);
+  const td = db.findType(ty.constructor_);
   if (td === undefined) return false;
   return td.kind instanceof RecordTypeKind && td.kind.fields.some((fd) => fd.name.equals(f));
 }
@@ -283,10 +287,10 @@ function subtermsOf<T>(
 
 function appliedSymbols(x: Term): AppliedSymbol[] {
   if (x instanceof SymbolTerm) return [x.symbol];
-  if (x instanceof Construct || x instanceof Destruct || x instanceof IsA) return [x.ctor];
+  if (x instanceof Construct || x instanceof Destruct || x instanceof IsA) return [x.constructor_];
   if (x instanceof Field) return [x.field];
   if (x instanceof RecordTerm) return x.rows.map((r) => r.field);
-  if (x instanceof Case) return x.cases.map((c) => c.ctor);
+  if (x instanceof Case) return x.cases.map((c) => c.constructor_);
   return [];
 }
 
@@ -531,7 +535,7 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     const d = await db();
     const failures: string[] = [];
     for (const [where, x] of subtermsOf(await subterms(), Construct)) {
-      const parts = arrowParts(x.ctor.type, x.arguments.length);
+      const parts = arrowParts(x.constructor_.type, x.arguments.length);
       if (
         !partsEq(
           parts,
@@ -539,13 +543,15 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
           x.type,
         )
       ) {
-        failures.push(`${where}: ${x} : ${x.type}, with constructor : ${x.ctor.type}`);
+        failures.push(`${where}: ${x} : ${x.type}, with constructor : ${x.constructor_.type}`);
       }
-      const cd = constructorDefinition(d, x.type, x.ctor.id);
+      const cd = constructorDefinition(d, x.type, x.constructor_.id);
       if (cd === undefined) {
-        failures.push(`${where}: ${x}: ${x.ctor.id} is not a constructor of ${x.type}`);
+        failures.push(`${where}: ${x}: ${x.constructor_.id} is not a constructor of ${x.type}`);
       } else if (cd.arguments.length !== x.arguments.length) {
-        failures.push(`${where}: ${x}: ${x.ctor.id} takes ${cd.arguments.length} arguments`);
+        failures.push(
+          `${where}: ${x}: ${x.constructor_.id} takes ${cd.arguments.length} arguments`,
+        );
       }
     }
     assertNoFailures(failures);
@@ -556,16 +562,18 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     const d = await db();
     const failures: string[] = [];
     for (const [where, x] of subtermsOf(await subterms(), Destruct)) {
-      const [domains, result] = allArrowParts(x.ctor.type);
+      const [domains, result] = allArrowParts(x.constructor_.type);
       if (!(
         x.index < domains.length &&
         domains[x.index]!.equals(x.type) &&
         result.equals(x.term.type)
       )) {
-        failures.push(`${where}: ${x} : ${x.type}, with constructor : ${x.ctor.type}`);
+        failures.push(`${where}: ${x} : ${x.type}, with constructor : ${x.constructor_.type}`);
       }
-      if (constructorDefinition(d, x.term.type, x.ctor.id) === undefined) {
-        failures.push(`${where}: ${x}: ${x.ctor.id} is not a constructor of ${x.term.type}`);
+      if (constructorDefinition(d, x.term.type, x.constructor_.id) === undefined) {
+        failures.push(
+          `${where}: ${x}: ${x.constructor_.id} is not a constructor of ${x.term.type}`,
+        );
       }
     }
     assertNoFailures(failures);
@@ -580,7 +588,7 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     const failures = subtermsOf(await subterms(), IsA)
       .filter(
         ([, x]) =>
-          !isBool(x.type) || constructorDefinition(d, x.term.type, x.ctor.id) === undefined,
+          !isBool(x.type) || constructorDefinition(d, x.term.type, x.constructor_.id) === undefined,
       )
       .map(([where, x]) => `${where}: ${x}`);
     assertNoFailures(failures);
@@ -621,7 +629,7 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     const d = await db();
     const failures: string[] = [];
     for (const [where, x] of subtermsOf(await subterms(), Case)) {
-      for (const { ctor: c, rhs: arm } of x.cases) {
+      for (const { constructor_: c, rhs: arm } of x.cases) {
         if (!arm.type.equals(x.type)) {
           failures.push(`${where}: ${x}: arm ${c.id} : ${arm.type}, but the match is : ${x.type}`);
         }
@@ -656,7 +664,7 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
       if (name === undefined) {
         continue;
       }
-      if (!(x.type instanceof ConstructedType && x.type.ctor.shortName === name)) {
+      if (!(x.type instanceof ConstructedType && x.type.constructor_.shortName === name)) {
         failures.push(`${where}: ${x} : ${x.type}, expected ${name}`);
       }
     }
@@ -712,7 +720,7 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
     for (const [where, ty] of types) {
       for (const t of typesIn(ty)) {
         if (!(t instanceof ConstructedType)) continue;
-        const td = d.findType(t.ctor);
+        const td = d.findType(t.constructor_);
         if (td === undefined) continue;
         if (t.arguments.length !== td.parameters.length) {
           failures.push(`${where}: ${t}, but ${td.name} has parameters ${show(td.parameters)}`);

@@ -465,7 +465,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
       ...functions.flatMap((f) => [...f.body].map((x) => x.type)),
     ];
     const constructors = uidSet(
-      types.flatMap((ty) => [...constructedTypes(ty)].map((t) => t.ctor)),
+      types.flatMap((ty) => [...constructedTypes(ty)].map((t) => t.constructor_)),
     );
     expect(constructors.size).toBeGreaterThan(0);
     expect([...constructors].filter((u) => d.findType(u) === undefined).map((u) => `${u}`)).toEqual(

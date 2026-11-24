@@ -132,7 +132,7 @@ function typeKey(t: Type): string {
       case "tuple":
         return k("T", ...t.elements.map(typeKey));
       case "constructed":
-        return k("C", uidKey(t.ctor), ...t.arguments.map(typeKey));
+        return k("C", uidKey(t.constructor_), ...t.arguments.map(typeKey));
     }
   });
 }
@@ -855,17 +855,17 @@ export class TupleType extends TypeBase {
 /**
  * A type constructor applied to type arguments, e.g. `int list`
  *
- * The field is `ctor`: classes cannot have a field named `constructor`.
+ * The field is `constructor_`: classes cannot have a field named `constructor`.
  */
 export class ConstructedType extends TypeBase {
   readonly kind = "constructed";
   /** The type constructor */
-  readonly ctor: Uid;
+  readonly constructor_: Uid;
   readonly arguments: readonly Type[];
 
-  constructor(ctor: Uid, args: readonly Type[], raw: lib.Mir_Type) {
+  constructor(constructor_: Uid, args: readonly Type[], raw: lib.Mir_Type) {
     super(raw);
-    this.ctor = ctor;
+    this.constructor_ = constructor_;
     this.arguments = args;
   }
 
@@ -874,7 +874,7 @@ export class ConstructedType extends TypeBase {
     if (elems.length > 0) {
       elems += " ";
     }
-    return `${elems}${this.ctor}`;
+    return `${elems}${this.constructor_}`;
   }
 }
 
@@ -1262,7 +1262,7 @@ function termOfLibUncached(x: lib.Mir_Term): Term {
   if (v instanceof lib.Mir_Term_view_Case) {
     return new Case(
       termOfLib(v.u),
-      v.cases.map(([c, t]) => ({ ctor: AppliedSymbol.ofLib(c), rhs: termOfLib(t) })),
+      v.cases.map(([c, t]) => ({ constructor_: AppliedSymbol.ofLib(c), rhs: termOfLib(t) })),
       v.default_ === undefined ? undefined : termOfLib(v.default_),
       ty,
       x,
@@ -1381,26 +1381,26 @@ export class SymbolTerm extends TermBase {
 /**
  * A constructor applied to arguments
  *
- * The field is `ctor`: classes cannot have a field named `constructor`.
+ * The field is `constructor_`: classes cannot have a field named `constructor`.
  */
 export class Construct extends TermBase {
   readonly kind = "construct";
   /** The constructor */
-  readonly ctor: AppliedSymbol;
+  readonly constructor_: AppliedSymbol;
   /** The constructor's arguments */
   readonly arguments: readonly Term[];
   /** The argument labels, if the constructor takes labeled (record) arguments */
   readonly labels: readonly Uid[] | undefined;
 
   constructor(
-    ctor: AppliedSymbol,
+    constructor_: AppliedSymbol,
     args: readonly Term[],
     labels: readonly Uid[] | undefined,
     type: Type,
     raw: lib.Mir_Term,
   ) {
     super(type, raw);
-    this.ctor = ctor;
+    this.constructor_ = constructor_;
     this.arguments = args;
     this.labels = labels;
   }
@@ -1410,7 +1410,7 @@ export class Construct extends TermBase {
   }
 
   override toString(): string {
-    const name = this.ctor.id.shortName;
+    const name = this.constructor_.id.shortName;
     const args = this.arguments;
     if (args.length === 0) {
       return name;
@@ -1431,12 +1431,12 @@ export class Construct extends TermBase {
   }
 }
 
-/** A destructor term. (The `index`-th argument of a term built with `ctor`.) */
+/** A destructor term. (The `index`-th argument of a term built with `constructor_`.) */
 export class Destruct extends TermBase {
   readonly kind = "destruct";
   constructor(
     /** The constructor whose argument is extracted */
-    readonly ctor: AppliedSymbol,
+    readonly constructor_: AppliedSymbol,
     /** The position of the extracted argument */
     readonly index: number,
     /** The term the argument is extracted from */
@@ -1452,16 +1452,16 @@ export class Destruct extends TermBase {
   }
 
   override toString(): string {
-    return `Destruct(${this.ctor.id.shortName}, ${this.index}, ${this.term})`;
+    return `Destruct(${this.constructor_.id.shortName}, ${this.index}, ${this.term})`;
   }
 }
 
-/** A test whether a term was built with `ctor` */
+/** A test whether a term was built with `constructor_` */
 export class IsA extends TermBase {
   readonly kind = "isA";
   constructor(
     /** The constructor tested for */
-    readonly ctor: AppliedSymbol,
+    readonly constructor_: AppliedSymbol,
     /** The term being tested */
     readonly term: Term,
     type: Type,
@@ -1475,7 +1475,7 @@ export class IsA extends TermBase {
   }
 
   override toString(): string {
-    return `Is_a(${this.ctor.id.shortName}, ${this.term})`;
+    return `Is_a(${this.constructor_.id.shortName}, ${this.term})`;
   }
 }
 
@@ -1586,7 +1586,7 @@ export class RecordTerm extends TermBase {
 
 /** A match arm of a `Case`: the constructor, and the term for that case */
 export interface CaseArm {
-  readonly ctor: AppliedSymbol;
+  readonly constructor_: AppliedSymbol;
   readonly rhs: Term;
 }
 
@@ -1622,7 +1622,7 @@ export class Case extends TermBase {
   }
 
   override toString(): string {
-    const arms = this.cases.map((c) => `| ${c.ctor.id.shortName} -> ${c.rhs}`);
+    const arms = this.cases.map((c) => `| ${c.constructor_.id.shortName} -> ${c.rhs}`);
     if (this.default !== undefined) {
       arms.push(`| _ -> ${this.default}`);
     }
@@ -1724,7 +1724,7 @@ function toJsImpl(t: Term, db?: DB): JsValue {
     }
   }
   if (t instanceof Construct) {
-    const c = t.ctor;
+    const c = t.constructor_;
     const name = c.id.shortName;
     if (t.arguments.length === 0 && name === "()") {
       return [];
@@ -1733,11 +1733,11 @@ function toJsImpl(t: Term, db?: DB): JsValue {
       // A list is a chain of `::` as deep as it is long: walk it in a loop, not a call per element
       const xs: JsValue[] = [];
       let u: Term = t;
-      while (u instanceof Construct && u.ctor.id.shortName === "::") {
+      while (u instanceof Construct && u.constructor_.id.shortName === "::") {
         xs.push(toJsImpl(u.arguments[0]!, db));
         u = u.arguments[1]!;
       }
-      if (!(u instanceof Construct && u.ctor.id.shortName === "[]")) {
+      if (!(u instanceof Construct && u.constructor_.id.shortName === "[]")) {
         throw new RangeError(`Not a value: the list ends with ${u}`);
       }
       return xs;
@@ -1752,7 +1752,7 @@ function toJsImpl(t: Term, db?: DB): JsValue {
           outType = outType.codomain;
         }
         if (outType instanceof ConstructedType) {
-          const q = db.findType(outType.ctor);
+          const q = db.findType(outType.constructor_);
           if (q !== undefined && q.kind instanceof AlgebraicTypeKind) {
             for (const cnstr of q.kind.constructors) {
               if (
@@ -2637,23 +2637,23 @@ export class ApplyPattern extends FoPatternBase {
 /**
  * constructor, tuple, record…
  *
- * The field is `ctor`: classes cannot have a field named `constructor`.
+ * The field is `constructor_`: classes cannot have a field named `constructor`.
  */
 export class ConstructPattern extends FoPatternBase {
   readonly kind = "construct";
-  readonly ctor: AppliedSymbol | undefined;
+  readonly constructor_: AppliedSymbol | undefined;
   readonly arguments: readonly FoPattern[];
   readonly labels: readonly Uid[] | undefined;
 
   constructor(
-    ctor: AppliedSymbol | undefined,
+    constructor_: AppliedSymbol | undefined,
     args: readonly FoPattern[],
     labels: readonly Uid[] | undefined,
     type: Type,
     raw: lib.Mir_Fo_pattern,
   ) {
     super(type, raw);
-    this.ctor = ctor;
+    this.constructor_ = constructor_;
     this.arguments = args;
     this.labels = labels;
   }
@@ -2662,7 +2662,7 @@ export class ConstructPattern extends FoPatternBase {
 export class DestructPattern extends FoPatternBase {
   readonly kind = "destruct";
   constructor(
-    readonly ctor: AppliedSymbol | undefined,
+    readonly constructor_: AppliedSymbol | undefined,
     readonly index: number,
     readonly pattern: FoPattern,
     type: Type,
@@ -2675,7 +2675,7 @@ export class DestructPattern extends FoPatternBase {
 export class IsAPattern extends FoPatternBase {
   readonly kind = "isA";
   constructor(
-    readonly ctor: AppliedSymbol,
+    readonly constructor_: AppliedSymbol,
     readonly pattern: FoPattern,
     type: Type,
     raw: lib.Mir_Fo_pattern,
