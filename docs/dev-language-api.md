@@ -168,7 +168,7 @@ wrappers.
   and bytes stay bytes.
 - Decoding MUST preserve sharing where the language can: a value referred to twice in the twine
   data is decoded once, and both references get the same object. The wrapper layer relies on it
-  (3.4).
+  (3.4). Proof terms are the exception, for now: they are decoded once per reference.
 - Malformed data MUST raise the decoder's error type, with the offset where decoding failed. It
   MUST NOT crash the process, loop forever or return a partial value.
 
@@ -300,25 +300,16 @@ from different parts of the twine data.
 - In a language without user-defined hashing, the client MUST provide such maps and sets itself
   (as TypeScript's `ValueMap` and `ValueSet` do).
 
-### 3.4 Shared nodes and memoization
-
-#### How it works
+### 3.4 Shared nodes
 
 Twine shares repeated subtrees, and the decoder preserves the sharing (2.2), so lib data is a
-graph: a type such as `int` is one object referred to from thousands of places. Converting it to
-wrappers naively walks every _path_ to a node, expanding the graph into a tree: work and memory
-grow with the number of paths, which can be exponential in the number of nodes.
+graph. Converting it to wrappers by walking every path to a node can take time exponential in the
+size of the data. Decompositions are where this happens: their regions share most of their terms.
+Both clients memoize conversion by lib object.
 
-So conversion is memoized by lib object, by identity: converting a lib object returns the wrapper
-it was converted to before. TypeScript keeps one `WeakMap` per converter, which keeps nothing
-alive (Note [Lib memo] in `lib/mir.ts`); Python scopes a memo to one conversion
-(`v2/_lib_memo.py`), as its generated classes cannot be weakly referenced.
+Proof terms share sub-proofs too, and converting them can be exponential. This is accepted for now (issue #203).
 
-#### Specification
-
-- Converting MUST take time and memory linear in the number of lib objects.
-- Converting the same lib object twice within a conversion MUST give the same wrapper object.
-- A memo MUST NOT keep lib data alive beyond what the user holds.
+- Converting a decomposition MUST NOT take time exponential in the size of its twine data.
 
 ### 3.5 Lazy and eager conversion
 
@@ -359,7 +350,7 @@ A client MUST wrap:
 - [ ] Variants can be matched exhaustively in the language.
 - [ ] Uids, types, applied symbols, pattern heads, variables and rationals compare by value, and
       maps and sets keyed by them find entries from equal keys.
-- [ ] Converting a large DB is linear; converting twice gives the same objects.
+- [ ] Converting a large decomposition is not exponential.
 - [ ] Every renamed concept is in Appendix B.
 
 ## 4. Client
@@ -573,8 +564,8 @@ the same inputs. The inputs are shared; the tests are written in each language's
 - **Offline tests** (no server) MUST cover:
   - the twine decoder: the conformance test (2.4) and the shared fixtures in
     `src/py/tests/twine/test_data`;
-  - wrapper conversion: memoization (converting twice gives the same objects, shared nodes are
-    converted once), value equality, `to_python` / `toJs` on generated values;
+  - wrapper conversion: converting a decomposition with shared nodes, value equality,
+    `to_python` / `toJs` on generated values;
   - the client against a fake server: request shape, headers, error mapping, session lifecycle.
 - **Integration tests** run against the server. They
   MUST cover:
@@ -675,18 +666,19 @@ own language, so it has no column.
 | Feature                                   | Python | TypeScript | Rust |
 | ----------------------------------------- | ------ | ---------- | ---- |
 | Protobuf messages (2.1)                   | ✓      | ✓          | ✗    |
+| Twirp RPC layer (2.1)                     | ◐      | ✓          | n/a  |
 | Lib types from `genbindings` (2.2)        | ✓      | ✓          | ✓    |
 | Twine decoder, conformance adapter (2.4)  | ✓      | ✓          | ◐    |
 | `x-api-version` header (2.5)              | ✓      | ✓          | n/a  |
 | Wrapper types (3.1, 3.7)                  | ✓      | ✓          | n/a  |
 | Value equality, value maps and sets (3.3) | ✓      | B          | n/a  |
-| Memoized conversion (3.4)                 | ✓      | B          | n/a  |
-| Connecting, sessions, scoped close (4.2)  | ✓      | ✓          | n/a  |
+| Shared nodes (3.4)                        | ✓      | ✓          | n/a  |
+| Connecting, sessions, scoped close (4.2)  | ◐      | ◐          | n/a  |
 | RPC methods (4.3)                         | ✓      | ✓          | n/a  |
-| Synchronous client (4.4)                  | ✓      | B          | n/a  |
-| Asynchronous client (4.4)                 | ✓      | ✓          | n/a  |
+| Synchronous client (4.4)                  | ◐      | B          | n/a  |
+| Asynchronous client (4.4)                 | ◐      | ✓          | n/a  |
 | Lazy task fetching, `set_client` (4.5)    | ✓      | ✓          | n/a  |
-| Errors (4.6)                              | ✓      | ✓          | n/a  |
+| Errors (4.6)                              | ◐      | ✓          | n/a  |
 | MIR DB lookups and search (5)             | ✓      | ✓          | n/a  |
 | Printers (6.1)                            | ✓      | ✓          | n/a  |
 | `to_python` / `toJs` (6.2)                | ✓      | ✓          | n/a  |
@@ -695,20 +687,30 @@ own language, so it has no column.
 | Offline and integration tests (7)         | ✓      | ✓          | ◐    |
 | Tested documentation examples (8)         | ✓      | ✓          | n/a  |
 
+Partial support (◐):
+
+- Twirp RPC layer, Python: the Twirp code of an error reply is not read (it is always `unknown`),
+  and redirects are followed instead of reported as errors.
+- Connecting, Python: an API version mismatch is not detected. TypeScript: it is detected only from
+  an `invalid_argument` reply to `create_session`, but the server answers an unknown version with
+  an HTTP 404 (`bad_route` from an intermediary), on every call.
+- Synchronous and asynchronous clients, Python: `status` takes no timeout.
+- Errors, Python: transport errors and the closed-client errors do not derive from
+  `ImandraXError`, and there is no API version mismatch error.
+
 ## Appendix B. Deliberate differences
 
-| Language   | Difference                                                                                                                                                                                  | Reason                                                                                                                             |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| TypeScript | fields named `constructor` are `constructor_`                                                                                                                                               | `constructor` names a class's constructor                                                                                          |
-| TypeScript | decomposition `let` is `let_`                                                                                                                                                               | `let` is a reserved word                                                                                                           |
-| TypeScript | server errors are `ErrorInfo`, not an `Error`                                                                                                                                               | not to shadow the global `Error`; it is response data, not an exception: `ServerError` is the `Error` thrown with it               |
-| TypeScript | value maps and sets are `ValueMap` and `ValueSet`                                                                                                                                           | JS `Map` and `Set` compare keys by identity, with no hashing protocol                                                              |
-| TypeScript | conversion memo is per lib object, for the client's lifetime                                                                                                                                | `WeakMap`s keep nothing alive; Python's generated classes cannot be weakly referenced, so Python scopes its memo to one conversion |
-| TypeScript | decoding a report from an archive is asynchronous                                                                                                                                           | it decompresses with `DecompressionStream`, which has no synchronous API                                                           |
-| TypeScript | logic fragments are a set of names, without unknown bits                                                                                                                                    | unknown bits have no name; they stay in the raw bit field                                                                          |
-| TypeScript | async client only                                                                                                                                                                           | network I/O is asynchronous in JS                                                                                                  |
-| Python     | a task holds its client weakly; fetching after the client is garbage-collected raises `ClientGoneError`                                                                                     | tasks do not keep a client alive                                                                                                   |
-| Python     | with `AsyncClient`, task data is read synchronously once fetched, and reading it before raises `NotFetchedError`; fetch with `await task.awaitable.<attribute>` or `await task.fetch_all()` | task data stays a plain attribute in both clients                                                                                  |
+| Language   | Difference                                                                                                                                                                                  | Reason                                                                                                               |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| TypeScript | fields named `constructor` are `constructor_`                                                                                                                                               | `constructor` names a class's constructor                                                                            |
+| TypeScript | decomposition `let` is `let_`                                                                                                                                                               | `let` is a reserved word                                                                                             |
+| TypeScript | server errors are `ErrorInfo`, not an `Error`                                                                                                                                               | not to shadow the global `Error`; it is response data, not an exception: `ServerError` is the `Error` thrown with it |
+| TypeScript | value maps and sets are `ValueMap` and `ValueSet`                                                                                                                                           | JS `Map` and `Set` compare keys by identity, with no hashing protocol                                                |
+| TypeScript | decoding a report from an archive is asynchronous                                                                                                                                           | it decompresses with `DecompressionStream`, which has no synchronous API                                             |
+| TypeScript | logic fragments are a set of names, without unknown bits                                                                                                                                    | unknown bits have no name; they stay in the raw bit field                                                            |
+| TypeScript | async client only                                                                                                                                                                           | network I/O is asynchronous in JS                                                                                    |
+| Python     | a task holds its client weakly; fetching after the client is garbage-collected raises `ClientGoneError`                                                                                     | tasks do not keep a client alive                                                                                     |
+| Python     | with `AsyncClient`, task data is read synchronously once fetched, and reading it before raises `NotFetchedError`; fetch with `await task.awaitable.<attribute>` or `await task.fetch_all()` | task data stays a plain attribute in both clients                                                                    |
 
 ## Appendix C. Glossary
 
