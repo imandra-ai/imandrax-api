@@ -134,8 +134,9 @@ Python generates them; TypeScript has a small hand-written Twirp client.
   them: a timeout is `deadline_exceeded`, a network failure `unavailable`, an undecodable reply
   `internal`, and an error status from an intermediary (a proxy) is mapped as in the
   [Twirp spec](https://twitchtv.github.io/twirp/docs/errors.html#http-errors-from-intermediary-proxies).
-- The RPC layer SHOULD keep cookies the server sets and send them back, as a browser or a
-  `requests.Session` does: deployments behind a load balancer can rely on them.
+- The RPC layer MUST keep cookies the server sets and send them back with later requests, as a
+  browser or a `requests.Session` does. Deployments behind a load balancer use them to route a
+  session's requests to the same server, which holds the session's state.
 - It MUST NOT follow redirects: Twirp uses POST, and a redirect is reported as an error.
 
 ### 2.2 Lib types from `genbindings`
@@ -219,7 +220,8 @@ accept or reject verdict as the reference.
 - [ ] Every artifact kind has a decoder, and decodes a real artifact of that kind.
 - [ ] The twine adapter exists and the conformance test passes (except the known reference bug
       documented in its README).
-- [ ] Requests send `x-api-version` and, with a key, `Authorization`.
+- [ ] Requests send `x-api-version` and, with a key, `Authorization`, and send back the cookies
+      the server set.
 - [ ] Transport failures surface as Twirp errors with the codes above.
 
 ## 3. Wrapper types
@@ -436,7 +438,8 @@ language.
 
 ### 4.6 Errors
 
-All errors the client raises MUST derive from one base class, `ImandraXError`, with subclasses for:
+Apart from invalid arguments (below), all errors the client raises MUST derive from one base
+class, `ImandraXError`, with subclasses for:
 
 | Error                | When                                                                        |
 | -------------------- | --------------------------------------------------------------------------- |
@@ -448,6 +451,11 @@ All errors the client raises MUST derive from one base class, `ImandraXError`, w
 | API version mismatch | the server rejected the client's API version                                |
 
 Malformed twine data MAY raise the twine decoder's own error (2.4) instead.
+
+An invalid argument, such as a timeout that is not positive or a number a request field cannot
+hold, is the caller's error: it MUST raise the language's error for invalid arguments (`TypeError`
+or `ValueError` in Python, `RangeError` or `TypeError` in TypeScript) before any request is sent,
+and MUST NOT be reported as a transport error. The error SHOULD name the argument.
 
 Methods SHOULD return failures reported in a response (a refuted goal, a type error in the source)
 as data in the result, and raise only when there is no result to return.
