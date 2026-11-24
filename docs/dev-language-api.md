@@ -1,6 +1,6 @@
 ---
 created-date: 2026-11-19
-modified-date: 2026-11-19
+modified-date: 2026-11-24
 ---
 
 # Language clients: adding a language and keeping parity
@@ -327,8 +327,8 @@ unexpected-response error.
 A concept has one name across clients. When a language cannot use it, the difference goes in
 [Appendix B](#appendix-b-deliberate-differences). Known cases:
 
-- A field named `constructor` is `ctor` in TypeScript: classes cannot have a field named
-  `constructor`.
+- A field named `constructor` is `constructor_` in TypeScript: `constructor` names a class's
+  constructor.
 - `let` (decomposition binding) is `let_` in TypeScript, a reserved word.
 - Server errors are `ErrorInfo` in TypeScript, to not shadow the global `Error`.
 
@@ -371,8 +371,8 @@ objects; listing and downloading artifacts by hand is there for what the wrapper
 
 ### 4.2 Connecting and sessions
 
-- A client MUST take the server URL (defaulting to the production URL), the server path prefix, an
-  API key and an auth token, the API key taking precedence when both are given.
+- A client MUST take the server URL (defaulting to the production URL), the server path prefix, and
+  an API key and/or an auth token, the API key taking precedence when both are given.
 - Connecting MUST create a session, or reopen a given session id, optionally creating a new one if
   it is not found.
 - A server rejecting the client's API version (2.5) MUST surface as an error telling the user to
@@ -408,7 +408,9 @@ language.
 
 ### 4.4 Calls
 
-- Every method MUST accept a timeout, defaulting to the client's, in the language's usual unit.
+- Every method of 4.3 MUST accept a timeout, defaulting to the client's, in the language's usual
+  unit. Other methods need not: reading task data (4.5) fetches with the client's timeout, and
+  printers, conversions and DB lookups make no request.
 - Where the language has a cancellation mechanism (an `AbortSignal`, task cancellation), methods
   SHOULD support it.
 - A client MAY be synchronous, asynchronous or both, following the language's usual practice for
@@ -416,11 +418,13 @@ language.
 
 ### 4.5 Tasks and artifacts
 
-- A task's data MUST be fetched on first use, and at most once: later reads return the same
-  objects, and concurrent first reads share one fetch.
-- What was fetched MUST stay readable after the client is closed, including data decoded from it
-  later (a DB from a fetched task). Fetching something new after the client is closed MUST raise
-  the client's closed-client error.
+- A task's data MUST be fetched on first use, and concurrent first reads MUST share one fetch.
+- Later reads SHOULD return the same objects without fetching again. A client MAY drop fetched data
+  that is costly to keep, such as a large decomposition's artifact once it is decoded, and fetch it
+  again when it is read again.
+- What was fetched and kept MUST stay readable after the client is closed, including data decoded
+  from it later (a DB from a fetched task). Fetching after the client is closed, something new or
+  something dropped, MUST raise the client's closed-client error.
 - A task MUST be able to fetch with another client (`set_client`), e.g. a task restored from its
   id.
 - A task SHOULD offer a way to fetch all of its artifacts at once.
@@ -449,7 +453,7 @@ as data in the result, and raise only when there is no result to return.
 
 - [ ] Every method of 4.3 exists, with every request option; no excluded RPC is exposed.
 - [ ] Closing is idempotent and works with the language's scoped-resource construct.
-- [ ] Task data is fetched once, shared by concurrent reads, readable after close.
+- [ ] Task data is fetched on first use, shared by concurrent reads, readable after close.
 - [ ] Errors derive from `ImandraXError`, one subclass per case of 4.6.
 
 ## 5. MIR DB
@@ -477,12 +481,11 @@ refers to, search declarations by name, and inspect which rules a theorem gives 
 
 ### 5.3 Known server behaviour
 
-A client documents what the server sends as it is, and leaves it to the server to change:
+A client documents what the server sends as it is, and leaves it to the server to change. For
+example:
 
 - Type aliases are expanded: `type my_int = int` has no declaration, and declarations using it
   refer to `int`.
-- Disabled symbols are generative uids, which do not resolve to the content-addressed uid the
-  symbol is declared under.
 
 ### Checklist
 
@@ -505,23 +508,15 @@ type inference, ...). Printing a wrapper is for debugging and display.
 
 ### 6.2 Values as native data
 
-`to_python` / `toJs` turns a term that is a value (a constant, a constructor application, a tuple,
-a record, ...) into the language's own data:
+`to_python` / `toJs` turns a term that is a value (built from constants and constructors, e.g. a
+counterexample's inputs) into the language's own data, so users can work with results without
+walking MIR terms.
 
-| IML                      | Python                                  | TypeScript                |
-| ------------------------ | --------------------------------------- | ------------------------- |
-| `int`                    | `int`                                   | `bigint`                  |
-| `real`                   | `Fraction`                              | `Rational`                |
-| `bool`, `string`, `unit` | `bool`, `str`, `()`                     | `boolean`, `string`, `[]` |
-| tuples, lists            | `tuple`, `list`                         | arrays                    |
-| records                  | `dict` by field name                    | `Map` by field name       |
-| other constructors       | a constructor value: name and arguments |                           |
-
-- Integers and reals MUST stay exact.
-- Given the DB, constructors with an inline record MUST get their field names back.
-- A term that is not a value MUST raise an error naming the term.
-- A model MUST convert to a map from each constant's name to its value, using the short name when
-  it is unique and the full name otherwise.
+- A client SHOULD provide this conversion.
+- It MUST NOT lose or invent information: integers and rationals convert exactly, and a term with
+  no faithful native form raises an error instead of being approximated.
+- A client MAY convert a model's constants to a map from name to value. It MUST NOT present the map
+  as the whole model: its documentation says the map holds the constants.
 
 ### 6.3 Decomposition combinators
 
@@ -534,16 +529,24 @@ bind intermediate results with `let` and `get`.
 
 ### 6.4 Regions and results
 
-- A region MUST give its constraints, invariant, status and model, and as helpers: a sample input
-  (the model's values, by variable uid), the function's output on it, and the constraints and the
-  invariant as strings when the server sent them.
+- A region MUST give its constraints, invariant and status.
+- A region has a model only when its status says it is feasible. A status is computed when the
+  decomposition is pruned, and that computation can time out, so a region can have no model even
+  when pruned. A client MUST give the model as the language's optional.
+- From the model, a region SHOULD give as helpers a sample input (the model's constant values, by
+  variable uid) and the function's output on it, each as the language's optional: there is neither
+  without a model.
+- The constraints and the invariant as strings (`constraints_str` and `invariant_str`, requested
+  with `string_results`) will be deprecated. To get a string, print the MIR wrappers instead (6.1): `constraints` and
+  `invariant` are terms.
 - Proof terms and reports MUST be decoded into wrappers (3.7), including a report read from a
   downloaded archive.
 
 ### Checklist
 
 - [ ] Printers exist for the main wrappers; no test compares output across clients.
-- [ ] `to_python` / `toJs` follows 6.2, exact numbers, labels from the DB.
+- [ ] Converting values loses nothing: exact numbers, an error rather than an approximation; the
+      model map's documentation says it holds the constants.
 - [ ] Every combinator of 6.3, `from_artifact` accepting all three inputs.
 - [ ] Region helpers of 6.4.
 
@@ -685,9 +688,9 @@ own language, so it has no column.
 
 | Language   | Difference                                                                                                                                                                                  | Reason                                                                                                                             |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| TypeScript | fields named `constructor` are `ctor`                                                                                                                                                       | classes cannot have a field named `constructor`                                                                                    |
+| TypeScript | fields named `constructor` are `constructor_`                                                                                                                                               | `constructor` names a class's constructor                                                                                          |
 | TypeScript | decomposition `let` is `let_`                                                                                                                                                               | `let` is a reserved word                                                                                                           |
-| TypeScript | server errors are `ErrorInfo`                                                                                                                                                               | not to shadow the global `Error`                                                                                                   |
+| TypeScript | server errors are `ErrorInfo`, not an `Error`                                                                                                                                               | not to shadow the global `Error`; it is response data, not an exception: `ServerError` is the `Error` thrown with it               |
 | TypeScript | value maps and sets are `ValueMap` and `ValueSet`                                                                                                                                           | JS `Map` and `Set` compare keys by identity, with no hashing protocol                                                              |
 | TypeScript | conversion memo is per lib object, for the client's lifetime                                                                                                                                | `WeakMap`s keep nothing alive; Python's generated classes cannot be weakly referenced, so Python scopes its memo to one conversion |
 | TypeScript | decoding a report from an archive is asynchronous                                                                                                                                           | it decompresses with `DecompressionStream`, which has no synchronous API                                                           |
