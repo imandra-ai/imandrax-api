@@ -26,12 +26,17 @@ import {
  * @group Response parts
  */
 export interface Position {
+  /** The line, from 1 */
   readonly line: number;
+  /**
+   * The column, from 1, counted in bytes of the line's UTF-8 encoding: past a non-ASCII
+   * character it is not an index into a JS string
+   */
   readonly column: number;
 }
 
 /**
- * A source location
+ * A source location, from `start` to `stop` included
  *
  * @group Response parts
  */
