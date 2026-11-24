@@ -1,0 +1,9 @@
+dist
+docs
+node_modules
+package-lock.json
+# generated
+lib/raw/proto
+lib/raw/types.ts
+lib/version.ts
+*.local.md

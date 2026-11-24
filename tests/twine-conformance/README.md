@@ -188,6 +188,7 @@ the test with `TWINE_CONFORMANCE_DECODER` set to the command that starts it.
 | `ocaml_adapter.ml`     | the OCaml adapter, on imandrakit's `Decode`; also the reference |
 | `twine_conformance.ml` | properties, entry point                                         |
 | `py_adapter.py`        | the Python adapter                                              |
+| `ts_adapter.ts`        | the TypeScript adapter, run by Node on the built `src/ts/dist`  |
 
 ## Known failure
 

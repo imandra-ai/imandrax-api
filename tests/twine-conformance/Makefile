@@ -3,17 +3,19 @@
 
 DUNE ?= opam exec -- dune
 UV ?= uv
+NODE ?= node
 
 HERE := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 ROOT := $(abspath $(HERE)/../..)
 PY_PROJECT := $(ROOT)/src/py
+TS_PROJECT := $(ROOT)/src/ts
 
 EXE := $(ROOT)/_build/default/tests/twine-conformance/twine_conformance.exe
 
-.PHONY: test test-py test-ocaml build
+.PHONY: test test-py test-ts test-ocaml build
 
 # run with make -k to test every decoder even if one fails
-test: test-py test-ocaml
+test: test-py test-ts test-ocaml
 
 # the harness runs directly, not through the dune alias, so that a failure is
 # reported by the harness alone
@@ -24,6 +26,14 @@ test-py: build
 	@$(UV) sync --quiet --project '$(PY_PROJECT)'
 	@TWINE_CONFORMANCE_NAME=py \
 	  TWINE_CONFORMANCE_DECODER="$(UV) run --project '$(PY_PROJECT)' python '$(HERE)/py_adapter.py'" \
+	  '$(EXE)'
+
+# runs on the built client, with Node's type stripping (on by default from Node 22.18; the
+# flag enables it on earlier Node 22 releases)
+test-ts: build
+	@$(MAKE) --no-print-directory -C '$(TS_PROJECT)' build >/dev/null
+	@TWINE_CONFORMANCE_NAME=ts \
+	  TWINE_CONFORMANCE_DECODER="$(NODE) --experimental-strip-types '$(HERE)/ts_adapter.ts'" \
 	  '$(EXE)'
 
 # imandrakit's own decoder, through the same protocol as any other

@@ -814,7 +814,11 @@ class AsyncClient:
 
 @dataclass(slots=True, frozen=True)
 class Location:
-    """A source location"""
+    """A source location, from `start` to `stop` included
+
+    Lines and columns count from 1. Columns are counted in bytes of the line's UTF-8 encoding:
+    past a non-ASCII character, a column is not an index into a Python string.
+    """
 
     file: str | None
     start: tuple[int, int]

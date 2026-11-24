@@ -1,0 +1,21 @@
+{
+  "$schema": "https://typedoc-plugin-markdown.org/schema.json",
+  "sort": ["kind", "instance-first"],
+  "entryPoints": [
+    "lib/index.ts",
+    "lib/tasks.ts",
+    "lib/mir.ts",
+    "lib/proof.ts",
+    "lib/report.ts",
+    "lib/decomp.ts",
+    "lib/values.ts",
+    "lib/raw/index.ts"
+  ],
+  "tsconfig": "tsconfig.build.json",
+  "plugin": ["typedoc-plugin-markdown"],
+  "outputs": [{ "name": "markdown", "path": "docs/api" }],
+  "readme": "README.md",
+  "mergeReadme": true,
+  "excludePrivate": true,
+  "excludeInternal": true
+}

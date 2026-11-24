@@ -1,16 +1,73 @@
 {
   "name": "imandrax-api",
   "version": "0.21.0",
+  "description": "A client for the ImandraX API",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tasks": {
+      "types": "./dist/tasks.d.ts",
+      "default": "./dist/tasks.js"
+    },
+    "./mir": {
+      "types": "./dist/mir.d.ts",
+      "default": "./dist/mir.js"
+    },
+    "./proof": {
+      "types": "./dist/proof.d.ts",
+      "default": "./dist/proof.js"
+    },
+    "./report": {
+      "types": "./dist/report.d.ts",
+      "default": "./dist/report.js"
+    },
+    "./decomp": {
+      "types": "./dist/decomp.d.ts",
+      "default": "./dist/decomp.js"
+    },
+    "./values": {
+      "types": "./dist/values.d.ts",
+      "default": "./dist/values.js"
+    },
+    "./raw": {
+      "types": "./dist/raw/index.d.ts",
+      "default": "./dist/raw/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
   "scripts": {
-    "build-dev": "esbuild lib/*.ts lib/proto/*.ts --outdir=out/dev --format=cjs --platform=node --sourcemap",
-    "build-release": "esbuild lib/imandrax_api.ts --outfile=out/imandrax_api.js --bundle --minify --format=cjs --platform=node",
-    "check": "tsc --noEmit"
+    "build": "tsc -p tsconfig.build.json",
+    "check": "tsc --noEmit",
+    "docs": "typedoc",
+    "docs:html": "typedoc --options typedoc.html.json",
+    "docs:serve": "npm run docs:html && vite preview --outDir docs/html",
+    "docs:dev": "npm run docs:html && concurrently -k -n typedoc,vite \"typedoc --options typedoc.html.json --watch --preserveWatchOutput --cleanOutputDir false\" \"vite docs/html\"",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "esbuild": "^0.25.5",
+    "@types/node": "^22.15.0",
+    "concurrently": "^10.0.7",
+    "fast-check": "^4.1.1",
+    "prettier": "^3.10.1",
     "ts-proto": "^2.7.5",
-    "typescript": "^5.8.3"
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.14.1",
+    "typescript": "^5.8.3",
+    "vite": "^7.3.8",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.5.2"

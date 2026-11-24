@@ -1,0 +1,47 @@
+/**
+ * Tasks run by the server, their data and their results
+ *
+ * @module
+ */
+
+export type {
+  ArtifactSource,
+  TaskID,
+  Task,
+  TaskBase,
+  ProofObligation,
+  ProofObligationTask,
+  EvaluationTask,
+  LiftBool,
+  EnumerationStyle,
+  DecompositionRequest,
+  FunctionDecompositionRequest,
+  TermDecompositionRequest,
+  ReturnDecompositionRequest,
+  PruneDecompositionRequest,
+  MergeDecompositionRequest,
+  CompoundMergeDecompositionRequest,
+  CombineDecompositionRequest,
+  GetDecompositionRequest,
+  LetDecompositionRequest,
+  EnumerateDecompositionRequest,
+  DecompositionTask,
+  ProofCheckTask,
+  UnspecifiedTask,
+  ProofFound,
+  VerifiedUpto,
+  Instance,
+  TestOk,
+  ProofObligationSuccess,
+  NoProof,
+  Unsat,
+  InvalidModel,
+  ProofObligationError,
+  ProofObligationFailure,
+  ProofObligationTaskResult,
+  ProofObligationSubresult,
+  EvaluationStatistics,
+  EvaluationTaskResult,
+  DecompositionTaskResult,
+  TaskResult,
+} from "./internal/tasks.js";

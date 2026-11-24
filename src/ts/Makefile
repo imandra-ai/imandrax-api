@@ -1,9 +1,8 @@
-OUTDIR=out
 
-all: tsproto check build-dev build-release
+all: tsproto check build
 
 lib/version.ts: ../core/API_TYPES_VERSION
-	@echo "'use strict'; export const version: string = 'v$(file <$<)'" > $@
+	@echo "export const version: string = 'v$$(cat $<)'" > $@
 
 node_modules:
 	@npm install
@@ -11,20 +10,35 @@ node_modules:
 check: node_modules lib/version.ts
 	@npm run check
 
-build-dev: check lib/version.ts
-	npm run build-dev
+build: check
+	npm run build
 
-build-release: check lib/version.ts
-	npm run build-release
+test: node_modules lib/version.ts
+	npm test
+
+format-check: node_modules
+	npm run format:check
+
+# integration tests against the ImandraX server; needs API key
+test-integration: node_modules lib/version.ts
+	npm run test:integration
+
+# API reference as Markdown, in docs/api
+docs: node_modules lib/version.ts
+	npm run docs
+
+# The same reference as a local HTML site, in docs/html (not shipped)
+docs-html: node_modules lib/version.ts
+	npm run docs:html
 
 clean:
-	@rm -rf lib/version.ts
-	@rm -rf $(OUTDIR)
+	@rm -f lib/version.ts
+	@rm -rf dist docs/api docs/html
 
 NPM_ROOT=$(shell npm root)
 
 tsproto: node_modules
-	mkdir -p lib/proto
-	protoc --plugin=${NPM_ROOT}/.bin/protoc-gen-ts_proto --ts_proto_out=lib/proto --proto_path=../proto ../proto/*.proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=importSuffix=.js
+	mkdir -p lib/raw/proto
+	protoc --plugin=${NPM_ROOT}/.bin/protoc-gen-ts_proto --ts_proto_out=lib/raw/proto --proto_path=../proto ../proto/*.proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=importSuffix=.js
 
-.PHONY: check build-dev build-release
+.PHONY: all check build test format-check test-integration docs docs-html clean tsproto

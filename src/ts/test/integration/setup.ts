@@ -1,0 +1,66 @@
+/**
+ * Clients shared by the integration tests
+ *
+ * They run against `urlProd` with the API key in `IMANDRAX_API_KEY` (or `IMANDRA_UNI_KEY`), and
+ * are skipped without one.
+ */
+
+import { afterAll, beforeAll, expect } from "vitest";
+
+import { Client, urlProd } from "../../lib/index.js";
+import { type Task } from "../../lib/internal/tasks.js";
+
+export const apiKey: string | undefined =
+  process.env.IMANDRAX_API_KEY || process.env.IMANDRA_UNI_KEY || undefined;
+
+/** Whether the integration tests have no API key to run with */
+export const noApiKey = apiKey === undefined;
+
+// Heavy requests can take longer than the client's 30s default when the test files run in
+// parallel; this stays below vitest's 120s test and hook timeouts, so a server that hangs fails
+// with the client's `deadline_exceeded` rather than vitest's timeout
+const TIMEOUT_MS = 100_000;
+
+export function mkClient(): Promise<Client> {
+  return Client.connect({ url: urlProd, apiKey, timeoutMs: TIMEOUT_MS });
+}
+
+/**
+ * A client shared by the tests of a file, with `src` loaded, if given
+ *
+ * Call it at the top level of a test file; the returned getter gives the client inside tests.
+ */
+export function sharedClient(src?: string): () => Client {
+  let client: Client | undefined;
+  beforeAll(async () => {
+    if (noApiKey) return;
+    client = await mkClient();
+    if (src !== undefined) {
+      const res = await client.evalSrc(src);
+      if (!res.success) throw new Error(`loading the test source failed: ${res.errors.join("\n")}`);
+    }
+  });
+  afterAll(async () => {
+    await client?.close();
+  });
+  return () => {
+    if (client === undefined) throw new Error("no client: is IMANDRAX_API_KEY set?");
+    return client;
+  };
+}
+
+/** `f()`, computed on first use and shared by the tests of a file */
+export function once<T>(f: () => Promise<T>): () => Promise<T> {
+  let p: Promise<T> | undefined;
+  return () => (p ??= f());
+}
+
+/** The one task of class `cls` among `tasks` */
+export function theTask<T extends Task>(
+  tasks: readonly Task[],
+  cls: abstract new (...args: any[]) => T,
+): T {
+  const ts = tasks.filter((t): t is T => t instanceof cls);
+  expect(ts).toHaveLength(1);
+  return ts[0]!;
+}

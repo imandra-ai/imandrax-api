@@ -1,4 +1,4 @@
 
 #OPTS=--dump -d
 gents:
-	@dune exec ../../lib/genbindings/genbindings.exe -- --lang=ts -o types.ts $(OPTS)
+	@dune exec ../../lib/genbindings/genbindings.exe -- --lang=ts -o raw/types.ts $(OPTS)
