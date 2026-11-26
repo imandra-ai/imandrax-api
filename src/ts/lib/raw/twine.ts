@@ -10,6 +10,10 @@
 
 export type offset = number;
 
+const INT64_MAX = 2n ** 63n - 1n;
+/** OCaml's `max_int` */
+const INT_MAX = 2n ** 62n - 1n;
+
 /** A cache for decoding some values */
 export type Cache<T> = Map<offset, T>;
 
@@ -234,44 +238,42 @@ export class Decoder {
   /**
    * read an unsigned integer as LEB128, also returns how many bytes were consumed
    *
-   * With `u64`, fail as soon as the integer reaches 2^64. Used for lengths, counts and pointer
-   * distances, which fail against the buffer size at that point anyway: this makes them fail
-   * before building a huge integer, which takes time quadratic in its encoded length. Zero
-   * padding bytes are still accepted, at any length.
+   * As in imandrakit's decoder, the reference, it is a u64: at most 10 bytes long, zero padding
+   * included, and below 2^64.
    */
-  _leb128(off: offset, u64: boolean = false): [bigint, number] {
-    const start = off;
+  _leb128(off: offset): [bigint, number] {
     let res = 0n;
-    let shift = 0;
-    let n_bytes = 0;
-    while (true) {
-      n_bytes += 1;
-      const x = this._byte(off);
-      off += 1;
-      const cur = x & 0x7f;
-      if (u64 && cur !== 0 && shift + (32 - Math.clz32(cur)) > 64) {
-        throw new TwineError({
-          msg: `LEB128 integer at off=${hex(start)} does not fit in 64 bits`,
-          offset: start,
-        });
-      }
-      if (cur !== 0) {
-        res = res | (BigInt(cur) << BigInt(shift));
-      }
-      if (x !== cur) {
-        shift += 7;
-      } else {
-        return [res, n_bytes];
+    for (let i = 0; i < 10; i++) {
+      const x = this._byte(off + i);
+      res |= BigInt(x & 0x7f) << BigInt(7 * i);
+      if (x < 0x80) {
+        if (res >> 64n !== 0n) {
+          throw new TwineError({
+            msg: `LEB128 integer at off=${hex(off)} does not fit in 64 bits`,
+            offset: off,
+          });
+        }
+        return [res, i + 1];
       }
     }
+    throw new TwineError({
+      msg: `LEB128 integer at off=${hex(off)} is longer than 10 bytes`,
+      offset: off,
+    });
   }
 
-  /** returns (int, n_bytes_consumed); `u64` is passed to `_leb128`, set for lengths and counts */
-  private __getint64(off: offset, low: number, u64: boolean = false): [bigint, number] {
+  /**
+   * returns (int, n_bytes_consumed). As in imandrakit's decoder, the reference, an int's number
+   * fits in int64 (`limit` = `INT64_MAX`), and every other one in OCaml's 63-bit int.
+   */
+  private __getint64(off: offset, low: number, limit: bigint = INT_MAX): [bigint, number] {
     if (low < 15) {
       return [BigInt(low), 0];
     }
-    const [rest, consumed] = this._leb128(off + 1, u64);
+    const [rest, consumed] = this._leb128(off + 1);
+    if (rest + 15n > limit) {
+      throw new TwineError({ msg: `number at off=${hex(off)} is above ${limit}`, offset: off });
+    }
     return [rest + 15n, consumed];
   }
 
@@ -284,7 +286,7 @@ export class Decoder {
       if (high !== 15) {
         return [off, high, low];
       }
-      const [p, _] = this.__getint64(off, low, true);
+      const [p, _] = this.__getint64(off, low);
       off = off - this._size(off, p) - 1;
     }
   }
@@ -314,7 +316,7 @@ export class Decoder {
       case 10:
       case 14:
       case 15: {
-        const [_, n_bytes] = this.__getint64(off, low, high === 15);
+        const [_, n_bytes] = this.__getint64(off, low, INT64_MAX);
         return off + 1 + n_bytes;
       }
       case 3:
@@ -323,7 +325,7 @@ export class Decoder {
         throw this._reservedFloatWidth(off, low);
       case 4:
       case 5: {
-        const [len, n_bytes] = this.__getint64(off, low, true);
+        const [len, n_bytes] = this.__getint64(off, low);
         return off + 1 + n_bytes + this._size(off, len);
       }
       case 6:
@@ -347,10 +349,10 @@ export class Decoder {
   get_int(off: offset): bigint {
     const [o, high, low] = this._head(off);
     if (high === 1) {
-      return this.__getint64(o, low)[0];
+      return this.__getint64(o, low, INT64_MAX)[0];
     } else if (high === 2) {
       // negative int
-      return -this.__getint64(o, low)[0] - 1n;
+      return -this.__getint64(o, low, INT64_MAX)[0] - 1n;
     } else if (high === 5) {
       // bigint
       const bytes = this.get_bytes(o);
@@ -410,7 +412,7 @@ export class Decoder {
         offset: o,
       });
     }
-    const [len, n_bytes] = this.__getint64(o, low, true);
+    const [len, n_bytes] = this.__getint64(o, low);
     const payload = this._slice(o + 1 + n_bytes, this._size(o, len));
     try {
       // `ignoreBOM`: a leading U+FEFF is part of the string, not a byte order mark to drop
@@ -431,7 +433,7 @@ export class Decoder {
         offset: o,
       });
     }
-    const [len, n_bytes] = this.__getint64(o, low, true);
+    const [len, n_bytes] = this.__getint64(o, low);
     // a copy, so the result does not keep the whole buffer alive
     return this._slice(o + 1 + n_bytes, this._size(o, len)).slice();
   }
@@ -444,7 +446,7 @@ export class Decoder {
         offset: o,
       });
     }
-    const [len, n_bytes] = this.__getint64(o, low, true);
+    const [len, n_bytes] = this.__getint64(o, low);
     const start = o + 1 + n_bytes;
     const n = this._checkCount(o, start, len, 1);
     return new ArrayCursor({ dec: this, offset: start, num_items: n });
@@ -458,7 +460,7 @@ export class Decoder {
         offset: o,
       });
     }
-    const [len, n_bytes] = this.__getint64(o, low, true);
+    const [len, n_bytes] = this.__getint64(o, low);
     const start = o + 1 + n_bytes;
     // each entry is a key and a value, at least one byte each
     const n = this._checkCount(o, start, len, 2);
@@ -493,7 +495,7 @@ export class Decoder {
     } else if (high === 12) {
       const [idx, n_bytes] = this.__getint64(o, low);
       const countOff = o + 1 + n_bytes;
-      const [num_items, n_bytes2] = this._leb128(countOff, true);
+      const [num_items, n_bytes2] = this._leb128(countOff);
       const start = countOff + n_bytes2;
       const n = this._checkCount(o, start, num_items, 1);
       return new Cstor(

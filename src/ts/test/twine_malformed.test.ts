@@ -152,27 +152,46 @@ describe("regressions", () => {
     // the buffer size, but only after building the whole integer, in time quadratic in its
     // encoded length
     const d = new twine.Decoder(new Uint8Array(data));
-    expect(() => d.value(off)).toThrow(/does not fit in 64 bits/);
+    expect(() => d.value(off)).toThrow(/longer than 10 bytes/);
   });
 
   test("LEB128 u64 boundary", () => {
     const maxU64 = bytes(...new Array(9).fill(0xff), 0x01); // 2^64 - 1
-    expect(new twine.Decoder(maxU64)._leb128(0, true)).toEqual([2n ** 64n - 1n, 10]);
+    expect(new twine.Decoder(maxU64)._leb128(0)).toEqual([2n ** 64n - 1n, 10]);
     const twoPow64 = bytes(...new Array(9).fill(0x80), 0x02);
-    expect(() => new twine.Decoder(twoPow64)._leb128(0, true)).toThrow(/does not fit in 64 bits/);
+    expect(() => new twine.Decoder(twoPow64)._leb128(0)).toThrow(/does not fit in 64 bits/);
   });
 
-  test("padded varint length decodes", () => {
-    // LEB128 allows zero padding bytes, and the twine spec doesn't forbid them, so a padded
-    // length decodes at any encoded length. Here: 15 + 1 = 16
-    const data = bytes(0x4f, 0x81, ...new Array(20).fill(0x80), 0x00, ...new Array(16).fill(0x61));
-    expect(new twine.Decoder(data).value(0)).toBe("a".repeat(16));
+  test("padded varint length", () => {
+    // zero padding is accepted up to 10 bytes in all, as in imandrakit's decoder. Here: 15 + 1 = 16
+    const str = (padding: number) =>
+      bytes(0x4f, 0x81, ...new Array(padding).fill(0x80), 0x00, ...new Array(16).fill(0x61));
+    expect(new twine.Decoder(str(8)).value(0)).toBe("a".repeat(16));
+    expect(() => new twine.Decoder(str(9)).value(0)).toThrow(/longer than 10 bytes/);
   });
 
-  test("int beyond u64 decodes", () => {
-    // Ints are not bounded: the value is what the bytes encode
-    const data = bytes(0x1f, ...new Array(20).fill(0xff), 0x01);
-    expect(new twine.Decoder(data).get_int(0)).toBe(2n ** 141n - 1n + 15n);
+  const leb128 = (n: bigint): number[] => {
+    const out: number[] = [];
+    for (; n >= 0x80n; n >>= 7n) out.push(Number(n & 0x7fn) | 0x80);
+    out.push(Number(n));
+    return out;
+  };
+
+  test("int fits in int64", () => {
+    // as in imandrakit's decoder. Kind 1 holds n, kind 2 holds -n - 1
+    const int = (kind: number, n: bigint) => bytes((kind << 4) | 15, ...leb128(n - 15n));
+    expect(new twine.Decoder(int(1, 2n ** 63n - 1n)).get_int(0)).toBe(2n ** 63n - 1n);
+    expect(new twine.Decoder(int(2, 2n ** 63n - 1n)).get_int(0)).toBe(-(2n ** 63n));
+    for (const kind of [1, 2]) {
+      expect(() => new twine.Decoder(int(kind, 2n ** 63n)).get_int(0)).toThrow(/is above/);
+    }
+  });
+
+  test("tag number fits in OCaml int", () => {
+    // as in imandrakit's decoder, which reads it into an OCaml int (63 bits)
+    const tag = (n: bigint) => bytes(0x8f, ...leb128(n - 15n), 0x00);
+    new twine.Decoder(tag(2n ** 62n - 1n)).value(0);
+    expect(() => new twine.Decoder(tag(2n ** 62n)).value(0)).toThrow(/is above/);
   });
 
   test("skipping a constructor throws TwineError", () => {

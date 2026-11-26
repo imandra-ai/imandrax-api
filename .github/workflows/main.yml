@@ -71,6 +71,9 @@ jobs:
         node-version: 22
     - run: opam pin -n .
     - run: opam install imandrax-api --deps-only --with-test -y
+    # the reference decoder needs imandrakit's fix for malformed input; drop this
+    # step once https://github.com/imandra-ai/imandrakit/pull/29 is merged
+    - run: opam pin add imandrakit.dev "git+https://github.com/imandra-ai/imandrakit#5b2b11b7759f6f94c55071d5cc323b4adca08b45" -y
     - run: make -C tests/twine-conformance test-${{ matrix.decoder }}
   pyright:
     name: py/pyright

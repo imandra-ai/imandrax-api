@@ -9,12 +9,20 @@ from typing import Any, Protocol
 
 offset = int
 
+INT64_MAX = 2**63 - 1
+INT_MAX = 2**62 - 1
+"""OCaml's `max_int`"""
+
 # Note [Twine Data Format]
 # ~~~~~~~~~~~~~~~~~~~~~~~~
 # Every twine value starts with one byte. The high nibble is the value's kind, and the
 # low nibble holds a small number whose meaning depends on the kind. If the low nibble
 # is 0 to 14, that is the number. If it is 15, the number is 15 plus an unsigned
 # LEB128 integer stored right after the first byte.
+#
+# As in imandrakit's decoder, the reference: the LEB128 integer is at most 10 bytes
+# long and below 2^64, an int's number fits in int64 (`INT64_MAX`), and every other
+# number fits in OCaml's 63-bit int (`INT_MAX`).
 #
 #   kind       meaning               the number is       after the first byte
 #   ---------  --------------------  ------------------  ------------------------------
@@ -159,51 +167,41 @@ class Decoder:
             )
         return n
 
-    def _leb128(self, off: offset, *, u64: bool = False) -> tuple[int, int]:
-        """Reads an unsigned LEB128 integer at `off`.
+    def _leb128(self, off: offset) -> tuple[int, int]:
+        """Reads an unsigned LEB128 integer at `off`: a u64, at most 10 bytes long,
+        zero padding included.
 
         Args:
             off: Offset of the integer's first byte.
-            u64: Fail as soon as the integer reaches 2^64. Used for lengths,
-                counts and pointer distances, which fail against the buffer size
-                at that point anyway: this makes them fail before building a huge
-                integer, which takes time quadratic in its encoded length. Zero
-                padding bytes are still accepted, at any length.
 
         Returns:
             The integer, and how many bytes it takes up.
 
         Raises:
-            Error: If the integer runs past the end of the buffer, or, with `u64`,
-                does not fit in 64 bits.
+            Error: If the integer runs past the end of the buffer, is longer than 10
+                bytes, or does not fit in 64 bits.
         """
-        start = off
         res = 0
-        shift = 0
-        n_bytes = 0
-        while True:
-            n_bytes += 1
-            x = self._byte(off)
-            off += 1
-            cur = x & 0x7F
-            if u64 and cur and shift + cur.bit_length() > 64:
-                raise Error(
-                    f"LEB128 integer at off=0x{start:x} does not fit in 64 bits"
-                )
-            res = res | (cur << shift)
-            if x == cur:
-                return res, n_bytes
-            shift += 7
+        for i in range(10):
+            x = self._byte(off + i)
+            res |= (x & 0x7F) << (7 * i)
+            if x < 0x80:
+                if res >> 64:
+                    raise Error(
+                        f"LEB128 integer at off=0x{off:x} does not fit in 64 bits"
+                    )
+                return res, i + 1
+        raise Error(f"LEB128 integer at off=0x{off:x} is longer than 10 bytes")
 
     def __getint64(
-        self, off: offset, low: int, *, u64: bool = False
+        self, off: offset, low: int, *, limit: int = INT_MAX
     ) -> tuple[int, int]:
         """Reads the number held by a value's first byte.
 
         Args:
             off: Offset of the value's first byte.
             low: The first byte's low nibble.
-            u64: Passed to `_leb128`: set for lengths and counts.
+            limit: The largest number accepted: `INT64_MAX` for an int.
 
         Returns:
             The number, and how many bytes after the first byte it takes up (0 when
@@ -211,7 +209,9 @@ class Decoder:
         """
         if low < 15:
             return low, 0
-        rest, consumed = self._leb128(off=off + 1, u64=u64)
+        rest, consumed = self._leb128(off=off + 1)
+        if rest + 15 > limit:
+            raise Error(f"number at off=0x{off:x} is above {limit}")
         return rest + 15, consumed
 
     def _deref(self, off: offset) -> tuple[offset, int, int]:
@@ -243,7 +243,7 @@ class Decoder:
             if low < 15:
                 off = off - low - 1
             else:
-                p, _ = self._leb128(off=off + 1, u64=True)
+                p, _ = self._leb128(off=off + 1)
                 off = off - p - 16
 
     def _skip(self, off: offset) -> offset:
@@ -261,12 +261,12 @@ class Decoder:
         if high == 15 or high == 1 or high == 2 or high == 10 or high == 14:
             if low < 15:
                 return off + 1
-            _, n_bytes = self._leb128(off=off + 1, u64=high == 15)
+            _, n_bytes = self._leb128(off=off + 1)
             return off + 1 + n_bytes
         if high == 4 or high == 5:
             if low < 15:
                 return off + 1 + low
-            n, n_bytes = self._leb128(off=off + 1, u64=True)
+            n, n_bytes = self._leb128(off=off + 1)
             return off + 1 + n_bytes + n + 15
         if high == 0:
             return off + 1
@@ -293,11 +293,11 @@ class Decoder:
         """Reads an integer: kind 1 (non-negative), 2 (negative) or 5 (bigint)."""
         off, high, low = self._deref(off)
         if high == 1:
-            x, _ = self.__getint64(off=off, low=low)
+            x, _ = self.__getint64(off=off, low=low, limit=INT64_MAX)
             return x
         elif high == 2:
             # negative int
-            x, _ = self.__getint64(off=off, low=low)
+            x, _ = self.__getint64(off=off, low=low, limit=INT64_MAX)
             return -x - 1
         elif high == 5:
             # bigint
@@ -345,7 +345,7 @@ class Decoder:
         off, high, low = self._deref(off)
         if high != 4:
             raise Error(f"expected string, but high={high} at off=0x{off:x}")
-        len, n_bytes = self.__getint64(off=off, low=low, u64=True)
+        len, n_bytes = self.__getint64(off=off, low=low)
         payload = self._slice(off + 1 + n_bytes, len)
         try:
             return payload.decode("utf8")
@@ -357,7 +357,7 @@ class Decoder:
         off, high, low = self._deref(off)
         if high != 5:
             raise Error(f"expected bytes, but high={high} at off=0x{off:x}")
-        len, n_bytes = self.__getint64(off=off, low=low, u64=True)
+        len, n_bytes = self.__getint64(off=off, low=low)
         return bytes(self._slice(off + 1 + n_bytes, len))
 
     # Container accessors
@@ -370,7 +370,7 @@ class Decoder:
         off, high, low = self._deref(off)
         if high != 6:
             raise Error(f"expected array, but high={high} at off=0x{off:x}")
-        len, n_bytes = self.__getint64(off=off, low=low, u64=True)
+        len, n_bytes = self.__getint64(off=off, low=low)
         start = off + 1 + n_bytes
         len = self._check_count(at=off, start=start, n=len, item_size=1)
         return ArrayCursor(dec=self, offset=start, num_items=len)
@@ -380,7 +380,7 @@ class Decoder:
         off, high, low = self._deref(off)
         if high != 7:
             raise Error(f"expected dict, but high={high} at off=0x{off:x}")
-        len, n_bytes = self.__getint64(off=off, low=low, u64=True)
+        len, n_bytes = self.__getint64(off=off, low=low)
         start = off + 1 + n_bytes
         # each entry is a key and a value, at least one byte each
         len = self._check_count(at=off, start=start, n=len, item_size=2)
@@ -415,7 +415,7 @@ class Decoder:
         elif high == 12:
             idx, n_bytes = self.__getint64(off=off, low=low)
             count_off = off + 1 + n_bytes
-            num_items, n_bytes = self._leb128(off=count_off, u64=True)
+            num_items, n_bytes = self._leb128(off=count_off)
             start = count_off + n_bytes
             num_items = self._check_count(at=off, start=start, n=num_items, item_size=1)
             return Constructor[ArrayCursor](
