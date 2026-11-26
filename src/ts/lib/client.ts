@@ -233,7 +233,7 @@ export class Client {
       } catch (e) {
         if (e instanceof TwirpError && e.code === "invalid_argument") {
           throw new ApiVersionMismatchError(
-            "API version mismatch. Try upgrading the imandrax-api package.",
+            "API version mismatch. Try upgrading the @imandra/imandrax-api package.",
             { cause: e },
           );
         }

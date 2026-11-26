@@ -5,7 +5,7 @@ A TypeScript client for the ImandraX API.
 ## Install
 
 ```sh
-npm install imandrax-api
+npm install @imandra/imandrax-api
 ```
 
 Requires Node 22 or later. The package is ESM only; on Node 22.12+ it can also be loaded with `require()`.
@@ -31,7 +31,7 @@ The examples read the API key from `IMANDRAX_API_KEY` (or `IMANDRA_UNI_KEY`).
 <!-- example: quickstart -->
 
 ```ts
-import { Client } from "imandrax-api";
+import { Client } from "@imandra/imandrax-api";
 
 const apiKey = process.env.IMANDRAX_API_KEY || process.env.IMANDRA_UNI_KEY;
 
@@ -63,7 +63,7 @@ With `prune: true`, regions proved empty are removed, and each region proved fea
 <!-- example: decompose -->
 
 ```ts
-import { Client } from "imandrax-api";
+import { Client } from "@imandra/imandrax-api";
 
 const apiKey = process.env.IMANDRAX_API_KEY || process.env.IMANDRA_UNI_KEY;
 
@@ -107,7 +107,7 @@ The steps above can also be written in one IML source and run with a single `eva
 <!-- example: eval_src -->
 
 ```ts
-import { Client } from "imandrax-api";
+import { Client } from "@imandra/imandrax-api";
 
 const apiKey = process.env.IMANDRAX_API_KEY || process.env.IMANDRA_UNI_KEY;
 

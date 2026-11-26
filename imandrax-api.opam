@@ -4,6 +4,7 @@ version: "0.21"
 synopsis: "Public API and types for ImandraX"
 maintainer: ["imandra.ai"]
 authors: ["the imandrax team"]
+license: "MIT"
 homepage: "https://github.com/imandra-ai/imandrax-api"
 bug-reports: "https://github.com/imandra-ai/imandrax-api/issues"
 depends: [

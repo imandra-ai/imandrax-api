@@ -31,6 +31,9 @@ docs: node_modules lib/version.ts
 docs-html: node_modules lib/version.ts
 	npm run docs:html
 
+publish-dry-run: node_modules lib/version.ts
+	npm publish --dry-run
+
 clean:
 	@rm -f lib/version.ts
 	@rm -rf dist docs/api docs/html
@@ -41,4 +44,4 @@ tsproto: node_modules
 	mkdir -p lib/raw/proto
 	protoc --plugin=${NPM_ROOT}/.bin/protoc-gen-ts_proto --ts_proto_out=lib/raw/proto --proto_path=../proto ../proto/*.proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=importSuffix=.js
 
-.PHONY: all check build test format-check test-integration docs docs-html clean tsproto
+.PHONY: all check build test format-check test-integration docs docs-html publish-dry-run clean tsproto
