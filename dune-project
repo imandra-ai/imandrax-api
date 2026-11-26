@@ -15,6 +15,8 @@
 
 (authors "the imandrax team")
 
+(license MIT)
+
 (maintainers "imandra.ai")
 
 ; from imandrax

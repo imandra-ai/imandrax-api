@@ -2,6 +2,7 @@
   "name": "@imandra/imandrax-api",
   "version": "0.21.0",
   "description": "A client for the ImandraX API",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/imandra-ai/imandrax-api.git",
