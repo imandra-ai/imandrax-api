@@ -22,6 +22,7 @@ from ..twirp.context import Context
 from ..twirp.exceptions import TwirpServerException
 from . import decomp
 from ._common import (
+    check_timeout,
     ClientClosedError,
     EndSessionError,
     api_version_error,
@@ -62,6 +63,7 @@ class AsyncClient:
         session_id: str | None = None,
         create_if_not_found: bool = False,
     ) -> None:
+        check_timeout(timeout, 30)
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session: aiohttp.ClientSession = aiohttp.ClientSession()
         self._session_id = session_id
@@ -172,7 +174,7 @@ class AsyncClient:
     # ====================
 
     async def status(self, timeout: Optional[float] = None) -> utils_pb2.StringMsg:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._client.status(
             ctx=self._ctx(),
             request=utils_pb2.Empty(),
@@ -199,7 +201,7 @@ class AsyncClient:
                 top-level definitions with 'xyz' in their name. Tasks without
                 names are matched under `anonymous`.
         """
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         req = simple_api_pb2.EvalSrcReq(
             src=src, session=self._sesh, task_filter=task_filter
         )
@@ -232,8 +234,7 @@ class AsyncClient:
             compute_timeout (int | None): server-side compute timeout, passed as
                 `DecomposeReq.timeout`
         """
-        if timeout is None:
-            timeout = self._timeout
+        timeout = check_timeout(timeout, self._timeout)
 
         req = simple_api_pb2.DecomposeReq(
             name=name,
@@ -277,8 +278,7 @@ class AsyncClient:
             compute_timeout (int | None): server-side compute timeout, passed as
                 `DecomposeReqFull.timeout`
         """
-        if timeout is None:
-            timeout = self._timeout
+        timeout = check_timeout(timeout, self._timeout)
 
         req = simple_api_pb2.DecomposeReqFull(session=self._sesh, decomp=d)
         # If None, keep it as unset
@@ -299,7 +299,7 @@ class AsyncClient:
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.VerifyRes:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._client.verify_src(
             ctx=self._ctx(),
             request=simple_api_pb2.VerifySrcReq(
@@ -314,7 +314,7 @@ class AsyncClient:
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.VerifyRes:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._client.verify_name(
             ctx=self._ctx(),
             request=simple_api_pb2.VerifyNameReq(
@@ -329,7 +329,7 @@ class AsyncClient:
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.InstanceRes:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._client.instance_src(
             ctx=self._ctx(),
             request=simple_api_pb2.InstanceSrcReq(
@@ -344,7 +344,7 @@ class AsyncClient:
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.InstanceRes:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._client.instance_name(
             ctx=self._ctx(),
             request=simple_api_pb2.InstanceNameReq(
@@ -363,7 +363,7 @@ class AsyncClient:
         if seed is not None:
             req.seed = seed
 
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._client.test_src(
             ctx=self._ctx(),
             request=req,
@@ -388,7 +388,7 @@ class AsyncClient:
         if seed is not None:
             req.seed = seed
 
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._client.test_name(
             ctx=self._ctx(),
             request=req,
@@ -406,7 +406,7 @@ class AsyncClient:
     async def typecheck(
         self, src: str, timeout: Optional[float] = None
     ) -> simple_api_pb2.TypecheckRes:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._client.typecheck(
             ctx=self._ctx(),
             request=simple_api_pb2.TypecheckReq(src=src, session=self._sesh),
@@ -424,7 +424,7 @@ class AsyncClient:
             include_str (bool): if true, include the string representation of
                 each declaration (`DeclWithName.str`).
         """
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._client.get_decls(
             ctx=self._ctx(),
             request=simple_api_pb2.GetDeclsReq(
@@ -447,7 +447,7 @@ class AsyncClient:
                 as `OneshotReq.timeout`
             timeout (float | None): HTTP request timeout
         """
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         req = simple_api_pb2.OneshotReq(input=input)
         # If None, keep it as unset
         if compute_timeout is not None:
@@ -473,7 +473,7 @@ class AsyncClient:
             task_filter (list[str] | None): glob patterns for selecting tasks
                 to be started during evaluation, as in `eval_src`.
         """
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._api_client.eval_code_snippet(
             ctx=self._ctx(),
             request=api_pb2.CodeSnippet(
@@ -486,7 +486,7 @@ class AsyncClient:
         self, code: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactResult:
         """Parse and typecheck a term, returning it as an artifact."""
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._api_client.parse_term(
             ctx=self._ctx(),
             request=api_pb2.CodeSnippet(session=self._sesh, code=code),
@@ -497,7 +497,7 @@ class AsyncClient:
         self, code: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactResult:
         """Parse and typecheck a type, returning it as an artifact."""
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._api_client.parse_type(
             ctx=self._ctx(),
             request=api_pb2.CodeSnippet(session=self._sesh, code=code),
@@ -507,7 +507,7 @@ class AsyncClient:
     async def list_artifacts(
         self, task: task_pb2.Task, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactListResult:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._api_client.list_artifacts(
             ctx=self._ctx(),
             request=api_pb2.ArtifactListQuery(task_id=task.id),
@@ -518,7 +518,7 @@ class AsyncClient:
         self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactResult:
         """Obtain an artifact from a task."""
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._api_client.get_artifact(
             ctx=self._ctx(),
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
@@ -529,7 +529,7 @@ class AsyncClient:
         self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactZipResult:
         """Obtain an artifact from a task as a zip file."""
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._api_client.get_artifact_zip(
             ctx=self._ctx(),
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
@@ -545,7 +545,7 @@ class AsyncClient:
 
     async def keep_session_alive(self, timeout: Optional[float] = None) -> None:
         """Make sure the session remains active."""
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         await self._session_mgr.keep_session_alive(
             ctx=self._ctx(),
             request=self._sesh,
@@ -558,7 +558,7 @@ class AsyncClient:
     async def version(
         self, timeout: Optional[float] = None
     ) -> system_pb2.VersionResponse:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._system_client.version(
             ctx=self._ctx(),
             request=utils_pb2.Empty(),
@@ -566,7 +566,7 @@ class AsyncClient:
         )
 
     async def gc_stats(self, timeout: Optional[float] = None) -> system_pb2.Gc_stats:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._system_client.gc_stats(
             ctx=self._ctx(),
             request=utils_pb2.Empty(),
@@ -576,7 +576,7 @@ class AsyncClient:
     async def release_memory(
         self, timeout: Optional[float] = None
     ) -> system_pb2.Gc_stats:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return await self._system_client.release_memory(
             ctx=self._ctx(),
             request=utils_pb2.Empty(),

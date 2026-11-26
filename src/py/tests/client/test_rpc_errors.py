@@ -204,15 +204,15 @@ def test_connection_refused(is_async: bool) -> None:
 # ====================
 
 
-def connect(cls: Any, url: str, **kwargs: Any) -> Any:
+def connect(cls: Any, url: str, status_timeout: Any = 0.1, **kwargs: Any) -> Any:
     """Connect a client of class `cls` and close it, returning what `status` gives"""
     if cls in (v1.Client, v2.Client):
         with cls(url=url, **kwargs) as c:
-            return c.status(timeout=0.1)
+            return c.status(timeout=status_timeout)
 
     async def go() -> Any:
         async with cls(url=url, **kwargs) as c:
-            return await c.status(timeout=0.1)
+            return await c.status(timeout=status_timeout)
 
     return asyncio.run(go())
 
@@ -272,6 +272,36 @@ def test_gateway_404_elsewhere_is_not_a_mismatch(server: _Server, cls: Any) -> N
     with pytest.raises(TwirpServerException) as e:
         connect(cls, url_of(server))
     assert e.value.code == Errors.BadRoute
+
+
+invalid_timeouts = pytest.mark.parametrize(
+    ("timeout", "error"),
+    [(0, ValueError), (-1, ValueError), (float("nan"), ValueError), ("5", TypeError)],
+    ids=["zero", "negative", "nan", "str"],
+)
+
+
+@clients
+@invalid_timeouts
+def test_invalid_call_timeout(
+    server: _Server, cls: Any, timeout: Any, error: type[Exception]
+) -> None:
+    """An invalid timeout is the caller's error, raised before the request is sent (spec 4.6)"""
+    serve_session(server)
+    server.routes["status"] = ok(utils_pb2.StringMsg(msg="fine"))
+    with pytest.raises(error, match="timeout"):
+        connect(cls, url_of(server), status_timeout=timeout)
+    assert not any(h.endswith("/status") for h in server.hits)
+
+
+@clients
+@invalid_timeouts
+def test_invalid_client_timeout(
+    server: _Server, cls: Any, timeout: Any, error: type[Exception]
+) -> None:
+    with pytest.raises(error, match="timeout"):
+        connect(cls, url_of(server), timeout=timeout)
+    assert server.hits == []
 
 
 @clients

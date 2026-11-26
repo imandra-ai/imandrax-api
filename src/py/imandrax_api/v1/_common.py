@@ -45,6 +45,20 @@ def api_version_error(ex: TwirpServerException) -> ApiVersionMismatchError | Non
     return None
 
 
+def check_timeout(timeout: object, default: float) -> float:
+    """`timeout`, or `default` when it is `None`; a timeout is a positive number of seconds
+
+    An invalid timeout is the caller's error: it raises before any request is sent.
+    """
+    if timeout is None:
+        return default
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+        raise TypeError(f"timeout must be a number of seconds, got {timeout!r}")
+    if not timeout > 0:  # also rejects NaN
+        raise ValueError(f"timeout must be positive, got {timeout!r}")
+    return timeout
+
+
 def mk_context() -> Context:
     """Build a request context with the appropriate headers"""
     return Context(headers={"x-api-version": api_types_version.api_types_version})
