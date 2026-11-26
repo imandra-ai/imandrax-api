@@ -7,7 +7,7 @@
  *
  * @example
  * ```ts
- * import * as decomp from "imandrax-api/decomp";
+ * import * as decomp from "@imandra/imandrax-api/decomp";
  *
  * const d = decomp.let_(
  *   { base: decomp.byName("f", { prune: true }) },

@@ -18,7 +18,7 @@
     "sourceMap": true,
     "outDir": "dist",
     // The README examples (test/readme) import the package by name, as users do
-    "paths": { "imandrax-api": ["./lib/index.ts"] }
+    "paths": { "@imandra/imandrax-api": ["./lib/index.ts"] }
   },
   "include": ["lib", "test", "vitest.config.ts"]
 }

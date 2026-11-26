@@ -1,4 +1,4 @@
-import { Client } from "imandrax-api";
+import { Client } from "@imandra/imandrax-api";
 
 const apiKey = process.env.IMANDRAX_API_KEY || process.env.IMANDRA_UNI_KEY;
 
