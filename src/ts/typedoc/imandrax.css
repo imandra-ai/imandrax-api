@@ -159,7 +159,7 @@ right (imandrax-theme.mjs renders the wordmark and marks the docs link).
 }
 #tsd-toolbar-links a:hover,
 #tsd-toolbar-links a:focus-visible,
-#tsd-toolbar-links a[aria-current="page"] {
+#tsd-toolbar-links a[aria-current="true"] {
   color: var(--imandrax-nav-active-color);
   text-decoration: none;
 }
@@ -195,6 +195,27 @@ Sidebars
 }
 
 /* The top menu, repeated by typedoc in the sidebar on small screens */
-#tsd-sidebar-links a.tsd-nav-link[aria-current="page"] {
+#tsd-sidebar-links a.tsd-nav-link[aria-current="true"] {
   color: var(--imandrax-nav-active-color);
+}
+
+/*
+Footer
+------
+
+Build info (imandrax-theme.mjs) in 14px. It wraps onto two lines on small
+screens, so the footer is taller there; typedoc sizes the page from
+`--dim-footer-height`.
+*/
+
+footer > p {
+  font-size: 14px;
+}
+@media (max-width: 769px) {
+  :root {
+    --dim-footer-height: 4.5rem;
+  }
+  footer {
+    max-height: none;
+  }
 }

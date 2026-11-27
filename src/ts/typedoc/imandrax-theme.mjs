@@ -11,7 +11,6 @@
 //   in the sidebar (where typedoc repeats them on small screens)
 // - the footer says which version and commit the reference was built from,
 //   unless `customFooterHtml` is set
-// - `sidebarLinks` into the repo (`/tree/main/`) point at that commit too
 //
 // Colours, fonts and sizes are in imandrax.css (`customCss`).
 
@@ -48,11 +47,12 @@ function mustFind(el, what, pred) {
   return found;
 }
 
-// Top menu link `a`: mark the docs link, open other sites in a new tab
+// Top menu link `a`: mark the docs link as the current section (`true`, not
+// `page`: it links to the docs home), open other sites in a new tab
 function styleMenuLink(a) {
   const href = a?.props?.href;
   if (typeof href !== "string") return;
-  if (href === DOCS) a.props["aria-current"] = "page";
+  if (href === DOCS) a.props["aria-current"] = "true";
   if (!href.startsWith(SITE)) {
     a.props.target = "_blank";
     a.props.rel = "noopener";
@@ -99,16 +99,20 @@ class ImandraXTheme extends DefaultTheme {
 // Build info
 // ----------
 
+// Run git in this file's directory, whatever directory typedoc runs in
 function git(...args) {
   return execFileSync("git", args, {
+    cwd: new URL(".", import.meta.url),
     encoding: "utf8",
     stdio: ["ignore", "pipe", "ignore"],
   }).trim();
 }
 
-// The commit being built, or undefined outside a git checkout
+// The commit being built, or undefined unless this file is in an imandrax-api
+// checkout (a copy without .git inside another repo would find that repo)
 function head() {
   try {
+    if (git("rev-parse", "--show-prefix") !== "src/ts/typedoc/") return undefined;
     const [commit, short, date] = git("log", "-1", "--format=%H %h %cs").split(" ");
     return { commit, short, date };
   } catch {
@@ -128,19 +132,8 @@ function buildInfo(commit) {
 export function load(app) {
   app.renderer.defineTheme("imandrax", ImandraXTheme);
   app.on(Application.EVENT_BOOTSTRAP_END, () => {
-    const commit = head();
     if (!app.options.isSet("customFooterHtml")) {
-      app.options.setValue("customFooterHtml", buildInfo(commit));
-    }
-    if (commit) {
-      const links = app.options.getValue("sidebarLinks");
-      const pinned = Object.entries(links).map(([label, href]) => [
-        label,
-        href.startsWith(`${REPO}/tree/main/`)
-          ? href.replace("/tree/main/", `/tree/${commit.commit}/`)
-          : href,
-      ]);
-      app.options.setValue("sidebarLinks", Object.fromEntries(pinned));
+      app.options.setValue("customFooterHtml", buildInfo(head()));
     }
   });
 }
