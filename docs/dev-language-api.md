@@ -520,11 +520,11 @@ therefore take the name from a switch.
   MUST default to full names.
 - A client MUST provide a way to apply the switch to a block of code only, restoring the previous
   value when the block exits, including when it exits with an error (for example,
-  `with uid_names(...)` in Python, `withUidNames(..., () => ...)` in TypeScript).
-- The switch SHOULD be safe across threads and concurrent tasks where the language has them: in
-  Python it is held in a `contextvars.ContextVar`. In TypeScript the scoped form takes a
-  synchronous function only, since printing is synchronous and an `await` inside the block would
-  let other code run with the switch flipped.
+  `with uid_style(...)` in Python, `withUidStyle(..., () => ...)` in TypeScript).
+- Where the language has threads or concurrent tasks, the global switch SHOULD hold in all of
+  them and the scoped form only in its own, for example by keeping the scoped value in
+  context-local storage. Where the language has none, the scoped form can accept synchronous code
+  only, so that no other code runs while the switch is flipped.
 - Every uid a printer shows MUST follow the switch: uids, symbols, uid constants, type
   constructors, data constructors, record fields and labels, and variables.
 - The switch MUST affect printed output only, never the code's logic. For example, converting a
@@ -708,7 +708,7 @@ OCaml defines the types and is the server's own language, so it has no column.
 | Errors (4.6)                              | ◐      | ✓          | n/a  |
 | MIR DB lookups and search (5)             | ✓      | ✓          | n/a  |
 | Printers (6.1)                            | ✓      | ✓          | n/a  |
-| Uid name switch (6.1)                     | ✗      | ✗          | n/a  |
+| Uid name switch (6.1)                     | ✓      | ✗          | n/a  |
 | `to_python` / `toJs` (6.2)                | ✓      | ✓          | n/a  |
 | Decomposition combinators (6.3)           | ✓      | B          | n/a  |
 | Region helpers, proofs, reports (6.4)     | ✓      | B          | n/a  |

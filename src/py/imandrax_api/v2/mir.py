@@ -30,6 +30,7 @@ from imandrax_api import lib
 from ._lib_memo import LibMemo, lib_memo, with_lib_memo
 from ._utils import FrozenMap
 from .errors import UnexpectedResponseError
+from .uid_print_style import get_uid_style
 
 # Note: all __str__ in there are purely for debugging purposes. There is no MIR
 # text format; MIR is only exchanged in byte-serialized form and there is no
@@ -38,6 +39,11 @@ from .errors import UnexpectedResponseError
 # ensure the resulting MIR has the right properties (e.g. content hashed
 # functions, lifted lambdas, correct types, inferred type variables, ...), and
 # those processes are not replicated on the client side.
+
+
+def _print_uid_name(uid: Uid) -> str:
+    """The short or full name of `uid`, per `get_uid_style`"""
+    return uid.short_name if get_uid_style() == "short" else uid.full_name
 
 
 class Uid:
@@ -97,7 +103,7 @@ class Uid:
                 return None
 
     def __str__(self) -> str:
-        return self.full_name
+        return _print_uid_name(self)
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Uid) and self._raw == other._raw
@@ -198,7 +204,7 @@ class UidConst:
     _raw: lib.Const = field(repr=False, compare=False)
 
     def __str__(self) -> str:
-        return self.uid.short_name
+        return _print_uid_name(self.uid)
 
 
 @dataclass(slots=True, frozen=True)
@@ -619,7 +625,7 @@ class Variable:
         return cls(id=Uid(x.id), type=type_of_lib(x.ty), _raw=x)
 
     def __str__(self) -> str:
-        return self.id.short_name
+        return _print_uid_name(self.id)
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} {self}>"
@@ -892,7 +898,7 @@ class Var(_Term):
 
     @override
     def __str__(self) -> str:
-        return self.var.id.short_name
+        return _print_uid_name(self.var.id)
 
 
 def var_term_of_var(x: lib.Mir_Var) -> Var:
@@ -910,7 +916,7 @@ class Symbol(_Term):
 
     @override
     def __str__(self) -> str:
-        return self.symbol.id.full_name
+        return _print_uid_name(self.symbol.id)
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -931,12 +937,14 @@ class Construct(_Term):
 
     @override
     def __str__(self) -> str:
-        name = self.constructor.id.short_name
+        name = _print_uid_name(self.constructor.id)
         args = self.arguments
         if not args:
             return name
         if (labels := self.labels) is not None:
-            fields = "; ".join(f"{l.full_name} = {a}" for l, a in zip(labels, args))
+            fields = "; ".join(
+                f"{_print_uid_name(l)} = {a}" for l, a in zip(labels, args)
+            )
             return f"{name} {{{fields}}}"
         if len(args) == 1:
             return f"{name} {args[0]!s}"
@@ -961,7 +969,7 @@ class Destruct(_Term):
 
     @override
     def __str__(self) -> str:
-        return f"Destruct({self.constructor.id.short_name}, {self.index}, {self.term})"
+        return f"Destruct({_print_uid_name(self.constructor.id)}, {self.index}, {self.term})"
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -980,7 +988,7 @@ class IsA(_Term):
 
     @override
     def __str__(self) -> str:
-        return f"Is_a({self.constructor.id.short_name}, {self.term})"
+        return f"Is_a({_print_uid_name(self.constructor.id)}, {self.term})"
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -1017,7 +1025,7 @@ class Field(_Term):
 
     @override
     def __str__(self) -> str:
-        return f"{self.term!s}.{self.field.id.short_name}"
+        return f"{self.term!s}.{_print_uid_name(self.field.id)}"
 
 
 @dataclass(slots=True, frozen=True, repr=False)
@@ -1056,7 +1064,7 @@ class Record(_Term):
 
     @override
     def __str__(self) -> str:
-        fields = "; ".join(f"{f.id.short_name} = {t}" for f, t in self.rows)
+        fields = "; ".join(f"{_print_uid_name(f.id)} = {t}" for f, t in self.rows)
         if (rest := self.rest) is not None:
             return f"{{{rest!s} with {fields}}}"
         return f"{{{fields}}}"
@@ -1083,7 +1091,7 @@ class Case(_Term):
 
     @override
     def __str__(self) -> str:
-        arms = [f"| {c.id.short_name} -> {t}" for c, t in self.cases]
+        arms = [f"| {_print_uid_name(c.id)} -> {t}" for c, t in self.cases]
         if (default := self.default) is not None:
             arms.append(f"| _ -> {default}")
         return f"match {self.scrutinee} with {' '.join(arms)}"
@@ -1405,7 +1413,7 @@ class DefaultTerminationTactic:
     _raw: lib.Mir_Tactic = field(repr=False, compare=False)
 
     def __str__(self) -> str:
-        basis = "{" + ", ".join(sorted(u.full_name for u in self.basis)) + "}"
+        basis = "{" + ", ".join(sorted(_print_uid_name(u) for u in self.basis)) + "}"
         return f"DefaultTerminationTactic(max_steps={self.max_steps}, basis={basis})"
 
 
