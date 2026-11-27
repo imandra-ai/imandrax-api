@@ -1,6 +1,6 @@
 ---
 created-date: 2026-11-19
-modified-date: 2026-11-24
+modified-date: 2026-11-27
 ---
 
 # Language clients: adding a language and keeping parity
@@ -508,6 +508,28 @@ type inference, ...). Printing a wrapper is for debugging and display.
 - Printed output is outside parity: clients MAY print differently, and tests MUST NOT compare one
   client's output with another's.
 
+#### Uid names
+
+A uid has a short name (its name) and a full name (its name with its suffix: a generative id or a
+content hash, see Appendix C). A builtin or persistent uid has no suffix, so both names are the
+same. Short names are easier to read but can clash: redefining a type gives a new constructor
+`Foo` with the same short name as the old one, and only the hash tells them apart. Printers
+therefore take the name from a switch.
+
+- A client MUST provide a global switch choosing whether printers use short or full uid names. It
+  MUST default to full names.
+- A client MUST provide a way to apply the switch to a block of code only, restoring the previous
+  value when the block exits, including when it exits with an error (for example,
+  `with uid_names(...)` in Python, `withUidNames(..., () => ...)` in TypeScript).
+- The switch SHOULD be safe across threads and concurrent tasks where the language has them: in
+  Python it is held in a `contextvars.ContextVar`. In TypeScript the scoped form takes a
+  synchronous function only, since printing is synchronous and an `await` inside the block would
+  let other code run with the switch flipped.
+- Every uid a printer shows MUST follow the switch: uids, symbols, uid constants, type
+  constructors, data constructors, record fields and labels, and variables.
+- The switch MUST affect printed output only, never the code's logic. For example, converting a
+  value to native data or searching by name gives the same result whichever names are printed.
+
 ### 6.2 Values as native data
 
 `to_python` / `toJs` turns a term that is a value (built from constants and constructors, e.g. a
@@ -547,6 +569,8 @@ bind intermediate results with `let` and `get`.
 ### Checklist
 
 - [ ] Printers exist for the main wrappers; no test compares output across clients.
+- [ ] The uid name switch defaults to full names, has a scoped form that restores it on error, and
+      covers every uid a printer shows; only printed output depends on it.
 - [ ] Converting values loses nothing: exact numbers, an error rather than an approximation; the
       model map's documentation says it holds the constants.
 - [ ] Every combinator of 6.3, `from_artifact` accepting all three inputs.
@@ -684,6 +708,7 @@ OCaml defines the types and is the server's own language, so it has no column.
 | Errors (4.6)                              | ◐      | ✓          | n/a  |
 | MIR DB lookups and search (5)             | ✓      | ✓          | n/a  |
 | Printers (6.1)                            | ✓      | ✓          | n/a  |
+| Uid name switch (6.1)                     | ✗      | ✗          | n/a  |
 | `to_python` / `toJs` (6.2)                | ✓      | ✓          | n/a  |
 | Decomposition combinators (6.3)           | ✓      | B          | n/a  |
 | Region helpers, proofs, reports (6.4)     | ✓      | B          | n/a  |
@@ -732,4 +757,7 @@ Partial support (◐):
   result are artifacts.
 - **Twine**: imandrakit's binary encoding with sharing (2.4).
 - **Uid**: the unique identifier of a symbol, type or variable.
+- **Uid full name**: a uid's name with its suffix, `name/<generative id>` or `name/<content hash>`;
+  the name alone for builtin and persistent uids.
+- **Uid short name**: a uid's name without its suffix.
 - **Wrapper**: a hand-written, idiomatic type over a lib type (chapter 3).
