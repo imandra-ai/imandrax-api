@@ -1,0 +1,195 @@
+/*
+ImandraX look for the HTML API reference
+========================================
+
+The HTML API reference (`npm run docs:html`) is published under
+imandrax.dev/docs/api/typescript-client/, so it takes that site's colours,
+fonts and header. The values are the same as the Python reference's
+(src/py/docs/stylesheets/imandrax.css); update the two together.
+
+Colours are set on the default theme's `--light-*` / `--dark-*` variables, so
+its light / dark / OS switch keeps working.
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap");
+
+/*
+Colours
+-------
+
+Named after the Tailwind palette they come from.
+*/
+
+:root {
+  --light-color-background: #ffffff;
+  --light-color-background-secondary: #f8fafc; /* slate-50 */
+  --light-color-background-active: #e0f2fe; /* sky-100 */
+  --light-color-accent: #e2e8f0; /* slate-200, borders */
+  --light-color-text: #0f172a; /* slate-900 */
+  --light-color-contrast-text: #020617;
+  --light-color-text-aside: #475569; /* slate-600 */
+  --light-color-link: #0284c7; /* sky-600: sky-500 is too low-contrast for body text */
+  --light-color-focus-outline: #3b82f6; /* blue-500 */
+  --light-code-background: #f6f8fa;
+
+  --dark-color-background: #111726;
+  --dark-color-background-secondary: #0f172a; /* slate-900 */
+  --dark-color-background-active: rgba(56, 189, 248, 0.15);
+  --dark-color-accent: #1e293b; /* slate-800, borders */
+  --dark-color-text: #f1f5f9; /* slate-100 */
+  --dark-color-contrast-text: #ffffff;
+  --dark-color-text-aside: #cbd5e1; /* slate-300 */
+  --dark-color-link: #38bdf8; /* sky-400 */
+  --dark-color-focus-outline: #60a5fa; /* blue-400 */
+  --dark-code-background: #121d34;
+
+  /* Header: translucent bar and top menu */
+  --light-imandrax-header-bg: rgba(241, 245, 249, 0.7); /* slate-100 / 70% */
+  --light-imandrax-header-border: rgba(226, 232, 240, 0.6); /* slate-200 / 60% */
+  --light-imandrax-nav-color: #334155; /* slate-700 */
+  --light-imandrax-nav-active-color: #2563eb; /* blue-600 */
+  --dark-imandrax-header-bg: rgba(15, 23, 42, 0.55); /* slate-900 / 55% */
+  --dark-imandrax-header-border: rgba(255, 255, 255, 0.08);
+  --dark-imandrax-nav-color: #cbd5e1; /* slate-300 */
+  --dark-imandrax-nav-active-color: #60a5fa; /* blue-400 */
+
+  --dim-toolbar-contents-height: 4rem; /* 64px, as the Python reference's header */
+}
+
+/* Pick the scheme the same way the default theme does: OS preference unless set */
+:root,
+:root[data-theme="light"] {
+  --code-background: var(--light-code-background);
+  --imandrax-header-bg: var(--light-imandrax-header-bg);
+  --imandrax-header-border: var(--light-imandrax-header-border);
+  --imandrax-nav-color: var(--light-imandrax-nav-color);
+  --imandrax-nav-active-color: var(--light-imandrax-nav-active-color);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --code-background: var(--dark-code-background);
+    --imandrax-header-bg: var(--dark-imandrax-header-bg);
+    --imandrax-header-border: var(--dark-imandrax-header-border);
+    --imandrax-nav-color: var(--dark-imandrax-nav-color);
+    --imandrax-nav-active-color: var(--dark-imandrax-nav-active-color);
+  }
+}
+:root[data-theme="dark"] {
+  --code-background: var(--dark-code-background);
+  --imandrax-header-bg: var(--dark-imandrax-header-bg);
+  --imandrax-header-border: var(--dark-imandrax-header-border);
+  --imandrax-nav-color: var(--dark-imandrax-nav-color);
+  --imandrax-nav-active-color: var(--dark-imandrax-nav-active-color);
+}
+
+/*
+Typography
+----------
+
+Inter for text, IBM Plex Mono for code; headings semibold with tight tracking.
+*/
+
+body {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+code,
+pre,
+.tsd-signature,
+.tsd-signature * {
+  font-family: "IBM Plex Mono", Menlo, Monaco, Consolas, monospace;
+}
+pre {
+  background: var(--code-background);
+}
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/*
+Header
+------
+
+As on imandrax.dev: translucent bar, wordmark on the left, top menu on the
+right (imandrax-theme.mjs renders the wordmark and marks the docs link).
+32px logo, 14px semibold menu.
+*/
+
+.tsd-page-toolbar {
+  background: var(--imandrax-header-bg);
+  border-bottom-color: var(--imandrax-header-border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.tsd-toolbar-contents > .title {
+  display: flex;
+  align-items: center;
+  color: var(--color-text);
+}
+.tsd-toolbar-contents > .title:hover {
+  opacity: 0.85;
+  text-decoration: none;
+}
+.tsd-toolbar-contents > .title svg.imandrax-wordmark {
+  display: block;
+  width: auto;
+  height: 32px;
+}
+
+#tsd-toolbar-links {
+  gap: 24px;
+}
+#tsd-toolbar-links a {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--imandrax-nav-color);
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+#tsd-toolbar-links a:hover,
+#tsd-toolbar-links a:focus-visible,
+#tsd-toolbar-links a[aria-current="page"] {
+  color: var(--imandrax-nav-active-color);
+  text-decoration: none;
+}
+
+/*
+Layout
+------
+
+Same width as the imandrax.dev docs and the Python reference: 1408px content
+with 24px side padding, header and page alike.
+*/
+
+.container {
+  max-width: 1456px;
+  padding: 0 24px;
+}
+
+/*
+Sidebars
+--------
+
+14px, as on imandrax.dev and in the Python reference.
+*/
+
+.site-menu,
+.page-menu {
+  font-size: 14px;
+}
+.site-menu .tsd-accordion-summary > h3,
+.page-menu .tsd-accordion-summary > h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
