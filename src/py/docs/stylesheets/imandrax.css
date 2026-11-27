@@ -175,7 +175,9 @@ font-semibold leading-6`. The theme's root font size is 20px, so
   margin: 0 0.6rem 0 0;
   color: var(--md-default-fg-color);
 }
-.imandrax-header .md-header__button.imandrax-header__logo svg.imandrax-wordmark {
+.imandrax-header
+  .md-header__button.imandrax-header__logo
+  svg.imandrax-wordmark {
   display: block;
   width: auto;
   height: 1.6rem; /* 32px */
@@ -204,7 +206,9 @@ font-semibold leading-6`. The theme's root font size is 20px, so
     background-color: var(--imandrax-search-bg);
     border: 1px solid var(--imandrax-search-border);
     border-radius: 0.4rem; /* rounded-lg */
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
   }
   .imandrax-header .md-search__button:focus,
   .imandrax-header .md-search__button:hover {
@@ -331,13 +335,47 @@ Applies from 76.25em, where the theme shows both sidebars side by side.
 }
 
 /*
+Back to the ImandraX docs
+-------------------------
+
+The first nav entry (mkdocs.yml) gets a back arrow (Lucide arrow-left), as in
+the TypeScript reference. Not the drawer's top menu "Docs" link, which has the
+same address.
+*/
+
+.md-nav__list:not(.imandrax-drawer__menu)
+  > .md-nav__item
+  > .md-nav__link[href="/docs/"] {
+  gap: 0.4rem; /* 8px between arrow and text; the theme's 0.6rem is for nav icons */
+  align-items: center;
+  justify-content: flex-start;
+}
+.md-nav__list:not(.imandrax-drawer__menu)
+  > .md-nav__item
+  > .md-nav__link[href="/docs/"]::before {
+  flex: none;
+  width: 0.8rem; /* 16px */
+  height: 0.8rem;
+  content: "";
+  background-color: currentColor;
+  -webkit-mask: var(--imandrax-back-icon) center / contain no-repeat;
+  mask: var(--imandrax-back-icon) center / contain no-repeat;
+}
+:root {
+  --imandrax-back-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m12 19-7-7 7-7'/%3E%3Cpath d='M19 12H5'/%3E%3C/svg%3E");
+}
+
+/*
 Mobile menu (drawer)
 --------------------
 
 Wordmark in the drawer title and the header links on top (`overrides/partials/nav.html`).
 */
 
-.md-nav--primary .md-nav__title .md-nav__button.imandrax-drawer__logo svg.imandrax-wordmark {
+.md-nav--primary
+  .md-nav__title
+  .md-nav__button.imandrax-drawer__logo
+  svg.imandrax-wordmark {
   display: block;
   width: auto;
   height: 1.6rem; /* 32px, same as the header */
