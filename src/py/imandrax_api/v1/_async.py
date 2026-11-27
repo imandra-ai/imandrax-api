@@ -538,6 +538,26 @@ class AsyncClient:
             timeout=timeout,
         )
 
+    async def task_progress(
+        self, tid: task_pb2.TaskID, timeout: Optional[float] = None
+    ) -> simple_api_pb2.TaskProgressRsp:
+        timeout = timeout or self._timeout
+        return await self._client.task_progress(
+            ctx=self._ctx(),
+            request=simple_api_pb2.TaskProgressReq(task=tid),
+            timeout=timeout,
+        )
+
+    async def cancel_task(
+        self, tid: task_pb2.TaskID, timeout: Optional[float] = None
+    ) -> None:
+        timeout = timeout or self._timeout
+        await self._client.cancel_task(
+            ctx=self._ctx(),
+            request=simple_api_pb2.CancelTaskReq(task=tid),
+            timeout=timeout,
+        )
+
     # Service SessionManager
     # ====================
 

@@ -425,6 +425,34 @@ class Client:
             self._client.get_artifact_zip(task._raw, kind, timeout=timeout)
         )
 
+    def task_progress(
+        self, task_id: TaskID | str, timeout: float | None = None
+    ) -> TaskProgress:
+        """Progress of a task
+
+        Args:
+            task_id: The ID of the task
+        """
+
+        timeout = timeout or self._client._timeout
+        tid = (
+            task_id._raw if isinstance(task_id, TaskID) else task_pb2.TaskID(id=task_id)
+        )
+        rsp = self._client.task_progress(tid, timeout)
+        return TaskProgress(rsp.state, rsp.percentage, rsp.message)
+
+    def cancel_task(self, task_id: TaskID | str, timeout: float | None = None) -> None:
+        """Cancel a task
+
+        Args:
+            task_id: The ID of the task
+        """
+        timeout = timeout or self._client._timeout
+        tid = (
+            task_id._raw if isinstance(task_id, TaskID) else task_pb2.TaskID(id=task_id)
+        )
+        self._client.cancel_task(tid, timeout)
+
     def keep_session_alive(self, timeout: float | None = None) -> None:
         """Make sure the session remains active
 
@@ -794,6 +822,36 @@ class AsyncClient:
         return _artifact_zip_of_result(
             await self._client.get_artifact_zip(task._raw, kind, timeout=timeout)
         )
+
+    async def task_progress(
+        self, task_id: TaskID | str, timeout: float | None = None
+    ) -> TaskProgress:
+        """Progress of a task
+
+        Args:
+            task_id: The ID of the task
+        """
+
+        timeout = timeout or self._client._timeout
+        tid = (
+            task_id._raw if isinstance(task_id, TaskID) else task_pb2.TaskID(id=task_id)
+        )
+        rsp = await self._client.task_progress(tid, timeout)
+        return TaskProgress(rsp.state, rsp.percentage, rsp.message)
+
+    async def cancel_task(
+        self, task_id: TaskID | str, timeout: float | None = None
+    ) -> None:
+        """Cancel a task
+
+        Args:
+            task_id: The ID of the task
+        """
+        timeout = timeout or self._client._timeout
+        tid = (
+            task_id._raw if isinstance(task_id, TaskID) else task_pb2.TaskID(id=task_id)
+        )
+        await self._client.cancel_task(tid, timeout)
 
     async def keep_session_alive(self, timeout: float | None = None) -> None:
         """Make sure the session remains active
@@ -2257,9 +2315,11 @@ class ProofObligationResult:
                 )
             case "instance":
                 res = ProofObligationResult.Instance(
-                    model=ModelOutput.of_raw(x.instance.model)
-                    if x.instance.HasField("model")
-                    else None
+                    model=(
+                        ModelOutput.of_raw(x.instance.model)
+                        if x.instance.HasField("model")
+                        else None
+                    )
                 )
             case "verified_upto":
                 res = ProofObligationResult.VerifiedUpto(
@@ -2553,9 +2613,11 @@ class VerifyResponse:
                 )
             case "refuted":
                 res = VerifyResponse.Refuted(
-                    counter_example=ModelOutput.of_raw(x.refuted.model)
-                    if x.refuted.HasField("model")
-                    else None
+                    counter_example=(
+                        ModelOutput.of_raw(x.refuted.model)
+                        if x.refuted.HasField("model")
+                        else None
+                    )
                 )
             case "verified_upto":
                 res = VerifyResponse.VerifiedUpto(
@@ -2568,9 +2630,11 @@ class VerifyResponse:
         return cls(
             res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
-            task=_task_of_raw_as(x.task, ProofObligationTask, client)
-            if x.HasField("task")
-            else None,
+            task=(
+                _task_of_raw_as(x.task, ProofObligationTask, client)
+                if x.HasField("task")
+                else None
+            ),
             _raw=x,
         )
 
@@ -2696,9 +2760,11 @@ class InstanceResponse:
         return cls(
             res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
-            task=_task_of_raw_as(x.task, ProofObligationTask, client)
-            if x.HasField("task")
-            else None,
+            task=(
+                _task_of_raw_as(x.task, ProofObligationTask, client)
+                if x.HasField("task")
+                else None
+            ),
             _raw=x,
         )
 
@@ -2794,9 +2860,11 @@ class TestResponse:
         return cls(
             res=res,
             errors=tuple(Error.of_raw(e) for e in x.errors),
-            task=_task_of_raw_as(x.task, ProofObligationTask, client)
-            if x.HasField("task")
-            else None,
+            task=(
+                _task_of_raw_as(x.task, ProofObligationTask, client)
+                if x.HasField("task")
+                else None
+            ),
             _raw=x,
         )
 
@@ -2953,3 +3021,10 @@ def _artifact_zip_of_result(res: api_pb2.ArtifactZipResult) -> bytes:
             raise UnexpectedResponseError(
                 "Artifact zip result has neither `error` nor `ok`"
             )
+
+
+@dataclass(frozen=True, slots=True)
+class TaskProgress:
+    state: str
+    percentage: int
+    message: str

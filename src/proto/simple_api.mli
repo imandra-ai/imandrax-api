@@ -339,6 +339,21 @@ type get_decls_res = private {
   mutable not_found : string list;
 }
 
+type task_progress_req = private {
+  mutable task : Task.task_id option;
+}
+
+type task_progress_rsp = private {
+  mutable _presence: Pbrt.Bitfield.t; (** presence for 3 fields *)
+  mutable state : string;
+  mutable percentage : int32;
+  mutable message : string;
+}
+
+type cancel_task_req = private {
+  mutable task : Task.task_id option;
+}
+
 
 (** {2 Basic values} *)
 
@@ -500,6 +515,15 @@ val default_decl_with_name : unit -> decl_with_name
 
 val default_get_decls_res : unit -> get_decls_res 
 (** [default_get_decls_res ()] is a new empty value for type [get_decls_res] *)
+
+val default_task_progress_req : unit -> task_progress_req 
+(** [default_task_progress_req ()] is a new empty value for type [task_progress_req] *)
+
+val default_task_progress_rsp : unit -> task_progress_rsp 
+(** [default_task_progress_rsp ()] is a new empty value for type [task_progress_rsp] *)
+
+val default_cancel_task_req : unit -> cancel_task_req 
+(** [default_cancel_task_req ()] is a new empty value for type [cancel_task_req] *)
 
 
 (** {2 Make functions} *)
@@ -1560,6 +1584,62 @@ val get_decls_res_set_decls : get_decls_res -> decl_with_name list -> unit
 val get_decls_res_set_not_found : get_decls_res -> string list -> unit
   (** set field not_found in get_decls_res *)
 
+val make_task_progress_req : 
+  ?task:Task.task_id ->
+  unit ->
+  task_progress_req
+(** [make_task_progress_req … ()] is a builder for type [task_progress_req] *)
+
+val copy_task_progress_req : task_progress_req -> task_progress_req
+
+val task_progress_req_has_task : task_progress_req -> bool
+  (** presence of field "task" in [task_progress_req] *)
+
+val task_progress_req_set_task : task_progress_req -> Task.task_id -> unit
+  (** set field task in task_progress_req *)
+
+val make_task_progress_rsp : 
+  ?state:string ->
+  ?percentage:int32 ->
+  ?message:string ->
+  unit ->
+  task_progress_rsp
+(** [make_task_progress_rsp … ()] is a builder for type [task_progress_rsp] *)
+
+val copy_task_progress_rsp : task_progress_rsp -> task_progress_rsp
+
+val task_progress_rsp_has_state : task_progress_rsp -> bool
+  (** presence of field "state" in [task_progress_rsp] *)
+
+val task_progress_rsp_set_state : task_progress_rsp -> string -> unit
+  (** set field state in task_progress_rsp *)
+
+val task_progress_rsp_has_percentage : task_progress_rsp -> bool
+  (** presence of field "percentage" in [task_progress_rsp] *)
+
+val task_progress_rsp_set_percentage : task_progress_rsp -> int32 -> unit
+  (** set field percentage in task_progress_rsp *)
+
+val task_progress_rsp_has_message : task_progress_rsp -> bool
+  (** presence of field "message" in [task_progress_rsp] *)
+
+val task_progress_rsp_set_message : task_progress_rsp -> string -> unit
+  (** set field message in task_progress_rsp *)
+
+val make_cancel_task_req : 
+  ?task:Task.task_id ->
+  unit ->
+  cancel_task_req
+(** [make_cancel_task_req … ()] is a builder for type [cancel_task_req] *)
+
+val copy_cancel_task_req : cancel_task_req -> cancel_task_req
+
+val cancel_task_req_has_task : cancel_task_req -> bool
+  (** presence of field "task" in [cancel_task_req] *)
+
+val cancel_task_req_set_task : cancel_task_req -> Task.task_id -> unit
+  (** set field task in cancel_task_req *)
+
 
 (** {2 Formatters} *)
 
@@ -1721,6 +1801,15 @@ val pp_decl_with_name : Format.formatter -> decl_with_name -> unit
 
 val pp_get_decls_res : Format.formatter -> get_decls_res -> unit 
 (** [pp_get_decls_res v] formats v *)
+
+val pp_task_progress_req : Format.formatter -> task_progress_req -> unit 
+(** [pp_task_progress_req v] formats v *)
+
+val pp_task_progress_rsp : Format.formatter -> task_progress_rsp -> unit 
+(** [pp_task_progress_rsp v] formats v *)
+
+val pp_cancel_task_req : Format.formatter -> cancel_task_req -> unit 
+(** [pp_cancel_task_req v] formats v *)
 
 
 (** {2 Protobuf Encoding} *)
@@ -1884,6 +1973,15 @@ val encode_pb_decl_with_name : decl_with_name -> Pbrt.Encoder.t -> unit
 val encode_pb_get_decls_res : get_decls_res -> Pbrt.Encoder.t -> unit
 (** [encode_pb_get_decls_res v encoder] encodes [v] with the given [encoder] *)
 
+val encode_pb_task_progress_req : task_progress_req -> Pbrt.Encoder.t -> unit
+(** [encode_pb_task_progress_req v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_task_progress_rsp : task_progress_rsp -> Pbrt.Encoder.t -> unit
+(** [encode_pb_task_progress_rsp v encoder] encodes [v] with the given [encoder] *)
+
+val encode_pb_cancel_task_req : cancel_task_req -> Pbrt.Encoder.t -> unit
+(** [encode_pb_cancel_task_req v encoder] encodes [v] with the given [encoder] *)
+
 
 (** {2 Protobuf Decoding} *)
 
@@ -2045,6 +2143,15 @@ val decode_pb_decl_with_name : Pbrt.Decoder.t -> decl_with_name
 
 val decode_pb_get_decls_res : Pbrt.Decoder.t -> get_decls_res
 (** [decode_pb_get_decls_res decoder] decodes a [get_decls_res] binary value from [decoder] *)
+
+val decode_pb_task_progress_req : Pbrt.Decoder.t -> task_progress_req
+(** [decode_pb_task_progress_req decoder] decodes a [task_progress_req] binary value from [decoder] *)
+
+val decode_pb_task_progress_rsp : Pbrt.Decoder.t -> task_progress_rsp
+(** [decode_pb_task_progress_rsp decoder] decodes a [task_progress_rsp] binary value from [decoder] *)
+
+val decode_pb_cancel_task_req : Pbrt.Decoder.t -> cancel_task_req
+(** [decode_pb_cancel_task_req decoder] decodes a [cancel_task_req] binary value from [decoder] *)
 
 
 (** {2 Protobuf YoJson Encoding} *)
@@ -2208,6 +2315,15 @@ val encode_json_decl_with_name : decl_with_name -> Yojson.Basic.t
 val encode_json_get_decls_res : get_decls_res -> Yojson.Basic.t
 (** [encode_json_get_decls_res v encoder] encodes [v] to to json *)
 
+val encode_json_task_progress_req : task_progress_req -> Yojson.Basic.t
+(** [encode_json_task_progress_req v encoder] encodes [v] to to json *)
+
+val encode_json_task_progress_rsp : task_progress_rsp -> Yojson.Basic.t
+(** [encode_json_task_progress_rsp v encoder] encodes [v] to to json *)
+
+val encode_json_cancel_task_req : cancel_task_req -> Yojson.Basic.t
+(** [encode_json_cancel_task_req v encoder] encodes [v] to to json *)
+
 
 (** {2 JSON Decoding} *)
 
@@ -2370,6 +2486,15 @@ val decode_json_decl_with_name : Yojson.Basic.t -> decl_with_name
 val decode_json_get_decls_res : Yojson.Basic.t -> get_decls_res
 (** [decode_json_get_decls_res decoder] decodes a [get_decls_res] value from [decoder] *)
 
+val decode_json_task_progress_req : Yojson.Basic.t -> task_progress_req
+(** [decode_json_task_progress_req decoder] decodes a [task_progress_req] value from [decoder] *)
+
+val decode_json_task_progress_rsp : Yojson.Basic.t -> task_progress_rsp
+(** [decode_json_task_progress_rsp decoder] decodes a [task_progress_rsp] value from [decoder] *)
+
+val decode_json_cancel_task_req : Yojson.Basic.t -> cancel_task_req
+(** [decode_json_cancel_task_req decoder] decodes a [cancel_task_req] value from [decoder] *)
+
 
 (** {2 Services} *)
 
@@ -2413,6 +2538,10 @@ module Simple : sig
     val get_decls : (get_decls_req, unary, get_decls_res, unary) Client.rpc
     
     val oneshot : (oneshot_req, unary, oneshot_res, unary) Client.rpc
+    
+    val task_progress : (task_progress_req, unary, task_progress_rsp, unary) Client.rpc
+    
+    val cancel_task : (cancel_task_req, unary, Utils.empty, unary) Client.rpc
   end
   
   module Server : sig
@@ -2435,6 +2564,8 @@ module Simple : sig
       typecheck:((typecheck_req, unary, typecheck_res, unary) Server.rpc -> 'handler) ->
       get_decls:((get_decls_req, unary, get_decls_res, unary) Server.rpc -> 'handler) ->
       oneshot:((oneshot_req, unary, oneshot_res, unary) Server.rpc -> 'handler) ->
+      task_progress:((task_progress_req, unary, task_progress_rsp, unary) Server.rpc -> 'handler) ->
+      cancel_task:((cancel_task_req, unary, Utils.empty, unary) Server.rpc -> 'handler) ->
       unit -> 'handler Pbrt_services.Server.t
     
     (** The individual server stubs are only exposed for advanced users. Casual users should prefer accessing them through {!make}. *)
@@ -2472,5 +2603,9 @@ module Simple : sig
     val get_decls : (get_decls_req,unary,get_decls_res,unary) Server.rpc
     
     val oneshot : (oneshot_req,unary,oneshot_res,unary) Server.rpc
+    
+    val task_progress : (task_progress_req,unary,task_progress_rsp,unary) Server.rpc
+    
+    val cancel_task : (cancel_task_req,unary,Utils.empty,unary) Server.rpc
   end
 end

@@ -52,6 +52,9 @@ service Simple {
 
   // Sessionless, self contained request/response
   rpc oneshot(OneshotReq) returns (OneshotRes);
+
+  rpc task_progress(TaskProgressReq) returns (TaskProgressRsp);
+  rpc cancel_task(CancelTaskReq) returns (Empty);
 }
 
 message SessionCreateReq {
@@ -460,4 +463,18 @@ message GetDeclsRes {
 
   // decls that were not found
   repeated string not_found = 2;
+}
+
+message TaskProgressReq {
+  imandrax.task.TaskID task = 1;
+}
+
+message TaskProgressRsp {
+  string state = 1;
+  int32 percentage = 2;
+  string message = 3;
+}
+
+message CancelTaskReq {
+  imandrax.task.TaskID task = 1;
 }
