@@ -708,7 +708,7 @@ OCaml defines the types and is the server's own language, so it has no column.
 | Errors (4.6)                              | ◐      | ✓          | n/a  |
 | MIR DB lookups and search (5)             | ✓      | ✓          | n/a  |
 | Printers (6.1)                            | ✓      | ✓          | n/a  |
-| Uid name switch (6.1)                     | ✓      | ✗          | n/a  |
+| Uid name switch (6.1)                     | ✓      | ✓          | n/a  |
 | `to_python` / `toJs` (6.2)                | ✓      | ✓          | n/a  |
 | Decomposition combinators (6.3)           | ✓      | B          | n/a  |
 | Region helpers, proofs, reports (6.4)     | ✓      | B          | n/a  |

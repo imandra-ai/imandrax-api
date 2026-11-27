@@ -41,6 +41,7 @@ import {
   uidSet,
 } from "../../lib/internal/mir.js";
 import { ProofObligationTask, type Task } from "../../lib/internal/tasks.js";
+import { withUidStyle } from "../../lib/uid_print_style.js";
 import { noApiKey, once, sharedClient } from "./setup.js";
 
 const SRC = `
@@ -71,6 +72,11 @@ verify true
 
 // Setup
 // ====================
+
+/** `x` printed with short uid names */
+function short(x: unknown): string {
+  return withUidStyle("short", () => `${x}`);
+}
 
 /** The unique uid with this short name; throws unless there is exactly one */
 function searchUidByShortName(db: DB, shortName: string): Uid {
@@ -262,7 +268,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
 
     const lambdaInc: FunctionDefinition | undefined = d.findFunction(lambdasInIncAll[0]!);
     assert.isDefined(lambdaInc);
-    expect(`${lambdaInc}`).toContain("x = (+ x 1)");
+    expect(short(lambdaInc)).toContain("x = (+ x 1)");
 
     // 2. `fun x -> x + y` in `add_all`
     const addAll: Uid = searchUidByShortName(d, "add_all");
@@ -273,7 +279,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
 
     const lambdaAdd: FunctionDefinition | undefined = d.findFunction(lambdasInAddAll[0]!);
     assert.isDefined(lambdaAdd);
-    expect(`${lambdaAdd}`).toContain("y x = (+ x y)");
+    expect(short(lambdaAdd)).toContain("y x = (+ x y)");
 
     // 3. `fun x -> x * y` in the goal of the `instance`
     const instances: ProofObligationTask[] = [];
@@ -288,7 +294,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
 
     const lambdaMul: FunctionDefinition | undefined = d.findFunction(lambdasInGoal[0]!);
     assert.isDefined(lambdaMul);
-    expect(`${lambdaMul}`).toContain("y x = (* x y)");
+    expect(short(lambdaMul)).toContain("y x = (* x y)");
 
     expect(
       [lambdaInc.name.shortName, lambdaAdd.name.shortName, lambdaMul.name.shortName],
@@ -342,7 +348,7 @@ describe.skipIf(noApiKey)("MIR DB", () => {
     const length = d.findFunction(searchUidByShortName(d, "List.length"));
     assert.isDefined(length);
     expect(length.kind).toBeInstanceOf(DefinedFunctionKind);
-    expect(length.arguments.map((a) => `${a}`)).toEqual(["l"]);
+    expect(length.arguments.map((a) => a.id.shortName)).toEqual(["l"]);
     expect(`${length.type}`).toMatch(/ list -> int$/);
     // A recursive function is in its own clique
     expect(length.clique).toEqual(uidSet([length.name]));

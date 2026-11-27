@@ -149,7 +149,7 @@ export class QuotedTerm {
   }
 }
 
-/** A unique identifier, stored in `uid` and printed by full name. */
+/** A unique identifier, stored in `uid` and printed by name. */
 export class Uid {
   readonly kind = "uid";
   constructor(
@@ -158,7 +158,7 @@ export class Uid {
   ) {}
 
   toString(): string {
-    return this.uid.fullName;
+    return this.uid.toString();
   }
 }
 

@@ -45,6 +45,10 @@
       "types": "./dist/values.d.ts",
       "default": "./dist/values.js"
     },
+    "./uid_print_style": {
+      "types": "./dist/uid_print_style.d.ts",
+      "default": "./dist/uid_print_style.js"
+    },
     "./raw": {
       "types": "./dist/raw/index.d.ts",
       "default": "./dist/raw/index.js"

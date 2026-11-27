@@ -33,6 +33,7 @@ import {
   type Task,
   TermDecompositionRequest,
 } from "../../lib/internal/tasks.js";
+import { withUidStyle } from "../../lib/uid_print_style.js";
 import { noApiKey, once, sharedClient, theTask } from "./setup.js";
 
 const SRC = `
@@ -47,9 +48,9 @@ instance (fun (xs: int list) (y: int) -> f xs <> List.map (fun x -> x + y) xs)
 // Helpers
 // ====================
 
-/** `x` printed, with content hashes replaced by `<hash>` */
+/** `x` printed with short uid names */
 function str(x: unknown): string {
-  return `${x}`.replace(/\/[A-Za-z0-9_-]{43}/g, "/<hash>");
+  return withUidStyle("short", () => `${x}`);
 }
 
 async function thePo(tasks: readonly Task[], isInstance: boolean): Promise<ProofObligationTask> {
@@ -153,7 +154,7 @@ describe.skipIf(noApiKey)("task data", () => {
     });
     const { variables: vars, body: goal } = po.goal;
     expect(vars.map(str)).toEqual(["xs"]);
-    expect(str(goal)).toBe("(= (f/<hash> xs) (List.map/<hash> $lambda/<hash> xs))");
+    expect(str(goal)).toBe("(= (f xs) (List.map $lambda xs))");
     assert.instanceOf(po.tactic, TermTactic);
     expect(po.tactic.variables.map(str)).toEqual(["_x_0"]);
     expect(str(po.tactic.term)).toBe("(Tactic.default _x_0)");
@@ -184,7 +185,7 @@ describe.skipIf(noApiKey)("task data", () => {
     });
     const { variables: vars, body: goal } = po.goal;
     expect(vars.map(str)).toEqual(["xs", "y"]);
-    expect(str(goal)).toBe("(<> (f/<hash> xs) (List.map/<hash> ($lambda/<hash> y) xs))");
+    expect(str(goal)).toBe("(<> (f xs) (List.map ($lambda y) xs))");
     assert.instanceOf(po.tactic, DefaultTheoremTactic);
     expect(po.tactic).toMatchObject({ maxSteps: 100, upto: undefined });
 
@@ -220,11 +221,11 @@ describe.skipIf(noApiKey)("task data", () => {
     const term = req.term;
     assert.instanceOf(term, Apply);
     expect(str(term.type)).toBe("Decomp.t string result");
-    expect(str(term.function)).toBe("Decomp.|>>/<hash>");
+    expect(str(term.function)).toBe("Decomp.|>>");
     expect(term.arguments.map(str)).toEqual([
       "(Decomp.top None None None Some false None None ())",
       "Decomp.prune",
-      "f/<hash>",
+      "f",
     ]);
     expectSymbolsDeclaredIn(term, db);
 
@@ -233,11 +234,11 @@ describe.skipIf(noApiKey)("task data", () => {
     expect(res.error, String(res.error)).toBeUndefined();
     const d = res.decomposition;
     assert.isDefined(d);
-    expect(str(d.id)).toBe("f/<hash>");
+    expect(str(d.id)).toBe("f");
     expect(d.arguments.map(str)).toEqual(["xs"]);
     // `List.map` is not unrolled: a single region, over `f`'s arguments
     expect(d.regions.map(str)).toEqual([
-      "constraints: [true] invariant: (List.map/<hash> $lambda/<hash> xs) status: feasible",
+      "constraints: [true] invariant: (List.map $lambda xs) status: feasible",
     ]);
 
     const fDef = db.findFunction(d.id);
