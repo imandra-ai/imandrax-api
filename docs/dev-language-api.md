@@ -516,12 +516,12 @@ same. Short names are easier to read but can clash: redefining a type gives a ne
 `Foo` with the same short name as the old one, and only the hash tells them apart. Printers
 therefore take the name from a switch.
 
-- A client MUST provide a global switch choosing whether printers use short or full uid names. It
-  MUST default to full names.
+- A client MUST provide a way to choose whether printers use short or full uid names, defaulting
+  to full names. Where the choice lives (globally, on a client object, ...) is up to the client.
 - A client MUST provide a way to apply the switch to a block of code only, restoring the previous
   value when the block exits, including when it exits with an error (for example,
   `with uid_style(...)` in Python, `withUidStyle(..., () => ...)` in TypeScript).
-- Where the language has threads or concurrent tasks, the global switch SHOULD hold in all of
+- Where the language has threads or concurrent tasks, a global choice SHOULD hold in all of
   them and the scoped form only in its own, for example by keeping the scoped value in
   context-local storage. Where the language has none, the scoped form can accept synchronous code
   only, so that no other code runs while the switch is flipped.
