@@ -1,0 +1,584 @@
+/*
+ImandraX look for the HTML API reference
+========================================
+
+The HTML API reference (`npm run docs:html`) is published under
+imandrax.dev/docs/api/typescript-client/, so it takes that site's colours,
+fonts and header. The values are the same as the Python reference's
+(src/py/docs/stylesheets/imandrax.css); update the two together.
+
+Colours are set on the default theme's `--light-*` / `--dark-*` variables, so
+its light / dark / OS switch keeps working.
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap");
+
+/*
+Colours
+-------
+
+Named after the Tailwind palette they come from.
+*/
+
+:root {
+  --light-color-background: #ffffff;
+  --light-color-background-secondary: #f8fafc; /* slate-50 */
+  --light-color-background-active: #e0f2fe; /* sky-100 */
+  --light-color-accent: #e2e8f0; /* slate-200, borders */
+  --light-color-text: #0f172a; /* slate-900 */
+  --light-color-contrast-text: #020617;
+  --light-color-text-aside: #475569; /* slate-600 */
+  --light-color-link: #0284c7; /* sky-600: sky-500 is too low-contrast for body text */
+  --light-color-focus-outline: #3b82f6; /* blue-500 */
+  --light-code-background: #f6f8fa;
+
+  --dark-color-background: #111726;
+  --dark-color-background-secondary: #0f172a; /* slate-900 */
+  --dark-color-background-active: rgba(56, 189, 248, 0.15);
+  --dark-color-accent: #1e293b; /* slate-800, borders */
+  --dark-color-text: #f1f5f9; /* slate-100 */
+  --dark-color-contrast-text: #ffffff;
+  --dark-color-text-aside: #cbd5e1; /* slate-300 */
+  --dark-color-link: #38bdf8; /* sky-400 */
+  --dark-color-focus-outline: #60a5fa; /* blue-400 */
+  --dark-code-background: #121d34;
+
+  /* Header: translucent bar and top menu */
+  --light-imandrax-header-bg: rgba(241, 245, 249, 0.7); /* slate-100 / 70% */
+  --light-imandrax-header-border: rgba(226, 232, 240, 0.6); /* slate-200 / 60% */
+  --light-imandrax-nav-color: #334155; /* slate-700 */
+  --light-imandrax-nav-active-color: #2563eb; /* blue-600 */
+  --dark-imandrax-header-bg: rgba(15, 23, 42, 0.55); /* slate-900 / 55% */
+  --dark-imandrax-header-border: rgba(255, 255, 255, 0.08);
+  --dark-imandrax-nav-color: #cbd5e1; /* slate-300 */
+  --dark-imandrax-nav-active-color: #60a5fa; /* blue-400 */
+
+  /* Header search field */
+  --light-imandrax-search-bg: #ffffff;
+  --light-imandrax-search-border: #cbd5e1; /* slate-300 */
+  --light-imandrax-search-fg: #94a3b8; /* slate-400, placeholder */
+  --light-imandrax-search-focus: #3b82f6; /* blue-500 */
+  --dark-imandrax-search-bg: #1e293b; /* slate-800 */
+  --dark-imandrax-search-border: #334155; /* slate-700 */
+  --dark-imandrax-search-fg: #64748b; /* slate-500, placeholder */
+  --dark-imandrax-search-focus: #60a5fa; /* blue-400 */
+
+  /* Sidebars: the current page, and links on hover */
+  --light-color-active-menu-item: #e0f2fe; /* sky-100 */
+  --light-imandrax-menu-current-color: #0284c7; /* sky-600 */
+  --dark-color-active-menu-item: rgba(56, 189, 248, 0.15);
+  --dark-imandrax-menu-current-color: #7dd3fc; /* sky-300 */
+
+  --dim-toolbar-contents-height: calc(
+    64 * var(--imandrax-px)
+  ); /* as the Python reference's header */
+}
+
+/*
+Sizes
+-----
+
+The Python reference's theme grows its root font size by 10% from 1600px and
+by 20% from 2000px wide, and what it sizes in rem grows with it: header,
+search, text, sidebar links. `--imandrax-px` steps the same way, so sizes
+written as `calc(n * var(--imandrax-px))` match it at every width. The grid
+(1456px, 256 / 224px columns, 32px gaps) and the 14px top menu stay fixed
+there, so they are plain px here.
+*/
+
+:root {
+  --imandrax-px: 1px;
+}
+@media (min-width: 1600px) {
+  :root {
+    --imandrax-px: 1.1px;
+  }
+}
+@media (min-width: 2000px) {
+  :root {
+    --imandrax-px: 1.2px;
+  }
+}
+
+/* Pick the scheme the same way the default theme does: OS preference unless set */
+:root,
+:root[data-theme="light"] {
+  --code-background: var(--light-code-background);
+  --imandrax-header-bg: var(--light-imandrax-header-bg);
+  --imandrax-header-border: var(--light-imandrax-header-border);
+  --imandrax-nav-color: var(--light-imandrax-nav-color);
+  --imandrax-nav-active-color: var(--light-imandrax-nav-active-color);
+  --imandrax-search-bg: var(--light-imandrax-search-bg);
+  --imandrax-search-border: var(--light-imandrax-search-border);
+  --imandrax-search-fg: var(--light-imandrax-search-fg);
+  --imandrax-search-focus: var(--light-imandrax-search-focus);
+  --imandrax-menu-current-color: var(--light-imandrax-menu-current-color);
+  --imandrax-toggle-light: block;
+  --imandrax-toggle-dark: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --code-background: var(--dark-code-background);
+    --imandrax-header-bg: var(--dark-imandrax-header-bg);
+    --imandrax-header-border: var(--dark-imandrax-header-border);
+    --imandrax-nav-color: var(--dark-imandrax-nav-color);
+    --imandrax-nav-active-color: var(--dark-imandrax-nav-active-color);
+    --imandrax-search-bg: var(--dark-imandrax-search-bg);
+    --imandrax-search-border: var(--dark-imandrax-search-border);
+    --imandrax-search-fg: var(--dark-imandrax-search-fg);
+    --imandrax-search-focus: var(--dark-imandrax-search-focus);
+    --imandrax-menu-current-color: var(--dark-imandrax-menu-current-color);
+    --imandrax-toggle-light: none;
+    --imandrax-toggle-dark: block;
+  }
+}
+:root[data-theme="dark"] {
+  --code-background: var(--dark-code-background);
+  --imandrax-header-bg: var(--dark-imandrax-header-bg);
+  --imandrax-header-border: var(--dark-imandrax-header-border);
+  --imandrax-nav-color: var(--dark-imandrax-nav-color);
+  --imandrax-nav-active-color: var(--dark-imandrax-nav-active-color);
+  --imandrax-search-bg: var(--dark-imandrax-search-bg);
+  --imandrax-search-border: var(--dark-imandrax-search-border);
+  --imandrax-search-fg: var(--dark-imandrax-search-fg);
+  --imandrax-search-focus: var(--dark-imandrax-search-focus);
+  --imandrax-menu-current-color: var(--dark-imandrax-menu-current-color);
+  --imandrax-toggle-light: none;
+  --imandrax-toggle-dark: block;
+}
+
+/*
+Typography
+----------
+
+Inter for text, IBM Plex Mono for code; headings semibold with tight tracking.
+*/
+
+body {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+code,
+pre,
+.tsd-signature,
+.tsd-signature * {
+  font-family: "IBM Plex Mono", Menlo, Monaco, Consolas, monospace;
+}
+pre {
+  background: var(--code-background);
+}
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/*
+Header
+------
+
+As on imandrax.dev: translucent bar, wordmark on the left, top menu on the
+right (imandrax-theme.mjs renders the wordmark and marks the docs link).
+32px logo, 14px semibold menu. Then, as in the Python reference, the GitHub
+repo with its stars and forks and the light / dark toggle.
+*/
+
+.tsd-page-toolbar {
+  background: var(--imandrax-header-bg);
+  border-bottom-color: var(--imandrax-header-border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* Wordmark, search; top menu, GitHub, toggle at the right. 8px apart as in the Python header */
+.tsd-toolbar-contents {
+  gap: calc(8 * var(--imandrax-px));
+}
+.tsd-toolbar-contents > .title {
+  display: flex;
+  align-items: center;
+  margin-right: calc(12 * var(--imandrax-px));
+  color: var(--color-text);
+}
+.tsd-toolbar-contents > .title:hover {
+  opacity: 0.85;
+  text-decoration: none;
+}
+.tsd-toolbar-contents > .title svg.imandrax-wordmark {
+  display: block;
+  width: auto;
+  height: calc(32 * var(--imandrax-px));
+}
+
+/* Search field, as imandrax.dev's docs search and the Python reference's: 240 × 36px */
+#tsd-search-trigger.imandrax-search {
+  display: flex;
+  gap: calc(10 * var(--imandrax-px));
+  align-items: center;
+  width: calc(240 * var(--imandrax-px));
+  height: calc(36 * var(--imandrax-px));
+  padding: 0 calc(8 * var(--imandrax-px)) 0 calc(12 * var(--imandrax-px));
+  margin-left: 10%;
+  font: inherit;
+  font-size: calc(14 * var(--imandrax-px));
+  color: var(--imandrax-search-fg);
+  text-align: left;
+  background: var(--imandrax-search-bg);
+  border: 1px solid var(--imandrax-search-border);
+  border-radius: calc(8 * var(--imandrax-px));
+  opacity: 1;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+#tsd-search-trigger.imandrax-search:hover,
+#tsd-search-trigger.imandrax-search:focus-visible {
+  border-color: var(--imandrax-search-focus);
+}
+#tsd-search-trigger.imandrax-search:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--imandrax-search-focus);
+}
+.imandrax-search svg {
+  flex: none;
+  width: calc(16 * var(--imandrax-px));
+  height: calc(16 * var(--imandrax-px));
+}
+.imandrax-search__key {
+  padding: 0 calc(6 * var(--imandrax-px));
+  margin-left: auto;
+  font: inherit;
+  font-size: calc(12 * var(--imandrax-px));
+  line-height: calc(20 * var(--imandrax-px));
+  border: 1px solid var(--imandrax-search-border);
+  border-radius: calc(4 * var(--imandrax-px));
+}
+@media (max-width: 1199px) {
+  #tsd-search-trigger.imandrax-search {
+    margin-left: 5%;
+  }
+}
+/* Small screens: the search icon only, before the toggle and menu button */
+@media (max-width: 769px) {
+  #tsd-search-trigger.imandrax-search {
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    margin-left: auto;
+    background: none;
+    border: 0;
+  }
+  .imandrax-search__label,
+  .imandrax-search__key {
+    display: none;
+  }
+}
+
+#tsd-toolbar-links {
+  gap: calc(24 * var(--imandrax-px));
+  margin-right: calc(12 * var(--imandrax-px));
+  margin-left: auto;
+}
+#tsd-toolbar-links a {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--imandrax-nav-color);
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+#tsd-toolbar-links a:hover,
+#tsd-toolbar-links a:focus-visible,
+#tsd-toolbar-links a[aria-current="true"] {
+  color: var(--imandrax-nav-active-color);
+  text-decoration: none;
+}
+
+/* GitHub repo, sized as in the Python reference: 24px icon in a 40 × 48px box, 11px name with the counts underneath */
+.imandrax-source {
+  display: flex;
+  align-items: center;
+  margin-left: calc(12 * var(--imandrax-px));
+  line-height: 1.2;
+  color: var(--imandrax-nav-color);
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.imandrax-source:hover,
+.imandrax-source:focus-visible {
+  color: var(--imandrax-nav-active-color);
+  text-decoration: none;
+}
+.imandrax-source__icon {
+  display: flex;
+  align-items: center;
+  width: calc(40 * var(--imandrax-px));
+  height: calc(48 * var(--imandrax-px));
+  padding-left: calc(12 * var(--imandrax-px));
+  box-sizing: border-box;
+}
+.imandrax-source__icon svg {
+  display: block;
+  width: calc(24 * var(--imandrax-px));
+  height: calc(24 * var(--imandrax-px));
+}
+.imandrax-source__repository {
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(8 * var(--imandrax-px)) 0 calc(3 * var(--imandrax-px));
+  font-size: calc(11 * var(--imandrax-px));
+}
+.imandrax-source__facts {
+  display: flex;
+  gap: calc(8 * var(--imandrax-px));
+  margin-top: calc(2 * var(--imandrax-px));
+  font-size: calc(11 * var(--imandrax-px));
+  opacity: 0.75;
+}
+.imandrax-source__facts[hidden] {
+  display: none;
+}
+.imandrax-source__fact {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(2 * var(--imandrax-px));
+}
+.imandrax-source__fact svg {
+  width: calc(12 * var(--imandrax-px));
+  height: calc(12 * var(--imandrax-px));
+}
+/* Small screens: in the menu instead (imandrax-theme.mjs), as typedoc does with the top menu */
+@media (max-width: 769px) {
+  .imandrax-source {
+    display: none;
+  }
+}
+
+/* Light / dark toggle: the icon of the current scheme, picked by the variables above */
+#imandrax-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(44 * var(--imandrax-px));
+  height: calc(44 * var(--imandrax-px));
+  margin-left: calc(4 * var(--imandrax-px));
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--imandrax-nav-color);
+}
+#imandrax-theme-toggle:hover,
+#imandrax-theme-toggle:focus-visible {
+  color: var(--imandrax-nav-active-color);
+}
+#imandrax-theme-toggle svg {
+  display: block;
+  width: calc(20 * var(--imandrax-px));
+  height: calc(20 * var(--imandrax-px));
+}
+.imandrax-theme-toggle__light {
+  display: var(--imandrax-toggle-light);
+}
+.imandrax-theme-toggle__dark {
+  display: var(--imandrax-toggle-dark);
+}
+
+/*
+Layout
+------
+
+Same grid as the imandrax.dev docs and the Python reference: 1408px wide with
+24px side padding, header and page alike; columns of 256px nav, flexible
+content and 224px "On this page", 32px apart, starting 20px below the header.
+*/
+
+/* 1456px including the padding: typedoc's container would add it on top */
+.container {
+  box-sizing: border-box;
+  max-width: 1456px;
+  padding: 0 24px;
+}
+.container-main {
+  --dim-container-main-margin-y: calc(20 * var(--imandrax-px));
+}
+@media (min-width: 770px) {
+  .container-main {
+    grid-template-columns: 256px minmax(0, 1fr);
+    column-gap: 32px;
+  }
+  .col-content {
+    padding: 0;
+  }
+}
+@media (min-width: 1200px) {
+  .container-main {
+    grid-template-columns: 256px minmax(0, 1fr) 224px;
+  }
+  .page-menu {
+    padding-left: 0;
+  }
+}
+
+/*
+Content
+-------
+
+Text sizes of the Python reference: 15px body text with 1.8 line height,
+28 / 22.5 / 18.75px headings, code at 0.85em on rounded panels.
+*/
+
+.col-content {
+  font-size: calc(15 * var(--imandrax-px));
+  line-height: 1.8;
+}
+.col-content .tsd-typography {
+  line-height: 1.8;
+}
+.col-content h1 {
+  margin-top: calc(8 * var(--imandrax-px));
+  font-size: calc(28.125 * var(--imandrax-px));
+  line-height: 1.3;
+}
+.col-content h2 {
+  font-size: calc(22.5 * var(--imandrax-px));
+  line-height: 1.4;
+}
+.col-content h3 {
+  font-size: calc(18.75 * var(--imandrax-px));
+  line-height: 1.5;
+}
+.col-content code {
+  padding: 0.2em 0.4em;
+  font-size: 0.85em;
+  border-radius: calc(4 * var(--imandrax-px));
+}
+.col-content pre {
+  padding: calc(10.5 * var(--imandrax-px)) calc(16 * var(--imandrax-px));
+  font-size: calc(12.8 * var(--imandrax-px));
+  line-height: 1.5;
+  border-radius: calc(8 * var(--imandrax-px));
+}
+.col-content pre code {
+  padding: 0;
+  font-size: inherit;
+}
+
+/*
+Sidebars
+--------
+
+As in the Python reference: 14px links on rounded rows, the current page in
+sky on a sky tint, links turning sky on hover; a plain "On this page" heading
+(the `locales` option sets its text). typedoc's Settings panel is hidden: its
+theme setting is the header toggle.
+*/
+
+.site-menu,
+.page-menu {
+  font-size: calc(14 * var(--imandrax-px));
+}
+.tsd-navigation.settings {
+  display: none;
+}
+.tsd-navigation a,
+.tsd-page-navigation a {
+  padding: calc(7 * var(--imandrax-px)) calc(16 * var(--imandrax-px));
+  line-height: 1.3;
+  border-radius: calc(8 * var(--imandrax-px));
+}
+/* The page tree has a chevron and an icon in each row as well: less padding there */
+#tsd-nav-container a {
+  padding-right: calc(4 * var(--imandrax-px));
+  padding-left: calc(4 * var(--imandrax-px));
+}
+#tsd-nav-container .tsd-accordion-summary {
+  gap: 0;
+}
+#tsd-nav-container a > svg {
+  margin-right: calc(6 * var(--imandrax-px));
+}
+.tsd-page-navigation a {
+  padding: calc(4 * var(--imandrax-px)) calc(12 * var(--imandrax-px));
+}
+.tsd-navigation a:hover,
+.tsd-page-navigation a:hover {
+  color: var(--imandrax-menu-current-color);
+  text-decoration: none;
+}
+.tsd-navigation a.current,
+.tsd-page-navigation a.current {
+  font-weight: 500;
+  color: var(--imandrax-menu-current-color);
+}
+.page-menu .tsd-page-navigation > .tsd-accordion-summary {
+  padding: calc(7 * var(--imandrax-px)) calc(12 * var(--imandrax-px));
+}
+.page-menu .tsd-page-navigation > .tsd-accordion-summary > svg {
+  display: none;
+}
+.site-menu .tsd-accordion-summary > h3,
+.page-menu .tsd-accordion-summary > h3 {
+  font-size: calc(14 * var(--imandrax-px));
+  font-weight: 700;
+  letter-spacing: normal;
+}
+.tsd-page-navigation-section > div {
+  margin-left: calc(12 * var(--imandrax-px));
+}
+.tsd-page-navigation ul {
+  padding-left: calc(12 * var(--imandrax-px));
+}
+
+/* Link back to the ImandraX docs (`sidebarLinks`), with a back arrow (Lucide arrow-left), as in the Python reference */
+#tsd-sidebar-links a[href="/docs/"]:not(.tsd-nav-link)::before {
+  flex: none;
+  width: calc(16 * var(--imandrax-px));
+  height: calc(16 * var(--imandrax-px));
+  margin-right: calc(8 * var(--imandrax-px));
+  content: "";
+  background-color: currentColor;
+  -webkit-mask: var(--imandrax-back-icon) center / contain no-repeat;
+  mask: var(--imandrax-back-icon) center / contain no-repeat;
+}
+:root {
+  --imandrax-back-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m12 19-7-7 7-7'/%3E%3Cpath d='M19 12H5'/%3E%3C/svg%3E");
+}
+
+/* The top menu, repeated by typedoc in the sidebar on small screens */
+#tsd-sidebar-links a.tsd-nav-link[aria-current="true"] {
+  color: var(--imandrax-nav-active-color);
+}
+
+/*
+Footer
+------
+
+Build info (imandrax-theme.mjs), placed as the Python reference's footer text:
+12.8px, in a centred 1280px column, 16px in. It wraps onto two lines on small
+screens, so the footer is taller there; typedoc sizes the page from
+`--dim-footer-height`.
+*/
+
+footer > p {
+  box-sizing: border-box;
+  max-width: 1280px;
+  padding: 0 calc(16 * var(--imandrax-px));
+  margin: 0 auto;
+  font-size: calc(12.8 * var(--imandrax-px));
+}
+@media (max-width: 769px) {
+  :root {
+    --dim-footer-height: 4.5rem;
+  }
+  footer {
+    max-height: none;
+  }
+}

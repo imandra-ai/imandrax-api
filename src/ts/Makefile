@@ -27,7 +27,8 @@ test-integration: node_modules lib/version.ts
 docs: node_modules lib/version.ts
 	npm run docs
 
-# The same reference as a local HTML site, in docs/html (not shipped)
+# The same reference as an HTML site, in docs/html. Published under
+# imandrax.dev/docs/api/typescript-client/, with the theme in typedoc/
 docs-html: node_modules lib/version.ts
 	npm run docs:html
 

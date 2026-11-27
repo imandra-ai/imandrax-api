@@ -1,5 +1,24 @@
 {
   "$schema": "https://typedoc-plugin-markdown.org/schema.json",
   "extends": ["./typedoc.json"],
-  "outputs": [{ "name": "html", "path": "docs/html" }]
+  "outputs": [{ "name": "html", "path": "docs/html" }],
+  "plugin": ["typedoc-plugin-markdown", "./typedoc/imandrax-theme.mjs"],
+  "theme": "imandrax",
+  "customCss": "./typedoc/imandrax.css",
+  "customJs": "./typedoc/imandrax.js",
+  "favicon": "./typedoc/favicon.svg",
+  "hostedBaseUrl": "https://imandrax.dev/docs/api/typescript-client/",
+  "titleLink": "/",
+  "navigationLinks": {
+    "Home": "/",
+    "Install": "/docs/getting-started/installation/",
+    "Docs": "/docs/",
+    "Contact": "https://www.imandra.ai/contact"
+  },
+  "sidebarLinks": {
+    "ImandraX docs": "/docs/",
+    "GitHub": "https://github.com/imandra-ai/imandrax-api/tree/main/src/ts"
+  },
+  "hideGenerator": true,
+  "locales": { "en": { "theme_on_this_page": "On this page" } }
 }
