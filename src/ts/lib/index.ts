@@ -10,6 +10,7 @@
  * - `@imandra/imandrax-api/report`: reports of proof attempts and decompositions
  * - `@imandra/imandrax-api/decomp`: decomposition requests and their regions
  * - `@imandra/imandrax-api/values`: the values of evaluated terms
+ * - `@imandra/imandrax-api/uid_print_style`: whether uids print by short or full name
  * - `@imandra/imandrax-api/raw`: the generated layers the client is built on: `proto` (protobuf
  *   messages), `types` (artifact types and their decoders) and `twine` (the decoder)
  *

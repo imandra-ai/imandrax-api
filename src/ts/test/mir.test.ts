@@ -254,7 +254,7 @@ describe("terms", () => {
       arrows([INT], INT),
     );
     const app = term(new lib.Mir_Term_view_Apply(f, [x]), INT);
-    expect(`${termOfLib(app)}`).toBe("(f/9 x)");
+    expect(`${termOfLib(app)}`).toBe("(f/9 x/1)");
     expect(`${termOfLib(term(new lib.Mir_Term_view_Apply(f, []), INT))}`).toBe("f/9");
 
     const ite = term(new lib.Mir_Term_view_If([bool(true), int(1n), int(-2n)]), INT);
@@ -285,19 +285,19 @@ describe("terms", () => {
       new lib.Mir_Term_view_Record([[sym("a", INT), int(2n)]], variable("r", 4n, ty("r"))),
       ty("r"),
     );
-    expect(`${termOfLib(upd)}`).toBe("{r with a = 2}");
+    expect(`${termOfLib(upd)}`).toBe("{r/4 with a = 2}");
 
     const cs = term(new lib.Mir_Term_view_Case(x, [[sym("A", INT), int(1n)]], int(0n)), INT);
-    expect(`${termOfLib(cs)}`).toBe("match x with | A -> 1 | _ -> 0");
+    expect(`${termOfLib(cs)}`).toBe("match x/1 with | A -> 1 | _ -> 0");
 
     const fld = term(new lib.Mir_Term_view_Field(sym("a", INT), variable("r", 4n, ty("r"))), INT);
-    expect(`${termOfLib(fld)}`).toBe("r.a");
+    expect(`${termOfLib(fld)}`).toBe("r/4.a");
     const tf = term(new lib.Mir_Term_view_Tuple_field(1n, x), INT);
-    expect(`${termOfLib(tf)}`).toBe("x.1");
+    expect(`${termOfLib(tf)}`).toBe("x/1.1");
     const ds = term(new lib.Mir_Term_view_Destruct(sym("Some", INT), 0n, x), INT);
-    expect(`${termOfLib(ds)}`).toBe("Destruct(Some, 0, x)");
+    expect(`${termOfLib(ds)}`).toBe("Destruct(Some, 0, x/1)");
     const isa = term(new lib.Mir_Term_view_Is_a(sym("Some", INT), x), BOOL);
-    expect(`${termOfLib(isa)}`).toBe("Is_a(Some, x)");
+    expect(`${termOfLib(isa)}`).toBe("Is_a(Some, x/1)");
     const seq = term(new lib.Mir_Term_view_Sequence([[int(1n), int(2n)], int(3n)]), INT);
     expect(`${termOfLib(seq)}`).toBe("1; 2; 3");
   });

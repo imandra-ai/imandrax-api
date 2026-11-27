@@ -28,9 +28,11 @@ describe.skipIf(noApiKey)("region models", () => {
     expect(x.type).toBeInstanceOf(ConstructedType);
     expect(`${x.type}`).toBe("int");
 
-    const model = decomp.regions[0]!.model;
-    assert.isDefined(model);
-    const ids = [...model.constants.keys()].map((s) => s.id);
+    // `Additive` keeps g's own regions and adds the ones refined by `pos`, whose models also
+    // give a value to `pos`'s argument
+    const refined = decomp.regions.find((r) => r.model?.constants.size === 2);
+    assert.isDefined(refined, "some regions should be refined by `pos`");
+    const ids = [...refined.model!.constants.keys()].map((s) => s.id);
     // the regions have the same variable x, with different full names
     expect(ids.map((u) => u.shortName)).toEqual(["x", "x"]);
     expect(ids[0]!.fullName).not.toBe(ids[1]!.fullName);

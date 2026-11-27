@@ -9,6 +9,7 @@
     "lib/report.ts",
     "lib/decomp.ts",
     "lib/values.ts",
+    "lib/uid_print_style.ts",
     "lib/raw/index.ts"
   ],
   "tsconfig": "tsconfig.build.json",

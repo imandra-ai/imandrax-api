@@ -144,7 +144,7 @@ class Uid:
     _raw: _View = field(repr=False, compare=False)
 
     def __str__(self) -> str:
-        return self.uid.short_name
+        return str(self.uid)
 
 
 @dataclass(slots=True, frozen=True)

@@ -42,6 +42,7 @@ from imandrax_api.v2.mir import (
     declaration_of_lib,
     term_of_lib,
 )
+from imandrax_api.v2.uid_print_style import uid_style
 
 SRC = """
 type shape = Circle of int | Rect of { w: int; h: int }
@@ -239,6 +240,7 @@ def _lambdas_of_func_body(fun: FunctionDefinition) -> list[Uid]:
     return _lambdas_of_term(fun.body)
 
 
+@uid_style("short")
 def test_lifted_lambdas_share_short_name_but_have_distinct_uids(
     tasks: tuple[Task, ...], db: DB
 ):
@@ -326,7 +328,7 @@ def test_prelude_functions(db: DB):
     length = db.find_function(search_uid_by_short_name(db, "List.length"))
     assert length is not None
     assert isinstance(length.kind, DefinedFunctionKind)
-    assert [str(a) for a in length.arguments] == ["l"]
+    assert [a.id.short_name for a in length.arguments] == ["l"]
     assert str(length.type).endswith(" list -> int")
     # A recursive function is in its own clique
     assert length.clique == {length.name}

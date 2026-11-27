@@ -313,9 +313,6 @@ function declaredUids(db: DB): [string, Uid][] {
   return uids;
 }
 
-// Uses variables of the function it was lifted from; see the failing test below
-const LIFTED_WITH_FREE_VARS = "$sub.Decomp.enumerate_all.lift";
-
 describe.skipIf(noApiKey)("MIR invariants", () => {
   const client = sharedClient();
 
@@ -745,20 +742,10 @@ describe.skipIf(noApiKey)("MIR invariants", () => {
       .filter(
         (f) =>
           f.kind instanceof DefinedFunctionKind &&
-          f.name.shortName !== LIFTED_WITH_FREE_VARS &&
           !isSubset(freeVars([f.body]), varSet(f.arguments)),
       )
       .map((f) => `${f.name}: uses ${minus(freeVars([f.body]), varSet(f.arguments))}`);
     assertNoFailures(failures);
-  });
-
-  // xfail (strict): `$sub.Decomp.enumerate_all.lift` uses `d0`, `des` and `style` of
-  // `Decomp.enumerate_all`, which are not among its arguments
-  test.fails("lifted function only uses its arguments", async () => {
-    const fs = (await functions()).filter((f) => f.name.shortName === LIFTED_WITH_FREE_VARS);
-    expect(fs).toHaveLength(1);
-    const f = fs[0]!;
-    expect([...varSet(f.arguments)]).toEqual(expect.arrayContaining([...freeVars([f.body])]));
   });
 
   test("function types match arguments and body", async () => {

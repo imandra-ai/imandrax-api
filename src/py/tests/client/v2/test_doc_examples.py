@@ -19,7 +19,7 @@ EXAMPLES = list(find_examples(DOCS_DIR))
 
 
 def test_examples_count():
-    assert len(EXAMPLES) == snapshot(5)
+    assert len(EXAMPLES) == snapshot(6)
 
 
 @pytest.mark.network

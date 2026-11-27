@@ -42,6 +42,7 @@ from imandrax_api.v2.mir import (
     Var,
     Variable,
 )
+from imandrax_api.v2.uid_print_style import uid_style
 
 SRC = """
 let f (xs: int list) : int list = List.map (fun x -> x + 1) xs
@@ -170,6 +171,7 @@ Apply(
 # =================
 
 
+@uid_style("short")
 def test_theorem(tasks: tuple[Task, ...]):
     """`theorem thm1 (xs: int list) = f xs = List.map (fun x -> x + 1) xs`"""
     t: ProofObligationTask = get_the_po(tasks, is_instance=False)
@@ -180,10 +182,7 @@ def test_theorem(tasks: tuple[Task, ...]):
         """\
 ProofObligation(
     description='prove theorem thm1',
-    goal=(
-        (<Variable xs>,),
-        <Apply (= (f/<hash> xs) (List.map/<hash> $lambda/<hash> xs))>,
-    ),
+    goal=((<Variable xs>,), <Apply (= (f xs) (List.map $lambda xs))>),
     tactic=TermTactic(variables=(<Variable _x_0>,), term=<Apply (Tactic.default _x_0)>),
     is_instance=False,
     timeout=None,
@@ -207,6 +206,7 @@ ProofObligation(
     assert res.model is None, "A proved theorem should have no counter-model"
 
 
+@uid_style("short")
 def test_instance(tasks: tuple[Task, ...]):
     """`instance (fun (xs: int list) (y: int) -> f xs <> List.map (fun x -> x + y) xs)`"""
     t = get_the_po(tasks, is_instance=True)
@@ -218,7 +218,7 @@ ProofObligation(
     description='prove verify statement _instance_7_1',
     goal=(
         (<Variable xs>, <Variable y>),
-        <Apply (<> (f/<hash> xs) (List.map/<hash> ($lambda/<hash> y) xs))>,
+        <Apply (<> (f xs) (List.map ($lambda y) xs))>,
     ),
     tactic=DefaultTheoremTactic(max_steps=100, upto=None),
     is_instance=True,
@@ -262,6 +262,7 @@ ProofObligation(
 # =============
 
 
+@uid_style("short")
 def test_decomposition(tasks: tuple[Task, ...]):
     """`[@@decomp top ~prune:false () |>> prune]` on `f`"""
     t = get_the_task(tasks, DecompositionTask)
@@ -273,7 +274,7 @@ def test_decomposition(tasks: tuple[Task, ...]):
         """\
 Apply(
     type=<ConstructedType Decomp.t string result>,
-    function=<Symbol Decomp.|>>/<hash>>,
+    function=<Symbol Decomp.|>>>,
     arguments=(
         <Apply (Decomp.top None None None Some false None None ())>,
         <Symbol Decomp.prune>,
@@ -293,10 +294,10 @@ Apply(
     assert ctor_repr(d) == snapshot(
         """\
 Decomposition(
-    id=<Uid f/<hash>>,
+    id=<Uid f>,
     arguments=(<Variable xs>,),
     regions=(
-        <Region constraints: [true] invariant: (List.map/<hash> $lambda/<hash> xs) status: feasible>,
+        <Region constraints: [true] invariant: (List.map $lambda xs) status: feasible>,
     ),
 )\
 """

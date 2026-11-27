@@ -618,29 +618,14 @@ def test_function_arguments_are_distinct(functions: list[FunctionDefinition]):
     assert_no_failures(failures)
 
 
-# Uses variables of the function it was lifted from; see the xfail test below
-_LIFTED_WITH_FREE_VARS = "$sub.Decomp.enumerate_all.lift"
-
-
 def test_function_bodies_only_use_their_arguments(functions: list[FunctionDefinition]):
     failures = [
         f"{f.name}: uses {free_vars([f.body]) - set(f.arguments)}"
         for f in functions
         if isinstance(f.kind, DefinedFunctionKind)
-        and f.name.short_name != _LIFTED_WITH_FREE_VARS
         and not free_vars([f.body]) <= set(f.arguments)
     ]
     assert_no_failures(failures)
-
-
-@pytest.mark.xfail(
-    strict=True,
-    reason=f"`{_LIFTED_WITH_FREE_VARS}` uses `d0`, `des` and `style` of `Decomp.enumerate_all`, "
-    "which are not among its arguments",
-)
-def test_lifted_function_only_uses_its_arguments(functions: list[FunctionDefinition]):
-    (f,) = [f for f in functions if f.name.short_name == _LIFTED_WITH_FREE_VARS]
-    assert free_vars([f.body]) <= set(f.arguments)
 
 
 def test_function_types_match_arguments_and_body(functions: list[FunctionDefinition]):

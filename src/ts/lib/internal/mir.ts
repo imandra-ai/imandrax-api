@@ -62,6 +62,7 @@
 // objects are never shared between artifacts.
 
 import { UnexpectedResponseError } from "../errors.js";
+import { getUidStyle } from "../uid_print_style.js";
 import * as lib from "../raw/types.js";
 import * as twine from "../raw/twine.js";
 
@@ -409,6 +410,11 @@ Uids and names
 ==============
 */
 
+/** The short or full name of `uid`, per `getUidStyle` */
+function printedUidName(uid: Uid): string {
+  return getUidStyle() === "short" ? uid.shortName : uid.fullName;
+}
+
 /**
  * A unique identifier of a symbol, type or variable
  *
@@ -458,7 +464,7 @@ export class Uid {
   }
 
   toString(): string {
-    return this.fullName;
+    return printedUidName(this);
   }
 }
 
@@ -592,7 +598,7 @@ export class UidConst {
   ) {}
 
   toString(): string {
-    return this.uid.fullName;
+    return printedUidName(this.uid);
   }
 }
 
@@ -1072,7 +1078,7 @@ export class Variable {
   }
 
   toString(): string {
-    return this.id.shortName;
+    return printedUidName(this.id);
   }
 }
 
@@ -1351,7 +1357,7 @@ export class Var extends TermBase {
   }
 
   override toString(): string {
-    return this.var.id.shortName;
+    return printedUidName(this.var.id);
   }
 }
 
@@ -1374,7 +1380,7 @@ export class SymbolTerm extends TermBase {
   }
 
   override toString(): string {
-    return this.symbol.id.fullName;
+    return printedUidName(this.symbol.id);
   }
 }
 
@@ -1410,7 +1416,7 @@ export class Construct extends TermBase {
   }
 
   override toString(): string {
-    const name = this.constructor_.id.shortName;
+    const name = printedUidName(this.constructor_.id);
     const args = this.arguments;
     if (args.length === 0) {
       return name;
@@ -1420,7 +1426,7 @@ export class Construct extends TermBase {
       const n = Math.min(labels.length, args.length);
       const fields: string[] = [];
       for (let i = 0; i < n; i++) {
-        fields.push(`${labels[i]!.fullName} = ${args[i]}`);
+        fields.push(`${printedUidName(labels[i]!)} = ${args[i]}`);
       }
       return `${name} {${fields.join("; ")}}`;
     }
@@ -1452,7 +1458,7 @@ export class Destruct extends TermBase {
   }
 
   override toString(): string {
-    return `Destruct(${this.constructor_.id.shortName}, ${this.index}, ${this.term})`;
+    return `Destruct(${printedUidName(this.constructor_.id)}, ${this.index}, ${this.term})`;
   }
 }
 
@@ -1475,7 +1481,7 @@ export class IsA extends TermBase {
   }
 
   override toString(): string {
-    return `Is_a(${this.constructor_.id.shortName}, ${this.term})`;
+    return `Is_a(${printedUidName(this.constructor_.id)}, ${this.term})`;
   }
 }
 
@@ -1523,7 +1529,7 @@ export class Field extends TermBase {
   }
 
   override toString(): string {
-    return `${this.term}.${this.field.id.shortName}`;
+    return `${this.term}.${printedUidName(this.field.id)}`;
   }
 }
 
@@ -1576,7 +1582,7 @@ export class RecordTerm extends TermBase {
   }
 
   override toString(): string {
-    const fields = this.rows.map((r) => `${r.field.id.shortName} = ${r.value}`).join("; ");
+    const fields = this.rows.map((r) => `${printedUidName(r.field.id)} = ${r.value}`).join("; ");
     if (this.rest !== undefined) {
       return `{${this.rest} with ${fields}}`;
     }
@@ -1622,7 +1628,7 @@ export class Case extends TermBase {
   }
 
   override toString(): string {
-    const arms = this.cases.map((c) => `| ${c.constructor_.id.shortName} -> ${c.rhs}`);
+    const arms = this.cases.map((c) => `| ${printedUidName(c.constructor_.id)} -> ${c.rhs}`);
     if (this.default !== undefined) {
       arms.push(`| _ -> ${this.default}`);
     }
@@ -2001,7 +2007,7 @@ export class DefaultTerminationTactic {
     const basis =
       "{" +
       [...this.basis]
-        .map((u) => u.fullName)
+        .map((u) => printedUidName(u))
         .sort()
         .join(", ") +
       "}";
