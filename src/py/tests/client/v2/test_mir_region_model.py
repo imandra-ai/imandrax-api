@@ -27,11 +27,16 @@ def test_model_tells_same_named_variables_apart(c: Client) -> None:
         "{'short_name': 'x', 'type': <ConstructedType int>}"
     )
 
-    models: list[Model | None] = [r.model for r in decomp.regions]
-    fst_model = models[0]
-    assert fst_model is not None
+    # `Additive` keeps g's own regions and adds the ones refined by `pos`, whose models also
+    # give a value to `pos`'s argument
+    refined: list[Model] = [
+        r.model
+        for r in decomp.regions
+        if r.model is not None and len(r.model.constants) == 2
+    ]
+    assert refined, "Some regions should be refined by `pos`"
 
-    consts: FrozenMap[AppliedSymbol, Term] = fst_model.constants
+    consts: FrozenMap[AppliedSymbol, Term] = refined[0].constants
     assert len(consts) == 2
     (
         (x_, _),
