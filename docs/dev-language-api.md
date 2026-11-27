@@ -661,7 +661,7 @@ A feature can land in one client first; its row in Appendix A then says which cl
 
 Maintained by hand, updated in the same change as a feature. Nothing checks it automatically, so a
 row can lag behind the code. The whole matrix was last checked against the code on 2026-11-24
-(#205). 
+(#205). The Python rows for 2.1, 4.2, 4.4 and 4.6 were updated in #210. 
 
 ✓ done, ◐ partial, ✗ missing, n/a not applicable, B different on purpose (Appendix B).
 OCaml defines the types and is the server's own language, so it has no column.
@@ -669,19 +669,19 @@ OCaml defines the types and is the server's own language, so it has no column.
 | Feature                                   | Python | TypeScript | Rust |
 | ----------------------------------------- | ------ | ---------- | ---- |
 | Protobuf messages (2.1)                   | ✓      | ✓          | ✗    |
-| Twirp RPC layer (2.1)                     | ◐      | ✓          | n/a  |
+| Twirp RPC layer (2.1)                     | ✓      | ✓          | n/a  |
 | Lib types from `genbindings` (2.2)        | ✓      | ✓          | ✓    |
 | Twine decoder, conformance adapter (2.4)  | ✓      | ✓          | ◐    |
 | `x-api-version` header (2.5)              | ✓      | ✓          | n/a  |
 | Wrapper types (3.1, 3.7)                  | ✓      | ✓          | n/a  |
 | Value equality, value maps and sets (3.3) | ✓      | B          | n/a  |
 | Shared nodes (3.4)                        | ✓      | ✓          | n/a  |
-| Connecting, sessions, scoped close (4.2)  | ◐      | ◐          | n/a  |
+| Connecting, sessions, scoped close (4.2)  | ✓      | ◐          | n/a  |
 | RPC methods (4.3)                         | ✓      | ✓          | n/a  |
-| Synchronous client (4.4)                  | ◐      | B          | n/a  |
-| Asynchronous client (4.4)                 | ◐      | ✓          | n/a  |
+| Synchronous client (4.4)                  | ✓      | B          | n/a  |
+| Asynchronous client (4.4)                 | ✓      | ✓          | n/a  |
 | Lazy task fetching, `set_client` (4.5)    | ✓      | ✓          | n/a  |
-| Errors (4.6)                              | ◐      | ✓          | n/a  |
+| Errors (4.6)                              | ✓      | ✓          | n/a  |
 | MIR DB lookups and search (5)             | ✓      | ✓          | n/a  |
 | Printers (6.1)                            | ✓      | ✓          | n/a  |
 | `to_python` / `toJs` (6.2)                | ✓      | ✓          | n/a  |
@@ -692,14 +692,9 @@ OCaml defines the types and is the server's own language, so it has no column.
 
 Partial support (◐):
 
-- Twirp RPC layer, Python: the Twirp code of an error reply is not read (it is always `unknown`),
-  and redirects are followed instead of reported as errors.
-- Connecting, Python: an API version mismatch is not detected. TypeScript: it is detected only from
-  an `invalid_argument` reply to `create_session`, but the server answers an unknown version with
-  an HTTP 404 (`bad_route` from an intermediary), on every call.
-- Synchronous and asynchronous clients, Python: `status` takes no timeout.
-- Errors, Python: transport errors and the closed-client errors do not derive from
-  `ImandraXError`, and there is no API version mismatch error.
+- Connecting, TypeScript: an API version mismatch is detected only from an `invalid_argument`
+  reply to `create_session`, but the server answers an unknown version with an HTTP 404
+  (`bad_route` from an intermediary), on every call.
 
 ## Appendix B. Deliberate differences
 

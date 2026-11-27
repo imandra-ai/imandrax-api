@@ -7,23 +7,31 @@ proofs and reports inside them.
 
 from ..v1 import url_dev, url_prod
 from .errors import (
+    ApiVersionMismatchError,
+    ClientClosedError,
     ClientGoneError,
+    EndSessionError,
     ImandraXError,
     NoClientError,
     NotFetchedError,
     ServerError,
+    TwirpServerException,
     UnexpectedResponseError,
 )
 from .interface import AsyncClient, Client
 
 __all__ = [
+    "ApiVersionMismatchError",
     "AsyncClient",
     "Client",
+    "ClientClosedError",
     "ClientGoneError",
+    "EndSessionError",
     "ImandraXError",
     "NoClientError",
     "NotFetchedError",
     "ServerError",
+    "TwirpServerException",
     "UnexpectedResponseError",
     "url_dev",
     "url_prod",

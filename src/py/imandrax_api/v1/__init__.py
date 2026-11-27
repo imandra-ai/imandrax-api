@@ -19,12 +19,14 @@ from ..bindings import (
     utils_pb2,
 )
 from ..twirp.context import Context
-from ..twirp.errors import Errors
 from ..twirp.exceptions import TwirpServerException
 from . import decomp
 from ._common import (
+    check_timeout,
+    ApiVersionMismatchError,
     ClientClosedError,
     EndSessionError,
+    api_version_error,
     is_session_not_found,
     mk_context,
     url_dev,
@@ -36,6 +38,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "Client",
+    "ApiVersionMismatchError",
     "AsyncClient",
     "ClientClosedError",
     "EndSessionError",
@@ -76,6 +79,7 @@ class Client:
         session_id: str | None = None,
         create_if_not_found: bool = False,
     ) -> None:
+        check_timeout(timeout, 30)
         # use a session to help with cookies. See https://requests.readthedocs.io/en/latest/user/advanced/#session-objects
         self._session = requests.Session()
         self._closed = False
@@ -113,24 +117,7 @@ class Client:
         # Guard against session creation failures to avoid leaking the HTTP transport
         try:
             if session_id is None:
-                try:
-                    self._sesh = self._client.create_session(
-                        ctx=self._ctx(),
-                        request=simple_api_pb2.SessionCreateReq(
-                            api_version=api_types_version.api_types_version
-                        ),
-                        timeout=timeout,
-                    )
-                except TwirpServerException as ex:
-                    status_code: int | None = ex.meta.get("status_code")  # type: ignore[attr-defined]
-                    if status_code and status_code == Errors.get_status_code(
-                        Errors.InvalidArgument
-                    ):
-                        raise Exception(
-                            "API version mismatch. Try upgrading the imandrax-api package."
-                        ) from ex
-                    else:
-                        raise ex
+                self._sesh = self._create_session()
             else:
                 # Reopen the supplied session via the SessionManager.open_session
                 # RPC. If the server reports it as missing/expired, fall back to
@@ -147,18 +134,28 @@ class Client:
                     )
                 except TwirpServerException as ex:
                     if is_session_not_found(ex) and create_if_not_found:
-                        self._sesh = self._client.create_session(
-                            ctx=self._ctx(),
-                            request=simple_api_pb2.SessionCreateReq(
-                                api_version=api_types_version.api_types_version
-                            ),
-                            timeout=timeout,
-                        )
+                        self._sesh = self._create_session()
+                    elif (err := api_version_error(ex)) is not None:
+                        raise err from ex
                     else:
                         raise
         except BaseException:
             self._session.close()
             self._closed = True
+            raise
+
+    def _create_session(self) -> session_pb2.Session:
+        try:
+            return self._client.create_session(
+                ctx=self._ctx(),
+                request=simple_api_pb2.SessionCreateReq(
+                    api_version=api_types_version.api_types_version
+                ),
+                timeout=self._timeout,
+            )
+        except TwirpServerException as ex:
+            if (err := api_version_error(ex)) is not None:
+                raise err from ex
             raise
 
     def __enter__(self, *_: Any) -> Self:
@@ -207,10 +204,12 @@ class Client:
     # Service Simple
     # ====================
 
-    def status(self) -> utils_pb2.StringMsg:
+    def status(self, timeout: Optional[float] = None) -> utils_pb2.StringMsg:
+        timeout = check_timeout(timeout, self._timeout)
         return self._client.status(
             ctx=self._ctx(),
             request=utils_pb2.Empty(),
+            timeout=timeout,
         )
 
     def eval_src(
@@ -233,7 +232,7 @@ class Client:
                 top-level definitions with 'xyz' in their name. Tasks without
                 names are matched under `anonymous`.
         """
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         req = simple_api_pb2.EvalSrcReq(
             src=src, session=self._sesh, task_filter=task_filter
         )
@@ -266,8 +265,7 @@ class Client:
             compute_timeout (int | None): server-side compute timeout, passed as
                 `DecomposeReq.timeout`
         """
-        if timeout is None:
-            timeout = self._timeout
+        timeout = check_timeout(timeout, self._timeout)
 
         req = simple_api_pb2.DecomposeReq(
             name=name,
@@ -311,8 +309,7 @@ class Client:
             compute_timeout (int | None): server-side compute timeout, passed as
                 `DecomposeReqFull.timeout`
         """
-        if timeout is None:
-            timeout = self._timeout
+        timeout = check_timeout(timeout, self._timeout)
 
         req = simple_api_pb2.DecomposeReqFull(session=self._sesh, decomp=d)
         # If None, keep it as unset
@@ -333,7 +330,7 @@ class Client:
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.VerifyRes:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._client.verify_src(
             ctx=self._ctx(),
             request=simple_api_pb2.VerifySrcReq(
@@ -348,7 +345,7 @@ class Client:
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.VerifyRes:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._client.verify_name(
             ctx=self._ctx(),
             request=simple_api_pb2.VerifyNameReq(
@@ -363,7 +360,7 @@ class Client:
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.InstanceRes:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._client.instance_src(
             ctx=self._ctx(),
             request=simple_api_pb2.InstanceSrcReq(
@@ -378,7 +375,7 @@ class Client:
         hints: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> simple_api_pb2.InstanceRes:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._client.instance_name(
             ctx=self._ctx(),
             request=simple_api_pb2.InstanceNameReq(
@@ -397,7 +394,7 @@ class Client:
         if seed is not None:
             req.seed = seed
 
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._client.test_src(
             ctx=self._ctx(),
             request=req,
@@ -422,7 +419,7 @@ class Client:
         if seed is not None:
             req.seed = seed
 
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._client.test_name(
             ctx=self._ctx(),
             request=req,
@@ -440,7 +437,7 @@ class Client:
     def typecheck(
         self, src: str, timeout: Optional[float] = None
     ) -> simple_api_pb2.TypecheckRes:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._client.typecheck(
             ctx=self._ctx(),
             request=simple_api_pb2.TypecheckReq(src=src, session=self._sesh),
@@ -458,7 +455,7 @@ class Client:
             include_str (bool): if true, include the string representation of
                 each declaration (`DeclWithName.str`).
         """
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._client.get_decls(
             ctx=self._ctx(),
             request=simple_api_pb2.GetDeclsReq(
@@ -481,7 +478,7 @@ class Client:
                 as `OneshotReq.timeout`
             timeout (float | None): HTTP request timeout
         """
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         req = simple_api_pb2.OneshotReq(input=input)
         # If None, keep it as unset
         if compute_timeout is not None:
@@ -507,7 +504,7 @@ class Client:
             task_filter (list[str] | None): glob patterns for selecting tasks
                 to be started during evaluation, as in `eval_src`.
         """
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._api_client.eval_code_snippet(
             ctx=self._ctx(),
             request=api_pb2.CodeSnippet(
@@ -520,7 +517,7 @@ class Client:
         self, code: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactResult:
         """Parse and typecheck a term, returning it as an artifact."""
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._api_client.parse_term(
             ctx=self._ctx(),
             request=api_pb2.CodeSnippet(session=self._sesh, code=code),
@@ -531,7 +528,7 @@ class Client:
         self, code: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactResult:
         """Parse and typecheck a type, returning it as an artifact."""
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._api_client.parse_type(
             ctx=self._ctx(),
             request=api_pb2.CodeSnippet(session=self._sesh, code=code),
@@ -541,7 +538,7 @@ class Client:
     def list_artifacts(
         self, task: task_pb2.Task, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactListResult:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._api_client.list_artifacts(
             ctx=self._ctx(),
             request=api_pb2.ArtifactListQuery(task_id=task.id),
@@ -552,7 +549,7 @@ class Client:
         self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactResult:
         """Obtain an artifact from a task."""
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._api_client.get_artifact(
             ctx=self._ctx(),
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
@@ -563,7 +560,7 @@ class Client:
         self, task: task_pb2.Task, kind: str, timeout: Optional[float] = None
     ) -> api_pb2.ArtifactZipResult:
         """Obtain an artifact from a task as a zip file."""
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._api_client.get_artifact_zip(
             ctx=self._ctx(),
             request=api_pb2.ArtifactGetQuery(task_id=task.id, kind=kind),
@@ -579,7 +576,7 @@ class Client:
 
     def keep_session_alive(self, timeout: Optional[float] = None) -> None:
         """Make sure the session remains active."""
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         self._session_mgr.keep_session_alive(
             ctx=self._ctx(),
             request=self._sesh,
@@ -590,7 +587,7 @@ class Client:
     # ====================
 
     def version(self, timeout: Optional[float] = None) -> system_pb2.VersionResponse:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._system_client.version(
             ctx=self._ctx(),
             request=utils_pb2.Empty(),
@@ -598,7 +595,7 @@ class Client:
         )
 
     def gc_stats(self, timeout: Optional[float] = None) -> system_pb2.Gc_stats:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._system_client.gc_stats(
             ctx=self._ctx(),
             request=utils_pb2.Empty(),
@@ -606,7 +603,7 @@ class Client:
         )
 
     def release_memory(self, timeout: Optional[float] = None) -> system_pb2.Gc_stats:
-        timeout = timeout or self._timeout
+        timeout = check_timeout(timeout, self._timeout)
         return self._system_client.release_memory(
             ctx=self._ctx(),
             request=utils_pb2.Empty(),
