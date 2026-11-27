@@ -193,3 +193,8 @@ Sidebars
   font-size: 14px;
   font-weight: 600;
 }
+
+/* The top menu, repeated by typedoc in the sidebar on small screens */
+#tsd-sidebar-links a.tsd-nav-link[aria-current="page"] {
+  color: var(--imandrax-nav-active-color);
+}

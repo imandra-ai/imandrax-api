@@ -7,9 +7,11 @@
 //
 // - the title is the ImandraX wordmark, linking to `titleLink`
 // - the `navigationLinks` are imandrax.dev's top menu; the docs link is marked
-//   current and links off imandrax.dev open in a new tab
+//   current and links off imandrax.dev open in a new tab, in the header and
+//   in the sidebar (where typedoc repeats them on small screens)
 // - the footer says which version and commit the reference was built from,
 //   unless `customFooterHtml` is set
+// - `sidebarLinks` into the repo (`/tree/main/`) point at that commit too
 //
 // Colours, fonts and sizes are in imandrax.css (`customCss`).
 
@@ -41,9 +43,20 @@ function find(el, pred) {
 
 function mustFind(el, what, pred) {
   const found = find(el, pred);
-  // The default toolbar's markup changed: update this theme to match
-  if (!found) throw new Error(`imandrax-theme: no ${what} in typedoc's toolbar`);
+  // The default theme's markup changed: update this theme to match
+  if (!found) throw new Error(`imandrax-theme: no ${what} in typedoc's output`);
   return found;
+}
+
+// Top menu link `a`: mark the docs link, open other sites in a new tab
+function styleMenuLink(a) {
+  const href = a?.props?.href;
+  if (typeof href !== "string") return;
+  if (href === DOCS) a.props["aria-current"] = "page";
+  if (!href.startsWith(SITE)) {
+    a.props.target = "_blank";
+    a.props.rel = "noopener";
+  }
 }
 
 class ImandraXContext extends DefaultThemeRenderContext {
@@ -58,16 +71,20 @@ class ImandraXContext extends DefaultThemeRenderContext {
       title.props.title = "ImandraX";
       title.children = [JSX.createElement(JSX.Raw, { html: WORDMARK })];
 
-      const links = mustFind(el, "navigation links", (e) => e.props?.id === "tsd-toolbar-links");
-      for (const a of links.children.flat()) {
-        const href = a?.props?.href;
-        if (typeof href !== "string") continue;
-        if (href === DOCS) a.props["aria-current"] = "page";
-        if (!href.startsWith(SITE)) {
-          a.props.target = "_blank";
-          a.props.rel = "noopener";
-        }
-      }
+      const links = mustFind(el, "toolbar links", (e) => e.props?.id === "tsd-toolbar-links");
+      links.children.flat().forEach(styleMenuLink);
+      return el;
+    };
+
+    // The sidebar repeats the top menu (shown on small screens only) after `sidebarLinks`
+    const sidebarLinks = this.sidebarLinks;
+    this.sidebarLinks = () => {
+      const el = sidebarLinks();
+      if (!el) return el;
+      mustFind(el, "sidebar links", (e) => e.props?.id === "tsd-sidebar-links")
+        .children.flat()
+        .filter((a) => a?.props?.class === "tsd-nav-link")
+        .forEach(styleMenuLink);
       return el;
     };
   }
@@ -79,8 +96,8 @@ class ImandraXTheme extends DefaultTheme {
   }
 }
 
-// Footer
-// ------
+// Build info
+// ----------
 
 function git(...args) {
   return execFileSync("git", args, {
@@ -89,24 +106,41 @@ function git(...args) {
   }).trim();
 }
 
-// "@imandra/imandrax-api 0.21.0, commit <a>d00bf1e</a> (2026-11-26)"; without git, only the version
-function buildInfo() {
-  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-  const info = `${pkg.name} ${pkg.version}`;
+// The commit being built, or undefined outside a git checkout
+function head() {
   try {
     const [commit, short, date] = git("log", "-1", "--format=%H %h %cs").split(" ");
-    return `${info}, commit <a href="${REPO}/commit/${commit}">${short}</a> (${date})`;
+    return { commit, short, date };
   } catch {
-    return info;
+    return undefined;
   }
+}
+
+// "@imandra/imandrax-api 0.21.0, commit <a>d00bf1e</a> (2026-11-26)"; without git, only the version
+function buildInfo(commit) {
+  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  const info = `${pkg.name} ${pkg.version}`;
+  if (!commit) return info;
+  return `${info}, commit <a href="${REPO}/commit/${commit.commit}">${commit.short}</a> (${commit.date})`;
 }
 
 /** @param {import("typedoc").Application} app */
 export function load(app) {
   app.renderer.defineTheme("imandrax", ImandraXTheme);
   app.on(Application.EVENT_BOOTSTRAP_END, () => {
+    const commit = head();
     if (!app.options.isSet("customFooterHtml")) {
-      app.options.setValue("customFooterHtml", buildInfo());
+      app.options.setValue("customFooterHtml", buildInfo(commit));
+    }
+    if (commit) {
+      const links = app.options.getValue("sidebarLinks");
+      const pinned = Object.entries(links).map(([label, href]) => [
+        label,
+        href.startsWith(`${REPO}/tree/main/`)
+          ? href.replace("/tree/main/", `/tree/${commit.commit}/`)
+          : href,
+      ]);
+      app.options.setValue("sidebarLinks", Object.fromEntries(pinned));
     }
   });
 }
