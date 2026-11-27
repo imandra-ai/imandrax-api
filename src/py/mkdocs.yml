@@ -116,6 +116,7 @@ nav:
   - interface: api/interface.md
   - mir: api/mir.md
   - evaluation_values: api/evaluation_values.md
+  - uid_print_style: api/uid_print_style.md
   - decomp: api/decomp.md
   - errors: api/errors.md
   - report: api/report.md

@@ -204,3 +204,41 @@ async def main() -> bool:
 print(asyncio.run(main()))
 #> True
 ```
+
+## Printing uids
+
+A uid identifies a symbol, type or variable. It is a name plus a suffix telling apart uids with
+the same name, such as the hash of the definition (`f/<hash>`). By default, uids print with their
+suffix. To print the short name (`f`), use relevant uid style setting tools:
+
+```python
+import os
+
+from imandrax_api.v2 import Client, url_prod
+from imandrax_api.v2.interface import DecompositionResult
+from imandrax_api.v2.uid_print_style import set_uid_style, uid_style
+
+api_key = os.environ.get("IMANDRAX_API_KEY") or os.environ.get("IMANDRA_UNI_KEY")
+
+with Client(url=url_prod, api_key=api_key) as client:
+    client.eval_src("let classify x = if x < 0 then -1 else 1")
+    res: DecompositionResult = client.decompose("classify")
+    assert res.decomposition is not None, f"decomposition failed: {res.errors}"
+
+    region = res.decomposition.regions[0]
+    # `print(res.decomposition.id)` shows the full name: `classify/<hash>`
+
+    # Short names within the block
+    with uid_style("short"):
+        print(res.decomposition.id)
+        #> classify
+
+    # Short names from now on, everywhere
+    set_uid_style("short")
+    print(region.constraints[0])
+    #> (>= x 0)
+
+    set_uid_style("full")  # Back to the default
+```
+
+Only printed output depends on the style.
