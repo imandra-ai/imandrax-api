@@ -823,6 +823,36 @@ class AsyncClient:
             await self._client.get_artifact_zip(task._raw, kind, timeout=timeout)
         )
 
+    async def task_progress(
+        self, task_id: TaskID | str, timeout: float | None = None
+    ) -> TaskProgress:
+        """Progress of a task
+
+        Args:
+            task_id: The ID of the task
+        """
+
+        timeout = timeout or self._client._timeout
+        tid = (
+            task_id._raw if isinstance(task_id, TaskID) else task_pb2.TaskID(id=task_id)
+        )
+        rsp = await self._client.task_progress(tid, timeout)
+        return TaskProgress(rsp.state, rsp.percentage, rsp.message)
+
+    async def cancel_task(
+        self, task_id: TaskID | str, timeout: float | None = None
+    ) -> None:
+        """Cancel a task
+
+        Args:
+            task_id: The ID of the task
+        """
+        timeout = timeout or self._client._timeout
+        tid = (
+            task_id._raw if isinstance(task_id, TaskID) else task_pb2.TaskID(id=task_id)
+        )
+        await self._client.cancel_task(tid, timeout)
+
     async def keep_session_alive(self, timeout: float | None = None) -> None:
         """Make sure the session remains active
 
