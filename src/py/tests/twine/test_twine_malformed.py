@@ -175,29 +175,57 @@ def test_huge_varint_length_fails_early(data: bytes, off: int):
     # failed against the buffer size, but only after building the whole
     # integer, in time quadratic in its encoded length
     d = twine.Decoder(data)
-    with pytest.raises(twine.Error, match="does not fit in 64 bits"):
+    with pytest.raises(twine.Error, match="longer than 10 bytes"):
         d.value(off=off)
 
 
 def test_leb128_u64_boundary():
     max_u64 = b"\xff" * 9 + b"\x01"  # 2^64 - 1
-    assert twine.Decoder(max_u64)._leb128(off=0, u64=True) == (2**64 - 1, 10)
+    assert twine.Decoder(max_u64)._leb128(off=0) == (2**64 - 1, 10)
     two_pow_64 = b"\x80" * 9 + b"\x02"
     with pytest.raises(twine.Error, match="does not fit in 64 bits"):
-        twine.Decoder(two_pow_64)._leb128(off=0, u64=True)
+        twine.Decoder(two_pow_64)._leb128(off=0)
 
 
-def test_padded_varint_length_decodes():
-    # LEB128 allows zero padding bytes, and the twine spec doesn't forbid them,
-    # so a padded length decodes at any encoded length. Here: 15 + 1 = 16
-    data = b"\x4f\x81" + b"\x80" * 20 + b"\x00" + b"a" * 16
+def test_padded_varint_length():
+    # zero padding is accepted up to 10 bytes in all, as in imandrakit's decoder.
+    # Here: 15 + 1 = 16
+    data = b"\x4f\x81" + b"\x80" * 8 + b"\x00" + b"a" * 16
     assert twine.Decoder(data).value(off=0) == "a" * 16
+    data = b"\x4f\x81" + b"\x80" * 9 + b"\x00" + b"a" * 16
+    with pytest.raises(twine.Error, match="longer than 10 bytes"):
+        twine.Decoder(data).value(off=0)
 
 
-def test_int_beyond_u64_decodes():
-    # Ints are not bounded: the value is what the bytes encode
-    data = b"\x1f" + b"\xff" * 20 + b"\x01"
-    assert twine.Decoder(data).get_int(off=0) == 2**141 - 1 + 15
+def leb128(n: int) -> bytes:
+    out = bytearray()
+    while n >= 0x80:
+        out.append(n & 0x7F | 0x80)
+        n >>= 7
+    out.append(n)
+    return bytes(out)
+
+
+def test_int_fits_in_int64():
+    # as in imandrakit's decoder. Kind 1 holds n, kind 2 holds -n - 1
+    def int_bytes(kind: int, n: int) -> bytes:
+        return bytes([kind << 4 | 15]) + leb128(n - 15)
+
+    assert twine.Decoder(int_bytes(1, 2**63 - 1)).get_int(off=0) == 2**63 - 1
+    assert twine.Decoder(int_bytes(2, 2**63 - 1)).get_int(off=0) == -(2**63)
+    for kind in (1, 2):
+        with pytest.raises(twine.Error, match="is above"):
+            twine.Decoder(int_bytes(kind, 2**63)).get_int(off=0)
+
+
+def test_tag_number_fits_in_ocaml_int():
+    # as in imandrakit's decoder, which reads it into an OCaml int (63 bits)
+    def tag_bytes(n: int) -> bytes:
+        return b"\x8f" + leb128(n - 15) + b"\x00"
+
+    twine.Decoder(tag_bytes(2**62 - 1)).value(off=0)
+    with pytest.raises(twine.Error, match="is above"):
+        twine.Decoder(tag_bytes(2**62)).value(off=0)
 
 
 def test_unhashable_dict_key_raises_twine_error():

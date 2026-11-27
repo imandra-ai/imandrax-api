@@ -22,7 +22,15 @@ let rec value ?(path = Int_set.empty) (dec : Dec.t) (off : int) : Value.t =
   | False -> Bool false
   | Int i -> Int (Z.of_int64 i)
   | Float f -> F64 f
-  | String _ -> Str (Dec.string dec off)
+  | String _ ->
+    (* imandrakit returns any bytes; a twine string is UTF-8 text, and the
+       other decoders reject it otherwise *)
+    let s = Dec.string dec off in
+    if not (String.is_valid_utf_8 s) then
+      Imandrakit_twine.Error
+        (Printf.sprintf "invalid UTF-8 in string at offset 0x%x" off)
+      |> raise;
+    Str s
   | Blob _ -> Blob (Dec.blob dec off)
   | Array c -> Array (Dec.Array_cursor.to_list_of value c)
   | Dict c -> Dict (Dec.Dict_cursor.to_list_of (fun k v -> value k, value v) c)
@@ -60,8 +68,8 @@ let request (ty : string) (bytes : string) : string =
   Sexp.reply_to_string (reply ty bytes)
 
 (** Serve the protocol on stdin/stdout, like any adapter. It always runs as a
-    child process: [Decode] does not bounds-check every read, so it can crash or
-    segfault on corrupted input, and that must not take the harness down. *)
+    child process: if [Decode] crashes on corrupted input, that must not take
+    the harness down. *)
 let serve () : unit =
   let rec loop () =
     match In_channel.input_line stdin with

@@ -47,14 +47,25 @@ Every decoder, imandrakit's own included, runs the same properties:
 6. **Same verdict as the reference**: The decoder accepts exactly the inputs the reference accepts, and rejects the rest. When both accept, the two values are equal. Error messages are not compared.
 
 Properties 5 and 6 use corrupted input: valid encodings that are truncated or
-have a byte overwritten.
+have a byte overwritten. They first try the inputs in `regressions` (in
+`twine_conformance.ml`), on which a decoder or the reference once failed; add
+one there when you fix such a failure.
 
 The reference is the spec for which inputs are malformed: a corrupted input can
 still be valid twine (one changed byte of an int is another int), so it is the
-reference that decides. It is the OCaml adapter, run as a child process because
-it can crash on corrupted input (see [Known failure](#known-failure)). If the
-reference dies on an input, that case is skipped for property 6, since there is
-no verdict to compare; the OCaml job reports the crash under property 5.
+reference that decides. It is the OCaml adapter, run as a child process so that
+a crash cannot take the harness down. If the reference dies on an input, that
+case is skipped for property 6, since there is no verdict to compare; the OCaml
+job reports the crash under property 5.
+
+The reference rejects a string that is not valid UTF-8, as the Python and
+TypeScript decoders do. imandrakit's decoder itself returns any bytes; the
+OCaml adapter adds the check.
+
+It needs an imandrakit whose decoder rejects malformed input instead of
+crashing or reading outside the buffer:
+[imandrakit#29](https://github.com/imandra-ai/imandrakit/pull/29). Until it is
+merged, the CI job pins imandrakit to that pull request.
 
 ### Text form (used in comparsion)
 
@@ -189,27 +200,3 @@ the test with `TWINE_CONFORMANCE_DECODER` set to the command that starts it.
 | `twine_conformance.ml` | properties, entry point                                         |
 | `py_adapter.py`        | the Python adapter                                              |
 | `ts_adapter.ts`        | the TypeScript adapter, run by Node on the built `src/ts/dist`  |
-
-## Known failure
-
-imandrakit's decoder does not bounds-check every read, and it is also the
-reference. Both jobs fail on corrupted input because of it:
-
-- `ocaml` job, property 5 (no crash): It crashes, for example `Assertion failed` in imandrakit's `src/twine/decode.ml` on empty input, and can segfault.
-- Both jobs, property 6 (same verdict as the reference): The reference
-  accepts malformed input that it should reject. It reads memory outside the
-  buffer, so it returns garbage, which also differs from one run to the next.
-  For the single byte `60`, Python rightly rejects the entry point at offset
-  -97, and the reference replies `false`:
-
-  ```
-  decoder:   decode error: offset -97 out of bounds (buffer size 1)
-  reference: false
-  ```
-
-  In the `ocaml` job, the decoder and the reference are the same decoder in two
-  processes, and they disagree with each other.
-
-A property 6 failure where the reference replies with a value and the decoder
-rejects is the reference's bug. The bug is in imandrakit, so both jobs stay red
-until it is fixed there.

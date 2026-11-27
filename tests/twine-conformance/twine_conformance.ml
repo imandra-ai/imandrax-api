@@ -43,8 +43,8 @@ let show_reply (r : Sexp.reply) =
 
 module P = Decoder_client
 
-(** The reference decoder in its own process, since it can segfault on corrupted
-    input: see [Ocaml_adapter.serve] *)
+(** The reference decoder in its own process, so that a crash on corrupted input
+    cannot take the harness down: see [Ocaml_adapter.serve] *)
 let reference_command = Filename.quote Sys.executable_name ^ " serve-ocaml"
 
 (** Check that [outcome], a decoder's answer, is the reply [expected]. *)
@@ -61,7 +61,7 @@ let check_reply ~(expected : Sexp.reply) (outcome : P.outcome) : bool =
    ========= *)
 
 (** Calls of a property allowed after its first failure, while shrinking. A
-    decoder that fails only on some runs (the OCaml one reads memory outside the
+    decoder that fails only on some runs (one that reads memory outside the
     buffer) keeps finding smaller failing cases, so shrinking would not end in
     reasonable time. Once the budget is spent, the remaining candidates pass,
     and QCheck reports the smallest failure found so far. *)
@@ -132,9 +132,33 @@ let sharing (dec : P.t) =
 (* Corrupted input
    ---------------
 
-    Valid encodings, truncated or with a byte overwritten. Whether the decoder
-    accepts or rejects them is not checked: twine does not say which inputs
-    must be rejected, and the reference is lenient. *)
+    Valid encodings, truncated or with a byte overwritten. Twine does not say
+    which of them are malformed: the reference decides. *)
+
+type corrupted = {
+  from: string;
+  bytes: string;
+}
+(** A corrupted input, and how it was made *)
+
+(** Inputs on which a decoder or the reference once failed. They are tried
+    first, before the random ones. *)
+let regressions : corrupted list =
+  List.map
+    (fun (from, hex) -> { from; bytes = Sexp.string_of_hex hex })
+    [
+      "[], truncated to 0 bytes", "";
+      (* the entry point is at offset -97 *)
+      "[], truncated to 1 byte", "60";
+      (* the reference read outside the buffer, a different value each run *)
+      "[], then byte 1 set to 0x50", "6050";
+      (* a varint longer than 10 bytes *)
+      ( "{tag 128(0) => 0; [tag 128(144115188075855841)] => -9}, then byte 14 \
+         set to 0xfc",
+        "8f71108f711fd2fffffffffffffffc61fc72ff0210f52805" );
+      (* a string that is not UTF-8 *)
+      "\"fg\", then byte 1 set to 0x80", "42806702";
+    ]
 
 type corruption =
   | Truncate of int
@@ -152,33 +176,44 @@ let apply_corruption bytes = function
     Bytes.set b i c;
     Bytes.to_string b
 
-let gen_corrupted : (Value.t * corruption * string) G.t =
+(** The [regressions], then random cases. A new generator for each property,
+    since it remembers which regressions it has given. *)
+let gen_corrupted () : corrupted G.t =
   G.(
-    Value.gen >>= fun v ->
-    let bytes = Value.encode v in
-    let n = String.length bytes in
-    let corruption =
-      oneof_weighted
-        [
-          1, map (fun k -> Truncate k) (int_range 0 (n - 1));
-          3, map2 (fun i c -> Set_byte (i, c)) (int_range 0 (n - 1)) char;
-          (* the last byte locates the entry point *)
-          1, map (fun c -> Set_byte (n - 1, c)) char;
-        ]
-    in
-    map (fun c -> v, c, apply_corruption bytes c) corruption)
+    graft_corners
+      ( Value.gen >>= fun v ->
+        let bytes = Value.encode v in
+        let n = String.length bytes in
+        let corruption =
+          oneof_weighted
+            [
+              1, map (fun k -> Truncate k) (int_range 0 (n - 1));
+              3, map2 (fun i c -> Set_byte (i, c)) (int_range 0 (n - 1)) char;
+              (* the last byte locates the entry point *)
+              1, map (fun c -> Set_byte (n - 1, c)) char;
+            ]
+        in
+        map
+          (fun c ->
+            {
+              from =
+                Printf.sprintf "%s, then %s" (Value.show v) (show_corruption c);
+              bytes = apply_corruption bytes c;
+            })
+          corruption )
+      regressions ())
 
-let print_corrupted (v, c, bytes) =
-  Printf.sprintf "bytes:     %s\nfrom:      %s, then %s"
+let print_corrupted { from; bytes } =
+  Printf.sprintf "bytes:     %s\nfrom:      %s"
     (if bytes = "" then
        "(none)"
      else
        Sexp.hex_of_string bytes)
-    (Value.show v) (show_corruption c)
+    from
 
 let never_crashes (dec : P.t) =
   make ~name:"decoder never crashes on corrupted input" ~print:print_corrupted
-    gen_corrupted (fun (_, _, bytes) ->
+    (gen_corrupted ()) (fun { bytes; _ } ->
       match P.request dec bytes with
       | Reply (Ok (Value _ | Decode_error _)) -> true
       | Reply (Ok (Rational _)) -> T.fail_reportf "a rational for type any"
@@ -191,7 +226,7 @@ let never_crashes (dec : P.t) =
     both rejecting is agreement. *)
 let same_as_reference ~(reference : P.t) (dec : P.t) =
   make ~name:"decoder gives the reference's verdict on corrupted input"
-    ~print:print_corrupted gen_corrupted (fun (_, _, bytes) ->
+    ~print:print_corrupted (gen_corrupted ()) (fun { bytes; _ } ->
       match P.request dec bytes, P.request reference bytes with
       | Reply (Ok (Decode_error _)), Reply (Ok (Decode_error _)) -> true
       | ( Reply (Ok ((Value _ | Decode_error _) as ours)),
